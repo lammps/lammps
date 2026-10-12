@@ -2,14 +2,20 @@
 # Muller-Plathe method via fix thermal_conductivity
 
 # settings
+# (index-style variables can be overridden from the command line or a wrapper
+# input for abbreviated runs, e.g. by the tests in the unittest tree)
 
-variable        x equal 10
-variable        y equal 10
+variable        x index 10
+variable        y index 10
 variable        z equal 20
 
 variable        rho equal 0.6
 variable        t equal 1.35
 variable        rc equal 2.5
+
+variable        nequil index 1000
+variable        nsteady index 20000
+variable        nprod index 20000
 
 #variable       rho equal 0.85
 #variable        t equal 0.7
@@ -38,7 +44,7 @@ neigh_modify    delay 0 every 1
 
 fix             1 all nvt temp $t $t 0.5
 thermo          100
-run             1000
+run             ${nequil}
 
 velocity        all scale $t
 
@@ -60,7 +66,7 @@ thermo_style    custom step temp epair etotal f_3 v_tdiff
 thermo_modify   colname f_3 E_delta colname v_tdiff dTemp_step
 
 thermo          1000
-run             20000
+run             ${nsteady}
 
 # thermal conductivity calculation
 # reset fix thermal/conductivity to zero energy accumulation
@@ -73,5 +79,5 @@ fix             ave all ave/time 1 1 1000 v_tdiff ave running
 thermo_style    custom step temp epair etotal f_3 v_tdiff f_ave
 thermo_modify   colname f_3 E_delta colname v_tdiff dTemp_step colname f_ave dTemp
 
-run             20000
+run             ${nprod}
 print           "Running average thermal conductivity: $(v_kappa:%.2f)"

@@ -307,10 +307,8 @@ FixAdapt::~FixAdapt()
   }
   delete[] adapt;
 
-  // check nfix in case all fixes have already been deleted
-
-  if (id_fix_diam && modify->nfix) modify->delete_fix(id_fix_diam);
-  if (id_fix_chg && modify->nfix) modify->delete_fix(id_fix_chg);
+  if (id_fix_diam) modify->delete_fix(id_fix_diam);
+  if (id_fix_chg) modify->delete_fix(id_fix_chg);
   delete[] id_fix_diam;
   delete[] id_fix_chg;
 }
@@ -823,7 +821,15 @@ void FixAdapt::change_settings()
         int nlocal = atom->nlocal;
         int nall = nlocal + atom->nghost;
 
-        if (scaleflag) scale = value / previous_diam_scale;
+        // a scale factor of 0.0 would zero all diameters permanently and cannot
+        // be undone on later steps, so it must be rejected before the division
+
+        if (scaleflag) {
+          if ((value == 0.0) || (previous_diam_scale == 0.0))
+            error->all(FLERR, Error::NOLASTLINE,
+                       "Fix adapt diameter scale factor of 0.0 is not supported");
+          scale = value / previous_diam_scale;
+        }
 
         // mass must not become zero and radius must not be negative
         if (massflag && ((scale == 0.0) || (value == 0.0)))
@@ -855,7 +861,15 @@ void FixAdapt::change_settings()
         int nlocal = atom->nlocal;
         int nall = nlocal + atom->nghost;
 
-        if (scaleflag) scale = value / previous_chg_scale;
+        // a scale factor of 0.0 would zero all charges permanently and cannot
+        // be undone on later steps, so it must be rejected before the division
+
+        if (scaleflag) {
+          if ((value == 0.0) || (previous_chg_scale == 0.0))
+            error->all(FLERR, Error::NOLASTLINE,
+                       "Fix adapt charge scale factor of 0.0 is not supported");
+          scale = value / previous_chg_scale;
+        }
 
         for (i = 0; i < nall; i++) {
           if (mask[i] & groupbit) {

@@ -337,8 +337,8 @@ void ComputeGlobalAtom::compute_peratom()
     // output = vector
 
     if (val.argindex == 0) {
-      int vmax;
-      double *source;
+      int vmax = 0;
+      double *source = nullptr;
 
       if (val.which == ArgInfo::COMPUTE) {
 
@@ -354,7 +354,7 @@ void ComputeGlobalAtom::compute_peratom()
         if (update->ntimestep % val.val.f->peratom_freq)
           error->all(FLERR, Error::NOLASTLINE, "Fix {} used in compute global/atom not computed "
                      "at compatible time{}", val.id, utils::errorurl(7));
-        vmax = reference.val.f->size_vector;
+        vmax = val.val.f->size_vector;
 
         if (vmax > maxvector) {
           maxvector = vmax;
@@ -392,8 +392,8 @@ void ComputeGlobalAtom::compute_peratom()
     // output = array
 
     } else {
-      int vmax;
-      double *source;
+      int vmax = 0;
+      double *source = nullptr;
       int col = val.argindex - 1;
 
       if (val.which == ArgInfo::COMPUTE) {

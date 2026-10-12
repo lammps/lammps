@@ -16,7 +16,6 @@
 
 #include "atom_kokkos.h"
 #include "atom_masks.h"
-#include "memory_kokkos.h"
 
 using namespace LAMMPS_NS;
 using namespace MathSpecialKokkos;
@@ -28,16 +27,6 @@ RegBlockKokkos<DeviceType>::RegBlockKokkos(LAMMPS *lmp, int narg, char **arg)
   : RegBlock(lmp, narg, arg)
 {
   atomKK = (AtomKokkos*) atom;
-  memoryKK->create_kokkos(d_contact,6,"region_block:d_contact");
-}
-
-/* ---------------------------------------------------------------------- */
-
-template<class DeviceType>
-RegBlockKokkos<DeviceType>::~RegBlockKokkos()
-{
-  if (copymode) return;
-  memoryKK->destroy_kokkos(d_contact);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -46,6 +35,7 @@ template<class DeviceType>
 void RegBlockKokkos<DeviceType>::match_all_kokkos(int groupbit_in, DAT::tdual_int_1d k_match_in)
 {
   groupbit = groupbit_in;
+  boxremap.capture(domain);
   d_match = k_match_in.template view<DeviceType>();
   auto execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
   atomKK->sync(execution_space, X_MASK | MASK_MASK);
@@ -66,9 +56,9 @@ template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void RegBlockKokkos<DeviceType>::operator()(TagRegBlockMatchAll, const int &i) const {
   if (d_mask[i] & groupbit) {
-    double x_tmp = d_x(i,0);
-    double y_tmp = d_x(i,1);
-    double z_tmp = d_x(i,2);
+    double x_tmp = static_cast<double>(d_x(i,0));
+    double y_tmp = static_cast<double>(d_x(i,1));
+    double z_tmp = static_cast<double>(d_x(i,2));
     d_match[i] = match_kokkos(x_tmp,y_tmp,z_tmp);
   }
 }

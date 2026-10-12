@@ -211,7 +211,11 @@ void PairADPOMP::eval(int iifrom, int iito, ThrData * const thr)
     sync_threads();
 
 #if defined(_OPENMP)
+#if _OPENMP >= 202011
+#pragma omp masked
+#else
 #pragma omp master
+#endif
 #endif
     { comm->reverse_comm(this); }
 
@@ -260,7 +264,11 @@ void PairADPOMP::eval(int iifrom, int iito, ThrData * const thr)
   // communicate derivative of embedding function
   // MPI communication only on master thread
 #if defined(_OPENMP)
+#if _OPENMP >= 202011
+#pragma omp masked
+#else
 #pragma omp master
+#endif
 #endif
   { comm->forward_comm(this); }
 

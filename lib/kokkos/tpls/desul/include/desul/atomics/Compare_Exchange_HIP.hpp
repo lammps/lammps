@@ -12,17 +12,12 @@ SPDX-License-Identifier: (BSD-3-Clause)
 #include <desul/atomics/Adapt_HIP.hpp>
 #include <desul/atomics/Common.hpp>
 #include <desul/atomics/Lock_Array_HIP.hpp>
+#include <desul/atomics/Lock_Free_Types_HIP.hpp>
 #include <desul/atomics/Thread_Fence_HIP.hpp>
 #include <type_traits>
 
 namespace desul {
 namespace Impl {
-
-template <class T>
-inline constexpr bool device_atomic_always_lock_free<T, void> =
-    ((sizeof(T) == 1 && alignof(T) == 1) || (sizeof(T) == 4 && alignof(T) == 4) ||
-     (sizeof(T) == 8 && alignof(T) == 8)) &&
-    std::is_trivially_copyable<T>::value;
 
 template <class T, class MemoryOrder, class MemoryScope>
 __device__ std::enable_if_t<device_atomic_always_lock_free<T>, T>

@@ -18,6 +18,7 @@
 #include <cmath>
 
 #include "lal_sph_lj.h"
+#include "lammps_gpu.h"
 
 using namespace std;
 using namespace LAMMPS_AL;
@@ -27,6 +28,8 @@ static SPHLJ<PRECISION,ACC_PRECISION> SPHLJMF;
 // ---------------------------------------------------------------------------
 // Allocate memory on host and device and copy constants to device
 // ---------------------------------------------------------------------------
+
+namespace LAMMPS_GPU {
 int sph_lj_gpu_init(const int ntypes, double **cutsq, double** host_cut,
                     double **host_viscosity, double* host_mass, const int dimension,
                     double *special_lj, const int inum, const int nall,
@@ -34,7 +37,6 @@ int sph_lj_gpu_init(const int ntypes, double **cutsq, double** host_cut,
                     const double cell_size, int &gpu_mode, FILE *screen) {
   SPHLJMF.clear();
   gpu_mode=SPHLJMF.device->gpu_mode();
-  double gpu_split=SPHLJMF.device->particle_split();
   int first_gpu=SPHLJMF.device->first_device();
   int last_gpu=SPHLJMF.device->last_device();
   int world_me=SPHLJMF.device->world_me();
@@ -56,7 +58,7 @@ int sph_lj_gpu_init(const int ntypes, double **cutsq, double** host_cut,
   if (world_me==0)
     init_ok=SPHLJMF.init(ntypes, cutsq, host_cut, host_viscosity, host_mass,
                          dimension, special_lj, inum, nall, max_nbors,  maxspecial,
-                         cell_size, gpu_split, screen);
+                         cell_size, screen);
 
   SPHLJMF.device->world_barrier();
   if (message)
@@ -74,7 +76,7 @@ int sph_lj_gpu_init(const int ntypes, double **cutsq, double** host_cut,
     if (gpu_rank==i && world_me!=0)
       init_ok=SPHLJMF.init(ntypes, cutsq, host_cut, host_viscosity, host_mass,
                            dimension, special_lj, inum, nall, max_nbors, maxspecial,
-                           cell_size, gpu_split, screen);
+                           cell_size, screen);
 
     SPHLJMF.device->serialize_init();
     if (message)
@@ -92,27 +94,25 @@ void sph_lj_gpu_clear() {
   SPHLJMF.clear();
 }
 
-int ** sph_lj_gpu_compute_n(const int ago, const int inum_full, const int nall,
-                            double **host_x, int *host_type, double *sublo,
-                            double *subhi, tagint *host_tag, int **nspecial,
-                            tagint **special, const bool eflag, const bool vflag,
-                            const bool eatom, const bool vatom, int &host_start,
-                            int **ilist, int **jnum, const double cpu_time, bool &success,
-                            double **host_v) {
+int **sph_lj_gpu_compute_n(const int ago, const int inum_full, const int nall, double **host_x,
+                           int *host_type, double *sublo, double *subhi, tagint *host_tag,
+                           int **nspecial, tagint **special, const bool eflag, const bool vflag,
+                           const bool eatom, const bool vatom, int **ilist, int **jnum,
+                           bool &success, double **host_v)
+{
   return SPHLJMF.compute(ago, inum_full, nall, host_x, host_type, sublo,
                          subhi, host_tag, nspecial, special, eflag, vflag,
-                         eatom, vatom, host_start, ilist, jnum, cpu_time, success,
+                         eatom, vatom, ilist, jnum, success,
                          host_v);
 }
 
 void sph_lj_gpu_compute(const int ago, const int inum_full, const int nall,
                         double **host_x, int *host_type, int *ilist, int *numj,
                         int **firstneigh, const bool eflag, const bool vflag,
-                        const bool eatom, const bool vatom, int &host_start,
-                        const double cpu_time, bool &success, tagint *host_tag,
+                        const bool eatom, const bool vatom, bool &success, tagint *host_tag,
                         double **host_v) {
   SPHLJMF.compute(ago, inum_full, nall, host_x, host_type, ilist, numj,
-                  firstneigh, eflag, vflag, eatom, vatom, host_start, cpu_time, success,
+                  firstneigh, eflag, vflag, eatom, vatom, success,
                   host_tag, host_v);
 }
 
@@ -127,3 +127,5 @@ void sph_lj_gpu_update_drhoE(void **drhoE_ptr) {
 double sph_lj_gpu_bytes() {
   return SPHLJMF.host_memory_usage();
 }
+
+} // namespace LAMMPS_GPU

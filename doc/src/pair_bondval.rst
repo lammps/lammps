@@ -61,7 +61,7 @@ A three-element perovskite BaTiO3 system:
 Description
 """""""""""
 
-.. versionadded:: TBD
+.. versionadded:: 4Jul2026
 
 The bond-valence potential is an empirical potential based on the
 conservation of the bond-valence (bondval) and bond-valence vector

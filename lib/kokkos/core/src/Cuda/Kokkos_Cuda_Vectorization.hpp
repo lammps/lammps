@@ -31,7 +31,7 @@ constexpr unsigned shfl_all_mask = 0xffffffffu;
 template <class Derived>
 struct in_place_shfl_op {
   // CRTP boilerplate
-  __device__ KOKKOS_IMPL_FORCEINLINE const Derived& self() const noexcept {
+  __device__ __forceinline__ const Derived& self() const noexcept {
     return *static_cast<Derived const*>(this);
   }
 
@@ -111,9 +111,8 @@ struct in_place_shfl_op {
 
 struct in_place_shfl_fn : in_place_shfl_op<in_place_shfl_fn> {
   template <class T>
-  __device__ KOKKOS_IMPL_FORCEINLINE T do_shfl_op(unsigned mask, T& val,
-                                                  int lane,
-                                                  int width) const noexcept {
+  __device__ __forceinline__ T do_shfl_op(unsigned mask, T& val, int lane,
+                                          int width) const noexcept {
     (void)mask;
     (void)val;
     (void)lane;
@@ -122,29 +121,26 @@ struct in_place_shfl_fn : in_place_shfl_op<in_place_shfl_fn> {
   }
 };
 template <class... Args>
-__device__ KOKKOS_IMPL_FORCEINLINE void in_place_shfl(Args&&... args) noexcept {
+__device__ __forceinline__ void in_place_shfl(Args&&... args) noexcept {
   in_place_shfl_fn{}((Args&&)args...);
 }
 
 struct in_place_shfl_up_fn : in_place_shfl_op<in_place_shfl_up_fn> {
   template <class T>
-  __device__ KOKKOS_IMPL_FORCEINLINE T do_shfl_op(unsigned mask, T& val,
-                                                  int lane,
-                                                  int width) const noexcept {
+  __device__ __forceinline__ T do_shfl_op(unsigned mask, T& val, int lane,
+                                          int width) const noexcept {
     return __shfl_up_sync(mask, val, lane, width);
   }
 };
 template <class... Args>
-__device__ KOKKOS_IMPL_FORCEINLINE void in_place_shfl_up(
-    Args&&... args) noexcept {
+__device__ __forceinline__ void in_place_shfl_up(Args&&... args) noexcept {
   in_place_shfl_up_fn{}((Args&&)args...);
 }
 
 struct in_place_shfl_down_fn : in_place_shfl_op<in_place_shfl_down_fn> {
   template <class T>
-  __device__ KOKKOS_IMPL_FORCEINLINE T do_shfl_op(unsigned mask, T& val,
-                                                  int lane,
-                                                  int width) const noexcept {
+  __device__ __forceinline__ T do_shfl_op(unsigned mask, T& val, int lane,
+                                          int width) const noexcept {
     (void)mask;
     (void)val;
     (void)lane;
@@ -153,8 +149,7 @@ struct in_place_shfl_down_fn : in_place_shfl_op<in_place_shfl_down_fn> {
   }
 };
 template <class... Args>
-__device__ KOKKOS_IMPL_FORCEINLINE void in_place_shfl_down(
-    Args&&... args) noexcept {
+__device__ __forceinline__ void in_place_shfl_down(Args&&... args) noexcept {
   in_place_shfl_down_fn{}((Args&&)args...);
 }
 

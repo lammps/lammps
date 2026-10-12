@@ -1,0 +1,19 @@
+variable        ps index sw/mod
+units           metal
+atom_style      atomic
+atom_modify     map array
+lattice         diamond 5.431
+region          box block 0 4 0 4 0 4
+create_box      1 box
+create_atoms    1 box
+mass            * 28.06
+velocity        all create 600.0 376847 loop geom
+if "${ps} == sw/mod" then "pair_style sw/mod maxdelcs 0.25 0.35" "pair_coeff * * ${pot} Si" &
+else "pair_style tersoff/mod/c" "pair_coeff * * ${pot} Si"
+neighbor        1.0 bin
+neigh_modify    delay 0 every 1 check yes
+timestep        0.001
+fix             1 all nve
+thermo_style    custom step temp pe etotal press
+thermo          5
+run             20 post no

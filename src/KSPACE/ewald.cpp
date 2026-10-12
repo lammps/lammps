@@ -111,9 +111,12 @@ void Ewald::init()
     if (domain->xperiodic != 1 || domain->yperiodic != 1 ||
         domain->boundary[2][0] != 1 || domain->boundary[2][1] != 1)
       error->all(FLERR,"Incorrect boundaries with slab Ewald");
-    if (domain->triclinic)
-      error->all(FLERR,"Cannot (yet) use Ewald with triclinic box "
-                 "and slab correction");
+    if (domain->triclinic && slabflag != 1)
+      error->all(FLERR,"Triclinic boxes only support the 'kspace_modify slab "
+                 "<volfactor>' correction, not 'slab nozforce' or 'slab ew2d'");
+    if (domain->triclinic && slabflag == 1 && (domain->yz != 0.0 || domain->xz != 0.0))
+      error->all(FLERR,"Triclinic slab (EW3DC) correction requires xz = yz = 0 "
+                 "(the slab normal must be the z axis); xy tilt is allowed");
   }
 
   // compute two charge force
@@ -1270,9 +1273,9 @@ double Ewald::memory_usage()
 
 void Ewald::compute_group_group(int groupbit_A, int groupbit_B, int AA_flag)
 {
-  if (slabflag && triclinic)
-    error->all(FLERR,"Cannot (yet) use K-space slab "
-               "correction with compute group/group for triclinic systems");
+  if (triclinic && (slabflag == 2 || slabflag == 3))
+    error->all(FLERR,"Triclinic boxes only support the 'kspace_modify slab "
+               "<volfactor>' correction, not 'slab nozforce' or 'slab ew2d'");
 
   int i,k;
 

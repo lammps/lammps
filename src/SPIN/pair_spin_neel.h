@@ -26,7 +26,11 @@ namespace LAMMPS_NS {
 
 class PairSpinNeel : public PairSpin {
  public:
-  PairSpinNeel(LAMMPS *lmp) : PairSpin(lmp) {}
+  PairSpinNeel(LAMMPS *lmp) :
+      PairSpin(lmp), g1(nullptr), g1_mech(nullptr), g2(nullptr), g3(nullptr), q1(nullptr),
+      q1_mech(nullptr), q2(nullptr), q3(nullptr), cut_spin_neel(nullptr)
+  {
+  }
   ~PairSpinNeel() override;
   void settings(int, char **) override;
   void coeff(int, char **) override;

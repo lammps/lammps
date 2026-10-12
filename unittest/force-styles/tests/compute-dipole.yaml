@@ -1,0 +1,20 @@
+---
+lammps_version: 4 Jul 2026
+tags:
+date_generated: Thu Jul  9 16:21:38 2026
+epsilon: 1e-08
+timestep: 0.25
+skip_tests:
+prerequisites: |
+  atom full
+  compute dipole
+pre_commands: ""
+post_commands: |
+  compute test solute dipole
+input_file: in.fourmol
+input_coeffs: coeffs.fourmol
+natoms: 29
+global_scalar: 0.46736142855507196
+global_vector: |-
+  3  4.2997937986333384e-01 -1.3001303661382035e-01 -1.2900018644883376e-01
+...

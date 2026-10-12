@@ -43,7 +43,7 @@ static constexpr double A_CC = 1.421;
 
 /* ---------------------------------------------------------------------- */
 
-AngleMesoCNT::AngleMesoCNT(LAMMPS *_lmp) : Angle(_lmp)
+AngleMesoCNT::AngleMesoCNT(LAMMPS *_lmp) : Angle(_lmp), theta0(nullptr)
 {
   buckling = nullptr;
   kh = nullptr;

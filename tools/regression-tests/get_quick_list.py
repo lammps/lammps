@@ -4,7 +4,7 @@ Find all example input files containing commands changed in this branch versus d
 Companion script to run_tests.py regression tester.
 """
 
-import os, re, sys, subprocess
+import glob, os, re, sys, subprocess
 from pathlib import Path
 
 if sys.version_info < (3,5):
@@ -139,7 +139,7 @@ def get_command_from_header(headers, topdir="."):
                         elif m[0] == 'Body':
                             styles['body'].append(style)
                         elif m[0] == 'Bond':
-                            styles['bond'].applend(style)
+                            styles['bond'].append(style)
                         elif m[0] == 'Command':
                             styles['command'].append(style)
                         elif m[0] == 'Compute':
@@ -168,6 +168,70 @@ def get_command_from_header(headers, topdir="."):
         except:
             pass
     return styles
+
+# ----------------------------------------------------------------------
+
+# style macro prefixes and the corresponding style category, i.e. the kind of
+# XxxStyle(name,Class) macros in the headers that register input script styles
+STYLE_MACRO_CATEGORY = {
+    'Angle': 'angle', 'Atom': 'atom', 'Body': 'body', 'Bond': 'bond',
+    'Command': 'command', 'Compute': 'compute', 'Dihedral': 'dihedral',
+    'Dump': 'dump', 'Fix': 'fix', 'Improper': 'improper', 'Integrate': 'integrate',
+    'KSpace': 'kspace', 'Minimize': 'minimize', 'Pair': 'pair', 'Region': 'region',
+}
+
+def get_style_universe(topdir):
+    """
+    Collect all style names that exist anywhere in the LAMMPS distribution.
+
+    Scans the headers in src/ and all package folders under src/ for the
+    XxxStyle(name,Class) macros, including the packages that are not installed
+    in any given build.  The same styles are hidden as in the -help output of
+    the LAMMPS binary: internal styles starting with an upper-case letter and
+    the KOKKOS host/device variants.  Comparing this universe with the styles
+    reported by "lmp -help" tells which known styles a binary does not include.
+
+    param topdir: top-level folder of the LAMMPS source tree
+    type topdir: string
+    return: nested dictionary: category -> style name -> package folder name
+            (an empty string marks a style from the core in src/)
+    rtype: dict
+    """
+
+    style_macro = re.compile(r'^\s*([A-Za-z]+)Style\(([^,\s]+)\s*,\s*[^)\s]+\)')
+    kokkos_internal = re.compile(r'.*/kk/(host|device)$')
+    package_dir = re.compile(r'^[A-Z][A-Z0-9-]*$')
+
+    universe = {category: {} for category in STYLE_MACRO_CATEGORY.values()}
+    src = os.path.join(topdir, 'src')
+    folders = [('', src)]
+    try:
+        entries = sorted(os.listdir(src))
+    except OSError:
+        entries = []
+    for entry in entries:
+        if package_dir.match(entry) and entry not in ('STUBS', 'MAKE', 'DEPEND'):
+            folders.append((entry, os.path.join(src, entry)))
+
+    for package, folder in folders:
+        for header in sorted(glob.glob(os.path.join(folder, '*.h'))):
+            try:
+                with open(header) as f:
+                    for line in f:
+                        m = style_macro.match(line)
+                        if not m:
+                            continue
+                        category = STYLE_MACRO_CATEGORY.get(m.group(1))
+                        style = m.group(2)
+                        if not category:
+                            continue
+                        # skip the same styles that the -help output hides
+                        if style[0].isupper() or kokkos_internal.match(style):
+                            continue
+                        universe[category].setdefault(style, package)
+            except OSError:
+                pass
+    return universe
 
 # ----------------------------------------------------------------------
 
@@ -241,6 +305,9 @@ def get_examples_using_styles(regex, examples='examples'):
     commands = re.compile(regex)
     inputs = []
     for filename in Path(examples).rglob('in.*'):
+        # leave out editor backup copies (e.g. in.melt~) of input scripts
+        if str(filename).endswith('~'):
+            continue
         with open(filename) as f:
             for line in f:
                 if commands.match(line):

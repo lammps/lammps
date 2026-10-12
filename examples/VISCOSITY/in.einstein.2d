@@ -2,16 +2,21 @@
 # Einstein form of Green-Kubo
 
 # settings
+# (index-style variables can be overridden from the command line or a wrapper
+# input for abbreviated runs, e.g. by the tests in the unittest tree)
 
-variable	x equal 20
-variable	y equal 20
+variable	x index 20
+variable	y index 20
 
 variable	rho equal 0.6
 variable        t equal 1.0
 variable	rc equal 2.5
 
-variable    p equal 400     # correlation length
-variable    s equal 5       # sample interval
+variable	nequil index 10000
+variable	nprod index 500000
+
+variable    p index 400     # correlation length
+variable    s index 5       # sample interval
 variable    d equal $p*$s   # dump interval 
 
 # problem setup
@@ -39,7 +44,7 @@ fix	        2 all langevin $t $t 0.1 498094
 fix	        3 all enforce2d
 
 thermo          $d
-run	        10000
+run	        ${nequil}
 
 velocity	all scale $t
 
@@ -77,7 +82,7 @@ variable         vxx equal f_avdeltasq[2]*${scale}
 
 thermo_style     custom step temp pe press pxy v_vxy v_vxx
 
-run              500000
+run              ${nprod}
 
 variable         etaxy equal v_vxy
 variable         etaxx equal v_vxx

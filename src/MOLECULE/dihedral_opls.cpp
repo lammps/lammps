@@ -35,7 +35,8 @@ static constexpr double SMALLER = 0.00001;
 
 /* ---------------------------------------------------------------------- */
 
-DihedralOPLS::DihedralOPLS(LAMMPS *_lmp) : Dihedral(_lmp)
+DihedralOPLS::DihedralOPLS(LAMMPS *_lmp) :
+    Dihedral(_lmp), k1(nullptr), k2(nullptr), k3(nullptr), k4(nullptr)
 {
   writedata = 1;
   born_matrix_enable = 1;

@@ -51,11 +51,11 @@ int LJCoulT::init(const int ntypes,
                           double *host_special_lj, const int nlocal,
                           const int nall, const int max_nbors,
                           const int maxspecial, const double cell_size,
-                          const double gpu_split, FILE *_screen,
+                           FILE *_screen,
                           double **host_cut_ljsq, double **host_cut_coulsq,
                           double *host_special_coul, const double qqrd2e) {
   int success;
-  success=this->init_atomic(nlocal,nall,max_nbors,maxspecial,cell_size,gpu_split,
+  success=this->init_atomic(nlocal,nall,max_nbors,maxspecial,cell_size,
                             _screen,lj_coul,"k_lj_coul");
   if (success!=0)
     return success;

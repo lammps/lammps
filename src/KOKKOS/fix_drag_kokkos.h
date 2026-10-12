@@ -63,8 +63,6 @@ class FixDragKokkos : public FixDrag {
   KOKKOS_INLINE_FUNCTION
   void minimum_image(KK_FLOAT &dx, KK_FLOAT &dy, KK_FLOAT &dz) const;
 
-  class AtomKokkos *atomKK;
-  ExecutionSpace execution_space;
 };
 
 }

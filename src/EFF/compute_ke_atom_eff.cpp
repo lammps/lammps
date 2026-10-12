@@ -60,11 +60,8 @@ ComputeKEAtomEff::~ComputeKEAtomEff()
 
 void ComputeKEAtomEff::init()
 {
-  int count = 0;
-  for (int i = 0; i < modify->ncompute; i++)
-    if (strcmp(modify->compute[i]->style,"ke/atom/eff") == 0) count++;
-  if (count > 1 && comm->me == 0)
-    error->warning(FLERR,"More than one compute ke/atom/eff");
+  if ((comm->me == 0) && (modify->get_compute_by_style("^ke/atom/eff").size() > 1))
+    error->warning(FLERR, "More than one compute {}", style);
 }
 
 /* ---------------------------------------------------------------------- */

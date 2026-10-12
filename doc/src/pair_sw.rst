@@ -4,6 +4,7 @@
 .. index:: pair_style sw/kk
 .. index:: pair_style sw/omp
 .. index:: pair_style sw/mod
+.. index:: pair_style sw/mod/kk
 .. index:: pair_style sw/mod/omp
 
 pair_style sw command
@@ -14,7 +15,7 @@ Accelerator Variants: *sw/gpu*, *sw/intel*, *sw/kk*, *sw/omp*
 pair_style sw/mod command
 =========================
 
-Accelerator Variants: *sw/mod/omp*
+Accelerator Variants: *sw/mod/kk*, *sw/mod/omp*
 
 Syntax
 """"""

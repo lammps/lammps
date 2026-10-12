@@ -68,7 +68,9 @@ static const char cite_fix_qtpie_reax[] =
 /* ---------------------------------------------------------------------- */
 
 FixQtpieReaxFF::FixQtpieReaxFF(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), matvecs(0), pertype_option(nullptr), gauss_file(nullptr)
+    Fix(lmp, narg, arg), matvecs(0), list(nullptr), efield(nullptr), ilist(nullptr),
+    numneigh(nullptr), firstneigh(nullptr), chi(nullptr), eta(nullptr), gamma(nullptr),
+    pertype_option(nullptr), gauss_file(nullptr), gauss_exp(nullptr)
 {
   // this fix returns a global scalar (the number of iterations)
   scalar_flag = 1;
@@ -118,6 +120,7 @@ FixQtpieReaxFF::FixQtpieReaxFF(LAMMPS *lmp, int narg, char **arg) :
   nmax = 0;
   m_fill = m_cap = 0;
   pack_flag = 0;
+  matvecs_s = matvecs_t = 0;
   s = nullptr;
   t = nullptr;
   nprev = 4;
@@ -138,6 +141,9 @@ FixQtpieReaxFF::FixQtpieReaxFF(LAMMPS *lmp, int narg, char **arg) :
 
   // H matrix
 
+  ilist = jlist = numneigh = nullptr;
+  firstneigh = nullptr;
+  H.n = H.m = 0;
   H.firstnbr = nullptr;
   H.numnbrs = nullptr;
   H.jlist = nullptr;
@@ -150,7 +156,19 @@ FixQtpieReaxFF::FixQtpieReaxFF(LAMMPS *lmp, int narg, char **arg) :
 
   reaxff = dynamic_cast<PairReaxFF *>(force->pair_match("^reaxff",0));
 
+  // this fix borrows the pair style's neighbor list when it can, to avoid
+  // building a second one.  The KOKKOS version of pair reaxff builds its list
+  // on the device, where the plain ilist, numneigh and firstneigh below are
+  // not filled in, so fall back to the list this fix requests for itself --
+  // the same one it uses when there is no reaxff pair style at all.
+
+  if (reaxff && reaxff->kokkosable) reaxff = nullptr;
+
+  reaxflag = 0;
+  nlevels_respa = 1;
+
   s_hist = t_hist = nullptr;
+  dist_cutoff_sq = 0.0;
   atom->add_callback(Atom::GROW);
 }
 

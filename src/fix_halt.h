@@ -34,7 +34,7 @@ class FixHalt : public Fix {
   void min_post_force(int) override;
   void post_run() override;
 
- private:
+ protected:
   int attribute, operation, eflag, msgflag, ivar, uflag;
   bool triggered;
   bigint nextstep, thisstep;
@@ -42,7 +42,7 @@ class FixHalt : public Fix {
   char *idvar;
   char *dlimit_path;
 
-  double bondmax();
+  virtual double bondmax();
   double tlimit();
   double diskfree();
 };

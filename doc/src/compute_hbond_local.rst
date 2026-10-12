@@ -52,19 +52,19 @@ Define a computation that determines the number of hydrogen bonds and
 computes some related properties according to the provided parameters.
 To be counted as a hydrogen bond the following conditions have to be met
 
-- the donor atom has to be in the group *dgroup-ID*
-- the acceptor atom has to be in the group *agroup-ID*
-- the hydrogen atom has to be in the group *hgroup-ID*
+- the donor atom (D) has to be in the group *dgroup-ID*
+- the acceptor atom (A) has to be in the group *agroup-ID*
+- the hydrogen atom (H) has to be in the group *hgroup-ID*
 - all three atoms have to be in the compute group
 - the hydrogen atom has to be connected to the donor with a bond
 - the donor - acceptor distance has to be less than *rcut*
 - the hydrogen - donor - acceptor angle has to be less than *acut*
 
-.. figure:: JPG/hbond-diagram.png
-   :figclass: align-center
-   :figwidth: 33%
+Please see the following diagram for a visualization of the
+different assignments and parameters.
 
-   Diagram of the hydrogen bond definition for compute hbond/local
+.. image:: JPG/hbond-diagram.png
+   :width: 80%
 
 The following values can be computed and output.
 

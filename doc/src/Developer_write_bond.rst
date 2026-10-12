@@ -70,16 +70,18 @@ by including the following lines before the include guards:
    // clang-format on
    #else
 
-This block between ``#ifdef BOND_CLASS`` and ``#else`` will be included
-by the ``Force`` class in ``force.cpp`` to build a map of factory
-functions for bond styles.  The map connects the name of the bond style,
-"harmonic", with the name of the class, ``BondHarmonic``.  During
-compilation, LAMMPS generates a file ``style_bond.h`` that contains
-``#include`` statements for all installed bond styles.  Before including
-``style_bond.h`` into ``force.cpp``, the ``BOND_CLASS`` define is set
-and the ``BondStyle(name,class)`` macro defined.  The ``//
-clang-format`` comments prevent ``clang-format`` from reformatting the
-macro argument in a way that would break it.
+This block between ``#ifdef BOND_CLASS`` and ``#else`` registers the bond
+style with LAMMPS.  During compilation, the build system parses the
+``BondStyle(harmonic,BondHarmonic)`` marker and generates a file
+``style_bond.cpp`` that ``#include``\s the header files of all installed bond
+styles and registers a factory function for each of them.  These factory
+functions are kept in a process-global registry that connects the bond style
+name, "harmonic", with the class ``BondHarmonic``.  The ``BOND_CLASS`` macro is
+never actually defined during compilation; the ``#ifdef BOND_CLASS`` block only
+serves as a marker for the build system's parser, so the header always provides
+the class definition from its ``#else`` branch.  The ``// clang-format``
+comments prevent ``clang-format`` from reformatting the macro argument in a way
+that would break it.
 
 Analogously, an angle style would use ``#ifdef ANGLE_CLASS`` and
 ``AngleStyle(name,class)``, a dihedral style would use ``#ifdef

@@ -102,7 +102,11 @@ class CudaInternal {
   mutable size_type* m_scratchFlags   = nullptr;
   mutable size_type* m_scratchUnified = nullptr;
   mutable size_type* m_scratchFunctor = nullptr;
-  cudaStream_t m_stream               = nullptr;
+
+  // mutex to access shared memory
+  mutable std::mutex m_mutexScratchSpace;
+
+  cudaStream_t m_stream = nullptr;
   uint32_t m_instance_id =
       Kokkos::Tools::Experimental::Impl::idForInstance<Kokkos::Cuda>(
           reinterpret_cast<uintptr_t>(this));

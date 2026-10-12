@@ -6,6 +6,7 @@
 .. index:: pair_style coul/cut/global/kk
 .. index:: pair_style coul/cut/global/omp
 .. index:: pair_style coul/ctip
+.. index:: pair_style coul/ctip/omp
 .. index:: pair_style coul/debye
 .. index:: pair_style coul/debye/gpu
 .. index:: pair_style coul/debye/kk
@@ -15,6 +16,7 @@
 .. index:: pair_style coul/dsf/kk
 .. index:: pair_style coul/dsf/omp
 .. index:: pair_style coul/esp
+.. index:: pair_style coul/esp/omp
 .. index:: pair_style coul/exclude
 .. index:: pair_style coul/exclude/omp
 .. index:: pair_style coul/long
@@ -29,8 +31,10 @@
 .. index:: pair_style coul/wolf/kk
 .. index:: pair_style coul/wolf/omp
 .. index:: pair_style tip4p/cut
+.. index:: pair_style tip4p/cut/kk
 .. index:: pair_style tip4p/cut/omp
 .. index:: pair_style tip4p/long
+.. index:: pair_style tip4p/long/kk
 .. index:: pair_style tip4p/long/omp
 
 pair_style coul/cut command
@@ -46,6 +50,8 @@ Accelerator Variants: *coul/cut/global/kk*, *coul/cut/global/omp*
 pair_style coul/ctip command
 ============================
 
+Accelerator Variants: *coul/ctip/omp*
+
 pair_style coul/debye command
 =============================
 
@@ -55,6 +61,11 @@ pair_style coul/dsf command
 ===========================
 
 Accelerator Variants: *coul/dsf/gpu*, *coul/dsf/kk*, *coul/dsf/omp*
+
+pair_style coul/esp command
+===========================
+
+Accelerator Variants: *coul/esp/omp*
 
 pair_style coul/exclude command
 ===============================
@@ -84,12 +95,12 @@ Accelerator Variants: *coul/wolf/kk*, *coul/wolf/omp*
 pair_style tip4p/cut command
 ============================
 
-Accelerator Variants: *tip4p/cut/omp*
+Accelerator Variants: *tip4p/cut/kk*, *tip4p/cut/omp*
 
 pair_style tip4p/long command
 =============================
 
-Accelerator Variants: *tip4p/long/omp*
+Accelerator Variants: *tip4p/long/kk*, *tip4p/long/omp*
 
 Syntax
 """"""
@@ -219,7 +230,7 @@ command. For example:
    pair_coeff * * coul/ctip NiO.ctip Ni O
    fix 1 all qeq/ctip 1 12.0 1.0e-8 100 coul/ctip cdamp 0.30 maxrepeat 10
 
-See the examples/ctip directory for an example input script using the
+See the ``examples/streitz`` directory for an example input script using the
 CTIP potential. An Ni-O CTIP and EAM/FS parameterization are included
 for use with the example.
 

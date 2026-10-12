@@ -10,12 +10,12 @@ read_data   data.halfhalf
 pair_coeff  1 1 1.0 1.0 2.5
 mass        1 1.0
 
-# simulation parameters 
-neighbor	0.6 bin
-timestep	0.004
-run_style 	verlet
+# simulation parameters
+neighbor        0.6 bin
+timestep        0.004
+run_style       verlet
 
-velocity all create 0.8 1 mom yes rot yes
+velocity all create 0.8 1 mom yes rot yes loop geom
 fix ensemble all npt temp 0.8 0.8 4.0 z 2.185 2.185 8.0
 fix 100 all momentum 100 linear 1 1 1
 

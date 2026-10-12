@@ -22,6 +22,7 @@
 
 #include "accelerator_kokkos.h"
 #include "atom.h"
+#include "atom_masks.h"
 #include "atom_vec.h"
 #include "comm.h"
 #include "domain.h"
@@ -325,6 +326,10 @@ void Replicate::command(int narg, char **arg)
       atom->mass_setflag[itype] = old->mass_setflag[itype];
       if (atom->mass_setflag[itype]) atom->mass[itype] = old->mass[itype];
     }
+
+    // written through the host pointer, so flag it for the device copy
+
+    atom->modified_host_arrays(MASS_MASK);
   }
 
   // set bounds for my proc
@@ -963,8 +968,12 @@ void Replicate::replicate_by_bbox(int nx, int ny, int nz,
 void Replicate::newtag(tagint atom0tag, tagint &tag2bond) {
   double del;
   int repshift,rep2bond[3];
-  int atom0 = old_map.find(atom0tag)->second;
-  int atom2bond = old_map.find(tag2bond)->second;
+  auto it0 = old_map.find(atom0tag);
+  auto it2 = old_map.find(tag2bond);
+  if ((it0 == old_map.end()) || (it2 == old_map.end()))
+    error->one(FLERR,"Replicate: bond/angle/dihedral/improper references a non-existent atom");
+  int atom0 = it0->second;
+  int atom2bond = it2->second;
   for (int i = 0; i < 3; i++) {
     del = fabs(old_x[atom0][i] - old_x[atom2bond][i]);
     if (del > old_prd_half[i]) {

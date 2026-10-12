@@ -1,10 +1,11 @@
 .. index:: compute centro/atom
+.. index:: compute centro/atom/kk
 .. index:: compute centro/atom/omp
 
 compute centro/atom command
 ===========================
 
-Accelerator Variants: *centro/atom/omp*
+Accelerator Variants: *centro/atom/kk*, *centro/atom/omp*
 
 Syntax
 """"""

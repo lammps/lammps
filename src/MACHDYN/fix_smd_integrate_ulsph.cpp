@@ -44,7 +44,8 @@ using namespace FixConst;
 /* ---------------------------------------------------------------------- */
 
 FixSMDIntegrateUlsph::FixSMDIntegrateUlsph(LAMMPS *lmp, int narg, char **arg) :
-                Fix(lmp, narg, arg) {
+    Fix(lmp, narg, arg), list(nullptr), pair(nullptr)
+{
 
         if ((atom->esph_flag != 1) || (atom->vfrac_flag != 1))
                 error->all(FLERR, "fix smd/integrate_ulsph command requires atom_style with both energy and volume");
@@ -113,9 +114,7 @@ FixSMDIntegrateUlsph::FixSMDIntegrateUlsph(LAMMPS *lmp, int narg, char **arg) :
                                 printf("... will limit velocities to <= %g\n", vlimit);
                         }
                 } else {
-                        char msg[128];
-                        snprintf(msg,128, "Illegal keyword for smd/integrate_ulsph: %s\n", arg[iarg]);
-                        error->all(FLERR, msg);
+                        error->all(FLERR, iarg, "Unknown fix smd/integrate_ulsph keyword: {}", arg[iarg]);
                 }
 
                 iarg++;

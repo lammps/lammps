@@ -38,7 +38,9 @@ set             group upper type 3
 compute         mobile flow temp
 velocity        flow create 1.0 482748 temp mobile
 fix             1 all nve
-fix             2 flow temp/rescale 200 1.0 1.0 0.02 1.0
+fix             2 flow temp/berendsen 1.0 1.0 0.66
+#fix             2 flow temp/rescale 200 1.0 1.0 0.02 1.0
+
 fix_modify      2 temp mobile
 
 # Poiselle flow
@@ -51,9 +53,9 @@ fix             6 flow addforce 1.0 0.0 0.0
 
 # 2 obstacles
 
-region          void1 sphere 10 4 0 3
+region          void1 cylinder z 10 4 3 -1 1
 delete_atoms    region void1
-region          void2 sphere 20 7 0 3
+region          void2 cylinder z 20 7 3 -1 1
 delete_atoms    region void2
 
 fix             7 flow indent 100 sphere 10 4 0 4
@@ -66,16 +68,28 @@ timestep        0.003
 thermo          1000
 thermo_modify   temp mobile
 
-# select atoms to trace and assign atom type 4 so they have a different color (yellow)                
+# select atoms to trace and assign atom type 4 so they have a different color (yellow)
 region   trace block 2 3 1.25 8.75 INF INF
 group    trace region trace
 set      group trace type 4
+compute  ke all ke/atom
+fix      avg all ave/atom 10 10 100 c_ke
+compute kemax flow reduce max f_avg
+compute kemin flow reduce min f_avg
+thermo 100
+thermo_style custom step temp c_kemin c_kemax
 
 # create trajectory lines by averaging positions over 10 MD steps each 10 steps apart
 fix      lines trace graphics/lines 10 10 100 25
 # visualize the trace in silver with a diameter of 0.6 which is half of that of the atoms
-dump     viz   all image 100 obstacle-*.ppm type type size 800 600 zoom 2.5 center s 0.50 0.7 0 &
-                                           shiny 0.5 fsaa yes box no 0.025 fix lines const 1 0.6
-dump_modify  viz  pad 6 backcolor darkgray adiam * 1.2 fcolor lines silver
+dump     viz   all image 100 obstacle-*.ppm type type size 800 500 zoom 3.0 &
+                             center s 0.50 0.65 0 &
+                             shiny 0.1 fsaa yes box no 0.025 ssao yes 12353 0.4 &
+                             region void1 gray filled region void2 gray filled &
+                             fix lines const 1 0.7
+
+dump_modify  viz  pad 6 backcolor darkgray adiam * 1.3 &
+                  amap 0 8 cf 0.0 5 min blue 0.25 purple 0.5 red 0.75 orange max gold &
+                  fcolor lines silver &
 
 run             30000

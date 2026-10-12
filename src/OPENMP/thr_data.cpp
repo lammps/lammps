@@ -29,9 +29,15 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 ThrData::ThrData(int tid, Timer *t) :
+    eng_vdwl(0.0), eng_coul(0.0), eng_bond(0.0), eng_angle(0.0), eng_dihed(0.0),
+    eng_imprp(0.0), eng_kspce(0.0),
+    eatom_pair(nullptr), eatom_bond(nullptr), eatom_angle(nullptr), eatom_dihed(nullptr),
+    eatom_imprp(nullptr), eatom_kspce(nullptr), vatom_pair(nullptr), vatom_bond(nullptr), vatom_angle(nullptr), vatom_dihed(nullptr),
+    vatom_imprp(nullptr), vatom_kspce(nullptr), cvatom_pair(nullptr), cvatom_angle(nullptr), cvatom_dihed(nullptr), cvatom_imprp(nullptr),
     _f(nullptr), _torque(nullptr), _erforce(nullptr), _de(nullptr), _drho(nullptr), _mu(nullptr),
     _lambda(nullptr), _rhoB(nullptr), _D_values(nullptr), _rho(nullptr), _fp(nullptr),
-    _rho1d(nullptr), _drho1d(nullptr), _rho1d_6(nullptr), _drho1d_6(nullptr), _tid(tid), _timer(t)
+    _rho1d(nullptr), _drho1d(nullptr), _rho1d_order(0), _rho1d_6(nullptr), _drho1d_6(nullptr),
+    _rho1d_6_order(0), _tid(tid), _timer(t)
 {
   _timer_active = 0;
 }
@@ -81,6 +87,7 @@ void ThrData::init_force(int nall, double **f, double **torque, double *erforce,
 
   eatom_pair = eatom_bond = eatom_angle = eatom_dihed = eatom_imprp = eatom_kspce = nullptr;
   vatom_pair = vatom_bond = vatom_angle = vatom_dihed = vatom_imprp = vatom_kspce = nullptr;
+  cvatom_pair = cvatom_angle = cvatom_dihed = cvatom_imprp = nullptr;
 
   if (nall >= 0 && f) {
     _f = f + _tid * nall;
@@ -163,55 +170,44 @@ using FFT_SCALAR = double;
 
 void ThrData::init_pppm(int order, Memory *memory)
 {
-  FFT_SCALAR **rho1d, **drho1d;
+  // the order may have been changed since the last allocation,
+  // so we must free the storage with the order that was used to allocate it
+
+  auto *rho1d = static_cast<FFT_SCALAR **>(_rho1d);
+  auto *drho1d = static_cast<FFT_SCALAR **>(_drho1d);
+  if (rho1d) memory->destroy2d_offset(rho1d, -_rho1d_order / 2);
+  if (drho1d) memory->destroy2d_offset(drho1d, -_rho1d_order / 2);
+  _rho1d = nullptr;
+  _drho1d = nullptr;
+  _rho1d_order = 0;
+
   if (order > 0) {
-    rho1d = static_cast<FFT_SCALAR **>(_rho1d);
-    drho1d = static_cast<FFT_SCALAR **>(_drho1d);
-    if (rho1d) memory->destroy2d_offset(rho1d, -order / 2);
-    if (drho1d) memory->destroy2d_offset(drho1d, -order / 2);
     memory->create2d_offset(rho1d, 3, -order / 2, order / 2, "thr_data:rho1d");
     memory->create2d_offset(drho1d, 3, -order / 2, order / 2, "thr_data:drho1d");
     _rho1d = static_cast<void *>(rho1d);
     _drho1d = static_cast<void *>(drho1d);
-  } else {
-    order = -order;
-    rho1d = static_cast<FFT_SCALAR **>(_rho1d);
-    drho1d = static_cast<FFT_SCALAR **>(_drho1d);
-    if (rho1d) memory->destroy2d_offset(rho1d, -order / 2);
-    if (drho1d) memory->destroy2d_offset(drho1d, -order / 2);
-    _rho1d = nullptr;
-    _drho1d = nullptr;
+    _rho1d_order = order;
   }
 }
-
-/* ----------------------------------------------------------------------
-   if order > 0 : set up per thread storage for PPPM
-   if order < 0 : free per thread storage for PPPM
-------------------------------------------------------------------------- */
-#if defined(FFT_SINGLE)
-typedef float FFT_SCALAR;
-#else
-using FFT_SCALAR = double;
-#endif
-
 void ThrData::init_pppm_disp(int order_6, Memory *memory)
 {
-  FFT_SCALAR **rho1d_6, **drho1d_6;
+  // the order may have been changed since the last allocation,
+  // so we must free the storage with the order that was used to allocate it
+
+  auto *rho1d_6 = static_cast<FFT_SCALAR **>(_rho1d_6);
+  auto *drho1d_6 = static_cast<FFT_SCALAR **>(_drho1d_6);
+  if (rho1d_6) memory->destroy2d_offset(rho1d_6, -_rho1d_6_order / 2);
+  if (drho1d_6) memory->destroy2d_offset(drho1d_6, -_rho1d_6_order / 2);
+  _rho1d_6 = nullptr;
+  _drho1d_6 = nullptr;
+  _rho1d_6_order = 0;
+
   if (order_6 > 0) {
-    rho1d_6 = static_cast<FFT_SCALAR **>(_rho1d_6);
-    drho1d_6 = static_cast<FFT_SCALAR **>(_drho1d_6);
-    if (rho1d_6) memory->destroy2d_offset(rho1d_6, -order_6 / 2);
-    if (drho1d_6) memory->destroy2d_offset(drho1d_6, -order_6 / 2);
     memory->create2d_offset(rho1d_6, 3, -order_6 / 2, order_6 / 2, "thr_data:rho1d_6");
     memory->create2d_offset(drho1d_6, 3, -order_6 / 2, order_6 / 2, "thr_data:drho1d_6");
     _rho1d_6 = static_cast<void *>(rho1d_6);
     _drho1d_6 = static_cast<void *>(drho1d_6);
-  } else {
-    order_6 = -order_6;
-    rho1d_6 = static_cast<FFT_SCALAR **>(_rho1d_6);
-    drho1d_6 = static_cast<FFT_SCALAR **>(_drho1d_6);
-    if (rho1d_6) memory->destroy2d_offset(rho1d_6, -order_6 / 2);
-    if (drho1d_6) memory->destroy2d_offset(drho1d_6, -order_6 / 2);
+    _rho1d_6_order = order_6;
   }
 }
 

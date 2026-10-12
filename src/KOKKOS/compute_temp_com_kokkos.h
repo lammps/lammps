@@ -72,6 +72,7 @@ class ComputeTempCOMKokkos : public ComputeTempCOM {
   void remove_bias_all() override;
   void remove_bias_all_kk() override;
   void restore_bias_all() override;
+  void restore_bias_all_kk() override;
 
   template<int RMASS>
 // NOLINTNEXTLINE

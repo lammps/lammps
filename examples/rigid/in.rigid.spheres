@@ -1,0 +1,30 @@
+# Rigid bodies built from finite-size (sphere) particles -- exercises the
+# extended-particle (SPHERE) path of fix rigid/small/kk: per-step omega is set
+# from the body rotation and eflags migrate in the device exchange.
+#   lmp -in in.rigid.spheres
+#   lmp -k on -sf kk -pk kokkos comm device sort device -in in.rigid.spheres
+
+units           lj
+atom_style      sphere
+atom_modify     map array
+
+lattice         sc 0.06
+region          box block 0 4 0 4 0 4
+create_box      1 box
+
+fix             prop all property/atom mol ghost yes
+molecule        mymol mol.sphere4
+create_atoms    0 region box mol mymol 39847
+
+
+pair_style      lj/cut 2.5
+pair_coeff      1 1 1.0 1.0
+neigh_modify    exclude molecule/intra all
+
+fix             1 all rigid/small molecule
+
+compute         erot all erotate/sphere
+thermo_style    custom step pe f_1 c_erot
+thermo          200
+timestep        0.0005
+run             2000

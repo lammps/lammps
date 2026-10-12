@@ -1,7 +1,10 @@
 .. index:: fix flow/gauss
+.. index:: fix flow/gauss/kk
 
 fix flow/gauss command
 ======================
+
+Accelerator Variants: *flow/gauss/kk*
 
 Syntax
 """"""
@@ -117,6 +120,10 @@ pairwise and long-range Coulomb interactions, which are computed at
 rRESPA levels 3 and 4, respectively, then there must be two separate
 flow/gauss fixes, one that specifies *fix_modify respa 3* and one with
 *fix_modify respa 4*.
+
+----------
+
+.. include:: accel_styles.rst
 
 ----------
 

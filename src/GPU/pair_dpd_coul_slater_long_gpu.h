@@ -28,7 +28,6 @@ class PairDPDCoulSlaterLongGPU : public PairDPDCoulSlaterLong {
  public:
   PairDPDCoulSlaterLongGPU(LAMMPS *lmp);
   ~PairDPDCoulSlaterLongGPU() override;
-  void cpu_compute(int, int, int, int, int *, int *, int **);
   void compute(int, int) override;
   void init_style() override;
   double memory_usage() override;
@@ -37,7 +36,6 @@ class PairDPDCoulSlaterLongGPU : public PairDPDCoulSlaterLong {
 
  private:
   int gpu_mode;
-  double cpu_time;
 };
 
 }    // namespace LAMMPS_NS

@@ -1,0 +1,41 @@
+# COVID main protease (SARS-CoV-2 Mpro) -- CHARMM36, converted GROMACS->PSF(ParmEd)
+# ->LAMMPS data(VMD topotools, labelmap).  CMAP dropped
+
+units           real
+atom_style      full
+atom_modify     map array
+boundary        p p p
+read_data       data.covid.gz
+pair_style      lj/charmm/coul/long 10.0 12.0
+pair_modify     mix arithmetic
+bond_style      harmonic
+angle_style     charmm
+dihedral_style  charmm
+improper_style  harmonic
+kspace_style    pppm 1.0e-4
+special_bonds   charmm
+include         covid.coeffs
+neighbor        2.0 bin
+neigh_modify    delay 5 every 1 check yes
+# rigid TIP3P water via SHAKE; protein all-bonds via the ILVES solver (the test)
+group           water type HT OT
+group           ions  type SOD CLA
+group           protein subtract all water ions
+fix             wsh water shake 1.0e-4 50 50 b HT-OT a HT-OT-HT
+fix             cstr protein ilves 1.0e-4 100 50 b C-CP1 C-CT1 C-CT2 C-N C-NC2 C-NH1 C-O &
+                    CA-CA CA-CAI CA-CT2 CA-CY CA-HP CA-NY CA-OH1 CAI-CPT CAI-HP CC-CT1 CC-CT2 &
+                    CC-CT2A CC-NH2 CC-O CC-OC CP1-CP2 CP1-HB1 CP1-N CP2-CP2 CP2-CP3 CP2-HA2 &
+                    CP3-HA2 CP3-N CPH1-CPH1 CPH1-CT2 CPH1-HR3 CPH1-NR1 CPH1-NR2 CPH2-HR1 &
+                    CPH2-NR1 CPH2-NR2 CPT-CPT CPT-CY CPT-NY CT1-CT1 CT1-CT2 CT1-CT2A CT1-CT3 &
+                    CT1-HA1 CT1-HB1 CT1-NH1 CT1-NH3 CT1-OH1 CT2-CT2 CT2-CT2A CT2-CT3 CT2-CY &
+                    CT2-HA2 CT2-HB2 CT2-NC2 CT2-NH1 CT2-NH3 CT2-OH1 CT2-S CT2A-HA2 CT3-HA3 &
+                    CT3-S H-NH1 H-NH2 H-NR1 H-NY H-OH1 HC-NC2 HC-NH3 HS-S HT-OT
+
+
+velocity        all create 300.0 48512 mom yes rot yes dist gaussian
+fix             1 all nvt temp 300.0 300.0 100.0
+timestep        1.0
+thermo          10
+thermo_style    custom step temp evdwl ecoul elong emol pe ke etotal press
+
+run             50

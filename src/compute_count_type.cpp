@@ -137,7 +137,7 @@ double ComputeCountType::compute_scalar()
   if (force->newton_bond == 0) bcount /= 2;
 
   if (bcount > MAXDOUBLEINT) error->all(FLERR, "Compute count/type overflow");
-  scalar = bcount;
+  scalar = (double)bcount;
   return scalar;
 }
 
@@ -179,7 +179,7 @@ void ComputeCountType::compute_vector()
 
   for (int m = 0; m < nvec; m++)
     if (bcount[m] > MAXDOUBLEINT) error->all(FLERR, "Compute count/type overflow");
-  for (int m = 0; m < nvec; m++) vector[m] = bcount[m];
+  for (int m = 0; m < nvec; m++) vector[m] = (double)bcount[m];
 }
 
 /* ----------------------------------------------------------------------

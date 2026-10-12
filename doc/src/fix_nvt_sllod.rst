@@ -80,7 +80,7 @@ The SLLOD equations of motion, originally proposed by Hoover and Ladd
 to Newton's equations of motion for shear flow by :ref:`(Evans and
 Morriss) <Evans3>`. They were later shown to generate the desired
 velocity gradient and the correct production of work by stresses for all
-forms of homogeneous flow by :ref:`(Daivis and Todd) <Daivis>`.
+forms of homogeneous flow by :ref:`(Daivis and Todd2) <Daivis>`.
 
 .. versionchanged:: 8Feb2023
 
@@ -96,7 +96,7 @@ command.
 
 .. note::
 
-   A recent (2017) book by :ref:`(Todd and Daivis) <Todd-sllod>`
+   A recent (2017) book by :ref:`(Daivis and Todd) <Todd-sllod>`
    discusses use of the SLLOD method and non-equilibrium MD (NEMD)
    thermostatting generally, for both simple and complex fluids,
    e.g. molecular systems.  The latter can be tricky to do correctly.
@@ -315,16 +315,16 @@ Same as :doc:`fix nvt <fix_nh>`, except *tchain* = 1, *psllod* = *no*,
 
 .. _Daivis:
 
-**(Daivis and Todd)** Daivis and Todd, J Chem Phys, 124, 194103 (2006).
+**(Daivis and Todd2)** Daivis and Todd, J Chem Phys, 124, 194103 (2006).
 
 .. _Todd-sllod:
 
-**(Todd and Daivis)** Todd and Daivis, Nonequilibrium Molecular Dynamics (book),
+**(Daivis and Todd)** Todd and Daivis, Nonequilibrium Molecular Dynamics (book),
 Cambridge University Press, (2017) https://doi.org/10.1017/9781139017848.
 
 .. _Tuckerman:
 
-**(Tuckerman et al.)** Tuckerman, Mundy, Balasubramanian, and Klein, J Chem Phys 106, 5615 (1997).
+**(Tuckerman2)** Tuckerman, Mundy, Balasubramanian, and Klein, J Chem Phys 106, 5615 (1997).
 
 .. _Edwards:
 

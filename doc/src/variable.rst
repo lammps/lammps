@@ -65,7 +65,7 @@ Syntax
                            inertia(group,dimdim), omega(group,dim)
          region functions = count(group,region), mass(group,region), charge(group,region),
                            xcm(group,dim,region), vcm(group,dim,region), fcm(group,dim,region),
-                           bound(group,dir,region), gyration(group,region), ke(group,reigon),
+                           bound(group,dir,region), gyration(group,region), ke(group,region),
                            angmom(group,dim,region), torque(group,dim,region),
                            inertia(group,dimdim,region), omega(group,dim,region)
          special functions = sum(x), min(x), max(x), ave(x), trap(x), slope(x), sort(x), rsort(x),
@@ -227,7 +227,7 @@ from the list of active variables, and is thus available to be
 re-defined in a subsequent variable command.  The *delete* style does
 the same thing.
 
-.. versionchanged:: TBD
+.. versionchanged:: 4Jul2026
 
 .. admonition:: Auto-deleted variables can lead to problems
    :class: warning
@@ -264,7 +264,7 @@ causes the next :doc:`jump <jump>` command encountered in the input
 script to be skipped.  This enables the construction of simple loops
 in the input script that are iterated over and then exited from.
 
-As explained above, an exhausted variable can be re-used in an input
+As explained above, an exhausted variable can be reused in an input
 script.  The *delete* style also removes the variable, the same as if
 it were exhausted, allowing it to be redefined later in the input
 script or when the input script is looped over.  This can be useful
@@ -376,9 +376,16 @@ to the variable.
 For the *format* style, an equal-style or compatible variable is
 specified along with a C-style format string, e.g. "%f" or "%.10g",
 which must be appropriate for formatting a double-precision
-floating-point value and may not have extra characters.  The default
-format is "%.15g".  This variable style allows an equal-style variable
-to be formatted precisely when it is evaluated.
+floating-point value.  The default format is "%.15g".  This variable
+style allows an equal-style variable to be formatted precisely when it
+is evaluated.
+
+.. versionchanged:: 2Sep2026
+
+A conversion in the format string must match a floating-point value.  The
+string may now also contain additional text and use all flags and
+modifiers supported by the C library, e.g. "%+12.6e" or "<%.4f>", which
+were previously rejected.
 
 Note that if you simply wish to print a variable value with desired
 precision to the screen or logfile via the :doc:`print <print>` or
@@ -467,7 +474,7 @@ specified before the Python function is invoked for the first time.
 Each time the variable is evaluated, the associated Python function is
 invoked, and the value it returns is also returned by the variable.
 Since the Python function can use other LAMMPS variables as input, or
-query interal LAMMPS quantities to perform its computation, this means
+query internal LAMMPS quantities to perform its computation, this means
 the variable can return a different value each time it is evaluated.
 
 The type of value stored in the variable is determined by the *format*
@@ -967,6 +974,16 @@ around its center of mass, ordered as Ixx,Iyy,Izz,Ixy,Iyz,Ixz.
 Omega() returns components of the angular velocity of the group of
 atoms around its center of mass.
 
+.. versionchanged:: 2Sep2026
+
+The inertia() and angmom() functions now include the contributions of
+:doc:`finite-size particles <Howto_spherical>`; previously all atoms
+were treated as point masses.  This is independent of (and does not
+change) the angular-momentum removal performed by :doc:`fix momentum
+<fix_momentum>`, :doc:`velocity zero <velocity>`, and :doc:`compute
+temp/rotate <compute_temp_rotate>`, which continue to act on the
+point-mass (translational) angular momentum only.
+
 Region functions are specified exactly the same way as group functions
 except they take an extra final argument *IDR* which is the region ID.
 The function is computed for all atoms that are in both the group and
@@ -1149,17 +1166,21 @@ actually instances of a command style which LAMMPS defines, as opposed
 to built-in commands.  For all of these styles except *command*,
 appending of active suffixes is also tried before reporting failure.
 
+.. versionchanged:: TBD
+
 The *feature* category checks the availability of the following
-compile-time enabled features: GZIP support, PNG support, JPEG support,
-FFMPEG support, and C++ exceptions for error handling. Corresponding
-names are *gzip*, *png*, *jpeg*, *ffmpeg* and *exceptions*\ .
+compile-time enabled features: PNG support, JPEG support, and C++
+exceptions for error handling.  GZIP and FFmpeg support check for the
+availability of a usable ``gzip`` or ``ffmpeg`` executable,
+respectively, on MPI rank 0.  Corresponding names are *gzip*, *png*,
+*jpeg*, *ffmpeg*, and *exceptions*\ .
 
 Example: Only dump in a given format if the compiled binary supports it.
 
 .. code-block:: LAMMPS
 
    if "$(is_available(feature,png))" then "print 'PNG supported'" else "print 'PNG not supported'"
-   if "$(is_available(feature,ffmpeg)" then "dump 3 all movie 25 movie.mp4 type type zoom 1.6 adiam 1.0"
+   if "$(is_available(feature,ffmpeg))" then "dump 3 all movie 25 movie.mp4 type type zoom 1.6 adiam 1.0"
 
 The *is_active(category,feature)* function queries whether a specific
 feature is currently active within LAMMPS.  The features are grouped

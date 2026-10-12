@@ -111,7 +111,7 @@ namespace MathEigen {
   template <typename T>
   real_t<T> l1_norm(const std::vector<T>& v);
 
-  //  Calculate the l2_norm (Euclidian length) of vector v.
+  //  Calculate the l2_norm (Euclidean length) of vector v.
   //  returns a real number (of type real_t<T>).
   template <typename T>
   real_t<T> l2_norm(const std::vector<T>& v);
@@ -400,7 +400,7 @@ void Alloc2D(size_t nrows,          // size of the array (number of rows)
              Entry ***paaX)         // pointer to a 2D C-style array
 {
   *paaX = new Entry* [nrows];  //conventional 2D C array (pointer-to-pointer)
-  (*paaX)[0] = new Entry [nrows * ncols];  // 1D C array (contiguous memor)
+  (*paaX)[0] = new Entry [nrows * ncols];  // 1D C array (contiguous memory)
   for (size_t iy=0; iy<nrows; iy++)
     (*paaX)[iy] = (*paaX)[0] + iy*ncols;
   // The caller can access the contents using (*paaX)[i][j]
@@ -614,7 +614,7 @@ CalcRot(Scalar const *const *M,    //!< matrix
 /// brief   Perform a similarity transformation by multiplying matrix M on both
 ///         sides by a rotation matrix (and its transpose) to eliminate M[i][j].
 /// details This rotation matrix performs a rotation in the i,j plane by
-///         angle θ.  This function assumes that c=cos(θ). s=som(θ), t=tan(θ)
+///         angle θ.  This function assumes that c=cos(θ). s=sin(θ), t=tan(θ)
 ///         have been calculated previously (using the CalcRot() function).
 ///         It also assumes that i<j.  The max_idx_row[] array is also updated.
 ///         To save time, since the matrix is symmetric, the elements

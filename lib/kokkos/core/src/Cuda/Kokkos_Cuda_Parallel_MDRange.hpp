@@ -18,8 +18,7 @@
 #include <KokkosExp_MDRangePolicy.hpp>
 #include <impl/KokkosExp_IterateTileGPU.hpp>
 
-namespace Kokkos {
-namespace Impl {
+namespace Kokkos::Impl {
 
 template <typename ParallelType, typename Policy, typename LaunchBounds>
 int max_tile_size_product_helper(const Policy& pol, const LaunchBounds&) {
@@ -49,6 +48,53 @@ int max_tile_size_product_helper(const Policy& pol, const LaunchBounds&) {
       static_cast<int>(Kokkos::Impl::CudaTraits::MaxHierarchicalParallelism));
 }
 
+// Device closure for MDRange ParallelFor on CUDA.
+// Selects between stride and no-stride iteration patterns at compile time
+template <typename FunctorType, bool UseStride, typename... Traits>
+class ParallelForMDRange;
+
+template <typename FunctorType, bool UseStride, typename... Traits>
+class ParallelForMDRange<FunctorType, UseStride,
+                         Kokkos::MDRangePolicy<Traits...>> {
+ public:
+  using Policy       = Kokkos::MDRangePolicy<Traits...>;
+  using functor_type = FunctorType;
+
+ private:
+  using index_type       = typename Policy::index_type;
+  using array_index_type = typename Policy::array_index_type;
+  using array_type       = typename Policy::point_type;
+
+  using DeviceIteratePattern =
+      Kokkos::Impl::DeviceIterate<Policy::rank, array_index_type, index_type,
+                                  Policy::inner_direction, UseStride,
+                                  FunctorType, typename Policy::work_tag>;
+
+  const FunctorType m_functor;
+  const Policy m_policy;
+  const array_type m_lower;
+  const array_type m_upper;
+  const array_type m_extent;  // tile_size * num_tiles
+
+ public:
+  ParallelForMDRange() = delete;
+
+  Policy const& get_policy() const { return m_policy; }
+
+  inline __device__ void operator()() const {
+    DeviceIteratePattern(m_lower, m_upper, m_extent, m_functor).exec_range();
+  }
+
+  ParallelForMDRange(FunctorType const& arg_functor, const Policy& arg_policy,
+                     const array_type& lower, const array_type& upper,
+                     const array_type& extent)
+      : m_functor(arg_functor),
+        m_policy(arg_policy),
+        m_lower(lower),
+        m_upper(upper),
+        m_extent(extent) {}
+};
+
 template <class FunctorType, class... Traits>
 class ParallelFor<FunctorType, Kokkos::MDRangePolicy<Traits...>, Kokkos::Cuda> {
  public:
@@ -59,7 +105,7 @@ class ParallelFor<FunctorType, Kokkos::MDRangePolicy<Traits...>, Kokkos::Cuda> {
   using array_index_type = typename Policy::array_index_type;
   using index_type       = typename Policy::index_type;
   using LaunchBounds     = typename Policy::launch_bounds;
-  using MaxGridSize      = Kokkos::Array<index_type, 3>;
+  using MaxGridSize      = Kokkos::Array<array_index_type, 3>;
   using array_type       = typename Policy::point_type;
 
   const FunctorType m_functor;
@@ -80,7 +126,7 @@ class ParallelFor<FunctorType, Kokkos::MDRangePolicy<Traits...>, Kokkos::Cuda> {
 
   inline __device__ void operator()() const {
     Kokkos::Impl::DeviceIterate<Policy::rank, array_index_type, index_type,
-                                FunctorType, Policy::inner_direction,
+                                Policy::inner_direction, true, FunctorType,
                                 typename Policy::work_tag>(m_lower, m_upper,
                                                            m_extent, m_functor)
         .exec_range();
@@ -128,9 +174,31 @@ class ParallelFor<FunctorType, Kokkos::MDRangePolicy<Traits...>, Kokkos::Cuda> {
     // ensure we don't exceed the capability of the device
     check_grid_sizes(grid);
     check_block_sizes(block);
-    // launch the kernel
-    CudaParallelLaunch<ParallelFor, LaunchBounds>(
-        *this, grid, block, 0, m_policy.space().impl_internal_space_instance());
+
+    const bool need_grid_stride =
+        Kokkos::Impl::need_grid_stride_loop(m_max_grid_size, block, m_extent);
+
+    // Use this kernel for graph capture if the policy is a graph kernel
+    if constexpr (Policy::is_graph_kernel::value) {
+      CudaParallelLaunch<ParallelFor, LaunchBounds>(
+          *this, grid, block, 0,
+          m_policy.space().impl_internal_space_instance());
+    } else {
+      // launch the kernel with or without grid stride
+      if (need_grid_stride) {
+        using ClosureType = ParallelForMDRange<FunctorType, true, Policy>;
+        ClosureType closure(m_functor, m_policy, m_lower, m_upper, m_extent);
+        CudaParallelLaunch<ClosureType, LaunchBounds>(
+            closure, grid, block, 0,
+            m_policy.space().impl_internal_space_instance());
+      } else {
+        using ClosureType = ParallelForMDRange<FunctorType, false, Policy>;
+        ClosureType closure(m_functor, m_policy, m_lower, m_upper, m_extent);
+        CudaParallelLaunch<ClosureType, LaunchBounds>(
+            closure, grid, block, 0,
+            m_policy.space().impl_internal_space_instance());
+      }
+    }
   }  // end execute
 
   //  inline
@@ -138,12 +206,9 @@ class ParallelFor<FunctorType, Kokkos::MDRangePolicy<Traits...>, Kokkos::Cuda> {
       : m_functor(arg_functor),
         m_policy(arg_policy),
         m_max_grid_size({
-            static_cast<index_type>(
-                m_policy.space().cuda_device_prop().maxGridSize[0]),
-            static_cast<index_type>(
-                m_policy.space().cuda_device_prop().maxGridSize[1]),
-            static_cast<index_type>(
-                m_policy.space().cuda_device_prop().maxGridSize[2]),
+            m_policy.space().cuda_device_prop().maxGridSize[0],
+            m_policy.space().cuda_device_prop().maxGridSize[1],
+            m_policy.space().cuda_device_prop().maxGridSize[2],
         }) {
     // Initialize begins and ends based on layout
     // Swap the fastest indexes to x dimension
@@ -229,6 +294,7 @@ class ParallelReduce<CombinedFunctorReducerType,
   static int max_tile_size_product(const Policy& pol, const Functor&) {
     return max_tile_size_product_helper<ParallelReduce>(pol, LaunchBounds{});
   }
+
   Policy const& get_policy() const { return m_policy; }
   inline __device__ void exec_range(reference_type update) const {
     Kokkos::Impl::Reduce::DeviceIterateTile<Policy::rank, Policy, FunctorType,
@@ -341,6 +407,11 @@ class ParallelReduce<CombinedFunctorReducerType,
                        : suggested_blocksize;  // Note: block_size must be less
                                                // than or equal to 512
 
+      // Only let one instance at a time resize the instance's scratch memory
+      // allocations.
+      std::scoped_lock<std::mutex> scratch_buffers_lock(
+          m_policy.space().impl_internal_space_instance()->m_mutexScratchSpace);
+
       m_scratch_space =
           reinterpret_cast<word_size_type*>(cuda_internal_scratch_space(
               m_policy.space(),
@@ -412,8 +483,8 @@ class ParallelReduce<CombinedFunctorReducerType,
         m_policy, m_functor_reducer.get_functor());
   }
 };
-}  // namespace Impl
-}  // namespace Kokkos
+
+}  // namespace Kokkos::Impl
 #endif
 
-#endif
+#endif  // KOKKOS_CUDA_PARALLEL_MD_RANGE_HPP

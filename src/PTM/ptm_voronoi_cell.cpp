@@ -1370,6 +1370,8 @@ void voronoicell_neighbor::check_facets() {
 /** The class constructor allocates memory for storing neighbor information. */
 voronoicell_neighbor::voronoicell_neighbor() {
         int i;
+        paux1=nullptr;
+        paux2=nullptr;
         mne=new int*[current_vertex_order];
         ne=new int*[current_vertices];
         for (i=0;i<3;i++) mne[i]=new int[init_n_vertices*i];

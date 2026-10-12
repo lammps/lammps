@@ -50,9 +50,9 @@ int MieT::init(const int ntypes, double **host_cutsq,
                double **host_offset, double *host_special_lj,
                const int nlocal, const int nall, const int max_nbors,
                const int maxspecial, const double cell_size,
-               const double gpu_split, FILE *_screen) {
+                           FILE *_screen) {
   int success;
-  success=this->init_atomic(nlocal,nall,max_nbors,maxspecial,cell_size,gpu_split,
+  success=this->init_atomic(nlocal,nall,max_nbors,maxspecial,cell_size,
                             _screen,mie,"k_mie");
   if (success!=0)
     return success;

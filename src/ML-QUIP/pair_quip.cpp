@@ -251,7 +251,9 @@ void PairQUIP::coeff(int narg, char **arg)
   }
 
   // use expanded file name, including LAMMPS_POTENTIALS search path
+  delete[] quip_file;
   quip_file = utils::strdup(utils::get_potential_file_path(arg[2]));
+  delete[] quip_string;
   quip_string = utils::strdup(arg[3]);
   n_quip_file = strlen(quip_file);
   n_quip_string = strlen(quip_string);
@@ -286,6 +288,7 @@ void PairQUIP::coeff(int narg, char **arg)
   // and returns the necessary size of quip_potential. This behavior
   // is invoked by setting n_potential_quip to 0.
   n_quip_potential = 0;
+  delete[] quip_potential;
   quip_potential = new int[1];
   quip_lammps_potential_initialise(quip_potential, &n_quip_potential, &cutoff, quip_file,
                                    &n_quip_file, quip_string, &n_quip_string);

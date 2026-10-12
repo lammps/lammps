@@ -27,6 +27,15 @@ Create a 'next\_release' branch off 'develop' and make the following changes:
 - check release notes for merged new features and check if
   ..versionadded:: or ..versionchanged:: are missing and need to be
   added
+- check at https://github.com/lammps/lammps-gui/releases whether there
+  is a newer release of LAMMPS-GUI.  If there is, update the `GIT_TAG`
+  setting for LAMMPS-GUI in `cmake/Modules/Packaging.cmake` to the tag
+  of that release, since the pre-compiled packages with LAMMPS-GUI
+  included are built from that tag.  Only the tag of a published
+  LAMMPS-GUI release may be used and never the name of a branch: the
+  releases of LAMMPS-GUI are immutable, so that the tag cannot be
+  changed later.  This can be confirmed with
+  `gh release verify --repo lammps/lammps-gui <tag>`
 
 Submit this pull request.  This is the last pull request merged for the
 release and should not contain any other changes. (Exceptions: this
@@ -41,6 +50,9 @@ there is a nightly static code analysis run that can be checked at
 https://downloads.lammps.org/analysis/
 If needed, a bug-fix pull request should be created and merged to clear
 pending issues.
+
+As of July 4th, 2026 the post-merge test results are summarized on
+the LAMMPS Testing Dashboard at: https://lammps.github.io/lammps-test-results/
 
 ### Create release on GitHub
 
@@ -61,8 +73,14 @@ git checkout release
 git pull
 git merge --ff-only develop
 git tag -s -m "LAMMPS feature release 4 February 2025" patch_4Feb2025
+git verify-tag patch_4Feb2025
 git push git@github.com:lammps/lammps.git --tags develop release
 ```
+
+The `git verify-tag` command must report a good signature.  If it does
+not, the tag was created without a signature and must be deleted and
+created again *before* pushing, since a pushed release tag must not be
+changed anymore.
 
 After applying this tag two steps will need to be executed manually
 (they used to be run automatically, but this is currently not available).
@@ -83,7 +101,9 @@ Go to https://github.com/lammps/lammps/releases and create a new (draft)
 release page with a summary of all the changes included and references
 to the pull requests they were merged from or check the existing draft
 for any necessary changes from pull requests that were merged but are
-not listed.  Then select the applied tag for the release in the "Choose
+not listed.  The list of changes should follow a `## Changelog` headline,
+since automated assessments of the project search the release notes for
+this word.  Then select the applied tag for the release in the "Choose
 a tag" drop-down list. Go to the bottom of the list and select the "Set
 as pre-release" checkbox.  The "Set as the latest release" button is
 reserved for stable releases and updates to them.
@@ -94,8 +114,9 @@ release notes text may be changed, e.g. to document issues with the
 uploaded assets.
 
 Thus only when *everything* is in order *and* all required assets (source,
-binary packages for different platforms, manual PDF) are uploaded in
-a suitable version, you can click on the "Publish release" button.
+binary packages for different platforms, manual PDF, signed list of
+checksums) are uploaded in a suitable version, you can click on the
+"Publish release" button.
 Otherwise, click on "Save draft" and finish pending tasks until you can
 return to edit the release page, update assets, and publish it when
 it is ready.
@@ -122,7 +143,7 @@ cd release-packages
 wget https://download.lammps.org/static/fedora41_musl_mingw.sif
 apptainer shell fedora41_musl_mingw.sif
 git clone -b release --depth 10 https://github.com/lammps/lammps.git lammps-release
-cmake -S lammps-release/cmake -B build-release -G Ninja -D CMAKE_INSTALL_PREFIX=$PWD/lammps-static -D CMAKE_TOOLCHAIN_FILE=/usr/musl/share/cmake/linux-musl.cmake -C lammps-release/cmake/presets/most.cmake -C lammps-release/cmake/presets/kokkos-openmp.cmake -D DOWNLOAD_POTENTIALS=OFF -D BUILD_MPI=OFF -D BUILD_TESTING=OFF -D CMAKE_BUILD_TYPE=Release -D PKG_ATC=ON -D PKG_AWPMD=ON -D PKG_MANIFOLD=ON -D PKG_MESONT=ON -D PKG_MGPT=ON -D PKG_ML-PACE=ON -D PKG_ML-RANN=ON -D PKG_MOLFILE=ON -D PKG_PTM=ON -D PKG_QTB=ON -D PKG_SMTBQ=ON
+cmake -S lammps-release/cmake -B build-release -G Ninja -D CMAKE_INSTALL_PREFIX=$PWD/lammps-static -D CMAKE_TOOLCHAIN_FILE=/usr/musl/share/cmake/linux-musl.cmake -C lammps-release/cmake/presets/most.cmake -C lammps-release/cmake/presets/kokkos-openmp.cmake -D DOWNLOAD_POTENTIALS=OFF -D BUILD_MPI=OFF -D BUILD_TESTING=OFF -D CMAKE_BUILD_TYPE=Release -D PKG_MANIFOLD=ON -D PKG_MESONT=ON -D PKG_MGPT=ON -D PKG_ML-PACE=ON -D PKG_MOLFILE=ON -D PKG_PTM=ON -D PKG_QTB=ON -D PKG_SMTBQ=ON -D PREFER_INTERNAL_LINALG=ON
 cmake --build build-release --target all
 cmake --build build-release --target install
 /usr/musl/bin/x86_64-linux-musl-strip -g lammps-static/bin/*
@@ -141,19 +162,10 @@ gh release upload patch_4Feb2025 lammps-linux-x86_64-4Feb2025.tar.gz
 
 Make sure you have the `flatpak` and `flatpak-builder` packages
 installed locally (they require binaries that run with elevated
-privileges and thus cannot be used from the container) and build a
-LAMMPS and LAMMPS-GUI flatpak bundle in the `release-packages` folder
-with:
-
-``` sh
-cd release-packages
-flatpak --user remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
-flatpak-builder  --force-clean --verbose --repo=$PWD/flatpak-repo --install-deps-from=flathub --state-dir=$PWD --user --ccache --default-branch=release flatpak-build lammps-release/tools/lammps-gui/org.lammps.lammps-gui.yml
-flatpak build-bundle --runtime-repo=https://flathub.org/repo/flathub.flatpakrepo --verbose $PWD/flatpak-repo ../LAMMPS-Linux-x86_64-GUI-4Feb2025.flatpak org.lammps.lammps-gui release
-cd ..
-```
-
-The resulting flatpak bundle file can be uploaded to the GitHub release page with:
+privileges and thus cannot be used from the container). To build
+a LAMMPS and LAMMPS-GUI flatpak bundle go to a regular Linux
+build folder and type: `make flatpak`. The resulting flatpak
+bundle file can be uploaded to the GitHub release page with:
 
 ``` sh
 gh release upload patch_4Feb2025 LAMMPS-Linux-x86_64-GUI-4Feb2025.flatpak
@@ -161,28 +173,10 @@ gh release upload patch_4Feb2025 LAMMPS-Linux-x86_64-GUI-4Feb2025.flatpak
 
 #### LAMMPS Source tarball
 
-The container for the static binary can also be used to prepare the source
-tarball including the HTML and PDF manual (this is currently done automatically
-when the releases is created and the tarball uploaded to https://download.lammps.org/tars/).
-The steps are as follows:
-
-``` sh
-cd release-packages
-apptainer shell fedora41_musl_mingw.sif
-cd lammps-release
-rm -f ../release.tar*
-git archive --output=../release.tar --prefix=lammps-4Feb2025/ HEAD
-cd doc
-make clean-all
-make html pdf
-tar -rf ../../release.tar --transform 's,^,lammps-4Feb2025/doc/,' html Manual.pdf
-gzip -9v ../../release.tar
-mv ../../release.tar.gz ../../lammps-src-4Feb2025.tar.gz
-exit # fedora41 container
-cd ..
-```
-
-The resulting source tarball can be uploaded to the GitHub release page with:
+The Linux build folder can also be used to prepare the source tarball
+including the HTML and PDF manual by typing: `make tarball`.  The
+resulting source tarball can be uploaded to the GitHub release page
+with:
 
 ``` sh
 gh release upload patch_4Feb2025 lammps-src-4Feb2025.tar.gz
@@ -191,46 +185,25 @@ gh release upload patch_4Feb2025 lammps-src-4Feb2025.tar.gz
 #### Build Windows Installer Packages with MinGW Linux-to-Windows Cross-compiler
 
 The various Windows installer packages can also be built with
-apptainer container image.
+apptainer container image.  You need to configure a build folder
+and that can use the "nsis" build target.
 
 ``` sh
 cd release-packages
 apptainer shell fedora41_musl_mingw.sif
-git clone --depth 10 https://github.com/lammps/lammps-packages.git lammps-packages
-cd lammps-packages/mingw-cross
-ln -sf ../../lammps-release lammps
-./buildall.sh release >& mk.log & less +F mk.log
+cmake --build build-release --target nsis
 ```
 
 The installer with the GUI included can be uploaded to the GitHub release page with:
 
 ``` sh
-ln -sf LAMMPS-64bit-GUI-4Feb2025.exe LAMMPS-Win10-64bit-GUI-4Feb2025.exe
-gh release upload patch_4Feb2025 LAMMPS-Win10-64bit-GUI-4Feb2025.exe
+gh release upload patch_4Feb2025 build-release/LAMMPS-Win10-64bit-GUI-4Feb2025.exe
 ```
-
-The symbolic link is used to have a consistent naming scheme for the packages
-attached to the GitHub release page.
 
 #### LAMMPS Online Manual
 
-Creating the online docs requires setting some environment variables to have
-the extra box at the bottom of the navigation bar included that allows to
-switch between release, stable, and develop branch versions of the manual.
-Also the search box should use Google search instead of the javascript search.
-
-``` sh
-cd lammps-release
-make -C doc clean
-make -C doc upgrade
-env LAMMPS_WEBSITE_BUILD=1 LAMMPS_WEBSITE_BUILD_VERSION=release LAMMPS_WEBSITE_BASEURL="https://docs.lammps.org/" \
-    make -C doc html WEB_SEARCH=YES
-make -C doc pdf
-mv doc/Manual.pdf doc/html
-rsync -arpv doc/html/ www.lammps.org:/var/www/lammps/docs/release-new
-
-Then log into www.lammps.org and move the current folder away and
-the new folder in its place and update permissions.
+The online manual pages are now automatically updated by the scripts in
+the [lammps-docs](https://github.com/lammps/lammps-docs/) repository.
 
 #### Clean up:
 
@@ -264,26 +237,23 @@ and installed (e.g. to `$HOME/.local`) as static libraries only:
 - zlib
 - png
 - voro++ (for VORONOI package)
-- Qt (for LAMMPS-GUI)
+- Qt 6.x (for LAMMPS-GUI)
 
-When configuring LAMMPS the `cmake/presets/clang.cmake` should be used
-and as many packages as possible enabled. For LAMMPS-GUI, MPI should be
-disabled with `-D BUILD_MPI=OFF` and LAMMPS-GUI enabled with 
-`-D BUILD_LAMMPS_GUI=ON`.  If the CMake configuration is successful,
+When configuring LAMMPS the `cmake/presets/macos-multiarch.cmake` should
+be used (it sets the CMake variables from above automatically) and as
+many packages as possible enabled. For LAMMPS-GUI, MPI should be
+disabled with `-D BUILD_MPI=OFF` and LAMMPS-GUI enabled with `-D
+BUILD_LAMMPS_GUI=ON`.  If the CMake configuration is successful,
 settings for building a macOS app-bundle are enabled and with `cmake
 --build build --target dmg` extra steps will be executed that will build
 a macOS application installer image under the name
-`LAMMPS_GUI-macOS-multiarch-4Feb2025.dmg`
+`LAMMPS-macOS-multiarch-GUI-4Feb2025.dmg`
 
 The application image can be uploaded to the GitHub release page with:
 
 ``` sh
-ln -sf LAMMPS_GUI-macOS-multiarch-4Feb2025.dmg LAMMPS-macOS-multiarch-GUI-4Feb2025.dmg
 gh release upload patch_4Feb2025 LAMMPS-macOS-multiarch-GUI-4Feb2025.dmg
 ```
-
-The symbolic link is used to have a consistent naming scheme for the packages
-attached to the GitHub release page.
 
 We are currently building the application images on macOS 12 (aka Monterey).
 
@@ -313,17 +283,41 @@ ln -sf LAMMPS_GUI-Linux-amd64-4Feb2025.tar.gz LAMMPS-Linux-x86_64-GUI-4Feb2025.t
 gh release upload patch_4Feb2025 LAMMPS-Linux-x86_64-GUI-4Feb2025.tar.gz
 ```
 
+#### Create and upload signed list of checksums
+
+This is the last step before publishing the release and requires that
+*all* other files have been uploaded to the GitHub release page.  The
+script `.github/release_checksums.sh` downloads all files from the
+release page, records their SHA-256 checksums in a file `SHA256SUMS`,
+and signs this file with the same GPG key that is used for signing the
+release tag, which creates the file `SHA256SUMS.asc`.  Users can then
+confirm with these two files that their downloads are complete and
+unmodified (see the `SECURITY.md` file for the commands).
+
+``` sh
+bash .github/release_checksums.sh patch_4Feb2025
+gh release upload patch_4Feb2025 --clobber SHA256SUMS SHA256SUMS.asc
+```
+
+If a file of the draft release is replaced later, these two commands
+must be repeated.
+
 ### Update download page on LAMMPS website
 
-Check out the LAMMPS website repo
-https://github.com/lammps/lammps-website.git and edit the file
-`src/download.txt` for the new release.  Test translation with `make
-html` and review `html/download.html` Then add and commit to git and
-push the changes to GitHub.  A cron job will automatically update
-https://www.lammps.org/ accordingly if there are changes.
+Check out the LAMMPS website repo at https://github.com/lammps/website.git
+and edit the file `src/content/download/_index.md` for the new release.
+Test translation with `make check`, `make lint` and `make spell`.
+You can check the page locally with `make serve` and opening the
+presented localhost URL; any edits will be tracked live.
 
-Also notify Steve of the release so he can update `src/bug.txt` on the
-website from the available release notes.
+Also add a release announcement to `src/content/news/` using one of the
+existing announcements as a template.  Check and review as before.
+
+Then add and commit to git and push the changes to GitHub.
+A cron job will automatically update https://www.lammps.org/ accordingly.
+
+Also notify Steve of the release so he can update
+`src/content/about/contributors.md` from the available release notes.
 
 ## LAMMPS Stable Release
 
@@ -346,6 +340,12 @@ be released as a (final) stable update release (see below).
 A LAMMPS stable release process starts like a feature release (see
 above), only that this feature release is called a "Stable Release
 Candidate" and no assets are uploaded to GitHub.
+
+The pull request for the release candidate is also the time to review
+the file `.github/security-insights.yml`, which describes the project
+to automated tools (contacts, documentation links, list of project
+repositories, checking tools in use).  Correct what has changed and set
+the `last-reviewed` date (and `last-updated`, if there were changes).
 
 ### Synchronize 'maintenance' branch with 'release'
 
@@ -391,6 +391,7 @@ git checkout stable
 git pull
 git merge --ff-only maintenance
 git tag -s -m 'Update 2 for Stable LAMMPS version 29 August 2024' stable_29Aug2024_update2
+git verify-tag stable_29Aug2024_update2
 git push git@github.com:lammps/lammps.git --tags maintenance stable
 ```
 
@@ -402,4 +403,5 @@ they are published since we are creating "immutable" releases now.
 ### Build and upload binary packages and source tarball to GitHub
 
 The build procedure is the same as for the feature releases, only
-that packages are built from the 'stable' branch.
+that packages are built from the 'stable' branch.  This includes
+creating and uploading the signed list of checksums as the last step.

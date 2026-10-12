@@ -289,29 +289,47 @@ void RanMars::select_subset(bigint ntarget, int nmine, int *mark, int *next)
 }
 
 /* ----------------------------------------------------------------------
-   store state in buffer
+   store the complete generator state in a vector of STATE_SIZE values:
+   [marker, u[1..97], i97, j97, c, cd, cm, save, second]
+   the marker (-1.0) distinguishes this layout from the legacy layout
+   [u[0..97], i97, j97, c, cd, cm] of LEGACY_STATE_SIZE values, which was
+   stored in restart files before the cached second gaussian number was
+   included (u[0] is never used by the generator and thus always 0.0).
+   set_state() accepts both layouts and state_size() tells them apart.
 ------------------------------------------------------------------------- */
 
 void RanMars::get_state(double *state)
 {
-  for (int i=0; i < 98; ++i) state[i] = u[i];
+  state[0] = -1.0;
+  for (int i = 1; i < 98; ++i) state[i] = u[i];
   state[98] = i97;
   state[99] = j97;
-  state[100]= c;
-  state[101]= cd;
-  state[102]= cm;
+  state[100] = c;
+  state[101] = cd;
+  state[102] = cm;
+  state[103] = save;
+  state[104] = second;
 }
-
-/* ----------------------------------------------------------------------
-   restore state from buffer
-------------------------------------------------------------------------- */
 
 void RanMars::set_state(double *state)
 {
-  for (int i=0; i < 98; ++i) u[i] = state[i];
-  i97 = state[98]; // NOLINT
-  j97 = state[99]; // NOLINT
-  c   = state[100];
-  cd  = state[101];
-  cm  = state[102];
+  for (int i = 1; i < 98; ++i) u[i] = state[i];
+  i97 = state[98];    // NOLINT
+  j97 = state[99];    // NOLINT
+  c = state[100];
+  cd = state[101];
+  cm = state[102];
+  if (state[0] < 0.0) {
+    save = state[103];    // NOLINT
+    second = state[104];
+  } else {
+    // legacy layout: no information about the cached gaussian number
+    save = 0;
+    second = 0.0;
+  }
+}
+
+int RanMars::state_size(const double *state)
+{
+  return (state[0] < 0.0) ? STATE_SIZE : LEGACY_STATE_SIZE;
 }

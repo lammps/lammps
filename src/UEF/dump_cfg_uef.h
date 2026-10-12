@@ -35,7 +35,7 @@ class DumpCFGUef : public DumpCFG {
   void write_header(bigint) override;
 
  private:
-  int ifix_uef;
+  class FixNHUef *fix_uef = nullptr;
 };
 
 }    // namespace LAMMPS_NS

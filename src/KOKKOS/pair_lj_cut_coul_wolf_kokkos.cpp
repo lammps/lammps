@@ -95,7 +95,7 @@ void PairLJCutCoulWolfKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   // Wolf self-energy shift factors (computed on host, used as scalars in kernel)
   m_alf = static_cast<KK_FLOAT>(alf);
   e_shift = static_cast<KK_FLOAT>(erfc(alf*cut_coul)/cut_coul);
-  f_shift = static_cast<KK_FLOAT>(-(e_shift + 2.0*alf/MY_PIS *
+  f_shift = static_cast<KK_FLOAT>(-(static_cast<double>(e_shift) + 2.0*alf/MY_PIS *
             exp(-alf*alf*cut_coul*cut_coul)) / cut_coul);
 
   x = atomKK->k_x.view<DeviceType>();
@@ -105,51 +105,51 @@ void PairLJCutCoulWolfKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   type = atomKK->k_type.view<DeviceType>();
   nlocal = atom->nlocal;
   nall = atom->nlocal + atom->nghost;
-  special_lj[0] = force->special_lj[0];
-  special_lj[1] = force->special_lj[1];
-  special_lj[2] = force->special_lj[2];
-  special_lj[3] = force->special_lj[3];
-  special_coul[0] = force->special_coul[0];
-  special_coul[1] = force->special_coul[1];
-  special_coul[2] = force->special_coul[2];
-  special_coul[3] = force->special_coul[3];
-  qqrd2e = force->qqrd2e;
+  special_lj[0] = static_cast<KK_FLOAT>(force->special_lj[0]);
+  special_lj[1] = static_cast<KK_FLOAT>(force->special_lj[1]);
+  special_lj[2] = static_cast<KK_FLOAT>(force->special_lj[2]);
+  special_lj[3] = static_cast<KK_FLOAT>(force->special_lj[3]);
+  special_coul[0] = static_cast<KK_FLOAT>(force->special_coul[0]);
+  special_coul[1] = static_cast<KK_FLOAT>(force->special_coul[1]);
+  special_coul[2] = static_cast<KK_FLOAT>(force->special_coul[2]);
+  special_coul[3] = static_cast<KK_FLOAT>(force->special_coul[3]);
+  qqrd2e = static_cast<KK_FLOAT>(force->qqrd2e);
   newton_pair = force->newton_pair;
-
-  // Wolf self-energy per atom
-  for (int i = 0; i < nlocal; i++) {
-    double qisq = atom->q[i]*atom->q[i];
-    eng_coul += -(e_shift/2.0 + m_alf/MY_PIS) * qisq * qqrd2e;
-  }
 
   EV_FLOAT ev;
 
   copymode = 1;
 
+  // self energy of every local atom, tallied in a device kernel so that the
+  // charges and the per-atom energy stay resident on the device
+
+  if (eflag) {
+    d_ilist = ((NeighListKokkos<DeviceType>*) list)->d_ilist;
+    KK_ACC_FLOAT e_self_sum = 0.0;
+    Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType,TagPairLJCutCoulWolfSelfEnergy>(0,list->inum),
+                            *this,e_self_sum);
+    if (eflag_global) eng_coul += static_cast<double>(e_self_sum);
+  }
+
   ev = pair_compute<PairLJCutCoulWolfKokkos<DeviceType>,void>
     (this,(NeighListKokkos<DeviceType>*)list);
 
   if (eflag) {
-    eng_vdwl += ev.evdwl;
-    eng_coul += ev.ecoul;
+    eng_vdwl += static_cast<double>(ev.evdwl);
+    eng_coul += static_cast<double>(ev.ecoul);
   }
   if (vflag_global) {
-    virial[0] += ev.v[0];
-    virial[1] += ev.v[1];
-    virial[2] += ev.v[2];
-    virial[3] += ev.v[3];
-    virial[4] += ev.v[4];
-    virial[5] += ev.v[5];
+    virial[0] += static_cast<double>(ev.v[0]);
+    virial[1] += static_cast<double>(ev.v[1]);
+    virial[2] += static_cast<double>(ev.v[2]);
+    virial[3] += static_cast<double>(ev.v[3]);
+    virial[4] += static_cast<double>(ev.v[4]);
+    virial[5] += static_cast<double>(ev.v[5]);
   }
 
   if (eflag_atom) {
     k_eatom.template modify<DeviceType>();
     k_eatom.sync_host();
-    // Add Wolf self-energy to per-atom energy after device sync
-    for (int i = 0; i < nlocal; i++) {
-      double qisq = atom->q[i]*atom->q[i];
-      eatom[i] += -(e_shift/2.0 + m_alf/MY_PIS) * qisq * qqrd2e;
-    }
   }
 
   if (vflag_atom) {
@@ -174,7 +174,7 @@ KK_FLOAT PairLJCutCoulWolfKokkos<DeviceType>::
 compute_fpair(const KK_FLOAT& rsq, const int& /*i*/, const int& /*j*/,
               const int& itype, const int& jtype) const
 {
-  const KK_FLOAT r2inv = 1.0/rsq;
+  const KK_FLOAT r2inv = static_cast<KK_FLOAT>(1.0)/rsq;
   const KK_FLOAT r6inv = r2inv*r2inv*r2inv;
   const KK_FLOAT forcelj = r6inv *
     ((STACKPARAMS?m_params[itype][jtype].lj1:params(itype,jtype).lj1)*r6inv -
@@ -195,12 +195,12 @@ compute_fcoul(const KK_FLOAT& rsq, const int& /*i*/, const int& j,
               const int& /*itype*/, const int& /*jtype*/,
               const KK_FLOAT& factor_coul, const KK_FLOAT& qtmp) const
 {
-  const KK_FLOAT r2inv = 1.0/rsq;
+  const KK_FLOAT r2inv = static_cast<KK_FLOAT>(1.0)/rsq;
   const KK_FLOAT r = Kokkos::sqrt(rsq);
   const KK_FLOAT prefactor = qqrd2e * qtmp * q(j) / r;
-  const KK_FLOAT erfcc = erfc(m_alf*r);
+  const KK_FLOAT erfcc = Kokkos::erfc(m_alf*r);
   const KK_FLOAT erfcd = Kokkos::exp(-m_alf*m_alf*rsq);
-  const KK_FLOAT dvdrr = (erfcc*r2inv + 2.0*m_alf/MY_PIS * erfcd/r) + f_shift;
+  const KK_FLOAT dvdrr = (erfcc*r2inv + static_cast<KK_FLOAT>(2.0)*m_alf/static_cast<KK_FLOAT>(MY_PIS) * erfcd/r) + f_shift;
   KK_FLOAT forcecoul = dvdrr * rsq * prefactor;
   if (factor_coul < static_cast<KK_FLOAT>(1.0)) forcecoul -= (static_cast<KK_FLOAT>(1.0)-factor_coul)*prefactor;
   return forcecoul * r2inv;
@@ -218,7 +218,7 @@ KK_FLOAT PairLJCutCoulWolfKokkos<DeviceType>::
 compute_evdwl(const KK_FLOAT& rsq, const int& /*i*/, const int& /*j*/,
                const int& itype, const int& jtype) const
 {
-  const KK_FLOAT r2inv = 1.0/rsq;
+  const KK_FLOAT r2inv = static_cast<KK_FLOAT>(1.0)/rsq;
   const KK_FLOAT r6inv = r2inv*r2inv*r2inv;
   return r6inv*
     ((STACKPARAMS?m_params[itype][jtype].lj3:params(itype,jtype).lj3)*r6inv
@@ -241,10 +241,33 @@ compute_ecoul(const KK_FLOAT& rsq, const int& /*i*/, const int& j,
 {
   const KK_FLOAT r = Kokkos::sqrt(rsq);
   const KK_FLOAT prefactor = qqrd2e * qtmp * q(j) / r;
-  const KK_FLOAT erfcc = erfc(m_alf*r);
+  const KK_FLOAT erfcc = Kokkos::erfc(m_alf*r);
   KK_FLOAT ecoul = (erfcc - e_shift*r) * prefactor;
   if (factor_coul < static_cast<KK_FLOAT>(1.0)) ecoul -= (static_cast<KK_FLOAT>(1.0)-factor_coul)*prefactor;
   return ecoul;
+}
+
+/* ----------------------------------------------------------------------
+   self energy contribution of atom i; mirrors the ev_tally(i,i,...) call of
+   the CPU style
+   ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+// NOLINTNEXTLINE
+KOKKOS_INLINE_FUNCTION
+void PairLJCutCoulWolfKokkos<DeviceType>::operator()(TagPairLJCutCoulWolfSelfEnergy,
+                                const int &ii, KK_ACC_FLOAT &e_self_sum) const
+{
+  const KK_FLOAT alf_kk = static_cast<KK_FLOAT>(m_alf);
+  const KK_FLOAT e_shift_kk = static_cast<KK_FLOAT>(e_shift);
+
+  const int i = d_ilist[ii];
+  const KK_FLOAT qtmp = q(i);
+  const KK_FLOAT e_self = -(e_shift_kk/static_cast<KK_FLOAT>(2.0) +
+                            alf_kk/static_cast<KK_FLOAT>(MY_PIS)) * qtmp*qtmp*qqrd2e;
+
+  if (eflag_global) e_self_sum += static_cast<KK_ACC_FLOAT>(e_self);
+  if (eflag_atom) d_eatom[i] += static_cast<KK_ACC_FLOAT>(e_self);
 }
 
 /* ----------------------------------------------------------------------
@@ -282,7 +305,7 @@ void PairLJCutCoulWolfKokkos<DeviceType>::init_style()
 {
   PairLJCutCoulWolf::init_style();
 
-  Kokkos::deep_copy(d_cut_coulsq,cut_coulsq);
+  Kokkos::deep_copy(d_cut_coulsq,static_cast<KK_FLOAT>(cut_coulsq));
 
   if (update->whichflag == 1 && utils::strmatch(update->integrate_style,"^respa")) {
     int respa = 0;
@@ -310,20 +333,20 @@ double PairLJCutCoulWolfKokkos<DeviceType>::init_one(int i, int j)
   double cutone = PairLJCutCoulWolf::init_one(i,j);
   double cut_ljsqm = cut_ljsq[i][j];
 
-  k_params.view_host()(i,j).lj1 = lj1[i][j];
-  k_params.view_host()(i,j).lj2 = lj2[i][j];
-  k_params.view_host()(i,j).lj3 = lj3[i][j];
-  k_params.view_host()(i,j).lj4 = lj4[i][j];
-  k_params.view_host()(i,j).offset = offset[i][j];
-  k_params.view_host()(i,j).cut_ljsq  = cut_ljsqm;
-  k_params.view_host()(i,j).cut_coulsq = cut_coulsq;
+  k_params.view_host()(i,j).lj1 = static_cast<KK_FLOAT>(lj1[i][j]);
+  k_params.view_host()(i,j).lj2 = static_cast<KK_FLOAT>(lj2[i][j]);
+  k_params.view_host()(i,j).lj3 = static_cast<KK_FLOAT>(lj3[i][j]);
+  k_params.view_host()(i,j).lj4 = static_cast<KK_FLOAT>(lj4[i][j]);
+  k_params.view_host()(i,j).offset = static_cast<KK_FLOAT>(offset[i][j]);
+  k_params.view_host()(i,j).cut_ljsq  = static_cast<KK_FLOAT>(cut_ljsqm);
+  k_params.view_host()(i,j).cut_coulsq = static_cast<KK_FLOAT>(cut_coulsq);
 
   k_params.view_host()(j,i) = k_params.view_host()(i,j);
   if (i<MAX_TYPES_STACKPARAMS+1 && j<MAX_TYPES_STACKPARAMS+1) {
     m_params[i][j] = m_params[j][i] = k_params.view_host()(i,j);
-    m_cutsq[j][i] = m_cutsq[i][j] = cutone*cutone;
-    m_cut_ljsq[j][i] = m_cut_ljsq[i][j] = cut_ljsqm;
-    m_cut_coulsq[j][i] = m_cut_coulsq[i][j] = cut_coulsq;
+    m_cutsq[j][i] = m_cutsq[i][j] = static_cast<KK_FLOAT>(cutone*cutone);
+    m_cut_ljsq[j][i] = m_cut_ljsq[i][j] = static_cast<KK_FLOAT>(cut_ljsqm);
+    m_cut_coulsq[j][i] = m_cut_coulsq[i][j] = static_cast<KK_FLOAT>(cut_coulsq);
   }
 
   k_cutsq.view_host()(i,j) = k_cutsq.view_host()(j,i) = cutone*cutone;

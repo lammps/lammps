@@ -1,0 +1,9 @@
+include         common_sphere.mod
+fix             1 all nve/sphere
+fix             dc  all damping/cundall 0.1 0.1
+fix             vn  all viscous/nonlinear 0.05 1.0
+fix             at  all addtorque/atom 0.01 0.02 0.03
+fix             st  all settorque/atom 0.0 0.0 0.05
+thermo_style    custom step temp pe ke etotal press
+thermo          5
+run             20 post no

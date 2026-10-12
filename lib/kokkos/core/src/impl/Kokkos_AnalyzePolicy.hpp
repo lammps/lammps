@@ -10,6 +10,7 @@
 #include <traits/Kokkos_PolicyTraitAdaptor.hpp>
 
 #include <traits/Kokkos_ExecutionSpaceTrait.hpp>
+#include <traits/Kokkos_TeamHandleTrait.hpp>
 #include <traits/Kokkos_GraphKernelTrait.hpp>
 #include <traits/Kokkos_IndexTypeTrait.hpp>
 #include <traits/Kokkos_IterationPatternTrait.hpp>
@@ -148,19 +149,55 @@ struct AnalyzeExecPolicyUseMatcher<void, type_list<>>
 // </editor-fold> end AnalyzeExecPolicyUseMatcher }}}1
 //==============================================================================
 
+// Helpers to choose the default execution space
+//   - If TeamHandleTrait exist, type is team_handle::execution_space
+//   - Else, type is Kokkos::DefaultExecutionSpace
+template <class T>
+struct DefaultExecutionSpaceSelector;
+
+template <>
+struct DefaultExecutionSpaceSelector<void> {
+  using type = Kokkos::DefaultExecutionSpace;
+};
+
+template <Kokkos::TeamHandle T>
+struct DefaultExecutionSpaceSelector<T> {
+  using type = typename T::execution_space;
+};
+
 //------------------------------------------------------------------------------
 // Used for defaults that depend on other analysis results
 template <class AnalysisResults>
 struct ExecPolicyTraitsWithDefaults : AnalysisResults {
   using base_t = AnalysisResults;
   using base_t::base_t;
+
+  // It is invalid to explicitly define both ExecSpace and TeamHandle traits
+  static_assert(base_t::execution_space_is_defaulted ||
+                    base_t::team_handle_is_defaulted,
+                "Kokkos Error: Cannot give both ExecSpace and TeamHandle as "
+                "policy traits.");
+
+  // Query for the default execution space
+  using execution_space =
+      typename std::conditional_t<base_t::execution_space_is_defaulted,
+                                  typename DefaultExecutionSpaceSelector<
+                                      typename base_t::team_handle>::type,
+                                  typename base_t::execution_space>;
+
+  // Define the "execution_type" to be whichever policy trait was explicitly set
+  // (default to execspace if neither is set)
+  using execution_type =
+      std::conditional_t<base_t::team_handle_is_defaulted, execution_space,
+                         typename base_t::team_handle>;
+
   // The old code turned this into an integral type for backwards compatibility,
   // so that's what we're doing here. The original comment was:
   //   nasty hack to make index_type into an integral_type
   //   instead of the wrapped IndexType<T> for backwards compatibility
   using index_type = typename std::conditional_t<
       base_t::index_type_is_defaulted,
-      Kokkos::IndexType<typename base_t::execution_space::size_type>,
+      Kokkos::IndexType<typename execution_space::index_type>,
       typename base_t::index_type>::type;
 };
 

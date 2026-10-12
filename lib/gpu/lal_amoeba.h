@@ -29,7 +29,6 @@ class Amoeba : public BaseAmoeba<numtyp, acctyp> {
   /// Clear any previous data and set up for a new LAMMPS run
   /** \param max_nbors initial number of rows in the neighbor matrix
     * \param cell_size cutoff + skin
-    * \param gpu_split fraction of particles handled by device
     *
     * Returns:
     * -  0 if successful
@@ -40,17 +39,17 @@ class Amoeba : public BaseAmoeba<numtyp, acctyp> {
   int init(const int ntypes, const int max_amtype, const int max_amclass,
            const double *host_pdamp, const double *host_thole,
            const double *host_dirdamp, const int *host_amtype2class,
-           const double *host_special_mpole,
            const double *host_special_hal,
            const double *host_special_repel,
            const double *host_special_disp,
+           const double *host_special_mpole,
            const double *host_special_polar_wscale,
            const double *host_special_polar_piscale,
            const double *host_special_polar_pscale,
            const double *host_csix, const double *host_adisp,
            const int nlocal, const int nall, const int max_nbors,
            const int maxspecial, const int maxspecial15, const double cell_size,
-           const double gpu_split, FILE *_screen,
+           FILE *_screen,
            const double polar_dscale, const double polar_uscale);
 
   /// Clear all host and device data

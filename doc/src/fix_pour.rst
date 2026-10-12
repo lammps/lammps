@@ -198,7 +198,7 @@ current atom and molecule ID of any existing particle.  Newly inserted
 particles and molecules are assigned IDs that increment those max
 values.  For the *max* setting, which is the default, this check is
 done at every insertion step, which allows for particles to leave the
-system, and their IDs to potentially be re-used.  For the *next*
+system, and their IDs to potentially be reused.  For the *next*
 setting this check is done only once when the fix is specified, which
 can be more efficient if you are sure particles will not be added in
 some other way.

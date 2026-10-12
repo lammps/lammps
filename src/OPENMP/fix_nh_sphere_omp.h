@@ -25,7 +25,10 @@ class FixNHSphereOMP : public FixNHOMP {
   void init() override;
 
  protected:
+  double inertia;    // moment of inertia prefactor for sphere or disc
+
   void nve_v() override;
+  void nve_x() override;
   void nh_v_temp() override;
 };
 

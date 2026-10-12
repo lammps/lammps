@@ -101,24 +101,24 @@ void PairBeckKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   nlocal = atom->nlocal;
   nall = atom->nlocal + atom->nghost;
   newton_pair = force->newton_pair;
-  special_lj[0] = force->special_lj[0];
-  special_lj[1] = force->special_lj[1];
-  special_lj[2] = force->special_lj[2];
-  special_lj[3] = force->special_lj[3];
+  special_lj[0] = static_cast<KK_FLOAT>(force->special_lj[0]);
+  special_lj[1] = static_cast<KK_FLOAT>(force->special_lj[1]);
+  special_lj[2] = static_cast<KK_FLOAT>(force->special_lj[2]);
+  special_lj[3] = static_cast<KK_FLOAT>(force->special_lj[3]);
 
   // loop over neighbors of my atoms
 
   copymode = 1;
   EV_FLOAT ev = pair_compute<PairBeckKokkos<DeviceType>,void >(this,(NeighListKokkos<DeviceType>*)list);
 
-  if (eflag_global) eng_vdwl += ev.evdwl;
+  if (eflag_global) eng_vdwl += static_cast<double>(ev.evdwl);
   if (vflag_global) {
-    virial[0] += ev.v[0];
-    virial[1] += ev.v[1];
-    virial[2] += ev.v[2];
-    virial[3] += ev.v[3];
-    virial[4] += ev.v[4];
-    virial[5] += ev.v[5];
+    virial[0] += static_cast<double>(ev.v[0]);
+    virial[1] += static_cast<double>(ev.v[1]);
+    virial[2] += static_cast<double>(ev.v[2]);
+    virial[3] += static_cast<double>(ev.v[3]);
+    virial[4] += static_cast<double>(ev.v[4]);
+    virial[5] += static_cast<double>(ev.v[5]);
   }
 
   if (vflag_fdotr) pair_virial_fdotr_compute(this);
@@ -148,7 +148,7 @@ compute_fpair(const KK_FLOAT &rsq, const int &, const int &, const int &itype, c
   const KK_FLOAT alpha = STACKPARAMS ? m_params[itype][jtype].alpha : params(itype,jtype).alpha;
   const KK_FLOAT beta  = STACKPARAMS ? m_params[itype][jtype].beta  : params(itype,jtype).beta;
 
-  const KK_FLOAT r    = sqrt(rsq);
+  const KK_FLOAT r    = Kokkos::sqrt(rsq);
   const KK_FLOAT r5   = rsq*rsq*r;
   const KK_FLOAT rinv = static_cast<KK_FLOAT>(1.0) / r;
   const KK_FLOAT term1 = aaij*aaij + rsq;
@@ -157,7 +157,7 @@ compute_fpair(const KK_FLOAT &rsq, const int &, const int &, const int &itype, c
                          + static_cast<KK_FLOAT>(6.0)*rsq;
   const KK_FLOAT term4 = alpha + r5*beta;
   const KK_FLOAT term5 = alpha + static_cast<KK_FLOAT>(6.0)*r5*beta;
-  const KK_FLOAT force_beck = AA*exp(static_cast<KK_FLOAT>(-1.0)*r*term4)*term5
+  const KK_FLOAT force_beck = AA*Kokkos::exp(static_cast<KK_FLOAT>(-1.0)*r*term4)*term5
                                - BB*r*term2*term3;
   return force_beck * rinv;
 }
@@ -174,13 +174,13 @@ compute_evdwl(const KK_FLOAT &rsq, const int &, const int &, const int &itype, c
   const KK_FLOAT alpha = STACKPARAMS ? m_params[itype][jtype].alpha : params(itype,jtype).alpha;
   const KK_FLOAT beta  = STACKPARAMS ? m_params[itype][jtype].beta  : params(itype,jtype).beta;
 
-  const KK_FLOAT r     = sqrt(rsq);
+  const KK_FLOAT r     = Kokkos::sqrt(rsq);
   const KK_FLOAT r5    = rsq*rsq*r;
   const KK_FLOAT term1 = aaij*aaij + rsq;
   const KK_FLOAT term1inv = static_cast<KK_FLOAT>(1.0) / term1;
   const KK_FLOAT term4 = alpha + r5*beta;
   const KK_FLOAT term6 = powint(term1,-3);
-  return AA*exp(static_cast<KK_FLOAT>(-1.0)*r*term4)
+  return AA*Kokkos::exp(static_cast<KK_FLOAT>(-1.0)*r*term4)
          - BB*term6*(static_cast<KK_FLOAT>(1.0)
                      + (static_cast<KK_FLOAT>(2.709) + static_cast<KK_FLOAT>(3.0)*aaij*aaij)*term1inv);
 }

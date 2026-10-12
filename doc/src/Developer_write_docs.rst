@@ -165,7 +165,7 @@ the model or behavior, typically including the functional form as a
    Description
    """""""""""
 
-   .. versionadded:: TBD
+   .. versionadded:: 4Jul2026
 
    Pair style *born/gauss* computes pairwise interactions ...
 
@@ -438,7 +438,7 @@ are acceptable:
 
 * mention the directory inside the "Description" or "Examples" section,
   for instance a line like ``Example input scripts available:
-  examples/PACKAGES/foo``;
+  examples/PACKAGES/<foo>`` for a new command called ``<foo>``;
 * reference specific input files by their path in the relevant
   discussion.
 

@@ -1,0 +1,3 @@
+*.json
+/triage
+/defect_traces

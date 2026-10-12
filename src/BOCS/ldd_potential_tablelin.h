@@ -15,12 +15,6 @@
     Contributed by Michael R. DeLyser, mrd5285@psu.edu
     The Pennsylvania State University
    ------------------------------------------------------ */
-#ifdef LDD_POTENTIAL_CLASS
-// clang-format off
-LddPotentialStyle(table/lin,LddPotentialTableLin);
-// clang-format on
-#else
-
 #ifndef LDD_POTENTIAL_TABLELIN
 #define LDD_POTENTIAL_TABLELIN
 
@@ -42,5 +36,4 @@ class LddPotentialTableLin : public LddPotential {
 };
 }    // namespace LAMMPS_NS
 
-#endif
 #endif

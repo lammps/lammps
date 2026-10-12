@@ -124,15 +124,11 @@ This pair style supports the :doc:`pair_modify <pair_modify>` shift
 option for the energy of the exp() and 1/r\^6 portion of the pair
 interaction, assuming *flag_buck* is *cut*\ .
 
-This pair style does not support the :doc:`pair_modify <pair_modify>`
-shift option for the energy of the Buckingham portion of the pair
-interaction.
-
 This pair style supports the :doc:`pair_modify <pair_modify>` table and
 table/disp options since they can tabulate the short-range portion of
 the long-range Coulombic and dispersion interactions.
 
-This pair style write its information to :doc:`binary restart files <restart>`, so pair_style and pair_coeff commands do not need
+This pair style writes its information to :doc:`binary restart files <restart>`, so pair_style and pair_coeff commands do not need
 to be specified in an input script that reads a restart file.
 
 This pair style supports the use of the *inner*, *middle*, and *outer*

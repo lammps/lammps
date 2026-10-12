@@ -43,7 +43,7 @@ cluster expansion (ACE) descriptors of the atoms in a group.  ACE
 descriptors are highly general atomic descriptors, encoding the radial
 and angular distribution of neighbor atoms, up to arbitrary bond order
 (rank).  The detailed mathematical definition is given in the paper by
-:ref:`(Drautz) <Drautz19>`.  These descriptors are used in the
+:ref:`(Drautz19) <Drautz19>`.  These descriptors are used in the
 :doc:`pace pair_style <pair_pace>`.  Quantities obtained from `compute
 pace` are related to those used in :doc:`pace pair_style <pair_pace>` to
 evaluate atomic energies, forces, and stresses for linear ACE models.
@@ -53,13 +53,13 @@ For example, the energy for a linear ACE model is calculated as:
 B_{i,\boldsymbol{\boldsymbol{\nu}}}`.  The ACE descriptors for atom `i`
 :math:`B_{i,\boldsymbol{\nu}}`, and :math:`c_{\nu}` are linear model
 parameters.  The detailed definition and indexing convention for ACE
-descriptors is given in :ref:`(Drautz) <Drautz19>`.  In short, body
+descriptors is given in :ref:`(Drautz19) <Drautz19>`.  In short, body
 order :math:`N`, angular character, radial character, and chemical
 elements in the *N-body* descriptor are encoded by :math:`\nu`.  In the
 :doc:`pace pair_style <pair_pace>`, the linear model parameters and the
 ACE descriptors are combined for efficient evaluation of energies and
 forces.  The details and benefits of this efficient implementation are
-given in :ref:`(Lysogorskiy) <Lysogorskiy21>`, but the combined
+given in :ref:`(Lysogorskiy21) <Lysogorskiy21>`, but the combined
 descriptors and linear model parameters for the purposes of `compute
 pace` may be expressed in terms of the ACE descriptors mentioned above.
 
@@ -68,7 +68,7 @@ pace` may be expressed in terms of the ACE descriptors mentioned above.
 where the bracketed terms on the right-hand side are the combined functions
 with linear model parameters typically provided in the `<name>.yace` potential
 file for `pace pair_style`. When these bracketed terms are multiplied by the
-products of the atomic base from :ref:`(Drautz) <Drautz19>`,
+products of the atomic base from :ref:`(Drautz19) <Drautz19>`,
 :math:`A_{i,\boldsymbol{\nu'}}`, the ACE descriptors are recovered but they
 are also scaled by linear model parameters. The generalized coupling coefficients,
 written in short-hand here as :math:`C(\boldsymbol{\nu}')`, are the generalized
@@ -92,7 +92,7 @@ The coefficient file, `<name>.yace`, ultimately defines the number of ACE
 descriptors to be computed, their maximum body-order, the degree of angular
 character they have, the degree of radial character they have, the chemical
 character (which element-element interactions are encoded by descriptors),
-and other hyper-parameters defined in :ref:`(Drautz) <Drautz19>`. These may
+and other hyper-parameters defined in :ref:`(Drautz19) <Drautz19>`. These may
 be modeled after the potential files in :doc:`pace pair_style <pair_pace>`,
 and have the same format. Details on how to generate the coefficient files
 to train ACE models may be found in `FitSNAP <https://github.com/FitSNAP/FitSNAP>`_.
@@ -242,11 +242,11 @@ The optional keyword defaults are *bikflag* = 0,
 
 .. _Drautz19:
 
-**(Drautz)** Drautz, Phys Rev B, 99, 014104 (2019).
+**(Drautz19)** Drautz, Phys Rev B, 99, 014104 (2019).
 
 .. _Lysogorskiy21:
 
-**(Lysogorskiy)** Lysogorskiy, van der Oord, Bochkarev, Menon, Rinaldi, Hammerschmidt, Mrovec, Thompson, Csanyi, Ortner, Drautz, npj Comp Mat, 7, 97 (2021).
+**(Lysogorskiy21)** Lysogorskiy, van der Oord, Bochkarev, Menon, Rinaldi, Hammerschmidt, Mrovec, Thompson, Csanyi, Ortner, Drautz, npj Comp Mat, 7, 97 (2021).
 
 .. _Goff23:
 

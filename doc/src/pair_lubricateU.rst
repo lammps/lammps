@@ -123,7 +123,7 @@ the pairwise interactions have been computed.
 Style *lubricateU* requires monodisperse spherical particles; style
 *lubricateU/poly* allows for polydisperse spherical particles.
 
-.. versionchanged:: TBD
+.. versionchanged:: 4Jul2026
 
 The near-field resistance functions used by *lubricateU/poly* for
 particles of unequal radii were corrected for consistency with

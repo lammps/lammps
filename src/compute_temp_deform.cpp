@@ -95,7 +95,7 @@ void ComputeTempDeform::init()
   // check fix deform remap settings
 
   auto fixes = modify->get_fix_by_style("^deform");
-  if (fixes.size() > 0) {
+  if (!fixes.empty()) {
     auto *f = dynamic_cast<FixDeform *>(fixes[0]);
     if (f && f->remapflag == Domain::X_REMAP && comm->me == 0)
       error->warning(FLERR, "Using compute {} with inconsistent fix deform remap option", style);

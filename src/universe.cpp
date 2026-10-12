@@ -17,12 +17,11 @@
 #include "error.h"
 #include "memory.h"
 #include "safe_pointers.h"
+#include "text_file_reader.h"
 
 #include <cstring>
 
 using namespace LAMMPS_NS;
-
-static constexpr int MAXLINE = 256;
 
 /* ----------------------------------------------------------------------
    create & initialize the universe of processors in communicator
@@ -67,8 +66,6 @@ Universe::~Universe()
 
 void Universe::reorder(char *style, char *arg)
 {
-  char line[MAXLINE] = {'\0'};
-
   if (uworld != uorig) MPI_Comm_free(&uworld);
 
   if (strcmp(style,"nth") == 0) {
@@ -90,38 +87,27 @@ void Universe::reorder(char *style, char *arg)
         error->universe_one(FLERR,fmt::format("Cannot open -reorder file {}: {}", arg,
                                               utils::getsyserror()));
 
-      // skip header = blank and comment lines
-
-      char *ptr;
-      if (!fgets(line,MAXLINE,fp))
-        error->one(FLERR,"Unexpected end of -reorder file");
-      while (true) {
-        if ((ptr = strchr(line,'#'))) *ptr = '\0';
-        if (strspn(line," \t\n\r") != strlen(line)) break;
-        if (!fgets(line,MAXLINE,fp))
-          error->one(FLERR,"Unexpected end of -reorder file");
-      }
-
-      // read nprocs lines
+      // read nprocs lines skipping over blank and comment lines
       // uni2orig = inverse mapping
+      // each original and each new rank must appear exactly once
 
-      int me_orig,me_new,rv;
-      rv = sscanf(line,"%d %d",&me_orig,&me_new);
-      if (me_orig < 0 || me_orig >= nprocs ||
-          me_new < 0 || me_new >= nprocs || rv != 2)
-        error->one(FLERR,"Invalid entry '{} {}' in -reorder "
-                                     "file", me_orig, me_new);
-      uni2orig[me_new] = me_orig;
+      std::vector<int> seen_orig(nprocs,0), seen_new(nprocs,0);
 
-      for (int i = 1; i < nprocs; i++) {
-        if (!fgets(line,MAXLINE,fp))
-          error->one(FLERR,"Unexpected end of -reorder file");
-        rv = sscanf(line,"%d %d",&me_orig,&me_new);
-        if (me_orig < 0 || me_orig >= nprocs ||
-            me_new < 0 || me_new >= nprocs || rv != 2)
-          error->one(FLERR,"Invalid entry '{} {}' in -reorder "
-                                       "file", me_orig, me_new);
-        uni2orig[me_new] = me_orig;
+      try {
+        TextFileReader reader(fp, "-reorder");
+        for (int i = 0; i < nprocs; i++) {
+          auto values = reader.next_values(2);
+          int me_orig = values.next_int();
+          int me_new = values.next_int();
+          if ((me_orig < 0) || (me_orig >= nprocs) || (me_new < 0) || (me_new >= nprocs))
+            error->one(FLERR,"Invalid entry '{} {}' in -reorder file", me_orig, me_new);
+          if (seen_orig[me_orig] || seen_new[me_new])
+            error->one(FLERR,"Duplicate entry '{} {}' in -reorder file", me_orig, me_new);
+          seen_orig[me_orig] = seen_new[me_new] = 1;
+          uni2orig[me_new] = me_orig;
+        }
+      } catch (std::exception &e) {
+        error->one(FLERR,"Error reading -reorder file: {}", e.what());
       }
     }
 
@@ -133,10 +119,11 @@ void Universe::reorder(char *style, char *arg)
 
   // create new uworld communicator
 
-  int ome,key;
+  int ome,key = -1;
   MPI_Comm_rank(uorig,&ome);
   for (int i = 0; i < nprocs; i++)
     if (uni2orig[i] == ome) key = i;
+  if (key < 0) error->universe_one(FLERR,"Invalid -reorder file: not a permutation of all ranks");
 
   MPI_Comm_split(uorig,0,key,&uworld);
   MPI_Comm_rank(uworld,&me);
@@ -166,7 +153,7 @@ void Universe::add_world(char *str)
     // str may not be empty and may only consist of digits or 'x'
 
     std::string part(str);
-    if (part.size() == 0) valid = false;
+    if (part.empty()) valid = false;
     if (part.find_first_not_of("0123456789x") != std::string::npos) valid = false;
 
     if (valid) {

@@ -1,5 +1,6 @@
 ---
 lammps_version: 24 Mar 2022
+tags: no_reset_dt
 date_generated: Sun Apr  3 03:16:48 2022
 epsilon: 2e-14
 skip_tests:
@@ -16,6 +17,7 @@ pre_commands: ! |
 post_commands: ! |
   fix test solute move variable v_x v_y v_z v_vx v_vy v_vz
 input_file: in.fourmol
+input_coeffs: coeffs.fourmol
 natoms: 29
 run_pos: ! |2
     1  1.7200631633077317e+00  2.4726588069312840e+00 -1.7200860244148433e-01

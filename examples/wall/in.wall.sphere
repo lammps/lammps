@@ -34,7 +34,7 @@ velocity all create 300.0 12345
 fix 1 all nvt temp 300 300 100.0
 fix 2 all shake 0.001 10 10000 b 1 a 1
 
-dump 2 all movie 10 wall.sphere.mpg type type size 1500 1500 fsaa yes
-dump_modify 2 pad 4 acolor * white/red/green/blue/aqua/magenta
+#dump 2 all movie 10 wall.sphere.mpg type type size 1500 1500 fsaa yes
+#dump_modify 2 pad 4 acolor * white/red/green/blue/aqua/magenta
 
 run             100

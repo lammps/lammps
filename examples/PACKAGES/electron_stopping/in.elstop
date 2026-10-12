@@ -17,7 +17,7 @@ mass 1 28.0855
 
 create_atoms 1 box
 
-velocity all create 300 42534 mom yes rot yes
+velocity all create 300 42534 mom yes rot yes loop geom
 
 group gPKA id 1
 velocity gPKA set 1120 1620 389

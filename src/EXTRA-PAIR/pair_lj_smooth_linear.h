@@ -49,7 +49,7 @@ class PairLJSmoothLinear : public Pair {
   double **ljcut, **dljcut;
   double **lj1, **lj2, **lj3, **lj4;
 
-  void allocate();
+  virtual void allocate();
 };
 
 }    // namespace LAMMPS_NS

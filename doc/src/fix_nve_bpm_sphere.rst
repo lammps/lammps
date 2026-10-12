@@ -54,7 +54,7 @@ simulations, as defined by the :doc:`dimension <dimension>` keyword.
 The only difference between discs and spheres in this context is their
 moment of inertia, as used in the time integration.
 
-.. versionadded:: TBD
+.. versionadded:: 4Jul2026
 
 If the *update* keyword is used with the *dipole* value, then the
 orientation of the dipole moment of each particle is also updated

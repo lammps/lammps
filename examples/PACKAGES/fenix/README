@@ -1,0 +1,9 @@
+Example of using Fenix for online process recovery.
+
+Input files
+in.file     : Checkpoints to file, uses Fenix only for online recovery
+in.universe : As in.file, but runs with 2 partitions and 1 partition of spares
+
+Relevant Variables
+nspare      : How many spare ranks to allocate (for in.file)
+x, y, z     : Input region size in each dimension (x20)

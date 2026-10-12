@@ -11,20 +11,6 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifdef GRAN_SUB_MOD_CLASS
-// clang-format off
-GranSubModStyle(none,GranSubModTangentialNone,TANGENTIAL);
-GranSubModStyle(linear_nohistory,GranSubModTangentialLinearNoHistory,TANGENTIAL);
-GranSubModStyle(linear_history,GranSubModTangentialLinearHistory,TANGENTIAL);
-GranSubModStyle(linear_history_classic,GranSubModTangentialLinearHistoryClassic,TANGENTIAL);
-GranSubModStyle(mindlin_classic,GranSubModTangentialMindlinClassic,TANGENTIAL);
-GranSubModStyle(mindlin,GranSubModTangentialMindlin,TANGENTIAL);
-GranSubModStyle(mindlin/force,GranSubModTangentialMindlinForce,TANGENTIAL);
-GranSubModStyle(mindlin_rescale,GranSubModTangentialMindlinRescale,TANGENTIAL);
-GranSubModStyle(mindlin_rescale/force,GranSubModTangentialMindlinRescaleForce,TANGENTIAL);
-// clang-format on
-#else
-
 #ifndef GRAN_SUB_MOD_TANGENTIAL_H
 #define GRAN_SUB_MOD_TANGENTIAL_H
 
@@ -78,7 +64,18 @@ namespace LAMMPS_NS::Granular_NS {
     double xt;
   };
 
-  /* ---------------------------------------------------------------------- */
+/* ---------------------------------------------------------------------- */
+
+class GranSubModTangentialLinearHistoryStatic : public GranSubModTangentialLinearHistory {
+ public:
+  GranSubModTangentialLinearHistoryStatic(class GranularModel *, class LAMMPS *);
+  void coeffs_to_local() override;
+  void calculate_forces();
+ protected:
+  double mu_static, mu_dynamic;
+};
+
+/* ---------------------------------------------------------------------- */
 
   class GranSubModTangentialLinearHistoryClassic : public GranSubModTangentialLinearHistory {
    public:
@@ -107,7 +104,23 @@ namespace LAMMPS_NS::Granular_NS {
     double xt;
   };
 
-  /* ---------------------------------------------------------------------- */
+
+
+/* ---------------------------------------------------------------------- */
+
+class GranSubModTangentialMindlinStatic : public GranSubModTangentialMindlin {
+ public:
+  GranSubModTangentialMindlinStatic(class GranularModel *, class LAMMPS *);
+  void coeffs_to_local() override;
+  void mix_coeffs(double*, double*) override;
+  void calculate_forces() override;
+ protected:
+  int mindlin_rescale, mindlin_force;
+  double xt;
+  double mu_static, mu_dynamic;
+};
+
+/* ---------------------------------------------------------------------- */
 
   class GranSubModTangentialMindlinForce : public GranSubModTangentialMindlin {
    public:
@@ -132,4 +145,3 @@ namespace LAMMPS_NS::Granular_NS {
 
 
 #endif /*GRAN_SUB_MOD_TANGENTIAL_H */
-#endif /*GRAN_SUB_MOD_CLASS_H */

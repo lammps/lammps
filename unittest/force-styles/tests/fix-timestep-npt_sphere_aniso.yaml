@@ -15,6 +15,7 @@ post_commands: ! |
   pair_coeff * * 0.0 3.0
   fix test solute npt/sphere temp 50.0 ${t_target} 1.0 aniso 1.0 1.0 100.0 drag 0.01 flip no
 input_file: in.dipole
+input_coeffs: coeffs.fourmol
 natoms: 29
 global_scalar: 12.09666388611562
 global_vector: ! |-

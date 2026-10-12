@@ -137,7 +137,9 @@ FixReaxFFSpecies::FixReaxFFSpecies(LAMMPS *lmp, int narg, char **arg) :
     if (platform::has_compress_extension(arg[6])) {
       fp = platform::compressed_write(arg[6]);
       compressed = 1;
-      if (!fp) error->one(FLERR, 6, "Cannot open compressed file");
+      if (!fp)
+        error->one(FLERR, 6, "Cannot open compressed file {}: {}", arg[6],
+                   platform::compressed_open_error(arg[6]));
     } else
       fp = fopen(arg[6], "w");
 
@@ -294,12 +296,14 @@ FixReaxFFSpecies::FixReaxFFSpecies(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR, iarg + 1, "Incompatible fix reaxff/species position frequency {}",
                    posfreq);
 
+      delete[] filepos;
       filepos = new char[255];
       strcpy(filepos, arg[iarg + 2]);
       if (strchr(filepos, '*')) {
         multipos = 1;
       } else {
         if (comm->me == 0) {
+          if (pos) fclose(pos);
           pos = fopen(filepos, "w");
           if (pos == nullptr)
             error->one(FLERR, iarg + 2, "Cannot open fix reaxff/species position file: {}",

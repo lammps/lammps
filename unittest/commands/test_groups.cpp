@@ -18,12 +18,14 @@
 #include "group.h"
 #include "info.h"
 #include "input.h"
+#include "library.h"
 #include "region.h"
 
 #include "../testing/core.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
+#include <cstdio>
 #include <cstring>
 #include <vector>
 
@@ -416,9 +418,9 @@ TEST_F(GroupTest, VariableFunctions)
     command("set atom 25 charge $(2.0+2.0*sin(PI/32*25))");
     command("set atom 32 charge $(-2.0+2.0*sin(PI/32*32))");
     command("pair_style lj/cut 5.0");
-    command("pair_coeff * * 0.4 3.0");
-    command("pair_coeff 2 2 0.5 3.3");
-    command("pair_coeff 3 3 0.2 3.5");
+    command("pair_coeff * * 0.4 0.8");
+    command("pair_coeff 2 2 0.5 0.9");
+    command("pair_coeff 3 3 0.2 1.0");
     command("run 0 post no");
     END_HIDE_OUTPUT();
 
@@ -524,28 +526,325 @@ TEST_F(GroupTest, VariableFunctions)
     EXPECT_DOUBLE_EQ(center[1], 0);
     EXPECT_DOUBLE_EQ(center[2], 0);
 
+    // the total force on a group of this symmetric system is zero up to the
+    // roundoff of the sum over its atoms.  the individual values depend on the
+    // summation order and thus on the accelerator package in use, so only the
+    // magnitude is checked here.  the pair forces are of order 1, which leaves
+    // a remainder of about 1.0e-5 when the forces are summed in single precision
+
+    const double FORCE_EPSILON = prec_tol(0.0, 1.0e-10);
+
     group->fcm(0, center);
-    EXPECT_NEAR(center[0], 1.9375372195540308e-08, EPSILON);
-    EXPECT_NEAR(center[1], -1.0289756668946382e-07, EPSILON);
-    EXPECT_NEAR(center[2], -1.3366961142124989e-07, EPSILON);
+    EXPECT_NEAR(center[0], 0, FORCE_EPSILON);
+    EXPECT_NEAR(center[1], 0, FORCE_EPSILON);
+    EXPECT_NEAR(center[2], 0, FORCE_EPSILON);
 
     group->fcm(two, center);
-    EXPECT_NEAR(center[0], 2.4316524016576579e-08, EPSILON);
-    EXPECT_NEAR(center[1], -6.0179227712175987e-08, EPSILON);
-    EXPECT_NEAR(center[2], -1.4393012942592875e-07, EPSILON);
+    EXPECT_NEAR(center[0], 0, FORCE_EPSILON);
+    EXPECT_NEAR(center[1], 0, FORCE_EPSILON);
+    EXPECT_NEAR(center[2], 0, FORCE_EPSILON);
 
     group->fcm(three, center);
-    EXPECT_NEAR(center[0], 0, EPSILON);
-    EXPECT_NEAR(center[1], 0, EPSILON);
-    EXPECT_NEAR(center[2], 0, EPSILON);
+    EXPECT_NEAR(center[0], 0, FORCE_EPSILON);
+    EXPECT_NEAR(center[1], 0, FORCE_EPSILON);
+    EXPECT_NEAR(center[2], 0, FORCE_EPSILON);
 
     group->fcm(one, center, top);
-    EXPECT_NEAR(center[0], -5.5879354476928711e-09, EPSILON);
-    EXPECT_NEAR(center[1], -1.6743454178680395e-08, EPSILON);
-    EXPECT_NEAR(center[2], 2.6166095290491853e-08, EPSILON);
+    EXPECT_NEAR(center[0], 0, FORCE_EPSILON);
+    EXPECT_NEAR(center[1], 0, FORCE_EPSILON);
+    EXPECT_NEAR(center[2], 0, FORCE_EPSILON);
 
     EXPECT_DOUBLE_EQ(group->ke(one), 0);
     EXPECT_DOUBLE_EQ(group->ke(one, top), 0);
+}
+
+// Group::inertia must include the moment of inertia of finite-size particles
+// (issue #3710). Build small standalone systems whose inertia tensor can be
+// computed analytically and check Group::inertia (the method behind the
+// inertia()/omega() variable functions) directly.
+
+TEST_F(GroupTest, InertiaEllipsoid)
+{
+    if (!info->has_style("atom", "ellipsoid")) GTEST_SKIP();
+
+    // two axis-aligned ellipsoids, semi-axes a=1,b=2,c=3 (set shape uses
+    // diameters), m1=1 at (0,0,0), m2=3 at (5,0,0); COM at x=3.75
+    // -> tensor diag (10.4, 26.75, 22.75), off-diagonals 0
+
+    BEGIN_HIDE_OUTPUT();
+    command("units lj");
+    command("atom_style ellipsoid");
+    command("boundary f f f");
+    command("region box block -20 20 -20 20 -20 20");
+    command("create_box 1 box");
+    command("create_atoms 1 single 0.0 0.0 0.0 units box");
+    command("create_atoms 1 single 5.0 0.0 0.0 units box");
+    command("set group all shape 2.0 4.0 6.0");
+    command("set atom 1 mass 1.0");
+    command("set atom 2 mass 3.0");
+    command("pair_style zero 5.0");
+    command("pair_coeff * *");
+    command("run 0 post no");
+    END_HIDE_OUTPUT();
+
+    const int all = group->find("all");
+    const double masstotal = group->mass(all);
+    double xcm[3], itensor[3][3];
+    group->xcm(all, masstotal, xcm);
+    group->inertia(all, xcm, itensor);
+    group->inertia_extended(all, itensor);
+
+    EXPECT_NEAR(itensor[0][0], 10.4, 1.0e-12);
+    EXPECT_NEAR(itensor[1][1], 26.75, 1.0e-12);
+    EXPECT_NEAR(itensor[2][2], 22.75, 1.0e-12);
+    EXPECT_NEAR(itensor[0][1], 0.0, 1.0e-12);
+    EXPECT_NEAR(itensor[1][2], 0.0, 1.0e-12);
+    EXPECT_NEAR(itensor[0][2], 0.0, 1.0e-12);
+}
+
+TEST_F(GroupTest, InertiaSphere)
+{
+    if (!info->has_style("atom", "sphere")) GTEST_SKIP();
+
+    // two finite spheres of radius 1, mass 1, at (0,0,0) and (4,0,0)
+    // -> tensor diag (0.8, 8.8, 8.8), off-diagonals 0
+
+    BEGIN_HIDE_OUTPUT();
+    command("units lj");
+    command("atom_style sphere");
+    command("boundary f f f");
+    command("region box block -20 20 -20 20 -20 20");
+    command("create_box 1 box");
+    command("create_atoms 1 single 0.0 0.0 0.0 units box");
+    command("create_atoms 1 single 4.0 0.0 0.0 units box");
+    command("set group all diameter 2.0");
+    command("set group all mass 1.0");
+    command("pair_style zero 5.0");
+    command("pair_coeff * *");
+    command("run 0 post no");
+    END_HIDE_OUTPUT();
+
+    const int all = group->find("all");
+    const double masstotal = group->mass(all);
+    double xcm[3], itensor[3][3];
+    group->xcm(all, masstotal, xcm);
+    group->inertia(all, xcm, itensor);
+    group->inertia_extended(all, itensor);
+
+    EXPECT_NEAR(itensor[0][0], 0.8, 1.0e-12);
+    EXPECT_NEAR(itensor[1][1], 8.8, 1.0e-12);
+    EXPECT_NEAR(itensor[2][2], 8.8, 1.0e-12);
+    EXPECT_NEAR(itensor[0][1], 0.0, 1.0e-12);
+    EXPECT_NEAR(itensor[1][2], 0.0, 1.0e-12);
+    EXPECT_NEAR(itensor[0][2], 0.0, 1.0e-12);
+}
+
+TEST_F(GroupTest, InertiaSuperellipsoid)
+{
+    // atom style ellipsoid/kk does not support the superellipsoid option
+    if (lmp->suffix_enable) GTEST_SKIP() << "superellipsoid is not supported with an accelerator suffix";
+    if (!info->has_style("atom", "ellipsoid")) GTEST_SKIP();
+
+    // same configuration as InertiaEllipsoid, but atom_style "ellipsoid
+    // superellipsoid"; default blockiness (2,2) reduces to an ellipsoid so
+    // the analytic result is identical. Exercises the bonus_super branch.
+    // Mass must be set before shape (stored inertia computed at set-shape).
+
+    BEGIN_HIDE_OUTPUT();
+    command("units lj");
+    command("atom_style ellipsoid superellipsoid");
+    command("boundary f f f");
+    command("region box block -20 20 -20 20 -20 20");
+    command("create_box 1 box");
+    command("create_atoms 1 single 0.0 0.0 0.0 units box");
+    command("create_atoms 1 single 5.0 0.0 0.0 units box");
+    command("set atom 1 mass 1.0");
+    command("set atom 2 mass 3.0");
+    command("set group all shape 2.0 4.0 6.0");
+    command("pair_style zero 5.0");
+    command("pair_coeff * *");
+    command("run 0 post no");
+    END_HIDE_OUTPUT();
+
+    const int all = group->find("all");
+    const double masstotal = group->mass(all);
+    double xcm[3], itensor[3][3];
+    group->xcm(all, masstotal, xcm);
+    group->inertia(all, xcm, itensor);
+    group->inertia_extended(all, itensor);
+
+    EXPECT_NEAR(itensor[0][0], 10.4, 1.0e-12);
+    EXPECT_NEAR(itensor[1][1], 26.75, 1.0e-12);
+    EXPECT_NEAR(itensor[2][2], 22.75, 1.0e-12);
+    EXPECT_NEAR(itensor[0][1], 0.0, 1.0e-12);
+    EXPECT_NEAR(itensor[1][2], 0.0, 1.0e-12);
+    EXPECT_NEAR(itensor[0][2], 0.0, 1.0e-12);
+}
+
+TEST_F(GroupTest, InertiaBody)
+{
+    if (!lammps_config_has_package("BODY")) GTEST_SKIP();
+
+    // the KOKKOS package requires a Kokkos-enabled atom style, and there is
+    // no accelerated version of atom style body
+    if (lmp->kokkos && !info->has_style("atom", "body/kk"))
+        GTEST_SKIP() << "atom style body has no KOKKOS version";
+
+    // single body/nparticle at the origin with a known diagonal inertia
+    // tensor (2,3,4); Group::inertia must return it unchanged
+
+    const char *datafile = "group_inertia_body.data";
+    FILE *fp = fopen(datafile, "w");
+    ASSERT_NE(fp, nullptr);
+    fputs("LAMMPS body nparticle test\n\n"
+          "1 atoms\n1 bodies\n1 atom types\n"
+          "-10 10 xlo xhi\n-10 10 ylo yhi\n-10 10 zlo zhi\n\n"
+          "Atoms\n\n"
+          "1 1 1 1.0 0.0 0.0 0.0 0 0 0\n\n"
+          "Bodies\n\n"
+          "1 1 9\n1\n2.0 3.0 4.0 0.0 0.0 0.0\n0.0 0.0 0.0\n",
+          fp);
+    fclose(fp);
+
+    BEGIN_HIDE_OUTPUT();
+    command("units lj");
+    command("atom_style body nparticle 1 1");
+    command("read_data " + std::string(datafile));
+    command("pair_style zero 5.0");
+    command("pair_coeff * *");
+    command("run 0 post no");
+    END_HIDE_OUTPUT();
+
+    const int all = group->find("all");
+    const double masstotal = group->mass(all);
+    double xcm[3], itensor[3][3];
+    group->xcm(all, masstotal, xcm);
+    group->inertia(all, xcm, itensor);
+    group->inertia_extended(all, itensor);
+
+    EXPECT_NEAR(itensor[0][0], 2.0, 1.0e-12);
+    EXPECT_NEAR(itensor[1][1], 3.0, 1.0e-12);
+    EXPECT_NEAR(itensor[2][2], 4.0, 1.0e-12);
+    EXPECT_NEAR(itensor[0][1], 0.0, 1.0e-12);
+    EXPECT_NEAR(itensor[1][2], 0.0, 1.0e-12);
+    EXPECT_NEAR(itensor[0][2], 0.0, 1.0e-12);
+
+    remove(datafile);
+}
+
+TEST_F(GroupTest, InertiaRegion)
+{
+    if (!info->has_style("atom", "ellipsoid")) GTEST_SKIP();
+
+    // exercise the region overload: a region containing only the ellipsoid
+    // at the origin, with cm at that origin -> only that particle's own spin
+    // inertia contributes: 0.2*m*(b^2+c^2,a^2+c^2,a^2+b^2) = (2.6, 2.0, 1.0)
+
+    BEGIN_HIDE_OUTPUT();
+    command("units lj");
+    command("atom_style ellipsoid");
+    command("boundary f f f");
+    command("region box block -20 20 -20 20 -20 20");
+    command("create_box 1 box");
+    command("create_atoms 1 single 0.0 0.0 0.0 units box");
+    command("create_atoms 1 single 5.0 0.0 0.0 units box");
+    command("set group all shape 2.0 4.0 6.0");
+    command("set group all mass 1.0");
+    command("region only block -1.0 1.0 -1.0 1.0 -1.0 1.0 units box");
+    command("pair_style zero 5.0");
+    command("pair_coeff * *");
+    command("run 0 post no");
+    END_HIDE_OUTPUT();
+
+    auto *region = domain->get_region_by_id("only");
+    ASSERT_NE(region, nullptr);
+
+    const int all = group->find("all");
+    double cm[3] = {0.0, 0.0, 0.0};
+    double itensor[3][3] = {{0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}};
+    group->inertia(all, cm, itensor, region);
+    group->inertia_extended(all, itensor, region);
+
+    EXPECT_NEAR(itensor[0][0], 2.6, 1.0e-12);
+    EXPECT_NEAR(itensor[1][1], 2.0, 1.0e-12);
+    EXPECT_NEAR(itensor[2][2], 1.0, 1.0e-12);
+    EXPECT_NEAR(itensor[0][1], 0.0, 1.0e-12);
+    EXPECT_NEAR(itensor[1][2], 0.0, 1.0e-12);
+    EXPECT_NEAR(itensor[0][2], 0.0, 1.0e-12);
+}
+
+// Group::angmom_extended adds the intrinsic (spin) angular momentum of
+// finite-size particles: OMEGA-type (sphere, line) via I_spin*omega,
+// ANGMOM-type (ellipsoid, superellipsoid, triangle, body) via stored angmom.
+
+TEST_F(GroupTest, AngmomSphere)
+{
+    if (!info->has_style("atom", "sphere")) GTEST_SKIP();
+
+    // two finite spheres (r=1, m=1) at rest but spinning with omega=(0,0,5);
+    // orbital L is zero (v=0), spin L = 0.4*m*r^2*omega per atom -> (0,0,4)
+
+    BEGIN_HIDE_OUTPUT();
+    command("units lj");
+    command("atom_style sphere");
+    command("boundary f f f");
+    command("region box block -20 20 -20 20 -20 20");
+    command("create_box 1 box");
+    command("create_atoms 1 single 0.0 0.0 0.0 units box");
+    command("create_atoms 1 single 2.0 0.0 0.0 units box");
+    command("set group all diameter 2.0");
+    command("set group all mass 1.0");
+    command("set group all omega 0.0 0.0 5.0");
+    command("pair_style zero 5.0");
+    command("pair_coeff * *");
+    command("run 0 post no");
+    END_HIDE_OUTPUT();
+
+    const int all = group->find("all");
+    const double masstotal = group->mass(all);
+    double xcm[3], lmom[3];
+    group->xcm(all, masstotal, xcm);
+    group->angmom(all, xcm, lmom);
+    group->angmom_extended(all, lmom);
+
+    EXPECT_NEAR(lmom[0], 0.0, 1.0e-12);
+    EXPECT_NEAR(lmom[1], 0.0, 1.0e-12);
+    EXPECT_NEAR(lmom[2], 4.0, 1.0e-12);
+}
+
+TEST_F(GroupTest, AngmomEllipsoid)
+{
+    if (!info->has_style("atom", "ellipsoid")) GTEST_SKIP();
+
+    // a single ellipsoid at rest with its angular momentum set to (1,2,3);
+    // orbital L is zero, so the group angular momentum equals the stored
+    // per-particle angular momentum
+
+    BEGIN_HIDE_OUTPUT();
+    command("units lj");
+    command("atom_style ellipsoid");
+    command("boundary f f f");
+    command("region box block -20 20 -20 20 -20 20");
+    command("create_box 1 box");
+    command("create_atoms 1 single 0.0 0.0 0.0 units box");
+    command("set group all shape 2.0 4.0 6.0");
+    command("set group all mass 1.0");
+    command("set group all angmom 1.0 2.0 3.0");
+    command("pair_style zero 5.0");
+    command("pair_coeff * *");
+    command("run 0 post no");
+    END_HIDE_OUTPUT();
+
+    const int all = group->find("all");
+    const double masstotal = group->mass(all);
+    double xcm[3], lmom[3];
+    group->xcm(all, masstotal, xcm);
+    group->angmom(all, xcm, lmom);
+    group->angmom_extended(all, lmom);
+
+    EXPECT_NEAR(lmom[0], 1.0, 1.0e-12);
+    EXPECT_NEAR(lmom[1], 2.0, 1.0e-12);
+    EXPECT_NEAR(lmom[2], 3.0, 1.0e-12);
 }
 
 } // namespace LAMMPS_NS
@@ -568,6 +867,13 @@ int main(int argc, char **argv)
     if ((argc > 1) && (strcmp(argv[1], "-v") == 0)) verbose = true;
 
     int rv = RUN_ALL_TESTS();
+
+    // finalize the KOKKOS package explicitly: otherwise Kokkos is torn down by
+    // static destructors at program exit, leading to segfaults in some cases
+    // same workaround as the force-style and FFT3d test drivers
+
+    lammps_kokkos_finalize();
+
     MPI_Finalize();
     return rv;
 }

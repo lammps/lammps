@@ -44,7 +44,9 @@ specific to the NPT ensemble and can be found in references
 Apart from the difference in acceptance criteria and the specification
 of pressure, this command works much like the :doc:`temper <temper>`
 command. See the documentation on :doc:`temper <temper>` for information
-on how the parallel tempering is handled in general.
+on how the parallel tempering is handled in general, including how to
+write a separate restart file for each replica and how to continue a run
+from those files with the optional *index* argument.
 
 ----------
 

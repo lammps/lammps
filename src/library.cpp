@@ -21,6 +21,7 @@
 
 #include "accelerator_kokkos.h"
 #include "atom.h"
+#include "atom_masks.h"
 #include "atom_vec.h"
 #include "comm.h"
 #include "command.h"
@@ -162,7 +163,7 @@ fails a null pointer is returned.
    possible to provide the address of a pointer variable as final
    argument *ptr*\ .
 
-.. deprecated:: 18Sep2020
+.. versionremoved:: 18Sep2020
 
    The *ptr* argument will be removed in a future release of LAMMPS.
    It should be set to ``NULL`` instead.
@@ -237,7 +238,7 @@ fails a null pointer is returned.
    possible to provide the address of a pointer variable as final
    argument *ptr*\ .
 
-.. deprecated:: 18Sep2020
+.. versionremoved:: 18Sep2020
 
    The *ptr* argument will be removed in a future release of LAMMPS.
    It should be set to ``NULL`` instead.
@@ -593,24 +594,35 @@ char *lammps_expand(void *handle, const char *line)
     STORE_ERROR_MESSAGE(lmp, mesg);
     return nullptr;
   }
-  char *copy, *work;
+  char *copy = nullptr, *work = nullptr, *result = nullptr;
   int n, maxcopy, maxwork;
 
   if (!line) return nullptr;
 
+  // Input::substitute() may grow the buffers with Memory::srealloc(),
+  // so they must be allocated with Memory::smalloc() and not malloc()
+
   BEGIN_CAPTURE
   {
     n = strlen(line) + 1;
-    copy = (char *) malloc(n * sizeof(char));
-    work = (char *) malloc(n * sizeof(char));
+    copy = (char *) lmp->memory->smalloc(n * sizeof(char), "lammps_expand:copy");
+    work = (char *) lmp->memory->smalloc(n * sizeof(char), "lammps_expand:work");
     maxwork = maxcopy = n;
     memcpy(copy, line, maxcopy);
     lmp->input->substitute(copy, work, maxcopy, maxwork, 0);
-    free(work);
   }
   END_CAPTURE
 
-  return copy;
+  // return the expanded string in a buffer that can be freed with lammps_free()
+
+  if (copy) {
+    n = strlen(copy) + 1;
+    result = (char *) malloc(n * sizeof(char));
+    if (result) memcpy(result, copy, n);
+  }
+  lmp->memory->sfree(copy);
+  lmp->memory->sfree(work);
+  return result;
 }
 
 // ----------------------------------------------------------------------
@@ -835,7 +847,7 @@ void lammps_commands_string(void *handle, const char *str)
           }
         }
         // stop processing when quit command is found
-        if (words.size() && (words[0] == "quit")) {
+        if (!words.empty() && (words[0] == "quit")) {
           if (lmp->comm->me == 0)
             utils::logmesg(lmp, "Encountered a 'quit' command. Stopping ...\n");
           break;
@@ -2585,6 +2597,22 @@ A table with supported keywords is included in the documentation of the
    since per-atom data may be re-distributed, re-allocated, and
    re-ordered at every re-neighboring operation.
 
+.. note::
+
+   When running with the KOKKOS package and per-atom data residing on an
+   accelerator device (e.g. a GPU), the requested data is synchronized from
+   the device to the host before the pointer is returned, so that the host
+   data accessed through it is current even when this function is called
+   between output steps (for example from the LAMMPS GUI or a Python script
+   while a run is in progress).
+
+.. versionchanged:: 4Jul2026
+
+When using the KOKKOS package with a device back end, per-atom data is now
+synchronized from the device to the host before the pointer is returned.
+Previously the host copy could be out-of-date for calls not aligned with an
+output or end-of-run step.
+
 \endverbatim
  *
  * \param  handle  pointer to a previously created LAMMPS instance
@@ -3248,7 +3276,7 @@ static int set_variable_deprecated_flag = 1;
 /** Set the value of a string-style variable.
 \verbatim embed:rst
 
-.. deprecated:: 7Feb2024
+.. versionremoved:: 7Feb2024
 
 This function assigns a new value from the string str to the
 string-style variable *name*.  This is a way to directly change the
@@ -6197,6 +6225,15 @@ int lammps_create_atoms(void *handle, int n, const tagint *id, const int *type,
 
     Atom *atom = lmp->atom;
     Domain *domain = lmp->domain;
+
+    // the loop below creates atoms and writes their per-atom data through the
+    // plain pointers, so bring the host side up to date first and hand the
+    // writes over afterwards; without the KOKKOS package these do nothing.
+    // both are needed here: this function is typically called between runs,
+    // when the device holds the newer copy of the per-atom arrays
+
+    atom->sync_host_arrays(ALL_MASK);
+
     int nlocal = atom->nlocal;
 
     int nlocal_prev = nlocal;
@@ -6246,6 +6283,8 @@ int lammps_create_atoms(void *handle, int n, const tagint *id, const int *type,
     // init per-atom fix/compute/variable values for created atoms
 
     atom->data_fix_compute_variable(nlocal_prev,nlocal);
+
+    atom->modified_host_arrays(ALL_MASK);
 
     // if global map exists, reset it
     // invoke map_init() b/c atom count has grown
@@ -6466,10 +6505,13 @@ void NeighProxy::command(int narg, char **arg)
   neigh_idx = -1;
   if (narg != 3) return;
   auto *req = neighbor->add_request(this, arg[0]);
-  int flags = atoi(arg[1]);
-  double cutoff = atof(arg[2]);
+  int flags = utils::inumeric(FLERR, arg[1], false, lmp);
+  double cutoff = utils::numeric(FLERR, arg[2], false, lmp);
   req->apply_flags(flags);
-  if (cutoff > 0.0) req->set_cutoff(cutoff);
+  if (cutoff > 0.0) {
+    // library-requested cutoff applies to all types
+    req->set_cutoff_fixed(cutoff);
+  }
   lmp->init();
 
   // setup domain, communication and neighboring
@@ -6719,12 +6761,18 @@ int lammps_config_has_omp_support()
  * files via a pipe to gzip or similar compression programs
 
 \verbatim embed:rst
+
+.. versionchanged:: TBD
+
+This function now checks whether the ``gzip`` program is installed and
+executable instead of whether support for compressed files was enabled
+at compile time.
+
 Several LAMMPS commands (e.g., :doc:`read_data`, :doc:`write_data`,
 :doc:`dump styles atom, custom, and xyz <dump>`) support reading and
-writing compressed files via creating a pipe to the ``gzip`` program.
-This function checks whether this feature was :ref:`enabled at compile
-time <gzip>`. It does **not** check whether``gzip`` or any other
-supported compression programs themselves are installed and usable.
+writing compressed files via creating a pipe to the ``gzip`` program or
+:ref:`similar compression programs <gzip>`.  This function checks
+whether the ``gzip`` program can be found in the command search path.
 \endverbatim
  *
  * \return 1 if yes, otherwise 0
@@ -6775,11 +6823,16 @@ int lammps_config_has_jpeg_support() {
 /** Check if the LAMMPS library supports creating movie files via a pipe to ffmpeg
 
 \verbatim embed:rst
+
+.. versionchanged:: TBD
+
+This function now checks whether the ``ffmpeg`` program is installed and
+executable instead of whether support for it was enabled at compile time.
+
 The LAMMPS :doc:`dump style movie <dump_image>` supports generating movies
 from images on-the-fly via creating a pipe to the
-`ffmpeg <https://ffmpeg.org/>`_ program.
-This function checks whether this feature was :ref:`enabled at compile time <graphics>`.
-It does **not** check whether the ``ffmpeg`` itself is installed and usable.
+`ffmpeg <https://ffmpeg.org/>`_ program.  This function checks whether
+the ``ffmpeg`` program can be found in the command search path.
 \endverbatim
  *
  * \return 1 if yes, otherwise 0
@@ -6814,7 +6867,7 @@ int lammps_config_has_curl_support() {
  *
 \verbatim embed:rst
 
-.. deprecated:: 21Nov2023
+.. versionremoved:: 21Nov2023
 
    LAMMPS has now exceptions always enabled, so this function
    will now always return 1 and can be removed from applications

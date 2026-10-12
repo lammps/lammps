@@ -11,13 +11,6 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifdef GRAN_SUB_MOD_CLASS
-// clang-format off
-GranSubModStyle(none,GranSubModRollingNone,ROLLING);
-GranSubModStyle(sds,GranSubModRollingSDS,ROLLING);
-// clang-format on
-#else
-
 #ifndef GRAN_SUB_MOD_ROLLING_H
 #define GRAN_SUB_MOD_ROLLING_H
 
@@ -56,4 +49,3 @@ namespace LAMMPS_NS::Granular_NS {
 
 
 #endif /*GRAN_SUB_MOD_ROLLING_H */
-#endif /*GRAN_SUB_MOD_CLASS_H */

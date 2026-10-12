@@ -25,6 +25,7 @@ FixStyle(eos/table/rx/kk/host,FixEOStableRXKokkos<LMPHostType>);
 
 #include "fix_eos_table_rx.h"
 #include "kokkos_type.h"
+#include "fix_rx_kokkos.h"
 
 namespace LAMMPS_NS {
 
@@ -71,6 +72,9 @@ class FixEOStableRXKokkos : public FixEOStableRX {
   KOKKOS_INLINE_FUNCTION
   void temperature_lookup(int, KK_FLOAT, KK_FLOAT &) const;
 
+  void unpack_reverse_comm(int, int *, double *) override;
+  void unpack_forward_comm(int , int , double *) override;
+
  protected:
   //struct Table {
   //  int ninput;
@@ -114,7 +118,6 @@ class FixEOStableRXKokkos : public FixEOStableRX {
 
   double boltz;
 
-  void allocate();
   void error_check();
   int update_table;
   void create_kokkos_tables();
@@ -126,13 +129,14 @@ class FixEOStableRXKokkos : public FixEOStableRX {
   typename AT::t_kkfloat_1d uCond,uMech,uChem,uCG,uCGnew,rho,dpdTheta,duChem;
   typename AT::t_kkfloat_2d dvector;
 
+  FixRxKokkos<DeviceType> * rx_fixKK;
+  typename AT::t_int_1d species_ind_to_atom_prop_ind;
+
   DAT::tdual_int_scalar k_error_flag;
   DAT::tdual_int_scalar k_warning_flag;
 
   int pack_reverse_comm(int, int, double *) override;
-  void unpack_reverse_comm(int, int *, double *) override;
   int pack_forward_comm(int , int *, double *, int, int *) override;
-  void unpack_forward_comm(int , int , double *) override;
 
   };
 }

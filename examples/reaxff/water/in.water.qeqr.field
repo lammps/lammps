@@ -19,7 +19,7 @@ neigh_modify    every 1 delay 0 check yes
 
 velocity all create 300.0 4928459 rot yes dist gaussian
 
-fix             1 all qeqr/reaxff 1 0.0 10.0 1.0e-6 reaxff gauss_exp.txt
+fix             1 all qeq/rel/reaxff 1 0.0 10.0 1.0e-6 reaxff gauss_exp.txt
 fix             2 all nvt temp 300 300 50.0
 fix             3 all efield 0.0 0.0 0.05
 

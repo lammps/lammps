@@ -13,17 +13,12 @@ export {
   using ::Kokkos::Experimental::adjacent_find;
   using ::Kokkos::Experimental::all_of;
   using ::Kokkos::Experimental::any_of;
-  using ::Kokkos::Experimental::begin;
-  using ::Kokkos::Experimental::cbegin;
-  using ::Kokkos::Experimental::cend;
   using ::Kokkos::Experimental::copy;
   using ::Kokkos::Experimental::copy_backward;
   using ::Kokkos::Experimental::copy_if;
   using ::Kokkos::Experimental::copy_n;
   using ::Kokkos::Experimental::count;
   using ::Kokkos::Experimental::count_if;
-  using ::Kokkos::Experimental::distance;
-  using ::Kokkos::Experimental::end;
   using ::Kokkos::Experimental::equal;
   using ::Kokkos::Experimental::exclusive_scan;
   using ::Kokkos::Experimental::fill;

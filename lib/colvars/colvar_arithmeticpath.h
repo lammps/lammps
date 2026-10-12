@@ -18,7 +18,7 @@ class ArithmeticPathBase {
 public:
     ArithmeticPathBase() {}
     ~ArithmeticPathBase() {}
-    void initialize(size_t p_num_elements, size_t p_total_frames, scalar_type p_lambda, const vector<scalar_type>& p_weights);
+    void initialize(size_t p_num_elements, size_t p_total_frames, scalar_type p_lambda, const vector<scalar_type>& p_weights, colvarmodule* cvmodule_in);
     void reComputeLambda(const vector<scalar_type>& rmsd_between_refs);
     template <typename element_type>
     void computeValue(const vector<vector<element_type>>& frame_element_distances, scalar_type *s = nullptr, scalar_type *z = nullptr);
@@ -35,10 +35,12 @@ protected:
     scalar_type saved_exponent_sum;
     scalar_type normalization_factor;
     scalar_type saved_s;
+    colvarmodule* cvmodule;
 };
 
 template <typename scalar_type>
-void ArithmeticPathBase<scalar_type>::initialize(size_t p_num_elements, size_t p_total_frames, scalar_type p_lambda, const vector<scalar_type>& p_weights) {
+void ArithmeticPathBase<scalar_type>::initialize(size_t p_num_elements, size_t p_total_frames, scalar_type p_lambda,
+    const vector<scalar_type>& p_weights, colvarmodule* cvmodule_in) {
     lambda = p_lambda;
     for (size_t i = 0; i < p_weights.size(); ++i) squared_weights.push_back(p_weights[i] * p_weights[i]);
     num_elements = p_num_elements;
@@ -48,6 +50,7 @@ void ArithmeticPathBase<scalar_type>::initialize(size_t p_num_elements, size_t p
     saved_s = scalar_type();
     saved_exponent_sum = scalar_type();
     max_exponent = scalar_type();
+    cvmodule = cvmodule_in;
 }
 
 template <typename scalar_type>
@@ -87,7 +90,8 @@ template <typename scalar_type>
 void ArithmeticPathBase<scalar_type>::reComputeLambda(const vector<scalar_type>& rmsd_between_refs) {
     scalar_type mean_square_displacements = 0.0;
     for (size_t i_frame = 1; i_frame < total_frames; ++i_frame) {
-        cvm::log(std::string("Distance between frame ") + cvm::to_str(i_frame) + " and " + cvm::to_str(i_frame + 1) + " is " + cvm::to_str(rmsd_between_refs[i_frame - 1]) + std::string("\n"));
+        cvmodule->log(std::string("Distance between frame ") + cvm::to_str(i_frame) + " and " + cvm::to_str(i_frame + 1)
+                                    + " is " + cvm::to_str(rmsd_between_refs[i_frame - 1]) + std::string("\n"));
         mean_square_displacements += rmsd_between_refs[i_frame - 1] * rmsd_between_refs[i_frame - 1];
     }
     mean_square_displacements /= scalar_type(total_frames - 1);

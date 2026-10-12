@@ -36,6 +36,15 @@ ComputeReaxFFAtomKokkos<DeviceType>::ComputeReaxFFAtomKokkos(LAMMPS *lmp, int na
   nbuf(-1), buf(nullptr)
 {
   kokkosable = 1;
+  execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
+
+  // all data comes from the pair style's own views; the only per-atom array
+  // read here is the tag, on the host in compute_local().  Leaving the
+  // Compute defaults (ALL_MASK) in place would claim every per-atom array on
+  // the host at each setup (issue #5080).
+
+  datamask_read = TAG_MASK;
+  datamask_modify = EMPTY_MASK;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -133,6 +142,7 @@ void ComputeReaxFFAtomKokkos<DeviceType>::compute_local()
 
   int b = 0;
   int j = 0;
+  atomKK->sync(Host,TAG_MASK);
   auto tag = atom->tag;
   const int nlocal = atom->nlocal;
 

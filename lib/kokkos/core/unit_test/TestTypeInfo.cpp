@@ -25,7 +25,8 @@ using Lambda = decltype(func);
 #if defined(__NVCC__) && !defined(__CUDA_ARCH__)
 // can't do much
 // it looks like that there is 1st an EDG pass and then a host pass and they cannot both agree on what the type info is
-#elif defined(__EDG__) || (defined(__NVCC__) && defined(__CUDA_ARCH__))
+// We check that the compiler is Nvidia's NVCC. SCALE's compiler (from Spectral Compute) is true for both defined(__clang__) and defined(__NVCC__). This is the only place where such precaution is needed.
+#elif defined(__EDG__) || (defined(__NVCC__) && !defined(__clang__) && defined(__CUDA_ARCH__))
 static_assert(TypeInfo<Foo>::name()      == "<unnamed>::Foo");
 static_assert(TypeInfo<FooAlias>::name() == "<unnamed>::Foo");
 static_assert(TypeInfo<Bar>::name()      == "<unnamed>::Bar");

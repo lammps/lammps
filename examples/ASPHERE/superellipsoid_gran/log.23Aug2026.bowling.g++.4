@@ -1,0 +1,164 @@
+LAMMPS (4 Jul 2026 - Development - patch_4Jul2026-848-gd03be1b44b)
+  using 1 OpenMP thread(s) per MPI task
+units           si
+atom_style      ellipsoid superellipsoid
+dimension       3
+boundary p p p
+comm_modify vel yes
+newton off
+
+region          box block 0 10 0 10 0 10
+create_box      2 box
+Created orthogonal box = (0 0 0) to (10 10 10)
+  1 by 2 by 2 MPI processor grid
+
+# Pins
+create_atoms 1 single 5 5 5
+Created 1 atoms
+  using lattice units in orthogonal box = (0 0 0) to (10 10 10)
+  create_atoms CPU = 0.000 seconds
+
+create_atoms 1 single 4 6 5
+Created 1 atoms
+  using lattice units in orthogonal box = (0 0 0) to (10 10 10)
+  create_atoms CPU = 0.001 seconds
+create_atoms 1 single 6 6 5
+Created 1 atoms
+  using lattice units in orthogonal box = (0 0 0) to (10 10 10)
+  create_atoms CPU = 0.000 seconds
+
+create_atoms 1 single 3 7 5
+Created 1 atoms
+  using lattice units in orthogonal box = (0 0 0) to (10 10 10)
+  create_atoms CPU = 0.000 seconds
+create_atoms 1 single 5 7 5
+Created 1 atoms
+  using lattice units in orthogonal box = (0 0 0) to (10 10 10)
+  create_atoms CPU = 0.000 seconds
+create_atoms 1 single 7 7 5
+Created 1 atoms
+  using lattice units in orthogonal box = (0 0 0) to (10 10 10)
+  create_atoms CPU = 0.000 seconds
+
+create_atoms 1 single 2 8 5
+Created 1 atoms
+  using lattice units in orthogonal box = (0 0 0) to (10 10 10)
+  create_atoms CPU = 0.000 seconds
+create_atoms 1 single 4 8 5
+Created 1 atoms
+  using lattice units in orthogonal box = (0 0 0) to (10 10 10)
+  create_atoms CPU = 0.000 seconds
+create_atoms 1 single 6 8 5
+Created 1 atoms
+  using lattice units in orthogonal box = (0 0 0) to (10 10 10)
+  create_atoms CPU = 0.000 seconds
+create_atoms 1 single 8 8 5
+Created 1 atoms
+  using lattice units in orthogonal box = (0 0 0) to (10 10 10)
+  create_atoms CPU = 0.000 seconds
+
+set             type 1 shape 1.0 1.0 4.0
+Setting atom values ...
+  10 settings made for shape
+set             type 1 block 8.0 2.0
+Setting atom values ...
+  10 settings made for block
+set             type 1 mass 1.0
+Setting atom values ...
+  10 settings made for mass
+
+# Bowling ellipsoids
+create_atoms 2 single 5.5 1.5 6
+Created 1 atoms
+  using lattice units in orthogonal box = (0 0 0) to (10 10 10)
+  create_atoms CPU = 0.000 seconds
+set             type 2 shape 2.0 2.0 1.0
+Setting atom values ...
+  1 settings made for shape
+set             type 2 block 2.0 2.0
+Setting atom values ...
+  1 settings made for block
+set             type 2 mass 10.0
+Setting atom values ...
+  1 settings made for mass
+group ball type 2
+1 atoms in group ball
+
+pair_style      granular/superellipsoid
+pair_coeff      * * hooke 1000.0 0.0 tangential linear_history 285 0.0 0.5 damping mass_velocity
+
+compute diameter all property/atom shapex shapey shapez
+compute orient all property/atom quatw quati quatj quatk
+compute block all property/atom block1 block2
+# Ovito uses the reciprocal exponents for the blockiness
+# https://docs.ovito.org/advanced_topics/aspherical_particles.html#howto-aspherical-particles-superquadrics
+# Define atom variables from block
+variable phi atom "2/c_block[2]"
+variable theta atom "2/c_block[1]"
+
+# dump mydump all custom 1 shapes.lammpstrj id type x y z fx fy fz tqx tqy tqz c_diameter[*] c_orient[*] v_phi v_theta
+# # Ovito maps c_orient[*] on its XYZW axes, which is not correct. Map components explicitly
+# dump_modify mydump colname c_orient[1] quatw colname c_orient[2] quati colname c_orient[3] quatj colname c_orient[4] quatk
+
+set group ball angmom 1.0 0.0 0.5 vy 7.0
+Setting atom values ...
+  1 settings made for angmom
+  1 settings made for vy
+
+fix 3 all nve/asphere
+
+thermo 10
+timestep 0.01
+run             100
+Generated 0 of 1 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 4.1241056
+  ghost atom cutoff = 4.1241056
+  binsize = 2.0620528, bins = 5 5 5
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair granular/superellipsoid, perpetual
+      attributes: half, newton off, size, history
+      pair build: half/size/bin/atomonly/newtoff
+      stencil: full/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 18.15 | 18.25 | 18.53 Mbytes
+   Step          Temp          E_pair         E_mol          TotEng         Press     
+         0   1.1830173e+24  0              0              245            0.16333333   
+        10   1.1830173e+24  0              0              245            0.16333333   
+        20   1.1830173e+24  0              0              245            0.16333333   
+        30   1.1830173e+24  0              0              245            0.16333333   
+        40   1.1370738e+24  0              0              235.4852       0.18712235   
+        50   9.861335e+23   0              0              204.22584      0.20382912   
+        60   8.7010225e+23  0              0              180.19605      0.24097871   
+        70   8.2997558e+23  0              0              171.88592      0.2575371    
+        80   9.1923448e+23  0              0              190.37122      0.18779973   
+        90   9.4922554e+23  0              0              196.58229      0.13105486   
+       100   9.685348e+23   0              0              200.58119      0.1337208    
+Loop time of 0.00325971 on 4 procs for 100 steps with 11 atoms
+
+86.4% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 4.7313e-05 | 0.00085581 | 0.0019276  |   0.0 | 26.25
+Neigh   | 4.6697e-05 | 7.1884e-05 | 0.00011442 |   0.0 |  2.21
+Comm    | 0.0006307  | 0.00079004 | 0.00094702 |   0.0 | 24.24
+Output  | 7.4021e-05 | 0.00017547 | 0.00026711 |   0.0 |  5.38
+Modify  | 2.1589e-05 | 5.2467e-05 | 0.00010313 |   0.0 |  1.61
+Other   |            | 0.001314   |            |       | 40.31
+
+Nlocal:           2.75 ave           6 max           0 min
+Histogram: 1 1 0 0 0 0 1 0 0 1
+Nghost:           25.5 ave          36 max          15 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Neighs:          15.25 ave          31 max           0 min
+Histogram: 1 1 0 0 0 0 0 1 0 1
+
+Total # of neighbors = 61
+Ave neighs/atom = 5.5454545
+Neighbor list builds = 100
+Dangerous builds = 100
+Total wall time: 0:00:00

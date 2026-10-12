@@ -1,13 +1,11 @@
 Howto discussions
 *****************
 
-These doc pages describe how to perform various tasks with LAMMPS,
-both for users and developers.  The
-`glossary <https://www.lammps.org/glossary.html>`_ website page also lists MD
-terminology, with links to corresponding LAMMPS manual pages.  The
-example input scripts included in the ``examples`` directory of the LAMMPS
-source code distribution and highlighted on the :doc:`Examples` page
-also show how to set up and run various kinds of simulations.
+These doc pages describe how to perform various tasks with LAMMPS, both
+for users and developers.  The example input scripts included in the
+``examples`` directory of the LAMMPS source code distribution and
+highlighted on the :doc:`Examples` page also show how to set up and run
+various kinds of simulations.
 
 General howto
 =============
@@ -23,7 +21,6 @@ General howto
    Howto_library
    Howto_couple
    Howto_mdi
-   Howto_broken_bonds
 
 Settings howto
 ==============
@@ -41,6 +38,7 @@ Settings howto
    Howto_nemd
    Howto_dispersion
    Howto_bulk2slab
+   Howto_broken_bonds
 
 Analysis howto
 ==============
@@ -50,6 +48,7 @@ Analysis howto
    :maxdepth: 1
 
    Howto_output
+   Howto_structured_data
    Howto_chunk
    Howto_grid
    Howto_temperature
@@ -57,7 +56,6 @@ Analysis howto
    Howto_kappa
    Howto_viscosity
    Howto_diffusion
-   Howto_structured_data
 
 Force fields howto
 ==================
@@ -74,6 +72,7 @@ Force fields howto
    Howto_tip4p
    Howto_tip5p
    Howto_spc
+   Howto_eam_overlay
 
 Packages howto
 ==============
@@ -84,6 +83,7 @@ Packages howto
 
    Howto_spherical
    Howto_granular
+   Howto_granular_surfaces
    Howto_body
    Howto_bpm
    Howto_polarizable
@@ -96,17 +96,27 @@ Packages howto
    Howto_spins
    Howto_apip
    Howto_ldd
+   Howto_fenix
 
 Tutorials howto
 ===============
+
+The following tutorials explain step by step how to compile LAMMPS, how
+to use it from Python or with external tools, and how to contribute to
+its development.  Tutorials on how to perform simulations with LAMMPS
+are available elsewhere, e.g. in the `LAMMPS tutorials
+<https://lammpstutorials.github.io/>`_ collection.  Those and other
+tutorial collections can also be started from the `Tutorials menu
+<https://lammps-gui.lammps.org/menus.html#tutorials>`_ of LAMMPS-GUI,
+which downloads the required files and opens the corresponding online
+instructions.
 
 .. toctree::
    :name: tutorials
    :maxdepth: 1
 
-   Howto_cmake
-   Howto_github
-   Howto_lammps_gui
-   Howto_moltemplate
-   Howto_python
    Howto_wsl
+   Howto_cmake
+   Howto_python
+   Howto_moltemplate
+   Howto_github

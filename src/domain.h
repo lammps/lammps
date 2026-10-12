@@ -16,6 +16,8 @@
 
 #include "pointers.h"
 
+#include "creator_registry.h"
+
 #include <cmath>
 #include <map>
 #include <unordered_set>
@@ -112,8 +114,9 @@ class Domain : protected Pointers {
   enum { NO_REMAP, X_REMAP, V_REMAP };
 
   using RegionCreator = Region *(*) (LAMMPS *, int, char **);
-  using RegionCreatorMap = std::map<std::string, RegionCreator>;
-  RegionCreatorMap *region_map;
+
+  // global registry of region style factory functions
+  static CreatorRegistry<RegionCreator> &region_styles();
 
   Domain(class LAMMPS *);
   ~Domain() override;
@@ -142,13 +145,13 @@ class Domain : protected Pointers {
   void closest_image(const double *const, const double *const, double *const);
   void remap(double *, imageint &);
   void remap(double *);
-  void remap_all();
+  virtual void remap_all();
   void remap_near(double *, double *);
   void unmap_inv(double *x, imageint);
   void unmap(double *, imageint);
   void unmap(const double *, imageint, double *);
   void unmap(const double *, const double *, imageint, int, double *, double *);
-  void image_flip(int, int, int);
+  virtual void image_flip(int, int, int);
   int ownatom(int, double *, imageint *, int);
 
   void define_general_triclinic(double *, double *, double *, double *);
@@ -165,9 +168,9 @@ class Domain : protected Pointers {
   void add_region(int, char **);
   void delete_region(Region *);
   void delete_region(const std::string &);
-  Region *get_region_by_id(const std::string &) const;
-  const std::vector<Region *> get_region_by_style(const std::string &) const;
-  const std::vector<Region *> get_region_list();
+  Region *get_region_by_id(const std::string &);
+  std::vector<Region *> get_region_by_style(const std::string &);
+  std::vector<Region *> get_region_list();
   void set_boundary(int, char **, int);
   void print_box(const std::string &);
   void boundary_string(char *);

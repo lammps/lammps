@@ -51,7 +51,9 @@ double ComputeTempSphereKokkos<DeviceType>::compute_scalar()
 
   if (tempbias) {
     if (tbias->invoked_scalar != update->ntimestep) tbias->compute_scalar();
+    atomKK->sync(tbias->execution_space, tbias->datamask_read);
     tbias->remove_bias_all();
+    atomKK->modified(tbias->execution_space, tbias->datamask_modify);
     atomKK->sync(execution_space, V_MASK);
   }
 
@@ -75,13 +77,19 @@ double ComputeTempSphereKokkos<DeviceType>::compute_scalar()
   copymode = 0;
 
   if (tempbias) {
+    atomKK->sync(tbias->execution_space, tbias->datamask_read);
     tbias->restore_bias_all();
+    atomKK->modified(tbias->execution_space, tbias->datamask_modify);
     atomKK->sync(execution_space, V_MASK);
   }
 
   double t = t_kk.t0;
   MPI_Allreduce(&t, &scalar, 1, MPI_DOUBLE, MPI_SUM, world);
-  if (dynamic || tempbias == 2) dof_compute();
+  if (dynamic || tempbias == 2) {
+    // the base class counts the degrees of freedom on the host copies
+    atomKK->sync(Host, RADIUS_MASK | MASK_MASK);
+    dof_compute();
+  }
   if (dof < 0.0 && natoms_temp > 0.0)
     error->all(FLERR, "Temperature compute degrees of freedom < 0");
   scalar *= tfactor;
@@ -96,13 +104,13 @@ void ComputeTempSphereKokkos<DeviceType>::operator()(TagComputeTempSphereScalar<
                                                      const int &i, CTEMP &t_kk) const
 {
   if (mask[i] & groupbit) {
-    const KK_FLOAT inertiaone = INERTIA * rmass_kk[i] * radius_kk[i] * radius_kk[i];
+    const KK_FLOAT inertiaone = static_cast<KK_FLOAT>(INERTIA) * rmass_kk[i] * radius_kk[i] * radius_kk[i];
     if (MODE) {    // ALL: translational + rotational
-      t_kk.t0 += (v(i, 0) * v(i, 0) + v(i, 1) * v(i, 1) + v(i, 2) * v(i, 2)) * rmass_kk[i];
+      t_kk.t0 += static_cast<double>((v(i, 0) * v(i, 0) + v(i, 1) * v(i, 1) + v(i, 2) * v(i, 2)) * rmass_kk[i]);
     }
-    t_kk.t0 += (omega_kk(i, 0) * omega_kk(i, 0) + omega_kk(i, 1) * omega_kk(i, 1) +
+    t_kk.t0 += static_cast<double>((omega_kk(i, 0) * omega_kk(i, 0) + omega_kk(i, 1) * omega_kk(i, 1) +
                 omega_kk(i, 2) * omega_kk(i, 2)) *
-        inertiaone;
+        inertiaone);
   }
 }
 
@@ -117,7 +125,9 @@ void ComputeTempSphereKokkos<DeviceType>::compute_vector()
 
   if (tempbias) {
     if (tbias->invoked_vector != update->ntimestep) tbias->compute_vector();
+    atomKK->sync(tbias->execution_space, tbias->datamask_read);
     tbias->remove_bias_all();
+    atomKK->modified(tbias->execution_space, tbias->datamask_modify);
     atomKK->sync(execution_space, V_MASK);
   }
 
@@ -141,7 +151,9 @@ void ComputeTempSphereKokkos<DeviceType>::compute_vector()
   copymode = 0;
 
   if (tempbias) {
+    atomKK->sync(tbias->execution_space, tbias->datamask_read);
     tbias->restore_bias_all();
+    atomKK->modified(tbias->execution_space, tbias->datamask_modify);
     atomKK->sync(execution_space, V_MASK);
   }
 
@@ -165,21 +177,21 @@ void ComputeTempSphereKokkos<DeviceType>::operator()(TagComputeTempSphereVector<
 {
   if (mask[i] & groupbit) {
     const KK_FLOAT massone    = rmass_kk[i];
-    const KK_FLOAT inertiaone = INERTIA * massone * radius_kk[i] * radius_kk[i];
+    const KK_FLOAT inertiaone = static_cast<KK_FLOAT>(INERTIA) * massone * radius_kk[i] * radius_kk[i];
     if (MODE) {    // ALL: translational + rotational
-      t_kk.t0 += massone * v(i, 0) * v(i, 0);
-      t_kk.t1 += massone * v(i, 1) * v(i, 1);
-      t_kk.t2 += massone * v(i, 2) * v(i, 2);
-      t_kk.t3 += massone * v(i, 0) * v(i, 1);
-      t_kk.t4 += massone * v(i, 0) * v(i, 2);
-      t_kk.t5 += massone * v(i, 1) * v(i, 2);
+      t_kk.t0 += static_cast<double>(massone * v(i, 0) * v(i, 0));
+      t_kk.t1 += static_cast<double>(massone * v(i, 1) * v(i, 1));
+      t_kk.t2 += static_cast<double>(massone * v(i, 2) * v(i, 2));
+      t_kk.t3 += static_cast<double>(massone * v(i, 0) * v(i, 1));
+      t_kk.t4 += static_cast<double>(massone * v(i, 0) * v(i, 2));
+      t_kk.t5 += static_cast<double>(massone * v(i, 1) * v(i, 2));
     }
-    t_kk.t0 += inertiaone * omega_kk(i, 0) * omega_kk(i, 0);
-    t_kk.t1 += inertiaone * omega_kk(i, 1) * omega_kk(i, 1);
-    t_kk.t2 += inertiaone * omega_kk(i, 2) * omega_kk(i, 2);
-    t_kk.t3 += inertiaone * omega_kk(i, 0) * omega_kk(i, 1);
-    t_kk.t4 += inertiaone * omega_kk(i, 0) * omega_kk(i, 2);
-    t_kk.t5 += inertiaone * omega_kk(i, 1) * omega_kk(i, 2);
+    t_kk.t0 += static_cast<double>(inertiaone * omega_kk(i, 0) * omega_kk(i, 0));
+    t_kk.t1 += static_cast<double>(inertiaone * omega_kk(i, 1) * omega_kk(i, 1));
+    t_kk.t2 += static_cast<double>(inertiaone * omega_kk(i, 2) * omega_kk(i, 2));
+    t_kk.t3 += static_cast<double>(inertiaone * omega_kk(i, 0) * omega_kk(i, 1));
+    t_kk.t4 += static_cast<double>(inertiaone * omega_kk(i, 0) * omega_kk(i, 2));
+    t_kk.t5 += static_cast<double>(inertiaone * omega_kk(i, 1) * omega_kk(i, 2));
   }
 }
 

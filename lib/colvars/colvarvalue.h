@@ -215,7 +215,7 @@ public:
   inline operator cvm::real() const
   {
     if (value_type != type_scalar) {
-      cvm::error("Error: trying to use a variable of type \""+
+      cvm::error_static("Error: trying to use a variable of type \""+
                  type_desc(value_type)+"\" as one of type \""+
                  type_desc(type_scalar)+"\".\n");
     }
@@ -228,7 +228,7 @@ public:
     if ((value_type != type_3vector) &&
         (value_type != type_unit3vector) &&
         (value_type != type_unit3vectorderiv)) {
-      cvm::error("Error: trying to use a variable of type \""+
+      cvm::error_static("Error: trying to use a variable of type \""+
                  type_desc(value_type)+"\" as one of type \""+
                  type_desc(type_3vector)+"\".\n");
     }
@@ -240,7 +240,7 @@ public:
   {
     if ((value_type != type_quaternion) &&
         (value_type != type_quaternionderiv)) {
-      cvm::error("Error: trying to use a variable of type \""+
+      cvm::error_static("Error: trying to use a variable of type \""+
                  type_desc(value_type)+"\" as one of type \""+
                  type_desc(type_quaternion)+"\".\n");
     }
@@ -396,7 +396,7 @@ inline cvm::real colvarvalue::operator [] (int const i) const
   switch (value_type) {
   case colvarvalue::type_notset:
   default:
-    cvm::error("Error: trying to access a colvar value "
+    cvm::error_static("Error: trying to access a colvar value "
                "that is not initialized.\n", COLVARS_BUG_ERROR);
     return 0.0; break;
   case colvarvalue::type_scalar:
@@ -419,7 +419,7 @@ inline cvm::real & colvarvalue::operator [] (int const i)
   switch (value_type) {
   case colvarvalue::type_notset:
   default:
-    cvm::error("Error: trying to access a colvar value "
+    cvm::error_static("Error: trying to access a colvar value "
                "that is not initialized.\n", COLVARS_BUG_ERROR);
     return real_value; break;
   case colvarvalue::type_scalar:
@@ -455,7 +455,7 @@ inline int colvarvalue::check_types(colvarvalue const &x1,
          (x1.type() == type_quaternionderiv))) {
       return COLVARS_OK;
     } else {
-      cvm::error("Trying to perform an operation between two colvar "
+      cvm::error_static("Trying to perform an operation between two colvar "
                  "values with different types, \""+
                  colvarvalue::type_desc(x1.type())+
                  "\" and \""+
@@ -467,7 +467,7 @@ inline int colvarvalue::check_types(colvarvalue const &x1,
 
   if (x1.type() == type_vector) {
     if (x1.vector1d_value.size() != x2.vector1d_value.size()) {
-      cvm::error("Trying to perform an operation between two vector colvar "
+      cvm::error_static("Trying to perform an operation between two vector colvar "
                  "values with different sizes, "+
                  cvm::to_str(x1.vector1d_value.size())+
                  " and "+
@@ -499,7 +499,7 @@ inline int colvarvalue::check_types_assign(colvarvalue::Type const &vt1,
       return COLVARS_OK;
     } else {
       if (vt1 != vt2) {
-        cvm::error("Trying to assign a colvar value with type \""+
+        cvm::error_static("Trying to assign a colvar value with type \""+
                    type_desc(vt2)+"\" to one with type \""+
                    type_desc(vt1)+"\".\n");
         return COLVARS_ERROR;

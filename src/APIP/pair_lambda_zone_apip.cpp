@@ -142,15 +142,10 @@ void PairLambdaZoneAPIP::init_style()
     error->all(FLERR, "pair_lambda_zone requires an atom style with lambda_input_ta");
 
   // find fix lambda/apip
-  class Fix *fix_lambda = nullptr;
-  int count = 0;
-  for (int i = 0; i < modify->nfix; i++) {
-    if (strcmp(modify->fix[i]->style, "lambda/apip") == 0) {
-      fix_lambda = modify->fix[i];
-      count++;
-    }
-  }
-  if (count != 1) error->all(FLERR, "Exact one fix lambda required");
+  auto lambda_fixes = modify->get_fix_by_style("^lambda/apip");
+  if (lambda_fixes.size() != 1)
+    error->all(FLERR, Error::NOLASTLINE, "Exact one fix lambda required");
+  class Fix *fix_lambda = lambda_fixes.front();
 
   int dim = 0;
   cut_lo = *((double *) fix_lambda->extract("fix_lambda:cut_lo", dim));

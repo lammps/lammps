@@ -80,9 +80,9 @@ protected:
     void TearDown() override
     {
         // Clean up FFT data
-        if (input_data) delete[] input_data;
-        if (output_data) delete[] output_data;
-        if (fft) delete fft;
+        delete[] input_data;
+        delete[] output_data;
+        delete fft;
 
         // Clean up LAMMPS instance
         LAMMPSTest::TearDown();

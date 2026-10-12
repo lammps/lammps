@@ -90,7 +90,9 @@ bool ReadData::is_data_section(const std::string &keyword)
 }
 
 /* ---------------------------------------------------------------------- */
-ReadData::ReadData(LAMMPS *_lmp) : Command(_lmp), coeffarg(nullptr), lmap(nullptr)
+ReadData::ReadData(LAMMPS *_lmp) :
+    Command(_lmp), coeffarg(nullptr), lmap(nullptr), fix_index(nullptr), fix_header(nullptr),
+    fix_section(nullptr)
 {
   MPI_Comm_rank(world, &me);
   line = new char[MAXLINE];
@@ -696,7 +698,7 @@ void ReadData::command(int narg, char **arg)
       }
     }
 
-    // setup simulation box and paritioning in Domain and Comm classes
+    // setup simulation box and partitioning in Domain and Comm classes
 
     domain->print_box("  ");
     domain->set_initial_box();
@@ -2460,7 +2462,9 @@ void ReadData::open(const std::string &file)
   if (platform::has_compress_extension(path)) {
     fp.set_pclose();
     fp = platform::compressed_read(path);
-    if (!fp) error->one(FLERR, "Cannot open compressed file {}", file);
+    if (!fp)
+      error->one(FLERR, "Cannot open compressed file {}: {}", file,
+                 platform::compressed_open_error(path));
   } else {
     fp = fopen(path.c_str(), "r");
     if (!fp) error->one(FLERR, "Cannot open file {}: {}", file, utils::getsyserror());

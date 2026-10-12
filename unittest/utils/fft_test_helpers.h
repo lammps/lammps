@@ -20,7 +20,7 @@
 #ifndef LMP_FFT_TEST_HELPERS_H
 #define LMP_FFT_TEST_HELPERS_H
 
-#include "../force-styles/error_stats.h"
+#include "../error_stats.h"
 #include "lmpfftsettings.h"
 
 #include <algorithm>

@@ -80,6 +80,12 @@ PPPMIntel::~PPPMIntel()
 void PPPMIntel::init()
 {
   PPPM::init();
+
+  // slab correction is not (yet) supported for triclinic boxes with pppm/intel
+
+  if (domain->triclinic && slabflag)
+    error->all(FLERR,"Cannot (yet) use pppm/intel with triclinic box and slab correction");
+
   fix = static_cast<FixIntel *>(modify->get_fix_by_id("package_intel"));
   if (!fix) error->all(FLERR, "The 'package intel' command is required for /intel styles");
 

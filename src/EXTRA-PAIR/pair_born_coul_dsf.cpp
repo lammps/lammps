@@ -37,7 +37,10 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-PairBornCoulDSF::PairBornCoulDSF(LAMMPS *lmp) : Pair(lmp)
+PairBornCoulDSF::PairBornCoulDSF(LAMMPS *lmp) :
+    Pair(lmp), cut_lj(nullptr), cut_ljsq(nullptr), a(nullptr), rho(nullptr), sigma(nullptr),
+    c(nullptr), d(nullptr), rhoinv(nullptr), born1(nullptr), born2(nullptr), born3(nullptr),
+    offset(nullptr)
 {
   writedata = 1;
   single_enable = 0;
@@ -47,6 +50,8 @@ PairBornCoulDSF::PairBornCoulDSF(LAMMPS *lmp) : Pair(lmp)
 
 PairBornCoulDSF::~PairBornCoulDSF()
 {
+  if (copymode) return;
+
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);
@@ -459,7 +464,7 @@ double PairBornCoulDSF::single(int i, int j, int itype, int jtype,
 
   if (rsq < cut_coulsq) {
     r = sqrt(rsq);
-    prefactor = factor_coul * force->qqrd2e * atom->q[i]*atom->q[j]/r;
+    prefactor = force->qqrd2e * atom->q[i]*atom->q[j]/r;
 
     arg = alpha * r ;
     erfcd = MathSpecial::expmsq(arg);

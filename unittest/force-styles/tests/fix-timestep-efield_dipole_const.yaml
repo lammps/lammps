@@ -12,6 +12,7 @@ post_commands: ! |
   fix move all nve
   fix test solute efield 0.0 -0.1 0.1
 input_file: in.dipole
+input_coeffs: coeffs.fourmol
 natoms: 29
 global_scalar: 5.323551487649474
 global_vector: ! |-

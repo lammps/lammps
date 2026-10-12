@@ -41,13 +41,13 @@ using namespace LAMMPS_NS;
 
 /** Scan common options for the dump elements
  */
-static int element_args(int narg, char **arg, int *every)
+static int element_args(LAMMPS *lmp, int narg, char **arg, int *every)
 {
   int iarg=0;
   while (iarg<narg) {
     if (strcmp(arg[iarg], "every")==0) {
       if (narg<2) return -1;
-      *every = std::stoi(arg[iarg+1]);
+      *every = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       iarg+=2;
     } else {
       break;
@@ -96,7 +96,7 @@ DumpH5MD::DumpH5MD(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg)
     if (strcmp(arg[iarg], "position")==0) {
       every_position=default_every;
       iarg+=1;
-      n_parsed = element_args(narg-iarg, &arg[iarg], &every_position);
+      n_parsed = element_args(lmp, narg-iarg, &arg[iarg], &every_position);
       if (n_parsed<0) error->all(FLERR, "Illegal dump h5md command");
       iarg += n_parsed;
       size_one+=domain->dimension;
@@ -108,21 +108,21 @@ DumpH5MD::DumpH5MD(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg)
     } else if (strcmp(arg[iarg], "velocity")==0) {
       every_velocity = default_every;
       iarg+=1;
-      n_parsed = element_args(narg-iarg, &arg[iarg], &every_velocity);
+      n_parsed = element_args(lmp, narg-iarg, &arg[iarg], &every_velocity);
       if (n_parsed<0) error->all(FLERR, "Illegal dump h5md command");
       iarg += n_parsed;
       size_one+=domain->dimension;
     } else if (strcmp(arg[iarg], "force")==0) {
       every_force = default_every;
       iarg+=1;
-      n_parsed = element_args(narg-iarg, &arg[iarg], &every_force);
+      n_parsed = element_args(lmp, narg-iarg, &arg[iarg], &every_force);
       if (n_parsed<0) error->all(FLERR, "Illegal dump h5md command");
       iarg += n_parsed;
       size_one+=domain->dimension;
     } else if (strcmp(arg[iarg], "species")==0) {
       every_species=default_every;
       iarg+=1;
-      n_parsed = element_args(narg-iarg, &arg[iarg], &every_species);
+      n_parsed = element_args(lmp, narg-iarg, &arg[iarg], &every_species);
       if (n_parsed<0) error->all(FLERR, "Illegal dump h5md command");
       iarg += n_parsed;
       size_one+=1;
@@ -131,7 +131,7 @@ DumpH5MD::DumpH5MD(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg)
         error->all(FLERR, "Requesting non-allocated quantity q in dump_h5md");
       every_charge = default_every;
       iarg+=1;
-      n_parsed = element_args(narg-iarg, &arg[iarg], &every_charge);
+      n_parsed = element_args(lmp, narg-iarg, &arg[iarg], &every_charge);
       if (n_parsed<0) error->all(FLERR, "Illegal dump h5md command");
       iarg += n_parsed;
       size_one+=1;

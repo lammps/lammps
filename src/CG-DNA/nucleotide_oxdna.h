@@ -18,7 +18,7 @@
 #include "constants_oxdna.h"
 
 namespace LAMMPS_NS {
-
+// NOLINTBEGIN
 template <class Derived>
 class NucleotideOxdna {
  public:
@@ -35,7 +35,7 @@ class NucleotideOxdna {
     static_cast<Derived*>(this)->template base_site<N>(e1, e2, e3, rbs);
   }
 };
-
+// NOLINTEND
 /* ----------------------------------------------------------------------
    oxDNA1 nucleotide
 ------------------------------------------------------------------------- */

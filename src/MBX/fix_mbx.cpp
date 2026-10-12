@@ -135,12 +135,7 @@ bool FixMBX::validateMBXFixParameters(int narg, char **arg)
 {
   if (narg < 2) error->all(FLERR, "[MBX] Input line too short");
 
-  int num_monomers = 0;
-  try {
-    num_monomers = std::stoi(arg[0]);
-  } catch (...) {
-    error->all(FLERR, "[MBX] num_monomers is not a valid integer: {}", arg[0]);
-  }
+  int num_monomers = utils::inumeric(FLERR, arg[0], false, lmp);
   if (num_monomers < 1) error->all(FLERR, "[MBX] num_monomers must be positive");
 
   std::map<int, std::string> mbx_atom_id_mapping;    // atom ID mapping for all monomers
@@ -195,12 +190,7 @@ bool FixMBX::validateMBXFixParameters(int narg, char **arg)
     // validate that atom IDs are positive integers
     std::vector<int> atom_ids;
     for (size_t i = 0; i < expected_monomer_atom_ids.size(); ++i) {
-      int at = 0;
-      try {
-        at = std::stoi(current_monomer_atoms[i]);
-      } catch (...) {
-        error->all(FLERR, "[MBX] Atom ID {} is not a valid integer", current_monomer_atoms[i]);
-      }
+      int at = utils::inumeric(FLERR, current_monomer_atoms[i], false, lmp);
       if (at < 1) error->all(FLERR, "[MBX] Atom ID {} must be positive", current_monomer_atoms[i]);
       atom_ids.push_back(at);
     }
@@ -285,12 +275,7 @@ bool FixMBX::validateMBXFixParameters(int narg, char **arg)
     } else if (strcmp(arg[input_validation_index], "aspc/reset") == 0) {
       if (input_validation_index + 1 >= narg)
         error->all(FLERR, "[MBX] Not enough arguments to read aspc/reset value");
-      int aspc_reset = 0;
-      try {
-        aspc_reset = std::stoi(arg[input_validation_index + 1]);
-      } catch (...) {
-        error->all(FLERR, "[MBX] aspc/reset value is not a valid integer");
-      }
+      int aspc_reset = utils::inumeric(FLERR, arg[input_validation_index + 1], false, lmp);
       if (aspc_reset < 1) error->all(FLERR, "[MBX] aspc/reset value must be positive");
       input_validation_index += 2;
     } else {
@@ -411,7 +396,7 @@ FixMBX::FixMBX(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
     } else if (strcmp(arg[iarg], "print/dipoles") == 0) {
       print_dipoles = true;    // dipoles are now always printed by default
     } else if (strcmp(arg[iarg], "aspc/reset") == 0) {
-      aspc_step_reset = atoi(arg[++iarg]);
+      aspc_step_reset = utils::inumeric(FLERR, arg[++iarg], false, lmp);
     } else {
       error->all(FLERR, "[MBX] Unknown keyword in fix mbx command: {}", arg[iarg]);
     }
@@ -676,16 +661,10 @@ void FixMBX::setup_post_neighbor()
 {
 
   // Figure out if there is a gcmc fix somewhere
-  has_gcmc = false;
-  int ifix = -1;
-  for (int i = 0; i < modify->nfix; ++i)
-    if (strcmp(modify->fix[i]->style, "gcmc") == 0) {
-      if (ifix == -1)
-        ifix = i;
-      else
-        error->all(FLERR, "[MBX] Only one GCMC fix instance allowed to be active");
-    }
-  if (ifix != -1) has_gcmc = true;
+  auto gcmc_fixes = modify->get_fix_by_style("^gcmc");
+  if (gcmc_fixes.size() > 1)
+    error->all(FLERR, "[MBX] Only one GCMC fix instance allowed to be active");
+  has_gcmc = !gcmc_fixes.empty();
 
   grow_arrays(atom->nmax);
 
@@ -706,7 +685,7 @@ void FixMBX::post_neighbor()
 
   // tear down existing MBX objects
 
-  if (mbx_impl->ptr_mbx) delete mbx_impl->ptr_mbx;
+  delete mbx_impl->ptr_mbx;
 
   if (mbx_impl->ptr_mbx_local) {
     // accumulate timing info from pme electrostatics

@@ -41,7 +41,10 @@ static constexpr double EWALD_F = 1.12837917;
 
 /* ---------------------------------------------------------------------- */
 
-PairBuck6dCoulGaussLong::PairBuck6dCoulGaussLong(LAMMPS *lmp) : Pair(lmp)
+PairBuck6dCoulGaussLong::PairBuck6dCoulGaussLong(LAMMPS *lmp) :
+    Pair(lmp), cut_lj(nullptr), cut_ljsq(nullptr), alpha_ij(nullptr), buck6d1(nullptr),
+    buck6d2(nullptr), buck6d3(nullptr), buck6d4(nullptr), offset(nullptr), c0(nullptr),
+    c1(nullptr), c2(nullptr), c3(nullptr), c4(nullptr), c5(nullptr), rsmooth_sq(nullptr)
 {
   ewaldflag = pppmflag = 1;
   single_enable = 1;

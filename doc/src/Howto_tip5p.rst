@@ -29,7 +29,7 @@ sites, those need to be assigned a tiny non-zero mass.
 
 The table below lists the force field parameters (in real :doc:`units
 <units>`) to for a the TIP5P model with a cutoff :ref:`(Mahoney)
-<Mahoney>` and the TIP5P-E model :ref:`(Rick) <Rick>` for use with a
+<Mahoney>` and the TIP5P-E model :ref:`(Rick2) <Rick>` for use with a
 long-range Coulombic solver (e.g. Ewald or PPPM in LAMMPS).
 
 .. list-table::
@@ -108,7 +108,7 @@ long-range Coulomb instead.
     pair_coeff 2 2 0.0    1.0
     pair_coeff 3 3 0.0    1.0
 
-    fix mol all property/atom mol
+    fix mol all property/atom mol ghost yes
     molecule water tip5p.mol
     create_atoms 0 random 33 34564 NULL mol water 25367 overlap 1.33
     neigh_modify exclude molecule/intra all
@@ -163,4 +163,4 @@ Wikipedia also has a nice article on `water models <https://en.wikipedia.org/wik
 
 .. _Rick:
 
-**(Rick)** Rick, J Chem Phys 120, 6085 (2004)
+**(Rick2)** Rick, J Chem Phys 120, 6085 (2004)

@@ -121,7 +121,7 @@ FENIX package
 .. versionadded:: 2Sep2026
 
 To build with this package you must have the `Fenix library
-<https://github.com/sandialabs/fenix>` available on your system. The Fenix
+<https://github.com/sandialabs/fenix>`_ available on your system. The Fenix
 library must be newer than version 1 (currently meaning built from the default
 "develop" branch). Older versions use an incompatible API and this LAMMPS will
 fail to compile.

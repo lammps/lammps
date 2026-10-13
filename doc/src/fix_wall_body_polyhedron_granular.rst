@@ -88,11 +88,16 @@ The tangential displacement of *linear_history* is stored per particle
 and wall, and is reset to zero when the particle no longer touches the
 wall.  The tangential damping is that of the *tangential* model, as for
 :doc:`pair_style body/rounded/polyhedron/granular
-<pair_body_rounded_polyhedron_granular>`.  The relative velocity and the
-torques are evaluated at the contact point between the rounded surface and
-the wall, at the distance :math:`r - \delta/2` from the vertex, while
-:doc:`fix wall/gran <fix_wall_gran>` uses the radius of the particle for
-both.
+<pair_body_rounded_polyhedron_granular>`.  The contact point lies halfway
+between the rounded surface and the wall, on the wall normal, i.e. at the
+distance :math:`r - \delta/2` from the vertex, and not from the center
+of mass of the particle.  The forces act at this point, so that their
+torque on a particle is the cross product of the vector from its center
+of mass to the contact point with the force, and the relative velocity is
+evaluated at this point, including the rotation of the particle.
+:doc:`fix wall/gran <fix_wall_gran>` instead uses the point on the
+surface of a sphere, at the distance of its radius :math:`r` from its
+center, for both.
 
 The *tangential* keyword with its model is required and the *damping*
 model is optional.  Other normal, damping, and tangential models, as well

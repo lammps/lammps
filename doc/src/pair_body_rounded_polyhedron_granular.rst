@@ -86,29 +86,93 @@ represented by the contacts at the vertices at its ends instead, see
 A sphere, i.e. a body particle with a single vertex, touches another
 particle at a single vertex, edge, or face contact.
 
-At each contact, the elastic normal force of the *normal* model and the
-normal damping force of the *damping* model act along the contact
-normal at the contact point, scaled by the weight of the contact as for
-:doc:`pair_style body/rounded/polyhedron <pair_body_rounded_polyhedron>`.
-The cohesive force of :ref:`Wang <pair-gran-Wang>` with the strength
-:math:`k_{na}` of the *cohesion* keyword is added to the normal force,
-for surface separations up to the *cutoff*, and is scaled with the size
-of the contact region, controlled by *delta_ua*.
+Since two polyhedra can touch at several points at once, the contact
+models are applied at two levels: the normal force and the normal
+damping act at each contact point, while the friction force acts once
+per pair of particles, from all its contacts together.  For a pair of
+particles, the forces are computed in these steps:
 
-As with the *history* keyword of :doc:`pair_style body/rounded/polyhedron
-<pair_body_rounded_polyhedron>`, there is a single friction force per
-pair of particles in contact, the tangential force of the *tangential*
-model.  It acts at the average of the contact points, with the average
-tangential relative velocity and contact normal, all weighted by the
-elastic normal forces of the contacts.  The tangential displacement of
-*linear_history* is stored per pair of particles.  The Coulomb limit of
-the tangential force is :math:`\mu` times the sum of the elastic normal
-forces of the contacts, without the damping forces, unlike :doc:`pair_style
-granular <pair_granular>`, where the critical force includes the normal
-damping.  The tangential damping is that of the *tangential* model, with
-the damping prefactor of the *damping* model scaled by :math:`x_{\gamma,t}`.
-The relative velocity is evaluated at the contact point between the
-rounded surfaces, including the rotation of both particles.
+#. **Contacts.**  The contacts between the two particles are found as
+   for :doc:`pair_style body/rounded/polyhedron
+   <pair_body_rounded_polyhedron>`.  Each contact has a contact point
+   on either particle, which defines the contact normal, the surface
+   separation :math:`\delta_n`, the kind of features in contact, which
+   defines :math:`R_{eff}` as in the table above, and a weight
+   :math:`w \le 1`.  The weights are smaller than one for the corners of
+   the region of overlap of nearly parallel faces and for the crossings
+   of nearly parallel edges, so that these contacts appear and disappear
+   smoothly as the particles move.  Contacts at the same point are
+   counted once.
+
+#. **Normal force at each contact.**  Each contact with an overlap
+   :math:`\delta = -\delta_n > 0` is a separate contact of the *normal*
+   model, with its own :math:`\delta` and :math:`R_{eff}`, and the
+   effective mass of the two particles.  The force
+
+   .. math::
+
+      F_n = w \left( F_{ne}(\delta, R_{eff}) + j_a F_{c} \right)
+
+   acts along the contact normal at the contact point, where
+   :math:`F_{ne}` is the elastic force of the *normal* model and
+   :math:`F_c = -k_{na} (r_c - \delta_n)` is the cohesive force of
+   :ref:`Wang <pair-gran-Wang>` with the strength :math:`k_{na}` of the
+   *cohesion* keyword and the *cutoff* :math:`r_c`.  The cohesive force
+   is scaled by the factor :math:`j_a \ge 1`, which grows with the size of
+   the contact region, controlled by *delta_ua*, and is reduced near the
+   ends of crossing edges, as described for :doc:`pair_style
+   body/rounded/polyhedron <pair_body_rounded_polyhedron>`.  For surface
+   separations :math:`0 < \delta_n \le r_c`, only the cohesive force acts.
+   The total normal force of two particles touching at several points is
+   the sum of these forces.  E.g. a cube resting with a face on another
+   cube touches it at the corners of the region of overlap, each of them
+   with its own Hertzian force, rather than as one flat contact, so that
+   the stiffness of such a contact depends on the number and the weights
+   of these corners.
+
+#. **Normal damping at each contact.**  At each contact in overlap, the
+   *damping* model adds the force :math:`w F_{damp}` along the contact
+   normal, from the normal relative velocity of the two particles at the
+   contact point, including their rotation.  There is no tangential
+   damping at the individual contacts.
+
+#. **Friction force of the pair of particles.**  As with the *history*
+   keyword of :doc:`pair_style body/rounded/polyhedron
+   <pair_body_rounded_polyhedron>`, there is a single friction force per
+   pair of particles in contact.  The contacts in overlap are averaged,
+   each weighted by its elastic normal force :math:`w F_{ne}`: the contact
+   points give the point where the friction force acts, and the contact
+   normals and tangential relative velocities give the normal and the
+   tangential velocity for the *tangential* model.  A single friction
+   force avoids jumps of the friction force between contacts, e.g. when
+   the contact with the largest overlap changes.  The tangential
+   displacement of *linear_history* is stored per pair of particles and
+   is reset when they no longer touch.  The Coulomb limit of the
+   tangential force is :math:`\mu \sum w F_{ne}`, the friction
+   coefficient times the sum of the elastic normal forces of the contacts,
+   without the damping forces, unlike :doc:`pair_style granular
+   <pair_granular>`, where the critical force includes the normal damping.
+   The tangential damping is that of the *tangential* model, with the
+   damping prefactor of the *damping* model scaled by
+   :math:`x_{\gamma,t}`.  The friction force acts on both particles with
+   opposite signs at the average contact point, so that it also exerts
+   torques.
+
+The contact point lies halfway between the two rounded surfaces in
+overlap, on the contact normal, i.e. at the distance
+:math:`r - \delta/2` from the vertex, from the nearest point on the edge,
+or from the face, and not from the center of mass of the particle.  The
+forces at a contact act at this point, so that their torque on a particle
+is the cross product of the vector from its center of mass to the contact
+point with the force.  Since the center of mass of a polyhedron is in
+general not on the contact normal, also the normal forces exert torques.
+The relative velocities are evaluated at the contact point as well,
+including the rotation of both particles, while :doc:`pair_style granular
+<pair_granular>` uses the distance :math:`r` from the center of a sphere
+for the rotational part of the relative velocity.  For two spherical
+body particles, i.e. with a single vertex, without rotation, the forces
+are the same as those of :doc:`pair_style granular <pair_granular>` with
+the same coefficients.
 
 The coefficients of each pair of atom types are specified with the
 :doc:`pair_coeff <pair_coeff>` command, with the same syntax for the

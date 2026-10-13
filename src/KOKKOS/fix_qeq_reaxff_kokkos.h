@@ -241,6 +241,12 @@ class FixQEqReaxFFKokkos : public FixQEqReaxFF, public KokkosBase {
   static constexpr int compute_h_teamsize = 32;
 #endif
 
+  void grow_arrays(int) override;
+  void copy_arrays(int, int, int) override;
+  void sort_kokkos(Kokkos::BinSort<KeyViewType, BinOp> &Sorter) override;
+  int pack_exchange(int, double *) override;
+  int unpack_exchange(int, double *) override;
+
  private:
   int inum,ignum;
   int allocated_flag, last_allocate;
@@ -317,7 +323,7 @@ class FixQEqReaxFFKokkos : public FixQEqReaxFF, public KokkosBase {
   void allocate_array();
 
   int cg_solve();
-  void calculate_q();
+  void calculate_Q() override;
 
   int neighflag, pack_flag;
   int nlocal,nlocal_last_allocate,nall,nmax,newton_pair;
@@ -328,11 +334,6 @@ class FixQEqReaxFFKokkos : public FixQEqReaxFF, public KokkosBase {
   double delta;
   KK_FLOAT cutsq;
 
-  void grow_arrays(int) override;
-  void copy_arrays(int, int, int) override;
-  void sort_kokkos(Kokkos::BinSort<KeyViewType, BinOp> &Sorter) override;
-  int pack_exchange(int, double *) override;
-  int unpack_exchange(int, double *) override;
   void get_chi_field() override;
 
   // Let the neighbor count functor access some of my members

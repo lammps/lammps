@@ -75,6 +75,7 @@ class FixGEMC : public Fix {
   double nexchange_successes;
   double nvolume_attempts;
   double nvolume_successes;
+  double nlast[6];    // counters at the time of the last progress message
   double logvolratio;         // log(V1/V2)
 
   // particle - related props

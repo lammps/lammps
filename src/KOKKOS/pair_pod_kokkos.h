@@ -72,10 +72,10 @@ class PairPODKokkos : public PairPOD {
 
   void grow(int, int);
   void copy_from_pod_class(EAPOD *podptr);
-  void divideInterval(int *intervals, int N, int M);
-  int calculateNumberOfIntervals(int N, int intervalSize);
-  void grow_atoms(int Ni);
-  void grow_pairs(int Nij);
+  void divideInterval(int *intervals, int N, int M) override;
+  int calculateNumberOfIntervals(int N, int intervalSize) override;
+  void grow_atoms(int Ni) override;
+  void grow_pairs(int Nij) override;
 
   void allocate() override;
   double memory_usage() override;

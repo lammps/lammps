@@ -128,10 +128,6 @@ TEST_F(PairUnitConvertTest, lj_cut)
     command("read_data test_pair_unit_convert.data");
     command("pair_style lj/cut 6.0");
     command("pair_coeff * * 0.01014286346782117 2.0");
-    remove("test.table.metal");
-    command("pair_write 1 1 1000 r 0.1 6.0 test.table.metal lj_1_1");
-    command("pair_write 1 2 1000 r 0.1 6.0 test.table.metal lj_1_2");
-    command("pair_write 2 2 1000 r 0.1 6.0 test.table.metal lj_2_2");
     command("run 0 post no");
     END_HIDE_OUTPUT();
 
@@ -150,10 +146,6 @@ TEST_F(PairUnitConvertTest, lj_cut)
     command("read_data test_pair_unit_convert.data");
     command("pair_style lj/cut 6.0");
     command("pair_coeff * * 0.2339 2.0");
-    remove("test.table.real");
-    command("pair_write 1 1 1000 r 0.1 6.0 test.table.real lj_1_1");
-    command("pair_write 1 2 1000 r 0.1 6.0 test.table.real lj_1_2");
-    command("pair_write 2 2 1000 r 0.1 6.0 test.table.real lj_2_2");
     command("run 0 post no");
     END_HIDE_OUTPUT();
 
@@ -558,12 +550,20 @@ TEST_F(PairUnitConvertTest, sw)
 
 TEST_F(PairUnitConvertTest, table_metal2real)
 {
-    // check if the prerequisite pair style is available
+    // check if the prerequisite pair styles are available
     if (!info->has_style("pair", "table")) GTEST_SKIP();
+    if (!info->has_style("pair", "lj/cut")) GTEST_SKIP();
 
     BEGIN_HIDE_OUTPUT();
     command("units metal");
     command("read_data test_pair_unit_convert.data");
+    // tabulate the lj/cut potential from the lj_cut test in metal units
+    command("pair_style lj/cut 6.0");
+    command("pair_coeff * * 0.01014286346782117 2.0");
+    remove("test.table.metal");
+    command("pair_write 1 1 1000 r 0.1 6.0 test.table.metal lj_1_1");
+    command("pair_write 1 2 1000 r 0.1 6.0 test.table.metal lj_1_2");
+    command("pair_write 2 2 1000 r 0.1 6.0 test.table.metal lj_2_2");
     command("pair_style table linear 1000");
     command("pair_coeff 1 1 test.table.metal lj_1_1");
     command("pair_coeff 1 2 test.table.metal lj_1_2");
@@ -601,16 +601,25 @@ TEST_F(PairUnitConvertTest, table_metal2real)
     for (int i = 0; i < 4; ++i)
         for (int j = 0; j < 3; ++j)
             EXPECT_NEAR(ev_convert * fold[i][j], f[i][j], fabs(f[i][j] * rel_error));
+    remove("test.table.metal");
 }
 
 TEST_F(PairUnitConvertTest, table_real2metal)
 {
-    // check if the prerequisite pair style is available
+    // check if the prerequisite pair styles are available
     if (!info->has_style("pair", "table")) GTEST_SKIP();
+    if (!info->has_style("pair", "lj/cut")) GTEST_SKIP();
 
     BEGIN_HIDE_OUTPUT();
     command("units real");
     command("read_data test_pair_unit_convert.data");
+    // tabulate the lj/cut potential from the lj_cut test in real units
+    command("pair_style lj/cut 6.0");
+    command("pair_coeff * * 0.2339 2.0");
+    remove("test.table.real");
+    command("pair_write 1 1 1000 r 0.1 6.0 test.table.real lj_1_1");
+    command("pair_write 1 2 1000 r 0.1 6.0 test.table.real lj_1_2");
+    command("pair_write 2 2 1000 r 0.1 6.0 test.table.real lj_2_2");
     command("pair_style table linear 1000");
     command("pair_coeff 1 1 test.table.real lj_1_1");
     command("pair_coeff 1 2 test.table.real lj_1_2");
@@ -648,6 +657,7 @@ TEST_F(PairUnitConvertTest, table_real2metal)
     for (int i = 0; i < 4; ++i)
         for (int j = 0; j < 3; ++j)
             EXPECT_NEAR(1.0 / ev_convert * fold[i][j], f[i][j], fabs(f[i][j] * rel_error));
+    remove("test.table.real");
 }
 
 TEST_F(PairUnitConvertTest, tersoff)

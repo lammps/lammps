@@ -1,7 +1,10 @@
 .. index:: pair_style coul/tt
+.. index:: pair_style coul/tt/omp
 
 pair_style coul/tt command
 ==========================
+
+Accelerator Variants: *coul/tt/omp*
 
 Syntax
 """"""
@@ -85,6 +88,8 @@ command are used. In order to specify a cutoff (forth argument), the degree of
 the polynomial (third argument) must also be specified.
 
 ----------
+
+.. include:: accel_styles.rst
 
 Mixing, shift, table, tail correction, restart, rRESPA info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""

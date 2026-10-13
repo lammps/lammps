@@ -222,6 +222,10 @@ TEST_F(SimpleCommandsTest, Quit)
 #if defined(MPICH_NUMVERSION)
     if (MPICH_NUMVERSION >= 40100000) GTEST_SKIP() << "MPICH with threads";
 #endif
+    // the default death test style runs the statement in a fork()ed copy of this process,
+    // where a GPU runtime (CUDA, HIP) initialized by KOKKOS in the parent is unusable and
+    // Kokkos::finalize() in "quit" fails. Run the test in a freshly started process instead.
+    GTEST_FLAG_SET(death_test_style, "threadsafe");
     ASSERT_EXIT(command("quit"), ExitedWithCode(0), "");
     ASSERT_EXIT(command("quit 9"), ExitedWithCode(9), "");
 }

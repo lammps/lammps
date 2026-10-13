@@ -348,15 +348,21 @@ the strings that will be printed as the first three lines of the output
 file, assuming the *file* keyword was used.  LAMMPS uses default
 values for each of these, so they do not need to be specified.
 
+.. versionchanged:: TBD
+
 By default, these header lines are as follows:
 
 .. parsed-literal::
 
-   # Histogram for fix ID
+   # Histogrammed data for fix ID mode MODE ave AVE version VERSION
    # TimeStep Number-of-bins Total-counts Missing-counts Min-value Max-value
    # Bin Coord Count Count/Total
 
-In the first line, ID is replaced with the fix-ID.  The second line
+In the first line, ID is replaced with the fix-ID, MODE with the *mode*
+setting (scalar or vector), AVE with the *ave* setting (one, running,
+or window), and VERSION with the LAMMPS version as a number (e.g.,
+20260930 for the 30 September 2026 version).  Previously, the first
+line ended after the fix-ID.  The second line
 describes the six values that are printed at the first of each section
 of output.  The third describes the four values printed for each bin in
 the histogram.

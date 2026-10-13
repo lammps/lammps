@@ -17,7 +17,7 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_meam_kokkos.h"
-#include "meam_kokkos.h"
+#include "meam_impl_kokkos.h"
 
 #include "atom_kokkos.h"
 #include "atom_masks.h"

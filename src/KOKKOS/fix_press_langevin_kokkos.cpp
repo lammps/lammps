@@ -87,9 +87,9 @@ void FixPressLangevinKokkos<DeviceType>::remap()
     }
   }
 
-  if (p_flag[3]) domain->xy += dilation[3];
+  if (p_flag[3]) domain->yz += dilation[3];
   if (p_flag[4]) domain->xz += dilation[4];
-  if (p_flag[5]) domain->yz += dilation[5];
+  if (p_flag[5]) domain->xy += dilation[5];
 
   if (domain->yz < -TILTMAX * domain->yprd || domain->yz > TILTMAX * domain->yprd ||
       domain->xz < -TILTMAX * domain->xprd || domain->xz > TILTMAX * domain->xprd ||

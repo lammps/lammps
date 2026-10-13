@@ -500,10 +500,6 @@ Please also see the page with :doc:`Warning messages <Errors_warnings>`.
    This is a restriction due to the way atoms are organized in a list to
    enable the atom_modify first command.
 
-*Cannot do atom/swap on atoms in atom_modify first group*
-   This is a restriction due to the way atoms are organized in a list to
-   enable the atom_modify first command.
-
 *Cannot dump sort when multiple dump files are written*
    In this mode, each processor dumps its atoms to a file, so
    no sorting is allowed.
@@ -660,10 +656,6 @@ Please also see the page with :doc:`Warning messages <Errors_warnings>`.
 *Cannot open fix ttm file %s*
    The output file for the fix ttm command cannot be opened.  Check that
    the path and name are correct.
-
-*Cannot open gzipped file*
-   LAMMPS was compiled without support for reading and writing gzipped
-   files through a pipeline to the gzip program with -DLAMMPS_GZIP.
 
 *Cannot open log.cite file*
    This file is created when you use some LAMMPS features, to indicate
@@ -4428,9 +4420,6 @@ Please also see the page with :doc:`Warning messages <Errors_warnings>`.
 
 *Support for writing images in PNG format not included*
    LAMMPS was not built with the -DLAMMPS_PNG switch in the Makefile.
-
-*Support for writing movies not included*
-   LAMMPS was not built with the -DLAMMPS_FFMPEG switch in the Makefile
 
 *System in data file is too big*
    See the setting for bigint in the src/lmptype.h file.

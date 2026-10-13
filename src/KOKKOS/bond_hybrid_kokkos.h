@@ -39,7 +39,7 @@ class BondHybridKokkos : public BondHybrid {
   void init_style() override;
   double memory_usage() override;
 
- private:
+ protected:
   int maxbond_all;
 
   class NeighborKokkos *neighborKK;

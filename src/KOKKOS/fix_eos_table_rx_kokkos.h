@@ -72,6 +72,9 @@ class FixEOStableRXKokkos : public FixEOStableRX {
   KOKKOS_INLINE_FUNCTION
   void temperature_lookup(int, KK_FLOAT, KK_FLOAT &) const;
 
+  void unpack_reverse_comm(int, int *, double *) override;
+  void unpack_forward_comm(int , int , double *) override;
+
  protected:
   //struct Table {
   //  int ninput;
@@ -115,7 +118,6 @@ class FixEOStableRXKokkos : public FixEOStableRX {
 
   double boltz;
 
-  void allocate();
   void error_check();
   int update_table;
   void create_kokkos_tables();
@@ -134,9 +136,7 @@ class FixEOStableRXKokkos : public FixEOStableRX {
   DAT::tdual_int_scalar k_warning_flag;
 
   int pack_reverse_comm(int, int, double *) override;
-  void unpack_reverse_comm(int, int *, double *) override;
   int pack_forward_comm(int , int *, double *, int, int *) override;
-  void unpack_forward_comm(int , int , double *) override;
 
   };
 }

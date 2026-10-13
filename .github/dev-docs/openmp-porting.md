@@ -142,6 +142,19 @@ classes -- check for each of them when touching or reviewing an `/omp` file:
    chunking `[lfrom,lto)` over owned atoms only silently skips ghosts
    (the FixNeighHistoryOMP newton-on segfault class).
 
+Two more classes found after the audit:
+
+10. **Compiler-conditional OpenMP directives**: `#if defined(_OPENMP) &&
+    !defined(__NVCC__)` around `omp barrier`/`master`/`atomic` removed them from
+    every KOKKOS/CUDA build, because `nvcc_wrapper` compiles ALL sources there
+    (reaxff/omp segfaults, silently wrong comb/omp charges).  Never guard OpenMP
+    directives on the compiler; nvcc handles them.
+11. **Lazily filled shared caches**: per-atom data computed on demand by whichever
+    thread needs it first, published with a plain "done" flag, races on weakly
+    ordered CPUs (ARM64): readers can see the flag before the data (TIP4P M-site
+    cache in the tip4p `/omp` pair styles).  Fill such data in a separate
+    `omp for` pass (implicit barrier) before it is read.
+
 Related policy: a pair style that creates an internal fix (e.g. neighbor
 history) should request it with `trysuffix=1` only if its own `/omp` children
 actually work with the threaded fix variant; serial-only pair styles pass

@@ -816,7 +816,9 @@ are:
    * - unstable
      - The test exhibits numerically unstable behavior on some
        platforms, e.g. ARM64; Until a proper correction is found, tests
-       can be skipped with ``ctest -LE unstable``.
+       can be skipped with ``ctest -LE unstable``.  Please check the
+       causes discussed in :ref:`unittest_portable` before adding
+       this tag.
    * - generated
      - Automatically added whenever reference data is generated or
        regenerated; it marks data that has not been reviewed and
@@ -1476,6 +1478,73 @@ data.  More authoring notes of this kind are collected in
 ``unittest/graphics/README.md``.
 
 
+.. _unittest_portable:
+
+Writing tests that give the same results on all platforms
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The unit tests are run for Linux on x86_64 and ARM64 CPUs, for
+macOS, and for Windows.  Results on those platforms may differ in the
+last digits for several reasons:
+
+- On ARM64 CPUs, compilers by default combine a multiplication and a
+  following addition into a single "fused multiply-add" instruction,
+  which rounds only once and thus can give a result that differs in the
+  last bit.
+- The ``char`` data type is unsigned on Linux for ARM64 but signed on
+  x86_64 and macOS, which matters when code computes with the numerical
+  values of characters.
+- Different compilers and math libraries can produce slightly different
+  results for functions like ``sin()`` or ``exp()``.
+
+Since most tests compare *relative* differences against the reference
+data, a reference value that should be zero but consists only of
+accumulated floating point rounding errors (magnitudes like 1e-16 to
+1e-21) can produce relative errors of order one on a different platform,
+even though the physics is identical.  Such tests should be designed so
+that those values are exactly zero, or so that they do not depend on the
+last bits of the input:
+
+- In 2d tests, define :doc:`fix enforce2d <fix_enforce2d>` *after* all
+  fixes that add forces or torques.  Fixes are invoked in the order they
+  are defined, so a fix that adds forces after fix enforce2d has zeroed
+  the out-of-plane components can re-introduce rounding-error sized
+  components that end up in the reference data.
+- Do not start a test from a system at rest (e.g. a data file without a
+  Velocities section and no :doc:`velocity <velocity>` command).  After a
+  few steps its velocities and temperature are of the size of rounding
+  errors and cannot be compared reliably.
+- Use ``velocity ... loop all`` (the default) instead of ``loop geom`` in
+  test inputs.  With ``loop geom`` the random numbers are derived from the
+  atom coordinates, so a coordinate that differs in its last bit (e.g.
+  after :doc:`displace_atoms <displace_atoms>` with the *random*
+  option) produces a different velocity for that atom, and through the
+  removal of the net momentum, for all others as well.
+- Avoid comparing quantities that are zero by symmetry but are computed
+  from sums of non-zero terms, e.g. the smallest eigenvalue of the
+  gyration tensor of a planar molecule.
+- Iterative solvers that are converged to very tight tolerances (e.g.
+  charge equilibration) amplify small differences; such tests need a
+  correspondingly larger ``epsilon``.
+
+A cheap way to check a test for this kind of fragility is to change the
+initial coordinates or velocities of a few atoms in the last digit (in a
+local copy of the data or coefficient file) and to rerun the test program
+with the ``-s`` flag to print the error statistics: a robust test barely
+changes.  The ARM64 behavior can also be reproduced on an x86_64 machine
+by configuring a separate build with ``-D CMAKE_CXX_FLAGS="-mfma
+-ffp-contract=fast"`` (fused multiply-add) or ``-D
+CMAKE_CXX_FLAGS=-funsigned-char`` (unsigned ``char``).  The macOS tests
+also run on x86_64 CPUs, so failures only seen there are usually due to
+differences in the compiler or math library; a build with the Clang
+compiler on Linux can help to reproduce them.
+
+Before a test is tagged ``unstable``, please try to identify the cause
+with these methods; the platform differences above have exposed several
+real bugs (e.g. code that computed with ``char`` values or that relied
+on an expression being exactly zero, or a race condition between
+OpenMP threads that only showed up on ARM64 CPUs).
+
 Tests for programs in the tools folder
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -1560,7 +1629,9 @@ For tests of accelerated styles, the per-test epsilon is multiplied
 by empirical factors that take into account the differences in the order
 of floating point operations or that some or most intermediate operations
 may be done using approximations or with single precision floating point
-math.
+math.  If a test fails only on some platforms, please first check the
+test input as described in :ref:`unittest_portable` before relaxing
+epsilon.
 
 To rerun a failed unit test individually, change to the ``build`` directory
 and run the test with verbose output. For example,
@@ -1580,7 +1651,8 @@ catch exceptions with the test command, for example,
 
 It is recommended to configure the build with ``-D
 BUILD_SHARED_LIBS=on`` and use a custom linker to shorten the build time
-during recompilation.  Installing `ccache` in your development
-environment helps speed up recompilation by caching previous
+during recompilation.  Using the ``ccache`` compiler cache in your
+development environment helps speed up recompilation by caching previous
 compilations and detecting when the same compilation is being done
-again.  Please see :doc:`Build_development` for further details.
+again.  Please see the :ref:`section on Ninja and ccache <ninja_ccache>`
+for further details.

@@ -325,21 +325,23 @@ else:
 mathjax_path = 'mathjax/tex-mml-chtml.js'
 
 # also load the MathJax fonts from the html tree instead of from the internet.
+# turn off the speech and braille generation, which would load about 1.2 MB
+# (uncompressed) of extra data on every page with math.  screen readers still
+# get the math through the hidden MathML added with the "assistiveMml" setting.
 # this setting is called mathjax4_config since Sphinx 9.0 and mathjax3_config before
 import sphinx
-mathjax_font_config = {'loader': {'paths': {'mathjax-newcm': '[mathjax]/mathjax-newcm-font'}}}
+mathjax_config = {
+  'loader': {'paths': {'mathjax-newcm': '[mathjax]/mathjax-newcm-font'}},
+  'options': {'menuOptions': {'settings': {'enrich': False, 'speech': False,
+                                           'braille': False, 'assistiveMml': True}}}
+}
 if sphinx.version_info >= (9, 0):
-  mathjax4_config = mathjax_font_config
+  mathjax4_config = mathjax_config
 else:
-  mathjax3_config = mathjax_font_config
+  mathjax3_config = mathjax_config
 
-# hack to enable use of \AA in :math:
 # add :lammps: role for inline LAMMPS code highlight
 rst_prolog = r"""
-
-.. only:: html
-
-   :math:`\renewcommand{\AA}{\text{Å}}`
 
 .. role:: lammps(code)
     :language: LAMMPS

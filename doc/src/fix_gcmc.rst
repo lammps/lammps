@@ -25,9 +25,11 @@ Syntax
 
   .. parsed-literal::
 
-     keyword = *mol* or *mcmoves* or *rigid* or *shake* or *region* or *maxangle* or *pressure* or *fugacity_coeff* or *full_energy* or *charge* or *group* or *grouptype* or *intra_energy* or *tfac_insert* or *overlap_cutoff* or *max* or *min*
+     keyword = *mol* or *molindex* or *mcmoves* or *rigid* or *shake* or *region* or *maxangle* or *pressure* or *fugacity_coeff* or *full_energy* or *charge* or *group* or *grouptype* or *intra_energy* or *tfac_insert* or *overlap_cutoff* or *max* or *min*
        *mol* value = template-ID
          template-ID = ID of molecule template specified in a separate :doc:`molecule <molecule>` command
+       *molindex* value = I
+         I = index of the molecule in the molecule template to insert (1 to number of molecules in template)
        *mcmoves* values = Patomtrans Pmoltrans Pmolrotate
          Patomtrans = proportion of atom translation MC moves
          Pmoltrans = proportion of molecule translation MC moves
@@ -65,6 +67,7 @@ Examples
 
    labelmap atom 1 Li
    fix 2 ion gcmc 10 1000 1000 Li 29494 298.0 -0.5 0.01
+   fix 5 co2 gcmc 10 100 100 0 7672 300.0 -9.7 0.1 mol gasmix molindex 2 full_energy
 
 Description
 """""""""""
@@ -149,13 +152,13 @@ position with the center-of-mass inside the region is found, the move is
 rejected (but still counted as an attempted move) and a warning is
 printed once.
 
-.. versionchanged:: TBD
+.. versionchanged:: 30Sep2026
 
-Previously a region-restricted translation move whose center-of-mass could
-not be placed inside the region was retried indefinitely, which could make
-the simulation appear to hang.  Such moves are now retried at most 1000
-times and then rejected, consistent with how region-restricted insertions
-are handled.
+Previously a region-restricted **translation** move whose center-of-mass
+could not be placed inside the region was retried indefinitely, which
+could make the simulation appear to hang.  Such moves are now retried at
+most 1000 times and then rejected, consistent with how region-restricted
+**insertions** are handled.
 
 If used with :doc:`fix nvt <fix_nh>`, the temperature of the imaginary
 reservoir, *T*, should be set to be equivalent to the target temperature
@@ -198,6 +201,29 @@ molecule file.  See the :doc:`molecule <molecule>` command for details.
 The only settings required to be in this file are the coordinates and
 types of atoms in the molecule.
 
+.. versionadded:: TBD
+
+A molecule template may contain multiple molecules, one per file listed
+in the :doc:`molecule <molecule>` command.  By default, *fix gcmc*
+inserts the first molecule of such a template and prints a warning.
+The *molindex* keyword selects a different molecule by its position *I*
+in the template, counting from 1.  For example, with the template
+
+.. code-block:: LAMMPS
+
+   molecule mols H2O.txt CO2.txt toff 2 boff 1 aoff 1
+
+the keywords *mol mols molindex 1* insert water molecules and *mol mols
+molindex 2* insert carbon dioxide molecules.  This way, multiple *fix
+gcmc* commands that exchange different kinds of molecules can share a
+single :doc:`fix rigid/small <fix_rigid>` or :doc:`fix shake
+<fix_shake>` command (see below), which can use only one molecule
+template.  In that case, each *fix gcmc* command must use a different
+fix group that contains only the kind of molecule that this fix inserts,
+since deletions and MC moves are applied to any molecule in the fix
+group.  The input file ``examples/mc/in.gcmc.molindex`` demonstrates
+this for a mixture of water and carbon dioxide molecules.
+
 When not using the *mol* keyword, you should ensure you do not delete
 atoms that are bonded to other atoms, or LAMMPS will soon generate an
 error when it tries to find bonded neighbors.  LAMMPS will warn you if
@@ -207,7 +233,8 @@ does not check for this at the time of deletion.
 If you wish to insert molecules using the *mol* keyword that will be
 treated as rigid bodies, use the *rigid* keyword, specifying as its
 value the ID of a separate :doc:`fix rigid/small <fix_rigid>` command
-which also appears in your input script.
+which also appears in your input script.  That fix must use the same
+molecule template via its *mol* keyword.
 
 .. note::
 
@@ -221,7 +248,8 @@ which also appears in your input script.
 If you wish to insert molecules via the *mol* keyword, that will have
 their bonds or angles constrained via SHAKE, use the *shake* keyword,
 specifying as its value the ID of a separate :doc:`fix shake
-<fix_shake>` command which also appears in your input script.
+<fix_shake>` command which also appears in your input script.  That fix
+must use the same molecule template via its *mol* keyword.
 
 Optionally, users may specify the relative amounts of different MC moves
 using the *mcmoves* keyword. The values *Patomtrans*, *Pmoltrans*,
@@ -486,12 +514,10 @@ simulations.  The :doc:`reset_atoms <reset_atoms>` command can be used
 to "compress" the atom and molecule IDs between runs.  Likewise, very
 large molecules have not been tested and may turn out to be problematic.
 
-Use of multiple *fix gcmc* commands in the same input script can be
-problematic if using a template molecule.  The issue is that the
-user-referenced template molecule in the second *fix gcmc* command may
-no longer exist since it might have been deleted by the first *fix gcmc*
-command.  An existing template molecule will need to be referenced by
-the user for each subsequent *fix gcmc* command.
+When using multiple *fix gcmc* commands in the same input script, each
+of them should use a different fix group that contains only the kind of
+atoms or molecules that this fix inserts.  Otherwise, a *fix gcmc*
+command may delete or move atoms or molecules of a different kind.
 
 Related commands
 """"""""""""""""
@@ -506,8 +532,9 @@ Related commands
 Defaults
 """"""""
 
-The option defaults are mol = no, maxangle = 10, overlap_cutoff = 0.0,
-fugacity_coeff = 1.0, intra_energy = 0.0, tfac_insert = 1.0.
+The option defaults are mol = no, molindex = 1, maxangle = 10,
+overlap_cutoff = 0.0, fugacity_coeff = 1.0, intra_energy = 0.0,
+tfac_insert = 1.0.
 (Patomtrans, Pmoltrans, Pmolrotate) = (1, 0, 0) for mol = no and
 (0, 1, 1) for mol = yes. full_energy = no,
 except for the situations where full_energy is required, as

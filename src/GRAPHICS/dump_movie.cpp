@@ -30,6 +30,15 @@ DumpMovie::DumpMovie(LAMMPS *lmp, int narg, char **arg) : DumpImage(lmp, narg, a
 {
   if (multiproc || compressed || multifile) error->all(FLERR, "Invalid dump movie filename");
 
+  // ffmpeg is only run on MPI rank 0, so its availability is checked there
+
+  int has_ffmpeg = 0;
+  if (comm->me == 0) has_ffmpeg = platform::find_exe_path("ffmpeg").empty() ? 0 : 1;
+  MPI_Bcast(&has_ffmpeg, 1, MPI_INT, 0, world);
+  if (!has_ffmpeg)
+    error->all(FLERR, "Dump movie requires the 'ffmpeg' program, but it was not found in "
+               "any of the folders listed in the PATH environment variable");
+
   filetype = PPM;
   bitrate = 2000;
   framerate = 24;
@@ -41,17 +50,24 @@ void DumpMovie::openfile()
 {
   if ((comm->me == 0) && (fp == nullptr)) {
 
-#ifdef LAMMPS_FFMPEG
-    auto moviecmd = fmt::format("ffmpeg -v error -y -r {:.2f} -f image2pipe -c:v ppm -i - "
-                                "-r 24.0 -b:v {}k {}",
-                                framerate, bitrate, filename);
+    // check again, since popen() succeeds even if ffmpeg is missing
+    // and then writing to the pipe would fail
+
+    if (platform::find_exe_path("ffmpeg").empty())
+      error->one(FLERR, Error::NOLASTLINE,
+                 "Dump movie requires the 'ffmpeg' program, but it was not found in "
+                 "any of the folders listed in the PATH environment variable");
+
+    // use the plain command name and let the shell search for it and put quotes
+    // around the file name only, so that the quotes are not removed on Windows
+
+    auto moviecmd = fmt::format(
+        "ffmpeg -v error -y -r {:.2f} -f image2pipe -c:v ppm -i - -r 24.0 -b:v {}k \"{}\"",
+        framerate, bitrate, filename);
     fp.set_pclose();
     fp = platform::popen(moviecmd, "w");
-#else
-    error->one(FLERR, "Support for writing movies not included");
-#endif
-
-    if (fp == nullptr) error->one(FLERR, "Failed to open FFmpeg pipeline to file {}", filename);
+    if (fp == nullptr)
+      error->one(FLERR, Error::NOLASTLINE, "Failed to open FFmpeg pipeline to file {}", filename);
   }
 }
 /* ---------------------------------------------------------------------- */

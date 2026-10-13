@@ -4,9 +4,9 @@
 # settable from command line
 # epsilon = sigma = mass = 1.0
 
-variable	x index 5
-variable	y index 5
-variable	z index 5
+variable        x index 5
+variable        y index 5
+variable        z index 5
 variable        rhostar index 0.8842
 variable        dt index 0.005
 variable        cutoff index 2.5
@@ -17,27 +17,27 @@ variable        nsteps index 100
 
 # script
 
-units		lj
-atom_style	atomic
+units           lj
+atom_style      atomic
 
-lattice		fcc ${rhostar}
-region		box block 0 $x 0 $y 0 $z
-create_box	1 box
-create_atoms	1 box
-mass		1 1.0
+lattice         fcc ${rhostar}
+region          box block 0 $x 0 $y 0 $z
+create_box      1 box
+create_atoms    1 box
+mass            1 1.0
 
-velocity	all create ${tinitial} 12345
+velocity        all create ${tinitial} 12345 loop geom
 
-pair_style	lj/cut ${cutoff}
-pair_coeff	1 1 1.0 1.0
+pair_style      lj/cut ${cutoff}
+pair_coeff      1 1 1.0 1.0
 
-neighbor	${skin} bin
-neigh_modify	delay 0 every 20 check no
+neighbor        ${skin} bin
+neigh_modify    delay 0 every 20 check no
 
-fix		1 all nve
+fix             1 all nve
 
-timestep	${dt}
+timestep        ${dt}
 
-thermo		10
+thermo          10
 
-run		100
+run             100

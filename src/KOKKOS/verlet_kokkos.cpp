@@ -33,6 +33,7 @@
 
 using namespace LAMMPS_NS;
 
+namespace {
 template<class ViewA, class ViewB>
 struct ForceAdder {
   ViewA a;
@@ -46,9 +47,11 @@ struct ForceAdder {
     a(i,2) += b(i,2);
   }
 };
+}    // namespace
 
 /* ---------------------------------------------------------------------- */
 
+namespace {
 template<class View>
 struct Zero {
   View v;
@@ -61,6 +64,7 @@ struct Zero {
     v(i,2) = 0;
   }
 };
+}    // namespace
 
 /* ----------------------------------------------------------------------
    zero count entries of a per-atom array on both host sides, from first
@@ -153,9 +157,18 @@ void VerletKokkos::setup(int flag)
   modify->setup_pre_force(vflag);
 
   if (pair_compute_flag) {
+    // a kokkosable pair claims the arrays it writes (e.g. F) just before its
+    // kernel and relies on that claim surviving until the kernel runs.  the
+    // setup path otherwise leaves auto_sync on, which syncs each claim straight
+    // back to the host and drops it, so the device force the kernel writes
+    // never reaches the host and later styles read stale data.  disable
+    // auto_sync for a kokkosable pair here, as the run loop already does
+    int prev_auto_sync = lmp->kokkos->auto_sync;
+    if (force->pair->kokkosable) lmp->kokkos->auto_sync = 0;
     atomKK->sync(force->pair->execution_space,force->pair->datamask_read);
     force->pair->compute(eflag,vflag);
     atomKK->modified(force->pair->execution_space,force->pair->datamask_modify);
+    lmp->kokkos->auto_sync = prev_auto_sync;
   } else if (force->pair) force->pair->compute_dummy(eflag,vflag,0);
 
   if (atom->molecular != Atom::ATOMIC) {
@@ -243,9 +256,18 @@ void VerletKokkos::setup_minimal(int flag)
   modify->setup_pre_force(vflag);
 
   if (pair_compute_flag) {
+    // a kokkosable pair claims the arrays it writes (e.g. F) just before its
+    // kernel and relies on that claim surviving until the kernel runs.  the
+    // setup path otherwise leaves auto_sync on, which syncs each claim straight
+    // back to the host and drops it, so the device force the kernel writes
+    // never reaches the host and later styles read stale data.  disable
+    // auto_sync for a kokkosable pair here, as the run loop already does
+    int prev_auto_sync = lmp->kokkos->auto_sync;
+    if (force->pair->kokkosable) lmp->kokkos->auto_sync = 0;
     atomKK->sync(force->pair->execution_space,force->pair->datamask_read);
     force->pair->compute(eflag,vflag);
     atomKK->modified(force->pair->execution_space,force->pair->datamask_modify);
+    lmp->kokkos->auto_sync = prev_auto_sync;
   } else if (force->pair) force->pair->compute_dummy(eflag,vflag,0);
 
   if (atom->molecular != Atom::ATOMIC) {
@@ -347,18 +369,11 @@ void VerletKokkos::run(int n)
       comm->forward_comm();
       timer->stamp(Timer::COMM);
     } else {
-      // added debug
-      //atomKK->sync(Host,ALL_MASK);
-      //atomKK->modified(Host,ALL_MASK);
-
       if (n_pre_exchange) {
         timer->stamp();
         modify->pre_exchange();
         timer->stamp(Timer::MODIFY);
       }
-      // debug
-      //atomKK->sync(Host,ALL_MASK);
-      //atomKK->modified(Host,ALL_MASK);
       if (triclinic) domain->x2lamda(atomKK->nlocal);
       domain->pbc();
       if (domain->box_change) {
@@ -368,17 +383,9 @@ void VerletKokkos::run(int n)
       }
       timer->stamp();
 
-      // added debug
-      //atomKK->sync(Device,ALL_MASK);
-      //atomKK->modified(Device,ALL_MASK);
-
       comm->exchange();
       if (sortflag && ntimestep >= atomKK->nextsort) atomKK->sort();
       comm->borders();
-
-      // added debug
-      //atomKK->sync(Host,ALL_MASK);
-      //atomKK->modified(Host,ALL_MASK);
 
       if (triclinic) domain->lamda2x(atomKK->nlocal+atomKK->nghost);
 
@@ -418,10 +425,24 @@ void VerletKokkos::run(int n)
     uint64_t datamask_read_host = 0;
     uint64_t datamask_exclude = 0;
 
-    if (overlap_possible()) {
-      datamask_exclude = (F_MASK | ENERGY_MASK | VIRIAL_MASK);
-      execute_on_host = host_force_styles(&datamask_read_host);
-    }
+    // host_force_styles() is 0 without overlap, so this also tells whether
+    // the host force copies are in use
+
+    execute_on_host = host_force_styles(&datamask_read_host);
+
+    // exclude the forces only when they are merged below
+
+    if (execute_on_host) datamask_exclude = (F_MASK | ENERGY_MASK | VIRIAL_MASK);
+
+    // sync what the pre_force fixes claimed on the forces before excluding them,
+    // to where the pair accumulates, as the pair's own sync below would
+
+    if (execute_on_host)
+      atomKK->sync(pair_compute_flag ? force->pair->execution_space : Device, datamask_exclude);
+
+    // keep the forces out of sync() and modified() until they are merged
+
+    AtomKokkos::ExcludeMask exclude_guard(atomKK,datamask_exclude);
 
     // when a non-KOKKOS style runs inside a KOKKOS run, enable auto_sync for
     // the duration of its compute so that any sync()/modified() it triggers
@@ -431,20 +452,17 @@ void VerletKokkos::run(int n)
     if (pair_compute_flag) {
       int prev_auto_sync = lmp->kokkos->auto_sync;
       if (!force->pair->kokkosable) lmp->kokkos->auto_sync = 1;
-      // the masked form only: the mask is the plain one when nothing is
-      // excluded, and syncing or claiming the full one first would put the
-      // force array back in play exactly where the overlap path is trying to
-      // keep it out
-      atomKK->sync(force->pair->execution_space,~(~force->pair->datamask_read|datamask_exclude));
+      atomKK->sync(force->pair->execution_space,force->pair->datamask_read);
       force->pair->compute(eflag,vflag);
       lmp->kokkos->auto_sync = prev_auto_sync;
-      atomKK->modified(force->pair->execution_space,~(~force->pair->datamask_modify|datamask_exclude));
+      atomKK->modified(force->pair->execution_space,force->pair->datamask_modify);
       timer->stamp(Timer::PAIR);
     }
 
     if (execute_on_host) {
       if (pair_compute_flag && force->pair->datamask_modify != datamask_exclude)
         Kokkos::fence();
+      // sync_pinned() is not routed through the exclude mask, so mask here
       atomKK->sync_pinned(HostKK,~(~datamask_read_host|datamask_exclude),1);
       // zero the host-side force buffer before the host styles accumulate into
       // it, so the later device/host force merge does not re-add stale values.
@@ -457,6 +475,15 @@ void VerletKokkos::run(int n)
           force->pair->execution_space != Host)) {
         Kokkos::deep_copy(LMPHostType(),atomKK->k_f.view_hostkk(),0.0);
         atomKK->k_f.modify_hostkk_legacy();
+
+        // a force style without KOKKOS support (execution_space == Host) adds
+        // into the legacy host array, which is a separate allocation whenever
+        // the two host views need a transform, so it has to be cleared for the
+        // same reason.  Without this, fusing force_clear() into the pair style
+        // leaves it stale and its contents are re-added on every step.
+
+        if (decltype(atomKK->k_f)::NEED_TRANSFORM)
+          Kokkos::deep_copy(LMPHostType(),atomKK->k_f.view_host(),0.0);
       }
     }
 
@@ -464,34 +491,34 @@ void VerletKokkos::run(int n)
       if (force->bond) {
         int prev_auto_sync = lmp->kokkos->auto_sync;
         if (!force->bond->kokkosable) lmp->kokkos->auto_sync = 1;
-        atomKK->sync(force->bond->execution_space,~(~force->bond->datamask_read|datamask_exclude));
+        atomKK->sync(force->bond->execution_space,force->bond->datamask_read);
         force->bond->compute(eflag,vflag);
         lmp->kokkos->auto_sync = prev_auto_sync;
-        atomKK->modified(force->bond->execution_space,~(~force->bond->datamask_modify|datamask_exclude));
+        atomKK->modified(force->bond->execution_space,force->bond->datamask_modify);
       }
       if (force->angle) {
         int prev_auto_sync = lmp->kokkos->auto_sync;
         if (!force->angle->kokkosable) lmp->kokkos->auto_sync = 1;
-        atomKK->sync(force->angle->execution_space,~(~force->angle->datamask_read|datamask_exclude));
+        atomKK->sync(force->angle->execution_space,force->angle->datamask_read);
         force->angle->compute(eflag,vflag);
         lmp->kokkos->auto_sync = prev_auto_sync;
-        atomKK->modified(force->angle->execution_space,~(~force->angle->datamask_modify|datamask_exclude));
+        atomKK->modified(force->angle->execution_space,force->angle->datamask_modify);
       }
       if (force->dihedral) {
         int prev_auto_sync = lmp->kokkos->auto_sync;
         if (!force->dihedral->kokkosable) lmp->kokkos->auto_sync = 1;
-        atomKK->sync(force->dihedral->execution_space,~(~force->dihedral->datamask_read|datamask_exclude));
+        atomKK->sync(force->dihedral->execution_space,force->dihedral->datamask_read);
         force->dihedral->compute(eflag,vflag);
         lmp->kokkos->auto_sync = prev_auto_sync;
-        atomKK->modified(force->dihedral->execution_space,~(~force->dihedral->datamask_modify|datamask_exclude));
+        atomKK->modified(force->dihedral->execution_space,force->dihedral->datamask_modify);
       }
       if (force->improper) {
         int prev_auto_sync = lmp->kokkos->auto_sync;
         if (!force->improper->kokkosable) lmp->kokkos->auto_sync = 1;
-        atomKK->sync(force->improper->execution_space,~(~force->improper->datamask_read|datamask_exclude));
+        atomKK->sync(force->improper->execution_space,force->improper->datamask_read);
         force->improper->compute(eflag,vflag);
         lmp->kokkos->auto_sync = prev_auto_sync;
-        atomKK->modified(force->improper->execution_space,~(~force->improper->datamask_modify|datamask_exclude));
+        atomKK->modified(force->improper->execution_space,force->improper->datamask_modify);
       }
       timer->stamp(Timer::BOND);
     }
@@ -499,10 +526,10 @@ void VerletKokkos::run(int n)
     if (kspace_compute_flag) {
       int prev_auto_sync = lmp->kokkos->auto_sync;
       if (!force->kspace->kokkosable) lmp->kokkos->auto_sync = 1;
-      atomKK->sync(force->kspace->execution_space,~(~force->kspace->datamask_read|datamask_exclude));
+      atomKK->sync(force->kspace->execution_space,force->kspace->datamask_read);
       force->kspace->compute(eflag,vflag);
       lmp->kokkos->auto_sync = prev_auto_sync;
-      atomKK->modified(force->kspace->execution_space,~(~force->kspace->datamask_modify|datamask_exclude));
+      atomKK->modified(force->kspace->execution_space,force->kspace->datamask_modify);
       timer->stamp(Timer::KSPACE);
     }
 
@@ -510,13 +537,30 @@ void VerletKokkos::run(int n)
       if (f_merge_copy.extent(0) < atomKK->k_f.extent(0))
         f_merge_copy = DAT::t_kkacc_1d_3("VerletKokkos::f_merge_copy",atomKK->k_f.extent(0));
       f = atomKK->k_f.view_device();
-      atomKK->k_f.sync_legacy_to_hostkk();
+
+      // both host copies can hold a contribution: a /kk/host style accumulates
+      // into the Kokkos host view, a style without KOKKOS support into the
+      // legacy host array behind atom->f, which is a separate allocation when
+      // the two need a transform.  Add the legacy one in.  sync_legacy_to_hostkk()
+      // cannot be used here: it would copy one buffer over the other, and it is
+      // a no-op anyway since F_MASK is excluded from the modified() calls above.
+
+      if (decltype(atomKK->k_f)::NEED_TRANSFORM) {
+        auto h_f_kk = atomKK->k_f.view_hostkk();
+        auto h_f_legacy = atomKK->k_f.view_host();
+        Kokkos::parallel_for(Kokkos::RangePolicy<LMPHostType>(0,atomKK->k_f.extent(0)),
+          ForceAdder<decltype(h_f_kk),decltype(h_f_legacy)>(h_f_kk,h_f_legacy));
+      }
       Kokkos::deep_copy(LMPHostType(),f_merge_copy,atomKK->k_f.view_hostkk());
       Kokkos::parallel_for(atomKK->k_f.extent(0),
         ForceAdder<DAT::t_kkacc_1d_3,DAT::t_kkacc_1d_3>(atomKK->k_f.view_device(),f_merge_copy));
       atomKK->k_f.clear_sync_state(); // special case
       atomKK->k_f.modify_device();
     }
+
+    // host and device forces are merged, so sync() and modified() may touch them again
+
+    exclude_guard.release();
 
     if (n_pre_reverse) {
       modify->pre_reverse(eflag,vflag);
@@ -544,11 +588,18 @@ void VerletKokkos::run(int n)
     // all output
 
     if (ntimestep == output->next) {
-       atomKK->sync(Host,ALL_MASK);
+      // non-Kokkos computes and fixes may write through the host pointers,
+      // auto_sync carries those writes to the device
+
+      int prev_auto_sync = lmp->kokkos->auto_sync;
+      lmp->kokkos->auto_sync = 1;
+      atomKK->sync(Host,ALL_MASK);
 
       timer->stamp();
       output->write(ntimestep);
       timer->stamp(Timer::OUTPUT);
+
+      lmp->kokkos->auto_sync = prev_auto_sync;
     }
   }
 

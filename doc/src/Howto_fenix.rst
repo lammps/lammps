@@ -130,12 +130,17 @@ configuration for the recovery jump file and/or label will be updated.
 
 .. _Bland2013:
 
-**(Bland2013)**: Bland, Bouteiller, Herault, Bosilca, and Dongarra (2013). IJHPCA. https://doi.org/10.1177/109434201348823
+**(Bland2013)** Bland, Bouteiller, Herault, Bosilca, and Dongarra,
+International Journal of High Performance Computing Applications, 27,
+244-254 (2013). https://doi.org/10.1177/1094342013488238
 
 .. _Whitlock2022:
 
-**(Whitlock2022)** Whitlock, Morales, Bosilca, Bouteiller, Nicolae, Teranishi, Giem, Sarkar (2022). CLUSTER. https://doi.org/10.1109/CLUSTER51413.2022.00052
+**(Whitlock2022)** Whitlock, Morales, Bosilca, Bouteiller, Nicolae, Teranishi,
+Giem, and Sarkar, Proceedings of the IEEE International Conference on Cluster
+Computing (CLUSTER), (2022). https://doi.org/10.1109/CLUSTER51413.2022.00052
 
 .. _Whitlock2024:
 
-**(Whitlock2024)** Whitlock (2024). Georgia Institute of Technology. https://doi.org/1853/77831
+**(Whitlock2024)** Whitlock, PhD dissertation, Georgia Institute of Technology
+(2024). https://hdl.handle.net/1853/77831

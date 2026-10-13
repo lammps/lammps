@@ -1,0 +1,138 @@
+LAMMPS (30 Sep 2026 - Development - patch_30Sep2026-78-g569400085c-modified)
+  using 1 OpenMP thread(s) per MPI task
+# two LJ particles
+
+units real
+boundary p p p
+
+atom_style charge
+pair_style lj/cut/coul/long/soft 1.0 0.0 0.0 12.0 12.0
+
+region box block -15.0 15.0 -15.0 15.0 -15.0 15.0
+create_box 2 box
+Created orthogonal box = (-15 -15 -15) to (15 15 15)
+  1 by 1 by 1 MPI processor grid
+
+# just two atoms...
+#create_atoms 1 single  0.0 0.0 0.0
+## create_atoms 2 single  3.36738 0.0 0.0
+#create_atoms 2 single  6.0 0.0 0.0
+
+# ...or a few on a lattice
+lattice bcc 5.0
+Lattice spacing in x,y,z = 5 5 5
+create_atoms 1 box basis 1 1 basis 2 2
+Created 432 atoms
+  using lattice units in orthogonal box = (-15 -15 -15) to (15 15 15)
+  create_atoms CPU = 0.000 seconds
+
+
+mass   1  12.011
+mass   2  12.011
+
+pair_coeff   1   1   0.1   3.0  1.0
+pair_coeff   1   2   0.1   3.0  1.0
+pair_coeff   2   2   0.1   3.0  1.0
+
+set type 1 charge  0.1
+Setting atom values ...
+  216 settings made for charge
+set type 2 charge -0.1
+Setting atom values ...
+  216 settings made for charge
+
+kspace_style pppm 1.0e-5
+
+timestep 2.0
+
+velocity all create 300.0 12345 loop geom
+
+fix INTEG all nvt temp 300.0 300.0 $(100.0*dt)
+fix INTEG all nvt temp 300.0 300.0 200
+
+variable dlam equal -0.1
+variable dq equal -0.01
+variable mdq equal -v_dq
+
+compute FEP all fep 300.0   pair lj/cut/coul/long/soft lambda * * v_dlam   atom charge 1 v_dq atom charge 2 v_mdq
+
+variable diff equal "0.1*evdwl + (1.0-0.9^3)*ecoul + (1.0-0.9^2)*elong + c_FEP[1]"
+
+thermo_style custom step etotal epair evdwl ecoul elong temp press c_FEP[1] v_diff
+thermo 200
+
+#dump TRAJ all custom 20 dump.lammpstrj id type element xu yu zu
+#dump_modify TRAJ element C N
+
+run 2000
+PPPM initialization ...
+  using 12-bit tables for long-range coulomb
+  G vector (1/distance) = 0.18385633
+  grid = 8 8 8
+  stencil order = 5
+  estimated absolute RMS force accuracy = 0.0026371085
+  estimated relative force accuracy = 7.9415739e-06
+  using double precision FFTW3
+  3d grid and FFT values/proc = 2197 512
+Generated 0 of 1 mixed pair_coeff terms from geometric mixing rule
+FEP settings ...
+  temperature = 300.000000
+  tail no
+  pair lj/cut/coul/long/soft lambda 1-2 1-2
+  atom charge 1-1
+  atom charge 2-2
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 14
+  ghost atom cutoff = 14
+  binsize = 7, bins = 5 5 5
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cut/coul/long/soft, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 6.082 | 6.082 | 6.082 Mbytes
+   Step         TotEng         E_pair         E_vdwl         E_coul         E_long          Temp          Press         c_FEP[1]        v_diff    
+         0  -12.26816      -397.6869      -104.94426     -143.9636      -148.77903      300           -85.376499      77.776579      1.8999913e-11
+       200   37.234639     -318.39837     -83.139801     -97.231172     -138.0274       276.81556      869.09676      60.888834     -3.3963943e-12
+       400   95.365436     -308.51121     -68.156442     -101.47733     -138.87743      314.36715      1119.8513      60.702713     -3.7800874e-12
+       600   46.622025     -322.63843     -77.555699     -105.8037      -139.27903      287.42281      887.24275      62.891389     -1.9184654e-12
+       800   82.289075     -322.80012     -76.243726     -104.58419     -141.97221      315.31098      998.16846      62.941407     -1.9042545e-12
+      1000   66.1209       -313.37849     -76.208105     -98.92868      -138.2417       295.39253      974.1331       60.696406     -2.9984903e-12
+      1200   77.057982     -308.1067      -69.726007     -99.91519      -138.4655       299.80225      1054.6575      60.358062     -3.2542857e-12
+      1400   57.458959     -325.55017     -78.200537     -108.73168     -138.61796      298.12442      926.55318      63.623751     -2.4229507e-12
+      1600   54.858362     -320.01721     -74.670662     -104.3649      -140.98164      291.79347      1003.7834      62.536467     -2.9061198e-12
+      1800   78.970335     -301.69202     -59.622788     -106.56862     -135.50061      296.29775      1186.8402      60.58749      -2.0108359e-12
+      2000   32.453469     -325.94745     -76.225432     -109.66609     -140.05593      278.97003      971.77495      63.95268      -3.1832315e-12
+Loop time of 1.3357 on 1 procs for 2000 steps with 432 atoms
+
+Performance: 258.741 ns/day, 0.093 hours/ns, 1497.343 timesteps/s, 646.852 katom-step/s
+99.5% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 1.0884     | 1.0884     | 1.0884     |   0.0 | 81.48
+Kspace  | 0.17455    | 0.17455    | 0.17455    |   0.0 | 13.07
+Neigh   | 0.048158   | 0.048158   | 0.048158   |   0.0 |  3.61
+Comm    | 0.013093   | 0.013093   | 0.013093   |   0.0 |  0.98
+Output  | 0.00034658 | 0.00034658 | 0.00034658 |   0.0 |  0.03
+Modify  | 0.0080746  | 0.0080746  | 0.0080746  |   0.0 |  0.60
+Other   |            | 0.003088   |            |       |  0.23
+
+Nlocal:            432 ave         432 max         432 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:           2728 ave        2728 max        2728 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:          39625 ave       39625 max       39625 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 39625
+Ave neighs/atom = 91.724537
+Neighbor list builds = 68
+Dangerous builds = 0
+
+#write_data data.*.lmp
+Total wall time: 0:00:01

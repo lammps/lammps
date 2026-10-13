@@ -12,6 +12,9 @@ on:
 
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   build:
     name: Build with -Werror=vla
@@ -25,6 +28,7 @@ jobs:
       uses: actions/checkout@v7
       with:
         fetch-depth: 2
+        persist-credentials: false
 
     - name: Install extra packages
       run: |
@@ -71,14 +75,12 @@ jobs:
               -D ENABLE_TESTING=off \
               -D MLIAP_ENABLE_ACE=on \
               -D MLIAP_ENABLE_PYTHON=off \
-              -D PKG_AWPMD=on \
               -D PKG_GPU=on \
               -D GPU_API=opencl \
               -D PKG_LATBOLTZ=on \
               -D PKG_MDI=on \
               -D PKG_MANIFOLD=on \
               -D PKG_ML-PACE=on \
-              -D PKG_ML-RANN=on \
               -D PKG_MOLFILE=on \
               -D PKG_RHEO=on \
               -D PKG_PTM=on \

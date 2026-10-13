@@ -60,6 +60,14 @@ class FixCMAPKokkos : public FixCMAP, public KokkosBase {
     void set_arrays(int) override;
     int pack_exchange(int, double *) override;
     int unpack_exchange(int, double *) override;
+    int size_restart(int) override;
+    int pack_restart(int, double *) override;
+    void unpack_restart(int, int) override;
+
+    void read_data_section(char *, int, char *, tagint) override;
+
+    void sync_crossterm_host();
+    void modify_crossterm_host();
 
     int pack_exchange_kokkos(const int &nsend,DAT::tdual_double_2d_lr &buf,
                            DAT::tdual_int_1d k_sendlist,

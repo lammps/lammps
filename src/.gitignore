@@ -437,6 +437,8 @@
 /pair_mesocnt.h
 /pair_mesocnt_viscous.cpp
 /pair_mesocnt_viscous.h
+/pair_mesomem_dipole.cpp
+/pair_mesomem_dipole.h
 
 /ldd_indicator.cpp
 /ldd_indicator_dpd.cpp
@@ -741,6 +743,8 @@
 /compute_born_matrix.h
 /compute_cnp_atom.cpp
 /compute_cnp_atom.h
+/compute_continuum_chunk.cpp
+/compute_continuum_chunk.h
 /compute_damage_atom.cpp
 /compute_damage_atom.h
 /compute_dilatation_atom.cpp
@@ -769,6 +773,8 @@
 /compute_fep.h
 /compute_fep_ta.cpp
 /compute_fep_ta.h
+/compute_mbar.cpp
+/compute_mbar.h
 /compute_force_tally.cpp
 /compute_force_tally.h
 /compute_frenkel.cpp

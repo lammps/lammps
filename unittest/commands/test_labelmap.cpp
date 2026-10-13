@@ -18,6 +18,7 @@
 #include "domain.h"
 #include "info.h"
 #include "label_map.h"
+#include "library.h"
 #include "math_const.h"
 #include "modify.h"
 
@@ -54,6 +55,8 @@ protected:
 
 TEST_F(LabelMapTest, Atoms)
 {
+    // label maps are currently not supported with the KOKKOS package
+    if (lmp->suffix_enable) GTEST_SKIP() << "label maps are not supported with an accelerator suffix";
     EXPECT_EQ(atom->natoms, 0);
     EXPECT_EQ(domain->box_exist, 0);
     EXPECT_EQ(atom->labelmapflag, 0);
@@ -188,6 +191,8 @@ TEST_F(LabelMapTest, Atoms)
 
 TEST_F(LabelMapTest, Topology)
 {
+    // label maps are currently not supported with the KOKKOS package
+    if (lmp->suffix_enable) GTEST_SKIP() << "label maps are not supported with an accelerator suffix";
     if (!info->has_style("atom", "full")) GTEST_SKIP();
 
     EXPECT_EQ(atom->natoms, 0);
@@ -390,6 +395,13 @@ int main(int argc, char **argv)
     if ((argc > 1) && (strcmp(argv[1], "-v") == 0)) verbose = true;
 
     int rv = RUN_ALL_TESTS();
+
+    // finalize the KOKKOS package explicitly: otherwise Kokkos is torn down by
+    // static destructors at program exit, leading to segfaults in some cases
+    // same workaround as the force-style and FFT3d test drivers
+
+    lammps_kokkos_finalize();
+
     MPI_Finalize();
     return rv;
 }

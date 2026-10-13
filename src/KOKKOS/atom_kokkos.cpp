@@ -165,7 +165,8 @@ void AtomKokkos::update_property_atom()
   std::vector<Fix *> prop_atom_fixes;
   for (auto &ifix : modify->get_fix_by_style("^property/atom")) {
     if (!ifix->kokkosable)
-      error->all(FLERR, "KOKKOS package requires a Kokkos-enabled version of fix property/atom");
+      error->all(FLERR, "Fix property/atom {} must use the Kokkos-enabled style "
+                 "property/atom/kk when running with the KOKKOS package", ifix->id);
 
     ++nprop_atom;
     prop_atom_fixes.push_back(ifix);
@@ -240,6 +241,14 @@ void *AtomKokkos::extract(const char *name)
 
 void AtomKokkos::sync(const ExecutionSpace space, uint64_t mask)
 {
+  // before the early return below; readers never name MASS_MASK
+  sync_mass(space, MASS_MASK);
+
+  // skip arrays excluded by an overlapping force region
+
+  mask &= ~datamask_exclude;
+  if (!mask) return;
+
   if ((space == Device || space == HostKK) && lmp->kokkos->auto_sync) {
 
     // sync HostKK -> Host if needed
@@ -255,12 +264,34 @@ void AtomKokkos::sync(const ExecutionSpace space, uint64_t mask)
   for (int n = 0; n < nprop_atom; n++) fix_prop_atom[n]->sync(space, mask);
 }
 
+/* ----------------------------------------------------------------------
+   the per-type masses are only written on the host; sync() calls this every
+   time, modified() only when MASS_MASK is named
+------------------------------------------------------------------------- */
+
+void AtomKokkos::sync_mass(const ExecutionSpace space, uint64_t mask)
+{
+  if (!(mask & MASS_MASK) || !mass) return;
+
+  if (space == Host) k_mass.sync_host();
+  else if (space == HostKK) k_mass.sync_hostkk();
+  else k_mass.sync_device();
+}
+
 /* ---------------------------------------------------------------------- */
 
 void AtomKokkos::modified(const ExecutionSpace space, uint64_t mask)
 {
+  // skip arrays excluded by an overlapping force region
+
+  mask &= ~datamask_exclude;
+  if (!mask) return;
+
   avecKK->modified(space, mask);
   for (int n = 0; n < nprop_atom; n++) fix_prop_atom[n]->modified(space, mask);
+
+  // only the host writes the per-type masses
+  if ((mask & MASS_MASK) && mass && (space == Host)) k_mass.modify_host();
 
   if ((space == Device || space == HostKK) && lmp->kokkos->auto_sync) {
     avecKK->sync(Host, mask);

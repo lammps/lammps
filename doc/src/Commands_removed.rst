@@ -103,7 +103,7 @@ LAMMPS-GUI source code
 
 The LAMMPS-GUI sources used to be included in LAMMPS but they are now
 hosted in their own git repository at
-https://github.com/akohlmey/lammps-gui/ and the corresponding online
+https://github.com/lammps/lammps-gui/ and the corresponding online
 documentation is at https://lammps-gui.lammps.org/
 
 GJF formulation in fix langevin

@@ -20,6 +20,7 @@
 #include "fix_qeq.h"
 
 #include "atom.h"
+#include "citeme.h"
 #include "comm.h"
 #include "error.h"
 #include "force.h"
@@ -43,6 +44,46 @@ static constexpr int MIN_CAP = 50;
 static constexpr double SAFE_ZONE = 1.2;
 static constexpr bigint MIN_NBRS = 100;
 
+static const char cite_fix_qeq_xlmd[] =
+    "fix qeq/*/xlmd command: doi:10.1016/j.cpc.2015.02.023\n\n"
+    "@Article{Nomura2015,\n"
+    " author =  {K. Nomura and P. E. Small and R. K. Kalia and A. Nakano and P. Vashishta},\n"
+    " title =   {An Extended-Lagrangian Scheme for Charge Equilibration in Reactive Molecular\n"
+    "    Dynamics Simulations},\n"
+    " journal = {Computer Physics Communications},\n"
+    " year =    2015,\n"
+    " volume =  192,\n"
+    " pages =   {91--96}\n"
+    "}\n\n";
+
+static const char cite_fix_qeq_xlmd_dissipation[] =
+    "fix qeq/*/xlmd keyword xldamp: doi:10.1063/1.3148075\n\n"
+    "@Article{Niklasson2009,\n"
+    " author =  {A. M. N. Niklasson and P. Steneteg and A. Odell and N. Bock and\n"
+    "    M. Challacombe and C. J. Tymczak and E. Holmstr{\\\"o}m and G. Zheng and V. Weber},\n"
+    " title =   {Extended {Lagrangian} {Born--Oppenheimer} Molecular Dynamics with Dissipation},\n"
+    " journal = {Journal of Chemical Physics},\n"
+    " year =    2009,\n"
+    " volume =  130,\n"
+    " pages =   {214109}\n"
+    "}\n\n";
+
+// dissipative modified-Verlet coefficients kappa, alpha, c_0 ... c_K for the
+// auxiliary variable propagation, from Niklasson et al., JCP 130, 214109 (2009), Table I.
+// row index = K - XL_KDIS_MIN
+
+static constexpr int XL_KDIS_MIN = 3;
+static constexpr int XL_KDIS_MAX = 9;
+static const struct { double kappa, alpha; double c[10]; } xl_dis_table[] = {
+  { 1.69, 0.150,   {  -2.0,   3.0,    0.0,  -1.0,   0.0,    0.0,   0.0,   0.0,  0.0,  0.0 } },
+  { 1.75, 0.057,   {  -3.0,   6.0,   -2.0,  -2.0,   1.0,    0.0,   0.0,   0.0,  0.0,  0.0 } },
+  { 1.82, 0.018,   {  -6.0,  14.0,   -8.0,  -3.0,   4.0,   -1.0,   0.0,   0.0,  0.0,  0.0 } },
+  { 1.84, 0.0055,  { -14.0,  36.0,  -27.0,  -2.0,  12.0,   -6.0,   1.0,   0.0,  0.0,  0.0 } },
+  { 1.86, 0.0016,  { -36.0,  99.0,  -88.0,  11.0,  32.0,  -25.0,   8.0,  -1.0,  0.0,  0.0 } },
+  { 1.88, 0.00044, { -99.0, 286.0, -286.0,  78.0,  78.0,  -90.0,  42.0, -10.0,  1.0,  0.0 } },
+  { 1.89, 0.00012, {-286.0, 858.0, -936.0, 364.0, 168.0, -300.0, 184.0, -63.0, 12.0, -1.0 } },
+};
+
 namespace {
   class qeq_parser_error : public std::exception {
     std::string message;
@@ -57,8 +98,8 @@ namespace {
 FixQEq::FixQEq(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg), list(nullptr), chi(nullptr), eta(nullptr),
   gamma(nullptr), zeta(nullptr), zcore(nullptr), qmin(nullptr), qmax(nullptr), omega(nullptr), chizj(nullptr), shld(nullptr),
-  s(nullptr), t(nullptr), s_hist(nullptr), t_hist(nullptr), Hdia_inv(nullptr), b_s(nullptr),
-  b_t(nullptr), p(nullptr), q(nullptr), r(nullptr), d(nullptr),
+  s(nullptr), t(nullptr), s_hist(nullptr), t_hist(nullptr), xls_hist(nullptr), xlt_hist(nullptr),
+  Hdia_inv(nullptr), b_s(nullptr), b_t(nullptr), p(nullptr), q(nullptr), r(nullptr), d(nullptr),
   qf(nullptr), q1(nullptr), q2(nullptr), qv(nullptr)
 {
   if (narg < 8) utils::missing_cmd_args(FLERR, "fix " + std::string(style), error);
@@ -72,6 +113,23 @@ FixQEq::FixQEq(LAMMPS *lmp, int narg, char **arg) :
   maxiter = utils::inumeric(FLERR,arg[6],false,lmp);
   maxwarn = 1;
   matvecs = 0;
+  imax = maxiter;
+
+  // extended-Lagrangian charge propagation is selected via the fix style name
+
+  xl_flag = utils::strmatch(style,"/xlmd") ? 1 : 0;
+  xl_ncg = 2;     // 2 iterations keep the energy conservation close to converged
+                  // solves; 1 reproduces the original publication at less cost
+                  // but with a reduced stability margin in long runs
+  xl_kdis = -1;   // -1 = keyword xldamp not used, resolved in finalize_xl()
+  xl_kappa_set = 0;
+  xl_kappa = 2.0;
+  xl_alpha = 0.0;
+  for (int k = 0; k < 10; ++k) xl_c[k] = 0.0;
+  xl_nhist = 0;
+  xl_nseed = 0;
+  xl_bypass = 0;
+  xl_laststep = -1;
 
   // check for sane arguments
   if ((nevery <= 0) || (cutoff <= 0.0) || (tolerance <= 0.0) || (maxiter <= 0))
@@ -93,6 +151,7 @@ FixQEq::FixQEq(LAMMPS *lmp, int narg, char **arg) :
   s = nullptr;
   t = nullptr;
   nprev = 5;
+  maxexchange = 2*nprev;
 
   Hdia_inv = nullptr;
   b_s = nullptr;
@@ -154,6 +213,8 @@ FixQEq::~FixQEq()
 
   memory->destroy(s_hist);
   memory->destroy(t_hist);
+  memory->destroy(xls_hist);
+  memory->destroy(xlt_hist);
 
   deallocate_storage();
   deallocate_matrix();
@@ -360,7 +421,14 @@ void FixQEq::setup_pre_force(int vflag)
   deallocate_matrix();
   allocate_matrix();
 
+  // restart the extended-Lagrangian warm-up at the beginning of every run, so
+  // that stale or uninitialized auxiliary history (after read_restart, minimize,
+  // replicate, delete_atoms, ...) is never used for the charge propagation
+
+  xl_nseed = 0;
+  xl_bypass = 1;
   pre_force(vflag);
+  xl_bypass = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -443,7 +511,7 @@ int FixQEq::CG(double *b, double *x)
   b_norm = parallel_norm(b, inum);
   sig_new = parallel_dot(r, d, inum);
 
-  for (loop = 1; loop < maxiter && sqrt(sig_new)/b_norm > tolerance; ++loop) {
+  for (loop = 1; loop < imax && sqrt(sig_new)/b_norm > tolerance; ++loop) {
     comm->forward_comm(this);
     sparse_matvec(&H, d, q);
     comm->reverse_comm(this);
@@ -467,7 +535,9 @@ int FixQEq::CG(double *b, double *x)
     vector_sum(d, 1., p, beta, d, inum);
   }
 
-  if ((comm->me == 0) && maxwarn && (loop >= maxiter))
+  // no warning for a deliberately truncated solve in extended-Lagrangian mode
+
+  if ((comm->me == 0) && maxwarn && (imax == maxiter) && (loop >= imax))
     error->warning(FLERR,"Fix qeq CG convergence failed ({}) after {} "
                    "iterations at step {}",sqrt(sig_new)/b_norm,loop,
                    update->ntimestep);
@@ -540,6 +610,223 @@ void FixQEq::calculate_Q()
   comm->forward_comm(this); //Dist_vector(atom->q);
 }
 
+/* ----------------------------------------------------------------------
+   parse keywords shared between qeq fix styles starting at position iarg.
+   returns the number of arguments consumed, 0 if the keyword is unknown
+------------------------------------------------------------------------- */
+
+int FixQEq::parse_common_keyword(int narg, char **arg, int iarg)
+{
+  if (strcmp(arg[iarg],"warn") == 0) {
+    if (iarg+2 > narg)
+      utils::missing_cmd_args(FLERR, std::string("fix ") + style + " warn", error);
+    maxwarn = utils::logical(FLERR,arg[iarg+1],false,lmp);
+    return 2;
+  }
+
+  // keywords below apply to the extended-Lagrangian (xlmd) fix styles only
+
+  if (!xl_flag) return 0;
+
+  if (strcmp(arg[iarg],"xlcg") == 0) {
+    if (iarg+2 > narg)
+      utils::missing_cmd_args(FLERR, std::string("fix ") + style + " xlcg", error);
+    xl_ncg = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
+    if (xl_ncg < 1)
+      error->all(FLERR, iarg+1, "Fix {} xlcg value {} must be >= 1", style, xl_ncg);
+    return 2;
+  }
+  if (strcmp(arg[iarg],"xlkappa") == 0) {
+    if (iarg+2 > narg)
+      utils::missing_cmd_args(FLERR, std::string("fix ") + style + " xlkappa", error);
+    xl_kappa = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+    xl_kappa_set = 1;
+    if ((xl_kappa <= 0.0) || (xl_kappa > 2.0))
+      error->all(FLERR, iarg+1, "Fix {} xlkappa value {} must be > 0 and <= 2", style, xl_kappa);
+    return 2;
+  }
+  if (strcmp(arg[iarg],"xldamp") == 0) {
+    if (iarg+2 > narg)
+      utils::missing_cmd_args(FLERR, std::string("fix ") + style + " xldamp", error);
+    xl_kdis = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
+    if ((xl_kdis != 0) && ((xl_kdis < XL_KDIS_MIN) || (xl_kdis > XL_KDIS_MAX)))
+      error->all(FLERR, iarg+1, "Fix {} xldamp value {} must be 0 or between {} and {}",
+                 style, xl_kdis, XL_KDIS_MIN, XL_KDIS_MAX);
+    return 2;
+  }
+  return 0;
+}
+
+/* ----------------------------------------------------------------------
+   validate extended-Lagrangian settings and set up the auxiliary storage.
+   must be called at the end of the constructor of styles supporting xlmd
+------------------------------------------------------------------------- */
+
+void FixQEq::finalize_xl()
+{
+  if (!xl_flag) return;
+
+  if (nevery != 1)
+    error->all(FLERR,"Fix {} requires nevery = 1", style);
+
+  // default is dissipation of order 5: the plain time-reversible propagation
+  // accumulates noise in the auxiliary variables and eventually turns unstable.
+  // a custom xlkappa implies the undamped scheme (kappa comes from the table
+  // otherwise); combining it with a nonzero dissipation order makes no sense
+
+  if (xl_kdis < 0) xl_kdis = xl_kappa_set ? 0 : 5;
+  else if (xl_kdis && xl_kappa_set)
+    error->all(FLERR,"Fix {} keywords xlkappa and xldamp may not be combined", style);
+
+  if (xl_kdis) {
+    const auto &row = xl_dis_table[xl_kdis - XL_KDIS_MIN];
+    xl_kappa = row.kappa;
+    xl_alpha = row.alpha;
+    for (int k = 0; k <= xl_kdis; ++k) xl_c[k] = row.c[k];
+  }
+  xl_nhist = MAX(2, xl_kdis+1);
+  maxexchange += 2*xl_nhist;
+
+  // allocate and initialize the auxiliary history arrays. they stay in sync
+  // with the atoms through the grow/copy/exchange callbacks that were already
+  // registered in the base class constructor
+
+  FixQEq::grow_arrays(atom->nmax);
+  for (int i = 0; i < atom->nmax; i++) {
+    for (int k = 0; k < xl_nhist; ++k) {
+      xls_hist[i][k] = atom->q[i];
+      xlt_hist[i][k] = 0.0;
+    }
+  }
+
+  if (lmp->citeme) {
+    lmp->citeme->add(cite_fix_qeq_xlmd);
+    if (xl_kdis) lmp->citeme->add(cite_fix_qeq_xlmd_dissipation);
+  }
+}
+
+/* ----------------------------------------------------------------------
+   shared solver driver for the CG based qeq styles: solve H s = b_s and
+   H t = b_t either to convergence or, in extended-Lagrangian mode, with
+   a fixed small number of CG iterations seeded from the auxiliary variables
+------------------------------------------------------------------------- */
+
+int FixQEq::solve_st()
+{
+  const bool active = xl_ready();
+
+  if (active) xl_predict();
+  imax = active ? xl_ncg + 1 : maxiter;
+  int nsolve = CG(b_s,s);
+  nsolve += CG(b_t,t);
+  imax = maxiter;
+  if (xl_flag) xl_update(active);
+  return nsolve/2;
+}
+
+/* ----------------------------------------------------------------------
+   true when the auxiliary variables can seed the truncated solve: only
+   during dynamics, never in the setup phase, and only with a completely
+   seeded history from consecutive timesteps
+------------------------------------------------------------------------- */
+
+bool FixQEq::xl_ready() const
+{
+  return xl_flag && !xl_bypass && (update->whichflag == 1) &&
+    (xl_nseed >= xl_nhist) && (update->ntimestep == xl_laststep + 1);
+}
+
+/* ----------------------------------------------------------------------
+   use the auxiliary variables as the initial guess for the truncated solve
+------------------------------------------------------------------------- */
+
+void FixQEq::xl_predict()
+{
+  int inum = list->inum;
+  int *ilist = list->ilist;
+
+  for (int ii = 0; ii < inum; ++ii) {
+    const int i = ilist[ii];
+    if (atom->mask[i] & groupbit) {
+      s[i] = xls_hist[i][0];
+      t[i] = xlt_hist[i][0];
+    }
+  }
+
+  pack_flag = 2;
+  comm->forward_comm(this);
+  pack_flag = 3;
+  comm->forward_comm(this);
+}
+
+/* ----------------------------------------------------------------------
+   advance the auxiliary variables theta_s and theta_t. when active, use
+   the time-reversible (dissipative) Verlet propagation:
+     theta(n+1) = 2*theta(n) - theta(n-1) + kappa*(x(n) - theta(n))
+                  + alpha*sum_k c_k theta(n-k)
+   following Nomura et al., CPC 192, 91 (2015) for the plain Verlet case
+   and Niklasson et al., JCP 130, 214109 (2009) for the dissipation term.
+   otherwise (re-)seed the history from the fully converged solution
+------------------------------------------------------------------------- */
+
+void FixQEq::xl_update(bool active)
+{
+  int inum = list->inum;
+  int *ilist = list->ilist;
+
+  if (active) {
+
+    for (int ii = 0; ii < inum; ++ii) {
+      const int i = ilist[ii];
+      if (atom->mask[i] & groupbit) {
+        double ths = 2.0*xls_hist[i][0] - xls_hist[i][1] + xl_kappa*(s[i] - xls_hist[i][0]);
+        double tht = 2.0*xlt_hist[i][0] - xlt_hist[i][1] + xl_kappa*(t[i] - xlt_hist[i][0]);
+        if (xl_kdis) {
+          for (int k = 0; k <= xl_kdis; ++k) {
+            ths += xl_alpha*xl_c[k]*xls_hist[i][k];
+            tht += xl_alpha*xl_c[k]*xlt_hist[i][k];
+          }
+        }
+        for (int k = xl_nhist-1; k > 0; --k) {
+          xls_hist[i][k] = xls_hist[i][k-1];
+          xlt_hist[i][k] = xlt_hist[i][k-1];
+        }
+        xls_hist[i][0] = ths;
+        xlt_hist[i][0] = tht;
+      }
+    }
+
+  } else {
+
+    // a valid history consists of converged solutions from consecutive steps.
+    // otherwise restart the warm-up by filling all slots with the current one
+
+    const bool restart = (xl_nseed == 0) || (update->ntimestep != xl_laststep + 1);
+
+    for (int ii = 0; ii < inum; ++ii) {
+      const int i = ilist[ii];
+      if (atom->mask[i] & groupbit) {
+        if (restart) {
+          for (int k = 0; k < xl_nhist; ++k) {
+            xls_hist[i][k] = s[i];
+            xlt_hist[i][k] = t[i];
+          }
+        } else {
+          for (int k = xl_nhist-1; k > 0; --k) {
+            xls_hist[i][k] = xls_hist[i][k-1];
+            xlt_hist[i][k] = xlt_hist[i][k-1];
+          }
+          xls_hist[i][0] = s[i];
+          xlt_hist[i][0] = t[i];
+        }
+      }
+    }
+    xl_nseed = restart ? 1 : MIN(xl_nseed+1, xl_nhist);
+  }
+
+  xl_laststep = update->ntimestep;
+}
+
 /* ---------------------------------------------------------------------- */
 
 int FixQEq::pack_forward_comm(int n, int *list, double *buf,
@@ -603,6 +890,7 @@ double FixQEq::memory_usage()
   double bytes;
 
   bytes = (double)atom->nmax*nprev*2 * sizeof(double); // s_hist & t_hist
+  bytes += (double)atom->nmax*xl_nhist*2 * sizeof(double); // xls_hist & xlt_hist
   bytes += (double)atom->nmax*11 * sizeof(double); // storage
   bytes += (double)n_cap*2 * sizeof(int); // matrix...
   bytes += (double)m_cap * sizeof(int);
@@ -619,6 +907,10 @@ void FixQEq::grow_arrays(int nmax)
 {
   memory->grow(s_hist,nmax,nprev,"qeq:s_hist");
   memory->grow(t_hist,nmax,nprev,"qeq:t_hist");
+  if (xl_nhist) {
+    memory->grow(xls_hist,nmax,xl_nhist,"qeq:xls_hist");
+    memory->grow(xlt_hist,nmax,xl_nhist,"qeq:xlt_hist");
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -631,6 +923,22 @@ void FixQEq::copy_arrays(int i, int j, int /*delflag*/)
     s_hist[j][m] = s_hist[i][m];
     t_hist[j][m] = t_hist[i][m];
   }
+  for (int m = 0; m < xl_nhist; m++) {
+    xls_hist[j][m] = xls_hist[i][m];
+    xlt_hist[j][m] = xlt_hist[i][m];
+  }
+}
+
+/* ----------------------------------------------------------------------
+   initialize history for an atom created during the run. grow_arrays()
+   leaves the new storage uninitialized and would feed garbage into the
+   initial guess extrapolation and the auxiliary variable propagation
+------------------------------------------------------------------------- */
+
+void FixQEq::set_arrays(int i)
+{
+  for (int m = 0; m < nprev; m++) s_hist[i][m] = t_hist[i][m] = 0.0;
+  for (int m = 0; m < xl_nhist; m++) xls_hist[i][m] = xlt_hist[i][m] = 0.0;
 }
 
 /* ----------------------------------------------------------------------
@@ -639,20 +947,26 @@ void FixQEq::copy_arrays(int i, int j, int /*delflag*/)
 
 int FixQEq::pack_exchange(int i, double *buf)
 {
-  for (int m = 0; m < nprev; m++) buf[m] = s_hist[i][m];
-  for (int m = 0; m < nprev; m++) buf[nprev+m] = t_hist[i][m];
-  return nprev*2;
+  int n = 0;
+  for (int m = 0; m < nprev; m++) buf[n++] = s_hist[i][m];
+  for (int m = 0; m < nprev; m++) buf[n++] = t_hist[i][m];
+  for (int m = 0; m < xl_nhist; m++) buf[n++] = xls_hist[i][m];
+  for (int m = 0; m < xl_nhist; m++) buf[n++] = xlt_hist[i][m];
+  return n;
 }
 
 /* ----------------------------------------------------------------------
    unpack values in local atom-based array from exchange with another proc
 ------------------------------------------------------------------------- */
 
-int FixQEq::unpack_exchange(int n, double *buf)
+int FixQEq::unpack_exchange(int i, double *buf)
 {
-  for (int m = 0; m < nprev; m++) s_hist[n][m] = buf[m];
-  for (int m = 0; m < nprev; m++) t_hist[n][m] = buf[nprev+m];
-  return nprev*2;
+  int n = 0;
+  for (int m = 0; m < nprev; m++) s_hist[i][m] = buf[n++];
+  for (int m = 0; m < nprev; m++) t_hist[i][m] = buf[n++];
+  for (int m = 0; m < xl_nhist; m++) xls_hist[i][m] = buf[n++];
+  for (int m = 0; m < xl_nhist; m++) xlt_hist[i][m] = buf[n++];
+  return n;
 }
 
 /* ---------------------------------------------------------------------- */

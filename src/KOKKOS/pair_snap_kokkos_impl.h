@@ -16,6 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_snap_kokkos.h"
+#include "sna_kokkos_impl.h"
 
 #include "atom_kokkos.h"
 #include "atom_masks.h"
@@ -141,6 +142,17 @@ void PairSNAPKokkos<DeviceType, real_type, accum_type, vector_length>::compute(i
   f = atomKK->k_f.view<DeviceType>();
   type = atomKK->k_type.view<DeviceType>();
   k_cutsq.template sync<DeviceType>();
+
+  // fix adapt may have written a new scale factor into the base class array
+  // since the last step, so copy it over to the device before the kernels run
+  {
+    auto h_scale = k_scale.view_host();
+    for (int i = 1; i <= atom->ntypes; i++)
+      for (int j = i; j <= atom->ntypes; j++)
+        h_scale(i,j) = h_scale(j,i) = scale[i][j];
+    k_scale.modify_host();
+    k_scale.template sync<DeviceType>();
+  }
 
   NeighListKokkos<DeviceType>* k_list = static_cast<NeighListKokkos<DeviceType>*>(list);
   d_numneigh = k_list->d_numneigh;
@@ -441,6 +453,9 @@ void PairSNAPKokkos<DeviceType, real_type, accum_type, vector_length>::allocate(
 
   MemKK::realloc_kokkos(k_cutsq,"PairSNAPKokkos::cutsq",n+1,n+1);
   rnd_cutsq = k_cutsq.template view<DeviceType>();
+
+  MemKK::realloc_kokkos(k_scale,"PairSNAPKokkos::scale",n+1,n+1);
+  rnd_scale = k_scale.template view<DeviceType>();
 }
 
 /* ----------------------------------------------------------------------
@@ -453,6 +468,8 @@ double PairSNAPKokkos<DeviceType, real_type, accum_type, vector_length>::init_on
   double cutone = PairSNAP::init_one(i,j);
   k_cutsq.view_host()(i,j) = k_cutsq.view_host()(j,i) = cutone*cutone;
   k_cutsq.modify_host();
+  k_scale.view_host()(i,j) = k_scale.view_host()(j,i) = scale[i][j];
+  k_scale.modify_host();
 
   return cutone;
 }
@@ -552,6 +569,7 @@ void PairSNAPKokkos<DeviceType, real_type, accum_type, vector_length>::operator(
   Kokkos::parallel_reduce(Kokkos::ThreadVectorRange(team,num_neighs),
     [&] (const int jj, int& count) {
     T_INT j = d_neighbors(i,jj);
+    j &= NEIGHMASK;
     const double dx = static_cast<double>(x(j,0)) - xtmp;
     const double dy = static_cast<double>(x(j,1)) - ytmp;
     const double dz = static_cast<double>(x(j,2)) - ztmp;
@@ -579,6 +597,7 @@ void PairSNAPKokkos<DeviceType, real_type, accum_type, vector_length>::operator(
     if (jtype >= 0) {
       if (final) {
         T_INT j = d_neighbors(i,jj);
+        j &= NEIGHMASK;
         const double dx = static_cast<double>(x(j,0)) - xtmp;
         const double dy = static_cast<double>(x(j,1)) - ytmp;
         const double dz = static_cast<double>(x(j,2)) - ztmp;
@@ -632,6 +651,7 @@ void PairSNAPKokkos<DeviceType, real_type, accum_type, vector_length>::operator(
       [&] (const int jj, int& count) {
     Kokkos::single(Kokkos::PerThread(team), [&] () {
       T_INT j = d_neighbors(i,jj);
+      j &= NEIGHMASK;
       const double dx = static_cast<double>(x(j,0)) - xtmp;
       const double dy = static_cast<double>(x(j,1)) - ytmp;
       const double dz = static_cast<double>(x(j,2)) - ztmp;
@@ -651,6 +671,7 @@ void PairSNAPKokkos<DeviceType, real_type, accum_type, vector_length>::operator(
       [&] (const int jj, int& offset, bool final) {
   //for (int jj = 0; jj < num_neighs; jj++) {
     T_INT j = d_neighbors(i,jj);
+    j &= NEIGHMASK;
     const double dx = static_cast<double>(x(j,0)) - xtmp;
     const double dy = static_cast<double>(x(j,1)) - ytmp;
     const double dz = static_cast<double>(x(j,2)) - ztmp;
@@ -712,8 +733,9 @@ void PairSNAPKokkos<DeviceType, real_type, accum_type, vector_length>::operator(
   const int iatom = iatom_mod + iatom_div * vector_length;
   if (iatom >= chunk_size) return;
 
-  int itype = type(iatom);
-  int ielem = d_map[itype];
+  const int i = d_ilist[iatom + chunk_offset];
+  const int itype = type[i];
+  const int ielem = d_map[itype];
 
   snaKK.pre_ui(iatom, j, ielem);
 }
@@ -724,8 +746,9 @@ KOKKOS_INLINE_FUNCTION
 void PairSNAPKokkos<DeviceType, real_type, accum_type, vector_length>::operator() (TagPairSNAPPreUi, const int& iatom, const int& j) const {
   if (iatom >= chunk_size) return;
 
-  int itype = type(iatom);
-  int ielem = d_map[itype];
+  const int i = d_ilist[iatom + chunk_offset];
+  const int itype = type[i];
+  const int ielem = d_map[itype];
 
   snaKK.pre_ui(iatom, j, ielem);
 }
@@ -736,7 +759,8 @@ KOKKOS_INLINE_FUNCTION
 void PairSNAPKokkos<DeviceType, real_type, accum_type, vector_length>::operator() (TagPairSNAPPreUi, const int& iatom) const {
   if (iatom >= chunk_size) return;
 
-  const int itype = type(iatom);
+  const int i = d_ilist[iatom + chunk_offset];
+  const int itype = type[i];
   const int ielem = d_map[itype];
 
   for (int j = 0; j <= twojmax; j++)
@@ -926,6 +950,27 @@ void PairSNAPKokkos<DeviceType, real_type, accum_type, vector_length>::operator(
 }
 
 /* ----------------------------------------------------------------------
+  Look up the element of the central atom for each of the `yi_batch` atoms
+  that one ComputeBi thread handles. The bzero shift in `evaluate_bi` needs it.
+------------------------------------------------------------------------- */
+
+template<class DeviceType, typename real_type, typename accum_type, int vector_length>
+// NOLINTNEXTLINE
+KOKKOS_INLINE_FUNCTION
+auto PairSNAPKokkos<DeviceType, real_type, accum_type, vector_length>::get_ielem_batch(const int& iatom) const -> Kokkos::Array<int, yi_batch>
+{
+  Kokkos::Array<int, yi_batch> ielem;
+  for (int n = 0; n < yi_batch; n++) {
+    // the trailing entries of a batch can reach past the end of a short final
+    // chunk; they only feed padded rows of blist, so clamping the lookup is safe
+    const int iatom_batch = iatom + n * vector_length;
+    const int i = d_ilist[(iatom_batch < chunk_size ? iatom_batch : chunk_size - 1) + chunk_offset];
+    ielem[n] = d_map[type[i]];
+  }
+  return ielem;
+}
+
+/* ----------------------------------------------------------------------
   Compute the energy triple products and store in the "blist" View.
   CPU and GPU.
 ------------------------------------------------------------------------- */
@@ -937,7 +982,7 @@ void PairSNAPKokkos<DeviceType, real_type, accum_type, vector_length>::operator(
   const int iatom = iatom_mod + yi_batch * iatom_div * vector_length;
   if (iatom >= chunk_size) return;
   if (jjb >= snaKK.idxb_max) return;
-  snaKK.template compute_bi<chemsnap, yi_batch>(iatom, jjb);
+  snaKK.template compute_bi<chemsnap, yi_batch>(iatom, jjb, get_ielem_batch(iatom));
 }
 
 template<class DeviceType, typename real_type, typename accum_type, int vector_length>
@@ -951,7 +996,7 @@ void PairSNAPKokkos<DeviceType, real_type, accum_type, vector_length>::operator(
     iatom_shift = iatom_mod + yi_batch * iatom_div * vector_length;
   }
   if (iatom_shift >= chunk_size) return;
-  snaKK.template compute_bi<chemsnap, yi_batch>(iatom, jjb);
+  snaKK.template compute_bi<chemsnap, yi_batch>(iatom_shift, jjb, get_ielem_batch(iatom_shift));
 }
 
 template<class DeviceType, typename real_type, typename accum_type, int vector_length>
@@ -965,8 +1010,9 @@ void PairSNAPKokkos<DeviceType, real_type, accum_type, vector_length>::operator(
     iatom_shift = iatom_mod + yi_batch * iatom_div * vector_length;
   }
   if (iatom_shift >= chunk_size) return;
+  const Kokkos::Array<int, yi_batch> ielem = get_ielem_batch(iatom_shift);
   for (int jjb = 0; jjb < snaKK.idxb_max; jjb++)
-    snaKK.template compute_bi<chemsnap, yi_batch>(iatom, jjb);
+    snaKK.template compute_bi<chemsnap, yi_batch>(iatom_shift, jjb, ielem);
 }
 
 /* ----------------------------------------------------------------------
@@ -1366,13 +1412,17 @@ void PairSNAPKokkos<DeviceType, real_type, accum_type, vector_length>::operator(
 
   const int ninside = d_ninside(ii);
 
+  // fix adapt scales the force and the energy of this pair style, by the
+  // factor of the type of the central atom, the same way PairSNAP does
+  const accum_type scalei = static_cast<accum_type>(rnd_scale(type(i),type(i)));
+
   for (int jj = 0; jj < ninside; jj++) {
     int j = snaKK.inside(ii,jj);
 
     accum_type fij[3];
-    fij[0] = snaKK.dedr(ii,jj,0);
-    fij[1] = snaKK.dedr(ii,jj,1);
-    fij[2] = snaKK.dedr(ii,jj,2);
+    fij[0] = scalei*snaKK.dedr(ii,jj,0);
+    fij[1] = scalei*snaKK.dedr(ii,jj,1);
+    fij[2] = scalei*snaKK.dedr(ii,jj,2);
 
     // in practice KK_ACC_FLOAT is the same as accum_type, so there is no need for an
     // explicit cast to a_f's type (KK_ACC_FLOAT).
@@ -1437,6 +1487,7 @@ void PairSNAPKokkos<DeviceType, real_type, accum_type, vector_length>::operator(
       //ev_tally_full(i,2.0*evdwl,0.0,0.0,0.0,0.0,0.0);
       // in practice KK_ACC_FLOAT is the same as accum_type, so there is no need for an
       // explicit cast to ev.evdwl or d_eatom[i]'s type (KK_ACC_FLOAT).
+      evdwl *= scalei;
       if (eflag_global) ev.evdwl += evdwl;
       if (eflag_atom) d_eatom[i] += evdwl;
     }
@@ -1495,6 +1546,8 @@ void PairSNAPKokkos<DeviceType, real_type, accum_type, vector_length>::v_tally_x
 template<class DeviceType, typename real_type, typename accum_type, int vector_length>
 double PairSNAPKokkos<DeviceType, real_type, accum_type, vector_length>::memory_usage()
 {
+  // skip PairSNAP::memory_usage(): snaptr is null here
+  // NOLINTNEXTLINE(bugprone-parent-virtual-call)
   double bytes = Pair::memory_usage();
   bytes += MemKK::memory_usage(d_beta);
   bytes += MemKK::memory_usage(d_ninside);

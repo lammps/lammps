@@ -914,10 +914,10 @@ int Neighbor::init_pair()
 
   nlist = nrequest;
 
-  lists = new NeighList*[nrequest];
+  lists = new NeighList*[nrequest]();
   neigh_bin = new NBin*[nrequest]();
   neigh_stencil = new NStencil*[nrequest]();
-  neigh_pair = new NPair*[nrequest];
+  neigh_pair = new NPair*[nrequest]();
 
   // allocate new lists
   // pass list ptr back to requestor (except for Command class)
@@ -2388,6 +2388,21 @@ NeighRequest *Neighbor::add_request(Command *requestor, const char *style, int f
   req->command_style = style;
   req->apply_flags(flags);
   return req;
+}
+
+/* ----------------------------------------------------------------------
+   delete all neighbor list requests after the first nkeep ones
+------------------------------------------------------------------------- */
+
+void Neighbor::discard_requests(int nkeep)
+{
+  if (nkeep < 0) return;
+
+  for (int i = nkeep; i < nrequest; i++) {
+    delete requests[i];
+    requests[i] = nullptr;
+  }
+  if (nkeep < nrequest) nrequest = nkeep;
 }
 
 // set neighbor list request OpenMP flag

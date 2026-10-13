@@ -42,6 +42,10 @@ FixGravityKokkos<DeviceType>::FixGravityKokkos(LAMMPS *lmp, int narg, char **arg
 template<class DeviceType>
 void FixGravityKokkos<DeviceType>::post_force(int /*vflag*/)
 {
+  // just exit if application of force is disabled
+
+  if (disable) return;
+
   // update gravity due to variables
 
   if (varflag != CONSTANT) {

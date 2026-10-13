@@ -38,6 +38,7 @@
 using namespace LAMMPS_NS;
 enum{REGULAR,ESKM};
 
+namespace {
 template<class ViewA, class ViewB>
 struct ForceAdder {
   ViewA a;
@@ -51,9 +52,11 @@ struct ForceAdder {
     a(i,2) += b(i,2);
   }
 };
+}    // namespace
 
 /* ---------------------------------------------------------------------- */
 
+namespace {
 template<class View>
 struct Zero {
   View v;
@@ -66,6 +69,7 @@ struct Zero {
     v(i,2) = 0;
   }
 };
+}    // namespace
 
 /* ---------------------------------------------------------------------- */
 
@@ -80,58 +84,6 @@ void ThirdOrderKokkos::command(int narg, char **arg)
 {
   atomKK->sync(Host, X_MASK|RMASS_MASK|TYPE_MASK);
   ThirdOrder::command(narg, arg);
-}
-
-/* ----------------------------------------------------------------------
-   setup without output or one-time post-init setup
-   flag = 0 = just force calculation
-   flag = 1 = reneighbor and force calculation
-------------------------------------------------------------------------- */
-
-void ThirdOrderKokkos::setup()
-{
-  lmp->kokkos->auto_sync = 1;
-
-  // setup domain, communication and neighboring
-  // acquire ghosts
-  // build neighbor lists
-  if (triclinic) domain->x2lamda(atom->nlocal);
-  domain->pbc();
-  domain->reset_box();
-  comm->setup();
-  if (neighbor->style) neighbor->setup_bins();
-  comm->exchange();
-  comm->borders();
-  if (triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
-  domain->image_check();
-  domain->box_too_small_check();
-  neighbor->build(1);
-
-  // compute all forces
-  eflag=0;
-  vflag=0;
-  if (force->kspace) {
-    force->kspace->setup();
-  }
-  update_force();
-
-  if (pair_compute_flag) {
-    atomKK->sync(force->pair->execution_space,force->pair->datamask_read);
-    force->pair->compute(eflag,vflag);
-    atomKK->modified(force->pair->execution_space,force->pair->datamask_modify);
-  }
-  else if (force->pair) force->pair->compute_dummy(eflag,vflag,0);
-  update->setupflag = 0;
-
-  lmp->kokkos->auto_sync = 0;
-
-  //if all then skip communication groupmap population
-  if (gcount == atom->natoms)
-    for (bigint i=0; i<atom->natoms; i++)
-      groupmap[i] = i;
-  else
-    create_groupmap();
-
 }
 
 /* ----------------------------------------------------------------------
@@ -170,41 +122,57 @@ void ThirdOrderKokkos::update_force()
   uint64_t datamask_read_host = 0;
 
   if (pair_compute_flag) {
-    if (force->pair->execution_space==Host) {
+    if (force->pair->execution_space==Host ||
+        force->pair->execution_space==HostKK) {
       execute_on_host  = true;
       datamask_read_host   |= force->pair->datamask_read;
     }
   }
   if (atomKK->molecular && force->bond)  {
-    if (force->bond->execution_space==Host) {
+    if (force->bond->execution_space==Host ||
+        force->bond->execution_space==HostKK) {
       execute_on_host  = true;
       datamask_read_host   |= force->bond->datamask_read;
     }
   }
   if (atomKK->molecular && force->angle) {
-    if (force->angle->execution_space==Host) {
+    if (force->angle->execution_space==Host ||
+        force->angle->execution_space==HostKK) {
       execute_on_host  = true;
       datamask_read_host   |= force->angle->datamask_read;
     }
   }
   if (atomKK->molecular && force->dihedral) {
-    if (force->dihedral->execution_space==Host) {
+    if (force->dihedral->execution_space==Host ||
+        force->dihedral->execution_space==HostKK) {
       execute_on_host  = true;
       datamask_read_host   |= force->dihedral->datamask_read;
     }
   }
   if (atomKK->molecular && force->improper) {
-    if (force->improper->execution_space==Host) {
+    if (force->improper->execution_space==Host ||
+        force->improper->execution_space==HostKK) {
       execute_on_host  = true;
       datamask_read_host   |= force->improper->datamask_read;
     }
   }
   if (kspace_compute_flag) {
-    if (force->kspace->execution_space==Host) {
+    if (force->kspace->execution_space==Host ||
+        force->kspace->execution_space==HostKK) {
       execute_on_host  = true;
       datamask_read_host   |= force->kspace->datamask_read;
     }
   }
+
+  // as in VerletKokkos::run()
+
+  if (execute_on_host)
+    atomKK->sync(pair_compute_flag ? force->pair->execution_space : Device,
+                 F_MASK | ENERGY_MASK | VIRIAL_MASK);
+
+  AtomKokkos::ExcludeMask exclude_guard(atomKK,
+    (execute_on_host && !std::is_same_v<LMPHostType,LMPDeviceType>)
+      ? (F_MASK | ENERGY_MASK | VIRIAL_MASK) : 0);
 
   // when a non-KOKKOS style runs inside a KOKKOS run, enable auto_sync for
   // the duration of its compute so that any sync()/modified() it triggers
@@ -215,12 +183,10 @@ void ThirdOrderKokkos::update_force()
     int prev_auto_sync = lmp->kokkos->auto_sync;
     if (!force->pair->kokkosable) lmp->kokkos->auto_sync = 1;
     atomKK->sync(force->pair->execution_space,force->pair->datamask_read);
-    atomKK->sync(force->pair->execution_space,~(~force->pair->datamask_read|(F_MASK | ENERGY_MASK | VIRIAL_MASK)));
     Kokkos::Timer ktimer;
     force->pair->compute(eflag,vflag);
     lmp->kokkos->auto_sync = prev_auto_sync;
     atomKK->modified(force->pair->execution_space,force->pair->datamask_modify);
-    atomKK->modified(force->pair->execution_space,~(~force->pair->datamask_modify|(F_MASK | ENERGY_MASK | VIRIAL_MASK)));
     timer->stamp(Timer::PAIR);
   }
 
@@ -228,8 +194,21 @@ void ThirdOrderKokkos::update_force()
     if (pair_compute_flag && force->pair->datamask_modify!=(F_MASK | ENERGY_MASK | VIRIAL_MASK))
       Kokkos::fence();
     atomKK->sync_pinned(Host,~(~datamask_read_host|(F_MASK | ENERGY_MASK | VIRIAL_MASK)),1);
-    if (pair_compute_flag && force->pair->execution_space!=Host) {
-      Kokkos::deep_copy(LMPHostType(),atomKK->k_f.view_host(),0.0);
+
+    // zero the host-side force buffers before the host styles accumulate into
+    // them, so the merge below does not re-add stale values.  skip this only
+    // when the pair style itself runs on the host, since then the pair force
+    // we want to merge already lives in them.  a /kk/host style accumulates
+    // into the Kokkos host view, a style without KOKKOS support into the
+    // legacy host array behind it, which is a separate allocation whenever the
+    // two need a transform
+
+    if (!pair_compute_flag || (force->pair->execution_space!=Host &&
+        force->pair->execution_space!=HostKK)) {
+      Kokkos::deep_copy(LMPHostType(),atomKK->k_f.view_hostkk(),0.0);
+      atomKK->k_f.modify_hostkk_legacy();
+      if (decltype(atomKK->k_f)::NEED_TRANSFORM)
+        Kokkos::deep_copy(LMPHostType(),atomKK->k_f.view_host(),0.0);
     }
   }
 
@@ -237,34 +216,34 @@ void ThirdOrderKokkos::update_force()
     if (force->bond) {
       int prev_auto_sync = lmp->kokkos->auto_sync;
       if (!force->bond->kokkosable) lmp->kokkos->auto_sync = 1;
-      atomKK->sync(force->bond->execution_space,~(~force->bond->datamask_read|(F_MASK | ENERGY_MASK | VIRIAL_MASK)));
+      atomKK->sync(force->bond->execution_space,force->bond->datamask_read);
       force->bond->compute(eflag,vflag);
       lmp->kokkos->auto_sync = prev_auto_sync;
-      atomKK->modified(force->bond->execution_space,~(~force->bond->datamask_modify|(F_MASK | ENERGY_MASK | VIRIAL_MASK)));
+      atomKK->modified(force->bond->execution_space,force->bond->datamask_modify);
     }
     if (force->angle) {
       int prev_auto_sync = lmp->kokkos->auto_sync;
       if (!force->angle->kokkosable) lmp->kokkos->auto_sync = 1;
-      atomKK->sync(force->angle->execution_space,~(~force->angle->datamask_read|(F_MASK | ENERGY_MASK | VIRIAL_MASK)));
+      atomKK->sync(force->angle->execution_space,force->angle->datamask_read);
       force->angle->compute(eflag,vflag);
       lmp->kokkos->auto_sync = prev_auto_sync;
-      atomKK->modified(force->angle->execution_space,~(~force->angle->datamask_modify|(F_MASK | ENERGY_MASK | VIRIAL_MASK)));
+      atomKK->modified(force->angle->execution_space,force->angle->datamask_modify);
     }
     if (force->dihedral) {
       int prev_auto_sync = lmp->kokkos->auto_sync;
       if (!force->dihedral->kokkosable) lmp->kokkos->auto_sync = 1;
-      atomKK->sync(force->dihedral->execution_space,~(~force->dihedral->datamask_read|(F_MASK | ENERGY_MASK | VIRIAL_MASK)));
+      atomKK->sync(force->dihedral->execution_space,force->dihedral->datamask_read);
       force->dihedral->compute(eflag,vflag);
       lmp->kokkos->auto_sync = prev_auto_sync;
-      atomKK->modified(force->dihedral->execution_space,~(~force->dihedral->datamask_modify|(F_MASK | ENERGY_MASK | VIRIAL_MASK)));
+      atomKK->modified(force->dihedral->execution_space,force->dihedral->datamask_modify);
     }
     if (force->improper) {
       int prev_auto_sync = lmp->kokkos->auto_sync;
       if (!force->improper->kokkosable) lmp->kokkos->auto_sync = 1;
-      atomKK->sync(force->improper->execution_space,~(~force->improper->datamask_read|(F_MASK | ENERGY_MASK | VIRIAL_MASK)));
+      atomKK->sync(force->improper->execution_space,force->improper->datamask_read);
       force->improper->compute(eflag,vflag);
       lmp->kokkos->auto_sync = prev_auto_sync;
-      atomKK->modified(force->improper->execution_space,~(~force->improper->datamask_modify|(F_MASK | ENERGY_MASK | VIRIAL_MASK)));
+      atomKK->modified(force->improper->execution_space,force->improper->datamask_modify);
     }
     timer->stamp(Timer::BOND);
   }
@@ -272,10 +251,10 @@ void ThirdOrderKokkos::update_force()
   if (kspace_compute_flag) {
     int prev_auto_sync = lmp->kokkos->auto_sync;
     if (!force->kspace->kokkosable) lmp->kokkos->auto_sync = 1;
-    atomKK->sync(force->kspace->execution_space,~(~force->kspace->datamask_read|(F_MASK | ENERGY_MASK | VIRIAL_MASK)));
+    atomKK->sync(force->kspace->execution_space,force->kspace->datamask_read);
     force->kspace->compute(eflag,vflag);
     lmp->kokkos->auto_sync = prev_auto_sync;
-    atomKK->modified(force->kspace->execution_space,~(~force->kspace->datamask_modify|(F_MASK | ENERGY_MASK | VIRIAL_MASK)));
+    atomKK->modified(force->kspace->execution_space,force->kspace->datamask_modify);
     timer->stamp(Timer::KSPACE);
   }
 
@@ -284,12 +263,30 @@ void ThirdOrderKokkos::update_force()
       f_merge_copy = DAT::t_kkacc_1d_3("ThirdOrderKokkos::f_merge_copy",atomKK->k_f.extent(0));
     }
     f = atomKK->k_f.view_device();
-    Kokkos::deep_copy(LMPHostType(),f_merge_copy,atomKK->k_f.view_host());
+
+    // both host copies can hold a contribution: a /kk/host style accumulates
+    // into the Kokkos host view, a style without KOKKOS support into the legacy
+    // host array behind atom->f.  Add the legacy one in and copy through the
+    // Kokkos host view, which is the one that matches f_merge_copy in value
+    // type and layout
+
+    if (decltype(atomKK->k_f)::NEED_TRANSFORM) {
+      auto h_f_kk = atomKK->k_f.view_hostkk();
+      auto h_f_legacy = atomKK->k_f.view_host();
+      Kokkos::parallel_for(Kokkos::RangePolicy<LMPHostType>(0,atomKK->k_f.extent(0)),
+        ForceAdder<decltype(h_f_kk),decltype(h_f_legacy)>(h_f_kk,h_f_legacy));
+    }
+    Kokkos::deep_copy(LMPHostType(),f_merge_copy,atomKK->k_f.view_hostkk());
     Kokkos::parallel_for(atomKK->k_f.extent(0),
                          ForceAdder<DAT::t_kkacc_1d_3,DAT::t_kkacc_1d_3>(atomKK->k_f.view_device(),f_merge_copy));
     atomKK->k_f.clear_sync_state(); // special case
     atomKK->k_f.modify_device();
   }
+
+  // host and device forces are merged, so sync() and modified() may touch them again
+
+  exclude_guard.release();
+
   if (n_pre_reverse) {
     modify->pre_reverse(eflag,vflag);
     timer->stamp(Timer::MODIFY);

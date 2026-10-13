@@ -48,15 +48,16 @@ void ComputeInertiaKokkos<DeviceType>::compute_vector()
   groupKK->xcm_kk<DeviceType>(igroup,masstotal,xcm);
   groupKK->inertia_kk<DeviceType>(igroup,xcm,itensor);
 
-  // the extended-particle contribution reads the ellipsoid, line, tri and
-  // body bonus arrays, which have no device counterpart.  when none of
-  // those atom styles is present it adds nothing, so skip it entirely and
-  // keep the whole compute on the device for the usual case
+  // the extended-particle contribution reads the radius array and the
+  // ellipsoid, line, tri and body bonus arrays through the plain host
+  // pointers, none of which have a device counterpart.  for point particles
+  // it adds nothing, so skip it entirely then and keep the whole compute on
+  // the device for the usual case.  note that finite-size spheres carry only
+  // a radius and no bonus data, so testing the shape atom styles alone is
+  // not enough
 
-  if (atom->style_match("ellipsoid") || atom->style_match("line") ||
-      atom->style_match("tri") || atom->style_match("body")) {
-    // inertia_extended() also reads the radius, the ellipsoid indices and the
-    // bonus data through the plain host pointers
+  if ((atom->radius_flag) || (atom->ellipsoid_flag) || (atom->line_flag) ||
+      (atom->tri_flag) || (atom->body_flag)) {
     atomKK->sync(Host,MASK_MASK|RMASS_MASK|TYPE_MASK|RADIUS_MASK|ELLIPSOID_MASK|BONUS_MASK);
     group->inertia_extended(igroup,itensor);
   }

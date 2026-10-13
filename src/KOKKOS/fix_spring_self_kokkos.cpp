@@ -102,7 +102,6 @@ void FixSpringSelfKokkos<DeviceType>::post_force(int /*vflag*/)
 
   double espring_kk;
 
-  k_xoriginal.modify_host();
   k_xoriginal.sync<DeviceType>();
 
   copymode = 1;

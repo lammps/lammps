@@ -68,6 +68,10 @@ Set::Set(class LAMMPS *lmp) :
 
 Set::~Set()
 {
+  // command() releases this on the way out, but an error raised before that
+  // leaves through here instead
+  delete[] id;
+
   memory->sfree(actions);
   memory->sfree(invoke_choice);
 
@@ -176,6 +180,7 @@ void Set::process_args(int caller_flag, int narg, char **arg)
     error->all(FLERR, "Unknown set or fix set command style: {}", arg[0]);
 
   delete[] id;
+  id = nullptr;
 
   // loop over remaining keyword/value pairs to create list of actions
   // one action = keyword/value pair

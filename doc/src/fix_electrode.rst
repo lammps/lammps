@@ -277,7 +277,7 @@ not compatible with the *eta* keyword.
 .. versionadded:: TBD
 
 The keywords *hardness* and *electronegativity* enable the charge
-equilibration (QEq) (:ref:`Rappe <Rappe>`) with the following terms
+equilibration (QEq) (:ref:`Rappe <Rappe5>`) with the following terms
 added to the total Coulomb energy:
 
 .. math::
@@ -492,7 +492,7 @@ The default keyword-option settings are *algo mat_inv*, *etypes off*,
 
 **(Tee)** Tee and Searles, J. Chem. Phys. 156, 184101 (2022).
 
-.. _Rappe:
+.. _Rappe5:
 
 **(Rappe)** Rappe and Goddard, J. Phys. Chem., 95, 3358 (1991).
 

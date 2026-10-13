@@ -39,6 +39,20 @@ FixNVELimitKokkos<DeviceType>::FixNVELimitKokkos(LAMMPS *lmp, int narg, char **a
   datamask_modify = EMPTY_MASK;
 }
 
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+void FixNVELimitKokkos<DeviceType>::init()
+{
+  FixNVELimit::init();
+
+  // there is no datamask bit for the per-type masses, so the dual view has to
+  // be pushed to the device by hand before the kernels below read it
+
+  atomKK->k_mass.modify_host();
+  atomKK->k_mass.template sync<DeviceType>();
+}
+
 /* ----------------------------------------------------------------------
    allow for both per-type and per-atom mass
 ------------------------------------------------------------------------- */

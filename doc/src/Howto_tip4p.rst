@@ -199,7 +199,7 @@ instead.
     pair_coeff 2 2 0.0    1.0
 
     bond_style zero
-    bond_coeff 1 0.9574
+    bond_coeff 1 0.9572
 
     angle_style zero
     angle_coeff 1 104.52

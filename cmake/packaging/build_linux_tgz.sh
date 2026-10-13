@@ -69,6 +69,14 @@ do \
     chmod +x ${DESTDIR}/lib/${dep}
 done
 
+# get more platform plugin dependencies
+QTDEPS=$(LD_LIBRARY_PATH=${DESTDIR}/lib ldd ${QTDIR}/plugins/platforms/libqxcb.so | grep -v ${DESTDIR} | grep libxcb- | sed -e 's/^.*=> *//' -e 's/\(libxcb-.*.so.*\) .*$/\1/')
+for dep in ${QTDEPS}
+do \
+    cp ${dep} ${DESTDIR}/lib
+    chmod +x ${DESTDIR}/lib/${dep}
+done
+
 echo "Add additional plugins for Qt"
 for dir in styles imageformats tls iconengines
 do \

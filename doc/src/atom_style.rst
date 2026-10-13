@@ -361,7 +361,9 @@ By adding the flag *superellipsoid* to the *ellipsoid* atom_style
 command, the particles can be superellipsoids, which are a
 generalization of ellipsoids with two additional blockiness parameters
 that control the shape.  Superellipsoids also store the principal
-moments of inertia of the particle.
+moments of inertia of the particle.  The *superellipsoid* option is not
+supported by the KOKKOS package version of the *ellipsoid* atom style,
+which will stop with an error message when the option is used.
 
 For the *line* style, particles can be are idealized line segments
 which store a per-particle mass and length and orientation (i.e. the

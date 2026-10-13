@@ -78,7 +78,9 @@ int FixBondHistory::setmask()
 {
   int mask = 0;
   mask |= PRE_EXCHANGE;
+  mask |= MIN_PRE_EXCHANGE;
   mask |= POST_NEIGHBOR;
+  mask |= MIN_POST_NEIGHBOR;
   return mask;
 }
 
@@ -177,6 +179,14 @@ void FixBondHistory::pre_exchange()
 
 /* ---------------------------------------------------------------------- */
 
+void FixBondHistory::min_pre_exchange()
+{
+  pre_exchange();
+}
+
+
+/* ---------------------------------------------------------------------- */
+
 void FixBondHistory::allocate()
 {
   //Ideally would just ask ntopo for maxbond, but protected
@@ -267,6 +277,13 @@ void FixBondHistory::post_neighbor()
   }
 
   updated_bond_flag = 1;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixBondHistory::min_post_neighbor()
+{
+  post_neighbor();
 }
 
 /* ---------------------------------------------------------------------- */

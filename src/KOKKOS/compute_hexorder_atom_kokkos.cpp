@@ -158,9 +158,10 @@ void ComputeHexOrderAtomKokkos<DeviceType>::operator()(TagComputeHexOrderAtom, c
     }
   }
 
-  // fewer than nnn neighbors: order parameter = 0
+  // fewer than nnn neighbors (or no neighbor at all with nnn = NULL):
+  // order parameter = 0
 
-  if (ncount < nnn) {
+  if ((ncount < nnn) || (ncount == 0)) {
     d_qnarray(i,0) = d_qnarray(i,1) = static_cast<KK_FLOAT>(0.0);
     return;
   }
@@ -188,8 +189,11 @@ void ComputeHexOrderAtomKokkos<DeviceType>::operator()(TagComputeHexOrderAtom, c
     vsum += Kokkos::sin(ntheta);
   }
 
-  d_qnarray(i,0) = usum/nnn;
-  d_qnarray(i,1) = vsum/nnn;
+  // average over the neighbors actually used: ncount, which the branch above
+  // has set to nnn when nnn > 0, but stays the in-cutoff count for nnn = NULL
+
+  d_qnarray(i,0) = usum/ncount;
+  d_qnarray(i,1) = vsum/ncount;
 }
 
 /* ----------------------------------------------------------------------

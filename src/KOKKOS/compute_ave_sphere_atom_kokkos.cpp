@@ -226,7 +226,7 @@ void ComputeAveSphereAtomKokkos<DeviceType>::operator()(TagComputeAveSphereAtom,
 template<class DeviceType>
 int ComputeAveSphereAtomKokkos<DeviceType>::pack_forward_comm_kokkos(int n, DAT::tdual_int_1d k_sendlist,
                                                          DAT::tdual_double_1d &k_buf,
-                                                         int pbc_flag, int* pbc)
+                                                         int /*pbc_flag*/, int * /*pbc*/)
 {
   d_sendlist = k_sendlist.view<DeviceType>();
   d_buf = k_buf.view<DeviceType>();

@@ -119,7 +119,9 @@ bool AtomT::alloc(const int nall) {
                                    UCL_READ_ONLY)==UCL_SUCCESS);
     gpu_bytes+=quat.device.row_bytes();
   }
-  if (_vel && !_host_view) {
+  // velocities and extra fields are packed into their own buffers,
+  // so they can never be views of the host arrays
+  if (_vel) {
     success=success && (v.alloc(_max_atoms*4,*dev,UCL_WRITE_ONLY,
                                    UCL_READ_ONLY)==UCL_SUCCESS);
     gpu_bytes+=v.device.row_bytes();
@@ -190,21 +192,17 @@ bool AtomT::add_fields(const bool charge, const bool rot,
   if (vel && !_vel) {
     _vel=true;
     _other=true;
-    if (!_host_view) {
-      success=success && (v.alloc(_max_atoms*4,*dev,UCL_WRITE_ONLY,
-                                     UCL_READ_ONLY)==UCL_SUCCESS);
-      gpu_bytes+=v.device.row_bytes();
-    }
+    success=success && (v.alloc(_max_atoms*4,*dev,UCL_WRITE_ONLY,
+                                   UCL_READ_ONLY)==UCL_SUCCESS);
+    gpu_bytes+=v.device.row_bytes();
   }
 
   if (extra_fields > 0 && _extra_fields==0) {
     _extra_fields=extra_fields;
     _other=true;
-    if (!_host_view) {
-      success=success && (extra.alloc(_max_atoms*_extra_fields,*dev,UCL_WRITE_ONLY,
-                                     UCL_READ_ONLY)==UCL_SUCCESS);
-      gpu_bytes+=extra.device.row_bytes();
-    }
+    success=success && (extra.alloc(_max_atoms*_extra_fields,*dev,UCL_WRITE_ONLY,
+                                   UCL_READ_ONLY)==UCL_SUCCESS);
+    gpu_bytes+=extra.device.row_bytes();
   }
 
   if (bonds && !_bonds) {

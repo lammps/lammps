@@ -68,6 +68,7 @@ PairGranHookeHistory::PairGranHookeHistory(LAMMPS *lmp) :
   // this is so final order of Modify:fix will conform to input script
 
   fix_history = nullptr;
+  id_history = nullptr;
   fix_dummy = dynamic_cast<FixDummy *>(
       modify->add_fix("NEIGH_HISTORY_HH_DUMMY" + std::to_string(instance_me) + " all DUMMY"));
 }
@@ -83,7 +84,8 @@ PairGranHookeHistory::~PairGranHookeHistory()
   if (!fix_history)
     modify->delete_fix("NEIGH_HISTORY_HH_DUMMY" + std::to_string(instance_me));
   else
-    modify->delete_fix("NEIGH_HISTORY_HH" + std::to_string(instance_me));
+    modify->delete_fix(id_history);
+  delete[] id_history;
 
   if (allocated) {
     memory->destroy(setflag);
@@ -428,6 +430,21 @@ void PairGranHookeHistory::coeff(int narg, char **arg)
 }
 
 /* ----------------------------------------------------------------------
+   build the id of the fix that stores the contact history
+
+   the id has to be the same in the run that writes a restart file and in the
+   run that reads it back, otherwise the per-atom history in the file cannot
+   be matched to the fix and is silently dropped, so it is built from the
+   position of this pair style in the simulation and not from instance_me
+------------------------------------------------------------------------- */
+
+void PairGranHookeHistory::set_history_id()
+{
+  delete[] id_history;
+  id_history = utils::strdup(fmt::format("NEIGH_HISTORY_HH{}", instance_index()));
+}
+
+/* ----------------------------------------------------------------------
    init specific to this pair style
 ------------------------------------------------------------------------- */
 
@@ -456,7 +473,8 @@ void PairGranHookeHistory::init_style()
   // this is so its order in the fix list is preserved
 
   if (history && (fix_history == nullptr)) {
-    auto cmd = fmt::format("NEIGH_HISTORY_HH{} all NEIGH_HISTORY {}", instance_me, size_history);
+    set_history_id();
+    auto cmd = fmt::format("{} all NEIGH_HISTORY {}", id_history, size_history);
     fix_history = dynamic_cast<FixNeighHistory *>(
         modify->replace_fix("NEIGH_HISTORY_HH_DUMMY" + std::to_string(instance_me), cmd, 1));
     fix_history->pair = this;
@@ -525,8 +543,8 @@ void PairGranHookeHistory::init_style()
   // set fix which stores history info
 
   if (history) {
-    fix_history = dynamic_cast<FixNeighHistory *>(
-        modify->get_fix_by_id("NEIGH_HISTORY_HH" + std::to_string(instance_me)));
+    set_history_id();
+    fix_history = dynamic_cast<FixNeighHistory *>(modify->get_fix_by_id(id_history));
     if (!fix_history) error->all(FLERR, "Could not find pair fix neigh history ID");
   }
 }

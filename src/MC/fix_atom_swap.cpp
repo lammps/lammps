@@ -390,23 +390,6 @@ void FixAtomSwap::init()
       for (int ktype = 1; ktype <= atom->ntypes; ktype++)
         if (cutsq[type_list[iswaptype]][ktype] != cutsq[type_list[jswaptype]][ktype])
           unequal_cutoffs = true;
-
-  // check that no swappable atoms are in atom->firstgroup
-  // swapping such an atom might not leave firstgroup atoms first
-
-  if (atom->firstgroup >= 0) {
-    int *mask = atom->mask;
-    int firstgroupbit = group->bitmask[atom->firstgroup];
-
-    int flag = 0;
-    for (int i = 0; i < atom->nlocal; i++)
-      if ((mask[i] == groupbit) && (mask[i] && firstgroupbit)) flag = 1;
-
-    int flagall;
-    MPI_Allreduce(&flag, &flagall, 1, MPI_INT, MPI_SUM, world);
-
-    if (flagall) error->all(FLERR, "Cannot do atom/swap on atoms in atom_modify first group");
-  }
 }
 
 /* ----------------------------------------------------------------------
@@ -534,16 +517,14 @@ int FixAtomSwap::attempt_semi_grand()
   if (success_all) {
     update_semi_grand_atoms_list();
     energy_stored = energy_after;
-    if (ke_flag) {
-      if (i >= 0) {
+    if (i >= 0) {
+      if (ke_flag) {
         atom->v[i][0] *= sqrt_mass_ratio[itype][jtype];
         atom->v[i][1] *= sqrt_mass_ratio[itype][jtype];
         atom->v[i][2] *= sqrt_mass_ratio[itype][jtype];
-        // record atom for which the type was swapped and store the old type
-        if (vizsteps > 0) {
-          vizatoms[atom->tag[i]] = std::make_pair(vizsteps,itype);
-        }
       }
+      // record atom for which the type was swapped and store the old type
+      if (vizsteps > 0) vizatoms[atom->tag[i]] = std::make_pair(vizsteps, itype);
     }
     return 1;
   }
@@ -627,11 +608,11 @@ int FixAtomSwap::attempt_swap()
         atom->v[j][1] *= sqrt_mass_ratio[jtype][itype];
         atom->v[j][2] *= sqrt_mass_ratio[jtype][itype];
       }
-      // record atoms for which the type was swapped and store the old types
-      if (vizsteps > 0) {
-        vizatoms[atom->tag[i]] = std::make_pair(vizsteps, jtype);
-        vizatoms[atom->tag[j]] = std::make_pair(vizsteps, itype);
-      }
+    }
+    // record atoms for which the type was swapped and store the old types
+    if (vizsteps > 0) {
+      if (i >= 0) vizatoms[atom->tag[i]] = std::make_pair(vizsteps, itype);
+      if (j >= 0) vizatoms[atom->tag[j]] = std::make_pair(vizsteps, jtype);
     }
     energy_stored = energy_after;
     return 1;

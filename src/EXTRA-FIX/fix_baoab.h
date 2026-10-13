@@ -48,6 +48,7 @@ class FixBAOAB : public Fix {
   double dtf;      // 0.5*dt*ftm2v  (force->velocity kick)
   double dtby2;    // 0.5*dt        (half-step drift)
   double c1;       // exp(-gamma*dt) for O step
+  double one_minus_c1sq;    // 1 - c1^2, formed without cancellation
 
   // Energy accounting
   double energy;            // cumulative thermostat energy

@@ -105,7 +105,6 @@ Thermo::Thermo(LAMMPS *_lmp, int narg, char **arg) :
     vtype(nullptr), cache_mutex(nullptr), field2index(nullptr), argindex1(nullptr),
     argindex2(nullptr)
 {
-  style = utils::strdup(arg[0]);
 
   // set thermo_modify defaults
 
@@ -128,17 +127,17 @@ Thermo::Thermo(LAMMPS *_lmp, int narg, char **arg) :
   // CUSTOMIZATION: add a new thermo style by adding it to the if statement
   // set line string with default keywords if not custom style.
 
-  if (strcmp(style, "one") == 0) {
+  if (strcmp(arg[0], "one") == 0) {
     line = ONE;
     lineflag = ONELINE;
-  } else if (strcmp(style, "multi") == 0) {
+  } else if (strcmp(arg[0], "multi") == 0) {
     line = MULTI;
     lineflag = MULTILINE;
-  } else if (strcmp(style, "yaml") == 0) {
+  } else if (strcmp(arg[0], "yaml") == 0) {
     line = YAML;
     lineflag = YAMLLINE;
 
-  } else if (strcmp(style, "custom") == 0) {
+  } else if (strcmp(arg[0], "custom") == 0) {
     if (narg == 1)
       error->all(FLERR, Error::ARGZERO, "Cannot use thermo style custom without custom keywords");
 
@@ -163,7 +162,7 @@ Thermo::Thermo(LAMMPS *_lmp, int narg, char **arg) :
     }
 
   } else
-    error->all(FLERR, Error::ARGZERO, "Unknown thermo style {}", style);
+    error->all(FLERR, Error::ARGZERO, "Unknown thermo style {}", arg[0]);
 
   index_temp = index_press_scalar = index_press_vector = index_pe = -1;
 
@@ -171,9 +170,25 @@ Thermo::Thermo(LAMMPS *_lmp, int narg, char **arg) :
   // allocate per-field memory
   // process line of keywords
 
+  // only now that the style name is known to be one of the above: an error
+  // raised while decoding it leaves the constructor, and the destructor that
+  // would release this copy is never called
+  style = utils::strdup(arg[0]);
+
   nfield_initial = utils::trim_and_count_words(line);
   allocate();
-  parse_fields(line);
+
+  // parse_fields() raises an error on a keyword it does not know, and the
+  // destructor of an object whose constructor threw is never called, so give
+  // back what this constructor has taken before letting the error out
+  try {
+    parse_fields(line);
+  } catch (...) {
+    deallocate();
+    delete[] style;
+    delete cache_mutex;
+    throw;
+  }
 }
 
 /* ---------------------------------------------------------------------- */

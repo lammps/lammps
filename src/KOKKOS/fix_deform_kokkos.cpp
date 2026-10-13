@@ -70,11 +70,11 @@ void FixDeformKokkos::migrate_atoms()
 
 void FixDeformKokkos::update_box()
 {
-  if (remapflag == Domain::X_REMAP && !rfix.empty())
-    atomKK->sync(Host,ALL_MASK);
+  // no host bracket here: the base class remaps the atom positions through
+  // DomainKokkos::x2lamda()/lamda2x(), which run on the device and declare the
+  // device copy modified.  Claiming the host side afterwards would make the
+  // stale pre-deform host coordinates win over the remapped device data.
+  // The rigid fixes called in between only transform their own body arrays.
 
   FixDeform::update_box();
-
-  if (remapflag == Domain::X_REMAP && !rfix.empty())
-    atomKK->modified(Host,ALL_MASK);
 }

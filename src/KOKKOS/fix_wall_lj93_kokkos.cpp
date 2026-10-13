@@ -37,7 +37,7 @@ FixWallLJ93Kokkos<DeviceType>::FixWallLJ93Kokkos(LAMMPS *lmp, int narg, char **a
   kokkosable = 1;
   atomKK = (AtomKokkos *) atom;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
-  datamask_read = X_MASK | V_MASK | F_MASK | MASK_MASK;
+  datamask_read = X_MASK | F_MASK | MASK_MASK;
   datamask_modify = F_MASK;
 
   memoryKK->create_kokkos(k_cutoff,6,"wall_lj93:cutoff");

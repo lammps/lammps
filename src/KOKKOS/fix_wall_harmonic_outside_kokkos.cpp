@@ -29,7 +29,7 @@ FixWallHarmonicOutsideKokkos<DeviceType>::FixWallHarmonicOutsideKokkos(LAMMPS *l
   kokkosable = 1;
   atomKK = (AtomKokkos *) atom;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
-  datamask_read = X_MASK | V_MASK | F_MASK | MASK_MASK;
+  datamask_read = X_MASK | F_MASK | MASK_MASK;
   datamask_modify = F_MASK;
 }
 

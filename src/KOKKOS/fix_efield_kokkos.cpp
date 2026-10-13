@@ -155,6 +155,11 @@ void FixEfieldKokkos<DeviceType>::post_force(int vflag)
 
   } else {
 
+    // the variables are evaluated on the host through atom->x, atom->v, ...
+    // so the host copies have to be up to date before the base class runs
+
+    atomKK->sync(Host, ALL_MASK);
+
     FixEfield::update_efield_variables();
 
     // atom-style variables are evaluated on the host, so the result has to be

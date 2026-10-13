@@ -37,7 +37,6 @@
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
-using MathSpecial::powint;
 
 enum{FS,FS_SHIFTEDSCALED};
 
@@ -86,6 +85,13 @@ PairPODKokkos<DeviceType>::~PairPODKokkos()
 template<class DeviceType>
 void PairPODKokkos<DeviceType>::init_style()
 {
+  // record the neighbor list style for both backends.  unlike other KOKKOS pair
+  // styles the host backend does not fall back to the non-accelerated compute()
+  // but runs the same kernels on a neighbor list copied over from a non-KOKKOS
+  // list, and compute() reads neighflag to decide how the virial is tallied.
+
+  neighflag = lmp->kokkos->neighflag;
+
   if (host_flag) {
     if (lmp->kokkos->nthreads > 1)
       error->all(FLERR,"Pair style pod/kk can currently only run on a single "
@@ -98,14 +104,12 @@ void PairPODKokkos<DeviceType>::init_style()
   if (atom->tag_enable == 0) error->all(FLERR, "Pair style POD requires atom IDs");
   if (force->newton_pair == 0) error->all(FLERR, "Pair style POD requires newton pair on");
 
-  neighflag = lmp->kokkos->neighflag;
-
   auto request = neighbor->add_request(this, NeighConst::REQ_FULL);
   request->set_kokkos_host(std::is_same_v<DeviceType,LMPHostType> &&
                            !std::is_same_v<DeviceType,LMPDeviceType>);
   request->set_kokkos_device(std::is_same_v<DeviceType,LMPDeviceType>);
   if (neighflag == FULL)
-    error->all(FLERR,"Must use half neighbor list style with pair pace/kk");
+    error->all(FLERR,"Must use half neighbor list style with pair pod/kk");
 }
 
 /* ----------------------------------------------------------------------
@@ -163,6 +167,7 @@ void PairPODKokkos<DeviceType>::allocate()
   PairPOD::allocate();
 }
 
+namespace {
 template<class DeviceType>
 struct FindMaxNumNeighs {
   typedef DeviceType device_type;
@@ -180,6 +185,7 @@ struct FindMaxNumNeighs {
     if (max_neighs<num_neighs) max_neighs = num_neighs;
   }
 };
+}    // namespace
 
 /* ---------------------------------------------------------------------- */
 

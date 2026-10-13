@@ -15,8 +15,9 @@ choices among them.
 
 The :doc:`dump image <dump_image>` and :doc:`dump movie <dump_image>`
 styles can output internally rendered images or convert them to a movie
-during the MD run.  It is also possible to create visualizations from
-LAMMPS inputs or restart file with `LAMMPS-GUI
+during the MD run.  They require LAMMPS to be compiled with the
+:ref:`GRAPHICS package <PKG-GRAPHICS>`.  It is also possible to create
+visualizations from LAMMPS inputs or restart file with `LAMMPS-GUI
 <https://lammps-gui.lammps.org/>`_, which uses the :doc:`dump image
 <dump_image>` command internally.  If the LAMMPS input already contains
 a :doc:`dump image <dump_image>` command, the resulting images will be
@@ -35,7 +36,7 @@ rarely needed these days.
 ------------------------
 
 Basic workflow for loading LAMMPS trajectories in VMD
-=====================================================
+-----------------------------------------------------
 
 VMD can read native LAMMPS dump files (in text format not binary) and
 several other dump styles.  The native LAMMPS format is preferred since
@@ -112,7 +113,7 @@ with "Load Visualization State..."  or type in the command console
 ------------------------
 
 Advanced graphics features in the *dump image* command
-======================================================
+------------------------------------------------------
 
 .. versionadded:: 11Feb2026
 
@@ -122,8 +123,8 @@ some input file examples.  For exact details of keywords and arguments,
 please refer to the detailed documentation of the respective commands.
 
 Please note that many of these features were added or significantly
-updated after LAMMPS version 10 Dec 2025 and well into the 2026 stable
-version development cycle.  If you are using an older version of LAMMPS,
+updated during the development cycle leading to the stable LAMMPS
+version 30 Sep 2026.  If you are using an older version of LAMMPS,
 these examples may likely cause errors or look differently.
 
 .. contents:: Available topics
@@ -132,7 +133,7 @@ these examples may likely cause errors or look differently.
 ------------
 
 Complete example inputs
------------------------
+^^^^^^^^^^^^^^^^^^^^^^^
 
 The discussions below only quote relevant sections of input files to
 show specifically the commands used in the visualizations.  There are
@@ -142,7 +143,7 @@ source code distribution.
 ---------------
 
 Image quality and resolution
-----------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The image resolution is determined by the *size* keyword.  The default
 setting is to create images with 512x512 pixels.  This is rather low
@@ -222,7 +223,7 @@ parallelization available (e.g. for SSAO post-processing of image data).
 --------------------
 
 Shading style and outline
--------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The rasterizer in LAMMPS implements a `Phong shading model
 <https://en.wikipedia.org/wiki/Phong_shading>`_ that adds a specular
@@ -271,12 +272,12 @@ style with a pixel width of 2 pixels (in gray).
 -------
 
 Color selection and color management
-------------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The :doc:`dump image <dump_image>` command in LAMMPS has a variety
 of options to assign colors to the rendered graphics.  In most cases
 the color is assigned to atom (or bond) types and uses a default map
-with six colors as follows:
+with 16 colors (which is repeated for more than 16 types) as follows:
 
 * type 1 = red
 * type 2 = forestgreen
@@ -333,7 +334,7 @@ existing ones, too, with the *dump_modify color* keyword.  The *color*
 keyword is followed by the name of the color and the intensity of the
 red, green, and blue components (R/G/B) in a range from 0.0 to 1.0. Here
 is an example to create eight new color names followed by the *acolor*
-keyword with a wildcard to replace the default map of six atom colors
+keyword with a wildcard to replace the default map of 16 atom colors
 with a new map of the eight newly defined colors.
 
 .. code-block:: LAMMPS
@@ -426,7 +427,7 @@ bonds are drawn.
 --------------------
 
 Transparency
-------------
+^^^^^^^^^^^^
 
 It is now possible to create approximately transparent graphics objects
 using an `ordered dithering algorithm
@@ -464,18 +465,19 @@ available and described in the documentation page.
 -----------------------
 
 Creating and viewing animated GIFs and movie files
---------------------------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 A series of JPEG, PNG, or PPM images can be converted into a movie file
 and then played as a movie using commonly available tools.  Using dump
 style *movie* automates this step *and* avoids the intermediate step of
 writing (many) image snapshot file.  But LAMMPS has to be compiled with
-``-DLAMMPS_FFMPEG`` and a compatible FFmpeg executable has to be
-installed.  When using `LAMMPS-GUI <https://lammps-gui.lammps.org/>`_ to
-run LAMMPS, you can run the simulation and LAMMPS-GUI will automatically
-show the created images in its ``Slideshow Viewer`` dialog.  From there
-you can animate or single step through them and also export them to a
-movie file via FFMpeg.
+the GRAPHICS package and a compatible `FFmpeg <https://ffmpeg.org>`_
+executable has to be installed.  When using `LAMMPS-GUI
+<https://lammps-gui.lammps.org/>`_ to run LAMMPS, you can run the
+simulation and LAMMPS-GUI will automatically show the created images
+in its ``Slideshow Viewer`` dialog.  From there you can animate or
+single step through them and also export them to a movie file via FFMpeg
+or `ImageMagick <https://imagemagick.org>`_.
 
 To manually convert JPEG, PNG or PPM files into an animated GIF or
 MPEG or other movie file you can use:
@@ -493,19 +495,9 @@ MPEG or other movie file you can use:
    inefficient compression and low quality compared to more modern
    compression styles like MPEG-4, H.264, VP8, VP9, H.265 and so on.
 
-#. Use QuickTime.
-
-   Select "Open Image Sequence" under the File menu Load the images into
-   QuickTime to animate them Select "Export" under the File menu Save the
-   movie as a QuickTime movie (\*.mov) or in another format.  QuickTime
-   can generate very high quality and efficiently compressed movie
-   files. Some of the supported formats require to buy a license and some
-   are not readable on all platforms until specific runtime libraries are
-   installed.
-
 #. Use FFmpeg
 
-   `FFMpeg <https://ffmpeg.org/>`_ is a command-line tool that is
+   `FFmpeg <https://ffmpeg.org/>`_ is a command-line tool that is
    available on many platforms and allows extremely flexible encoding
    and decoding of movies.
 
@@ -527,7 +519,7 @@ Play the movie:
    Load the animated GIF or MP4 movie file
 
 #. Use the freely available `VideoLAN media player (vlc)
-   <https://www.videolan.org>`_ or `FFMpeg player tool (ffplay)
+   <https://www.videolan.org>`_ or `FFmpeg player tool (ffplay)
    <https://ffmpeg.org/>`_ to view a movie.
 
    Both are available for multiple operating systems and support a large
@@ -539,8 +531,8 @@ Play the movie:
       vlc foo.mpg
       ffplay bar.avi
 
-#. Use the `Pizza.py <https://lammps.github.io/pizza/>`_
-   `animate tool <https://lammps.github.io/pizza/doc/animate.html>`_,
+#. Use the `Pizza.py <https://sjplimp.github.io/pizza/>`_
+   `animate tool <https://sjplimp.github.io/pizza/doc/animate.html>`_,
    which works directly on a series of image files.
 
    .. code-block:: python
@@ -557,7 +549,7 @@ Play the movie:
 --------------
 
 Prototyping dump image visualizations with LAMMPS-GUI
------------------------------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 One of the challenges when using :doc:`dump image <dump_image>` for
 creating visualizations compared to the likes of `OVITO
@@ -603,7 +595,7 @@ way.
 --------------
 
 Visualizing systems using potentials with implicit bonds
---------------------------------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 There are several pair styles available in LAMMPS where the bond
 information is not taken from the bond topology in a data file but the
@@ -696,7 +688,7 @@ currently three approaches to make those bonds visible.
 .. -------------
 
 Visualizing body particles
---------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Body particles are objects formed from either a collection of spherical
 particles, polygons (in 2d), or polyhedra (in 3d) formed from triangular
@@ -734,7 +726,7 @@ faces (*bflag1* value 1), or both (*bflag1* value 3).
 -------------
 
 Visualizing ellipsoid and superellipsoid particles
---------------------------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. versionadded:: 11Feb2026
 
@@ -824,7 +816,7 @@ visualizations of the ``in.drop_test``, the ``in.bowling``, and the
 -------------
 
 Visualizing regions
--------------------
+^^^^^^^^^^^^^^^^^^^
 
 Since there are several commands that operate on atoms within a specific
 :doc:`region <region>` , it can be helpful to visualize the extent of
@@ -921,7 +913,7 @@ Below is an example input deck for visualizing *cone* and *cylinder* regions:
 -----------------------
 
 Visualizing graphics provided by compute or fix commands
---------------------------------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 LAMMPS can display additional graphics objects in the :doc:`dump image
 <dump_image>` output that are added by compute or fix styles.  These
@@ -1006,7 +998,7 @@ Below are discussions about some aspects of specific fix commands and some input
 -----------------------
 
 Fix graphics/objects
-^^^^^^^^^^^^^^^^^^^^
+""""""""""""""""""""
 
 Fix :doc:`graphics/objects <fix_graphics_objects>` adds some graphics
 primitives and more complex objects like a progress bar to the
@@ -1014,7 +1006,7 @@ visualization where properties of the object(s) are controlled by
 :doc:`equal-style or compatible variables <variable>`.
 
 Fix graphics/labels
-^^^^^^^^^^^^^^^^^^^
+"""""""""""""""""""
 
 Fix :doc:`graphics/labels <fix_graphics_labels>` adds graphics from
 pixmaps to the visualization.  These can be either images or text that
@@ -1039,7 +1031,7 @@ obscured by objects.
 -----------------------
 
 Fix graphics/arrows
-^^^^^^^^^^^^^^^^^^^
+"""""""""""""""""""
 
 Fix :doc:`graphics/arrows <fix_graphics_arrows>` adds per-atom or
 per-chunk arrows to the visualization.  The arrows represent some
@@ -1084,7 +1076,7 @@ velocities:
                 fcolor dipole forestgreen ftrans dipole 0.75 fcolor vel cyan ftrans vel 0.5
 
 Fix graphics/isosurface
-^^^^^^^^^^^^^^^^^^^^^^^
+"""""""""""""""""""""""
 
 Fix :doc:`graphics/isosurface <fix_graphics_isosurface>` adds a
 triangulated surface following a given isovalue through a 3d-grid of
@@ -1135,7 +1127,7 @@ and a transparent white triangle surface to represent those molecules.
 ----------
 
 Compute hbond/local
-^^^^^^^^^^^^^^^^^^^
+"""""""""""""""""""
 
 Compute :doc:`hbond/local <compute_hbond_local>` of the
 :ref:`EXTRA-COMPUTE package <pkg-extra-compute>` provides access to the
@@ -1223,7 +1215,7 @@ and the surrounding water molecules in both directions.
 ----------
 
 Fix reaxff/bonds
-^^^^^^^^^^^^^^^^
+""""""""""""""""
 
 Fix :doc:`reaxff/bonds <fix_reaxff_bonds>` of the :ref:`REAXFF package
 <pkg-reaxff>` provides access to the list of bonds as they are
@@ -1232,14 +1224,14 @@ discussed above, this can be used to visualize bonds for a system where
 there is no explicit bond topology defined.
 
 Fix smd/wall_surface
-^^^^^^^^^^^^^^^^^^^^
+""""""""""""""""""""
 
 Fix :doc:`smd/wall_surface <fix_smd_wall_surface>` of the :ref:`MACHDYN
 package <pkg-machdyn>` creates a custom wall from a mesh of triangles
 that is read from an STL format file.
 
 MC package fixes
-^^^^^^^^^^^^^^^^
+""""""""""""""""
 
 Several fixes from the :ref:`MC package <pkg-mc>` have support for
 adding graphics to a visualization.  These are typically added spheres

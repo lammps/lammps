@@ -184,8 +184,10 @@ void CommKokkos::forward_comm_device()
 
     for (int iswap = 0; iswap < nswap; iswap++) {
       if (sendproc[iswap] != me) {
-        if (comm_x_only && !atomKK->k_x.NEED_TRANSFORM) {
+        if (comm_x_only && !decltype(atomKK->k_x)::NEED_TRANSFORM) {
           if (size_forward_recv[iswap]) {
+            // MPI receives the ghosts straight into x, so sync and claim x here
+            atomKK->sync(ExecutionSpaceFromDevice<DeviceType>::space,X_MASK);
             buf = (double*)atomKK->k_x.view<DeviceType>().data() +
               firstrecv[iswap]*atomKK->k_x.view<DeviceType>().extent(1);
             DeviceType().fence();
@@ -204,6 +206,7 @@ void CommKokkos::forward_comm_device()
           if (size_forward_recv[iswap]) {
             MPI_Wait(&request,MPI_STATUS_IGNORE);
             DeviceType().fence();
+            atomKK->modified(ExecutionSpaceFromDevice<DeviceType>::space,X_MASK);
           }
 
         } else if (ghost_velocity) {
@@ -300,9 +303,15 @@ void CommKokkos::reverse_comm_device()
 
   k_sendlist.sync<DeviceType>();
 
+  // with comm_f_only MPI sends straight from f, which a non-Kokkos fix may
+  // have changed (e.g. langevin/drude)
+
+  constexpr auto space = ExecutionSpaceFromDevice<DeviceType>::space;
+  atomKK->sync(space,atomKK->avecKK->datamask_reverse);
+
   for (int iswap = nswap-1; iswap >= 0; iswap--) {
     if (sendproc[iswap] != me) {
-      if (comm_f_only && !atomKK->k_f.NEED_TRANSFORM) {
+      if (comm_f_only && !decltype(atomKK->k_f)::NEED_TRANSFORM) {
 
         // one fence covers both MPI calls: no Kokkos work is launched between
         // them, so a second fence would have nothing left to wait on
@@ -355,6 +364,8 @@ void CommKokkos::reverse_comm_device()
       }
     }
   }
+
+  atomKK->modified(space, atomKK->avecKK->datamask_reverse);
 }
 
 /* ----------------------------------------------------------------------
@@ -371,6 +382,8 @@ void CommKokkos::forward_comm(Fix *fix, int size)
   if (fix->execution_space == Host || fix->execution_space == HostKK ||
       !fix->forward_comm_device || forward_fix_comm_legacy) {
     k_sendlist.sync_host();
+    // CommBrick packs through the raw host pointer buf_send, so drop stale claims
+    k_buf_send.clear_sync_state();
     CommBrick::forward_comm(fix, size);
   } else {
     k_sendlist.sync_device();
@@ -1045,6 +1058,7 @@ void CommKokkos::exchange()
 
 /* ---------------------------------------------------------------------- */
 
+namespace {
 template<class DeviceType, int BONUS_FLAG>
 struct BuildExchangeListFunctor {
   typedef DeviceType device_type;
@@ -1093,6 +1107,7 @@ struct BuildExchangeListFunctor {
     }
   }
 };
+}    // namespace
 
 /* ---------------------------------------------------------------------- */
 
@@ -1111,15 +1126,22 @@ void CommKokkos::exchange_device()
   //   new ghosts are created in borders()
   // map_set() is done at end of borders()
 
-  if (lmp->kokkos->atom_map_legacy)
-    if (map_style != Atom::MAP_NONE) atom->map_clear();
+  // AtomKokkos::map_clear() clears the host or the device map itself, so this
+  // must not be limited to the legacy map: map_set_device() only clears the
+  // hash, leaving a MAP_ARRAY map full of stale indices for migrated atoms
+
+  if (map_style != Atom::MAP_NONE) atom->map_clear();
 
   // clear ghost count and any ghost bonus data internal to AtomVec
 
   atom->nghost = 0;
   atom->avec->clear_bonus();
 
-  if (comm->nprocs > 1) { // otherwise no-op
+  // even on a single rank this is not a no-op: an atom that moves out of a
+  // non-periodic boundary is not wrapped by domain->pbc() and must be deleted
+  // here, exactly as CommBrick::exchange() does.  the per-dimension code below
+  // already sends nothing and drops those atoms when procgrid[dim] == 1
+  {
 
     // subbox bounds for orthogonal or triclinic
 
@@ -1196,7 +1218,7 @@ void CommKokkos::exchange_device()
           MemKK::realloc_kokkos(k_exchange_copylist,"comm:k_exchange_copylist",count*1.1);
           k_count.view_host()(0) = k_exchange_sendlist.view_host().extent(0);
         }
-        if (count >= (int)k_exchange_sendlist_bonus.view_host().extent(0)) {
+        if (count_bonus >= (int)k_exchange_sendlist_bonus.view_host().extent(0)) {
           MemKK::realloc_kokkos(k_exchange_sendlist_bonus,"comm:k_exchange_sendlist_bonus",\
                                 count*1.1);
           MemKK::realloc_kokkos(k_exchange_copylist_bonus,"comm:k_exchange_copylist_bonus",\
@@ -1283,10 +1305,10 @@ void CommKokkos::exchange_device()
             icopy--;
           }
         }
-      }
 
-      k_exchange_copylist_bonus.modify_host();
-      k_exchange_copylist_bonus.sync<DeviceType>();
+        k_exchange_copylist_bonus.modify_host();
+        k_exchange_copylist_bonus.sync<DeviceType>();
+      }
 
       if (nsend > maxsend) grow_send_kokkos(nsend,0);
       nsend =
@@ -1347,6 +1369,11 @@ void CommKokkos::exchange_device()
         }
         DeviceType().fence();
 
+        // MPI wrote the buffer in the exchange space, so claim it there
+
+        k_buf_recv.clear_sync_state();
+        k_buf_recv.modify<DeviceType>();
+
         if (nrecv) {
           if (atom->nextra_grow || atomKK->avecKK->size_exchange_bonus) {
             if ((int) k_indices.extent(0) < nrecv/data_size)
@@ -1370,6 +1397,10 @@ void CommKokkos::exchange_device()
           if (nsend) {
             if (nsend*fix_iextra->maxexchange > maxsend)
               grow_send_kokkos(nsend*fix_iextra->maxexchange,0);
+
+            // the fix refills the buffer, so drop the stale claim instead of syncing
+
+            k_buf_send.clear_sync_state();
             nextrasend = kkbase->pack_exchange_kokkos(
               count,k_buf_send,k_exchange_sendlist,k_exchange_copylist,
               ExecutionSpaceFromDevice<DeviceType>::space);
@@ -1417,6 +1448,9 @@ void CommKokkos::exchange_device()
               MPI_Wait(&request,MPI_STATUS_IGNORE);
             }
             DeviceType().fence();
+
+            k_buf_recv.clear_sync_state();
+            k_buf_recv.modify<DeviceType>();
 
             if (nextrarecv) {
               kkbase->unpack_exchange_kokkos(
@@ -1489,6 +1523,7 @@ void CommKokkos::borders()
 
 /* ---------------------------------------------------------------------- */
 
+namespace {
 template<class DeviceType>
 struct BuildBorderListFunctor {
         typedef DeviceType device_type;
@@ -1535,8 +1570,9 @@ struct BuildBorderListFunctor {
     }
   }
 
-  [[nodiscard]] size_t shmem_size(const int team_size) const { (void) team_size; return 1000u;}
+  [[nodiscard]] size_t shmem_size(const int team_size) const { (void) team_size; return 1000U;}
 };
+}    // namespace
 
 /* ---------------------------------------------------------------------- */
 
@@ -1545,7 +1581,6 @@ void CommKokkos::borders_device() {
   int n,iswap,dim,ineed,twoneed,smax,rmax;
   int nsend,nrecv,sendflag,nfirst,nlast;
   double lo,hi;
-  double *mlo,*mhi;
   MPI_Request request;
 
   ExecutionSpace exec_space = ExecutionSpaceFromDevice<DeviceType>::space;
@@ -1573,13 +1608,14 @@ void CommKokkos::borders_device() {
       //   for later swaps in a dim, only check newly arrived ghosts
       // store sent atom indices in list for use in future timesteps
 
-      if (mode == Comm::SINGLE) {
-        lo = slablo[iswap];
-        hi = slabhi[iswap];
-      } else {
-        mlo = multilo[iswap];
-        mhi = multihi[iswap];
-      }
+      // borders() sends every mode other than Comm::SINGLE down the legacy
+      // path, so only the single-cutoff slab bounds are ever needed here; the
+      // multi cutoffs the commented-out blocks below refer to would have to be
+      // looked up again by whoever implements them
+
+      lo = slablo[iswap];
+      hi = slabhi[iswap];
+
       if (ineed % 2 == 0) {
         nfirst = nlast;
         nlast = atom->nlocal + atom->nghost;
@@ -1866,8 +1902,14 @@ void CommKokkos::grow_recv(int n)
 void CommKokkos::grow_send_kokkos(int n, int flag, ExecutionSpace space)
 {
 
+  // bufextra, not the bare BUFEXTRA constant: CommBrick::exchange() packs one
+  // atom of up to maxexchange doubles beyond maxsend before it grows the
+  // buffer again, and rounding up keeps the truncating division from handing
+  // back less than the caller asked for
+
   maxsend = static_cast<int> (BUFFACTOR * n);
-  int maxsend_border = (maxsend+Comm::BUFEXTRA)/atomKK->avecKK->size_border;
+  int maxsend_border = (maxsend + bufextra + atomKK->avecKK->size_border - 1)/
+    atomKK->avecKK->size_border;
   if (flag) {
     if (space == Device)
       k_buf_send.modify_device();
@@ -1903,7 +1945,8 @@ void CommKokkos::grow_send_kokkos(int n, int flag, ExecutionSpace space)
 void CommKokkos::grow_recv_kokkos(int n, ExecutionSpace /*space*/)
 {
   maxrecv = static_cast<int> (BUFFACTOR * n);
-  int maxrecv_border = (maxrecv+Comm::BUFEXTRA)/atomKK->avecKK->size_border;
+  int maxrecv_border = (maxrecv + Comm::BUFEXTRA + atomKK->avecKK->size_border - 1)/
+    atomKK->avecKK->size_border;
 
   MemoryKokkos::realloc_kokkos(k_buf_recv,"comm:k_buf_recv",maxrecv_border,
     atomKK->avecKK->size_border);
@@ -1964,6 +2007,8 @@ void CommKokkos::grow_swap(int n)
 void CommKokkos::forward_comm_array(int nsize, double **array)
 {
   k_sendlist.sync_host();
+  // CommBrick packs through the raw host pointer buf_send, so drop stale claims
+  k_buf_send.clear_sync_state();
   CommBrick::forward_comm_array(nsize,array);
 }
 

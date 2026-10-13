@@ -1758,6 +1758,20 @@ void Input::package()
     if (!modify->check_package("OMP"))
       error->all(FLERR, Error::ARGZERO, "Package omp command without OPENMP package installed");
 
+    // styles with OpenMP support keep a pointer to the existing fix package_omp,
+    // so it cannot be replaced while any of them is defined
+
+    auto *fixomp = modify->get_fix_by_id("package_omp");
+    if (fixomp) {
+      int dim = 0;
+      auto *styles = (const char *) fixomp->extract("styles_in_use", dim);
+      if (styles && styles[0])
+        error->all(FLERR, Error::ARGZERO,
+                   "Cannot change OPENMP package settings while styles with OpenMP support are "
+                   "defined: {}. Reset those styles first (e.g. with 'pair_style none') or use "
+                   "the package omp command before defining them", styles);
+    }
+
     std::string fixcmd = "package_omp all OMP";
     for (int i = 1; i < narg; i++) fixcmd += std::string(" ") + arg[i];
     modify->add_fix(fixcmd);
@@ -2067,9 +2081,9 @@ int Input::meta(const std::string &prefix)
 {
   auto mycmd = fmt::format("{}_{}", utils::uppercase(prefix), utils::uppercase(arg[0]));
   if (CommandCreator command_creator = command_styles().find(mycmd)) {
-    Command *cmd = command_creator(lmp);
+    // command() raises errors, which would step over a delete of a raw pointer
+    std::unique_ptr<Command> cmd(command_creator(lmp));
     cmd->command(narg-1,arg+1);
-    delete cmd;
     return 1;
   } else return 0;
 }

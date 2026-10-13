@@ -7,7 +7,7 @@ Build LAMMPS with make
    switch to :doc:`using CMake <Build_cmake>` instead.  There is also a
    detailed discussion of :doc:`how to use CMake with LAMMPS
    <Howto_cmake>` and the `CMake online documentation
-   <https://cmake.org/cmake/help/v3.20/>`_.  For the impatient, there is
+   <https://cmake.org/cmake/help/v3.27/>`_.  For the impatient, there is
    also a quick transition guide below.  Contact the the LAMMPS
    developers at developers@lammps.org if you have any concerns or
    questions about this.
@@ -33,13 +33,13 @@ Make to CMake quick-start guide
      - ``cmake --build build --parallel 8``
    * - Enable package
      - ``make yes-<package name>``
-     - ``cmake build -D PKG_<PACKAGE_NAME>=yes``
+     - ``cmake -S cmake -B build -D PKG_<PACKAGE_NAME>=on``
    * - Disable package
      - ``make no-<package name>``
-     - ``cmake build -D PKG_<PACKAGE_NAME>=no``
+     - ``cmake -S cmake -B build -D PKG_<PACKAGE_NAME>=off``
    * - Load a preset configuration
      - Choose a ``Makefile.<machine>`` from ``MAKE`` folders
-     - ``cmake build -C cmake/presets/<preset>.cmake``
+     - ``cmake -S cmake -B build -C cmake/presets/<preset>.cmake``
    * - List enabled packages
      - ``make ps`` (or ``make package-status``)
      - Check CMake output or use ``ccmake build``
@@ -54,19 +54,19 @@ Make to CMake quick-start guide
      - ``rm -rf build``
    * - Enable or disable MPI
      - Use ``make mpi`` or ``make serial``
-     - Auto-detected, override with ``-D BUILD_MPI=no``
+     - Auto-detected, override with ``-D BUILD_MPI=off``
    * - Enable or disable OpenMP
      - Edit ``Makefile.<machine>``
-     - Auto-detected, override with ``-D BUILD_OMP=no``
+     - Auto-detected, override with ``-D BUILD_OMP=off``
    * - Build LAMMPS shared library
      - ``make mode=shared <machine>``
-     - Use ``-D BUILD_SHARED_LIBS=yes``
+     - Use ``-D BUILD_SHARED_LIBS=on``
 
 Some general CMake tips:
 
 * You can have multiple independent build folders with different configurations (e.g. MPI on/off or different package selections). The convention is that the name starts with "build" (e.g. ``build-serial``)
 * To build a LAMMPS executable with defaults and most packages that do not need manual configurations: ``cmake -S cmake -B build -C cmake/presets/most.cmake; cmake --build build``
-* To make multiple configuration changes interactively use either ``ccmake build`` or edit ``build/CMakeCache.txt`` in a text editor and run ``cmake build``
+* To make multiple configuration changes interactively use either ``ccmake build`` or edit ``build/CMakeCache.txt`` in a text editor and run ``cmake -S cmake -B build``
 
 
 Basics

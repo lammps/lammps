@@ -3,7 +3,7 @@ lammps_version: 30 Mar 2026
 tags: no_respa
 date_generated: Sat Jun 13 17:12:15 2026
 epsilon: 1e-13
-skip_tests: kokkos_gpu kokkos_omp kokkos_serial
+skip_tests: kokkos_gpu_devicerng kokkos_omp_devicerng kokkos_serial_devicerng
 prerequisites: |
   atom full
   fix gjf

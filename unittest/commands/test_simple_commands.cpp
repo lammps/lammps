@@ -19,6 +19,7 @@
 #include "force.h"
 #include "info.h"
 #include "input.h"
+#include "library.h"
 #include "output.h"
 #include "platform.h"
 #include "update.h"
@@ -221,6 +222,10 @@ TEST_F(SimpleCommandsTest, Quit)
 #if defined(MPICH_NUMVERSION)
     if (MPICH_NUMVERSION >= 40100000) GTEST_SKIP() << "MPICH with threads";
 #endif
+    // the default death test style runs the statement in a fork()ed copy of this process,
+    // where a GPU runtime (CUDA, HIP) initialized by KOKKOS in the parent is unusable and
+    // Kokkos::finalize() in "quit" fails. Run the test in a freshly started process instead.
+    GTEST_FLAG_SET(death_test_style, "threadsafe");
     ASSERT_EXIT(command("quit"), ExitedWithCode(0), "");
     ASSERT_EXIT(command("quit 9"), ExitedWithCode(9), "");
 }
@@ -262,6 +267,9 @@ TEST_F(SimpleCommandsTest, ResetTimestep)
 
 TEST_F(SimpleCommandsTest, Suffix)
 {
+    // this test enables suffixes from scratch, so it cannot run in a
+    // configuration that already has one active
+    if (lmp->suffix_enable) GTEST_SKIP() << "a suffix is already enabled";
     ASSERT_EQ(lmp->suffix_enable, 0);
     ASSERT_EQ(lmp->suffix, nullptr);
     ASSERT_EQ(lmp->suffix2, nullptr);
@@ -668,6 +676,13 @@ int main(int argc, char **argv)
     if ((argc > 1) && (strcmp(argv[1], "-v") == 0)) verbose = true;
 
     int rv = RUN_ALL_TESTS();
+
+    // finalize the KOKKOS package explicitly: otherwise Kokkos is torn down by
+    // static destructors at program exit, leading to segfaults in some cases
+    // same workaround as the force-style and FFT3d test drivers
+
+    lammps_kokkos_finalize();
+
     MPI_Finalize();
     return rv;
 }

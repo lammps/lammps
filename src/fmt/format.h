@@ -37,7 +37,7 @@
 #if __has_include(<version>)
 #include <version>
 #endif
-#if defined(__cpp_lib_format) && (__cpp_lib_format >= 201907L)
+#if defined(__cpp_lib_format) && (__cpp_lib_format >= 201907L) && (defined(__clang__) || (defined(__GNUC__) && (__GNUC__ > 13)))
 
 // when compiling for C++20 or later we emulate
 // the parts of fmt::format we use with std::format
@@ -48,7 +48,7 @@
 // since several compilers with partial C++20 support
 // do not contain std::format. We need to use the
 // feature test macro like above.
-// Known compatible compilers are: GCC 13+, Clang 14+, MSVC 16.10+
+// Known fully compatible compilers are: GCC 14+, Clang 14+, MSVC 16.10+
 
 #include <format>
 #include <string_view>

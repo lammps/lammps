@@ -14,7 +14,7 @@ in addition to
      - Traditional make
    * - .. code-block:: bash
 
-          cmake -D PKG_NAME=yes
+          cmake -S cmake -B build -D PKG_NAME=on
 
      - .. code-block:: bash
 
@@ -133,7 +133,7 @@ fail to compile.
       .. code-block:: bash
 
          -D WITH_FENIX=value # enables FENIX package
-                             # value = yes or no (default)
+                             # value = on or off (default)
 
       If CMake cannot find the Fenix library or include files, you can set the
       following:
@@ -162,9 +162,8 @@ GRAPHICS package
 The :doc:`dump image <dump_image>` command has options to output JPEG or
 PNG image files in addition to the default PPM format, and the :doc:`fix
 graphics/labels <fix_graphics_labels>` can read images in JPEG or PNG
-format in addition to PPM format files.  Likewise, the :doc:`dump movie
-<dump_image>` command outputs movie files in a variety of movie formats.
-Using these additional options requires the following settings:
+format in addition to PPM format files.  Using these additional options
+requires the following settings:
 
 .. tabs::
 
@@ -172,17 +171,15 @@ Using these additional options requires the following settings:
 
       .. code-block:: bash
 
-         -D WITH_JPEG=value    # yes or no
+         -D WITH_JPEG=value    # on or off
                                # default = yes if CMake finds JPEG development files, else no
-         -D WITH_PNG=value     # yes or no
+         -D WITH_PNG=value     # on or off
                                # default = yes if CMake finds PNG and ZLIB development files,
                                # else no
-         -D WITH_FFMPEG=value  # yes or no
-                               # default = yes if CMake can find ffmpeg, else no
 
       Usually these settings are all that is needed.  If CMake cannot
-      find the graphics header, library, executable files, you can set
-      these variables:
+      find the graphics header and library files, you can set these
+      variables:
 
       .. code-block:: bash
 
@@ -192,13 +189,12 @@ Using these additional options requires the following settings:
          -D PNG_LIBRARY=path         # path to libpng.a (.so) file
          -D ZLIB_INCLUDE_DIR=path    # path to zlib.h header file
          -D ZLIB_LIBRARY=path        # path to libz.a (.so) file
-         -D FFMPEG_EXECUTABLE=path   # path to ffmpeg executable
 
    .. tab:: Traditional make
 
       .. code-block:: make
 
-         LMP_INC = -DLAMMPS_JPEG -DLAMMPS_PNG -DLAMMPS_FFMPEG  <other LMP_INC settings>
+         LMP_INC = -DLAMMPS_JPEG -DLAMMPS_PNG <other LMP_INC settings>
 
          JPG_INC = -I/usr/local/include   # path to jpeglib.h, png.h, zlib.h headers
                                           # if make cannot find them
@@ -209,13 +205,20 @@ Using these additional options requires the following settings:
       As with CMake, you do not need to set ``JPG_INC`` or ``JPG_PATH``,
       if make can find the graphics header and library files in their
       default system locations.  You must specify ``JPG_LIB`` with a
-      list of graphics libraries to include in the link.  You must make
-      certain that the ffmpeg executable (or ffmpeg.exe on Windows) is
-      in a directory where LAMMPS can find it at runtime; that is
-      usually a directory list in your ``PATH`` environment variable.
+      list of graphics libraries to include in the link.
 
-Using ``ffmpeg`` to output movie files requires that your machine
-supports the "popen" function in the standard runtime library.
+.. versionchanged:: TBD
+
+The :doc:`dump movie <dump_image>` command outputs movie files in a
+variety of movie formats by sending images through a pipe to the
+``ffmpeg`` program.  This no longer requires any settings when compiling
+LAMMPS, and the CMake option ``WITH_FFMPEG`` and the define
+``-DLAMMPS_FFMPEG`` were removed.  Instead, you must make certain that
+the ffmpeg executable (or ffmpeg.exe on Windows) is in a directory where
+LAMMPS can find it at runtime; that is a directory listed in your
+``PATH`` environment variable.  Using ``ffmpeg`` to output movie files
+also requires that your machine supports the "popen" function in the
+standard runtime library.
 
 .. note::
 
@@ -250,26 +253,41 @@ CMake build
                                 # spirv (hip/spirv)
    -D GPU_DEBUG=value           # enable debug code in the GPU package library,
                                 # mostly useful for developers
-                                # value = yes or no (default)
+                                # value = on or off (default)
    -D HIP_PATH=value            # value = path to HIP installation. Must be set if
                                 # GPU_API=HIP
    -D HIP_ARCH=value            # deprecated, use GPU_ARCH instead (still accepted,
                                 # but prints a deprecation warning)
    -D HIP_USE_DEVICE_SORT=value # enables GPU sorting
-                                # value = yes (default) or no
+                                # value = on (default) or off
    -D CUDPP_OPT=value           # use GPU binning with CUDA (should be off for modern GPUs)
                                 # enables CUDA Performance Primitives, must be "no" for
-                                # CUDA_MPS_SUPPORT=yes
-                                # value = yes or no (default)
+                                # CUDA_MPS_SUPPORT=on
+                                # value = on or off (default)
    -D CUDA_MPS_SUPPORT=value    # enables some tweaks required to run with active
                                 # nvidia-cuda-mps daemon
-                                # value = yes or no (default)
+                                # value = on or off (default)
    -D CUDA_BUILD_MULTIARCH=value  # enables building CUDA kernels for all supported GPU
                                   # architectures
-                                  # value = yes (default) or no
+                                  # value = on (default) or off
    -D USE_STATIC_OPENCL_LOADER=value  # downloads/includes OpenCL ICD loader library,
                                       # no local OpenCL headers/libs needed
-                                      # value = yes (default) or no
+                                      # value = on (default) or off
+
+Two preset files in the ``cmake/presets`` folder can simplify the
+configuration.  The ``gpu-cuda.cmake`` preset enables the GPU package
+with the CUDA back end and mixed precision.  The ``gpu-packages.cmake``
+preset enables all packages that contain styles with GPU package
+support.  It does not enable the GPU package itself, so it needs to be
+combined with ``gpu-cuda.cmake`` or explicit settings, for example:
+
+.. code-block:: bash
+
+   cmake -S cmake -B build -C cmake/presets/gcc.cmake \
+         -C cmake/presets/gpu-cuda.cmake -C cmake/presets/gpu-packages.cmake
+
+   cmake -S cmake -B build -C cmake/presets/gcc.cmake \
+         -D PKG_GPU=on -D GPU_API=opencl -C cmake/presets/gpu-packages.cmake
 
 The GPU package supports 3 precision modes: single, double, and mixed, with
 the latter being the default.  In the double precision mode, atom positions,
@@ -323,7 +341,7 @@ this toolkit.  Thus the ``GPU_ARCH`` setting is merely an optimization, to
 have code for the preferred GPU architecture directly included rather
 than having to wait for the JIT compiler of the CUDA driver to translate
 it.  This behavior can be turned off (e.g. to speed up compilation) by
-setting ``CUDA_ENABLE_MULTIARCH`` to ``no``.
+setting ``CUDA_ENABLE_MULTIARCH`` to ``off``.
 
 When compiling for CUDA or HIP with CUDA, version 8.0 or later of the
 CUDA toolkit is required and a GPU architecture of Kepler or later,
@@ -355,9 +373,9 @@ build, and link with a static OpenCL ICD loader library and standard
 OpenCL headers.  This way no local OpenCL development headers or library
 needs to be present and only OpenCL compatible drivers need to be
 installed to use OpenCL.  If this is not desired, you can set
-``USE_STATIC_OPENCL_LOADER`` to ``no``.
+``USE_STATIC_OPENCL_LOADER`` to ``off``.
 
-If ``GERYON_NUMA_FISSION`` is defined at build time (``-DGPU_DEBUG=no``),
+If ``GERYON_NUMA_FISSION`` is defined at build time (``-D GPU_DEBUG=off``),
 LAMMPS will consider separate NUMA nodes on GPUs or accelerators as
 separate devices.  For example, a 2-socket CPU would appear as two separate
 devices for OpenCL (and LAMMPS would require two MPI processes to use both
@@ -372,7 +390,7 @@ necessary for ``hipcc`` and the linker to work correctly.
 When compiling for HIP ROCm, GPU sorting with ``-D
 HIP_USE_DEVICE_SORT=on`` requires installing the ``hipcub`` library
 (https://github.com/ROCmSoftwarePlatform/hipCUB).  Setting
-``-DDOWNLOAD_CUB=yes`` will download and compile CUB.
+``-D DOWNLOAD_CUB=on`` will download and compile CUB.
 
 The GPU library has some multi-thread support using OpenMP.  If LAMMPS
 is built with ``-D BUILD_OMP=on`` this will also be enabled.
@@ -390,7 +408,17 @@ is built with ``-D BUILD_OMP=on`` this will also be enabled.
    directory containing it yourself, for example with
    ``-D CMAKE_CXX_FLAGS=-idirafter/usr/lib/clang/<version>/include``.
 
-For a debug build, set ``GPU_DEBUG`` to be ``yes``.
+The ``hip_amd.cmake`` preset in the ``cmake/presets`` folder selects
+``hipcc`` as the C and C++ compiler with support for MPI and for OpenMP
+using the LLVM OpenMP runtime.  It can be combined with the GPU package
+settings, for example:
+
+.. code-block:: bash
+
+   cmake -S cmake -B build -C cmake/presets/hip_amd.cmake \
+         -D PKG_GPU=on -D GPU_API=hip -D GPU_ARCH=gfx90a
+
+For a debug build, set ``GPU_DEBUG`` to be ``on``.
 
 .. versionadded:: 3Aug2022
 
@@ -407,16 +435,16 @@ option in preparations to run on Aurora system at Argonne.
    export HIP_PLATFORM=hcc
    export HIP_PATH=/path/to/HIP/install
    export HCC_AMDGPU_TARGET=gfx906
-   cmake -D PKG_GPU=on -D GPU_API=HIP -D HIP_ARCH=gfx906 -D CMAKE_CXX_COMPILER=hipcc ..
-   make -j 4
+   cmake -S cmake -B build -D PKG_GPU=on -D GPU_API=HIP -D HIP_ARCH=gfx906 -D CMAKE_CXX_COMPILER=hipcc
+   cmake --build build
 
 .. code:: bash
 
    # AMDGPU target (ROCm >= 4.1)
    export HIP_PLATFORM=amd
    export HIP_PATH=/path/to/HIP/install
-   cmake -D PKG_GPU=on -D GPU_API=HIP -D HIP_ARCH=gfx906 -D CMAKE_CXX_COMPILER=hipcc ..
-   make -j 4
+   cmake -S cmake -B build -D PKG_GPU=on -D GPU_API=HIP -D HIP_ARCH=gfx906 -D CMAKE_CXX_COMPILER=hipcc
+   cmake --build build
 
 .. code:: bash
 
@@ -425,8 +453,8 @@ option in preparations to run on Aurora system at Argonne.
    export HIP_PLATFORM=nvcc
    export HIP_PATH=/path/to/HIP/install
    export CUDA_PATH=/usr/local/cuda
-   cmake -D PKG_GPU=on -D GPU_API=HIP -D HIP_ARCH=sm_70 ..
-   make -j 4
+   cmake -S cmake -B build -D PKG_GPU=on -D GPU_API=HIP -D HIP_ARCH=sm_70
+   cmake --build build
 
 .. code:: bash
 
@@ -434,8 +462,8 @@ option in preparations to run on Aurora system at Argonne.
    export HIP_PLATFORM=spirv
    export HIP_PATH=/path/to/HIP/install
    export CMAKE_CXX_COMPILER=<hipcc/clang++>
-   cmake -D PKG_GPU=on -D GPU_API=HIP ..
-   make -j 4
+   cmake -S cmake -B build -D PKG_GPU=on -D GPU_API=HIP
+   cmake --build build
 
 ----------
 
@@ -472,15 +500,15 @@ detailed information is available at:
       .. code-block:: bash
 
          -D DOWNLOAD_KIM=value           # download OpenKIM API v2 for build
-                                         # value = no (default) or yes
+                                         # value = off (default) or on
          -D LMP_DEBUG_CURL=value         # set libcurl verbose mode on/off
                                          # value = off (default) or on
          -D LMP_NO_SSL_CHECK=value       # tell libcurl to not verify the peer
-                                         # value = no (default) or yes
+                                         # value = off (default) or on
          -D KIM_EXTRA_UNITTESTS=value    # enables extra unit tests
-                                         # value = no (default) or yes
+                                         # value = off (default) or on
 
-      If ``DOWNLOAD_KIM`` is set to ``yes`` (or ``on``), the KIM API library
+      If ``DOWNLOAD_KIM`` is set to ``on``, the KIM API library
       will be downloaded and built inside the CMake build directory.  Note that
       in most cases it is recommended that you do not use this option, and instead
       provide a KIM API installation yourself before building LAMMPS.  If
@@ -489,10 +517,10 @@ detailed information is available at:
       ``PKG_CONFIG_PATH`` environment variable so that libkim-api can be
       found, or run the command ``source kim-api-activate``.  If CMake cannot find
       the KIM API when configuring for the first time (or after clearing the
-      CMake cache), the default value of the ``DOWNLOAD_KIM`` option will be ``yes``.
+      CMake cache), the default value of the ``DOWNLOAD_KIM`` option will be ``on``.
 
       Extra unit tests can only be available if they are explicitly requested
-      (``KIM_EXTRA_UNITTESTS`` is set to ``yes`` (or ``on``)) and the prerequisites
+      (``KIM_EXTRA_UNITTESTS`` is set to ``on``) and the prerequisites
       are met. See :ref:`KIM Extra unit tests <kim_extra_unittests>` for
       more details on this.
 
@@ -533,7 +561,7 @@ KIM Extra unit tests (CMake only)
 During development, testing, or debugging, if
 :doc:`unit testing <Build_development>` is enabled in LAMMPS, one can also
 enable extra tests on :doc:`KIM commands <kim_commands>` by setting the
-``KIM_EXTRA_UNITTESTS`` to ``yes`` (or ``on``).
+``KIM_EXTRA_UNITTESTS`` to ``on``.
 
 Enabling the extra unit tests have some requirements,
 
@@ -823,9 +851,9 @@ This list was last updated for version 5.2.1 of the Kokkos library.
 
       .. code-block:: bash
 
-         -D Kokkos_ARCH_HOSTARCH=yes  # HOSTARCH = HOST from list above
-         -D Kokkos_ENABLE_OPENMP=yes
-         -D BUILD_OMP=yes
+         -D Kokkos_ARCH_HOSTARCH=on   # HOSTARCH = HOST from list above
+         -D Kokkos_ENABLE_OPENMP=on
+         -D BUILD_OMP=on
 
       Please note that enabling OpenMP for KOKKOS requires that OpenMP is
       also :ref:`enabled for the rest of LAMMPS <serial>`.
@@ -834,17 +862,17 @@ This list was last updated for version 5.2.1 of the Kokkos library.
 
       .. code-block:: bash
 
-         -D Kokkos_ARCH_KNL=yes
-         -D Kokkos_ENABLE_OPENMP=yes
+         -D Kokkos_ARCH_KNL=on
+         -D Kokkos_ENABLE_OPENMP=on
 
       For NVIDIA GPUs using CUDA, set these variables:
 
       .. code-block:: bash
 
-         -D Kokkos_ARCH_HOSTARCH=yes   # HOSTARCH = HOST from list above
-         -D Kokkos_ARCH_GPUARCH=yes    # GPUARCH = GPU from list above
-         -D Kokkos_ENABLE_CUDA=yes
-         -D Kokkos_ENABLE_OPENMP=yes
+         -D Kokkos_ARCH_HOSTARCH=on    # HOSTARCH = HOST from list above
+         -D Kokkos_ARCH_GPUARCH=on     # GPUARCH = GPU from list above
+         -D Kokkos_ENABLE_CUDA=on
+         -D Kokkos_ENABLE_OPENMP=on
 
       This will also enable executing FFTs on the GPU, either via the
       internal KISSFFT library, or - by preference - with the cuFFT
@@ -855,10 +883,10 @@ This list was last updated for version 5.2.1 of the Kokkos library.
 
       .. code-block:: bash
 
-         -D Kokkos_ARCH_HOSTARCH=yes   # HOSTARCH = HOST from list above
-         -D Kokkos_ARCH_GPUARCH=yes    # GPUARCH = GPU from list above
-         -D Kokkos_ENABLE_HIP=yes
-         -D Kokkos_ENABLE_OPENMP=yes
+         -D Kokkos_ARCH_HOSTARCH=on    # HOSTARCH = HOST from list above
+         -D Kokkos_ARCH_GPUARCH=on     # GPUARCH = GPU from list above
+         -D Kokkos_ENABLE_HIP=on
+         -D Kokkos_ENABLE_OPENMP=on
 
       This will enable FFTs on the GPU, either by the internal KISSFFT library
       or with the hipFFT wrapper library, which will call out to the
@@ -869,10 +897,10 @@ This list was last updated for version 5.2.1 of the Kokkos library.
 
       .. code-block:: bash
 
-         -D Kokkos_ARCH_HOSTARCH=yes   # HOSTARCH = HOST from list above
-         -D Kokkos_ARCH_GPUARCH=yes    # GPUARCH = GPU from list above
-         -D Kokkos_ENABLE_SYCL=yes
-         -D Kokkos_ENABLE_OPENMP=yes
+         -D Kokkos_ARCH_HOSTARCH=on    # HOSTARCH = HOST from list above
+         -D Kokkos_ARCH_GPUARCH=on     # GPUARCH = GPU from list above
+         -D Kokkos_ENABLE_SYCL=on
+         -D Kokkos_ENABLE_OPENMP=on
          -D FFT_KOKKOS=MKL_GPU
 
       This will enable FFTs on the GPU using the oneMKL library.
@@ -891,15 +919,29 @@ This list was last updated for version 5.2.1 of the Kokkos library.
 
       .. code-block:: bash
 
-         mkdir build-kokkos-cuda
-         cd build-kokkos-cuda
-         cmake -C ../cmake/presets/basic.cmake \
-               -C ../cmake/presets/kokkos-cuda-nowrapper.cmake ../cmake
-         cmake --build .
+         cmake -S cmake -B build-kokkos-cuda -C cmake/presets/basic.cmake \
+               -C cmake/presets/kokkos-cuda-nowrapper.cmake
+         cmake --build build-kokkos-cuda
 
       The ``kokkos-openmp.cmake`` preset can be combined with any of the
       others, but it is not possible to combine multiple GPU
       acceleration settings (CUDA, HIP, SYCL) into a single executable.
+
+      The ``kokkos-packages.cmake`` preset enables all packages that
+      contain styles with KOKKOS support.  It does not enable the KOKKOS
+      package itself or select a back end, so it needs to be combined
+      with one of the presets listed above, for example:
+
+      .. code-block:: bash
+
+         cmake -S cmake -B build-kokkos -C cmake/presets/gcc.cmake \
+               -C cmake/presets/kokkos-openmp.cmake \
+               -C cmake/presets/kokkos-packages.cmake
+
+      The ML-IAP package also contains styles with KOKKOS support, but
+      those require ``KOKKOS_PREC=double`` (the default), so the package
+      is not included in the preset.  You can add ``-D PKG_ML-IAP=on``
+      for double precision builds.
 
    .. tab:: Basic traditional make settings:
 
@@ -976,6 +1018,20 @@ speedup on GPUs for some models, but a slowdown for others. LayoutRight
 is always used for positions on GPUs since it has been found to be
 faster, and when compiling exclusively for CPUs.
 
+.. versionadded:: 30Sep2026
+
+The CMake option ``-D KOKKOS_DEBUG_RNG=on`` makes those KOKKOS styles
+that need random numbers (for example :doc:`fix langevin <fix_langevin>`
+or :doc:`fix brownian <fix_brownian>`) use the same random number
+generator as the corresponding plain styles instead of the parallel
+generator of the Kokkos library.  A run on a single MPI process with the
+Serial back end then follows the same trajectory as a run without the
+KOKKOS package, which makes it possible to compare the two directly and
+thus to validate the KOKKOS versions of those styles.  This is a
+validation and debugging aid only: the substitute generator is slower
+and produces the same numbers only when there is no parallelism, so this
+option must not be used for production simulations.
+
 ----------
 
 .. _lepton:
@@ -992,11 +1048,11 @@ included in the LAMMPS source distribution in the ``lib/lepton`` folder.
 
       This is the recommended build procedure for using Lepton in
       LAMMPS. No additional settings are normally needed besides
-      ``-D PKG_LEPTON=yes``.
+      ``-D PKG_LEPTON=on``.
 
       On x86 hardware the Lepton library will also include a just-in-time
       compiler for faster execution.  This is auto detected but can
-      be explicitly disabled by setting ``-D LEPTON_ENABLE_JIT=no``
+      be explicitly disabled by setting ``-D LEPTON_ENABLE_JIT=off``
       (or enabled by setting it to yes).
 
    .. tab:: Traditional make
@@ -1022,7 +1078,7 @@ Eigen3 is a template library, so you do not need to build it.
 
       .. code-block:: bash
 
-         -D DOWNLOAD_EIGEN3            # download Eigen3, value = no (default) or yes
+         -D DOWNLOAD_EIGEN3            # download Eigen3, value = off (default) or on
          -D EIGEN3_INCLUDE_DIR=path    # path to Eigen library (only needed if a
                                        # custom location)
 
@@ -1100,7 +1156,7 @@ OPT package
 
    .. tab:: CMake build
 
-      No additional settings are needed besides ``-D PKG_OPT=yes``
+      No additional settings are needed besides ``-D PKG_OPT=on``
 
    .. tab:: Traditional make
 
@@ -1162,7 +1218,7 @@ binary package provided by your operating system.
       .. code-block:: bash
 
          -D DOWNLOAD_VORO=value    # download Voro++ for build
-                                   # value = no (default) or yes
+                                   # value = off (default) or on
          -D VORO_LIBRARY=path      # Voro++ library file
                                    # (only needed if at custom location)
          -D VORO_INCLUDE_DIR=path  # Voro++ include directory
@@ -1206,7 +1262,7 @@ systems.
       .. code-block:: bash
 
          -D ADIOS2_DIR=path        # path is where ADIOS 2.x is installed
-         -D PKG_ADIOS=yes
+         -D PKG_ADIOS=on
 
    .. tab:: Traditional make
 
@@ -1240,8 +1296,8 @@ at: `https://github.com/ICAMS/lammps-user-pace/ <https://github.com/ICAMS/lammps
 
    .. tab:: CMake build
 
-      No additional settings are needed besides ``-D PKG_APIP=yes``
-      and ``-D PKG_ML-PACE=yes``.
+      No additional settings are needed besides ``-D PKG_APIP=on``
+      and ``-D PKG_ML-PACE=on``.
       One can use a local version of the ML-PACE library instead of
       automatically downloading the library as described :ref:`here <ml-pace>`.
 
@@ -1270,13 +1326,13 @@ module included in the LAMMPS source distribution.
 
       This is the recommended build procedure for using Colvars in
       LAMMPS. No additional settings are normally needed besides ``-D
-      PKG_COLVARS=yes``. The following CMake variables are available.
+      PKG_COLVARS=on``. The following CMake variables are available.
 
       .. code-block:: bash
 
-         -D PKG_COLVARS=yes          # enable the package itself
-         -D COLVARS_LEPTON=yes       # use the Lepton library for custom expression (on by default)
-         -D COLVARS_DEBUG=no         # enable debugging message (verbose, off by default)
+         -D PKG_COLVARS=on           # enable the package itself
+         -D COLVARS_LEPTON=on        # use the Lepton library for custom expression (on by default)
+         -D COLVARS_DEBUG=off        # enable debugging message (verbose, off by default)
 
    .. tab:: Traditional make
 
@@ -1300,8 +1356,8 @@ This package depends on the KSPACE package.
 
       .. code-block:: bash
 
-         -D PKG_ELECTRODE=yes          # enable the package itself
-         -D PKG_KSPACE=yes             # the ELECTRODE package requires KSPACE
+         -D PKG_ELECTRODE=on           # enable the package itself
+         -D PKG_KSPACE=on              # the ELECTRODE package requires KSPACE
          -D USE_INTERNAL_LINALG=value  #
 
       Features in the ELECTRODE package are dependent on code in the
@@ -1350,7 +1406,7 @@ then load this plugin at runtime with the :doc:`plugin command
 
       By default the MBX library will be downloaded from the git
       repository and built automatically when the MBX package is enabled
-      with ``-D PKG_MBX=yes``.  The location for the sources may be
+      with ``-D PKG_MBX=on``.  The location for the sources may be
       customized by setting the variable ``MBXLIB_URL`` when configuring
       with CMake (e.g. to use a local archive on machines without
       internet access).  Since CMake checks the validity of the archive
@@ -1394,7 +1450,7 @@ folder and then load this plugin at runtime with the :doc:`plugin command <plugi
 
       By default the library will be downloaded from the git repository
       and built automatically when the ML-PACE package is enabled with
-      ``-D PKG_ML-PACE=yes``.  The location for the sources may be
+      ``-D PKG_ML-PACE=on``.  The location for the sources may be
       customized by setting the variable ``PACELIB_URL`` when
       configuring with CMake (e.g. to use a local archive on machines
       without internet access).    Since CMake checks the validity of the archive
@@ -1423,7 +1479,7 @@ ML-POD package
 
    .. tab:: CMake build
 
-      No additional settings are needed besides ``-D PKG_ML-POD=yes``.
+      No additional settings are needed besides ``-D PKG_ML-POD=on``.
 
    .. tab:: Traditional make
 
@@ -1452,12 +1508,12 @@ within CMake will download the non-commercial use version.
       .. code-block:: bash
 
          -D DOWNLOAD_QUIP=value       # download QUIP library for build
-                                      # value = no (default) or yes
+                                      # value = off (default) or on
          -D QUIP_LIBRARY=path         # path to libquip.a
                                       # (only needed if a custom location)
          -D USE_INTERNAL_LINALG=value # Use the internal linear algebra library
                                       # instead of LAPACK
-                                      # value = no (default) or yes
+                                      # value = off (default) or on
 
       CMake will try to download and build the QUIP library from GitHub,
       if it is not found on the local machine. This requires to have git
@@ -1534,7 +1590,7 @@ folder and then load this plugin at runtime with the :doc:`plugin command <plugi
 
    .. tab:: CMake build
 
-      When the ``-D PKG_PLUMED=yes`` flag is included in the cmake
+      When the ``-D PKG_PLUMED=on`` flag is included in the cmake
       command you must ensure that `the GNU Scientific Library (GSL)
       <https://www.gnu.org/software/gsl/>` is installed in locations
       that are accessible in your environment.  There are then two
@@ -1544,12 +1600,12 @@ folder and then load this plugin at runtime with the :doc:`plugin command <plugi
       .. code-block:: bash
 
          -D DOWNLOAD_PLUMED=value   # download PLUMED for build
-                                    # value = no (default) or yes
+                                    # value = off (default) or on
          -D PLUMED_MODE=value       # Linkage mode for PLUMED
                                     # value = static (default), shared,
                                     #         or runtime
 
-      If ``DOWNLOAD_PLUMED`` is set to ``yes``, the PLUMED library will be
+      If ``DOWNLOAD_PLUMED`` is set to ``on``, the PLUMED library will be
       downloaded (the version of PLUMED that will be downloaded is
       hard-coded to a vetted version of PLUMED, usually a recent stable
       release version) and built inside the CMake build directory.  If
@@ -1591,7 +1647,7 @@ the HDF5 library.
 
    .. tab:: CMake build
 
-      No additional settings are needed besides ``-D PKG_H5MD=yes``.
+      No additional settings are needed besides ``-D PKG_H5MD=on``.
 
       This should auto-detect the H5MD library on your system.  Several
       advanced CMake H5MD options exist if you need to specify where it
@@ -1633,7 +1689,7 @@ details please see ``lib/hdnnp/README`` and the `n2p2 build documentation
       .. code-block:: bash
 
          -D DOWNLOAD_N2P2=value    # download n2p2 for build
-                                   # value = no (default) or yes
+                                   # value = off (default) or on
          -D N2P2_DIR=path          # n2p2 base directory
                                    # (only needed if a custom location)
 
@@ -1699,13 +1755,13 @@ pre-compiled version already present on your system.
 
       .. code-block:: bash
 
-         -D PKG_ML-RUNNER=yes       # yes (default): Download and build RuNNer automatically.
-         -D DOWNLOAD_RUNNER=yes     # yes (default): clone the stable version of the official RuNNer repo.
-                                    # no: Use a pre-compiled RuNNer library.
-         -D RUNNER_SHARED_LIB=yes    # no: (default): Look for static library (.a).
-                                     # yes: Look for shared library (.so).
+         -D PKG_ML-RUNNER=on        # enable the package itself
+         -D DOWNLOAD_RUNNER=on      # on (default): clone the stable version of the official RuNNer repo.
+                                    # off: Use a pre-compiled RuNNer library.
+         -D RUNNER_SHARED_LIB=on     # off (default): Look for static library (.a).
+                                     # on: Look for shared library (.so).
 
-      **Manual Library Configuration (if DOWNLOAD_RUNNER=no):**
+      **Manual Library Configuration (if DOWNLOAD_RUNNER=off):**
 
       .. code-block:: bash
 
@@ -1722,8 +1778,8 @@ pre-compiled version already present on your system.
       .. code-block:: bash
 
          -D FFT=value                # FFTW3 or MKL
-         -D FFT_MKL_THREADS=yes      # required with MKL (default)
-         -D FFT_FFTW_THREADS=yes     # required with FFTW3 (default)
+         -D FFT_MKL_THREADS=on       # required with MKL (default)
+         -D FFT_FFTW_THREADS=on      # required with FFTW3 (default)
 
    .. tab:: Traditional make
 
@@ -1741,7 +1797,7 @@ pre-compiled version already present on your system.
      - Default
    * - ``DOWNLOAD_RUNNER``
      - Download and build RuNNer from source
-     - ``yes``
+     - ``on``
    * - ``RUNNER_LIB_DIR``
      - Path to a pre-installed RuNNer library
      - ``$HOME/.local/lib``
@@ -1750,16 +1806,16 @@ pre-compiled version already present on your system.
      - ``libRuNNer_mpi``
    * - ``RUNNER_SHARED_LIB``
      - Link against a shared RuNNer library
-     - ``yes``
+     - ``off``
    * - ``FFT``
      - FFT library to use (FFTW3 or MKL)
      - ``auto-detected``
    * - ``FFT_MKL_THREADS``
      - Use multi-threaded MKL FFT
-     - ``yes``
+     - ``on``
    * - ``FFT_FFTW_THREADS``
      - Use multi-threaded FFTW
-     - ``yes``
+     - ``on``
 
 ----------
 
@@ -1789,6 +1845,14 @@ code when using features from the INTEL package.
       .. code-block:: bash
 
          -D INTEL_LRT_MODE=value # value = threads, none, or c++17
+
+      .. versionchanged:: 30Sep2026
+
+      With the LLVM based Intel compilers (``icx`` and ``icpx``), CMake
+      adds the flags ``-xHost`` and ``-qopt-zmm-usage=high`` and compiles
+      the INTEL package sources with ``-fp-model=fast=2``.  The ``-xHost``
+      flag is omitted when a target architecture is already selected in
+      ``CMAKE_CXX_FLAGS``, e.g. when compiling for a different CPU.
 
    .. tab:: Traditional make
 
@@ -1831,7 +1895,7 @@ MDI package
       .. code-block:: bash
 
          -D DOWNLOAD_MDI=value    # download MDI Library for build
-                                  # value = no (default) or yes
+                                  # value = off (default) or on
 
    .. tab:: Traditional make
 
@@ -1859,7 +1923,7 @@ communicate with IMD clients concurrently to the LAMMPS execution).
       .. code-block:: bash
 
          -D LAMMPS_ASYNC_IMD=value  # Run IMD server asynchronously
-                                    # value = no (default) or yes
+                                    # value = off (default) or on
 
    .. tab:: Traditional make
 
@@ -1886,9 +1950,9 @@ MOLFILE package
 
          -D MOLFILE_INCLUDE_DIR=path   # (optional) path where VMD molfile
                                        # plugin headers are installed
-         -D PKG_MOLFILE=yes
+         -D PKG_MOLFILE=on
 
-      Using ``-D PKG_MOLFILE=yes`` enables the package, and setting
+      Using ``-D PKG_MOLFILE=on`` enables the package, and setting
       ``-D MOLFILE_INCLUDE_DIR`` allows to provide a custom location for
       the molfile plugin header files. These should match the ABI of the
       plugin files used, and thus one typically sets them to include
@@ -1917,7 +1981,7 @@ on your system.
 
    .. tab:: CMake build
 
-      No additional settings are needed besides ``-D PKG_NETCDF=yes``.
+      No additional settings are needed besides ``-D PKG_NETCDF=on``.
 
       This should auto-detect the NETCDF library if it is installed on
       your system at standard locations.  Several advanced CMake NETCDF
@@ -1945,7 +2009,7 @@ OPENMP package
    .. tab:: CMake build
 
       No additional settings are required besides ``-D
-      PKG_OPENMP=yes``.  If CMake detects OpenMP compiler support, the
+      PKG_OPENMP=on``.  If CMake detects OpenMP compiler support, the
       OPENMP code will be compiled with multi-threading support
       enabled, otherwise as optimized serial code.
 
@@ -1980,7 +2044,7 @@ OPENMP package
    `https://mac.r-project.org/openmp/
    <https://mac.r-project.org/openmp/>`_.  Simply adding those files as
    instructed enables the Xcode C++ compiler to compile LAMMPS with ``-D
-   BUILD_OMP=yes``.
+   BUILD_OMP=on``.
 
 ----------
 
@@ -2016,8 +2080,8 @@ verified to work in February 2020 with Quantum Espresso versions 6.3 to
 
       .. code-block:: bash
 
-         cmake -C ../cmake/presets/basic.cmake -D PKG_QMMM=yes \
-             -D BUILD_LIB=yes -DBUILD_SHARED_LIBS=yes ../cmake
+         cmake -S cmake -B build -C cmake/presets/basic.cmake \
+               -D PKG_QMMM=on -D BUILD_SHARED_LIBS=on
 
       After completing the LAMMPS build and also configuring and
       compiling Quantum ESPRESSO with external library support (via
@@ -2064,10 +2128,10 @@ libxtb with the Meson option ``-Dinstall_modules=true`` when necessary.
 
          export PKG_CONFIG_PATH=/path/to/xtb/lib/pkgconfig:/path/to/mctc/lib/pkgconfig
          cmake -S cmake -B build \
-           -D PKG_KSPACE=yes \
-           -D PKG_QMMM-XTB=yes \
+           -D PKG_KSPACE=on \
+           -D PKG_QMMM-XTB=on \
            -D XTB_FORTRAN_MODULE_DIR=/path/to/xtb-modules
-         cmake --build build -j 8
+         cmake --build build
 
       ``XTB_FORTRAN_MODULE_DIR`` may be omitted when the module files are in
       a directory reported by ``xtb.pc``.  Configuration stops with an error
@@ -2099,8 +2163,8 @@ This package depends on the BPM package.
 
       .. code-block:: bash
 
-         -D PKG_RHEO=yes               # enable the package itself
-         -D PKG_BPM=yes                # the RHEO package requires BPM
+         -D PKG_RHEO=on                # enable the package itself
+         -D PKG_BPM=on                 # the RHEO package requires BPM
          -D USE_INTERNAL_LINALG=value  # prefer internal LAPACK if true
 
       Some features in the RHEO package are dependent on code in the BPM
@@ -2110,7 +2174,7 @@ This package depends on the BPM package.
       can identify their locations and pass that info to the RHEO
       build script.  But on some systems this may cause problems when
       linking or the dependency is not desired.  By using the setting
-      ``-D USE_INTERNAL_LINALG=yes`` when running the CMake
+      ``-D USE_INTERNAL_LINALG=on`` when running the CMake
       configuration, you will select compiling and linking the bundled
       linear algebra library and work around the limitations.
 
@@ -2137,7 +2201,7 @@ To build with this package, you must download and build the
 
       .. code-block:: bash
 
-         -D DOWNLOAD_SCAFACOS=value    # download ScaFaCoS for build, value = no (default) or yes
+         -D DOWNLOAD_SCAFACOS=value    # download ScaFaCoS for build, value = off (default) or on
          -D SCAFACOS_LIBRARY=path      # ScaFaCos library file (only needed if at custom location)
          -D SCAFACOS_INCLUDE_DIR=path  # ScaFaCoS include directory (only needed if at custom location)
 

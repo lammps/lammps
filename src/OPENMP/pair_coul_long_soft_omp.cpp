@@ -138,9 +138,17 @@ void PairCoulLongSoftOMP::eval(int iifrom, int iito, ThrData * const thr)
         erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
 
         denc = sqrt(lam2[itype][jtype] + rsq);
-        prefactor = qqrd2e * lam1[itype][jtype] * qtmp*q[j] / (denc*denc*denc);
+        prefactor = qqrd2e * scale[itype][jtype] * lam1[itype][jtype] * qtmp*q[j] /
+          (denc*denc*denc);
 
-        forcecoul = prefactor * (erfc + EWALD_F*grij*expm2);
+        // the soft core replaces only the 1/r factor, while the Ewald damping
+
+        // keeps the true distance, so differentiating erfc(g*r)/denc leaves the
+
+        // exponential term scaled by denc^2/r^2 against a plain 1/r kernel
+
+
+        forcecoul = prefactor * (erfc + EWALD_F*grij*expm2*denc*denc/rsq);
         if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor;
 
         fpair = forcecoul;
@@ -155,7 +163,7 @@ void PairCoulLongSoftOMP::eval(int iifrom, int iito, ThrData * const thr)
         }
 
         if (EFLAG) {
-          prefactor = qqrd2e * lam1[itype][jtype] * qtmp*q[j] / denc;
+          prefactor = qqrd2e * scale[itype][jtype] * lam1[itype][jtype] * qtmp*q[j] / denc;
           ecoul = prefactor*erfc;
           if (factor_coul < 1.0) ecoul -= (1.0-factor_coul)*prefactor;
         }

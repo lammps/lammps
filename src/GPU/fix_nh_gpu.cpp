@@ -47,8 +47,10 @@ FixNHGPU::FixNHGPU(LAMMPS *lmp, int narg, char **arg) :
   FixNH(lmp, narg, arg)
 {
   _dtfm = nullptr;
+  _nlocal = 0;
   _nlocal3 = 0;
   _nlocal_max = 0;
+  _uniform_dtfm = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -335,65 +337,55 @@ void FixNHGPU::reset_dt()
   const int nlocal = (igroup == atom->firstgroup) ? atom->nfirst :
     atom->nlocal;
 
+  _nlocal = nlocal;
+  _nlocal3 = nlocal * 3;
+
+  // when the whole system shares a single per type mass, the prefactor is the
+  // same for every atom and the per atom array is not needed at all
+
+  _uniform_dtfm = (igroup == 0) && (atom->ntypes == 1) && (atom->rmass == nullptr);
+  if (_uniform_dtfm) return;
+
   if (nlocal > _nlocal_max) {
     if (_nlocal_max) memory->destroy(_dtfm);
     _nlocal_max = static_cast<int>(1.20 * nlocal);
-    memory->create(_dtfm, _nlocal_max * 3, "fix_nh_gpu:dtfm");
+    memory->create(_dtfm, _nlocal_max, "fix_nh_gpu:dtfm");
   }
 
-  _nlocal3 = nlocal * 3;
+  double * _noalias const dtfm = _dtfm;
+  const double dtfo = dtf;
 
   if (igroup == 0) {
     if (atom->rmass) {
       const double * const rmass = atom->rmass;
-      int n = 0;
-      for (int i = 0; i < nlocal; i++) {
-        const double dtfir = dtf / rmass[i];
-        _dtfm[n++] = dtfir;
-        _dtfm[n++] = dtfir;
-        _dtfm[n++] = dtfir;
-      }
+      #if (LAL_USE_OMP == 1)
+      #pragma omp parallel for schedule(static)
+      #endif
+      for (int i = 0; i < nlocal; i++) dtfm[i] = dtfo / rmass[i];
     } else {
       const double * const mass = atom->mass;
       const int * const type = atom->type;
-      int n = 0;
-      for (int i = 0; i < nlocal; i++) {
-        const double dtfim = dtf / mass[type[i]];
-        _dtfm[n++] = dtfim;
-        _dtfm[n++] = dtfim;
-        _dtfm[n++] = dtfim;
-      }
+      #if (LAL_USE_OMP == 1)
+      #pragma omp parallel for schedule(static)
+      #endif
+      for (int i = 0; i < nlocal; i++) dtfm[i] = dtfo / mass[type[i]];
     }
   } else {
     if (atom->rmass) {
       const double * const rmass = atom->rmass;
-      int n = 0;
+      #if (LAL_USE_OMP == 1)
+      #pragma omp parallel for schedule(static)
+      #endif
       for (int i = 0; i < nlocal; i++)
-        if (mask[i] & groupbit) {
-          const double dtfir = dtf / rmass[i];
-          _dtfm[n++] = dtfir;
-          _dtfm[n++] = dtfir;
-          _dtfm[n++] = dtfir;
-        } else {
-          _dtfm[n++] = 0.0;
-          _dtfm[n++] = 0.0;
-          _dtfm[n++] = 0.0;
-        }
+        dtfm[i] = (mask[i] & groupbit) ? dtfo / rmass[i] : 0.0;
     } else {
       const double * const mass = atom->mass;
       const int * const type = atom->type;
-      int n = 0;
+      #if (LAL_USE_OMP == 1)
+      #pragma omp parallel for schedule(static)
+      #endif
       for (int i = 0; i < nlocal; i++)
-        if (mask[i] & groupbit) {
-          const double dtfim = dtf / mass[type[i]];
-          _dtfm[n++] = dtfim;
-          _dtfm[n++] = dtfim;
-          _dtfm[n++] = dtfim;
-        } else {
-          _dtfm[n++] = 0.0;
-          _dtfm[n++] = 0.0;
-          _dtfm[n++] = 0.0;
-        }
+        dtfm[i] = (mask[i] & groupbit) ? dtfo / mass[type[i]] : 0.0;
     }
   }
 }
@@ -458,13 +450,28 @@ void FixNHGPU::nve_v()
 
   double * _noalias const v = atom->v[0];
   const double * _noalias const f = atom->f[0];
-  #if (LAL_USE_OMP == 1) && (LAL_USE_OMP_SIMD == 1)
-  #pragma omp parallel for simd schedule(static)
-  #elif (LAL_USE_OMP_SIMD == 1)
-  #pragma omp simd
-  #endif
-  for (int i = 0; i < _nlocal3; i++)
-    v[i] += _dtfm[i] * f[i];
+
+  if (_uniform_dtfm) {
+    const double dtfm = dtf / atom->mass[1];
+    #if (LAL_USE_OMP == 1) && (LAL_USE_OMP_SIMD == 1)
+    #pragma omp parallel for simd schedule(static)
+    #elif (LAL_USE_OMP_SIMD == 1)
+    #pragma omp simd
+    #endif
+    for (int i = 0; i < _nlocal3; i++)
+      v[i] += dtfm * f[i];
+  } else {
+    #if (LAL_USE_OMP == 1)
+    #pragma omp parallel for schedule(static)
+    #endif
+    for (int i = 0; i < _nlocal; i++) {
+      const double dtfm = _dtfm[i];
+      const int n = i * 3;
+      v[n] += dtfm * f[n];
+      v[n+1] += dtfm * f[n+1];
+      v[n+2] += dtfm * f[n+2];
+    }
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -494,9 +501,13 @@ void FixNHGPU::nve_x()
     #elif (LAL_USE_OMP_SIMD == 1)
     #pragma omp simd
     #endif
-    for (int i = 0; i < _nlocal3; i++) {
-      if (_dtfm[i] != 0.0)
-        x[i] += dtv * v[i];
+    for (int i = 0; i < _nlocal; i++) {
+      if (_dtfm[i] != 0.0) {
+        const int n = i * 3;
+        x[n] += dtv * v[n];
+        x[n+1] += dtv * v[n+1];
+        x[n+2] += dtv * v[n+2];
+      }
     }
   }
 }
@@ -528,14 +539,18 @@ void FixNHGPU::nh_v_temp()
     #elif (LAL_USE_OMP_SIMD == 1)
     #pragma omp simd
     #endif
-    for (int i = 0; i < _nlocal3; i++) {
-      if (_dtfm[i] != 0.0)
-        v[i] *= factor_eta;
+    for (int i = 0; i < _nlocal; i++) {
+      if (_dtfm[i] != 0.0) {
+        const int n = i * 3;
+        v[n] *= factor_eta;
+        v[n+1] *= factor_eta;
+        v[n+2] *= factor_eta;
+      }
     }
   }
 }
 
 double FixNHGPU::memory_usage()
 {
-  return FixNH::memory_usage() + _nlocal_max * 3 * sizeof(double);
+  return FixNH::memory_usage() + _nlocal_max * sizeof(double);
 }

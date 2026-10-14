@@ -46,13 +46,25 @@ namespace LAMMPS_AL {
 
 class Neighbor {
  public:
-  Neighbor() : _allocated(false), _use_packing(false), _old_max_nbors(0), _ncells(0) {}
+  Neighbor() : _allocated(false), _use_packing(false), _old_max_nbors(0),
+    _max_tpa(1), _ncells(0) {}
   ~Neighbor() { clear(); }
 
   /// Determine whether neighbor unpacking should be used
   /** If false, twice as much memory is reserved to allow unpacking neighbors by
     * atom for coalesced access. **/
   void packing(const bool use_packing) { _use_packing=use_packing; }
+
+  /// Change the number of threads per atom used to lay out the neighbor list
+  /** Only safe to call right before a neighbor list rebuild, since the packed
+    * layout read by the pair kernels depends on this value **/
+  inline void set_threads_per_atom(const int t_per_atom)
+    { _threads_per_atom=t_per_atom; }
+
+  /// Largest threads per atom value the neighbor arrays are padded for
+  /** Must be set before init() when the value may change at run time **/
+  inline void set_max_threads_per_atom(const int t_per_atom)
+    { _max_tpa=t_per_atom; }
 
   /// Clear any old data and setup for new LAMMPS run
   /** \param inum Initial number of particles whose neighbors stored on device
@@ -290,6 +302,7 @@ class Neighbor {
   void alloc(bool &success);
 
   int _block_cell_2d, _block_cell_id, _max_block_nbor_build, _block_nbor_build;
+  int _max_tpa;  // neighbor arrays are padded for this many threads per atom
   int _ncells, _threads_per_atom, _total_atoms;
 
   template <class numtyp, class acctyp>

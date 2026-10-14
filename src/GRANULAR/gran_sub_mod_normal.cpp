@@ -482,33 +482,36 @@ GranSubModNormalMDR::~GranSubModNormalMDR()
 
 void GranSubModNormalMDR::coeffs_to_local()
 {
+  // clang-format off
   Emod = coeffs[0];     // Young's modulus
   poiss = coeffs[1];    // Poisson's ratio
   Y = coeffs[2];        // yield stress
   gamma = coeffs[3];    // effective surface energy
-  psi_b = coeffs
-      [4];    // bulk response trigger based on ratio of remaining free area: A_{free}/A_{total}
-  damp = coeffs[5];    // coefficent of restitution
+  psi_b = coeffs[4];    // bulk response trigger based on ratio of remaining free area: A_{free}/A_{total}
+  damp = coeffs[5];     // coefficent of restitution
 
   if (Emod <= 0.0)
-    error->all(FLERR, "Illegal MDR normal model, Young's modulus must be greater than 0");
-  if (poiss < 0.0 || poiss > 0.5)
-    error->all(FLERR, "Illegal MDR normal model, Poisson's ratio must be between 0 and 0.5");
+    error->all(FLERR, Error::NOLASTLINE,
+               "Illegal MDR normal model, Young's modulus must be greater than 0");
+  if ((poiss < 0.0) || (poiss > 0.5))
+    error->all(FLERR, Error::NOLASTLINE,
+               "Illegal MDR normal model, Poisson's ratio must be between 0 and 0.5");
   if (Y < 0.0)
-    error->all(FLERR, "Illegal MDR normal model, yield stress must be greater than or equal to 0");
+    error->all(FLERR, Error::NOLASTLINE,
+               "Illegal MDR normal model, yield stress must be greater than or equal to 0");
   if (gamma < 0.0)
-    error->all(
-        FLERR,
+    error->all(FLERR, Error::NOLASTLINE,
         "Illegal MDR normal model, effective surface energy must be greater than or equal to 0");
-  if (psi_b < 0.0 || psi_b > 1.0)
+  if ((psi_b < 0.0) || (psi_b > 1.0))
     error->all(FLERR, "Illegal MDR normal model, psi_b must be between 0 and 1.0");
   if (damp < 0.0)
-    error->all(FLERR,
+    error->all(FLERR, Error::NOLASTLINE,
                "Illegal MDR normal model, damping coefficent must be greater than or equal to 0");
 
   G = Emod / (2.0 * (1.0 + poiss));              // shear modulus
   kappa = Emod / (3.0 * (1.0 - 2.0 * poiss));    // bulk modulus
   Eeff = Emod / (1.0 - square(poiss));           // composite plane strain modulus
+  // clang-format on
 
   // precomputing factors
 
@@ -537,45 +540,29 @@ void GranSubModNormalMDR::init()
   }
 
   if (gm->damping_model->name != "mdr")
-    error->all(FLERR, "Only damping mdr may be used with the mdr normal model");
+    error->all(FLERR, Error::NOLASTLINE, "Only damping mdr may be used with the mdr normal model");
 
+  // clang-format off
   // initialize particle history variables
   int tmp1, tmp2;
-  index_Ro = atom->find_custom("Ro", tmp1, tmp2);    // initial radius
-  index_Vcaps = atom->find_custom(
-      "Vcaps", tmp1,
-      tmp2);    // spherical cap volume from intersection of apparent radius particle and contact planes
-  index_Vgeo = atom->find_custom(
-      "Vgeo", tmp1,
-      tmp2);    // geometric particle volume of apparent particle after removing spherical cap volume
-  index_Velas = atom->find_custom("Velas", tmp1, tmp2);    // particle volume from linear elasticity
-  index_eps_bar =
-      atom->find_custom("eps_bar", tmp1, tmp2);    // volume-averaged infinitesimal strain tensor
-  index_dRnumerator = atom->find_custom(
-      "dRnumerator", tmp1, tmp2);    // summation of numerator terms in calculation of dR
-  index_dRdenominator = atom->find_custom(
-      "dRdenominator", tmp1, tmp2);    // summation of denominator terms in calculation of dR
-  index_Acon0 =
-      atom->find_custom("Acon0", tmp1, tmp2);    // total area involved in contacts: Acon^{n}
-  index_Acon1 =
-      atom->find_custom("Acon1", tmp1, tmp2);    // total area involved in contacts: Acon^{n+1}
-  index_Atot = atom->find_custom("Atot", tmp1, tmp2);    // total particle area
-  index_Atot_sum =
-      atom->find_custom("Atot_sum", tmp1, tmp2);    // running sum of contact area minus cap area
-  index_ddelta_bar =
-      atom->find_custom("ddelta_bar", tmp1, tmp2);    // change in mean surface displacement
-  index_psi =
-      atom->find_custom("psi", tmp1, tmp2);    // ratio of free surface area to total surface area
-  index_sigmaxx = atom->find_custom(
-      "sigmaxx", tmp1,
-      tmp2);    // xx-component of the stress tensor, not necessary for force calculation
-  index_sigmayy = atom->find_custom(
-      "sigmayy", tmp1,
-      tmp2);    // yy-component of the stress tensor, not necessary for force calculation
-  index_sigmazz = atom->find_custom(
-      "sigmazz", tmp1,
-      tmp2);    // zz-component of the stress tensor, not necessary for force calculation
-  index_dRavg = atom->find_custom("dRavg", tmp1, tmp2);    // radius update increment
+  index_Ro = atom->find_custom("Ro", tmp1, tmp2);           // initial radius
+  index_Vcaps = atom->find_custom("Vcaps", tmp1, tmp2);     // spherical cap volume from intersection of apparent radius particle and contact planes
+  index_Vgeo = atom->find_custom("Vgeo", tmp1, tmp2);       // geometric particle volume of apparent particle after removing spherical cap volume
+  index_Velas = atom->find_custom("Velas", tmp1, tmp2);     // particle volume from linear elasticity
+  index_eps_bar = atom->find_custom("eps_bar", tmp1, tmp2); // volume-averaged infinitesimal strain tensor
+  index_dRnumerator = atom->find_custom("dRnumerator", tmp1, tmp2);      // summation of numerator terms in calculation of dR
+  index_dRdenominator = atom->find_custom("dRdenominator", tmp1, tmp2);  // summation of denominator terms in calculation of dR
+  index_Acon0 = atom->find_custom("Acon0", tmp1, tmp2);     // total area involved in contacts: Acon^{n}
+  index_Acon1 = atom->find_custom("Acon1", tmp1, tmp2);     // total area involved in contacts: Acon^{n+1}
+  index_Atot = atom->find_custom("Atot", tmp1, tmp2);       // total particle area
+  index_Atot_sum = atom->find_custom("Atot_sum", tmp1, tmp2);      // running sum of contact area minus cap area
+  index_ddelta_bar = atom->find_custom("ddelta_bar", tmp1, tmp2);  // change in mean surface displacement
+  index_psi = atom->find_custom("psi", tmp1, tmp2);         // ratio of free surface area to total surface area
+  index_sigmaxx = atom->find_custom("sigmaxx", tmp1, tmp2); // xx-component of the stress tensor, not necessary for force calculation
+  index_sigmayy = atom->find_custom("sigmayy", tmp1, tmp2); // yy-component of the stress tensor, not necessary for force calculation
+  index_sigmazz = atom->find_custom("sigmazz", tmp1, tmp2); // zz-component of the stress tensor, not necessary for force calculation
+  index_dRavg = atom->find_custom("dRavg", tmp1, tmp2);     // radius update increment
+  // clang-format on
 }
 
 /* ---------------------------------------------------------------------- */

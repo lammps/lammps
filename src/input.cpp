@@ -98,7 +98,7 @@ command-line flags, holds the factory of commands and creates and
 initializes an instance of the Variable class.
 
 To execute a command, a specific class instance, derived from
-:cpp:class:`Command`, is created, then its ``command()`` member
+:cpp:class:`!Command`, is created, then its ``command()`` member
 function executed, and finally the class instance is deleted.
 
 \endverbatim

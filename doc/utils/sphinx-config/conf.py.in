@@ -192,17 +192,39 @@ pygments_style = 'default'
 #keep_warnings = False
 
 # warn about all missing references (default False)
-nitpicky = False
+nitpicky = True
 
-# ignore known missing references
-nitpicky_ignore = {
+# ignore known missing references in nitpicky mode (sphinx-build -n):
+# names from the C/C++ runtime, MPI, or LAMMPS that are not (yet) documented in the manual
+nitpick_ignore = {
     ('cpp:identifier', 'Error'),
     ('cpp:identifier', 'FILE'),
+    ('cpp:identifier', 'FixExternalFnPtr'),
     ('cpp:identifier', 'LAMMPS_NS'),
+    ('cpp:identifier', 'LAMMPS_NS::MathSpecial'),
+    ('cpp:identifier', 'LAMMPS_NS::platform'),
     ('cpp:identifier', 'LAMMPS_NS::utils'),
     ('cpp:identifier', 'MPI_Comm'),
+    ('cpp:identifier', 'MathEigen'),
+    ('cpp:identifier', 'TOKENIZER_DEFAULT_SEPARATORS'),
+    ('cpp:identifier', 'bigint'),
+    ('cpp:identifier', 'exception'),
+    ('cpp:identifier', 'int64_t'),
     ('cpp:identifier', 'size_t'),
+    ('cpp:identifier', 'tagint'),
     ('envvar', 'DUMMY'),
+    ('std:ref', 'lmptype_8h'),
+}
+
+nitpick_ignore_regex = {
+    # sphinx-fortran turns the data types of all arguments into references
+    ('f:type', r'.*'),
+    # types from other python modules
+    ('py:class', r'(ctypes|numpy|IPython)\..*'),
+    # informal type names and descriptions in docstrings of the python module
+    ('py:class', r'.*[ *].*'),
+    ('py:class', r'string|strings|integer|double|dictionary|function|optional|pointer|NoneType'),
+    ('py:class', r'POINTER|c_\w+|MPI_Comm|command_wrapper|lammps\.c?_?(tagint|imageint)'),
 }
 
 # -- Options for HTML output ----------------------------------------------

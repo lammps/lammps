@@ -330,15 +330,17 @@ mathjax_path = 'mathjax/tex-mml-chtml.js'
 # get the math through the hidden MathML added with the "assistiveMml" setting.
 # this setting is called mathjax4_config since Sphinx 9.0 and mathjax3_config before
 import sphinx
-mathjax_config = {
+
+_mathjax_config = {
   'loader': {'paths': {'mathjax-newcm': '[mathjax]/mathjax-newcm-font'}},
+  'startup': {'polyfillHasOwn': True},
   'options': {'menuOptions': {'settings': {'enrich': False, 'speech': False,
                                            'braille': False, 'assistiveMml': True}}}
 }
 if sphinx.version_info >= (9, 0):
-  mathjax4_config = mathjax_config
+  mathjax4_config = _mathjax_config
 else:
-  mathjax3_config = mathjax_config
+  mathjax3_config = _mathjax_config
 
 # add :lammps: role for inline LAMMPS code highlight
 rst_prolog = r"""

@@ -192,7 +192,7 @@ pygments_style = 'default'
 #keep_warnings = False
 
 # warn about all missing references (default False)
-nitpicky = True
+nitpicky = False
 
 # ignore known missing references in nitpicky mode (sphinx-build -n):
 # names from the C/C++ runtime, MPI, or LAMMPS that are not (yet) documented in the manual

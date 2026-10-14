@@ -1184,7 +1184,7 @@ class lammps:
     :param name: name of the property
     :type name:  string
     :return: value of the property or list of values or None
-    :rtype: float, list of float, list of list of floats, or NoneType
+    :rtype: float, list of float, list of list of float, or NoneType
     """
 
     if name:

@@ -6838,7 +6838,7 @@ int lammps_config_has_ffmpeg_support() {
 
 \verbatim embed:rst
 
-.. versionadded::29Aug2024
+.. versionadded:: 29Aug2024
 
 The LAMMPS :doc:`geturl command <geturl>` supports downloading files
 through using `the libcurl library <https://curl.se/libcurl/>`_.

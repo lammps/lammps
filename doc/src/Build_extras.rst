@@ -260,10 +260,6 @@ CMake build
                                 # but prints a deprecation warning)
    -D HIP_USE_DEVICE_SORT=value # enables GPU sorting
                                 # value = on (default) or off
-   -D CUDPP_OPT=value           # use GPU binning with CUDA (should be off for modern GPUs)
-                                # enables CUDA Performance Primitives, must be "no" for
-                                # CUDA_MPS_SUPPORT=on
-                                # value = on or off (default)
    -D CUDA_MPS_SUPPORT=value    # enables some tweaks required to run with active
                                 # nvidia-cuda-mps daemon
                                 # value = on or off (default)
@@ -316,49 +312,28 @@ back ends.  The back end specific ``HIP_ARCH`` (for ``GPU_API=hip``)
 variable is still accepted for backward compatibility, but its use is
 deprecated and prints a warning.
 
-For ``GPU_API=cuda`` and ``GPU_API=hip`` with ``HIP_PLATFORM=nvcc``, the
-``GPU_ARCH`` settings for different GPU hardware are as follows:
+.. versionchanged:: TBD
 
-* ``sm_30`` for Kepler (supported since CUDA 5 and until CUDA 10.x)
-* ``sm_35`` or ``sm_37`` for Kepler (supported since CUDA 5 and until CUDA 11.x)
-* ``sm_50`` or ``sm_52`` for Maxwell (supported since CUDA 6)
-* ``sm_60`` or ``sm_61`` for Pascal (supported since CUDA 8)
-* ``sm_70`` for Volta (supported since CUDA 9)
-* ``sm_75`` for Turing (supported since CUDA 10)
-* ``sm_80`` or ``sm_86`` for Ampere (supported since CUDA 11, ``sm_86`` since CUDA 11.1)
-* ``sm_89`` for Lovelace (supported since CUDA 11.8)
-* ``sm_90`` or ``sm_90a`` for Hopper (supported since CUDA 12.0)
-* ``sm_100`` or ``sm_103`` for Blackwell B100/B200/B300 (supported since CUDA 12.8)
-* ``sm_120`` for Blackwell B20x/B40 (supported since CUDA 12.8)
-* ``sm_121`` for Blackwell (supported since CUDA 12.9)
+For ``GPU_API=cuda`` and ``GPU_API=hip`` with ``HIP_PLATFORM=nvcc``,
+LAMMPS will include support for **all** major GPU archictures supported
+by the the CUDA toolkit in use.  Setting ``GPU_ARCH`` is no longer
+required and has no effect.
 
-A more detailed list can be found, for example,
-at `Wikipedia's CUDA article <https://en.wikipedia.org/wiki/CUDA#GPUs_supported>`_
+When compiling for CUDA or HIP with CUDA, version 12.0 or later of the
+CUDA toolkit is required and a GPU architecture of Pascal or later,
+which must *also* be supported by the CUDA toolkit (e.g. the Pascal
+and Volta architectures are only supported by CUDA up to version 12.8)
 
-CMake can detect which version of the CUDA toolkit is used and thus will
-try to include support for **all** major GPU architectures supported by
-this toolkit.  Thus the ``GPU_ARCH`` setting is merely an optimization, to
-have code for the preferred GPU architecture directly included rather
-than having to wait for the JIT compiler of the CUDA driver to translate
-it.  This behavior can be turned off (e.g. to speed up compilation) by
-setting ``CUDA_ENABLE_MULTIARCH`` to ``off``.
-
-When compiling for CUDA or HIP with CUDA, version 8.0 or later of the
-CUDA toolkit is required and a GPU architecture of Kepler or later,
-which must *also* be supported by the CUDA toolkit in use **and** the
-CUDA driver in use.  When compiling for OpenCL, OpenCL version 1.2 or
-later is required and the GPU must be supported by the GPU driver and
-OpenCL runtime bundled with the driver.
+When compiling for OpenCL, OpenCL version 1.2 or later is required and
+the GPU must be supported by the GPU driver and OpenCL runtime bundled
+with the driver.
 
 .. versionchanged:: TBD
 
-Building with ``GPU_API=cuda`` requires CMake version 3.27 or later,
-since the CUDA kernels are compiled through the CUDA language support of
-CMake rather than through the obsolete ``FindCUDA`` module.  The other
-back ends are not affected and can still be built with CMake 3.20.  As a
-consequence of this change, the host compiler used by ``nvcc`` is now
-selected with ``-D CMAKE_CUDA_HOST_COMPILER=/path/to/compiler``, the same
-way as for the other packages using CUDA.
+Building with ``GPU_API=cuda`` uses the native CUDA support in CMake
+(available since verison 3.27) and the host compiler used by ``nvcc`` is
+now selected with ``-D CMAKE_CUDA_HOST_COMPILER=/path/to/compiler``, the
+same way as for the other packages using CUDA.
 
 Please note that the GPU library accesses the CUDA driver library
 directly, so it needs to be linked with the CUDA driver library
@@ -374,9 +349,7 @@ liblammps.so.0, not found``.  This may be worked around by also setting:
 ``-DCMAKE_EXE_LINKER_FLAGS=-Wl,--unresolved-symbols=ignore-in-shared-libs``.
 
 To support the CUDA multi-process server (MPS) you can set the define
-``-DCUDA_MPS_SUPPORT``.  Please note that in this case you must **not**
-use the CUDA performance primitives and thus set the variable
-``CUDPP_OPT`` to empty.
+``-DCUDA_MPS_SUPPORT``.
 
 If you are compiling for OpenCL, the default setting is to download,
 build, and link with a static OpenCL ICD loader library and standard

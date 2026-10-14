@@ -315,9 +315,9 @@ deprecated and prints a warning.
 .. versionchanged:: TBD
 
 For ``GPU_API=cuda`` and ``GPU_API=hip`` with ``HIP_PLATFORM=nvcc``,
-LAMMPS will include support for **all** major GPU archictures supported
-by the the CUDA toolkit in use.  Setting ``GPU_ARCH`` is no longer
-required and has no effect.
+LAMMPS will include support for **all** major GPU architectures
+supported by the the CUDA toolkit in use.  Setting ``GPU_ARCH`` has no
+effect in this case.
 
 When compiling for CUDA or HIP with CUDA, version 12.0 or later of the
 CUDA toolkit is required and a GPU architecture of Pascal or later,
@@ -331,7 +331,7 @@ with the driver.
 .. versionchanged:: TBD
 
 Building with ``GPU_API=cuda`` uses the native CUDA support in CMake
-(available since verison 3.27) and the host compiler used by ``nvcc`` is
+(available since version 3.27) and the host compiler used by ``nvcc`` is
 now selected with ``-D CMAKE_CUDA_HOST_COMPILER=/path/to/compiler``, the
 same way as for the other packages using CUDA.
 

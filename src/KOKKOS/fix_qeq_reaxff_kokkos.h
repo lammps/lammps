@@ -19,6 +19,12 @@ FixStyle(qeq/reaxff/kk/host,FixQEqReaxFFKokkos<LMPHostType>);
 FixStyle(qeq/reax/kk,FixQEqReaxFFKokkos<LMPDeviceType>);
 FixStyle(qeq/reax/kk/device,FixQEqReaxFFKokkos<LMPDeviceType>);
 FixStyle(qeq/reax/kk/host,FixQEqReaxFFKokkos<LMPHostType>);
+FixStyle(qtpie/reaxff/kk,FixQEqReaxFFKokkos<LMPDeviceType>);
+FixStyle(qtpie/reaxff/kk/device,FixQEqReaxFFKokkos<LMPDeviceType>);
+FixStyle(qtpie/reaxff/kk/host,FixQEqReaxFFKokkos<LMPHostType>);
+FixStyle(qeq/rel/reaxff/kk,FixQEqReaxFFKokkos<LMPDeviceType>);
+FixStyle(qeq/rel/reaxff/kk/device,FixQEqReaxFFKokkos<LMPDeviceType>);
+FixStyle(qeq/rel/reaxff/kk/host,FixQEqReaxFFKokkos<LMPHostType>);
 // clang-format on
 #else
 
@@ -59,6 +65,8 @@ struct TagQEqDot3{};
 struct TagQEqSum1{};
 struct TagQEqSum2{};
 struct TagQEqCalculateQ{};
+struct TagQEqXLUpdate{};
+struct TagQEqChiEff{};
 struct TagQEqPackForwardComm{};
 struct TagQEqUnpackForwardComm{};
 struct TagQEqPackReverseComm{};
@@ -146,6 +154,18 @@ class FixQEqReaxFFKokkos : public FixQEqReaxFF, public KokkosBase {
 // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagQEqCalculateQ, const int&) const;
+
+// NOLINTNEXTLINE
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagQEqXLUpdate, const int&) const;
+
+// NOLINTNEXTLINE
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagQEqChiEff, const int&) const;
+
+// NOLINTNEXTLINE
+  KOKKOS_INLINE_FUNCTION
+  double efield_phi_k(int) const;
 
 // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
@@ -243,6 +263,7 @@ class FixQEqReaxFFKokkos : public FixQEqReaxFF, public KokkosBase {
 
   void grow_arrays(int) override;
   void copy_arrays(int, int, int) override;
+  void set_arrays(int) override;
   void sort_kokkos(Kokkos::BinSort<KeyViewType, BinOp> &Sorter) override;
   int pack_exchange(int, double *) override;
   int unpack_exchange(int, double *) override;
@@ -294,6 +315,25 @@ class FixQEqReaxFFKokkos : public FixQEqReaxFF, public KokkosBase {
   typename AT::t_kkfloat_2d d_s_hist, d_t_hist;
   HAT::t_double_2d_lr h_s_hist, h_t_hist;
   typename AT::t_kkfloat_2d_randomread r_s_hist, r_t_hist;
+
+  // auxiliary variables of the extended-Lagrangian propagation, always in double precision
+  DAT::tdual_double_2d_lr k_xls_hist, k_xlt_hist;
+  typename AT::t_double_2d_lr d_xls_hist, d_xlt_hist;
+  int xl_restart;      // 1 if the XL history is re-seeded in the current step
+  int nexchange;       // number of values per atom in the exchange buffer
+
+  // effective electronegativities of the QTPIE and QEQREL modes
+  int chi_eff_flag;    // 1 if the right-hand side uses the effective electronegativities
+  int efield_flag;     // 1 if there is an external electric field
+  double phi_factor;   // conversion of the field energy to eV
+  DAT::tdual_double_1d k_chi_eff;
+  typename AT::t_double_1d d_chi_eff;
+  DAT::tdual_double_2d k_olap_pre, k_olap_exp;
+  typename AT::t_double_2d d_olap_pre, d_olap_exp;
+  typename AT::t_neighbors_2d d_neighbors_olap;
+  typename AT::t_int_1d_randomread d_ilist_olap, d_numneigh_olap;
+  void calc_chi_eff() override;
+  void update_chi_kokkos();
 
   DAT::tdual_kkfloat_2d k_shield;
   typename AT::t_kkfloat_2d d_shield;

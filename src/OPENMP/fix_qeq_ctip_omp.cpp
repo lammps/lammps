@@ -118,6 +118,10 @@ void FixQEqCTIPOMP::init_matvec_thr()
       b_t[i]      = -1.0;
       t[i] = t_hist[i][2] + 3 * (t_hist[i][0] - t_hist[i][1]);
       s[i] = 4*(s_hist[i][0]+s_hist[i][2])-(6*s_hist[i][1]+s_hist[i][3]);
+    } else {
+      // atoms outside the group act as fixed charges on the s-solution only
+      s[i] = atom->q[i];
+      t[i] = 0.0;
     }
   }
 
@@ -152,19 +156,19 @@ void FixQEqCTIPOMP::compute_H_thr()
 #endif
   for (int ii = 0; ii < inum; ii++) {
     const int i = ilist[ii];
-    if (mask[i] & groupbit) {
-      const int *jlist = firstneigh[i];
-      const int jnum = numneigh[i];
-      int cnt = 0;
-      for (int jj = 0; jj < jnum; jj++) {
-        const int j = jlist[jj] & NEIGHMASK;
-        const double dx = x[j][0] - x[i][0];
-        const double dy = x[j][1] - x[i][1];
-        const double dz = x[j][2] - x[i][2];
-        if (dx*dx + dy*dy + dz*dz <= cutoff_sq) cnt++;
-      }
-      H.numnbrs[i] = cnt;
+    const bool igroup = mask[i] & groupbit;
+    const int *jlist = firstneigh[i];
+    const int jnum = numneigh[i];
+    int cnt = 0;
+    for (int jj = 0; jj < jnum; jj++) {
+      const int j = jlist[jj] & NEIGHMASK;
+      if (!igroup && !(mask[j] & groupbit)) continue;
+      const double dx = x[j][0] - x[i][0];
+      const double dy = x[j][1] - x[i][1];
+      const double dz = x[j][2] - x[i][2];
+      if (dx*dx + dy*dy + dz*dz <= cutoff_sq) cnt++;
     }
+    H.numnbrs[i] = cnt;
   }
 
   // serial sum-scan: assign contiguous CSR offsets in ilist order
@@ -172,10 +176,9 @@ void FixQEqCTIPOMP::compute_H_thr()
   m_fill = 0;
   for (int ii = 0; ii < inum; ii++) {
     const int i = ilist[ii];
-    if (mask[i] & groupbit) {
-      H.firstnbr[i] = m_fill;
-      m_fill += H.numnbrs[i];
-    }
+    // include the rows of atoms outside the group for their fixed charges
+    H.firstnbr[i] = m_fill;
+    m_fill += H.numnbrs[i];
   }
 
   // pass 2: fill each atom's contiguous block (race-free)
@@ -185,30 +188,30 @@ void FixQEqCTIPOMP::compute_H_thr()
 #endif
   for (int ii = 0; ii < inum; ii++) {
     const int i = ilist[ii];
-    if (mask[i] & groupbit) {
-      const int *jlist = firstneigh[i];
-      const int jnum = numneigh[i];
-      const int itype = type[i];
-      int mfill = H.firstnbr[i];
-      for (int jj = 0; jj < jnum; jj++) {
-        const int j = jlist[jj] & NEIGHMASK;
-        const double dx = x[j][0] - x[i][0];
-        const double dy = x[j][1] - x[i][1];
-        const double dz = x[j][2] - x[i][2];
-        const double r_sqr = dx*dx + dy*dy + dz*dz;
-        if (r_sqr <= cutoff_sq) {
-          const int jtype = type[j];
-          const double r = sqrt(r_sqr);
-          const double reff = cbrt(r_sqr * r + 1 / shieldcu[itype-1][jtype-1]);
-          const double erfcd = exp(-cdamp * cdamp * r_sqr);
-          const double tt = 1.0 / (1.0 + EWALD_P * cdamp * r);
-          const double erfcc = tt * (A1 + tt * (A2 + tt * (A3 + tt * (A4 + tt * A5)))) * erfcd;
-          H.jlist[mfill] = j;
-          H.val[mfill] = 0.5*force->qqr2e*(erfcc/r+1/reff-1/r-e_shift[itype-1][jtype-1]
-                          +f_shift[itype-1][jtype-1]*(r-cutoff)
-                          -s2d_shift[itype-1][jtype-1]*0.5*(r-cutoff)*(r-cutoff));
-          mfill++;
-        }
+    const bool igroup = mask[i] & groupbit;
+    const int *jlist = firstneigh[i];
+    const int jnum = numneigh[i];
+    const int itype = type[i];
+    int mfill = H.firstnbr[i];
+    for (int jj = 0; jj < jnum; jj++) {
+      const int j = jlist[jj] & NEIGHMASK;
+      if (!igroup && !(mask[j] & groupbit)) continue;
+      const double dx = x[j][0] - x[i][0];
+      const double dy = x[j][1] - x[i][1];
+      const double dz = x[j][2] - x[i][2];
+      const double r_sqr = dx*dx + dy*dy + dz*dz;
+      if (r_sqr <= cutoff_sq) {
+        const int jtype = type[j];
+        const double r = sqrt(r_sqr);
+        const double reff = cbrt(r_sqr * r + 1 / shieldcu[itype-1][jtype-1]);
+        const double erfcd = exp(-cdamp * cdamp * r_sqr);
+        const double tt = 1.0 / (1.0 + EWALD_P * cdamp * r);
+        const double erfcc = tt * (A1 + tt * (A2 + tt * (A3 + tt * (A4 + tt * A5)))) * erfcd;
+        H.jlist[mfill] = j;
+        H.val[mfill] = 0.5*force->qqr2e*(erfcc/r+1/reff-1/r-e_shift[itype-1][jtype-1]
+                        +f_shift[itype-1][jtype-1]*(r-cutoff)
+                        -s2d_shift[itype-1][jtype-1]*0.5*(r-cutoff)*(r-cutoff));
+        mfill++;
       }
     }
   }
@@ -253,6 +256,8 @@ void FixQEqCTIPOMP::sparse_matvec(sparse_matrix *A, double *x, double *b)
         } else {
           b[i] = (eta[type[i]]+2*omega[type[i]]-s2d_self[type[i]-1])*x[i];
         }
+      } else {
+        b[i] = 0.0;
       }
     }
 
@@ -260,7 +265,7 @@ void FixQEqCTIPOMP::sparse_matvec(sparse_matrix *A, double *x, double *b)
 #pragma omp for schedule(dynamic,50)
 #endif
     for (int i = nloc; i < na; ++i)
-      if (atom->mask[i] & groupbit) b[i] = 0.0;
+      b[i] = 0.0;
 
     for (int i = 0; i < na; ++i) b_t[i] = 0.0;
 
@@ -269,12 +274,11 @@ void FixQEqCTIPOMP::sparse_matvec(sparse_matrix *A, double *x, double *b)
 #pragma omp for schedule(dynamic,50)
 #endif
     for (int i = 0; i < nloc; ++i) {
-      if (atom->mask[i] & groupbit) {
-        for (int itr_j = A->firstnbr[i]; itr_j < A->firstnbr[i]+A->numnbrs[i]; itr_j++) {
-          int j = A->jlist[itr_j];
-          b[i] += A->val[itr_j] * x[j];
-          b_t[j] += A->val[itr_j] * x[i];
-        }
+      // include the rows of atoms outside the group for their fixed charges
+      for (int itr_j = A->firstnbr[i]; itr_j < A->firstnbr[i]+A->numnbrs[i]; itr_j++) {
+        int j = A->jlist[itr_j];
+        b[i] += A->val[itr_j] * x[j];
+        b_t[j] += A->val[itr_j] * x[i];
       }
     }
 

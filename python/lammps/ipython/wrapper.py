@@ -25,7 +25,7 @@ class wrapper(object):
   commands.
 
   There is no need to explicitly instantiate this class. Each instance
-  of :py:class:`lammps` has a :py:attr:`ipython <lammps.ipython>` property
+  of :py:class:`lammps` has a :py:attr:`ipython <lammps.lammps.ipython>` property
   that returns an instance.
 
   :param lmp: instance of the :py:class:`lammps` class
@@ -48,14 +48,14 @@ class wrapper(object):
     :type color: string
     :param diameter: name of property used to determine atom diameter
     :type diameter: string
-    :param size: dimensions of image
-    :type size: tuple (width, height)
-    :param view: view parameters
-    :type view: tuple (theta, phi)
-    :param center: center parameters
-    :type center: tuple (flag, center_x, center_y, center_z)
-    :param up: vector pointing to up direction
-    :type up: tuple (up_x, up_y, up_z)
+    :param size: dimensions of image as (width, height)
+    :type size: tuple
+    :param view: view parameters as (theta, phi)
+    :type view: tuple
+    :param center: center parameters as (flag, center_x, center_y, center_z)
+    :type center: tuple
+    :param up: vector pointing to up direction as (up_x, up_y, up_z)
+    :type up: tuple
     :param zoom: zoom factor
     :type zoom: float
     :param background_color: background color of scene

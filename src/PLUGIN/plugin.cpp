@@ -102,7 +102,7 @@ void plugin_auto_load(LAMMPS *lmp)
   for (const auto &plugin_dir : platform::list_pathenv("LAMMPS_PLUGIN_PATH")) {
     int count = 0;
     for (const auto &file : platform::list_directory(plugin_dir)) {
-      if (utils::strmatch(file, "\\plugin.so$"))
+      if (utils::strmatch(file, "plugin\\.so$"))
         count += plugin_load(platform::path_join(plugin_dir, file).c_str(), lmp);
     }
     if (lmp->comm->me == 0) utils::logmesg(lmp, "Loaded {} plugins from {}\n", count, plugin_dir);
@@ -396,7 +396,7 @@ static void plugin_unload_locked(const char *style, const char *name, LAMMPS *lm
 
     // must delete all compute instances using this compute style
 
-    for (const auto &icompute : lmp->modify->get_compute_by_style(name))
+    for (const auto &icompute : lmp->modify->get_compute_by_style(fmt::format("^{}$", name)))
       lmp->modify->delete_compute(icompute->id);
 
     Modify::compute_styles().clear_plugin(name);
@@ -405,7 +405,8 @@ static void plugin_unload_locked(const char *style, const char *name, LAMMPS *lm
 
     // must delete all fix instances using this fix style
 
-    for (const auto &ifix : lmp->modify->get_fix_by_style(name)) lmp->modify->delete_fix(ifix->id);
+    for (const auto &ifix : lmp->modify->get_fix_by_style(fmt::format("^{}$", name)))
+      lmp->modify->delete_fix(ifix->id);
 
     Modify::fix_styles().clear_plugin(name);
 

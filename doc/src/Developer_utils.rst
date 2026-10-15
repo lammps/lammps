@@ -548,7 +548,7 @@ potential file reader class requires a LAMMPS instance, requires to be
 run on MPI rank 0 only, will use the
 :cpp:func:`utils::get_potential_file_path
 <LAMMPS_NS::utils::get_potential_file_path>` function to look up and
-open the file, and will call the :cpp:class:`LAMMPS_NS::Error` class in
+open the file, and will call the :cpp:class:`!LAMMPS_NS::Error` class in
 case of failures to read or to convert numbers, so that LAMMPS will be
 aborted.  A third class, :cpp:class:`STLReader <LAMMPS_NS::STLReader>`,
 is specialized on reading triangle mesh data from files in STL format.

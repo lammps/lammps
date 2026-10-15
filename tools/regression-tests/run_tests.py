@@ -64,6 +64,11 @@ The following Python packages need to be installed into an activated environment
     source testing-env/bin/activate
     pip install numpy pyyaml
 
+Input scripts that use the LAMMPS python module from inside LAMMPS (e.g. those in
+examples/python) get the module from the python folder of this source tree, which is
+prepended to PYTHONPATH for the LAMMPS runs, so that an installed copy of the module
+for a different LAMMPS version cannot interfere.
+
 Example usage (aka, tests for this script):
 
     1) Simple use (using the provided tools/regression-tests/config.yaml and the examples/ folder at the top level)
@@ -1299,7 +1304,8 @@ def style_reason(category, name, package):
     input_file        : path of the input script
     missing_styles    : dictionary from compute_missing_styles()
     installed_packages: list of packages included in the binary (optional, used to
-                        check "package gpu/omp/intel/kokkos" commands)
+                        check "package gpu/omp/intel/kokkos" commands and the use of
+                        the python command or python-style variables)
 
     return the reason for skipping the input script, or an empty string
 '''
@@ -1322,6 +1328,18 @@ def incompatible_style_usage(input_file, missing_styles, installed_packages=None
                 if package and (package not in installed_packages):
                     return (f'uses the "package {tokens[1]}" command, which needs the '
                             f'{package} package that is not included in the tested binary')
+            # the python command and python-style variables exist in every binary,
+            # but only work when the PYTHON package is included
+            if installed_packages and ('PYTHON' not in installed_packages):
+                if cmd == 'python':
+                    what = 'the "python" command'
+                elif (cmd == 'variable') and (len(tokens) > 2) and (tokens[2] == 'python'):
+                    what = 'a python-style variable'
+                else:
+                    what = ''
+                if what:
+                    return (f'uses {what}, which needs the PYTHON package that is not '
+                            f'included in the tested binary')
             if cmd not in STYLE_TAKING_COMMANDS:
                 continue
             category, pos = STYLE_TAKING_COMMANDS[cmd]
@@ -2558,6 +2576,15 @@ if __name__ == "__main__":
     # logging
     logger = logging.getLogger(__name__)
     logging.basicConfig(filename=log_file, level=logging.INFO, filemode="w")
+
+    # input scripts that use the LAMMPS python module from inside LAMMPS (e.g. those in
+    # examples/python) must get the module from this source tree: an installed copy of
+    # the module may belong to a different LAMMPS version than the tested binary and then
+    # refuses to work.  The module in the source tree skips this version check.
+    python_dir = os.path.join(LAMMPS_DIR, 'python')
+    if os.path.isdir(os.path.join(python_dir, 'lammps')):
+        pythonpath = [p for p in os.environ.get('PYTHONPATH', '').split(os.pathsep) if p]
+        os.environ['PYTHONPATH'] = os.pathsep.join([python_dir] + pythonpath)
 
     # read in the configuration of the tests; it is needed for splitting the input
     # scripts over the workers as well, so it is read before anything else is done

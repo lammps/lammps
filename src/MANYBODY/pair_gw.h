@@ -36,7 +36,6 @@ class PairGW : public Pair {
 
   static constexpr int NPARAMS_PER_LINE = 17;
 
- protected:
   struct Param {
     double lam1, lam2, lam3;
     double c, d, h;
@@ -51,6 +50,7 @@ class PairGW : public Pair {
     double ZBLcut, ZBLexpscale;
   };
 
+ protected:
   Param *params;    // parameter set for an I-J-K interaction
   double cutmax;    // max cutoff for all elements
 

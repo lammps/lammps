@@ -37,7 +37,6 @@ class PairNb3bHarmonic : public Pair {
   static constexpr int NPARAMS_PER_LINE = 6;
   enum { HARMONIC = 0, SCREENED };
 
- protected:
   struct Param {
     double k_theta, theta0, cutoff;
     double invrho;    // for screened harmonic style
@@ -45,6 +44,7 @@ class PairNb3bHarmonic : public Pair {
     int ielement, jelement, kelement;
   };
 
+ protected:
   double cutmax;    // max cutoff for all elements
   Param *params;    // parameter set for an I-J-K interaction
   int variant;

@@ -76,6 +76,14 @@ class PairSWAngleTableKokkos : public PairSWAngleTable {
             const KK_FLOAT &evdwl, const KK_FLOAT &ecoul,
                        KK_ACC_FLOAT *fj, KK_ACC_FLOAT *fk, KK_FLOAT *drji, KK_FLOAT *drki) const;
 
+  // angle table settings of an I-J-K parameter set; must be public, since nvcc
+  // refuses a private or protected type as template argument of a kernel
+
+  struct TableParamKokkos {
+    int tabstyle, tablength;
+    KK_FLOAT invdelta, deltasq6;
+  };
+
  protected:
   typename AT::t_int_3d_randomread d_elem3param;
   typename AT::t_int_1d_randomread d_map;
@@ -102,11 +110,6 @@ class PairSWAngleTableKokkos : public PairSWAngleTable {
   void uf_lookup_kk(const int&, const KK_FLOAT&, KK_FLOAT&, KK_FLOAT&) const;
 
   // angle tables of all I-J-K parameter sets, padded to the longest table
-
-  struct TableParamKokkos {
-    int tabstyle, tablength;
-    KK_FLOAT invdelta, deltasq6;
-  };
 
   typedef Kokkos::DualView<TableParamKokkos*,DeviceType> tdual_tableparam_1d;
   typename tdual_tableparam_1d::t_dev d_table_params;

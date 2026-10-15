@@ -69,16 +69,17 @@ class PairThreebodyTableKokkos : public PairThreebodyTable {
             const KK_FLOAT &evdwl, const KK_FLOAT &ecoul,
                        KK_ACC_FLOAT *fj, KK_ACC_FLOAT *fk, KK_FLOAT *drji, KK_FLOAT *drki) const;
 
- protected:
-  typename AT::t_int_3d_randomread d_elem3param;
-  typename AT::t_int_1d_randomread d_map;
-
-  // parameters of an I-J-K interaction needed for the table lookup
+  // parameters of an I-J-K interaction needed for the table lookup; must be public,
+  // since nvcc refuses a private or protected type as template argument of a kernel
 
   struct TableParamKokkos {
     KK_FLOAT cutsq, rmin, rmax, dr, dtheta;
     int ninput, symmetric;
   };
+
+ protected:
+  typename AT::t_int_3d_randomread d_elem3param;
+  typename AT::t_int_1d_randomread d_map;
 
   typedef Kokkos::DualView<TableParamKokkos*,DeviceType> tdual_param_1d;
   typedef typename tdual_param_1d::t_dev t_param_1d;

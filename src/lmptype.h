@@ -268,7 +268,7 @@ struct multitype {
    * This enum must be kept in sync with the corresponding enum or constants
    * in ``python/lammps/constants.py``, ``fortran/lammps.f90``, ``tools/swig/lammps.i``,
    * ``src/library.h``, and ``examples/COUPLE/plugin/liblammpsplugin.h`` */
-  enum _LMP_DATATYPE_CONST {
+  enum {
     LAMMPS_NONE = -1,     /*!< no data type assigned (yet) */
     LAMMPS_INT = 0,       /*!< 32-bit integer (array) */
     LAMMPS_INT_2D = 1,    /*!< two-dimensional 32-bit integer array */

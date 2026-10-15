@@ -121,9 +121,6 @@ class Atom {
   /// Return the total amount of host memory used by class in bytes
   double host_memory_usage() const;
 
-  /// Sort arrays for neighbor list calculation on device (no longer supported)
-  void sort_neighbor(const int num_atoms);
-
   /// Add copy times to timers
   inline void acc_timers() {
     time_pos.add_to_total();
@@ -531,9 +528,7 @@ class Atom {
   UCL_Vector<int,int> type_cast;
   #endif
 
-  /// Cell list identifiers for device nbor builds
-  UCL_D_Vec<unsigned> dev_cell_id;
-  /// Cell list identifiers for device nbor builds
+  /// Particle identifiers sorted by cell for device nbor builds
   UCL_D_Vec<int> dev_particle_id;
 
   /// Atom tag information for device nbor builds

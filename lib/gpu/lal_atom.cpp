@@ -26,9 +26,7 @@ AtomT::Atom() : _compiled(false),_allocated(false),
 template <class numtyp, class acctyp>
 int AtomT::bytes_per_atom() const {
   int id_space=0;
-  if (_gpu_nbor==1)
-    id_space=2;
-  else if (_gpu_nbor==2)
+  if (_gpu_nbor==2)
     id_space=4;
   int bytes=4*sizeof(numtyp)+id_space*sizeof(int);
   if (_rot)
@@ -98,15 +96,10 @@ bool AtomT::alloc(const int nall) {
                                         UCL_READ_ONLY)==UCL_SUCCESS);
       gpu_bytes+=dev_tag.row_bytes();
     }
-    if (_gpu_nbor==1) {
-      success=success && (dev_cell_id.alloc(_max_atoms,*dev)==UCL_SUCCESS);
-      gpu_bytes+=dev_cell_id.row_bytes();
-    } else {
-      success=success && (host_particle_id.alloc(_max_atoms,*dev,
-                                                 UCL_WRITE_ONLY)==UCL_SUCCESS);
-      success=success &&
-             (host_cell_id.alloc(_max_atoms,*dev,UCL_NOT_PINNED)==UCL_SUCCESS);
-    }
+    success=success && (host_particle_id.alloc(_max_atoms,*dev,
+                                               UCL_WRITE_ONLY)==UCL_SUCCESS);
+    success=success &&
+           (host_cell_id.alloc(_max_atoms,*dev,UCL_NOT_PINNED)==UCL_SUCCESS);
     if (_gpu_nbor==2 && _host_view)
       dev_particle_id.view(host_particle_id);
     else
@@ -185,15 +178,10 @@ bool AtomT::add_fields(const bool charge, const bool rot,
                                         UCL_READ_ONLY)==UCL_SUCCESS);
       gpu_bytes+=dev_tag.row_bytes();
     }
-    if (_gpu_nbor==1) {
-      success=success && (dev_cell_id.alloc(_max_atoms,*dev)==UCL_SUCCESS);
-      gpu_bytes+=dev_cell_id.row_bytes();
-    } else {
-      success=success && (host_particle_id.alloc(_max_atoms,*dev,
-                                                 UCL_WRITE_ONLY)==UCL_SUCCESS);
-      success=success &&
-             (host_cell_id.alloc(_max_atoms,*dev,UCL_NOT_PINNED)==UCL_SUCCESS);
-    }
+    success=success && (host_particle_id.alloc(_max_atoms,*dev,
+                                               UCL_WRITE_ONLY)==UCL_SUCCESS);
+    success=success &&
+           (host_cell_id.alloc(_max_atoms,*dev,UCL_NOT_PINNED)==UCL_SUCCESS);
   }
 
   return success;
@@ -265,7 +253,6 @@ void AtomT::clear_resize() {
   if (_extra_fields>0)
     extra.clear();
 
-  dev_cell_id.clear();
   dev_particle_id.clear();
   dev_tag.clear();
   #ifdef GPU_CAST
@@ -314,12 +301,6 @@ double AtomT::host_memory_usage() const {
     atom_bytes+=_extra_fields;
   return _max_atoms*atom_bytes*sizeof(numtyp)+sizeof(Atom<numtyp,acctyp>);
 }
-
-// Sort arrays for neighbor list calculation on the device. Sorting on the
-// device (with CUDPP or hipCUB) is no longer supported, so binning on the
-// device (gpu_nbor == 1) is always replaced by binning on the host
-template <class numtyp, class acctyp>
-void AtomT::sort_neighbor(const int /*num_atoms*/) {}
 
 #ifdef GPU_CAST
 #if defined(USE_OPENCL)

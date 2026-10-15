@@ -96,7 +96,12 @@ int DeviceT::init_device(MPI_Comm /*world*/, MPI_Comm replica, const int ngpu,
   _comm_replica=replica;
   int ndevices=ngpu;
   _first_device=first_gpu_id;
-  _gpu_mode=gpu_mode;
+  // binning on the device (neigh yes) is no longer supported: the neighbor
+  // list is always built on the device with binning on the host (neigh hybrid)
+  if (gpu_mode==Device<numtyp,acctyp>::GPU_NEIGH)
+    _gpu_mode=Device<numtyp,acctyp>::GPU_HYB_NEIGH;
+  else
+    _gpu_mode=gpu_mode;
   _user_cell_size=user_cell_size;
   _block_pair=block_pair;
 
@@ -521,21 +526,8 @@ int DeviceT::init(Answer<numtyp,acctyp> &ans, const bool charge,
   // Initial number of local particles
 
   int gpu_nbor=0;
-  if (_gpu_mode==Device<numtyp,acctyp>::GPU_NEIGH)
-    gpu_nbor=1;
-  else if (_gpu_mode==Device<numtyp,acctyp>::GPU_HYB_NEIGH)
+  if (_gpu_mode==Device<numtyp,acctyp>::GPU_HYB_NEIGH)
     gpu_nbor=2;
-
-  // NOTE: enforce the hybrid mode (binning on the CPU) since
-  // binning on the device requires sorting on the device,
-  // which is no longer supported
-  if (gpu_nbor==1)
-    gpu_nbor=2;
-  // or when the device supports subgroups
-  #ifndef LAL_USE_OLD_NEIGHBOR
-  if (gpu_nbor==1)
-    gpu_nbor=2;
-  #endif
 
   if (_init_count==0) {
     // Initialize atom and nbor data
@@ -603,22 +595,9 @@ int DeviceT::init_nbor(Neighbor *nbor, const int nlocal,
                        const bool pre_cut, const int threads_per_atom,
                        const bool ilist_map) {
 
-  // NOTE: enforce the hybrid mode (binning on the CPU) since
-  // binning on the device requires sorting on the device,
-  // which is no longer supported
   int gpu_nbor=0;
-  if (_gpu_mode==Device<numtyp,acctyp>::GPU_NEIGH)
-    gpu_nbor=1;
-  else if (_gpu_mode==Device<numtyp,acctyp>::GPU_HYB_NEIGH)
+  if (_gpu_mode==Device<numtyp,acctyp>::GPU_HYB_NEIGH)
     gpu_nbor=2;
-  if (gpu_nbor==1) {
-    gpu_nbor=2;
-    _gpu_mode=Device<numtyp,acctyp>::GPU_HYB_NEIGH;
-  }
-  #ifndef LAL_USE_OLD_NEIGHBOR
-  if (gpu_nbor==1)
-    gpu_nbor=2;
-  #endif
 
   #ifdef USE_OPENCL
   if (_ocl_config_name == "AMD_GPU" && gpu->shared_memory(_first_device) && gpu_nbor > 0)
@@ -627,7 +606,7 @@ int DeviceT::init_nbor(Neighbor *nbor, const int nlocal,
 
   if (!nbor->init(&_neighbor_shared,nlocal,host_nlocal,max_nbors,maxspecial,
                   *gpu,gpu_nbor,gpu_host,pre_cut,_block_cell_2d,
-                  _block_cell_id, _block_nbor_build, threads_per_atom,
+                  _block_nbor_build, threads_per_atom,
                   _simd_size, _time_device, compile_string(), ilist_map))
     return -3;
 
@@ -930,10 +909,6 @@ void DeviceT::output_times(UCL_Timer &time_pair, Answer<numtyp,acctyp> &ans,
         fprintf(screen,"Neigh mode:      Hybrid (binning on host)");
         if (_use_old_nbor_build == 1) fprintf(screen," - legacy.\n");
         else fprintf(screen," with subgroup support.\n");
-      } else if (nbor.gpu_nbor()==1) {
-        fprintf(screen,"Neigh mode:      Device");
-        if (_use_old_nbor_build == 1) fprintf(screen," - legacy.\n");
-        else fprintf(screen," - with subgroup support.\n");
       } else if (nbor.gpu_nbor()==0)
         fprintf(screen,"Neigh mode:      Host.\n");
 

@@ -208,7 +208,8 @@ class Device {
     gpu_barrier();
     #endif
   }
-  /// Return the 'mode' for acceleration: GPU_FORCE, GPU_NEIGH or GPU_HYB_NEIGH
+  /// Return the 'mode' for acceleration: GPU_FORCE or GPU_HYB_NEIGH
+  /// (GPU_NEIGH is always replaced by GPU_HYB_NEIGH during initialization)
   inline int gpu_mode() const { return _gpu_mode; }
   /// Index of first device used by a node
   inline int first_device() const { return _first_device; }

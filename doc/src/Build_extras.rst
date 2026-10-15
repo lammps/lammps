@@ -336,7 +336,15 @@ with the driver.
 Building with ``GPU_API=cuda`` uses the native CUDA support in CMake
 (available since version 3.27) and the host compiler used by ``nvcc`` is
 now selected with ``-D CMAKE_CUDA_HOST_COMPILER=/path/to/compiler``, the
-same way as for the other packages using CUDA.
+same way as for the other packages using CUDA.  This setting is required
+when the default C++ compiler is newer than what the CUDA toolkit
+supports (for example, CUDA 12.x does not support GCC 15 and the build
+fails with errors in the C++ standard library headers), since the
+"unsupported compiler" check of ``nvcc`` is bypassed but the compiler
+may still be incompatible.  When ``GPU_ARCH`` is a list of architecture
+numbers, the CMake conventions apply: ``70`` includes both the compiled
+machine code and the intermediate PTX code for the architecture,
+``70-real`` only the machine code.
 
 Please note that the GPU library accesses the CUDA driver library
 directly, so it needs to be linked with the CUDA driver library

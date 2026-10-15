@@ -370,9 +370,10 @@ ocl_get_devices).  OpenCL version 1.2 or later is required.
 
 .. versionchanged:: TBD
 
-Building with ``GPU_API=hip`` for AMD GPUs (``HIP_PLATFORM=amd``) uses
-the native HIP support in CMake, which requires the clang-based HIP
-compiler from ROCm.  CMake locates this compiler through the ROCm
+Building with ``GPU_API=hip`` requires ROCm version 6.0 or later
+(tested with versions 6.4 and 7.1).  For AMD GPUs (``HIP_PLATFORM=amd``)
+the build uses the native HIP support in CMake, which requires the
+clang-based HIP compiler from ROCm.  CMake locates this compiler through the ROCm
 installation; a different compiler can be selected with
 ``-D CMAKE_HIP_COMPILER=/path/to/clang++``.  The ``GPU_ARCH`` setting
 can be a single GPU architecture or a semicolon-separated list of
@@ -384,7 +385,10 @@ It is no longer required to use ``hipcc`` as the C++ compiler for the
 LAMMPS sources.  Compiling with ``HIP_PLATFORM=nvidia`` (``nvcc`` is
 accepted as an alias) or ``HIP_PLATFORM=spirv`` continues to use ``hipcc``
 to compile the GPU kernels; the platform and the location of the CUDA
-toolkit are passed to ``hipcc`` by the build system.
+toolkit are passed to ``hipcc`` by the build system.  ``HIP_PLATFORM=nvidia``
+additionally requires the HIP header files for NVIDIA GPUs from the
+`hipother project <https://github.com/ROCm/hipother>`_, which are not
+included in all ROCm distributions.
 
 The GPU library has some multi-thread support using OpenMP.  If LAMMPS
 is built with ``-D BUILD_OMP=on`` this will also be enabled.

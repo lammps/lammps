@@ -236,6 +236,10 @@ elseif(GPU_API STREQUAL "HIP")
   set(HIP_ENV ${CMAKE_COMMAND} -E env HIP_PLATFORM=${HIP_PLATFORM})
 
   find_package(hip REQUIRED)
+  # chipStar (spirv) has its own version numbering
+  if((NOT HIP_PLATFORM STREQUAL "spirv") AND (hip_VERSION VERSION_LESS 6.0))
+    message(FATAL_ERROR "HIP (ROCm) version 6.0 or later is required, found version ${hip_VERSION}")
+  endif()
 
   # GPU_ARCH is the canonical architecture setting for all GPU_API backends.
   # HIP_ARCH is still accepted for backward compatibility but is deprecated.

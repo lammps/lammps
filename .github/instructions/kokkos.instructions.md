@@ -159,7 +159,7 @@ CPU base's bare helper creation -- prefer that pattern for new styles.
 - `.github/dev-docs/kokkos-porting-guide.md` -- pair/fix template skeletons and the full
   lessons-learned collection (custom kernels, wall styles, thermostat/barostat and
   temperature-compute port patterns, device RNG, GPU-only debugging methods).
-- `.github/dev-docs/kokkos-porting-backlog.md` -- what remains to port and where open work
+- `.github/dev-docs/accelerator-porting-backlog.md` -- what remains to port and where open work
   lives; status tables go stale, so trust the tree (`ls src/KOKKOS/`, `git log`) over any
   table.
 - Build and test commands: `.github/copilot-instructions.md`; the KOKKOS-specific test

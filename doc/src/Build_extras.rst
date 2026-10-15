@@ -314,15 +314,21 @@ deprecated and prints a warning.
 
 .. versionchanged:: TBD
 
-For ``GPU_API=cuda`` and ``GPU_API=hip`` with ``HIP_PLATFORM=nvcc``,
-LAMMPS will include support for **all** major GPU architectures
-supported by the the CUDA toolkit in use.  Setting ``GPU_ARCH`` has no
-effect in this case.
+For ``GPU_API=cuda`` or ``GPU_API=hip`` with ``HIP_PLATFORM=nvcc``, the
+supported ``GPU_ARCH`` setting for different GPU hardware are as follows:
+
+* ``all-major`` for including support for all major architectures supported by the CUDA toolkit (default)
+* ``all`` for including support all GPU architectures supported by the CUDA toolkit
+* a single number or a list of numbers of individual GPU architectures, e.g. ``60;70;75;80;90``.
 
 When compiling for CUDA or HIP with CUDA, version 12.0 or later of the
-CUDA toolkit is required and a GPU architecture of Pascal or later,
-which must *also* be supported by the CUDA toolkit (e.g. the Pascal
-and Volta architectures are only supported by CUDA up to version 12.8)
+CUDA toolkit is required and a GPU architecture of Pascal (60) or later,
+which must *also* be supported by the CUDA toolkit (e.g. the Pascal (60)
+and Volta (70) architectures are only supported by CUDA up to version
+12.8); the Blackwell (100;103;120) architecture requires at least CUDA
+version 12.8.  A detailed list of Nvidia GPU architectures and
+compatible CUDA toolkits can be found in `Wikipedia's CUDA article
+<https://en.wikipedia.org/wiki/CUDA#GPUs_supported>`_.
 
 When compiling for OpenCL, OpenCL version 1.2 or later is required and
 the GPU must be supported by the GPU driver and OpenCL runtime bundled

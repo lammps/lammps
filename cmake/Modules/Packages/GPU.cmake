@@ -1,4 +1,7 @@
-
+# require setting CMAKE_CUDA_ARCHITECTURES
+if(POLICY CMP0104)
+  cmake_policy(SET CMP0104 NEW)
+endif()
 # set policy to use the time of extraction as timestamps of files unpacked from downloaded
 # archives, so that updating an archive version triggers rebuilding all dependent objects
  if(POLICY CMP0135)
@@ -50,6 +53,10 @@ file(GLOB GPU_LIB_SOURCES CONFIGURE_DEPENDS ${LAMMPS_LIB_SOURCE_DIR}/gpu/[^.]*.c
 file(MAKE_DIRECTORY ${LAMMPS_LIB_BINARY_DIR}/gpu)
 
 if(GPU_API STREQUAL "CUDA")
+  # GPU_ARCH is the canonical LAMMPS GPU architecture setting variable for all GPU_API backends.
+  set(GPU_ARCH "all-major" CACHE STRING "LAMMPS GPU architecture for CUDA. Use 'all', 'all-major', or a list of numbers e.g. '50;70;72;80'")
+  set(CMAKE_CUDA_ARCHITECTURES "${GPU_ARCH}")
+
   # nvcc refuses to work with host compilers that it does not know about and
   # LAMMPS has always overridden that check.  The flag has to be added before
   # the CUDA language is enabled, so that the compiler identification and the
@@ -74,10 +81,6 @@ if(GPU_API STREQUAL "CUDA")
   if(CUDA_MPS_SUPPORT)
     set(GPU_CUDA_MPS_FLAGS "-DCUDA_MPS_SUPPORT")
   endif()
-
-  # GPU_ARCH is the canonical architecture setting for all GPU_API backends.
-  set(GPU_ARCH "all")
-  set(GPU_CUDA_ARCH "all")
 
   # ensure that no *cubin.h files exist from a compile in the lib/gpu folder
   file(GLOB GPU_LIB_OLD_CUBIN_HEADERS CONFIGURE_DEPENDS ${LAMMPS_LIB_SOURCE_DIR}/gpu/*_cubin.h)
@@ -235,13 +238,12 @@ elseif(GPU_API STREQUAL "HIP")
 
   if(HIP_PLATFORM STREQUAL "amd")
     set(GPU_ARCH "gfx906" CACHE STRING "LAMMPS GPU architecture (e.g. gfx90a for HIP/AMD)")
-    set(HIP_ARCH "${GPU_ARCH}")
   elseif(HIP_PLATFORM STREQUAL "spirv")
     set(GPU_ARCH "spirv" CACHE STRING "LAMMPS GPU architecture")
-    set(HIP_ARCH "${GPU_ARCH}")
   elseif(HIP_PLATFORM STREQUAL "nvcc")
+    set(GPU_ARCH "all-major" CACHE STRING "LAMMPS GPU architecture for CUDA. Use 'all', 'all-major', or a list of numbers e.g. '50;70;72;80'")
+    set(CMAKE_CUDA_ARCHITECTURES "${GPU_ARCH}")
     find_package(CUDAToolkit REQUIRED)
-    set(GPU_ARCH "all" CACHE STRING "LAMMPS GPU architecture")
     if(CUDAToolkit_VERSION VERSION_LESS 12.0)
       message(FATAL_ERROR "CUDA Toolkit version 12.0 or later is required")
     elseif(CUDAToolkit_VERSION VERSION_GREATER_EQUAL "14.0")
@@ -267,12 +269,12 @@ elseif(GPU_API STREQUAL "HIP")
 
         if(HIP_COMPILER STREQUAL "clang")
           add_custom_command(OUTPUT ${CUBIN_FILE}
-            VERBATIM COMMAND ${HIP_HIPCC_EXECUTABLE} --genco --offload-arch=${HIP_ARCH} -O3 -DUSE_HIP -D_${GPU_PREC_SETTING} -DLAMMPS_${LAMMPS_SIZES} -I${LAMMPS_LIB_SOURCE_DIR}/gpu -o ${CUBIN_FILE} ${CU_CPP_FILE}
+            VERBATIM COMMAND ${HIP_HIPCC_EXECUTABLE} --genco --offload-arch=${GPU_ARCH} -O3 -DUSE_HIP -D_${GPU_PREC_SETTING} -DLAMMPS_${LAMMPS_SIZES} -I${LAMMPS_LIB_SOURCE_DIR}/gpu -o ${CUBIN_FILE} ${CU_CPP_FILE}
             DEPENDS ${CU_CPP_FILE}
             COMMENT "Generating ${CU_NAME}.cubin")
         else()
           add_custom_command(OUTPUT ${CUBIN_FILE}
-            VERBATIM COMMAND ${HIP_HIPCC_EXECUTABLE} --genco -t="${HIP_ARCH}" -f=\"-O3 -DUSE_HIP -D_${GPU_PREC_SETTING} -DLAMMPS_${LAMMPS_SIZES} -I${LAMMPS_LIB_SOURCE_DIR}/gpu\" -o ${CUBIN_FILE} ${CU_CPP_FILE}
+            VERBATIM COMMAND ${HIP_HIPCC_EXECUTABLE} --genco -t="${GPU_ARCH}" -f=\"-O3 -DUSE_HIP -D_${GPU_PREC_SETTING} -DLAMMPS_${LAMMPS_SIZES} -I${LAMMPS_LIB_SOURCE_DIR}/gpu\" -o ${CUBIN_FILE} ${CU_CPP_FILE}
             DEPENDS ${CU_CPP_FILE}
             COMMENT "Generating ${CU_NAME}.cubin")
         endif()
@@ -305,7 +307,7 @@ elseif(GPU_API STREQUAL "HIP")
   target_compile_definitions(gpu PRIVATE -DUSE_HIP -D_${GPU_PREC_SETTING})
   # SPIR-V (chipStar) gives no warp-synchronous guarantee, so the device-side
   # block-wide energy/virial reduction yields NaN; accumulate it on the host.
-  if(HIP_ARCH STREQUAL "spirv")
+  if(GPU_ARCH STREQUAL "spirv")
     target_compile_definitions(gpu PRIVATE -DLAL_NO_BLOCK_REDUCE)
   endif()
   if(GPU_DEBUG)

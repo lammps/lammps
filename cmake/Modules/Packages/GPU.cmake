@@ -333,6 +333,17 @@ elseif(GPU_API STREQUAL "HIP")
       set(GPU_ARCH "spirv" CACHE STRING "LAMMPS GPU architecture")
     endif()
 
+    # The HIP CMake package of some distributions (e.g. Ubuntu 26.04) does not
+    # set HIP_HIPCC_EXECUTABLE, so look for hipcc if the package did not provide it
+    if(NOT HIP_HIPCC_EXECUTABLE)
+      unset(HIP_HIPCC_EXECUTABLE)
+      unset(HIP_HIPCC_EXECUTABLE CACHE)
+      find_program(HIP_HIPCC_EXECUTABLE NAMES hipcc HINTS ${hip_BIN_INSTALL_DIR} ${ROCM_PATH}/bin ENV HIP_PATH PATH_SUFFIXES bin)
+    endif()
+    if(NOT HIP_HIPCC_EXECUTABLE)
+      message(FATAL_ERROR "Could not find hipcc, use -DHIP_HIPCC_EXECUTABLE=/path/to/hipcc to help cmake finding it.")
+    endif()
+
     foreach(CU_FILE ${GPU_LIB_CU})
       get_filename_component(CU_NAME ${CU_FILE} NAME_WE)
       string(REGEX REPLACE "^lal_" "" CU_NAME "${CU_NAME}")

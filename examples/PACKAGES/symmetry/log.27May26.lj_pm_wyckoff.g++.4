@@ -1,0 +1,129 @@
+LAMMPS (30 Mar 2026 - Development - patch_30Mar2026-1074-g7f680de296-modified)
+  using 1 OpenMP thread(s) per MPI task
+# fix symmetry example: 3-atom LJ system in space group Pm with one atom
+# on a Wyckoff special position (the y=L/2 mirror plane).
+#
+# Atoms 1 and 2 are a general-position pair related by the y-mirror.
+# Atom 3 sits on the mirror plane at y = L/2; its motion in y is
+# constrained by the fix's Lagrange-multiplier projection so that
+# y_3 stays at L/2 to FP precision throughout the run.
+#
+# The companion file pm_wyckoff.json declares the 2-operator group and
+# both orbits, with site_symmetry: [2] on the Wyckoff orbit.
+
+units           lj
+atom_style      atomic
+boundary        p p p
+atom_modify     map array
+
+region          box block 0 8 0 8 0 8
+create_box      1 box
+Created orthogonal box = (0 0 0) to (8 8 8)
+  1 by 2 by 2 MPI processor grid
+
+# General-position pair (atoms 1 and 2 mirror each other in y).
+create_atoms    1 single 1.2 2.5 3.0
+Created 1 atoms
+  using lattice units in orthogonal box = (0 0 0) to (8 8 8)
+  create_atoms CPU = 0.000 seconds
+create_atoms    1 single 1.2 5.5 3.0
+Created 1 atoms
+  using lattice units in orthogonal box = (0 0 0) to (8 8 8)
+  create_atoms CPU = 0.000 seconds
+# Wyckoff atom on the mirror plane (y = L/2 = 4.0).
+create_atoms    1 single 1.5 4.0 2.0
+Created 1 atoms
+  using lattice units in orthogonal box = (0 0 0) to (8 8 8)
+  create_atoms CPU = 0.000 seconds
+
+mass            1 1.0
+pair_style      lj/cut 2.5
+pair_coeff      * * 1.0 1.0
+
+velocity        all create 0.7 12345 mom yes rot yes
+
+fix             1 all nve
+fix             sym all symmetry pm_wyckoff.json
+
+thermo          50
+thermo_style    custom step temp pe etotal press
+
+# Sanity checks: tag 3 stays on the mirror (y == 4.0) and tags 1+2 stay
+# mirror-related (y1 + y2 == 8 = L).
+variable        y3   equal y[3]
+variable        sumy equal y[1]+y[2]
+
+print           "pre-run  y3=${y3}   y1+y2=${sumy}   (must be 4 and 8)"
+pre-run  y3=4   y1+y2=8   (must be 4 and 8)
+run             200
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+
+- fix symmetry: https://doi.org/10.1021/acs.jctc.2c00401
+
+@Article{WhiteCoxSymmetricMD,
+author = {Cox, Sam and White, Andrew D.},
+title = {Symmetric Molecular Dynamics},
+journal = {Journal of Chemical Theory and Computation},
+volume = {18},
+number = {7},
+pages = {4077-4081},
+year = {2022},
+doi = {10.1021/acs.jctc.2c00401},
+note ={PMID: 35699649},
+url = {https://doi.org/10.1021/acs.jctc.2c00401},
+}
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 2.8
+  ghost atom cutoff = 2.8
+  binsize = 1.4, bins = 6 6 6
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cut, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 2.689 | 2.782 | 3.064 Mbytes
+   Step          Temp          PotEng         TotEng         Press     
+         0   0.52771631    -0.069648888    0.45806742     0.0012677037 
+        50   0.69972639    -0.24700814     0.45271825     0.00015007762
+       100   0.41410323     0.038688341    0.45279157     0.035888311  
+       150   0.75486888    -0.30213814     0.45273075    -0.00024819771
+       200   0.57653559    -0.12383348     0.45270211     0.00087455366
+Loop time of 0.00270063 on 4 procs for 200 steps with 3 atoms
+
+Performance: 31992591.345 tau/day, 74056.924 timesteps/s, 222.171 katom-step/s
+97.4% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 1.6523e-05 | 2.6052e-05 | 3.6492e-05 |   0.0 |  0.96
+Neigh   | 8.085e-06  | 1.1262e-05 | 1.6513e-05 |   0.0 |  0.42
+Comm    | 0.00078004 | 0.0012877  | 0.0017372  |   1.2 | 47.68
+Output  | 9.939e-06  | 1.1645e-05 | 1.4347e-05 |   0.0 |  0.43
+Modify  | 0.00062421 | 0.0010878  | 0.0015837  |   1.3 | 40.28
+Other   |            | 0.0002761  |            |       | 10.22
+
+Nlocal:           0.75 ave           2 max           0 min
+Histogram: 2 0 0 0 0 1 0 0 0 1
+Nghost:           6.25 ave           8 max           4 min
+Histogram: 1 0 1 0 0 0 0 0 0 2
+Neighs:           0.75 ave           2 max           0 min
+Histogram: 2 0 0 0 0 1 0 0 0 1
+
+Total # of neighbors = 3
+Ave neighs/atom = 1
+Neighbor list builds = 9
+Dangerous builds = 0
+print           "post-run y3=${y3}   y1+y2=${sumy}   (must be 4 and 8)"
+post-run y3=4   y1+y2=8   (must be 4 and 8)
+Total wall time: 0:00:00

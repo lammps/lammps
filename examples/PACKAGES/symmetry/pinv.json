@@ -1,0 +1,17 @@
+{
+  "_comment": "Space group P-1 (No. 2): triclinic, inversion through the cell origin (lamda = 0). Companion to in.lj_pinv.",
+  "group_name": "P-1",
+  "lattice":    "triclinic",
+
+  "ops": [
+    { "R": [[ 1, 0, 0], [ 0, 1, 0], [ 0, 0, 1]], "t": [0, 0, 0] },
+    { "R": [[-1, 0, 0], [ 0,-1, 0], [ 0, 0,-1]], "t": [0, 0, 0] }
+  ],
+
+  "orbits": [
+    { "tags": [1, 5] },
+    { "tags": [2, 6] },
+    { "tags": [3, 7] },
+    { "tags": [4, 8] }
+  ]
+}

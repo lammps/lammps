@@ -123,6 +123,11 @@ if(Python_EXECUTABLE)
            WORKING_DIRECTORY ${EXECUTABLE_OUTPUT_PATH})
   set_tests_properties(PythonScatterGather PROPERTIES ENVIRONMENT "${PYTHON_TEST_ENVIRONMENT}")
 
+  add_test(NAME PythonFixSymmetry
+           COMMAND ${PYTHON_TEST_RUNNER} ${CMAKE_CURRENT_SOURCE_DIR}/python-fix-symmetry.py -v
+           WORKING_DIRECTORY ${EXECUTABLE_OUTPUT_PATH})
+  set_tests_properties(PythonFixSymmetry PROPERTIES ENVIRONMENT "${PYTHON_TEST_ENVIRONMENT}")
+
 else()
   message(STATUS "Skipping Tests for the LAMMPS Python Module: no suitable Python interpreter")
 endif()

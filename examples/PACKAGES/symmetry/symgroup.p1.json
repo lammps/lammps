@@ -1,0 +1,14 @@
+{
+  "_comment": "Space group P1 (Hermann-Mauguin No. 1) - triclinic, identity only.",
+  "_comment2": "Trivial group: fix symmetry with this file is a no-op other than validating that the box is triclinic.",
+
+  "group_name": "P1",
+  "lattice":    "triclinic",
+
+  "ops": [
+    { "R": [[1, 0, 0], [0, 1, 0], [0, 0, 1]],
+      "t": [0, 0, 0] }
+  ],
+
+  "orbits": []
+}

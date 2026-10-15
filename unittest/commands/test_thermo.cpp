@@ -187,16 +187,18 @@ TEST_F(ThermoTest, Custom)
         command("thermo_modify format float %.8g");
     });
     auto output = run(5);
+    // the header line is too long for a single pattern (max. 255 elements),
+    // so it is checked in overlapping pieces that share one column name
     ASSERT_MATCH(output, "Step +Elapsed +Elaplong +Dt +Time +CPU +T/CPU +S/CPU +CPULeft +Part "
-                      "+TimeoutLeft +Atoms"
-                      " +Temp +Press +PotEng +KinEng +TotEng +Enthalpy +E_vdwl +E_coul +E_pair "
-                      "+E_bond +E_angle +E_dihed"
-                      " +E_impro +E_mol +E_long +E_tail +Volume +Density +Lx +Ly +Lz +Xlo +Xhi +Ylo"
-                      " +Yhi +Zlo +Zhi +Xy +Xz +Yz +Xlat +Ylat +Zlat +Bonds +Angles +Diheds"
-                      " +Impros +Pxx +Pyy +Pzz +Pxy +Pxz +Pyz +Fmax +Fnorm +Nbuild +Ndanger +Cella"
-                      " +Cellb +Cellc +CellAlpha +CellBeta +CellGamma +Ecouple +Econserve +c_ke "
-                      "+c_rdc\\[2\\] +f_ave1 +f_ave\\[1\\] +f_ave\\[2\\]"
-                      " +v_eq +v_vec\\[2\\]");
+                         "+TimeoutLeft +Atoms +Temp +Press +PotEng +KinEng");
+    ASSERT_MATCH(output, "KinEng +TotEng +Enthalpy +E_vdwl +E_coul +E_pair +E_bond +E_angle "
+                         "+E_dihed +E_impro +E_mol +E_long +E_tail +Volume");
+    ASSERT_MATCH(output, "Volume +Density +Lx +Ly +Lz +Xlo +Xhi +Ylo +Yhi +Zlo +Zhi +Xy +Xz +Yz "
+                         "+Xlat +Ylat +Zlat +Bonds +Angles +Diheds +Impros");
+    ASSERT_MATCH(output, "Impros +Pxx +Pyy +Pzz +Pxy +Pxz +Pyz +Fmax +Fnorm +Nbuild +Ndanger "
+                         "+Cella +Cellb +Cellc +CellAlpha +CellBeta +CellGamma");
+    ASSERT_MATCH(output, "CellGamma +Ecouple +Econserve +c_ke +c_rdc\\[2\\] +f_ave1 +f_ave\\[1\\] "
+                         "+f_ave\\[2\\] +v_eq +v_vec\\[2\\]");
 
     // consistency checks through the variable interface of the thermo keywords
     ASSERT_NEAR(get_variable_value("eq"), 2.0 * lmp->input->variable->compute_equal("temp"),

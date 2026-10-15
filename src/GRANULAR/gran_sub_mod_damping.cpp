@@ -14,11 +14,11 @@
 #include "gran_sub_mod_damping.h"
 
 #include "error.h"
-#include "gran_sub_mod_normal.h"
 #include "fix_granular_mdr.h"
+#include "gran_sub_mod_normal.h"
 #include "granular_model.h"
-#include "math_special.h"
 #include "math_const.h"
+#include "math_special.h"
 
 #include <cmath>
 
@@ -30,8 +30,8 @@ using MathSpecial::cube;
 using MathSpecial::powint;
 using MathSpecial::square;
 
-static constexpr double TWOROOTFIVEBYSIX = 1.82574185835055380345;      // 2sqrt(5/6)
-static constexpr double ROOTTHREEBYTWO = 1.22474487139158894067;        // sqrt(3/2)
+static constexpr double TWOROOTFIVEBYSIX = 1.82574185835055380345;    // 2sqrt(5/6)
+static constexpr double ROOTTHREEBYTWO = 1.22474487139158894067;      // sqrt(3/2)
 
 /* ----------------------------------------------------------------------
    Default damping model
@@ -157,7 +157,8 @@ double GranSubModDampingTsuji::calculate_forces()
    Coefficient of restitution damping
 ------------------------------------------------------------------------- */
 
-GranSubModDampingCoeffRestitution::GranSubModDampingCoeffRestitution(GranularModel *gm, LAMMPS *lmp) :
+GranSubModDampingCoeffRestitution::GranSubModDampingCoeffRestitution(GranularModel *gm,
+                                                                     LAMMPS *lmp) :
     GranSubModDampingTsuji(gm, lmp)
 {
 }
@@ -190,7 +191,7 @@ GranSubModDampingMDR::GranSubModDampingMDR(GranularModel *gm, LAMMPS *lmp) :
 
 void GranSubModDampingMDR::coeffs_to_local()
 {
-  damp_type = (int)coeffs[0]; // damping type 1 = mdr stiffness or 2 = velocity
+  damp_type = (int) coeffs[0];    // damping type 1 = mdr stiffness or 2 = velocity
   if (damp_type != 1 && damp_type != 2)
     error->all(FLERR, "Illegal MDR damping model, damping type must an integer equal to 1 or 2");
 }
@@ -210,7 +211,7 @@ void GranSubModDampingMDR::init()
 double GranSubModDampingMDR::calculate_forces()
 {
   using namespace Granular_MDR_NS;
-  double *history = & gm->history[gm->normal_model->history_index];
+  double *history = &gm->history[gm->normal_model->history_index];
   if (damp_type == 1) {
     damp_prefactor = damp * history[DAMP_SCALE];
   } else if (damp_type == 2) {

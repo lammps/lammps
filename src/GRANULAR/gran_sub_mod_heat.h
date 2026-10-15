@@ -16,48 +16,46 @@
 
 #include "gran_sub_mod.h"
 
-
 namespace LAMMPS_NS::Granular_NS {
 
-  class GranSubModHeat : public GranSubMod {
-   public:
-    GranSubModHeat(class GranularModel *, class LAMMPS *);
-    virtual double calculate_heat() = 0;
-  };
+class GranSubModHeat : public GranSubMod {
+ public:
+  GranSubModHeat(class GranularModel *, class LAMMPS *);
+  virtual double calculate_heat() = 0;
+};
 
-  /* ---------------------------------------------------------------------- */
+/* ---------------------------------------------------------------------- */
 
-  class GranSubModHeatNone : public GranSubModHeat {
-   public:
-    GranSubModHeatNone(class GranularModel *, class LAMMPS *);
-    double calculate_heat() override;
-  };
+class GranSubModHeatNone : public GranSubModHeat {
+ public:
+  GranSubModHeatNone(class GranularModel *, class LAMMPS *);
+  double calculate_heat() override;
+};
 
-  /* ---------------------------------------------------------------------- */
+/* ---------------------------------------------------------------------- */
 
-  class GranSubModHeatRadius : public GranSubModHeat {
-   public:
-    GranSubModHeatRadius(class GranularModel *, class LAMMPS *);
-    void coeffs_to_local() override;
-    double calculate_heat() override;
+class GranSubModHeatRadius : public GranSubModHeat {
+ public:
+  GranSubModHeatRadius(class GranularModel *, class LAMMPS *);
+  void coeffs_to_local() override;
+  double calculate_heat() override;
 
-   protected:
-    double conductivity;
-  };
+ protected:
+  double conductivity;
+};
 
-  /* ---------------------------------------------------------------------- */
+/* ---------------------------------------------------------------------- */
 
-  class GranSubModHeatArea : public GranSubModHeat {
-   public:
-    GranSubModHeatArea(class GranularModel *, class LAMMPS *);
-    void coeffs_to_local() override;
-    double calculate_heat() override;
+class GranSubModHeatArea : public GranSubModHeat {
+ public:
+  GranSubModHeatArea(class GranularModel *, class LAMMPS *);
+  void coeffs_to_local() override;
+  double calculate_heat() override;
 
-   protected:
-    double heat_transfer_coeff;
-  };
+ protected:
+  double heat_transfer_coeff;
+};
 
-} // namespace LAMMPS_NS::Granular_NS
-
+}    // namespace LAMMPS_NS::Granular_NS
 
 #endif /*GRAN_SUB_MOD_HEAT_H */

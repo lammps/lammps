@@ -11,19 +11,22 @@ This section documents the following functions:
 - :cpp:func:`lammps_config_has_png_support`
 - :cpp:func:`lammps_config_has_jpeg_support`
 - :cpp:func:`lammps_config_has_ffmpeg_support`
+- :cpp:func:`lammps_config_has_curl_support`
 - :cpp:func:`lammps_config_has_exceptions`
 - :cpp:func:`lammps_config_has_package`
 - :cpp:func:`lammps_config_package_count`
 - :cpp:func:`lammps_config_package_name`
 - :cpp:func:`lammps_config_accelerator`
 - :cpp:func:`lammps_has_gpu_device`
-- :cpp:func:`lammps_gpu_device_info`
+- :cpp:func:`lammps_get_gpu_device_info`
 - :cpp:func:`lammps_has_style`
 - :cpp:func:`lammps_style_count`
 - :cpp:func:`lammps_style_name`
 - :cpp:func:`lammps_has_id`
 - :cpp:func:`lammps_id_count`
 - :cpp:func:`lammps_id_name`
+- :cpp:func:`lammps_plugin_count`
+- :cpp:func:`lammps_plugin_name`
 
 --------------------
 
@@ -116,6 +119,11 @@ approach.
 
 -----------------------
 
+.. doxygenfunction:: lammps_config_has_curl_support
+   :project: progguide
+
+-----------------------
+
 .. doxygenfunction:: lammps_config_has_exceptions
    :project: progguide
 
@@ -177,5 +185,15 @@ approach.
 -----------------------
 
 .. doxygenfunction:: lammps_id_name
+   :project: progguide
+
+-----------------------
+
+.. doxygenfunction:: lammps_plugin_count
+   :project: progguide
+
+-----------------------
+
+.. doxygenfunction:: lammps_plugin_name
    :project: progguide
 

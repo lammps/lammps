@@ -121,7 +121,7 @@ FENIX package
 .. versionadded:: 2Sep2026
 
 To build with this package you must have the `Fenix library
-<https://github.com/sandialabs/fenix>` available on your system. The Fenix
+<https://github.com/sandialabs/fenix>`_ available on your system. The Fenix
 library must be newer than version 1 (currently meaning built from the default
 "develop" branch). Older versions use an incompatible API and this LAMMPS will
 fail to compile.
@@ -1766,7 +1766,9 @@ pre-compiled version already present on your system.
       .. code-block:: bash
 
          -D RUNNER_LIB_DIR=path      # Directory containing the RuNNer library.
-                                     # (default: $HOME/.local/lib)
+                                     # (default: empty, search the folders in
+                                     # LD_LIBRARY_PATH, LIBRARY_PATH, and the
+                                     # standard system library folders)
          -D RUNNER_LIB_NAME=name     # Filename of the library (without extension).
                                      # (default: libRuNNer_mpi)
 
@@ -1799,8 +1801,10 @@ pre-compiled version already present on your system.
      - Download and build RuNNer from source
      - ``on``
    * - ``RUNNER_LIB_DIR``
-     - Path to a pre-installed RuNNer library
-     - ``$HOME/.local/lib``
+     - Path to a pre-installed RuNNer library; if empty, the folders in
+       ``LD_LIBRARY_PATH`` and ``LIBRARY_PATH`` and the standard system
+       library folders are searched
+     - (empty)
    * - ``RUNNER_LIB_NAME``
      - Name of the RuNNer library file without extension
      - ``libRuNNer_mpi``

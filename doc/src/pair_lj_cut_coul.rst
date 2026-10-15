@@ -232,12 +232,12 @@ potential.
 Coefficients
 """"""""""""
 
-For all of the *lj/cut/coul* pair styles, the following coefficients must
-be defined for each pair of atoms types via the
-:doc:`pair_coeff <pair_coeff>` command as in the examples above, or in
-the data file or restart files read by the :doc:`read_data <read_data>`
-or :doc:`read_restart <read_restart>` commands, or by mixing as
-described below:
+For all of the *lj/cut/coul* pair styles, the following coefficients
+must be defined for each pair of atom types via the :doc:`pair_coeff
+<pair_coeff>` command as in the examples above, or in the data file or
+restart files read by the :doc:`read_data <read_data>` or
+:doc:`read_restart <read_restart>` commands, or by mixing as described
+below:
 
 * :math:`\epsilon` (energy units)
 * :math:`\sigma` (distance units)

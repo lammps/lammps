@@ -49,9 +49,9 @@ class PairNb3bHarmonic : public Pair {
   Param *params;    // parameter set for an I-J-K interaction
   int variant;
 
-  void allocate();
+  virtual void allocate();
   void read_file(char *);
-  void setup_params();
+  virtual void setup_params();
   void twobody(Param *, double, double &, int, double &);
   virtual void threebody(Param *, Param *, Param *, double, double, double *, double *, double *,
                          double *, int, double &);

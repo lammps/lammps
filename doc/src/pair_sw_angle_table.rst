@@ -1,10 +1,11 @@
 .. index:: pair_style sw/angle/table
+.. index:: pair_style sw/angle/table/kk
 .. index:: pair_style sw/angle/table/omp
 
 pair_style sw/angle/table command
 =================================
 
-Accelerator Variants: *sw/angle/table/omp*
+Accelerator Variants: *sw/angle/table/kk*, *sw/angle/table/omp*
 
 Syntax
 """"""

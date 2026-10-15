@@ -1,17 +1,19 @@
 .. index:: pair_style nb3b/harmonic
+.. index:: pair_style nb3b/harmonic/kk
 .. index:: pair_style nb3b/harmonic/omp
 .. index:: pair_style nb3b/screened
+.. index:: pair_style nb3b/screened/kk
 .. index:: pair_style nb3b/screened/omp
 
 pair_style nb3b/harmonic command
 ================================
 
-Accelerator Variants: *nb3b/harmonic/omp*
+Accelerator Variants: *nb3b/harmonic/kk*, *nb3b/harmonic/omp*
 
 pair_style nb3b/screened command
 ================================
 
-Accelerator Variants: *nb3b/screened/omp*
+Accelerator Variants: *nb3b/screened/kk*, *nb3b/screened/omp*
 
 Syntax
 """"""

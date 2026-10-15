@@ -440,6 +440,8 @@ action npair_trim_kokkos.h
 action pack_kokkos.h pack.h
 action pair_adp_kokkos.cpp pair_adp.cpp
 action pair_adp_kokkos.h pair_adp.h
+action pair_atm_kokkos.cpp pair_atm.cpp
+action pair_atm_kokkos.h pair_atm.h
 
 action pair_bondval_kokkos.cpp pair_bondval.cpp
 action pair_bondval_kokkos.h pair_bondval.h
@@ -518,12 +520,18 @@ action pair_eam_he_kokkos.cpp pair_eam_he.cpp
 action pair_eam_he_kokkos.h pair_eam_he.h
 action pair_eam_kokkos.cpp pair_eam.cpp
 action pair_eam_kokkos.h pair_eam.h
+action pair_edip_kokkos.cpp pair_edip.cpp
+action pair_edip_kokkos.h pair_edip.h
 action pair_exp6_rx_kokkos.cpp pair_exp6_rx.cpp
 action pair_exp6_rx_kokkos.h pair_exp6_rx.h
 action pair_gauss_kokkos.cpp pair_gauss.cpp
 action pair_gauss_kokkos.h pair_gauss.h
 action pair_gran_hooke_history_kokkos.cpp pair_gran_hooke_history.cpp
 action pair_gran_hooke_history_kokkos.h pair_gran_hooke_history.h
+action pair_gw_kokkos.cpp pair_gw.cpp
+action pair_gw_kokkos.h pair_gw.h
+action pair_gw_zbl_kokkos.cpp pair_gw_zbl.cpp
+action pair_gw_zbl_kokkos.h pair_gw_zbl.h
 action pair_gauss_cut_kokkos.cpp pair_gauss_cut.cpp
 action pair_gauss_cut_kokkos.h pair_gauss_cut.h
 action pair_hybrid_kokkos.cpp
@@ -677,6 +685,10 @@ action pair_morse_smooth_linear_kokkos.cpp pair_morse_smooth_linear.cpp
 action pair_morse_smooth_linear_kokkos.h pair_morse_smooth_linear.h
 action pair_multi_lucy_rx_kokkos.cpp pair_multi_lucy_rx.cpp
 action pair_multi_lucy_rx_kokkos.h pair_multi_lucy_rx.h
+action pair_nb3b_harmonic_kokkos.cpp pair_nb3b_harmonic.cpp
+action pair_nb3b_harmonic_kokkos.h pair_nb3b_harmonic.h
+action pair_nb3b_screened_kokkos.cpp pair_nb3b_screened.cpp
+action pair_nb3b_screened_kokkos.h pair_nb3b_screened.h
 action pair_nm_cut_kokkos.cpp pair_nm_cut.cpp
 action pair_nm_cut_kokkos.h pair_nm_cut.h
 action pair_nm_cut_coul_cut_kokkos.cpp pair_nm_cut_coul_cut.cpp
@@ -698,6 +710,8 @@ action pair_snap_kokkos.cpp pair_snap.cpp
 action pair_snap_kokkos.h pair_snap.h
 action pair_soft_kokkos.cpp
 action pair_soft_kokkos.h
+action pair_sw_angle_table_kokkos.cpp pair_sw_angle_table.cpp
+action pair_sw_angle_table_kokkos.h pair_sw_angle_table.h
 action pair_sw_kokkos.cpp pair_sw.cpp
 action pair_sw_kokkos.h pair_sw.h
 action pair_table_kokkos.cpp
@@ -712,6 +726,8 @@ action pair_tersoff_mod_kokkos.cpp pair_tersoff_mod.cpp
 action pair_tersoff_mod_kokkos.h pair_tersoff_mod.h
 action pair_tersoff_zbl_kokkos.cpp pair_tersoff_zbl.cpp
 action pair_tersoff_zbl_kokkos.h pair_tersoff_zbl.h
+action pair_threebody_table_kokkos.cpp pair_threebody_table.cpp
+action pair_threebody_table_kokkos.h pair_threebody_table.h
 action pair_tip4p_cut_kokkos.cpp pair_tip4p_cut.cpp
 action pair_tip4p_cut_kokkos.h pair_tip4p_cut.h
 action pair_tip4p_kokkos.h
@@ -723,6 +739,8 @@ action pair_uf3_kokkos.cpp pair_uf3.cpp
 action pair_uf3_kokkos.h pair_uf3.h
 action pair_vashishta_kokkos.cpp pair_vashishta.cpp
 action pair_vashishta_kokkos.h pair_vashishta.h
+action pair_vashishta_table_kokkos.cpp pair_vashishta_table.cpp
+action pair_vashishta_table_kokkos.h pair_vashishta_table.h
 action pair_wf_cut_kokkos.cpp pair_wf_cut.cpp
 action pair_wf_cut_kokkos.h pair_wf_cut.h
 action pair_yukawa_kokkos.cpp

@@ -66,9 +66,9 @@ class PairGW : public Pair {
   void GW_neigh();
   void add_pages(int howmany = 1);
 
-  void allocate();
+  virtual void allocate();
   virtual void read_file(char *);
-  void setup_params();
+  virtual void setup_params();
   virtual void repulsive(Param *, double, double &, int, double &);
   double zeta(Param *, double, double, double *, double *);
   virtual void force_zeta(Param *, double, double, double &, double &, int, double &);

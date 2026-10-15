@@ -316,8 +316,10 @@ elseif(GPU_API STREQUAL "HIP")
     set(GPU_ARCH "sm_75" CACHE STRING "LAMMPS GPU architecture (e.g. sm_75 for HIP/NVCC)")
     set(HIP_ARCH "${GPU_ARCH}")
 
-    if(CUDA_VERSION VERSION_LESS 8.0)
-      message(FATAL_ERROR "CUDA Toolkit version 8.0 or later is required")
+    # kernels compiled with CUDA 10 or older use texture references, which the
+    # HIP back end does not bind
+    if(CUDA_VERSION VERSION_LESS 11.0)
+      message(FATAL_ERROR "CUDA Toolkit version 11.0 or later is required for HIP_PLATFORM=nvidia")
     elseif(CUDA_VERSION VERSION_GREATER_EQUAL "12.0")
       message(WARNING "Untested CUDA Toolkit version ${CUDA_VERSION}. Use at your own risk")
       set(HIP_CUDA_GENCODE "-arch=all")
@@ -371,6 +373,17 @@ elseif(GPU_API STREQUAL "HIP")
         string(APPEND HIP_CUDA_GENCODE " -gencode arch=compute_120,code=[sm_120,compute_120]")
       endif()
     endif()
+  endif()
+
+  # The HIP CMake package of some distributions (e.g. Ubuntu 26.04) does not
+  # set HIP_HIPCC_EXECUTABLE, so look for hipcc if the package did not provide it
+  if(NOT HIP_HIPCC_EXECUTABLE)
+    unset(HIP_HIPCC_EXECUTABLE)
+    unset(HIP_HIPCC_EXECUTABLE CACHE)
+    find_program(HIP_HIPCC_EXECUTABLE NAMES hipcc HINTS ${hip_BIN_INSTALL_DIR} ${ROCM_PATH}/bin ENV HIP_PATH PATH_SUFFIXES bin)
+  endif()
+  if(NOT HIP_HIPCC_EXECUTABLE)
+    message(FATAL_ERROR "Could not find hipcc, use -DHIP_HIPCC_EXECUTABLE=/path/to/hipcc to help cmake finding it.")
   endif()
 
   file(GLOB GPU_LIB_CU CONFIGURE_DEPENDS ${LAMMPS_LIB_SOURCE_DIR}/gpu/[^.]*.cu ${CMAKE_CURRENT_SOURCE_DIR}/gpu/[^.]*.cu)
@@ -496,11 +509,13 @@ elseif(GPU_API STREQUAL "HIP")
   target_link_libraries(hip_get_devices PRIVATE hip::host)
 
   if(HIP_PLATFORM STREQUAL "nvidia")
-    target_compile_definitions(gpu PRIVATE -D__HIP_PLATFORM_NVCC__)
+    # the hip::host target of the HIP package does not set the platform macro for
+    # NVIDIA GPUs; current HIP headers require __HIP_PLATFORM_NVIDIA__
+    target_compile_definitions(gpu PRIVATE -D__HIP_PLATFORM_NVIDIA__ -D__HIP_PLATFORM_NVCC__)
     target_include_directories(gpu PRIVATE ${CUDA_INCLUDE_DIRS})
     target_link_libraries(gpu PRIVATE ${CUDA_LIBRARIES} ${CUDA_CUDA_LIBRARY})
 
-    target_compile_definitions(hip_get_devices PRIVATE -D__HIP_PLATFORM_NVCC__)
+    target_compile_definitions(hip_get_devices PRIVATE -D__HIP_PLATFORM_NVIDIA__ -D__HIP_PLATFORM_NVCC__)
     target_include_directories(hip_get_devices PRIVATE ${CUDA_INCLUDE_DIRS})
     target_link_libraries(hip_get_devices PRIVATE ${CUDA_LIBRARIES} ${CUDA_CUDA_LIBRARY})
   endif()

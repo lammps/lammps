@@ -125,6 +125,12 @@ if(GPU_API STREQUAL "CUDA")
   set_directory_properties(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES "${LAMMPS_LIB_BINARY_DIR}/gpu/*_cubin.h")
 
   add_library(gpu STATIC ${GPU_LIB_SOURCES})
+  # the cubin header custom commands above depend on individual objects of
+  # gpu_fatbin through a $<TARGET_OBJECTS:...> generator expression, which the
+  # Unix Makefiles generator does not turn into a target-level build order
+  # dependency, so a parallel build can try to use those objects before
+  # gpu_fatbin has built them.  Add that dependency explicitly.
+  add_dependencies(gpu gpu_fatbin)
   target_link_libraries(gpu PRIVATE CUDA::cudart_static CUDA::cuda_driver)
   target_include_directories(gpu PRIVATE ${LAMMPS_LIB_BINARY_DIR}/gpu)
   target_compile_definitions(gpu PRIVATE -DUSE_CUDA -D_${GPU_PREC_SETTING} ${GPU_CUDA_MPS_FLAGS})
@@ -378,6 +384,14 @@ elseif(GPU_API STREQUAL "HIP")
   endif()
 
   add_library(gpu STATIC ${GPU_LIB_SOURCES})
+  if(HIP_PLATFORM STREQUAL "amd")
+    # the cubin header custom commands above depend on individual objects of
+    # gpu_hip_co through a $<TARGET_OBJECTS:...> generator expression, which
+    # the Unix Makefiles generator does not turn into a target-level build
+    # order dependency, so a parallel build can try to use those objects
+    # before gpu_hip_co has built them.  Add that dependency explicitly.
+    add_dependencies(gpu gpu_hip_co)
+  endif()
   target_include_directories(gpu PRIVATE ${LAMMPS_LIB_BINARY_DIR}/gpu)
   target_compile_definitions(gpu PRIVATE -DUSE_HIP -D_${GPU_PREC_SETTING})
   # SPIR-V (chipStar) gives no warp-synchronous guarantee, so the device-side

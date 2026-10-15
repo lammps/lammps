@@ -2,6 +2,7 @@
 .. index:: pair_style lj/cut/soft/kk
 .. index:: pair_style lj/cut/soft/omp
 .. index:: pair_style lj/cut/soft/gapsys
+.. index:: pair_style lj/cut/soft/gapsys/kk
 .. index:: pair_style lj/cut/soft/gapsys/omp
 .. index:: pair_style lj/cut/coul/cut/soft
 .. index:: pair_style lj/cut/coul/cut/soft/kk
@@ -12,6 +13,7 @@
 .. index:: pair_style lj/cut/coul/long/soft/gpu
 .. index:: pair_style lj/cut/coul/long/soft/omp
 .. index:: pair_style lj/cut/tip4p/long/soft
+.. index:: pair_style lj/cut/tip4p/long/soft/kk
 .. index:: pair_style lj/cut/tip4p/long/soft/omp
 .. index:: pair_style lj/charmm/coul/long/soft
 .. index:: pair_style lj/charmm/coul/long/soft/kk
@@ -20,18 +22,22 @@
 .. index:: pair_style lj/class2/soft/kk
 .. index:: pair_style lj/class2/soft/omp
 .. index:: pair_style lj/class2/coul/cut/soft
+.. index:: pair_style lj/class2/coul/cut/soft/kk
 .. index:: pair_style lj/class2/coul/cut/soft/omp
 .. index:: pair_style lj/class2/coul/long/soft
+.. index:: pair_style lj/class2/coul/long/soft/kk
 .. index:: pair_style lj/class2/coul/long/soft/omp
 .. index:: pair_style coul/cut/soft
 .. index:: pair_style coul/cut/soft/kk
 .. index:: pair_style coul/cut/soft/omp
 .. index:: pair_style coul/cut/soft/gapsys
+.. index:: pair_style coul/cut/soft/gapsys/kk
 .. index:: pair_style coul/cut/soft/gapsys/omp
 .. index:: pair_style coul/long/soft
 .. index:: pair_style coul/long/soft/kk
 .. index:: pair_style coul/long/soft/omp
 .. index:: pair_style tip4p/long/soft
+.. index:: pair_style tip4p/long/soft/kk
 .. index:: pair_style tip4p/long/soft/omp
 .. index:: pair_style morse/soft
 .. index:: pair_style morse/soft/kk
@@ -45,7 +51,7 @@ Accelerator Variants: *lj/cut/soft/kk*, *lj/cut/soft/omp*
 pair_style lj/cut/soft/gapsys command
 =====================================
 
-Accelerator Variants: *lj/cut/soft/gapsys/omp*
+Accelerator Variants: *lj/cut/soft/gapsys/kk*, *lj/cut/soft/gapsys/omp*
 
 pair_style lj/cut/coul/cut/soft command
 =======================================
@@ -60,7 +66,7 @@ Accelerator Variants: *lj/cut/coul/long/soft/gpu*, *lj/cut/coul/long/soft/kk*, *
 pair_style lj/cut/tip4p/long/soft command
 =========================================
 
-Accelerator Variants: *lj/cut/tip4p/long/soft/omp*
+Accelerator Variants: *lj/cut/tip4p/long/soft/kk*, *lj/cut/tip4p/long/soft/omp*
 
 pair_style lj/charmm/coul/long/soft command
 ===========================================
@@ -75,12 +81,12 @@ Accelerator Variants: *lj/class2/soft/kk*, *lj/class2/soft/omp*
 pair_style lj/class2/coul/cut/soft command
 ==========================================
 
-Accelerator Variants: *lj/class2/coul/cut/soft/omp*
+Accelerator Variants: *lj/class2/coul/cut/soft/kk*, *lj/class2/coul/cut/soft/omp*
 
 pair_style lj/class2/coul/long/soft command
 ===========================================
 
-Accelerator Variants: *lj/class2/coul/long/soft/omp*
+Accelerator Variants: *lj/class2/coul/long/soft/kk*, *lj/class2/coul/long/soft/omp*
 
 pair_style coul/cut/soft command
 ================================
@@ -90,7 +96,7 @@ Accelerator Variants: *coul/cut/soft/kk*, *coul/cut/soft/omp*
 pair_style coul/cut/soft/gapsys command
 =======================================
 
-Accelerator Variants: *coul/cut/soft/gapsys/omp*
+Accelerator Variants: *coul/cut/soft/gapsys/kk*, *coul/cut/soft/gapsys/omp*
 
 pair_style coul/long/soft command
 =================================
@@ -100,7 +106,7 @@ Accelerator Variants: *coul/long/soft/kk*, *coul/long/soft/omp*
 pair_style tip4p/long/soft command
 ==================================
 
-Accelerator Variants: *tip4p/long/soft/omp*
+Accelerator Variants: *tip4p/long/soft/kk*, *tip4p/long/soft/omp*
 
 pair_style morse/soft command
 =============================

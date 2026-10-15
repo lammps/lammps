@@ -13,8 +13,6 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Claude Opus 5.5 (Anthropic), under the direction of
-   Axel Kohlmeyer (Temple U)
 ------------------------------------------------------------------------- */
 
 #include "pair_coul_cut_soft_gapsys_kokkos.h"

@@ -16,15 +16,14 @@ and their progress live outside the tree, in the maintainer's plan files.
 ## Coverage snapshot
 
 Pair styles (the focus of this backlog), from the scan script on 2026-10-15, after
-the first OPENMP batch (19 new `/omp` styles) and the first KOKKOS batch (12 new `/kk`
-styles).  "Base"
-includes 7 `DEPRECATED` stubs, `hybrid*` and `zero*`.
+the first OPENMP batch (19 new `/omp` styles) and the first two KOKKOS batches (12 and
+9 new `/kk` styles).  "Base" includes 7 `DEPRECATED` stubs, `hybrid*` and `zero*`.
 
 | | count |
 |---|---|
 | base pair styles | 330 |
 | with `/omp` | 223 |
-| with `/kk` | 150 |
+| with `/kk` | 159 |
 | with `/gpu` | 72 |
 | with `/intel` / `/opt` | 19 / 16 |
 | no accelerator variant at all | 85 (CG-DNA 23, SPIN 7, APIP 7, MACHDYN 4, ML 6, PERI 2, ...) |
@@ -150,7 +149,7 @@ were spot-checked, all cosmetic).  Maintenance method and bug classes:
 
 | effort | styles (device template to clone) |
 |---|---|
-| MEDIUM (many-body, template exists) | `nb3b/harmonic` + `nb3b/screened` (copy sw/kk, delete twobody, switch on the variant); `gw` + `gw/zbl` (tersoff/kk); `vashishta/table` (vashishta/kk + device table); `sw/angle/table`, `threebody/table` (sw/kk + device table views as in table/kk); `edip` (sw-shaped full list); `tersoff/table`; `extep`; `atm` (clean triple loop over one list; device `ev_tally3` exists in sw/vashishta/uf3 kk); `kolmogorov/crespi/z`, `lebedeva/z` (hand kernels, anisotropic force, no normals); `coul/exclude` (hand kernel: no `cutsq` guard, skips `sbmask(j)==0`); `coul/streitz` (full list; `fix qeq/slater` stays host) |
+| MEDIUM (many-body, template exists) | `tersoff/table`; `extep`; `kolmogorov/crespi/z`, `lebedeva/z` (hand kernels, anisotropic force, no normals); `coul/exclude` (hand kernel: no `cutsq` guard, skips `sbmask(j)==0`); `coul/streitz` (full list; `fix qeq/slater` stays host) |
 | LARGE (framework piece first) | EAM-shaped density styles `eam/cd`, `local/density`, `eim`, `meam/spline`, `meam/sw/spline`, `smatb`(+`single`), `multi/lucy` (MEDIUM each once the first reuses the eam/kk comm pattern); DRUDE `thole`, `lj/cut/thole/long`, `coul/tt` (partner indices precomputed per reneighbor through the device map); `hbond/dreiding/*` (topology walk via `tagprev`); ASPHERE `gayberne` then `resquared` (`AtomVecEllipsoidKokkos` + `MathExtraKokkos::quat_to_mat` exist; ylz/kk is the only ellipsoid pair so far); INTERLAYER `ilp/graphene/hbn`, `ilp/tmd`, `saip/metal`, `saip/metal/tmd`, `aip/water/2dm`, `kolmogorov/crespi/full`, `drip` (all gated on `ILP_neigh()` + `calc_normal()` on device; once the first exists the rest ride along); `lj/long/coul/long`, `buck/long/coul/long`, `lj/long/tip4p/long`, `lj/long/dipole/long`, `lj/cut/dipole/long` (pointless before `pppm/disp/kk` or a dipole kspace on device); DIELECTRIC (7 styles: need `atom_vec_dielectric_kokkos` and `fix polarize/*`); atom-vec gated: SPH (6 + `sdpd/taitwater/isothermal`), DPD-MESO (`edpd`, `mdpd`, `mdpd/rhosum`, `tdpd`), EFF, MACHDYN, RHEO (`rheo`, `rheo/solid`), BODY, `line/lj`, `tri/lj`, MESONT, BPM (`bpm/spring`, `bpm/peri`: `atom_vec_bpm_sphere_kokkos`); `polymorphic`, `smtbq`, `e3b`, `brownian/poly` (after #5040) |
 | do not port | MSM pair styles (8), SPIN (7), AIREBO family, `rebo`, `rebomos`, `comb`, `comb3`, `bop`, `lcbop`, lubricate family, external wrappers, `srp`, `list`, `tracker`, `dsmc`, `zero` |
 
@@ -170,6 +169,24 @@ exactly on one thread); 20-step MD on each YAML system plain vs `-k on t 1`, `t 
 `pe/atom` and `stress/atom` (agreement 3e-13 or better); the same on the 15-type
 `data.fourmol-manytypes` for the `pair_kokkos.h` ports (non-stack parameter path);
 and a HIP compile of the new files.
+
+Done 2026-10-15 (second KOKKOS batch, many-body): `nb3b/harmonic`, `nb3b/screened` (sw/kk
+shape without the two-body term; the screened variant is selected at run time),
+`vashishta/table` (vashishta/kk with an optional table branch in its two-body term),
+`sw/angle/table`, `threebody/table` (sw/kk shape; the angle and three-body tables are
+flattened into 2d device views padded to the longest table), `atm` (short list of the
+neighbors in the larger-x half space, per-type coefficients re-synced after
+`init_one()`), `edip` (a pre-loop kernel stores the short list with the three-body
+factors and the coordination Z; the two-body interpolations are repeated instead of
+kept in per-thread scratch), `gw`, `gw/zbl` (a direct port of `PairGW::compute()` as a
+template on the CPU base class, as `pair_tip4p_kokkos.h` does; GW is Tersoff with a
+different bond-order function, but reusing tersoff/kk would make gw/kk a Tersoff
+object).  Like sw/kk, all of them need `newton on` with a half neighbor list (`-pk
+kokkos newton on neigh half`, not the GPU default).  Verification as for the first
+batch, plus extra decks for the `spline` angle table and type-dependent `atm`
+coefficients, and a `Kokkos_ENABLE_DEBUG_BOUNDS_CHECK` build.  Observed on the way:
+the `neigh full` path of vashishta/kk is unreachable, since KOKKOS requires `newton off`
+with `neigh full` and vashishta requires `newton on`.
 
 Atom styles (`sph`, `peri`, `edpd`/`mdpd`/`tdpd`, `electron`, `smd`, `apip`, `oxdna`)
 remain the highest-leverage *gating* items: `AtomKokkos::new_avec` hard-errors on them,
@@ -380,4 +397,18 @@ crash fixes of #5212.
    `aveabs` mode was not divided by the count.  Do not use `compute reduce sumabs` with
    several inputs in verification decks on branches without the fix.
 
-Items 1-3 and 5-7 are fixed on their own branch; see the commit history.
+8. `src/MANYBODY/pair_threebody_table.cpp` (found 2026-10-15 while porting, used by
+   `/omp` too): the cosine was not clamped to [-1,1] before `acos()`; for (nearly)
+   collinear neighbors rounding gives NaN and the table index becomes garbage
+   (segmentation fault).
+9. Spline table lookups read one entry past the end of the table at the upper bound
+   (found 2026-10-15 while porting): `angle_style table` (also `/omp` and `/kk`) and
+   `pair sw/angle/table` at an angle of exactly 180 degrees, which a linear angle
+   reaches through the clamped cosine; `bond_style table` (also `/omp` and `/kk`) and
+   `fix wall/table` only at exactly the outer table bound.
+10. `src/KOKKOS/angle_dipole_kokkos.cpp` (found 2026-10-15 by the CUDA round, not
+    fixed): the `SMALL*SMALL` guards (`SMALL` = 1.0e-100) are zero in single precision,
+    so in mixed-precision builds they never trigger; only exactly coincident atoms are
+    affected.
+
+Items 1-3, 5-9 are fixed on their own branch; see the commit history.

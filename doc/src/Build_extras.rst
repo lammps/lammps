@@ -298,7 +298,7 @@ back ends.  The back end specific ``HIP_ARCH`` (for ``GPU_API=hip``)
 variable is still accepted for backward compatibility, but its use is
 deprecated and prints a warning.
 
-For ``GPU_API=cuda`` and ``GPU_API=hip`` with ``HIP_PLATFORM=nvcc``, the
+For ``GPU_API=cuda`` and ``GPU_API=hip`` with ``HIP_PLATFORM=nvidia``, the
 ``GPU_ARCH`` settings for different GPU hardware are as follows:
 
 * ``sm_30`` for Kepler (supported since CUDA 5 and until CUDA 10.x)
@@ -422,7 +422,7 @@ option in preparations to run on Aurora system at Argonne.
 
    # CUDA target (not recommended, use GPU_API=cuda)
    # !!! DO NOT set CMAKE_CXX_COMPILER !!!
-   export HIP_PLATFORM=nvcc
+   export HIP_PLATFORM=nvidia
    export HIP_PATH=/path/to/HIP/install
    export CUDA_PATH=/usr/local/cuda
    cmake -D PKG_GPU=on -D GPU_API=HIP -D HIP_ARCH=sm_70 ..

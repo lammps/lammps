@@ -311,7 +311,7 @@ elseif(GPU_API STREQUAL "HIP")
   elseif(HIP_PLATFORM STREQUAL "spirv")
     set(GPU_ARCH "spirv" CACHE STRING "LAMMPS GPU architecture")
     set(HIP_ARCH "${GPU_ARCH}")
-  elseif(HIP_PLATFORM STREQUAL "nvcc")
+  elseif(HIP_PLATFORM STREQUAL "nvidia")
     find_package(CUDA REQUIRED)
     set(GPU_ARCH "sm_75" CACHE STRING "LAMMPS GPU architecture (e.g. sm_75 for HIP/NVCC)")
     set(HIP_ARCH "${GPU_ARCH}")
@@ -399,7 +399,7 @@ elseif(GPU_API STREQUAL "HIP")
             DEPENDS ${CU_CPP_FILE}
             COMMENT "Generating ${CU_NAME}.cubin")
         endif()
-    elseif(HIP_PLATFORM STREQUAL "nvcc")
+    elseif(HIP_PLATFORM STREQUAL "nvidia")
         add_custom_command(OUTPUT ${CUBIN_FILE}
           VERBATIM COMMAND ${HIP_HIPCC_EXECUTABLE} --fatbin --use_fast_math -DUSE_HIP -D_${GPU_PREC_SETTING} -DLAMMPS_${LAMMPS_SIZES} ${HIP_CUDA_GENCODE} -I${LAMMPS_LIB_SOURCE_DIR}/gpu -o ${CUBIN_FILE} ${CU_FILE}
           DEPENDS ${CU_FILE}
@@ -448,7 +448,7 @@ elseif(GPU_API STREQUAL "HIP")
     target_link_libraries(gpu PRIVATE hip::hipcub)
     target_compile_definitions(gpu PRIVATE -DUSE_HIP_DEVICE_SORT)
 
-    if(HIP_PLATFORM STREQUAL "nvcc")
+    if(HIP_PLATFORM STREQUAL "nvidia")
       find_package(CUB)
 
       if(CUB_FOUND)
@@ -495,7 +495,7 @@ elseif(GPU_API STREQUAL "HIP")
   target_compile_definitions(hip_get_devices PRIVATE -DUCL_HIP)
   target_link_libraries(hip_get_devices PRIVATE hip::host)
 
-  if(HIP_PLATFORM STREQUAL "nvcc")
+  if(HIP_PLATFORM STREQUAL "nvidia")
     target_compile_definitions(gpu PRIVATE -D__HIP_PLATFORM_NVCC__)
     target_include_directories(gpu PRIVATE ${CUDA_INCLUDE_DIRS})
     target_link_libraries(gpu PRIVATE ${CUDA_LIBRARIES} ${CUDA_CUDA_LIBRARY})

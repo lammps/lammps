@@ -15,18 +15,19 @@ and their progress live outside the tree, in the maintainer's plan files.
 
 ## Coverage snapshot
 
-Pair styles (the focus of this backlog), from the scan script on 2026-10-15.  "Base"
+Pair styles (the focus of this backlog), from the scan script on 2026-10-15, after
+the first OPENMP batch (19 new `/omp` styles).  "Base"
 includes 7 `DEPRECATED` stubs, `hybrid*` and `zero*`.
 
 | | count |
 |---|---|
 | base pair styles | 330 |
-| with `/omp` | 204 |
+| with `/omp` | 223 |
 | with `/kk` | 138 |
 | with `/gpu` | 72 |
 | with `/intel` / `/opt` | 19 / 16 |
-| no accelerator variant at all | 100 (CG-DNA 23, SPIN 7, APIP 7, MACHDYN 4, ML 6, SPH 3, PERI 2, ...) |
-| with a `unittest/force-styles` YAML reference | 246 |
+| no accelerator variant at all | 85 (CG-DNA 23, SPIN 7, APIP 7, MACHDYN 4, ML 6, PERI 2, ...) |
+| with a `unittest/force-styles` YAML reference | 247 |
 
 Other style kinds under KOKKOS (counted 2026-08-28; the `/kk` column counts source
 files): Fix 343/87, Compute 188/25, KSpace 27/2, AtomVec 30/12, bonded 97/71, Region
@@ -76,9 +77,10 @@ off the CPU reference automatically.  A missing variant SKIPS SILENTLY, so confi
 
 ## OPENMP
 
-### Framework item: per-thread reduction beyond f and torque
+### Framework item: per-thread reduction beyond f and torque (DONE 2026-10-15)
 
-`FixOMP::pre_force` hands every thread a zeroed slice of `atom->f`, `torque`,
+Done in the first OPENMP batch on branch `more-accelerator-porting`; the rest of
+this section describes the design.  `FixOMP::pre_force` hands every thread a zeroed slice of `atom->f`, `torque`,
 `erforce`, `desph` and `drho` (`fix_omp.cpp`, `ThrData::init_force`), and `Atom`
 allocates `nthreads` copies of those plus `edpd_flux`, `cc_flux`, `fm`, `fm_long`
 (`atom.cpp`, `threadflag`).  But `ThrOMP::reduce_thr` (`thr_omp.cpp`) folds back only
@@ -103,10 +105,20 @@ EAM/CD scratch (`rhoB`, `D_values`) stays style-owned like `pair_eam_omp`; a
 
 | effort | styles (template to clone) |
 |---|---|
-| TRIVIAL | `lj/cut/soft/gapsys` (coul/cut/soft/gapsys/omp + lj/cut/soft/omp); `nb3b/screened` (derive from `PairNb3bHarmonicOMP`, set the variant, override `threebody()`: `eval()` calls the virtual); `sw/angle/table` (copy the sw/omp eval, call `threebody_table`; diamond inheritance rules out deriving from `PairSWOMP`); `lj/long/coul/long/dielectric` (full list, writes only atom i; lj/cut/coul/long/dielectric/omp + the dispersion branch of lj/long/coul/long/omp); `bpm/peri` (bpm/spring/omp; `vfrac` is read-only); `sph/heatconduction` (desph only); `sph/rhosum`, `mdpd/rhosum` (full list, `rho[i]` only, then forward comm); `smatb/single` (after smatb) |
-| SMALL | `dpd/coul/slater/long` (dpd/omp per-thread RNG + coul/slater/long/omp); `lj/long/dipole/long` (lj/long/coul/long/omp + lj/cut/dipole/long/omp: torque, `ev_tally_xyz`); `edip/multi` (edip/omp; scratch already sized `nthreads*5*64`); `meam/sw/spline` (meam/spline/omp two-phase; 19 example decks); `smatb` (eam/omp two-phase with reverse and forward comm); `multi/lucy` (eam/omp phases + table/omp lookup); `sph/idealgas`, `sph/taitwater`, `sph/taitwater/morris`, `sph/lj` (lj/cut/omp + `get_drho()`/`get_de()`); `sdpd/taitwater/isothermal` (dpd/omp RNG + drho); `edpd`, `tdpd` (dpd/omp + flux slices); `multi/lucy/rx`, `table/rx` (pair-owned per-thread `uCG`/`uCGnew`, reduced before `fix eos/table/rx` reverse-comms them); `uf3` (sw/omp; `neighshort` per thread) |
+| SMALL | `sdpd/taitwater/isothermal` (dpd/omp RNG + drho); `edpd`, `tdpd` (dpd/omp + the per-thread flux slices `get_edpd_flux()`/`get_cc_flux()`); `multi/lucy/rx`, `table/rx` (pair-owned per-thread `uCG`/`uCGnew`, reduced before `fix eos/table/rx` reverse-comms them; multi/lucy/omp shows the density fold); `uf3` (sw/omp; `neighshort` per thread) |
 | MEDIUM | `eam/cd` + `eam/cd/old` (CDEAM scratch, two or four comm stages inside `eval()`); `polymorphic` (tersoff/omp; member scratch per thread); `kolmogorov/crespi/full` (drip/omp: serial ILP neighbor prep, threaded eval); `exp6/rx` (1.3k lines, per-atom parameter arrays); `eff/cut` (new `ev_tally_eff_thr`, `erforce` fold before `min_xf_get()`, and it has no YAML reference: needs an `atom_style electron` deck first); `snap` (one `SNA` instance per thread; `/kk` shows the decomposition) |
 | LARGE / not worth it | `bop` (serial `gneigh` + 1200 lines of `SigmaBo`/`PiBo` on member scratch writing `atom->f`), `comb3`, `mliap` (Python models, GIL), `pod`, `amoeba`/`hippo` (2.5k lines, comm + map + fix), `mesocnt`(+`viscous`), `smd/*`, `surf/granular`, `granular/superellipsoid`, `rheo`, `lubricateU`(+`poly`), APIP styles, `meam` (library), `spin/*` (SMALL each, <= 1.2x gain), `granular` (wait for the #5208 kernel refactor) |
+
+Done 2026-10-15 (first OPENMP batch, with the framework item): `sph/heatconduction`,
+`sph/idealgas`, `sph/lj`, `sph/rhosum`, `sph/taitwater`, `sph/taitwater/morris`,
+`mdpd/rhosum`, `lj/cut/soft/gapsys`, `bpm/peri`, `dpd/coul/slater/long`,
+`lj/long/dipole/long`, `lj/long/coul/long/dielectric`, `nb3b/screened`,
+`sw/angle/table`, `edip/multi`, `meam/sw/spline`, `smatb`, `smatb/single`,
+`multi/lucy`.  Verification recipe used: the YAML `omp` cases (4 threads unless the
+YAML is tagged `single_thread`), plus example decks plain vs `-sf omp -pk omp 1`
+(bit-identical for the SPH family) vs `-pk omp 4` vs 2 MPI ranks, comparing thermo
+output at full precision; for multi/lucy the folded local density was compared
+through `compute sph/rho/atom`.
 
 Orphans and drift: none found 2026-10-15 (every `pair_*_omp.cpp` has a base; the 30
 `/omp` files untouched since the 2022 bulk reformat whose bases changed in 2025-2026

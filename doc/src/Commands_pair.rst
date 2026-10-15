@@ -51,7 +51,7 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`born/coul/wolf (gko) <pair_born>`
    * :doc:`born/coul/wolf/cs (gko) <pair_cs>`
    * :doc:`born/gauss (ko) <pair_born_gauss>`
-   * :doc:`bpm/peri <pair_bpm_peri>`
+   * :doc:`bpm/peri (o) <pair_bpm_peri>`
    * :doc:`bpm/spring (o) <pair_bpm_spring>`
    * :doc:`brownian (ko) <pair_brownian>`
    * :doc:`brownian/poly (o) <pair_brownian>`
@@ -93,7 +93,7 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`coul/wolf/cs (ko) <pair_cs>`
    * :doc:`dispersion/d3 <pair_dispersion_d3>`
    * :doc:`dpd (giko) <pair_dpd>`
-   * :doc:`dpd/coul/slater/long (g) <pair_dpd_coul_slater_long>`
+   * :doc:`dpd/coul/slater/long (go) <pair_dpd_coul_slater_long>`
    * :doc:`dpd/ext (ko) <pair_dpd_ext>`
    * :doc:`dpd/ext/tstat (ko) <pair_dpd_ext>`
    * :doc:`dpd/fdt (o) <pair_dpd_fdt>`
@@ -111,7 +111,7 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`eam/he (gkot) <pair_eam>`
    * :doc:`eam/apip <pair_eam_apip>`
    * :doc:`edip (o) <pair_edip>`
-   * :doc:`edip/multi <pair_edip>`
+   * :doc:`edip/multi (o) <pair_edip>`
    * :doc:`edpd (g) <pair_mesodpd>`
    * :doc:`eff/cut <pair_eff>`
    * :doc:`eim (o) <pair_eim>`
@@ -180,7 +180,7 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`lj/cut/dipole/long (go) <pair_dipole>`
    * :doc:`lj/cut/dipole/sf (go) <pair_dipole>`
    * :doc:`lj/cut/soft (ko) <pair_fep_soft>`
-   * :doc:`lj/cut/soft/gapsys <pair_fep_soft>`
+   * :doc:`lj/cut/soft/gapsys (o) <pair_fep_soft>`
    * :doc:`lj/cut/sphere (ko) <pair_lj_cut_sphere>`
    * :doc:`lj/cut/thole/long (o) <pair_thole>`
    * :doc:`lj/cut/tip4p/cut (ko) <pair_lj_cut_tip4p>`
@@ -192,8 +192,8 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`lj/gromacs (gko) <pair_gromacs>`
    * :doc:`lj/gromacs/coul/gromacs (ko) <pair_gromacs>`
    * :doc:`lj/long/coul/long (iot) <pair_lj_long>`
-   * :doc:`lj/long/coul/long/dielectric <pair_dielectric>`
-   * :doc:`lj/long/dipole/long <pair_dipole>`
+   * :doc:`lj/long/coul/long/dielectric (o) <pair_dielectric>`
+   * :doc:`lj/long/dipole/long (o) <pair_dipole>`
    * :doc:`lj/long/tip4p/long (o) <pair_lj_long>`
    * :doc:`lj/mdf (ko) <pair_mdf>`
    * :doc:`lj/pirani (ko) <pair_lj_pirani>`
@@ -213,11 +213,11 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`lubricateU/poly <pair_lubricateU>`
    * :doc:`mbx <pair_mbx>`
    * :doc:`mdpd (go) <pair_mesodpd>`
-   * :doc:`mdpd/rhosum <pair_mesodpd>`
+   * :doc:`mdpd/rhosum (o) <pair_mesodpd>`
    * :doc:`meam (k) <pair_meam>`
    * :doc:`meam/ms (k) <pair_meam>`
    * :doc:`meam/spline (o) <pair_meam_spline>`
-   * :doc:`meam/sw/spline <pair_meam_sw_spline>`
+   * :doc:`meam/sw/spline (o) <pair_meam_sw_spline>`
    * :doc:`mesocnt <pair_mesocnt>`
    * :doc:`mesocnt/viscous <pair_mesocnt>`
    * :doc:`mesomem/dipole (o) <pair_mesomem_dipole>`
@@ -229,10 +229,10 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`morse (gkot) <pair_morse>`
    * :doc:`morse/smooth/linear (ko) <pair_morse>`
    * :doc:`morse/soft (ko) <pair_fep_soft>`
-   * :doc:`multi/lucy <pair_multi_lucy>`
+   * :doc:`multi/lucy (o) <pair_multi_lucy>`
    * :doc:`multi/lucy/rx (k) <pair_multi_lucy_rx>`
    * :doc:`nb3b/harmonic (o) <pair_nb3b>`
-   * :doc:`nb3b/screened <pair_nb3b>`
+   * :doc:`nb3b/screened (o) <pair_nb3b>`
    * :doc:`nm/cut (ko) <pair_nm>`
    * :doc:`nm/cut/coul/cut (ko) <pair_nm>`
    * :doc:`nm/cut/coul/long (ko) <pair_nm>`
@@ -283,8 +283,8 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`saip/metal (t) <pair_saip_metal>`
    * :doc:`saip/metal/tmd (t) <pair_saip_metal>`
    * :doc:`sdpd/taitwater/isothermal <pair_sdpd_taitwater_isothermal>`
-   * :doc:`smatb <pair_smatb>`
-   * :doc:`smatb/single <pair_smatb>`
+   * :doc:`smatb (o) <pair_smatb>`
+   * :doc:`smatb/single (o) <pair_smatb>`
    * :doc:`smd/hertz <pair_smd_hertz>`
    * :doc:`smd/tlsph <pair_smd_tlsph>`
    * :doc:`smd/tri_surface <pair_smd_triangulated_surface>`
@@ -292,12 +292,12 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`smtbq <pair_smtbq>`
    * :doc:`snap (ik) <pair_snap>`
    * :doc:`soft (gko) <pair_soft>`
-   * :doc:`sph/heatconduction (g) <pair_sph_heatconduction>`
-   * :doc:`sph/idealgas <pair_sph_idealgas>`
-   * :doc:`sph/lj (g) <pair_sph_lj>`
-   * :doc:`sph/rhosum <pair_sph_rhosum>`
-   * :doc:`sph/taitwater (g) <pair_sph_taitwater>`
-   * :doc:`sph/taitwater/morris <pair_sph_taitwater_morris>`
+   * :doc:`sph/heatconduction (go) <pair_sph_heatconduction>`
+   * :doc:`sph/idealgas (o) <pair_sph_idealgas>`
+   * :doc:`sph/lj (go) <pair_sph_lj>`
+   * :doc:`sph/rhosum (o) <pair_sph_rhosum>`
+   * :doc:`sph/taitwater (go) <pair_sph_taitwater>`
+   * :doc:`sph/taitwater/morris (o) <pair_sph_taitwater_morris>`
    * :doc:`spin/dipole/cut <pair_spin_dipole>`
    * :doc:`spin/dipole/long <pair_spin_dipole>`
    * :doc:`spin/dmi <pair_spin_dmi>`
@@ -309,7 +309,7 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`srp/react <pair_srp>`
    * :doc:`surf/granular <pair_surf_granular>`
    * :doc:`sw (giko) <pair_sw>`
-   * :doc:`sw/angle/table <pair_sw_angle_table>`
+   * :doc:`sw/angle/table (o) <pair_sw_angle_table>`
    * :doc:`sw/mod (ko) <pair_sw>`
    * :doc:`table/rx (k) <pair_table_rx>`
    * :doc:`tdpd <pair_mesodpd>`

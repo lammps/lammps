@@ -1,7 +1,10 @@
 .. index:: pair_style sw/angle/table
+.. index:: pair_style sw/angle/table/omp
 
 pair_style sw/angle/table command
 =================================
+
+Accelerator Variants: *sw/angle/table/omp*
 
 Syntax
 """"""
@@ -260,6 +263,10 @@ ik pairs (:math:`\sigma`, *a*, :math:`\gamma`)
 
 Additional input files and reference data can be found at:
 https://gitlab.mpcdf.mpg.de/votca/votca/-/tree/master/csg-tutorials/spce/3body_sw
+
+----------
+
+.. include:: accel_styles.rst
 
 ----------
 

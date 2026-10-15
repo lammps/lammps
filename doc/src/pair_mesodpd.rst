@@ -4,6 +4,7 @@
 .. index:: pair_style mdpd/omp
 .. index:: pair_style mdpd/gpu
 .. index:: pair_style mdpd/rhosum
+.. index:: pair_style mdpd/rhosum/omp
 .. index:: pair_style tdpd
 
 pair_style edpd command
@@ -18,6 +19,8 @@ Accelerator Variants: *mdpd/gpu*, *mdpd/omp*
 
 pair_style mdpd/rhosum command
 ==============================
+
+Accelerator Variants: *mdpd/rhosum/omp*
 
 pair_style tdpd command
 =======================

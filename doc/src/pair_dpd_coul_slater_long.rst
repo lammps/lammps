@@ -1,10 +1,11 @@
 .. index:: pair_style dpd/coul/slater/long
 .. index:: pair_style dpd/coul/slater/long/gpu
+.. index:: pair_style dpd/coul/slater/long/omp
 
 pair_style dpd/coul/slater/long command
 =======================================
 
-Accelerator Variants: *dpd/coul/slater/long/gpu*
+Accelerator Variants: *dpd/coul/slater/long/gpu*, *dpd/coul/slater/long/omp*
 
 Syntax
 """"""

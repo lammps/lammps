@@ -1,6 +1,7 @@
 .. index:: pair_style edip
 .. index:: pair_style edip/omp
 .. index:: pair_style edip/multi
+.. index:: pair_style edip/multi/omp
 
 pair_style edip command
 =======================
@@ -9,6 +10,8 @@ Accelerator Variants: *edip/omp*
 
 pair_style edip/multi command
 =============================
+
+Accelerator Variants: *edip/multi/omp*
 
 Syntax
 """"""

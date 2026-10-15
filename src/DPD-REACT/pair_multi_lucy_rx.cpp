@@ -294,7 +294,7 @@ void PairMultiLucyRX::compute(int eflag, int vflag)
 
     evdwl = evdwlOld;
 
-    if (evflag) ev_tally(0,0,nlocal,newton_pair,evdwl,0.0,0.0,0.0,0.0,0.0);
+    if (evflag) ev_tally(i,i,nlocal,newton_pair,evdwl,0.0,0.0,0.0,0.0,0.0);
   }
 
   if (vflag_fdotr) virial_fdotr_compute();

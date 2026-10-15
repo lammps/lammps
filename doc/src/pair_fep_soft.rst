@@ -2,6 +2,7 @@
 .. index:: pair_style lj/cut/soft/kk
 .. index:: pair_style lj/cut/soft/omp
 .. index:: pair_style lj/cut/soft/gapsys
+.. index:: pair_style lj/cut/soft/gapsys/omp
 .. index:: pair_style lj/cut/coul/cut/soft
 .. index:: pair_style lj/cut/coul/cut/soft/kk
 .. index:: pair_style lj/cut/coul/cut/soft/gpu
@@ -43,6 +44,8 @@ Accelerator Variants: *lj/cut/soft/kk*, *lj/cut/soft/omp*
 
 pair_style lj/cut/soft/gapsys command
 =====================================
+
+Accelerator Variants: *lj/cut/soft/gapsys/omp*
 
 pair_style lj/cut/coul/cut/soft command
 =======================================

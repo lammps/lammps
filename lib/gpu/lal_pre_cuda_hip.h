@@ -25,12 +25,39 @@
 
 #if defined(NV_KERNEL) || defined(USE_HIP)
 
+// The HIP runtime header defines __HIP_PLATFORM_AMD__ (or __HIP_PLATFORM_NVIDIA__)
+// for the current compilation, so it must be included before the device
+// configuration is selected below.
+#ifdef USE_HIP
+#include <hip/hip_runtime.h>
+#endif
+
 // -------------------------------------------------------------------------
 //                             DEVICE CONFIGURATION
 // -------------------------------------------------------------------------
 
-
-#if defined(__HIP_PLATFORM_HCC__) || defined(__HIP_PLATFORM_AMD__) || defined(__HIP_PLATFORM_SPIRV__)
+#if defined(__HIP_PLATFORM_HCC__) || defined(__HIP_PLATFORM_AMD__)
+#define CONFIG_ID 303
+// The SIMD width of AMD GPUs is the wavefront size of the targeted architecture:
+// 64 for GCN and CDNA (gfx9 and older), 32 for RDNA (gfx10 and newer).  The
+// value must be a compile time constant (it is used for the dimensions of
+// shared memory arrays), so the __AMDGCN_WAVEFRONT_SIZE__ macro is the only
+// option.  It is deprecated in clang 19 and later, hence it is only used once
+// here with the deprecation warning disabled, and the GPU family macros are
+// the fallback for when it is removed.
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-pragma"
+#if defined(__AMDGCN_WAVEFRONT_SIZE__) && (__AMDGCN_WAVEFRONT_SIZE__ == 32)
+#define SIMD_SIZE 32
+#elif defined(__AMDGCN_WAVEFRONT_SIZE__)
+#define SIMD_SIZE 64
+#elif defined(__GFX10__) || defined(__GFX11__) || defined(__GFX12__)
+#define SIMD_SIZE 32
+#else
+#define SIMD_SIZE 64
+#endif
+#pragma clang diagnostic pop
+#elif defined(__HIP_PLATFORM_SPIRV__)
 #define CONFIG_ID 303
 #define SIMD_SIZE 64
 #else
@@ -62,10 +89,6 @@
 // -------------------------------------------------------------------------
 //                              KERNEL MACROS
 // -------------------------------------------------------------------------
-
-#ifdef USE_HIP
-#include <hip/hip_runtime.h>
-#endif
 
 #define fast_mul(X,Y) (X)*(Y)
 

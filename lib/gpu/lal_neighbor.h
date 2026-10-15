@@ -25,7 +25,8 @@
 #define IJ_SIZE 131072
 
 // same settings with lal_neighbor_gpu.cu
-#if defined(USE_HIP) || defined(__APPLE__)
+// the neighbor list build with subgroup support is not used on macOS
+#if defined(__APPLE__)
 #define LAL_USE_OLD_NEIGHBOR
 #endif
 

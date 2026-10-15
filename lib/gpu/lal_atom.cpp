@@ -15,23 +15,12 @@
 
 #include "lal_atom.h"
 
-#ifdef USE_HIP_DEVICE_SORT
-#include <hip/hip_runtime.h>
-#include <hipcub/hipcub.hpp>
-#endif
-
 namespace LAMMPS_AL {
 #define AtomT Atom<numtyp,acctyp>
 
 template <class numtyp, class acctyp>
 AtomT::Atom() : _compiled(false),_allocated(false),
                               _max_gpu_bytes(0) {
-  #ifdef USE_CUDPP
-  sort_config.op = CUDPP_ADD;
-  sort_config.datatype = CUDPP_UINT;
-  sort_config.algorithm = CUDPP_SORT_RADIX;
-  sort_config.options = CUDPP_OPTION_KEY_VALUE_PAIRS;
-  #endif
 }
 
 template <class numtyp, class acctyp>
@@ -67,35 +56,6 @@ bool AtomT::alloc(const int nall) {
     assert(0==1);
     #endif
   }
-
-  // Allocate storage for CUDPP sort
-  #ifdef USE_CUDPP
-  if (_gpu_nbor==1) {
-    CUDPPResult result = cudppPlan(&sort_plan, sort_config, _max_atoms, 1, 0);
-    if (CUDPP_SUCCESS != result)
-      return false;
-  }
-  #endif
-
-  #ifdef USE_HIP_DEVICE_SORT
-  if (_gpu_nbor==1) {
-    size_t   temp_storage_bytes = 0;
-    if(hipSuccess != hipcub::DeviceRadixSort::SortPairs(nullptr, temp_storage_bytes, sort_out_keys, sort_out_keys, sort_out_values, sort_out_values, _max_atoms))
-      return false;
-    if(sort_out_size < _max_atoms){
-      if (sort_out_keys  ) hipFree(sort_out_keys);
-      if (sort_out_values) hipFree(sort_out_values);
-      hipMalloc(&sort_out_keys  , _max_atoms * sizeof(unsigned));
-      hipMalloc(&sort_out_values, _max_atoms * sizeof(int     ));
-      sort_out_size = _max_atoms;
-    }
-    if(temp_storage_bytes > sort_temp_storage_size){
-      if(sort_temp_storage) hipFree(sort_temp_storage);
-      hipMalloc(&sort_temp_storage, temp_storage_bytes);
-      sort_temp_storage_size = temp_storage_bytes;
-    }
-  }
-  #endif
 
   // ---------------------------  Device allocations
   int gpu_bytes=0;
@@ -216,33 +176,6 @@ bool AtomT::add_fields(const bool charge, const bool rot,
 
   if (gpu_nbor>0 && _gpu_nbor==0) {
     _gpu_nbor=gpu_nbor;
-    #ifdef USE_CUDPP
-    if (_gpu_nbor==1) {
-      CUDPPResult result = cudppPlan(&sort_plan, sort_config, _max_atoms, 1, 0);
-      if (CUDPP_SUCCESS != result)
-        return false;
-    }
-    #endif
-
-    #ifdef USE_HIP_DEVICE_SORT
-    if (_gpu_nbor==1) {
-      size_t   temp_storage_bytes = 0;
-      if(hipSuccess != hipcub::DeviceRadixSort::SortPairs(nullptr, temp_storage_bytes, sort_out_keys, sort_out_keys, sort_out_values, sort_out_values, _max_atoms))
-        return false;
-      if(sort_out_size < _max_atoms){
-        if (sort_out_keys  ) hipFree(sort_out_keys);
-        if (sort_out_values) hipFree(sort_out_values);
-        hipMalloc(&sort_out_keys  , _max_atoms * sizeof(unsigned));
-        hipMalloc(&sort_out_values, _max_atoms * sizeof(int     ));
-        sort_out_size = _max_atoms;
-      }
-      if(temp_storage_bytes > sort_temp_storage_size){
-        if(sort_temp_storage) hipFree(sort_temp_storage);
-        hipMalloc(&sort_temp_storage, temp_storage_bytes);
-        sort_temp_storage_size = temp_storage_bytes;
-      }
-    }
-    #endif
 
     success=success && (dev_particle_id.alloc(_max_atoms,*dev,
                                               UCL_READ_ONLY)==UCL_SUCCESS);
@@ -340,23 +273,6 @@ void AtomT::clear_resize() {
   type_cast.clear();
   #endif
 
-  #ifdef USE_CUDPP
-  if (_gpu_nbor==1) cudppDestroyPlan(sort_plan);
-  #endif
-
-  #ifdef USE_HIP_DEVICE_SORT
-  if (_gpu_nbor==1) {
-    if(sort_out_keys)     hipFree(sort_out_keys);
-    if(sort_out_values)   hipFree(sort_out_values);
-    if(sort_temp_storage) hipFree(sort_temp_storage);
-    sort_out_keys = nullptr;
-    sort_out_values = nullptr;
-    sort_temp_storage = nullptr;
-    sort_temp_storage_size = 0;
-    sort_out_size = 0;
-  }
-  #endif
-
   if (_gpu_nbor==2) {
     host_particle_id.clear();
     host_cell_id.clear();
@@ -399,40 +315,11 @@ double AtomT::host_memory_usage() const {
   return _max_atoms*atom_bytes*sizeof(numtyp)+sizeof(Atom<numtyp,acctyp>);
 }
 
-#if defined(USE_CUDPP) || defined(USE_HIP_DEVICE_SORT)
-#define USE_CUDPP_ARG(arg) arg
-#else
-#define USE_CUDPP_ARG(arg)
-#endif
-// Sort arrays for neighbor list calculation
+// Sort arrays for neighbor list calculation on the device. Sorting on the
+// device (with CUDPP or hipCUB) is no longer supported, so binning on the
+// device (gpu_nbor == 1) is always replaced by binning on the host
 template <class numtyp, class acctyp>
-void AtomT::sort_neighbor(const int USE_CUDPP_ARG(num_atoms)) {
-  #ifdef USE_CUDPP
-  CUDPPResult result = cudppSort(sort_plan, (unsigned *)dev_cell_id.begin(),
-                                 (int *)dev_particle_id.begin(),
-                                 8*sizeof(unsigned), num_atoms);
-  if (CUDPP_SUCCESS != result) {
-    printf("Error in cudppSort\n");
-    UCL_GERYON_EXIT;
-  }
-  #endif
-
-  #ifdef USE_HIP_DEVICE_SORT
-    if(sort_out_size < num_atoms){
-      printf("AtomT::sort_neighbor: invalid temp buffer size\n");
-      UCL_GERYON_EXIT;
-    }
-    if(hipSuccess != hipcub::DeviceRadixSort::SortPairs(sort_temp_storage, sort_temp_storage_size, (unsigned *)dev_cell_id.begin(), sort_out_keys, (int *)dev_particle_id.begin(), sort_out_values, num_atoms)){
-      printf("AtomT::sort_neighbor: DeviceRadixSort error\n");
-      UCL_GERYON_EXIT;
-    }
-    if(hipSuccess != hipMemcpy((unsigned *)dev_cell_id.begin(), sort_out_keys  , num_atoms*sizeof(unsigned), hipMemcpyDeviceToDevice) ||
-       hipSuccess != hipMemcpy((int *) dev_particle_id.begin(), sort_out_values, num_atoms*sizeof(int     ), hipMemcpyDeviceToDevice)){
-      printf("AtomT::sort_neighbor: copy output error\n");
-      UCL_GERYON_EXIT;
-    }
-  #endif
-}
+void AtomT::sort_neighbor(const int /*num_atoms*/) {}
 
 #ifdef GPU_CAST
 #if defined(USE_OPENCL)

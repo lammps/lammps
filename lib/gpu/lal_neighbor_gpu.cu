@@ -46,10 +46,6 @@ _texture_2d( pos_tex,int4);
 #define LAL_USE_OLD_NEIGHBOR
 #endif
 
-#ifdef USE_CUDPP
-#define LAL_USE_OLD_NEIGHBOR
-#endif
-
 /*
   compute the id of the cell where the atoms belong to
 x: atom coordinates

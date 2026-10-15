@@ -103,7 +103,7 @@ if(GPU_API STREQUAL "CUDA")
   # instead of an object file for each source.
   add_library(gpu_fatbin OBJECT ${GPU_LIB_CU})
   set_target_properties(gpu_fatbin PROPERTIES CUDA_FATBIN_COMPILATION ON
-                        CUDA_ARCHITECTURES "${GPU_CUDA_ARCH}")
+                        CUDA_ARCHITECTURES "${GPU_ARCH}")
   target_compile_options(gpu_fatbin PRIVATE --use_fast_math -Wno-deprecated-gpu-targets)
   target_compile_definitions(gpu_fatbin PRIVATE -DUNIX -DNV_KERNEL -DUCL_CUDADR
                              -D_${GPU_PREC_SETTING} -DLAMMPS_${LAMMPS_SIZES})

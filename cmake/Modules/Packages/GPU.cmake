@@ -214,7 +214,6 @@ elseif(GPU_API STREQUAL "OPENCL")
 elseif(GPU_API STREQUAL "HIP")
   include(DetectHIPInstallation)
   find_package(hip REQUIRED)
-  option(HIP_USE_DEVICE_SORT "Use GPU sorting" ON)
 
   if(NOT DEFINED HIP_PLATFORM)
       if(NOT DEFINED ENV{HIP_PLATFORM})
@@ -236,71 +235,113 @@ elseif(GPU_API STREQUAL "HIP")
     unset(HIP_ARCH CACHE)
   endif()
 
-  if(HIP_PLATFORM STREQUAL "amd")
-    set(GPU_ARCH "gfx906" CACHE STRING "LAMMPS GPU architecture (e.g. gfx90a for HIP/AMD)")
-  elseif(HIP_PLATFORM STREQUAL "spirv")
-    set(GPU_ARCH "spirv" CACHE STRING "LAMMPS GPU architecture")
-  elseif(HIP_PLATFORM STREQUAL "nvcc")
-    set(GPU_ARCH "all-major" CACHE STRING "LAMMPS GPU architecture for CUDA. Use 'all', 'all-major', or a list of numbers e.g. '50;70;72;80'")
-    set(CMAKE_CUDA_ARCHITECTURES "${GPU_ARCH}")
-    find_package(CUDAToolkit REQUIRED)
-    if(CUDAToolkit_VERSION VERSION_LESS 12.0)
-      message(FATAL_ERROR "CUDA Toolkit version 12.0 or later is required")
-    elseif(CUDAToolkit_VERSION VERSION_GREATER_EQUAL "14.0")
-      message(WARNING "Untested CUDA Toolkit version ${CUDAToolkit_VERSION}. Use at your own risk")
-    endif()
-    set(HIP_CUDA_GENCODE "-arch=all")
-  endif()
-
   file(GLOB GPU_LIB_CU CONFIGURE_DEPENDS ${LAMMPS_LIB_SOURCE_DIR}/gpu/[^.]*.cu ${CMAKE_CURRENT_SOURCE_DIR}/gpu/[^.]*.cu)
   list(REMOVE_ITEM GPU_LIB_CU ${LAMMPS_LIB_SOURCE_DIR}/gpu/lal_pppm.cu)
 
-  set(GPU_LIB_CU_HIP "")
-  foreach(CU_FILE ${GPU_LIB_CU})
-    get_filename_component(CU_NAME ${CU_FILE} NAME_WE)
-    string(REGEX REPLACE "^.*lal_" "" CU_NAME "${CU_NAME}")
+  if(HIP_PLATFORM STREQUAL "amd")
+    # The kernels for AMD GPUs are compiled with the native HIP support of CMake,
+    # which requires the clang-based HIP compiler from ROCm.  With an empty
+    # GPU_ARCH setting, CMake detects the architectures of the GPUs installed in
+    # the local machine (using rocm_agent_enumerator) and falls back to the
+    # default architecture of the HIP compiler, if no GPU is found.  Otherwise
+    # GPU_ARCH may be a single architecture or a list of architectures.
+    set(GPU_ARCH "" CACHE STRING "LAMMPS GPU architecture(s) for HIP/AMD, e.g. gfx90a or 'gfx90a;gfx942' (empty: detect installed GPUs)")
+    if(GPU_ARCH)
+      set(CMAKE_HIP_ARCHITECTURES "${GPU_ARCH}")
+    endif()
+    enable_language(HIP)
+    if(NOT CMAKE_HIP_COMPILER_ID STREQUAL "Clang")
+      message(FATAL_ERROR "The HIP back end of the GPU package for AMD GPUs requires the clang-based HIP compiler from ROCm")
+    endif()
 
-    set(CU_CPP_FILE  "${LAMMPS_LIB_BINARY_DIR}/gpu/${CU_NAME}.cu.cpp")
-    set(CUBIN_FILE   "${LAMMPS_LIB_BINARY_DIR}/gpu/${CU_NAME}.cubin")
-    set(CUBIN_H_FILE "${LAMMPS_LIB_BINARY_DIR}/gpu/${CU_NAME}_cubin.h")
+    # The kernel sources are not compiled into objects that are linked into the
+    # executable, but into code objects that are embedded into header files and
+    # loaded at run time through the HIP module API.  The --cuda-device-only flag
+    # makes clang emit only the device code (a bundle of code objects when
+    # compiling for multiple architectures) in place of a regular object file,
+    # which is the same as what "hipcc --genco" does.  The optimization and debug
+    # flags override the global per-configuration flags, so that the embedded code
+    # objects are always optimized and never contain debug information.
+    add_library(gpu_hip_co OBJECT ${GPU_LIB_CU})
+    set_source_files_properties(${GPU_LIB_CU} PROPERTIES LANGUAGE HIP)
+    target_compile_options(gpu_hip_co PRIVATE --cuda-device-only -O3 -g0)
+    target_compile_definitions(gpu_hip_co PRIVATE -DUSE_HIP -D_${GPU_PREC_SETTING} -DLAMMPS_${LAMMPS_SIZES})
+    target_include_directories(gpu_hip_co PRIVATE ${LAMMPS_LIB_SOURCE_DIR}/gpu)
 
-    if(HIP_PLATFORM STREQUAL "amd")
-        configure_file(${CU_FILE} ${CU_CPP_FILE} COPYONLY)
+    # $<TARGET_OBJECTS:gpu_hip_co> expands to the list of all generated code
+    # objects, so pick out the one belonging to the current source with a filter.
+    foreach(CU_FILE ${GPU_LIB_CU})
+      get_filename_component(CU_NAME ${CU_FILE} NAME_WE)
+      set(CU_OBJ "$<FILTER:$<TARGET_OBJECTS:gpu_hip_co>,INCLUDE,/${CU_NAME}\\.cu\\.o$>")
+      string(REGEX REPLACE "^lal_" "" CU_NAME "${CU_NAME}")
+      set(CUBIN_H_FILE "${LAMMPS_LIB_BINARY_DIR}/gpu/${CU_NAME}_cubin.h")
+      add_custom_command(OUTPUT ${CUBIN_H_FILE}
+        COMMAND ${CMAKE_COMMAND} -D SOURCE_DIR=${CMAKE_CURRENT_SOURCE_DIR} -D VARNAME=${CU_NAME} -D HEADER_FILE=${CUBIN_H_FILE} -D SOURCE_FILE=${CU_OBJ} -P ${CMAKE_CURRENT_SOURCE_DIR}/Modules/GenerateBinaryHeader.cmake
+        DEPENDS "${CU_OBJ}"
+        COMMAND_EXPAND_LISTS
+        COMMENT "Generating ${CU_NAME}_cubin.h")
+      list(APPEND GPU_LIB_SOURCES ${CUBIN_H_FILE})
+    endforeach()
+    set_directory_properties(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES "${LAMMPS_LIB_BINARY_DIR}/gpu/*_cubin.h")
 
-        if(HIP_COMPILER STREQUAL "clang")
-          add_custom_command(OUTPUT ${CUBIN_FILE}
-            VERBATIM COMMAND ${HIP_HIPCC_EXECUTABLE} --genco --offload-arch=${GPU_ARCH} -O3 -DUSE_HIP -D_${GPU_PREC_SETTING} -DLAMMPS_${LAMMPS_SIZES} -I${LAMMPS_LIB_SOURCE_DIR}/gpu -o ${CUBIN_FILE} ${CU_CPP_FILE}
-            DEPENDS ${CU_CPP_FILE}
-            COMMENT "Generating ${CU_NAME}.cubin")
-        else()
-          add_custom_command(OUTPUT ${CUBIN_FILE}
-            VERBATIM COMMAND ${HIP_HIPCC_EXECUTABLE} --genco -t="${GPU_ARCH}" -f=\"-O3 -DUSE_HIP -D_${GPU_PREC_SETTING} -DLAMMPS_${LAMMPS_SIZES} -I${LAMMPS_LIB_SOURCE_DIR}/gpu\" -o ${CUBIN_FILE} ${CU_CPP_FILE}
-            DEPENDS ${CU_CPP_FILE}
-            COMMENT "Generating ${CU_NAME}.cubin")
-        endif()
-    elseif(HIP_PLATFORM STREQUAL "nvcc")
+  else()
+    # HIP for NVIDIA GPUs (through nvcc) and for SPIR-V (chipStar) are not
+    # supported by the native HIP support of CMake, so the kernels are compiled
+    # with hipcc from custom commands.
+    if(HIP_PLATFORM STREQUAL "nvcc")
+      set(GPU_ARCH "all-major" CACHE STRING "LAMMPS GPU architecture for CUDA. Use 'all', 'all-major', or a list of numbers e.g. '50;70;72;80'")
+      find_package(CUDAToolkit REQUIRED)
+      if(CUDAToolkit_VERSION VERSION_LESS 12.0)
+        message(FATAL_ERROR "CUDA Toolkit version 12.0 or later is required")
+      elseif(CUDAToolkit_VERSION VERSION_GREATER_EQUAL "14.0")
+        message(WARNING "Untested CUDA Toolkit version ${CUDAToolkit_VERSION}. Use at your own risk")
+      endif()
+      # nvcc understands the 'all', 'all-major', and 'native' architecture
+      # settings directly, a list of architecture numbers needs to be translated
+      if(GPU_ARCH MATCHES "^(all|all-major|native)$")
+        set(HIP_CUDA_GENCODE "-arch=${GPU_ARCH}")
+      else()
+        set(HIP_CUDA_GENCODE "")
+        foreach(_arch ${GPU_ARCH})
+          list(APPEND HIP_CUDA_GENCODE "-gencode" "arch=compute_${_arch},code=[sm_${_arch},compute_${_arch}]")
+        endforeach()
+      endif()
+    elseif(HIP_PLATFORM STREQUAL "spirv")
+      set(GPU_ARCH "spirv" CACHE STRING "LAMMPS GPU architecture")
+    else()
+      message(FATAL_ERROR "Unsupported HIP_PLATFORM setting '${HIP_PLATFORM}'. Must be 'amd', 'nvcc', or 'spirv'")
+    endif()
+
+    foreach(CU_FILE ${GPU_LIB_CU})
+      get_filename_component(CU_NAME ${CU_FILE} NAME_WE)
+      string(REGEX REPLACE "^lal_" "" CU_NAME "${CU_NAME}")
+
+      set(CU_CPP_FILE  "${LAMMPS_LIB_BINARY_DIR}/gpu/${CU_NAME}.cu.cpp")
+      set(CUBIN_FILE   "${LAMMPS_LIB_BINARY_DIR}/gpu/${CU_NAME}.cubin")
+      set(CUBIN_H_FILE "${LAMMPS_LIB_BINARY_DIR}/gpu/${CU_NAME}_cubin.h")
+
+      if(HIP_PLATFORM STREQUAL "nvcc")
         add_custom_command(OUTPUT ${CUBIN_FILE}
           VERBATIM COMMAND ${HIP_HIPCC_EXECUTABLE} --fatbin --use_fast_math -DUSE_HIP -D_${GPU_PREC_SETTING} -DLAMMPS_${LAMMPS_SIZES} ${HIP_CUDA_GENCODE} -I${LAMMPS_LIB_SOURCE_DIR}/gpu -o ${CUBIN_FILE} ${CU_FILE}
           DEPENDS ${CU_FILE}
           COMMENT "Generating ${CU_NAME}.cubin")
-    elseif(HIP_PLATFORM STREQUAL "spirv")
-      configure_file(${CU_FILE} ${CU_CPP_FILE} COPYONLY)
-
-      add_custom_command(OUTPUT ${CUBIN_FILE}
-        VERBATIM COMMAND ${HIP_HIPCC_EXECUTABLE} -c -O3 -DUSE_HIP -D_${GPU_PREC_SETTING} -DLAMMPS_${LAMMPS_SIZES} -I${LAMMPS_LIB_SOURCE_DIR}/gpu -o ${CUBIN_FILE} ${CU_CPP_FILE}
-        DEPENDS ${CU_CPP_FILE}
-        COMMENT "Gerating ${CU_NAME}.cubin")
+      else()
+        configure_file(${CU_FILE} ${CU_CPP_FILE} COPYONLY)
+        add_custom_command(OUTPUT ${CUBIN_FILE}
+          VERBATIM COMMAND ${HIP_HIPCC_EXECUTABLE} -c -O3 -DUSE_HIP -D_${GPU_PREC_SETTING} -DLAMMPS_${LAMMPS_SIZES} -I${LAMMPS_LIB_SOURCE_DIR}/gpu -o ${CUBIN_FILE} ${CU_CPP_FILE}
+          DEPENDS ${CU_CPP_FILE}
+          COMMENT "Generating ${CU_NAME}.cubin")
       endif()
 
-    add_custom_command(OUTPUT ${CUBIN_H_FILE}
-      COMMAND ${CMAKE_COMMAND} -D SOURCE_DIR=${CMAKE_CURRENT_SOURCE_DIR} -D VARNAME=${CU_NAME} -D HEADER_FILE=${CUBIN_H_FILE} -D SOURCE_FILE=${CUBIN_FILE} -P ${CMAKE_CURRENT_SOURCE_DIR}/Modules/GenerateBinaryHeader.cmake
-      DEPENDS ${CUBIN_FILE}
-      COMMENT "Generating ${CU_NAME}_cubin.h")
+      add_custom_command(OUTPUT ${CUBIN_H_FILE}
+        COMMAND ${CMAKE_COMMAND} -D SOURCE_DIR=${CMAKE_CURRENT_SOURCE_DIR} -D VARNAME=${CU_NAME} -D HEADER_FILE=${CUBIN_H_FILE} -D SOURCE_FILE=${CUBIN_FILE} -P ${CMAKE_CURRENT_SOURCE_DIR}/Modules/GenerateBinaryHeader.cmake
+        DEPENDS ${CUBIN_FILE}
+        COMMENT "Generating ${CU_NAME}_cubin.h")
 
-    list(APPEND GPU_LIB_SOURCES ${CUBIN_H_FILE})
-  endforeach()
-
-  set_directory_properties(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES "${LAMMPS_LIB_BINARY_DIR}/gpu/*_cubin.h ${LAMMPS_LIB_BINARY_DIR}/gpu/*.cu.cpp")
+      list(APPEND GPU_LIB_SOURCES ${CUBIN_H_FILE})
+    endforeach()
+    set_directory_properties(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES "${LAMMPS_LIB_BINARY_DIR}/gpu/*_cubin.h ${LAMMPS_LIB_BINARY_DIR}/gpu/*.cu.cpp")
+  endif()
 
   add_library(gpu STATIC ${GPU_LIB_SOURCES})
   target_include_directories(gpu PRIVATE ${LAMMPS_LIB_BINARY_DIR}/gpu)
@@ -316,59 +357,6 @@ elseif(GPU_API STREQUAL "HIP")
     target_compile_definitions(gpu PRIVATE -DMPI_GERYON -DUCL_NO_EXIT)
   endif()
   target_link_libraries(gpu PRIVATE hip::host)
-
-  if(HIP_USE_DEVICE_SORT)
-    if(HIP_PLATFORM STREQUAL "amd")
-      # ROCm 5.1+ requires c++14 for rocprim; ROCm 6+/7+ rocprim requires c++17
-      set_property(TARGET gpu PROPERTY CXX_STANDARD 17)
-    endif()
-    # add hipCUB
-    find_package(hipcub REQUIRED)
-    target_link_libraries(gpu PRIVATE hip::hipcub)
-    target_compile_definitions(gpu PRIVATE -DUSE_HIP_DEVICE_SORT)
-
-    if(HIP_PLATFORM STREQUAL "nvcc")
-      find_package(CUB)
-
-      if(CUB_FOUND)
-        set(DOWNLOAD_CUB_DEFAULT OFF)
-      else()
-        set(DOWNLOAD_CUB_DEFAULT ON)
-      endif()
-
-      option(DOWNLOAD_CUB "Download and compile the CUB library instead of using an already installed one" ${DOWNLOAD_CUB_DEFAULT})
-
-      if(DOWNLOAD_CUB)
-        message(STATUS "CUB download requested")
-        # TODO: test update to current version 1.17.2
-        SetDownloadSettings(CUB "CUB"
-          "https://github.com/nvidia/cub/archive/1.12.0.tar.gz"
-          "3b03d0cbc9549606fbeda69a920562eb563836346b39014c79dfd024165ee549")
-        GetFallbackURL(CUB_URL CUB_FALLBACK)
-
-        include(ExternalProject)
-
-        ExternalProject_Add(CUB
-          URL     ${CUB_URL} ${CUB_FALLBACK}
-          URL_HASH SHA256=${CUB_SHA256}
-          PREFIX "${CMAKE_CURRENT_BINARY_DIR}"
-          CONFIGURE_COMMAND ""
-          BUILD_COMMAND ""
-          INSTALL_COMMAND ""
-          UPDATE_COMMAND ""
-        )
-        ExternalProject_get_property(CUB SOURCE_DIR)
-        set(CUB_INCLUDE_DIR ${SOURCE_DIR})
-      else()
-        find_package(CUB)
-        if(NOT CUB_FOUND)
-          message(FATAL_ERROR "CUB library not found. Help CMake to find it by setting CUB_INCLUDE_DIR, or set DOWNLOAD_CUB=ON to download it")
-        endif()
-      endif()
-
-      target_include_directories(gpu PRIVATE ${CUB_INCLUDE_DIR})
-    endif()
-  endif()
 
   add_executable(hip_get_devices ${LAMMPS_LIB_SOURCE_DIR}/gpu/geryon/ucl_get_devices.cpp)
   target_compile_definitions(hip_get_devices PRIVATE -DUCL_HIP)

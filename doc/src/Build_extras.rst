@@ -246,26 +246,23 @@ CMake build
    -D GPU_API=value             # value = opencl (default) or cuda or hip
    -D GPU_PREC=value            # precision setting
                                 # value = double or mixed (default) or single
-   -D GPU_ARCH=value            # primary GPU hardware choice for all GPU_API back ends
-                                # value = sm_XX for cuda and hip/nvcc (see below),
-                                # gfx<XXX> for hip/amd, or spirv for hip/spirv
-                                # defaults: sm_75 (cuda, hip/nvcc), gfx906 (hip/amd),
-                                # spirv (hip/spirv)
+   -D GPU_ARCH=value            # GPU hardware choice for all GPU_API back ends (see below)
+                                # value = all-major (default), all, or a list of numbers
+                                # (e.g. "70;80;90") for cuda and hip/nvcc, one or more
+                                # gfx<XXX> names (e.g. "gfx90a;gfx942") for hip/amd, or
+                                # spirv for hip/spirv (default). The default for hip/amd
+                                # is to detect the architecture(s) of the installed GPUs
    -D GPU_DEBUG=value           # enable debug code in the GPU package library,
                                 # mostly useful for developers
                                 # value = on or off (default)
-   -D HIP_PATH=value            # value = path to HIP installation. Must be set if
-                                # GPU_API=HIP
+   -D ROCM_PATH=value           # value = path to the ROCm installation for GPU_API=hip
+                                # (default: /opt/rocm or the ROCM_PATH environment variable)
+   -D HIP_PLATFORM=value        # value = amd (default), nvcc, or spirv for GPU_API=hip
    -D HIP_ARCH=value            # deprecated, use GPU_ARCH instead (still accepted,
                                 # but prints a deprecation warning)
-   -D HIP_USE_DEVICE_SORT=value # enables GPU sorting
-                                # value = on (default) or off
    -D CUDA_MPS_SUPPORT=value    # enables some tweaks required to run with active
                                 # nvidia-cuda-mps daemon
                                 # value = on or off (default)
-   -D CUDA_BUILD_MULTIARCH=value  # enables building CUDA kernels for all supported GPU
-                                  # architectures
-                                  # value = on (default) or off
    -D USE_STATIC_OPENCL_LOADER=value  # downloads/includes OpenCL ICD loader library,
                                       # no local OpenCL headers/libs needed
                                       # value = on (default) or off
@@ -371,15 +368,23 @@ devices for OpenCL (and LAMMPS would require two MPI processes to use both
 sockets with the GPU library - each with its own device ID as output by
 ocl_get_devices).  OpenCL version 1.2 or later is required.
 
-If you are compiling with HIP, note that before running CMake you will
-have to set appropriate environment variables. Some variables such as
-``HCC_AMDGPU_TARGET`` (for ROCm <= 4.0) or ``CUDA_PATH`` are
-necessary for ``hipcc`` and the linker to work correctly.
+.. versionchanged:: TBD
 
-When compiling for HIP ROCm, GPU sorting with ``-D
-HIP_USE_DEVICE_SORT=on`` requires installing the ``hipcub`` library
-(https://github.com/ROCmSoftwarePlatform/hipCUB).  Setting
-``-D DOWNLOAD_CUB=on`` will download and compile CUB.
+Building with ``GPU_API=hip`` for AMD GPUs (``HIP_PLATFORM=amd``) uses
+the native HIP support in CMake, which requires the clang-based HIP
+compiler from ROCm.  CMake locates this compiler through the ROCm
+installation; a different compiler can be selected with
+``-D CMAKE_HIP_COMPILER=/path/to/clang++``.  The ``GPU_ARCH`` setting
+can be a single GPU architecture or a semicolon-separated list of
+architectures (e.g. ``gfx90a;gfx942``), in which case the GPU kernels
+are compiled for all of them.  When ``GPU_ARCH`` is not set, CMake
+detects the architectures of the GPUs installed in the local machine,
+or uses the default architecture of the HIP compiler if no GPU is found.
+It is no longer required to use ``hipcc`` as the C++ compiler for the
+LAMMPS sources.  Compiling with ``HIP_PLATFORM=nvcc`` or ``HIP_PLATFORM=spirv``
+continues to use ``hipcc`` to compile the GPU kernels, and ``hipcc`` may
+require environment variables like ``CUDA_PATH`` to locate the CUDA
+toolkit.
 
 The GPU library has some multi-thread support using OpenMP.  If LAMMPS
 is built with ``-D BUILD_OMP=on`` this will also be enabled.
@@ -412,46 +417,34 @@ For a debug build, set ``GPU_DEBUG`` to be ``on``.
 .. versionadded:: 3Aug2022
 
 Using the CHIP-SPV implementation of HIP is supported. It allows one to
-run HIP code on Intel GPUs via the OpenCL or Level Zero back ends. To use
-CHIP-SPV, you must set ``-DHIP_USE_DEVICE_SORT=OFF`` in your CMake
-command-line as CHIP-SPV does not yet support hipCUB. As of Summer 2022,
-the use of HIP for Intel GPUs is experimental. You should only use this
-option in preparations to run on Aurora system at Argonne.
+run HIP code on Intel GPUs via the OpenCL or Level Zero back ends. As of
+Summer 2022, the use of HIP for Intel GPUs is experimental. You should
+only use this option in preparations to run on Aurora system at Argonne.
 
-.. code:: bash
+.. code-block:: bash
 
-   # AMDGPU target (ROCm <= 4.0)
-   export HIP_PLATFORM=hcc
-   export HIP_PATH=/path/to/HIP/install
-   export HCC_AMDGPU_TARGET=gfx906
-   cmake -S cmake -B build -D PKG_GPU=on -D GPU_API=HIP -D HIP_ARCH=gfx906 -D CMAKE_CXX_COMPILER=hipcc
+   # AMD GPUs: kernels for the architecture(s) of the installed GPU(s)
+   cmake -S cmake -B build -D PKG_GPU=on -D GPU_API=hip
    cmake --build build
 
-.. code:: bash
-
-   # AMDGPU target (ROCm >= 4.1)
-   export HIP_PLATFORM=amd
-   export HIP_PATH=/path/to/HIP/install
-   cmake -S cmake -B build -D PKG_GPU=on -D GPU_API=HIP -D HIP_ARCH=gfx906 -D CMAKE_CXX_COMPILER=hipcc
+   # AMD GPUs: kernels for selected architectures, ROCm in a custom location
+   cmake -S cmake -B build -D PKG_GPU=on -D GPU_API=hip -D GPU_ARCH="gfx90a;gfx942" \
+         -D ROCM_PATH=/path/to/rocm
    cmake --build build
 
-.. code:: bash
+.. code-block:: bash
 
-   # CUDA target (not recommended, use GPU_API=cuda)
+   # NVIDIA GPUs through HIP (not recommended, use GPU_API=cuda)
    # !!! DO NOT set CMAKE_CXX_COMPILER !!!
-   export HIP_PLATFORM=nvcc
-   export HIP_PATH=/path/to/HIP/install
    export CUDA_PATH=/usr/local/cuda
-   cmake -S cmake -B build -D PKG_GPU=on -D GPU_API=HIP -D HIP_ARCH=sm_70
+   cmake -S cmake -B build -D PKG_GPU=on -D GPU_API=hip -D HIP_PLATFORM=nvcc -D GPU_ARCH=70
    cmake --build build
 
-.. code:: bash
+.. code-block:: bash
 
    # SPIR-V target (Intel GPUs)
-   export HIP_PLATFORM=spirv
-   export HIP_PATH=/path/to/HIP/install
-   export CMAKE_CXX_COMPILER=<hipcc/clang++>
-   cmake -S cmake -B build -D PKG_GPU=on -D GPU_API=HIP
+   cmake -S cmake -B build -D PKG_GPU=on -D GPU_API=hip -D HIP_PLATFORM=spirv \
+         -D CMAKE_CXX_COMPILER=hipcc
    cmake --build build
 
 ----------

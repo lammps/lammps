@@ -213,17 +213,29 @@ elseif(GPU_API STREQUAL "OPENCL")
 
 elseif(GPU_API STREQUAL "HIP")
   include(DetectHIPInstallation)
-  find_package(hip REQUIRED)
 
+  # HIP_PLATFORM selects the HIP back end: "amd" (default), "nvidia" (HIP on
+  # NVIDIA GPUs through nvcc), or "spirv" (chipStar).  "nvcc" is accepted as an
+  # alias for "nvidia".  The HIP CMake package and hipcc read the setting from
+  # the HIP_PLATFORM environment variable, so it has to be set before the package
+  # is searched and it is passed to every hipcc command at build time.
   if(NOT DEFINED HIP_PLATFORM)
       if(NOT DEFINED ENV{HIP_PLATFORM})
-          set(HIP_PLATFORM "amd" CACHE PATH "HIP Platform to be used during compilation")
+          set(HIP_PLATFORM "amd" CACHE STRING "HIP platform: amd (default), nvidia, or spirv")
       else()
-          set(HIP_PLATFORM $ENV{HIP_PLATFORM} CACHE PATH "HIP Platform used during compilation")
+          set(HIP_PLATFORM $ENV{HIP_PLATFORM} CACHE STRING "HIP platform: amd (default), nvidia, or spirv")
       endif()
   endif()
-
+  if(HIP_PLATFORM STREQUAL "nvcc")
+    set(HIP_PLATFORM "nvidia")
+  endif()
+  if(NOT HIP_PLATFORM MATCHES "^(amd|nvidia|spirv)$")
+    message(FATAL_ERROR "Unsupported HIP_PLATFORM setting '${HIP_PLATFORM}'. Must be 'amd', 'nvidia', or 'spirv'")
+  endif()
   set(ENV{HIP_PLATFORM} ${HIP_PLATFORM})
+  set(HIP_ENV ${CMAKE_COMMAND} -E env HIP_PLATFORM=${HIP_PLATFORM})
+
+  find_package(hip REQUIRED)
 
   # GPU_ARCH is the canonical architecture setting for all GPU_API backends.
   # HIP_ARCH is still accepted for backward compatibility but is deprecated.
@@ -288,13 +300,20 @@ elseif(GPU_API STREQUAL "HIP")
     # HIP for NVIDIA GPUs (through nvcc) and for SPIR-V (chipStar) are not
     # supported by the native HIP support of CMake, so the kernels are compiled
     # with hipcc from custom commands.
-    if(HIP_PLATFORM STREQUAL "nvcc")
+    if(HIP_PLATFORM STREQUAL "nvidia")
       set(GPU_ARCH "all-major" CACHE STRING "LAMMPS GPU architecture for CUDA. Use 'all', 'all-major', or a list of numbers e.g. '50;70;72;80'")
       find_package(CUDAToolkit REQUIRED)
       if(CUDAToolkit_VERSION VERSION_LESS 12.0)
         message(FATAL_ERROR "CUDA Toolkit version 12.0 or later is required")
       elseif(CUDAToolkit_VERSION VERSION_GREATER_EQUAL "14.0")
         message(WARNING "Untested CUDA Toolkit version ${CUDAToolkit_VERSION}. Use at your own risk")
+      endif()
+      # hipcc locates nvcc through CUDA_PATH; pass the host compiler selected for
+      # CUDA on to nvcc and allow host compilers that nvcc does not know about
+      list(APPEND HIP_ENV CUDA_PATH=${CUDAToolkit_LIBRARY_ROOT})
+      set(HIP_NVCC_FLAGS -allow-unsupported-compiler)
+      if(CMAKE_CUDA_HOST_COMPILER)
+        list(APPEND HIP_NVCC_FLAGS -ccbin ${CMAKE_CUDA_HOST_COMPILER})
       endif()
       # nvcc understands the 'all', 'all-major', and 'native' architecture
       # settings directly, a list of architecture numbers needs to be translated
@@ -308,8 +327,6 @@ elseif(GPU_API STREQUAL "HIP")
       endif()
     elseif(HIP_PLATFORM STREQUAL "spirv")
       set(GPU_ARCH "spirv" CACHE STRING "LAMMPS GPU architecture")
-    else()
-      message(FATAL_ERROR "Unsupported HIP_PLATFORM setting '${HIP_PLATFORM}'. Must be 'amd', 'nvcc', or 'spirv'")
     endif()
 
     foreach(CU_FILE ${GPU_LIB_CU})
@@ -320,15 +337,15 @@ elseif(GPU_API STREQUAL "HIP")
       set(CUBIN_FILE   "${LAMMPS_LIB_BINARY_DIR}/gpu/${CU_NAME}.cubin")
       set(CUBIN_H_FILE "${LAMMPS_LIB_BINARY_DIR}/gpu/${CU_NAME}_cubin.h")
 
-      if(HIP_PLATFORM STREQUAL "nvcc")
+      if(HIP_PLATFORM STREQUAL "nvidia")
         add_custom_command(OUTPUT ${CUBIN_FILE}
-          VERBATIM COMMAND ${HIP_HIPCC_EXECUTABLE} --fatbin --use_fast_math -DUSE_HIP -D_${GPU_PREC_SETTING} -DLAMMPS_${LAMMPS_SIZES} ${HIP_CUDA_GENCODE} -I${LAMMPS_LIB_SOURCE_DIR}/gpu -o ${CUBIN_FILE} ${CU_FILE}
+          VERBATIM COMMAND ${HIP_ENV} ${HIP_HIPCC_EXECUTABLE} --fatbin --use_fast_math ${HIP_NVCC_FLAGS} -DUSE_HIP -D_${GPU_PREC_SETTING} -DLAMMPS_${LAMMPS_SIZES} ${HIP_CUDA_GENCODE} -I${LAMMPS_LIB_SOURCE_DIR}/gpu -o ${CUBIN_FILE} ${CU_FILE}
           DEPENDS ${CU_FILE}
           COMMENT "Generating ${CU_NAME}.cubin")
       else()
         configure_file(${CU_FILE} ${CU_CPP_FILE} COPYONLY)
         add_custom_command(OUTPUT ${CUBIN_FILE}
-          VERBATIM COMMAND ${HIP_HIPCC_EXECUTABLE} -c -O3 -DUSE_HIP -D_${GPU_PREC_SETTING} -DLAMMPS_${LAMMPS_SIZES} -I${LAMMPS_LIB_SOURCE_DIR}/gpu -o ${CUBIN_FILE} ${CU_CPP_FILE}
+          VERBATIM COMMAND ${HIP_ENV} ${HIP_HIPCC_EXECUTABLE} -c -O3 -DUSE_HIP -D_${GPU_PREC_SETTING} -DLAMMPS_${LAMMPS_SIZES} -I${LAMMPS_LIB_SOURCE_DIR}/gpu -o ${CUBIN_FILE} ${CU_CPP_FILE}
           DEPENDS ${CU_CPP_FILE}
           COMMENT "Generating ${CU_NAME}.cubin")
       endif()
@@ -362,11 +379,15 @@ elseif(GPU_API STREQUAL "HIP")
   target_compile_definitions(hip_get_devices PRIVATE -DUCL_HIP)
   target_link_libraries(hip_get_devices PRIVATE hip::host)
 
-  if(HIP_PLATFORM STREQUAL "nvcc")
-    target_compile_definitions(gpu PRIVATE -D__HIP_PLATFORM_NVCC__)
+  if(HIP_PLATFORM STREQUAL "nvidia")
+    # the hip::host target of the HIP package is empty for NVIDIA GPUs: the HIP
+    # headers need the platform macro and the include path has to be added by hand
+    target_compile_definitions(gpu PRIVATE -D__HIP_PLATFORM_NVIDIA__ -D__HIP_PLATFORM_NVCC__)
+    target_include_directories(gpu PRIVATE ${HIP_INCLUDE_DIRS})
     target_link_libraries(gpu PRIVATE CUDA::cudart_static CUDA::cuda_driver)
 
-    target_compile_definitions(hip_get_devices PRIVATE -D__HIP_PLATFORM_NVCC__)
+    target_compile_definitions(hip_get_devices PRIVATE -D__HIP_PLATFORM_NVIDIA__ -D__HIP_PLATFORM_NVCC__)
+    target_include_directories(hip_get_devices PRIVATE ${HIP_INCLUDE_DIRS})
     target_link_libraries(hip_get_devices PRIVATE CUDA::cudart_static CUDA::cuda_driver)
   endif()
 endif()

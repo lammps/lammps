@@ -248,7 +248,7 @@ CMake build
                                 # value = double or mixed (default) or single
    -D GPU_ARCH=value            # GPU hardware choice for all GPU_API back ends (see below)
                                 # value = all-major (default), all, or a list of numbers
-                                # (e.g. "70;80;90") for cuda and hip/nvcc, one or more
+                                # (e.g. "70;80;90") for cuda and hip/nvidia, one or more
                                 # gfx<XXX> names (e.g. "gfx90a;gfx942") for hip/amd, or
                                 # spirv for hip/spirv (default). The default for hip/amd
                                 # is to detect the architecture(s) of the installed GPUs
@@ -257,7 +257,7 @@ CMake build
                                 # value = on or off (default)
    -D ROCM_PATH=value           # value = path to the ROCm installation for GPU_API=hip
                                 # (default: /opt/rocm or the ROCM_PATH environment variable)
-   -D HIP_PLATFORM=value        # value = amd (default), nvcc, or spirv for GPU_API=hip
+   -D HIP_PLATFORM=value        # value = amd (default), nvidia, or spirv for GPU_API=hip
    -D HIP_ARCH=value            # deprecated, use GPU_ARCH instead (still accepted,
                                 # but prints a deprecation warning)
    -D CUDA_MPS_SUPPORT=value    # enables some tweaks required to run with active
@@ -311,7 +311,7 @@ deprecated and prints a warning.
 
 .. versionchanged:: TBD
 
-For ``GPU_API=cuda`` or ``GPU_API=hip`` with ``HIP_PLATFORM=nvcc``, the
+For ``GPU_API=cuda`` or ``GPU_API=hip`` with ``HIP_PLATFORM=nvidia``, the
 supported ``GPU_ARCH`` setting for different GPU hardware are as follows:
 
 * ``all-major`` for including support for all major architectures supported by the CUDA toolkit (default)
@@ -381,10 +381,10 @@ are compiled for all of them.  When ``GPU_ARCH`` is not set, CMake
 detects the architectures of the GPUs installed in the local machine,
 or uses the default architecture of the HIP compiler if no GPU is found.
 It is no longer required to use ``hipcc`` as the C++ compiler for the
-LAMMPS sources.  Compiling with ``HIP_PLATFORM=nvcc`` or ``HIP_PLATFORM=spirv``
-continues to use ``hipcc`` to compile the GPU kernels, and ``hipcc`` may
-require environment variables like ``CUDA_PATH`` to locate the CUDA
-toolkit.
+LAMMPS sources.  Compiling with ``HIP_PLATFORM=nvidia`` (``nvcc`` is
+accepted as an alias) or ``HIP_PLATFORM=spirv`` continues to use ``hipcc``
+to compile the GPU kernels; the platform and the location of the CUDA
+toolkit are passed to ``hipcc`` by the build system.
 
 The GPU library has some multi-thread support using OpenMP.  If LAMMPS
 is built with ``-D BUILD_OMP=on`` this will also be enabled.
@@ -436,8 +436,7 @@ only use this option in preparations to run on Aurora system at Argonne.
 
    # NVIDIA GPUs through HIP (not recommended, use GPU_API=cuda)
    # !!! DO NOT set CMAKE_CXX_COMPILER !!!
-   export CUDA_PATH=/usr/local/cuda
-   cmake -S cmake -B build -D PKG_GPU=on -D GPU_API=hip -D HIP_PLATFORM=nvcc -D GPU_ARCH=70
+   cmake -S cmake -B build -D PKG_GPU=on -D GPU_API=hip -D HIP_PLATFORM=nvidia -D GPU_ARCH=70
    cmake --build build
 
 .. code-block:: bash

@@ -15,7 +15,7 @@
 
 namespace ucl_hip {
 
-#ifdef __HIP_PLATFORM_NVCC__
+#if defined(__HIP_PLATFORM_NVCC__) || defined(__HIP_PLATFORM_NVIDIA__)
 inline hipError_t hipModuleGetTexRef(CUtexref* texRef, hipModule_t hmod, const char* name){
   return hipCUResultTohipError(cuModuleGetTexRef(texRef, hmod, name));
 }
@@ -38,7 +38,7 @@ class UCL_Texture {
   /// Set the texture reference for this object
   inline void get_texture(UCL_Program &prog, const char *texture_name)
     {
-  #ifdef __HIP_PLATFORM_NVCC__
+  #if defined(__HIP_PLATFORM_NVCC__) || defined(__HIP_PLATFORM_NVIDIA__)
       CU_SAFE_CALL(hipModuleGetTexRef(&_tex, prog._module, texture_name));
   #else
       size_t _global_var_size;
@@ -74,7 +74,7 @@ class UCL_Texture {
   }
 
  private:
-#ifdef __HIP_PLATFORM_NVCC__
+#if defined(__HIP_PLATFORM_NVCC__) || defined(__HIP_PLATFORM_NVIDIA__)
   CUtexref _tex;
 #else
   void* _device_ptr_to_global_var;
@@ -87,7 +87,7 @@ class UCL_Texture {
     assert(numel!=0 && numel<5);
     #endif
 
-#ifdef __HIP_PLATFORM_NVCC__
+#if defined(__HIP_PLATFORM_NVCC__) || defined(__HIP_PLATFORM_NVIDIA__)
     if (vec.element_size()==sizeof(float))
       CU_SAFE_CALL(hipTexRefSetFormat(_tex, HIP_AD_FORMAT_FLOAT, numel));
     else {

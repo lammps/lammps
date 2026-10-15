@@ -24,7 +24,7 @@ namespace ucl_hip {
 // --------------------------------------------------------------------------
 //typedef dim3 ucl_kernel_dim;
 
-#ifdef __HIP_PLATFORM_NVCC__
+#if defined(__HIP_PLATFORM_NVCC__) || defined(__HIP_PLATFORM_NVIDIA__)
 typedef enum hipArray_Format {
     HIP_AD_FORMAT_UNSIGNED_INT8 = 0x01,
     HIP_AD_FORMAT_UNSIGNED_INT16 = 0x02,

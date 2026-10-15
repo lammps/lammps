@@ -127,7 +127,7 @@
 #endif
 #endif
 
-#ifdef __HIP_PLATFORM_NVCC__
+#if defined(__HIP_PLATFORM_NVCC__) || defined(__HIP_PLATFORM_NVIDIA__)
 #undef simdsync()
 #define simdsync() __syncwarp(0xffffffff)
 #endif

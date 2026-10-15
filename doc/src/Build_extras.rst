@@ -396,7 +396,8 @@ to compile the GPU kernels; the platform and the location of the CUDA
 toolkit are passed to ``hipcc`` by the build system.  ``HIP_PLATFORM=nvidia``
 additionally requires the HIP header files for NVIDIA GPUs from the
 `hipother project <https://github.com/ROCm/hipother>`_, which are not
-included in all ROCm distributions.
+included in all ROCm distributions; their version must match the
+installed HIP version and support the installed CUDA toolkit.
 
 The GPU library has some multi-thread support using OpenMP.  If LAMMPS
 is built with ``-D BUILD_OMP=on`` this will also be enabled.

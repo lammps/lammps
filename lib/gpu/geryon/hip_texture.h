@@ -15,17 +15,9 @@
 
 namespace ucl_hip {
 
-#if defined(__HIP_PLATFORM_NVCC__) || defined(__HIP_PLATFORM_NVIDIA__)
-inline hipError_t hipModuleGetTexRef(CUtexref* texRef, hipModule_t hmod, const char* name){
-  return hipCUResultTohipError(cuModuleGetTexRef(texRef, hmod, name));
-}
-inline hipError_t hipTexRefSetFormat(CUtexref tex, hipArray_Format fmt, int NumPackedComponents) {
-    return hipCUResultTohipError(cuTexRefSetFormat(tex, (CUarray_format)fmt, NumPackedComponents ));
-}
-inline hipError_t hipTexRefSetAddress(size_t* offset, CUtexref tex, hipDeviceptr_t devPtr, size_t size) {
-    return hipCUResultTohipError(cuTexRefSetAddress(offset, tex, devPtr, size));
-}
-#endif
+// With NVIDIA GPUs the kernels are compiled with CUDA 12 or later and then do
+// not use texture references, but access the data directly (same as with the
+// CUDA back end), so there is nothing to look up or bind on the host side.
 
 /// Class storing a texture reference
 class UCL_Texture {
@@ -38,9 +30,7 @@ class UCL_Texture {
   /// Set the texture reference for this object
   inline void get_texture(UCL_Program &prog, const char *texture_name)
     {
-  #if defined(__HIP_PLATFORM_NVCC__) || defined(__HIP_PLATFORM_NVIDIA__)
-      CU_SAFE_CALL(hipModuleGetTexRef(&_tex, prog._module, texture_name));
-  #else
+  #if !defined(__HIP_PLATFORM_NVCC__) && !defined(__HIP_PLATFORM_NVIDIA__)
       size_t _global_var_size;
       CU_SAFE_CALL(hipModuleGetGlobal(&_device_ptr_to_global_var, &_global_var_size, prog._module, texture_name));
   #endif
@@ -74,9 +64,7 @@ class UCL_Texture {
   }
 
  private:
-#if defined(__HIP_PLATFORM_NVCC__) || defined(__HIP_PLATFORM_NVIDIA__)
-  CUtexref _tex;
-#else
+#if !defined(__HIP_PLATFORM_NVCC__) && !defined(__HIP_PLATFORM_NVIDIA__)
   void* _device_ptr_to_global_var;
 #endif
   friend class UCL_Kernel;
@@ -87,17 +75,7 @@ class UCL_Texture {
     assert(numel!=0 && numel<5);
     #endif
 
-#if defined(__HIP_PLATFORM_NVCC__) || defined(__HIP_PLATFORM_NVIDIA__)
-    if (vec.element_size()==sizeof(float))
-      CU_SAFE_CALL(hipTexRefSetFormat(_tex, HIP_AD_FORMAT_FLOAT, numel));
-    else {
-      if (numel>2)
-        CU_SAFE_CALL(hipTexRefSetFormat(_tex, HIP_AD_FORMAT_SIGNED_INT32, numel));
-      else
-        CU_SAFE_CALL(hipTexRefSetFormat(_tex,HIP_AD_FORMAT_SIGNED_INT32,numel*2));
-    }
-    CU_SAFE_CALL(hipTexRefSetAddress(nullptr, _tex, vec.cbegin(), vec.numel()*vec.element_size()));
-#else
+#if !defined(__HIP_PLATFORM_NVCC__) && !defined(__HIP_PLATFORM_NVIDIA__)
     void* data_ptr = (void*)vec.cbegin();
     CU_SAFE_CALL(hipMemcpyHtoD(hipDeviceptr_t(_device_ptr_to_global_var), &data_ptr, sizeof(void*)));
 #endif

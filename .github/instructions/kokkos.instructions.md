@@ -146,6 +146,12 @@ CPU base's bare helper creation -- prefer that pattern for new styles.
   `kokkos->auto_sync = 1` (save and restore the previous value), so that every
   `sync()`/`modified()` it triggers writes through to the legacy host arrays.
   Pattern: fix hooks in `ModifyKokkos`, force computes in `VerletKokkos::run()`.
+- A struct used as the element type of a `Kokkos::View` or `DualView` (for example the
+  CPU base class's `Param` that a many-body style copies to the device in
+  `setup_params()`) must be declared `public`: nvcc rejects a `private` or `protected`
+  nested type as a template argument of a kernel, while HIP and the host backends
+  accept it, so the error only shows in CUDA builds.  `PairSW`, `PairTersoff` and
+  `PairVashishta` declare their `Param` public for this reason.
 - Pair styles switch from stack arrays to device views for parameters when
   `ntypes > MAX_TYPES_STACKPARAMS` (12).  Cover that path with a test system of more
   than 12 atom types (`mol-pair-coul_long_manytypes.yaml`); an unallocated view on

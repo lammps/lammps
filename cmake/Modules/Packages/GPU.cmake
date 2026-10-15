@@ -312,6 +312,12 @@ elseif(GPU_API STREQUAL "HIP")
     set(GPU_ARCH "spirv" CACHE STRING "LAMMPS GPU architecture")
     set(HIP_ARCH "${GPU_ARCH}")
   elseif(HIP_PLATFORM STREQUAL "nvidia")
+    # GPU sorting with hipCUB requires the host code of the GPU library to be
+    # compiled with nvcc, but for NVIDIA GPUs it is compiled with the C++ compiler
+    if(HIP_USE_DEVICE_SORT)
+      message(STATUS "GPU sorting is not available with HIP_PLATFORM=nvidia. Disabling it.")
+      set(HIP_USE_DEVICE_SORT OFF CACHE BOOL "Use GPU sorting" FORCE)
+    endif()
     find_package(CUDA REQUIRED)
     set(GPU_ARCH "sm_75" CACHE STRING "LAMMPS GPU architecture (e.g. sm_75 for HIP/NVCC)")
     set(HIP_ARCH "${GPU_ARCH}")

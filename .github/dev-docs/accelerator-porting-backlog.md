@@ -16,14 +16,15 @@ and their progress live outside the tree, in the maintainer's plan files.
 ## Coverage snapshot
 
 Pair styles (the focus of this backlog), from the scan script on 2026-10-15, after
-the first OPENMP batch (19 new `/omp` styles).  "Base"
+the first OPENMP batch (19 new `/omp` styles) and the first KOKKOS batch (12 new `/kk`
+styles).  "Base"
 includes 7 `DEPRECATED` stubs, `hybrid*` and `zero*`.
 
 | | count |
 |---|---|
 | base pair styles | 330 |
 | with `/omp` | 223 |
-| with `/kk` | 138 |
+| with `/kk` | 150 |
 | with `/gpu` | 72 |
 | with `/intel` / `/opt` | 19 / 16 |
 | no accelerator variant at all | 85 (CG-DNA 23, SPIN 7, APIP 7, MACHDYN 4, ML 6, PERI 2, ...) |
@@ -149,10 +150,26 @@ were spot-checked, all cosmetic).  Maintenance method and bug classes:
 
 | effort | styles (device template to clone) |
 |---|---|
-| SMALL (`pair_kokkos.h` template) | FEP leftovers `coul/cut/soft/gapsys`, `lj/cut/soft/gapsys`, `lj/class2/coul/cut/soft`, `lj/class2/coul/long/soft` (coul/cut/soft/kk, lj/class2/soft/kk, lj/cut/coul/long/soft/kk); `coul/esp`, `lj/cut/coul/esp` (coul/long/kk, lj/cut/coul/long/kk including the table branch); `dpd/coul/slater/long` (dpd/kk device RNG + coul/slater/long/kk; YAML needs the `kokkos_*_devicerng` tokens); `lj/sf/dipole/sf`, `mesomem/dipole` (lj/cut/dipole/cut/kk hand kernel with torque); `tip4p/long/soft`, `lj/cut/tip4p/long/soft` (lj/cut/tip4p/long/kk); `coul/ctip` (pairwise + self terms; the `qeq_*` parameter arrays only feed `fix qeq/ctip` on the host) |
 | MEDIUM (many-body, template exists) | `nb3b/harmonic` + `nb3b/screened` (copy sw/kk, delete twobody, switch on the variant); `gw` + `gw/zbl` (tersoff/kk); `vashishta/table` (vashishta/kk + device table); `sw/angle/table`, `threebody/table` (sw/kk + device table views as in table/kk); `edip` (sw-shaped full list); `tersoff/table`; `extep`; `atm` (clean triple loop over one list; device `ev_tally3` exists in sw/vashishta/uf3 kk); `kolmogorov/crespi/z`, `lebedeva/z` (hand kernels, anisotropic force, no normals); `coul/exclude` (hand kernel: no `cutsq` guard, skips `sbmask(j)==0`); `coul/streitz` (full list; `fix qeq/slater` stays host) |
 | LARGE (framework piece first) | EAM-shaped density styles `eam/cd`, `local/density`, `eim`, `meam/spline`, `meam/sw/spline`, `smatb`(+`single`), `multi/lucy` (MEDIUM each once the first reuses the eam/kk comm pattern); DRUDE `thole`, `lj/cut/thole/long`, `coul/tt` (partner indices precomputed per reneighbor through the device map); `hbond/dreiding/*` (topology walk via `tagprev`); ASPHERE `gayberne` then `resquared` (`AtomVecEllipsoidKokkos` + `MathExtraKokkos::quat_to_mat` exist; ylz/kk is the only ellipsoid pair so far); INTERLAYER `ilp/graphene/hbn`, `ilp/tmd`, `saip/metal`, `saip/metal/tmd`, `aip/water/2dm`, `kolmogorov/crespi/full`, `drip` (all gated on `ILP_neigh()` + `calc_normal()` on device; once the first exists the rest ride along); `lj/long/coul/long`, `buck/long/coul/long`, `lj/long/tip4p/long`, `lj/long/dipole/long`, `lj/cut/dipole/long` (pointless before `pppm/disp/kk` or a dipole kspace on device); DIELECTRIC (7 styles: need `atom_vec_dielectric_kokkos` and `fix polarize/*`); atom-vec gated: SPH (6 + `sdpd/taitwater/isothermal`), DPD-MESO (`edpd`, `mdpd`, `mdpd/rhosum`, `tdpd`), EFF, MACHDYN, RHEO (`rheo`, `rheo/solid`), BODY, `line/lj`, `tri/lj`, MESONT, BPM (`bpm/spring`, `bpm/peri`: `atom_vec_bpm_sphere_kokkos`); `polymorphic`, `smtbq`, `e3b`, `brownian/poly` (after #5040) |
 | do not port | MSM pair styles (8), SPIN (7), AIREBO family, `rebo`, `rebomos`, `comb`, `comb3`, `bop`, `lcbop`, lubricate family, external wrappers, `srp`, `list`, `tracker`, `dsmc`, `zero` |
+
+Done 2026-10-15 (first KOKKOS batch, the former SMALL row): `coul/cut/soft/gapsys`,
+`lj/cut/soft/gapsys`, `lj/class2/coul/cut/soft`, `lj/class2/coul/long/soft`,
+`tip4p/long/soft`, `lj/cut/tip4p/long/soft` (on the shared `pair_tip4p_kokkos.h`
+template), `coul/esp`, `lj/cut/coul/esp` (ESP polynomial coefficients copied to the
+device in `init_style()`; the coulomb tables come from `Pair::init_tables()`, which
+handles ESP), `dpd/coul/slater/long` (dpd/kk RNG pool; the YAML now carries the
+`kokkos_*_devicerng` tokens), `lj/sf/dipole/sf`, `mesomem/dipole` (range-policy hand
+kernels with torque, no autotuner path), `coul/ctip` (`pair_kokkos.h` for the pair term
+plus a self-energy kernel that runs only when energies are requested).  Verification
+recipe used: the YAML `kokkos_omp`/`kokkos_omp_full`/`vatom_only_kokkos` cases; a
+`-D KOKKOS_DEBUG_RNG=on` build for the stochastic style (reproduces the reference
+exactly on one thread); 20-step MD on each YAML system plain vs `-k on t 1`, `t 4`,
+`neigh full newton off` and 2 MPI ranks, comparing thermo and per-step sums of
+`pe/atom` and `stress/atom` (agreement 3e-13 or better); the same on the 15-type
+`data.fourmol-manytypes` for the `pair_kokkos.h` ports (non-stack parameter path);
+and a HIP compile of the new files.
 
 Atom styles (`sph`, `peri`, `edpd`/`mdpd`/`tdpd`, `electron`, `smd`, `apip`, `oxdna`)
 remain the highest-leverage *gating* items: `AtomKokkos::new_avec` hard-errors on them,
@@ -352,4 +369,15 @@ crash fixes of #5212.
    virial on purpose but does not set `no_virial_fdotr_compute`, so the global virial
    differs between the fdotr path and the per-pair tally path.
 
-Items 1-3 are fixed on their own branch; see the commit history.
+5. `src/FEP/pair_lj_class2_coul_long_soft.cpp` (found 2026-10-15 while porting): the
+   `pair_modify shift yes` offset lacked the `lambda^n` prefactor, so the shifted
+   energy did not vanish at the cutoff for lambda < 1.
+6. `src/KSPACE/pair_coul_esp.cpp` (and `/omp`): the per-type-pair `scale` that
+   `fix adapt` can change was applied only to the tabulated energy.
+
+7. `src/compute_reduce.cpp` (found 2026-10-15 by the KOKKOS batch verification): the
+   vector output of the `sumabs` mode was never reduced (uninitialized values) and the
+   `aveabs` mode was not divided by the count.  Do not use `compute reduce sumabs` with
+   several inputs in verification decks on branches without the fix.
+
+Items 1-3 and 5-7 are fixed on their own branch; see the commit history.

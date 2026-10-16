@@ -1112,6 +1112,7 @@ void FixGCMC::attempt_atomic_insertion()
       atom->v[m][1] = random_unequal->gaussian()*sigma;
       atom->v[m][2] = random_unequal->gaussian()*sigma;
       random_unequal->gaussian(); // this ensures exact restart
+      if (charge_flag) atom->q[m] = charge;
       modify->create_attribute(m);
 
       success = 1;

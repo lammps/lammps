@@ -1,14 +1,11 @@
-
+# require setting CMAKE_CUDA_ARCHITECTURES
+if(POLICY CMP0104)
+  cmake_policy(SET CMP0104 NEW)
+endif()
 # set policy to use the time of extraction as timestamps of files unpacked from downloaded
 # archives, so that updating an archive version triggers rebuilding all dependent objects
  if(POLICY CMP0135)
   cmake_policy(SET CMP0135 NEW)
-endif()
-
-# Silence CMake warnings about FindCUDA being obsolete.
-# We may need to eventually rewrite this section to use enable_language(CUDA)
-if(POLICY CMP0146)
-  cmake_policy(SET CMP0146 OLD)
 endif()
 
 set(GPU_SOURCES_DIR ${LAMMPS_SOURCE_DIR}/GPU)
@@ -56,32 +53,34 @@ file(GLOB GPU_LIB_SOURCES CONFIGURE_DEPENDS ${LAMMPS_LIB_SOURCE_DIR}/gpu/[^.]*.c
 file(MAKE_DIRECTORY ${LAMMPS_LIB_BINARY_DIR}/gpu)
 
 if(GPU_API STREQUAL "CUDA")
-  find_package(CUDA QUIET)
-  # augment search path for CUDA toolkit libraries to include the stub versions. Needed to find libcuda.so on machines without a CUDA driver installation
-  if(CUDA_FOUND)
-    set(CMAKE_LIBRARY_PATH "${CUDA_TOOLKIT_ROOT_DIR}/lib64/stubs;${CUDA_TOOLKIT_ROOT_DIR}/lib/stubs;${CUDA_TOOLKIT_ROOT_DIR}/lib64;${CUDA_TOOLKIT_ROOT_DIR}/lib;${CMAKE_LIBRARY_PATH}")
-    find_package(CUDA REQUIRED)
-  else()
-    message(FATAL_ERROR "CUDA Toolkit not found")
+  # GPU_ARCH is the canonical LAMMPS GPU architecture setting variable for all GPU_API backends.
+  set(GPU_ARCH "all-major" CACHE STRING "LAMMPS GPU architecture for CUDA. Use 'all', 'all-major', or a list of numbers e.g. '50;70;72;80'")
+  set(CMAKE_CUDA_ARCHITECTURES "${GPU_ARCH}")
+
+  # nvcc refuses to work with host compilers that it does not know about and
+  # LAMMPS has always overridden that check.  The flag has to be added before
+  # the CUDA language is enabled, so that the compiler identification and the
+  # compiler ABI check done by enable_language() use it as well.  Enabling the
+  # CUDA language also makes CMAKE_CUDA_HOST_COMPILER take effect, so selecting
+  # a host compiler now works the same way as for the other packages using CUDA.
+  string(APPEND CMAKE_CUDA_FLAGS " -allow-unsupported-compiler")
+  enable_language(CUDA)
+  find_package(CUDAToolkit REQUIRED)
+
+  if(CUDAToolkit_VERSION VERSION_LESS 12.0)
+    message(FATAL_ERROR "CUDA Toolkit version 12.0 or later is required")
+  elseif(CUDAToolkit_VERSION VERSION_GREATER_EQUAL 14.0)
+    message(WARNING "Untested CUDA Toolkit version ${CUDAToolkit_VERSION}. Use at your own risk")
   endif()
 
-  find_program(BIN2C bin2c)
+  find_program(BIN2C bin2c HINTS ${CUDAToolkit_BIN_DIR})
   if(NOT BIN2C)
     message(FATAL_ERROR "Could not find bin2c, use -DBIN2C=/path/to/bin2c to help cmake finding it.")
   endif()
-  option(CUDPP_OPT "Enable GPU binning via CUDAPP (should be off for modern GPUs)" OFF)
   option(CUDA_MPS_SUPPORT "Enable tweaks to support CUDA Multi-process service (MPS)" OFF)
   if(CUDA_MPS_SUPPORT)
-    if(CUDPP_OPT)
-      message(FATAL_ERROR "Must use -DCUDPP_OPT=OFF with -DCUDA_MPS_SUPPORT=ON")
-    endif()
     set(GPU_CUDA_MPS_FLAGS "-DCUDA_MPS_SUPPORT")
   endif()
-  option(CUDA_BUILD_MULTIARCH "Enable building CUDA kernels for all supported GPU architectures" ON)
-  mark_as_advanced(GPU_BUILD_MULTIARCH)
-
-  # GPU_ARCH is the canonical architecture setting for all GPU_API backends.
-  set(GPU_ARCH "sm_75" CACHE STRING "LAMMPS GPU architecture (e.g. sm_80 for CUDA)")
 
   # ensure that no *cubin.h files exist from a compile in the lib/gpu folder
   file(GLOB GPU_LIB_OLD_CUBIN_HEADERS CONFIGURE_DEPENDS ${LAMMPS_LIB_SOURCE_DIR}/gpu/*_cubin.h)
@@ -97,115 +96,53 @@ if(GPU_API STREQUAL "CUDA")
   file(GLOB GPU_LIB_CU CONFIGURE_DEPENDS ${LAMMPS_LIB_SOURCE_DIR}/gpu/[^.]*.cu ${CMAKE_CURRENT_SOURCE_DIR}/gpu/[^.]*.cu)
   list(REMOVE_ITEM GPU_LIB_CU ${LAMMPS_LIB_SOURCE_DIR}/gpu/lal_pppm.cu)
 
-  cuda_include_directories(${LAMMPS_LIB_SOURCE_DIR}/gpu ${LAMMPS_LIB_BINARY_DIR}/gpu)
+  # The kernel sources are not compiled into objects that are linked into the
+  # executable, but into fatbinary files that are embedded into header files
+  # and loaded at run time through the CUDA driver API.  Using an object library
+  # with the CUDA_FATBIN_COMPILATION property set makes nvcc emit a .fatbin file
+  # instead of an object file for each source.
+  add_library(gpu_fatbin OBJECT ${GPU_LIB_CU})
+  set_target_properties(gpu_fatbin PROPERTIES CUDA_FATBIN_COMPILATION ON
+                        CUDA_ARCHITECTURES "${GPU_ARCH}")
+  target_compile_options(gpu_fatbin PRIVATE --use_fast_math -Wno-deprecated-gpu-targets)
+  target_compile_definitions(gpu_fatbin PRIVATE -DUNIX -DNV_KERNEL -DUCL_CUDADR
+                             -D_${GPU_PREC_SETTING} -DLAMMPS_${LAMMPS_SIZES})
+  target_include_directories(gpu_fatbin PRIVATE ${LAMMPS_LIB_SOURCE_DIR}/gpu ${LAMMPS_LIB_BINARY_DIR}/gpu)
 
-  if(CUDPP_OPT)
-    cuda_include_directories(${LAMMPS_LIB_SOURCE_DIR}/gpu/cudpp_mini)
-    file(GLOB GPU_LIB_CUDPP_SOURCES CONFIGURE_DEPENDS ${LAMMPS_LIB_SOURCE_DIR}/gpu/cudpp_mini/[^.]*.cpp)
-    file(GLOB GPU_LIB_CUDPP_CU CONFIGURE_DEPENDS ${LAMMPS_LIB_SOURCE_DIR}/gpu/cudpp_mini/[^.]*.cu)
-  endif()
-
-  # build arch/gencode commands for nvcc based on CUDA toolkit version and use choice
-  # --arch translates directly instead of JIT, so this should be for the preferred or most common architecture
-  set(GPU_CUDA_GENCODE "-arch=${GPU_ARCH}")
-
-  if(CUDA_BUILD_MULTIARCH)
-    # apply the following to build "fat" CUDA binaries only for known CUDA toolkits since version 8.0
-    # only the Kepler achitecture and beyond is supported
-    # comparison chart according to: https://en.wikipedia.org/wiki/CUDA#GPUs_supported
-    if(CUDA_VERSION VERSION_LESS 8.0)
-      message(FATAL_ERROR "CUDA Toolkit version 8.0 or later is required")
-    elseif(CUDA_VERSION VERSION_GREATER_EQUAL "13.0")
-      message(WARNING "Untested CUDA Toolkit version ${CUDA_VERSION}. Use at your own risk")
-      set(GPU_CUDA_GENCODE "-arch=all")
-    elseif(CUDA_VERSION VERSION_GREATER_EQUAL "12.0")
-      set(GPU_CUDA_GENCODE "-arch=all")
-    else()
-      # Kepler (GPU Arch 3.0) is supported by CUDA 5 to CUDA 10.2
-      if((CUDA_VERSION VERSION_GREATER_EQUAL "5.0") AND (CUDA_VERSION VERSION_LESS "11.0"))
-        string(APPEND GPU_CUDA_GENCODE " -gencode arch=compute_30,code=[sm_30,compute_30] ")
-      endif()
-      # Kepler (GPU Arch 3.5) is supported by CUDA 5 to CUDA 11
-      if((CUDA_VERSION VERSION_GREATER_EQUAL "5.0") AND (CUDA_VERSION VERSION_LESS "12.0"))
-        string(APPEND GPU_CUDA_GENCODE " -gencode arch=compute_35,code=[sm_35,compute_35]")
-      endif()
-      # Maxwell (GPU Arch 5.x) is supported by CUDA 6 and later
-      if(CUDA_VERSION VERSION_GREATER_EQUAL "6.0")
-        string(APPEND GPU_CUDA_GENCODE " -gencode arch=compute_50,code=[sm_50,compute_50] -gencode arch=compute_52,code=[sm_52,compute_52]")
-      endif()
-      # Pascal (GPU Arch 6.x) is supported by CUDA 8 and later
-      if(CUDA_VERSION VERSION_GREATER_EQUAL "8.0")
-        string(APPEND GPU_CUDA_GENCODE " -gencode arch=compute_60,code=[sm_60,compute_60] -gencode arch=compute_61,code=[sm_61,compute_61]")
-      endif()
-      # Volta (GPU Arch 7.0) is supported by CUDA 9 and later
-      if(CUDA_VERSION VERSION_GREATER_EQUAL "9.0")
-        string(APPEND GPU_CUDA_GENCODE " -gencode arch=compute_70,code=[sm_70,compute_70]")
-      endif()
-      # Turing (GPU Arch 7.5) is supported by CUDA 10 and later
-      if(CUDA_VERSION VERSION_GREATER_EQUAL "10.0")
-        string(APPEND GPU_CUDA_GENCODE " -gencode arch=compute_75,code=[sm_75,compute_75]")
-      endif()
-      # Ampere (GPU Arch 8.0) is supported by CUDA 11 and later
-      if(CUDA_VERSION VERSION_GREATER_EQUAL "11.0")
-        string(APPEND GPU_CUDA_GENCODE " -gencode arch=compute_80,code=[sm_80,compute_80]")
-      endif()
-      # Ampere (GPU Arch 8.6) is supported by CUDA 11.1 and later
-      if(CUDA_VERSION VERSION_GREATER_EQUAL "11.1")
-        string(APPEND GPU_CUDA_GENCODE " -gencode arch=compute_86,code=[sm_86,compute_86]")
-      endif()
-      # Ada Lovelace (GPU Arch 8.9) and Hopper (GPU Arch 9.0) are supported by CUDA 11.8 and later
-      if(CUDA_VERSION VERSION_GREATER_EQUAL "11.8")
-        string(APPEND GPU_CUDA_GENCODE " -gencode arch=compute_90,code=[sm_90,compute_90]")
-      endif()
-      # Backwell (GPU Arch 100) is supported by CUDA 12.4 and later
-      if(CUDA_VERSION VERSION_GREATER_EQUAL "12.4")
-        string(APPEND GPU_CUDA_GENCODE " -gencode arch=compute_100,code=[sm_100,compute_100]")
-      endif()
-      # Rubin (GPU Arch 120) require CUDA 12.8 and later
-      if(CUDA_VERSION VERSION_GREATER_EQUAL "12.8")
-        string(APPEND GPU_CUDA_GENCODE " -gencode arch=compute_120,code=[sm_120,compute_120]")
-      endif()
-    endif()
-  endif()
-
-  set(NVCC_FLAGS -DUNIX -O3 --use_fast_math -Wno-deprecated-gpu-targets -allow-unsupported-compiler -DNV_KERNEL -DUCL_CUDADR ${GPU_CUDA_GENCODE} -D_${GPU_PREC_SETTING} -DLAMMPS_${LAMMPS_SIZES})
-  if(CUDPP_OPT)
-    string(APPEND NVCC_FLAGS " -DUSE_CUDPP")
-  endif()
-  cuda_compile_fatbin(GPU_GEN_OBJS ${GPU_LIB_CU} OPTIONS ${CUDA_REQUEST_PIC} ${NVCC_FLAGS})
-
-  cuda_compile(GPU_OBJS ${GPU_LIB_CUDPP_CU} OPTIONS ${CUDA_REQUEST_PIC}
-          -DUNIX -O3 --use_fast_math -Wno-deprecated-gpu-targets -allow-unsupported-compiler -DUCL_CUDADR ${GPU_CUDA_GENCODE} -D_${GPU_PREC_SETTING} -DLAMMPS_${LAMMPS_SIZES})
-
-  foreach(CU_OBJ ${GPU_GEN_OBJS})
-    get_filename_component(CU_NAME ${CU_OBJ} NAME_WE)
-    string(REGEX REPLACE "^.*_lal_" "" CU_NAME "${CU_NAME}")
+  # $<TARGET_OBJECTS:gpu_fatbin> expands to the list of all generated fatbinary
+  # files, so pick out the one belonging to the current source with a filter.
+  foreach(CU_FILE ${GPU_LIB_CU})
+    get_filename_component(CU_NAME ${CU_FILE} NAME_WE)
+    set(CU_FATBIN "$<FILTER:$<TARGET_OBJECTS:gpu_fatbin>,INCLUDE,/${CU_NAME}\\.fatbin$>")
+    string(REGEX REPLACE "^lal_" "" CU_NAME "${CU_NAME}")
     add_custom_command(OUTPUT ${LAMMPS_LIB_BINARY_DIR}/gpu/${CU_NAME}_cubin.h
-      COMMAND ${BIN2C} -c -n ${CU_NAME} ${CU_OBJ} > ${LAMMPS_LIB_BINARY_DIR}/gpu/${CU_NAME}_cubin.h
-      DEPENDS ${CU_OBJ}
+      COMMAND ${BIN2C} -c -n ${CU_NAME} "${CU_FATBIN}" > ${LAMMPS_LIB_BINARY_DIR}/gpu/${CU_NAME}_cubin.h
+      DEPENDS "${CU_FATBIN}"
+      COMMAND_EXPAND_LISTS
       COMMENT "Generating ${CU_NAME}_cubin.h")
     list(APPEND GPU_LIB_SOURCES ${LAMMPS_LIB_BINARY_DIR}/gpu/${CU_NAME}_cubin.h)
   endforeach()
   set_directory_properties(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES "${LAMMPS_LIB_BINARY_DIR}/gpu/*_cubin.h")
 
-  add_library(gpu STATIC ${GPU_LIB_SOURCES} ${GPU_LIB_CUDPP_SOURCES} ${GPU_OBJS})
-  target_link_libraries(gpu PRIVATE ${CUDA_LIBRARIES} ${CUDA_CUDA_LIBRARY})
-  target_include_directories(gpu PRIVATE ${LAMMPS_LIB_BINARY_DIR}/gpu ${CUDA_INCLUDE_DIRS})
+  add_library(gpu STATIC ${GPU_LIB_SOURCES})
+  # the cubin header custom commands above depend on individual objects of
+  # gpu_fatbin through a $<TARGET_OBJECTS:...> generator expression, which the
+  # Unix Makefiles generator does not turn into a target-level build order
+  # dependency, so a parallel build can try to use those objects before
+  # gpu_fatbin has built them.  Add that dependency explicitly.
+  add_dependencies(gpu gpu_fatbin)
+  target_link_libraries(gpu PRIVATE CUDA::cudart_static CUDA::cuda_driver)
+  target_include_directories(gpu PRIVATE ${LAMMPS_LIB_BINARY_DIR}/gpu)
   target_compile_definitions(gpu PRIVATE -DUSE_CUDA -D_${GPU_PREC_SETTING} ${GPU_CUDA_MPS_FLAGS})
   if(GPU_DEBUG)
     target_compile_definitions(gpu PRIVATE -DUCL_DEBUG -DGERYON_KERNEL_DUMP)
   else()
     target_compile_definitions(gpu PRIVATE -DMPI_GERYON -DUCL_NO_EXIT)
   endif()
-  if(CUDPP_OPT)
-    target_include_directories(gpu PRIVATE ${LAMMPS_LIB_SOURCE_DIR}/gpu/cudpp_mini)
-    target_compile_definitions(gpu PRIVATE -DUSE_CUDPP)
-  endif()
 
   add_executable(nvc_get_devices ${LAMMPS_LIB_SOURCE_DIR}/gpu/geryon/ucl_get_devices.cpp)
   target_compile_definitions(nvc_get_devices PRIVATE -DUCL_CUDADR -DLAMMPS_${LAMMPS_SIZES})
-  target_link_libraries(nvc_get_devices PRIVATE ${CUDA_LIBRARIES} ${CUDA_CUDA_LIBRARY})
-  target_include_directories(nvc_get_devices PRIVATE ${CUDA_INCLUDE_DIRS})
+  target_link_libraries(nvc_get_devices PRIVATE CUDA::cudart_static CUDA::cuda_driver)
 
 elseif(GPU_API STREQUAL "OPENCL")
   # the static OpenCL loader doesn't seem to work on macOS. use the system provided
@@ -282,18 +219,33 @@ elseif(GPU_API STREQUAL "OPENCL")
 
 elseif(GPU_API STREQUAL "HIP")
   include(DetectHIPInstallation)
-  find_package(hip REQUIRED)
-  option(HIP_USE_DEVICE_SORT "Use GPU sorting" ON)
 
+  # HIP_PLATFORM selects the HIP back end: "amd" (default), "nvidia" (HIP on
+  # NVIDIA GPUs through nvcc), or "spirv" (chipStar).  "nvcc" is accepted as an
+  # alias for "nvidia".  The HIP CMake package and hipcc read the setting from
+  # the HIP_PLATFORM environment variable, so it has to be set before the package
+  # is searched and it is passed to every hipcc command at build time.
   if(NOT DEFINED HIP_PLATFORM)
       if(NOT DEFINED ENV{HIP_PLATFORM})
-          set(HIP_PLATFORM "amd" CACHE PATH "HIP Platform to be used during compilation")
+          set(HIP_PLATFORM "amd" CACHE STRING "HIP platform: amd (default), nvidia, or spirv")
       else()
-          set(HIP_PLATFORM $ENV{HIP_PLATFORM} CACHE PATH "HIP Platform used during compilation")
+          set(HIP_PLATFORM $ENV{HIP_PLATFORM} CACHE STRING "HIP platform: amd (default), nvidia, or spirv")
       endif()
   endif()
-
+  if(HIP_PLATFORM STREQUAL "nvcc")
+    set(HIP_PLATFORM "nvidia")
+  endif()
+  if(NOT HIP_PLATFORM MATCHES "^(amd|nvidia|spirv)$")
+    message(FATAL_ERROR "Unsupported HIP_PLATFORM setting '${HIP_PLATFORM}'. Must be 'amd', 'nvidia', or 'spirv'")
+  endif()
   set(ENV{HIP_PLATFORM} ${HIP_PLATFORM})
+  set(HIP_ENV ${CMAKE_COMMAND} -E env HIP_PLATFORM=${HIP_PLATFORM})
+
+  find_package(hip REQUIRED)
+  # chipStar (spirv) has its own version numbering
+  if((NOT HIP_PLATFORM STREQUAL "spirv") AND (hip_VERSION VERSION_LESS 6.0))
+    message(FATAL_ERROR "HIP (ROCm) version 6.0 or later is required, found version ${hip_VERSION}")
+  endif()
 
   # GPU_ARCH is the canonical architecture setting for all GPU_API backends.
   # HIP_ARCH is still accepted for backward compatibility but is deprecated.
@@ -305,130 +257,146 @@ elseif(GPU_API STREQUAL "HIP")
     unset(HIP_ARCH CACHE)
   endif()
 
-  if(HIP_PLATFORM STREQUAL "amd")
-    set(GPU_ARCH "gfx906" CACHE STRING "LAMMPS GPU architecture (e.g. gfx90a for HIP/AMD)")
-    set(HIP_ARCH "${GPU_ARCH}")
-  elseif(HIP_PLATFORM STREQUAL "spirv")
-    set(GPU_ARCH "spirv" CACHE STRING "LAMMPS GPU architecture")
-    set(HIP_ARCH "${GPU_ARCH}")
-  elseif(HIP_PLATFORM STREQUAL "nvcc")
-    find_package(CUDA REQUIRED)
-    set(GPU_ARCH "sm_75" CACHE STRING "LAMMPS GPU architecture (e.g. sm_75 for HIP/NVCC)")
-    set(HIP_ARCH "${GPU_ARCH}")
-
-    if(CUDA_VERSION VERSION_LESS 8.0)
-      message(FATAL_ERROR "CUDA Toolkit version 8.0 or later is required")
-    elseif(CUDA_VERSION VERSION_GREATER_EQUAL "12.0")
-      message(WARNING "Untested CUDA Toolkit version ${CUDA_VERSION}. Use at your own risk")
-      set(HIP_CUDA_GENCODE "-arch=all")
-    else()
-      # build arch/gencode commands for nvcc based on CUDA toolkit version and use choice
-      # --arch translates directly instead of JIT, so this should be for the preferred or most common architecture
-      # comparison chart according to: https://en.wikipedia.org/wiki/CUDA#GPUs_supported
-      set(HIP_CUDA_GENCODE "-arch=${HIP_ARCH}")
-      # Kepler (GPU Arch 3.0) is supported by CUDA 5 to CUDA 10.2
-      if((CUDA_VERSION VERSION_GREATER_EQUAL "5.0") AND (CUDA_VERSION VERSION_LESS "11.0"))
-        string(APPEND HIP_CUDA_GENCODE " -gencode arch=compute_30,code=[sm_30,compute_30]")
-      endif()
-      # Kepler (GPU Arch 3.5) is supported by CUDA 5 to CUDA 11.0
-      if((CUDA_VERSION VERSION_GREATER_EQUAL "5.0") AND (CUDA_VERSION VERSION_LESS "12.0"))
-        string(APPEND HIP_CUDA_GENCODE " -gencode arch=compute_35,code=[sm_35,compute_35]")
-      endif()
-      # Maxwell (GPU Arch 5.x) is supported by CUDA 6 and later
-      if(CUDA_VERSION VERSION_GREATER_EQUAL "6.0")
-        string(APPEND HIP_CUDA_GENCODE " -gencode arch=compute_50,code=[sm_50,compute_50] -gencode arch=compute_52,code=[sm_52,compute_52]")
-      endif()
-      # Pascal (GPU Arch 6.x) is supported by CUDA 8 and later
-      if(CUDA_VERSION VERSION_GREATER_EQUAL "8.0")
-        string(APPEND HIP_CUDA_GENCODE " -gencode arch=compute_60,code=[sm_60,compute_60] -gencode arch=compute_61,code=[sm_61,compute_61]")
-      endif()
-      # Volta (GPU Arch 7.0) is supported by CUDA 9 and later
-      if(CUDA_VERSION VERSION_GREATER_EQUAL "9.0")
-        string(APPEND HIP_CUDA_GENCODE " -gencode arch=compute_70,code=[sm_70,compute_70]")
-      endif()
-      # Turing (GPU Arch 7.5) is supported by CUDA 10 and later
-      if(CUDA_VERSION VERSION_GREATER_EQUAL "10.0")
-        string(APPEND HIP_CUDA_GENCODE " -gencode arch=compute_75,code=[sm_75,compute_75]")
-      endif()
-      # Ampere (GPU Arch 8.0) is supported by CUDA 11 and later
-      if(CUDA_VERSION VERSION_GREATER_EQUAL "11.0")
-        string(APPEND HIP_CUDA_GENCODE " -gencode arch=compute_80,code=[sm_80,compute_80]")
-      endif()
-      # Ampere (GPU Arch 8.6) is supported by CUDA 11.1 and later
-      if(CUDA_VERSION VERSION_GREATER_EQUAL "11.1")
-        string(APPEND HIP_CUDA_GENCODE " -gencode arch=compute_86,code=[sm_86,compute_86]")
-      endif()
-      # Ada Lovelace (GPU Arch 8.9) and Hopper (GPU Arch 9.0) are supported by CUDA 11.8 and later
-      if(CUDA_VERSION VERSION_GREATER_EQUAL "11.8")
-        string(APPEND HIP_CUDA_GENCODE " -gencode arch=compute_90,code=[sm_90,compute_90]")
-      endif()
-      # Backwell (GPU Arch 100) is supported by CUDA 12.4 and later
-      if(CUDA_VERSION VERSION_GREATER_EQUAL "12.4")
-        string(APPEND HIP_CUDA_GENCODE " -gencode arch=compute_100,code=[sm_100,compute_100]")
-      endif()
-      # Rubin (GPU Arch 120) require CUDA 12.8 and later
-      if(CUDA_VERSION VERSION_GREATER_EQUAL "12.8")
-        string(APPEND HIP_CUDA_GENCODE " -gencode arch=compute_120,code=[sm_120,compute_120]")
-      endif()
-    endif()
-  endif()
-
   file(GLOB GPU_LIB_CU CONFIGURE_DEPENDS ${LAMMPS_LIB_SOURCE_DIR}/gpu/[^.]*.cu ${CMAKE_CURRENT_SOURCE_DIR}/gpu/[^.]*.cu)
   list(REMOVE_ITEM GPU_LIB_CU ${LAMMPS_LIB_SOURCE_DIR}/gpu/lal_pppm.cu)
 
-  set(GPU_LIB_CU_HIP "")
-  foreach(CU_FILE ${GPU_LIB_CU})
-    get_filename_component(CU_NAME ${CU_FILE} NAME_WE)
-    string(REGEX REPLACE "^.*lal_" "" CU_NAME "${CU_NAME}")
+  if(HIP_PLATFORM STREQUAL "amd")
+    # The kernels for AMD GPUs are compiled with the native HIP support of CMake,
+    # which requires the clang-based HIP compiler from ROCm.  With an empty
+    # GPU_ARCH setting, CMake detects the architectures of the GPUs installed in
+    # the local machine (using rocm_agent_enumerator) and falls back to the
+    # default architecture of the HIP compiler, if no GPU is found.  Otherwise
+    # GPU_ARCH may be a single architecture or a list of architectures.
+    set(GPU_ARCH "" CACHE STRING "LAMMPS GPU architecture(s) for HIP/AMD, e.g. gfx90a or 'gfx90a;gfx942' (empty: detect installed GPUs)")
+    if(GPU_ARCH)
+      set(CMAKE_HIP_ARCHITECTURES "${GPU_ARCH}")
+    endif()
+    enable_language(HIP)
+    if(NOT CMAKE_HIP_COMPILER_ID STREQUAL "Clang")
+      message(FATAL_ERROR "The HIP back end of the GPU package for AMD GPUs requires the clang-based HIP compiler from ROCm")
+    endif()
 
-    set(CU_CPP_FILE  "${LAMMPS_LIB_BINARY_DIR}/gpu/${CU_NAME}.cu.cpp")
-    set(CUBIN_FILE   "${LAMMPS_LIB_BINARY_DIR}/gpu/${CU_NAME}.cubin")
-    set(CUBIN_H_FILE "${LAMMPS_LIB_BINARY_DIR}/gpu/${CU_NAME}_cubin.h")
+    # The kernel sources are not compiled into objects that are linked into the
+    # executable, but into code objects that are embedded into header files and
+    # loaded at run time through the HIP module API.  The --cuda-device-only flag
+    # makes clang emit only the device code (a bundle of code objects when
+    # compiling for multiple architectures) in place of a regular object file,
+    # which is the same as what "hipcc --genco" does.  The optimization and debug
+    # flags override the global per-configuration flags, so that the embedded code
+    # objects are always optimized and never contain debug information.
+    add_library(gpu_hip_co OBJECT ${GPU_LIB_CU})
+    set_source_files_properties(${GPU_LIB_CU} PROPERTIES LANGUAGE HIP)
+    target_compile_options(gpu_hip_co PRIVATE --cuda-device-only -O3 -g0)
+    target_compile_definitions(gpu_hip_co PRIVATE -DUSE_HIP -D_${GPU_PREC_SETTING} -DLAMMPS_${LAMMPS_SIZES})
+    target_include_directories(gpu_hip_co PRIVATE ${LAMMPS_LIB_SOURCE_DIR}/gpu)
 
-    if(HIP_PLATFORM STREQUAL "amd")
-        configure_file(${CU_FILE} ${CU_CPP_FILE} COPYONLY)
+    # $<TARGET_OBJECTS:gpu_hip_co> expands to the list of all generated code
+    # objects, so pick out the one belonging to the current source with a filter.
+    foreach(CU_FILE ${GPU_LIB_CU})
+      get_filename_component(CU_NAME ${CU_FILE} NAME_WE)
+      set(CU_OBJ "$<FILTER:$<TARGET_OBJECTS:gpu_hip_co>,INCLUDE,/${CU_NAME}\\.cu\\.o$>")
+      string(REGEX REPLACE "^lal_" "" CU_NAME "${CU_NAME}")
+      set(CUBIN_H_FILE "${LAMMPS_LIB_BINARY_DIR}/gpu/${CU_NAME}_cubin.h")
+      add_custom_command(OUTPUT ${CUBIN_H_FILE}
+        COMMAND ${CMAKE_COMMAND} -D SOURCE_DIR=${CMAKE_CURRENT_SOURCE_DIR} -D VARNAME=${CU_NAME} -D HEADER_FILE=${CUBIN_H_FILE} -D SOURCE_FILE=${CU_OBJ} -P ${CMAKE_CURRENT_SOURCE_DIR}/Modules/GenerateBinaryHeader.cmake
+        DEPENDS "${CU_OBJ}"
+        COMMAND_EXPAND_LISTS
+        COMMENT "Generating ${CU_NAME}_cubin.h")
+      list(APPEND GPU_LIB_SOURCES ${CUBIN_H_FILE})
+    endforeach()
+    set_directory_properties(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES "${LAMMPS_LIB_BINARY_DIR}/gpu/*_cubin.h")
 
-        if(HIP_COMPILER STREQUAL "clang")
-          add_custom_command(OUTPUT ${CUBIN_FILE}
-            VERBATIM COMMAND ${HIP_HIPCC_EXECUTABLE} --genco --offload-arch=${HIP_ARCH} -O3 -DUSE_HIP -D_${GPU_PREC_SETTING} -DLAMMPS_${LAMMPS_SIZES} -I${LAMMPS_LIB_SOURCE_DIR}/gpu -o ${CUBIN_FILE} ${CU_CPP_FILE}
-            DEPENDS ${CU_CPP_FILE}
-            COMMENT "Generating ${CU_NAME}.cubin")
-        else()
-          add_custom_command(OUTPUT ${CUBIN_FILE}
-            VERBATIM COMMAND ${HIP_HIPCC_EXECUTABLE} --genco -t="${HIP_ARCH}" -f=\"-O3 -DUSE_HIP -D_${GPU_PREC_SETTING} -DLAMMPS_${LAMMPS_SIZES} -I${LAMMPS_LIB_SOURCE_DIR}/gpu\" -o ${CUBIN_FILE} ${CU_CPP_FILE}
-            DEPENDS ${CU_CPP_FILE}
-            COMMENT "Generating ${CU_NAME}.cubin")
-        endif()
-    elseif(HIP_PLATFORM STREQUAL "nvcc")
-        add_custom_command(OUTPUT ${CUBIN_FILE}
-          VERBATIM COMMAND ${HIP_HIPCC_EXECUTABLE} --fatbin --use_fast_math -DUSE_HIP -D_${GPU_PREC_SETTING} -DLAMMPS_${LAMMPS_SIZES} ${HIP_CUDA_GENCODE} -I${LAMMPS_LIB_SOURCE_DIR}/gpu -o ${CUBIN_FILE} ${CU_FILE}
-          DEPENDS ${CU_FILE}
-          COMMENT "Generating ${CU_NAME}.cubin")
+  else()
+    # HIP for NVIDIA GPUs (through nvcc) and for SPIR-V (chipStar) are not
+    # supported by the native HIP support of CMake, so the kernels are compiled
+    # with hipcc from custom commands.
+    if(HIP_PLATFORM STREQUAL "nvidia")
+      set(GPU_ARCH "all-major" CACHE STRING "LAMMPS GPU architecture for CUDA. Use 'all', 'all-major', or a list of numbers e.g. '50;70;72;80'")
+      find_package(CUDAToolkit REQUIRED)
+      if(CUDAToolkit_VERSION VERSION_LESS 12.0)
+        message(FATAL_ERROR "CUDA Toolkit version 12.0 or later is required")
+      elseif(CUDAToolkit_VERSION VERSION_GREATER_EQUAL "14.0")
+        message(WARNING "Untested CUDA Toolkit version ${CUDAToolkit_VERSION}. Use at your own risk")
+      endif()
+      # hipcc locates nvcc through CUDA_PATH; pass the host compiler selected for
+      # CUDA on to nvcc and allow host compilers that nvcc does not know about
+      list(APPEND HIP_ENV CUDA_PATH=${CUDAToolkit_LIBRARY_ROOT})
+      set(HIP_NVCC_FLAGS -allow-unsupported-compiler)
+      if(CMAKE_CUDA_HOST_COMPILER)
+        list(APPEND HIP_NVCC_FLAGS -ccbin ${CMAKE_CUDA_HOST_COMPILER})
+      endif()
+      # nvcc understands the 'all', 'all-major', and 'native' architecture
+      # settings directly, a list of architecture numbers needs to be translated
+      if(GPU_ARCH MATCHES "^(all|all-major|native)$")
+        set(HIP_CUDA_GENCODE "-arch=${GPU_ARCH}")
+      else()
+        set(HIP_CUDA_GENCODE "")
+        foreach(_arch ${GPU_ARCH})
+          list(APPEND HIP_CUDA_GENCODE "-gencode" "arch=compute_${_arch},code=[sm_${_arch},compute_${_arch}]")
+        endforeach()
+      endif()
     elseif(HIP_PLATFORM STREQUAL "spirv")
-      configure_file(${CU_FILE} ${CU_CPP_FILE} COPYONLY)
+      set(GPU_ARCH "spirv" CACHE STRING "LAMMPS GPU architecture")
+    endif()
 
-      add_custom_command(OUTPUT ${CUBIN_FILE}
-        VERBATIM COMMAND ${HIP_HIPCC_EXECUTABLE} -c -O3 -DUSE_HIP -D_${GPU_PREC_SETTING} -DLAMMPS_${LAMMPS_SIZES} -I${LAMMPS_LIB_SOURCE_DIR}/gpu -o ${CUBIN_FILE} ${CU_CPP_FILE}
-        DEPENDS ${CU_CPP_FILE}
-        COMMENT "Gerating ${CU_NAME}.cubin")
+    # The HIP CMake package of some distributions (e.g. Ubuntu 26.04) does not
+    # set HIP_HIPCC_EXECUTABLE, so look for hipcc if the package did not provide it
+    if(NOT HIP_HIPCC_EXECUTABLE)
+      unset(HIP_HIPCC_EXECUTABLE)
+      unset(HIP_HIPCC_EXECUTABLE CACHE)
+      find_program(HIP_HIPCC_EXECUTABLE NAMES hipcc HINTS ${hip_BIN_INSTALL_DIR} ${ROCM_PATH}/bin ENV HIP_PATH PATH_SUFFIXES bin)
+    endif()
+    if(NOT HIP_HIPCC_EXECUTABLE)
+      message(FATAL_ERROR "Could not find hipcc, use -DHIP_HIPCC_EXECUTABLE=/path/to/hipcc to help cmake finding it.")
+    endif()
+
+    foreach(CU_FILE ${GPU_LIB_CU})
+      get_filename_component(CU_NAME ${CU_FILE} NAME_WE)
+      string(REGEX REPLACE "^lal_" "" CU_NAME "${CU_NAME}")
+
+      set(CU_CPP_FILE  "${LAMMPS_LIB_BINARY_DIR}/gpu/${CU_NAME}.cu.cpp")
+      set(CUBIN_FILE   "${LAMMPS_LIB_BINARY_DIR}/gpu/${CU_NAME}.cubin")
+      set(CUBIN_H_FILE "${LAMMPS_LIB_BINARY_DIR}/gpu/${CU_NAME}_cubin.h")
+
+      if(HIP_PLATFORM STREQUAL "nvidia")
+        # the dependency file generated by nvcc makes header changes trigger a rebuild of the kernel
+        add_custom_command(OUTPUT ${CUBIN_FILE}
+          VERBATIM COMMAND ${HIP_ENV} ${HIP_HIPCC_EXECUTABLE} --fatbin --use_fast_math ${HIP_NVCC_FLAGS} -DUSE_HIP -D_${GPU_PREC_SETTING} -DLAMMPS_${LAMMPS_SIZES} ${HIP_CUDA_GENCODE} -I${LAMMPS_LIB_SOURCE_DIR}/gpu -MD -MF ${CUBIN_FILE}.d -o ${CUBIN_FILE} ${CU_FILE}
+          DEPENDS ${CU_FILE}
+          DEPFILE ${CUBIN_FILE}.d
+          COMMENT "Generating ${CU_NAME}.cubin")
+      else()
+        configure_file(${CU_FILE} ${CU_CPP_FILE} COPYONLY)
+        add_custom_command(OUTPUT ${CUBIN_FILE}
+          VERBATIM COMMAND ${HIP_ENV} ${HIP_HIPCC_EXECUTABLE} -c -O3 -DUSE_HIP -D_${GPU_PREC_SETTING} -DLAMMPS_${LAMMPS_SIZES} -I${LAMMPS_LIB_SOURCE_DIR}/gpu -o ${CUBIN_FILE} ${CU_CPP_FILE}
+          DEPENDS ${CU_CPP_FILE}
+          COMMENT "Generating ${CU_NAME}.cubin")
       endif()
 
-    add_custom_command(OUTPUT ${CUBIN_H_FILE}
-      COMMAND ${CMAKE_COMMAND} -D SOURCE_DIR=${CMAKE_CURRENT_SOURCE_DIR} -D VARNAME=${CU_NAME} -D HEADER_FILE=${CUBIN_H_FILE} -D SOURCE_FILE=${CUBIN_FILE} -P ${CMAKE_CURRENT_SOURCE_DIR}/Modules/GenerateBinaryHeader.cmake
-      DEPENDS ${CUBIN_FILE}
-      COMMENT "Generating ${CU_NAME}_cubin.h")
+      add_custom_command(OUTPUT ${CUBIN_H_FILE}
+        COMMAND ${CMAKE_COMMAND} -D SOURCE_DIR=${CMAKE_CURRENT_SOURCE_DIR} -D VARNAME=${CU_NAME} -D HEADER_FILE=${CUBIN_H_FILE} -D SOURCE_FILE=${CUBIN_FILE} -P ${CMAKE_CURRENT_SOURCE_DIR}/Modules/GenerateBinaryHeader.cmake
+        DEPENDS ${CUBIN_FILE}
+        COMMENT "Generating ${CU_NAME}_cubin.h")
 
-    list(APPEND GPU_LIB_SOURCES ${CUBIN_H_FILE})
-  endforeach()
-
-  set_directory_properties(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES "${LAMMPS_LIB_BINARY_DIR}/gpu/*_cubin.h ${LAMMPS_LIB_BINARY_DIR}/gpu/*.cu.cpp")
+      list(APPEND GPU_LIB_SOURCES ${CUBIN_H_FILE})
+    endforeach()
+    set_directory_properties(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES "${LAMMPS_LIB_BINARY_DIR}/gpu/*_cubin.h ${LAMMPS_LIB_BINARY_DIR}/gpu/*.cu.cpp")
+  endif()
 
   add_library(gpu STATIC ${GPU_LIB_SOURCES})
+  if(HIP_PLATFORM STREQUAL "amd")
+    # the cubin header custom commands above depend on individual objects of
+    # gpu_hip_co through a $<TARGET_OBJECTS:...> generator expression, which
+    # the Unix Makefiles generator does not turn into a target-level build
+    # order dependency, so a parallel build can try to use those objects
+    # before gpu_hip_co has built them.  Add that dependency explicitly.
+    add_dependencies(gpu gpu_hip_co)
+  endif()
   target_include_directories(gpu PRIVATE ${LAMMPS_LIB_BINARY_DIR}/gpu)
   target_compile_definitions(gpu PRIVATE -DUSE_HIP -D_${GPU_PREC_SETTING})
   # SPIR-V (chipStar) gives no warp-synchronous guarantee, so the device-side
   # block-wide energy/virial reduction yields NaN; accumulate it on the host.
-  if(HIP_ARCH STREQUAL "spirv")
+  if(GPU_ARCH STREQUAL "spirv")
     target_compile_definitions(gpu PRIVATE -DLAL_NO_BLOCK_REDUCE)
   endif()
   if(GPU_DEBUG)
@@ -438,71 +406,20 @@ elseif(GPU_API STREQUAL "HIP")
   endif()
   target_link_libraries(gpu PRIVATE hip::host)
 
-  if(HIP_USE_DEVICE_SORT)
-    if(HIP_PLATFORM STREQUAL "amd")
-      # ROCm 5.1+ requires c++14 for rocprim; ROCm 6+/7+ rocprim requires c++17
-      set_property(TARGET gpu PROPERTY CXX_STANDARD 17)
-    endif()
-    # add hipCUB
-    find_package(hipcub REQUIRED)
-    target_link_libraries(gpu PRIVATE hip::hipcub)
-    target_compile_definitions(gpu PRIVATE -DUSE_HIP_DEVICE_SORT)
-
-    if(HIP_PLATFORM STREQUAL "nvcc")
-      find_package(CUB)
-
-      if(CUB_FOUND)
-        set(DOWNLOAD_CUB_DEFAULT OFF)
-      else()
-        set(DOWNLOAD_CUB_DEFAULT ON)
-      endif()
-
-      option(DOWNLOAD_CUB "Download and compile the CUB library instead of using an already installed one" ${DOWNLOAD_CUB_DEFAULT})
-
-      if(DOWNLOAD_CUB)
-        message(STATUS "CUB download requested")
-        # TODO: test update to current version 1.17.2
-        SetDownloadSettings(CUB "CUB"
-          "https://github.com/nvidia/cub/archive/1.12.0.tar.gz"
-          "3b03d0cbc9549606fbeda69a920562eb563836346b39014c79dfd024165ee549")
-        GetFallbackURL(CUB_URL CUB_FALLBACK)
-
-        include(ExternalProject)
-
-        ExternalProject_Add(CUB
-          URL     ${CUB_URL} ${CUB_FALLBACK}
-          URL_HASH SHA256=${CUB_SHA256}
-          PREFIX "${CMAKE_CURRENT_BINARY_DIR}"
-          CONFIGURE_COMMAND ""
-          BUILD_COMMAND ""
-          INSTALL_COMMAND ""
-          UPDATE_COMMAND ""
-        )
-        ExternalProject_get_property(CUB SOURCE_DIR)
-        set(CUB_INCLUDE_DIR ${SOURCE_DIR})
-      else()
-        find_package(CUB)
-        if(NOT CUB_FOUND)
-          message(FATAL_ERROR "CUB library not found. Help CMake to find it by setting CUB_INCLUDE_DIR, or set DOWNLOAD_CUB=ON to download it")
-        endif()
-      endif()
-
-      target_include_directories(gpu PRIVATE ${CUB_INCLUDE_DIR})
-    endif()
-  endif()
-
   add_executable(hip_get_devices ${LAMMPS_LIB_SOURCE_DIR}/gpu/geryon/ucl_get_devices.cpp)
   target_compile_definitions(hip_get_devices PRIVATE -DUCL_HIP)
   target_link_libraries(hip_get_devices PRIVATE hip::host)
 
-  if(HIP_PLATFORM STREQUAL "nvcc")
-    target_compile_definitions(gpu PRIVATE -D__HIP_PLATFORM_NVCC__)
-    target_include_directories(gpu PRIVATE ${CUDA_INCLUDE_DIRS})
-    target_link_libraries(gpu PRIVATE ${CUDA_LIBRARIES} ${CUDA_CUDA_LIBRARY})
+  if(HIP_PLATFORM STREQUAL "nvidia")
+    # the hip::host target of the HIP package is empty for NVIDIA GPUs: the HIP
+    # headers need the platform macro and the include path has to be added by hand
+    target_compile_definitions(gpu PRIVATE -D__HIP_PLATFORM_NVIDIA__ -D__HIP_PLATFORM_NVCC__)
+    target_include_directories(gpu PRIVATE ${HIP_INCLUDE_DIRS})
+    target_link_libraries(gpu PRIVATE CUDA::cudart_static CUDA::cuda_driver)
 
-    target_compile_definitions(hip_get_devices PRIVATE -D__HIP_PLATFORM_NVCC__)
-    target_include_directories(hip_get_devices PRIVATE ${CUDA_INCLUDE_DIRS})
-    target_link_libraries(hip_get_devices PRIVATE ${CUDA_LIBRARIES} ${CUDA_CUDA_LIBRARY})
+    target_compile_definitions(hip_get_devices PRIVATE -D__HIP_PLATFORM_NVIDIA__ -D__HIP_PLATFORM_NVCC__)
+    target_include_directories(hip_get_devices PRIVATE ${HIP_INCLUDE_DIRS})
+    target_link_libraries(hip_get_devices PRIVATE CUDA::cudart_static CUDA::cuda_driver)
   endif()
 endif()
 

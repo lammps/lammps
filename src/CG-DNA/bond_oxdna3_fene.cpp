@@ -15,8 +15,6 @@
 ------------------------------------------------------------------------- */
 
 #include "bond_oxdna3_fene.h"
-#include "constants_oxdna.h"
-#include "nucleotide_oxdna.h"
 
 #include "atom.h"
 #include "comm.h"
@@ -29,6 +27,11 @@ using namespace MathSpecial;
 
 /* ----------------------------------------------------------------------
    set coeffs
+   IMPORTANT NOTE ! We entirely code duplicate BondOxdna3Fene::coeff into
+   BondOxdna3FENEKokkos::coeff. So any edits made in one needs to manually
+   be made to the other ! We did it this way to avoid messy workarounds in
+   KOKKOS due to its inheritance structure.
+   The KOKKOS version is in: src/KOKKOS/bond_oxdna3_fene_kokkos.cpp
 ------------------------------------------------------------------------- */
 void BondOxdna3Fene::coeff(int narg, char **arg)
 {
@@ -40,9 +43,9 @@ void BondOxdna3Fene::coeff(int narg, char **arg)
   int ilo, ihi;
   utils::bounds(FLERR, arg[0], 1, atom->nbondtypes, ilo, ihi, error);
 
+  if (atom->ntypes != 4)
+    error->all(FLERR, "bond oxdna3/fene requires exactly 4 atom types for A, C, G and T, even if not all are used");
   int n = atom->ntypes;
-  if (n > 4)
-    error->all(FLERR, "bond oxdna3/fene does not support more than 4 atom types for A, C, G and T");
 
   for (int i = 0; i <= n; i++) {
     for (int j = 0; j <= n; j++) {

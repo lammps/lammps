@@ -266,6 +266,12 @@ void NPairKokkos<DeviceType,HALF,NEWTON,GHOST,TRI,SIZE>::build(NeighList *list_)
     const int factor = 1;
 #endif
 
+    // the team kernel sizes every team by the fullest bin. When the bins are
+    // mostly empty (small bins, inhomogeneous systems) most of its threads
+    // idle, and the flat kernel is faster
+
+    const bool sparse_bins = ((double) nall * 4.0 < (double) mbins * atoms_per_bin);
+
     if (GHOST) {
       // assumes newton off
 
@@ -279,7 +285,7 @@ void NPairKokkos<DeviceType,HALF,NEWTON,GHOST,TRI,SIZE>::build(NeighList *list_)
       if (ExecutionSpaceFromDevice<DeviceType>::space == Device && !includegroup) {
         int team_size = atoms_per_bin*factor;
         int team_size_max = Kokkos::TeamPolicy<DeviceType>(team_size,Kokkos::AUTO).team_size_max(f,Kokkos::ParallelForTag());
-        if (team_size <= team_size_max) {
+        if (team_size <= team_size_max && !sparse_bins) {
           Kokkos::TeamPolicy<DeviceType> config((mbins+factor-1)/factor,team_size);
           Kokkos::parallel_for(config, f);
         } else { // fall back to flat method
@@ -301,7 +307,7 @@ void NPairKokkos<DeviceType,HALF,NEWTON,GHOST,TRI,SIZE>::build(NeighList *list_)
         if (ExecutionSpaceFromDevice<DeviceType>::space == Device) {
           int team_size = atoms_per_bin*factor;
           int team_size_max = Kokkos::TeamPolicy<DeviceType>(team_size,Kokkos::AUTO).team_size_max(f,Kokkos::ParallelForTag());
-          if (team_size <= team_size_max) {
+          if (team_size <= team_size_max && !sparse_bins) {
             Kokkos::TeamPolicy<DeviceType> config((mbins+factor-1)/factor,team_size);
             Kokkos::parallel_for(config, f);
           } else { // fall back to flat method
@@ -319,7 +325,7 @@ void NPairKokkos<DeviceType,HALF,NEWTON,GHOST,TRI,SIZE>::build(NeighList *list_)
         if (ExecutionSpaceFromDevice<DeviceType>::space == Device) {
           int team_size = atoms_per_bin*factor;
           int team_size_max = Kokkos::TeamPolicy<DeviceType>(team_size,Kokkos::AUTO).team_size_max(f,Kokkos::ParallelForTag());
-          if (team_size <= team_size_max && nbor_chunk_size == 0) {
+          if (team_size <= team_size_max && nbor_chunk_size == 0 && !sparse_bins) {
             Kokkos::TeamPolicy<DeviceType> config((mbins+factor-1)/factor,team_size);
             Kokkos::parallel_for(config, f);
           } else { // fall back to flat method

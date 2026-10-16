@@ -260,8 +260,9 @@ struct AtomVecEllipsoidKokkos_PackCommBonus {
 void AtomVecEllipsoidKokkos::pack_comm_bonus_kokkos(const int &n, const DAT::tdual_int_1d &list,
                                                     const DAT::tdual_double_2d_lr &buf, int vel_flag)
 {
-  int offset = size_forward - size_forward_bonus;
-  if (vel_flag) offset += size_velocity;
+  // See pack_border_bonus_kokkos for explanation of atomKK->avecKK usage
+  int offset = atomKK->avecKK->size_forward - size_forward_bonus;
+  if (vel_flag) offset += atomKK->avecKK->size_velocity;
 
   if (lmp->kokkos->forward_comm_on_host) {
     atomKK->sync(HostKK,datamask_bonus);
@@ -322,24 +323,28 @@ struct AtomVecEllipsoidKokkos_UnpackCommBonus {
 
 /* ---------------------------------------------------------------------- */
 
+// forward communication of the bonus data only updates the quaternions of the
+// ghost atoms, so only BONUS_MASK is marked as modified, not ELLIPSOID_MASK
+
 void AtomVecEllipsoidKokkos::unpack_comm_bonus_kokkos(const int &n, const int &first,
                                                       const DAT::tdual_double_2d_lr &buf, int vel_flag)
 {
-  int offset = size_forward - size_forward_bonus;
-  if (vel_flag) offset += size_velocity;
+  // See pack_border_bonus_kokkos for explanation of atomKK->avecKK usage
+  int offset = atomKK->avecKK->size_forward - size_forward_bonus;
+  if (vel_flag) offset += atomKK->avecKK->size_velocity;
 
   if (lmp->kokkos->forward_comm_on_host) {
     atomKK->sync(HostKK,datamask_bonus);
     struct AtomVecEllipsoidKokkos_UnpackCommBonus<LMPHostType> f(
       atomKK,buf,k_bonus,first,offset,vel_flag);
     Kokkos::parallel_for(n,f);
-    atomKK->modified(HostKK,datamask_bonus);
+    atomKK->modified(HostKK,BONUS_MASK);
   } else {
     atomKK->sync(Device,datamask_bonus);
     struct AtomVecEllipsoidKokkos_UnpackCommBonus<LMPDeviceType> f(
       atomKK,buf,k_bonus,first,offset,vel_flag);
     Kokkos::parallel_for(n,f);
-    atomKK->modified(Device,datamask_bonus);
+    atomKK->modified(Device,BONUS_MASK);
   }
 }
 
@@ -392,13 +397,13 @@ void AtomVecEllipsoidKokkos::pack_comm_self_bonus_kokkos(const int &n,
     struct AtomVecEllipsoidKokkos_PackCommSelfBonus<LMPHostType> f(
       atomKK,k_bonus,nfirst,list);
     Kokkos::parallel_for(n,f);
-    atomKK->modified(HostKK,datamask_bonus);
+    atomKK->modified(HostKK,BONUS_MASK);
   } else {
     atomKK->sync(Device,datamask_bonus);
     struct AtomVecEllipsoidKokkos_PackCommSelfBonus<LMPDeviceType> f(
       atomKK,k_bonus,nfirst,list);
     Kokkos::parallel_for(n,f);
-    atomKK->modified(Device,datamask_bonus);
+    atomKK->modified(Device,BONUS_MASK);
   }
 }
 
@@ -470,13 +475,13 @@ void AtomVecEllipsoidKokkos::pack_comm_self_fused_bonus_kokkos(const int &n,
     struct AtomVecEllipsoidKokkos_PackCommSelfFusedBonus<LMPHostType> f(
       atomKK,k_bonus,list,firstrecv,sendnum_scan,g2l);
     Kokkos::parallel_for(n,f);
-    atomKK->modified(HostKK,datamask_bonus);
+    atomKK->modified(HostKK,BONUS_MASK);
   } else {
     atomKK->sync(Device,datamask_bonus);
     struct AtomVecEllipsoidKokkos_PackCommSelfFusedBonus<LMPDeviceType> f(
       atomKK,k_bonus,list,firstrecv,sendnum_scan,g2l);
     Kokkos::parallel_for(n,f);
-    atomKK->modified(Device,datamask_bonus);
+    atomKK->modified(Device,BONUS_MASK);
   }
 }
 
@@ -541,8 +546,17 @@ void AtomVecEllipsoidKokkos::pack_border_bonus_kokkos(int n, DAT::tdual_int_1d k
                                                       DAT::tdual_double_2d_lr &buf,
                                                       ExecutionSpace space, int vel_flag)
 {
-  int offset = size_border - size_border_bonus;
-  if (vel_flag) offset += size_velocity;
+  // In atom_style hybrid/kk, this sub-style's size_border only covers its own
+  // fields.  The parent (hybrid) atom vec has a larger combined size_border
+  // that also includes fields from other sub-styles.
+  // First noticed when developing KOKKOS support for CG-DNA package, where
+  // "atom_style hybrid bond ellipsoid oxdna" is used.
+  // Using just size_border here produced a wrong bonus offset in the
+  // buffer, placing the shape/quat data over the CG-DNA slots.
+  // Using atomKK->avecKK->size_border gives the correct combined size in hybrid mode and
+  // equals this->size_border in standalone mode, so the fix is (should be) safe in both cases.
+  int offset = atomKK->avecKK->size_border - size_border_bonus;
+  if (vel_flag) offset += atomKK->avecKK->size_velocity;
 
   atomKK->sync(space,datamask_bonus);
 
@@ -632,8 +646,9 @@ void AtomVecEllipsoidKokkos::unpack_border_bonus_kokkos(const int &n, const int 
 
   atomKK->sync(space,datamask_bonus);
 
-  int offset = size_border - size_border_bonus;
-  if (vel_flag) offset += size_velocity;
+  // See pack_border_bonus_kokkos for explanation of atomKK->avecKK usage
+  int offset = atomKK->avecKK->size_border - size_border_bonus;
+  if (vel_flag) offset += atomKK->avecKK->size_velocity;
 
   if (space == HostKK) {
     k_nghost_bonus.view_host()() = nghost_bonus;
@@ -801,7 +816,8 @@ void AtomVecEllipsoidKokkos::pack_exchange_bonus_kokkos(const int &nsend,
                                                         DAT::tdual_int_1d k_copylist_bonus,
                                                         ExecutionSpace space)
 {
-  int offset = size_exchange - size_exchange_bonus;
+  // See pack_border_bonus_kokkos for explanation of atomKK->avecKK usage
+  int offset = atomKK->avecKK->size_exchange - size_exchange_bonus;
 
   atomKK->sync(space,datamask_bonus);
 
@@ -908,7 +924,8 @@ void AtomVecEllipsoidKokkos::unpack_exchange_bonus_kokkos(DAT::tdual_double_2d_l
 {
   while (nlocal_bonus + nrecv/size_exchange >= nmax_bonus) grow_bonus();
 
-  int offset = size_exchange - size_exchange_bonus;
+  // See pack_border_bonus_kokkos for explanation of atomKK->avecKK usage
+  int offset = atomKK->avecKK->size_exchange - size_exchange_bonus;
 
   atomKK->sync(space,datamask_bonus);
 

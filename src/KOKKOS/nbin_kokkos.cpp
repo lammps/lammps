@@ -72,7 +72,9 @@ void NBinKokkos<DeviceType>::bin_atoms_setup(int nall)
     bincount = k_bincount.view<DeviceType>();
   }
   if (nall > (int)k_atom2bin.view_device().extent(0)) {
-    MemoryKokkos::realloc_kokkos(k_atom2bin,"Neighbor::d_atom2bin",nall);
+    // with some headroom, so that small changes in the ghost count do not
+    // reallocate on every rebuild
+    MemoryKokkos::realloc_kokkos(k_atom2bin,"Neighbor::d_atom2bin",nall + nall/10);
     atom2bin = k_atom2bin.view<DeviceType>();
   }
 }

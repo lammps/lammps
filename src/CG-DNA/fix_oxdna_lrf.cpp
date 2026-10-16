@@ -16,13 +16,9 @@
 #include "atom.h"
 #include "atom_vec_ellipsoid.h"
 #include "comm.h"
-#include "force.h"
+#include "error.h"
 #include "math_extra.h"
 #include "memory.h"
-#include "neigh_list.h"
-#include "neigh_request.h"
-#include "neighbor.h"
-#include "pair.h"
 #include "update.h"
 #include <cstring>
 
@@ -61,6 +57,16 @@ int FixOxdnaLRF::setmask()
   mask |= MIN_PRE_FORCE;
   mask |= PRE_FORCE;
   return mask;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixOxdnaLRF::init()
+{
+  // with rRESPA the local reference frames would never be computed
+
+  if (utils::strmatch(update->integrate_style, "^respa"))
+    error->all(FLERR, "The oxDNA styles do not support run style respa");
 }
 
 /* ---------------------------------------------------------------------- */

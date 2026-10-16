@@ -104,7 +104,6 @@ AtomKokkos::~AtomKokkos()
   AtomKokkos::map_delete();
 
   // SPIN package
-
   memoryKK->destroy_kokkos(k_sp, sp);
   memoryKK->destroy_kokkos(k_fm, fm);
   memoryKK->destroy_kokkos(k_fm_long, fm_long);
@@ -118,6 +117,11 @@ AtomKokkos::~AtomKokkos()
   memoryKK->destroy_kokkos(k_rho, rho);
   memoryKK->destroy_kokkos(k_dpdTheta, dpdTheta);
   memoryKK->destroy_kokkos(k_duChem, duChem);
+
+  // CG-DNA package
+  memoryKK->destroy_kokkos(k_id3p, id3p);
+  memoryKK->destroy_kokkos(k_id5p, id5p);
+  memoryKK->destroy_kokkos(k_qeff, qeff);
 
   // ivector/dvector are single contiguous Kokkos views, with the legacy
   // ivector[i]/dvector[i] pointers aliasing into them.  Free the view data and

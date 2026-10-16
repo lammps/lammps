@@ -508,6 +508,10 @@ class DualView : public ViewTraits<DataType, Properties...> {
     if (modified_flags.data() == nullptr) return;
 
     int dev = get_device_side<Device>();
+    // only a sync that changed something needs the fences below (host and
+    // device views share their memory); a DualView that was in sync already
+    // must not stall the device
+    bool synced = false;
 
     if (dev == 1) {  // if Device is the same as DualView's device type
       if ((modified_flags(0) > 0) && (modified_flags(0) >= modified_flags(1))) {
@@ -524,6 +528,7 @@ class DualView : public ViewTraits<DataType, Properties...> {
         deep_copy(args..., d_view, h_view);
         modified_flags(0) = modified_flags(1) = 0;
         impl_report_device_sync();
+        synced = true;
       }
     }
     if (dev == 0) {  // hopefully Device is the same as DualView's host type
@@ -541,10 +546,12 @@ class DualView : public ViewTraits<DataType, Properties...> {
         deep_copy(args..., h_view, d_view);
         modified_flags(0) = modified_flags(1) = 0;
         impl_report_host_sync();
+        synced = true;
       }
     }
     if constexpr (std::is_same_v<typename t_host::memory_space,
                                  typename t_dev::memory_space>) {
+      if (!synced) return;
       typename t_dev::execution_space().fence(
           "Kokkos::DualView<>::sync: fence after syncing DualView");
       typename t_host::execution_space().fence(

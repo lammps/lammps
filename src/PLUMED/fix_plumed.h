@@ -59,7 +59,8 @@ class FixPlumed : public Fix {
   int plumedNeedsEnergy;     // Flag to trigger calculation of the
                              // energy and virial
   int plumedStopCondition;   // early stop flag
-  int plumedStopScratch;     // scratch stop flag for lookahead
+  bigint prepared_step;      // remember the prepped step
+  int lookahead;             // fix_modify lookahead yes|no
   char *id_pe, *id_press;    // ID for potential energy and pressure compute
 };
 

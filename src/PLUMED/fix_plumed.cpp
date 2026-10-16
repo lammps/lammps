@@ -200,7 +200,8 @@ FixPlumed::FixPlumed(LAMMPS *lmp, int narg, char **arg) :
   p->cmd("setTimestep", &dt);
 
   plumedStopCondition = 0;
-  plumedStopScratch = 0;
+  prepared_step = -1;
+  lookahead = 0;
 
   extscalar = 1;
   scalar_flag = 1;
@@ -252,7 +253,6 @@ FixPlumed::FixPlumed(LAMMPS *lmp, int narg, char **arg) :
 
 FixPlumed::~FixPlumed()
 {
-  if (copymode) return;
   delete p;
   modify->delete_compute(id_pe);
   modify->delete_compute(id_press);
@@ -405,8 +405,15 @@ void FixPlumed::post_force(int /* vflag */)
     error->all(FLERR, "Fix plumed can only handle up to 2.1 billion timesteps");
   int step = int(update->ntimestep);
 
+  // Each step's dependencies prepped once. Reuse from end of last step.
+  // 1st step of the run / reentry at a different step goes through directly.
+  if (prepared_step != update->ntimestep) {
+    p->cmd("setStep", &step);
+    p->cmd("prepareDependencies");
+    prepared_step = update->ntimestep;
+  }
+
   // pass all pointers to plumed:
-  p->cmd("setStep", &step);
   plumedStopCondition = 0;
   p->cmd("setStopFlag", &plumedStopCondition);
   p->cmd("setPositions", &atom->x[0][0]);
@@ -422,7 +429,7 @@ void FixPlumed::post_force(int /* vflag */)
   // In the first case the virial will be rescaled and an extra term will be added
   // In the latter case only an extra term will be added
   p->cmd("setVirial", &plmd_virial[0][0]);
-  p->cmd("prepareCalc");
+  p->cmd("shareData"); // prepareCalc = prepareDependencies(done above) + shareData
 
   plumedNeedsEnergy = 0;
   p->cmd("isEnergyNeeded", &plumedNeedsEnergy);
@@ -504,29 +511,30 @@ void FixPlumed::post_force(int /* vflag */)
     virial[5] = -plmd_virial[1][2];
   }
 
+  // Integrate::ev_set() decides at the top of a step if E and virial are tallied
   // Ask PLUMED if it needs the energy on the next step
-  // Tally the energy and virial computes
-  // Integrate::ev_set() fixes eflag/vflag at the top of the step in advance
-  // isEnergyNeeded - current step only. Clears every step.
-  // prepareDependencies() needs the next step only
-  // and activates.deactivate the pilots based on stride modulo
-  // Doesnt touch positions, forces, or box
-  // setStep() issued at the start of the next post_force() resets this - cleanup
+  // prepareDependencies() answers isEnergyNeeded, calls prepare
+  // prepare runs once only and can keep state
+  // unconditional tally during setup, last step, in minimization, lookahead=no
 
   bigint nextstep = update->ntimestep + 1;
-  if (nextstep<=MAXSMALLINT) {
+
+  if (lookahead && update->whichflag == 1 && !update->setupflag &&
+      update->ntimestep < update->laststep && nextstep <= MAXSMALLINT) {
     int nextstep_int = int(nextstep);
-    // prepareDependencies() raises the stop flag in inactive steps
-    // writing to scratch to avoid it overwriting the actual flag
-    p->cmd("setStopFlag", &plumedStopScratch);
     p->cmd("setStep", &nextstep_int);
     p->cmd("prepareDependencies");
+    prepared_step = nextstep;
     int needsEnergyNext = 0;
     p->cmd("isEnergyNeeded", &needsEnergyNext);
     if (needsEnergyNext) {
-      c_pe->addstep(update->ntimestep + 1);
-      c_press->addstep(update->ntimestep + 1);
+      c_pe->addstep(nextstep);
+      c_press->addstep(nextstep);
     }
+  } else {
+    prepared_step = -1;
+    c_pe->addstep(nextstep);
+    c_press->addstep(nextstep);
   }
 }
 
@@ -583,6 +591,10 @@ int FixPlumed::modify_param(int narg, char **arg)
     if (c_press->igroup != 0 && comm->me == 0)
       error->warning(FLERR, "Virial for fix PLUMED is not for group all");
 
+    return 2;
+  } else if (strcmp(arg[0], "lookahead") == 0) {
+    if (narg < 2) utils::missing_cmd_args(FLERR, "fix_modify lookahead", error);
+    lookahead = utils::logical(FLERR, arg[1], false, lmp);
     return 2;
   }
   return 0;

@@ -1,10 +1,11 @@
 .. index:: pair_style sph/lj
 .. index:: pair_style sph/lj/gpu
+.. index:: pair_style sph/lj/omp
 
 pair_style sph/lj command
 =========================
 
-Accelerator Variants: *sph/lj/gpu*
+Accelerator Variants: *sph/lj/gpu*, *sph/lj/omp*
 
 Syntax
 """"""

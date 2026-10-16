@@ -5,7 +5,8 @@ existing ones honest.  The OPENMP package (~330 files) threads force styles,
 neighbor builds, and a growing set of computes; a full-package audit (PR #5163,
 2026-08) produced the bug-class catalog at the end of this guide.  There are TWO
 distinct porting models: force styles use the ThrOMP machinery, computes
-deliberately do not.
+deliberately do not.  What remains to port, ranked by effort, is in
+`accelerator-porting-backlog.md`.
 
 ## Architecture: FixOMP, ThrData, ThrOMP
 

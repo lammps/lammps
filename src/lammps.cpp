@@ -143,9 +143,10 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
 
   std::string update_string = UPDATE_STRING; // NOLINT
 
-  // increment the version number for development branch
-  // so that it is larger than that of the release version
-  if (update_string == " - Development") ++num_ver;
+  // increment the version number for development and maintenance branch
+  // so that it is larger than that of the release version.
+  // this must match the version of the python module in python/setup.py
+  if ((update_string == " - Development") || (update_string == " - Maintenance")) ++num_ver;
 
   // append git descriptor info to update string when compiling development or maintenance version
   if (has_git_info() && ((update_string == " - Development") || (update_string == " - Maintenance")))
@@ -1272,10 +1273,8 @@ void LAMMPS::print_config(FILE *fp, int width)
   fputs(Info::get_fft_info().c_str(),fp);
 
   fputs("\nActive compile time flags:\n\n",fp);
-  if (Info::has_gzip_support()) fputs("-DLAMMPS_GZIP\n",fp);
   if (Info::has_png_support()) fputs("-DLAMMPS_PNG\n",fp);
   if (Info::has_jpeg_support()) fputs("-DLAMMPS_JPEG\n",fp);
-  if (Info::has_ffmpeg_support()) fputs("-DLAMMPS_FFMPEG\n",fp);
   if (Info::has_curl_support()) fputs("-DLAMMPS_CURL\n",fp);
   if (Info::has_fft_single_support()) fputs("-DFFT_SINGLE\n",fp);
 #if defined(LAMMPS_BIGBIG)
@@ -1291,7 +1290,9 @@ void LAMMPS::print_config(FILE *fp, int width)
              sizeof(smallint)*8, sizeof(imageint)*8,
              sizeof(tagint)*8, sizeof(bigint)*8);
 
-  if (Info::has_gzip_support()) utils::print(fp,"\n{}\n",platform::compress_info());
+  utils::print(fp,"\n{}",platform::compress_info());
+  auto ffmpeg = platform::find_exe_path("ffmpeg");
+  utils::print(fp, "\nFFmpeg executable: {}\n", ffmpeg.empty() ? "not found" : ffmpeg);
 
   fputs("\nInstalled packages:\n\n",fp);
   for (int i = 0; nullptr != (pkg = installed_packages[i]); ++i) {

@@ -603,7 +603,7 @@ void FixGCMC::init()
     int *mask = atom->mask;
     int flag = 0;
     for (int i = 0; i < atom->nlocal; i++)
-      if (mask[i] == groupbit)
+      if (mask[i] & groupbit)
         if (molecule[i] == 0) flag = 1;
     int flagall;
     MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
@@ -721,7 +721,7 @@ void FixGCMC::init()
 
     int flag = 0;
     for (int i = 0; i < atom->nlocal; i++)
-      if ((mask[i] == groupbit) && (mask[i] && firstgroupbit)) flag = 1;
+      if ((mask[i] & groupbit) && (mask[i] & firstgroupbit)) flag = 1;
 
     int flagall;
     MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
@@ -1112,6 +1112,7 @@ void FixGCMC::attempt_atomic_insertion()
       atom->v[m][1] = random_unequal->gaussian()*sigma;
       atom->v[m][2] = random_unequal->gaussian()*sigma;
       random_unequal->gaussian(); // this ensures exact restart
+      if (charge_flag) atom->q[m] = charge;
       modify->create_attribute(m);
 
       success = 1;

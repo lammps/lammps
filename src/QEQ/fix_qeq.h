@@ -129,7 +129,7 @@ class FixQEq : public Fix {
   int parse_common_keyword(int, char **, int);
   void finalize_xl();
   int solve_st();
-  bool xl_ready() const;
+  [[nodiscard]] bool xl_ready() const;
   void xl_predict();
   void xl_update(bool);
 

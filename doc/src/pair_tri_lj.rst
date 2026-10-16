@@ -69,10 +69,10 @@ using only sigma_II values, specific to the triangles's type, this
 means that any specified sigma_IJ values (for I != J) are effectively
 ignored.
 
-For style *tri/lj*, the following coefficients must be defined for
-each pair of atoms types via the :doc:`pair_coeff <pair_coeff>` command
-as in the examples above, or in the data file or restart files read by
-the :doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
+For style *tri/lj*, the following coefficients must be defined for each
+pair of atom types via the :doc:`pair_coeff <pair_coeff>` command as in
+the examples above, or in the data file or restart files read by the
+:doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
 commands:
 
 * epsilon (energy units)

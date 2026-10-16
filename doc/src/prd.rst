@@ -293,6 +293,16 @@ However, it is assumed that *t_correlate* in the new PRD command is
 the same as it was previously.  If not, the calculation of the "clock"
 value for the first event in the new run will be slightly off.
 
+Unlike the :doc:`restart <restart>` command, the :doc:`write_restart
+<write_restart>` command is executed by all partitions, so that all of
+them write to the same file at the same time.  To write a restart file
+after the PRD run has finished, limit the write_restart command to the
+first partition with the :doc:`partition <partition>` command, e.g.
+
+.. code-block:: LAMMPS
+
+   partition yes 1 write_restart restart.prd
+
 ----------
 
 Restrictions

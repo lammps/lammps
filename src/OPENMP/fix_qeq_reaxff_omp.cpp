@@ -168,6 +168,13 @@ void FixQEqReaxFFOMP::compute_H()
   }
   m_fill = num_nbrs;
 
+  // check before filling the matrix to avoid writing past its end
+
+  if (m_fill >= H.m)
+    error->one(FLERR,  Error::NOLASTLINE,
+               "Fix qeq/reaxff: H matrix size has been exceeded: m_fill={} H.m={}\n",
+               m_fill, H.m);
+
   // fill in the H matrix
 
 #if defined(_OPENMP)
@@ -223,11 +230,6 @@ void FixQEqReaxFFOMP::compute_H()
       }
     }
   } // omp
-
-  if (m_fill >= H.m)
-    error->all(FLERR,  Error::NOLASTLINE,
-               "Fix qeq/reaxff: H matrix size has been exceeded: m_fill={} H.m={}\n",
-               m_fill, H.m);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -426,7 +428,11 @@ int FixQEqReaxFFOMP::CG(double *b, double *x)
 
 #if defined(_OPENMP)
 #pragma omp barrier
+#if _OPENMP >= 202011
+#pragma omp masked
+#else
 #pragma omp master
+#endif
 #endif
       {
         MPI_Allreduce(&tmp1, &tmp2, 1, MPI_DOUBLE, MPI_SUM, world);
@@ -707,7 +713,11 @@ int FixQEqReaxFFOMP::dual_CG(double *b1, double *b2, double *x1, double *x2)
 
 #if defined(_OPENMP)
 #pragma omp barrier
+#if _OPENMP >= 202011
+#pragma omp masked
+#else
 #pragma omp master
+#endif
 #endif
       {
         my_buf[0] = tmp1;

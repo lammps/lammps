@@ -1651,7 +1651,8 @@ catch exceptions with the test command, for example,
 
 It is recommended to configure the build with ``-D
 BUILD_SHARED_LIBS=on`` and use a custom linker to shorten the build time
-during recompilation.  Installing `ccache` in your development
-environment helps speed up recompilation by caching previous
+during recompilation.  Using the ``ccache`` compiler cache in your
+development environment helps speed up recompilation by caching previous
 compilations and detecting when the same compilation is being done
-again.  Please see :doc:`Build_development` for further details.
+again.  Please see the :ref:`section on Ninja and ccache <ninja_ccache>`
+for further details.

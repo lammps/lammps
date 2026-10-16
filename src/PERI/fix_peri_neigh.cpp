@@ -45,10 +45,11 @@ FixPeriNeigh::FixPeriNeigh(LAMMPS *lmp,int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
   isPMB = isLPS = isVES = isEPS = 0;
-  if (force->pair_match("peri/pmb",1)) isPMB = 1;
-  if (force->pair_match("peri/lps",1)) isLPS = 1;
-  if (force->pair_match("peri/ves",1)) isVES = 1;
-  if (force->pair_match("peri/eps",1)) isEPS = 1;
+  // use regex matches, so that accelerated variants (e.g. peri/lps/omp) are recognized
+  if (force->pair_match("^peri/pmb",0)) isPMB = 1;
+  if (force->pair_match("^peri/lps",0)) isLPS = 1;
+  if (force->pair_match("^peri/ves",0)) isVES = 1;
+  if (force->pair_match("^peri/eps",0)) isEPS = 1;
 
   restart_global = 1;
   restart_peratom = 1;

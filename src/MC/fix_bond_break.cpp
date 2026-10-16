@@ -19,6 +19,7 @@
 #include "error.h"
 #include "force.h"
 #include "graphics.h"
+#include "improper_hybrid.h"
 #include "memory.h"
 #include "modify.h"
 #include "neighbor.h"
@@ -178,9 +179,21 @@ void FixBondBreak::init()
   if (atom->nimpropers) improperflag = 1;
   else improperflag = 0;
 
-  if (force->improper) {
-    if (force->improper_match("^class2") || force->improper_match("^ring"))
-      error->all(FLERR,"Cannot yet use fix bond/break with this improper style");
+  // removing impropers assumes that their first atom is the central atom
+
+  if (improperflag && force->improper) {
+    auto check = [&](Improper *improper, const char *name) {
+      if (improper && (improper->central_atom() > 0))
+        error->all(FLERR, Error::NOLASTLINE,
+                   "Fix {} does not support improper style {}, since its central atom is not "
+                   "the first atom of an improper", style, name);
+    };
+    auto *hybrid = dynamic_cast<ImproperHybrid *>(force->improper);
+    if (hybrid) {
+      for (int i = 0; i < hybrid->nstyles; ++i) check(hybrid->styles[i], hybrid->keywords[i]);
+    } else {
+      check(force->improper, force->improper_style);
+    }
   }
 
   lastcheck = -1;

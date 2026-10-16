@@ -45,11 +45,10 @@ collisions given using the pair_coeff command.
 There is no pairwise energy or virial contributions associated with
 this pair style.
 
-The following coefficient must be defined for each pair of atoms types
+The following coefficient must be defined for each pair of atom types
 via the :doc:`pair_coeff <pair_coeff>` command as in the examples above,
-or in the data file or restart files read by the
-:doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
-commands:
+or in the data file or restart files read by the :doc:`read_data
+<read_data>` or :doc:`read_restart <read_restart>` commands:
 
 * sigma (area units, i.e. distance-squared)
 

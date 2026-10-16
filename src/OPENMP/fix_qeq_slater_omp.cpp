@@ -151,6 +151,12 @@ void FixQEqSlaterOMP::compute_H_thr()
     m_fill += H.numnbrs[i];
   }
 
+  // check before filling the matrix to avoid writing past its end
+
+  if (m_fill >= H.m)
+    error->one(FLERR,"Fix qeq/slater/omp has insufficient H "
+                     "matrix size: m_fill={} H.m={}\n",m_fill,H.m);
+
   // pass 2: fill each atom's contiguous block (race-free)
 
 #if defined(_OPENMP)
@@ -190,9 +196,6 @@ void FixQEqSlaterOMP::compute_H_thr()
     chizj[i] = zjtmp;
   }
 
-  if (m_fill >= H.m)
-    error->all(FLERR,"Fix qeq/slater/omp has insufficient H "
-                     "matrix size: m_fill={} H.m={}\n",m_fill,H.m);
 }
 
 /* ----------------------------------------------------------------------

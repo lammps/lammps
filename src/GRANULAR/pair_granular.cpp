@@ -322,6 +322,9 @@ void PairGranular::allocate()
   memory->create(cutsq,n+1,n+1,"pair:cutsq");
   memory->create(cutoff_type,n+1,n+1,"pair:cutoff_type");
   memory->create(types_indices,n+1,n+1,"pair:types_indices");
+  for (int i = 0; i <= n; i++)
+    for (int j = 0; j <= n; j++)
+      types_indices[i][j] = -1;
 
   maxmodels = n * n + 1; // should never need any more space
   models_list = (GranularModel **) memory->smalloc(maxmodels * sizeof(GranularModel *), "pair:models_list");
@@ -386,7 +389,6 @@ void PairGranular::coeff(int narg, char **arg)
       iarg = model->add_sub_model(arg, iarg + 1, narg, TWISTING);
     } else if (strcmp(arg[iarg], "heat") == 0) {
       iarg = model->add_sub_model(arg, iarg + 1, narg, HEAT);
-      heat_flag = 1;
     } else if (strcmp(arg[iarg], "cutoff") == 0) {
       if (iarg + 1 >= narg)
         error->all(FLERR, "Illegal pair_coeff command, not enough parameters for cutoff keyword");
@@ -435,6 +437,7 @@ void PairGranular::init_style()
   if (comm->ghost_velocity == 0)
     error->all(FLERR,"Pair granular requires ghost atoms store velocity");
 
+  set_heat_flag();
   if (heat_flag) {
     if (!atom->temperature_flag)
       error->all(FLERR,"Heat conduction in pair granular requires atom style with temperature property");
@@ -610,8 +613,9 @@ double PairGranular::init_one(int i, int j)
 
   model = models_list[types_indices[i][j]];
   // Check if heat model is defined for all type combinations
-  if (heat_flag && !model->heat_model)
-    error->all(FLERR, "Must specify a heat model for all pair types");
+  if (heat_flag && (model->sub_models[HEAT]->name == "none"))
+    error->all(FLERR, "Must specify a heat model for all pair types, missing for types {} and {}",
+               i, j);
 
   // It is possible that cut[i][j] at this point is still 0.0.
   // This can happen when
@@ -933,4 +937,19 @@ void PairGranular::prune_models()
     models_list[nmodels-1] = nullptr;
     nmodels -= 1;
   }
+}
+
+/* ----------------------------------------------------------------------
+   enable heat conduction if any explicitly set pair of atom types uses a
+   heat model.  this is derived from the models, so it is also set after
+   reading a restart file and reset when pair coefficients are replaced.
+------------------------------------------------------------------------- */
+
+void PairGranular::set_heat_flag()
+{
+  heat_flag = 0;
+  for (int i = 1; i <= atom->ntypes; i++)
+    for (int j = i; j <= atom->ntypes; j++)
+      if (setflag[i][j] && (models_list[types_indices[i][j]]->sub_models[HEAT]->name != "none"))
+        heat_flag = 1;
 }

@@ -14,11 +14,11 @@
 #include "gran_sub_mod_damping.h"
 
 #include "error.h"
-#include "gran_sub_mod_normal.h"
 #include "fix_granular_mdr.h"
+#include "gran_sub_mod_normal.h"
 #include "granular_model.h"
-#include "math_special.h"
 #include "math_const.h"
+#include "math_special.h"
 
 #include <cmath>
 
@@ -30,8 +30,8 @@ using MathSpecial::cube;
 using MathSpecial::powint;
 using MathSpecial::square;
 
-static constexpr double TWOROOTFIVEBYSIX = 1.82574185835055380345;      // 2sqrt(5/6)
-static constexpr double ROOTTHREEBYTWO = 1.22474487139158894067;        // sqrt(3/2)
+static constexpr double TWOROOTFIVEBYSIX = 1.82574185835055380345;    // 2sqrt(5/6)
+static constexpr double ROOTTHREEBYTWO = 1.22474487139158894067;      // sqrt(3/2)
 
 /* ----------------------------------------------------------------------
    Default damping model
@@ -43,9 +43,6 @@ GranSubModDamping::GranSubModDamping(GranularModel *gm, LAMMPS *lmp) : GranSubMo
 
 void GranSubModDamping::init()
 {
-  if (gm->normal_model->name == "mdr")
-    error->all(FLERR, "Only damping mdr may be used with the mdr normal model");
-
   damp = gm->normal_model->get_damp();
 }
 
@@ -132,9 +129,6 @@ GranSubModDampingTsuji::GranSubModDampingTsuji(GranularModel *gm, LAMMPS *lmp) :
 
 void GranSubModDampingTsuji::init()
 {
-  if (gm->normal_model->name == "mdr")
-    error->all(FLERR, "Only damping mdr may be used with the mdr normal model");
-
   // Eq. 53 from Marshall 2009
   double cor = gm->normal_model->get_damp();
   damp = 1.2728 - 4.2783 * cor + 11.087 * square(cor);
@@ -163,7 +157,8 @@ double GranSubModDampingTsuji::calculate_forces()
    Coefficient of restitution damping
 ------------------------------------------------------------------------- */
 
-GranSubModDampingCoeffRestitution::GranSubModDampingCoeffRestitution(GranularModel *gm, LAMMPS *lmp) :
+GranSubModDampingCoeffRestitution::GranSubModDampingCoeffRestitution(GranularModel *gm,
+                                                                     LAMMPS *lmp) :
     GranSubModDampingTsuji(gm, lmp)
 {
 }
@@ -172,9 +167,6 @@ GranSubModDampingCoeffRestitution::GranSubModDampingCoeffRestitution(GranularMod
 
 void GranSubModDampingCoeffRestitution::init()
 {
-  if (gm->normal_model->name == "mdr")
-    error->all(FLERR, "Only damping mdr may be used with the mdr normal model");
-
   // Calculate prefactor, assume Hertzian as default
   double cor = gm->normal_model->get_damp();
   double logcor = log(cor);
@@ -199,7 +191,7 @@ GranSubModDampingMDR::GranSubModDampingMDR(GranularModel *gm, LAMMPS *lmp) :
 
 void GranSubModDampingMDR::coeffs_to_local()
 {
-  damp_type = (int)coeffs[0]; // damping type 1 = mdr stiffness or 2 = velocity
+  damp_type = (int) coeffs[0];    // damping type 1 = mdr stiffness or 2 = velocity
   if (damp_type != 1 && damp_type != 2)
     error->all(FLERR, "Illegal MDR damping model, damping type must an integer equal to 1 or 2");
 }
@@ -219,7 +211,7 @@ void GranSubModDampingMDR::init()
 double GranSubModDampingMDR::calculate_forces()
 {
   using namespace Granular_MDR_NS;
-  double *history = & gm->history[gm->normal_model->history_index];
+  double *history = &gm->history[gm->normal_model->history_index];
   if (damp_type == 1) {
     damp_prefactor = damp * history[DAMP_SCALE];
   } else if (damp_type == 2) {

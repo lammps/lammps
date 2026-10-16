@@ -28,6 +28,7 @@
 .. index:: pair_style coul/streitz
 .. index:: pair_style coul/streitz/omp
 .. index:: pair_style coul/wolf
+.. index:: pair_style coul/wolf/gpu
 .. index:: pair_style coul/wolf/kk
 .. index:: pair_style coul/wolf/omp
 .. index:: pair_style tip4p/cut
@@ -90,7 +91,7 @@ Accelerator Variants: *coul/streitz/omp*
 pair_style coul/wolf command
 ============================
 
-Accelerator Variants: *coul/wolf/kk*, *coul/wolf/omp*
+Accelerator Variants: *coul/wolf/gpu*, *coul/wolf/kk*, *coul/wolf/omp*
 
 pair_style tip4p/cut command
 ============================

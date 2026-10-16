@@ -43,7 +43,7 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`bondval/vec (k) <pair_bondval>`
    * :doc:`bop <pair_bop>`
    * :doc:`born (gko) <pair_born>`
-   * :doc:`born/coul/dsf (ko) <pair_born>`
+   * :doc:`born/coul/dsf (gko) <pair_born>`
    * :doc:`born/coul/dsf/cs (ko) <pair_cs>`
    * :doc:`born/coul/long (gko) <pair_born>`
    * :doc:`born/coul/long/cs (gko) <pair_cs>`
@@ -84,12 +84,12 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`coul/long/dielectric (o) <pair_dielectric>`
    * :doc:`coul/long/soft (ko) <pair_fep_soft>`
    * :doc:`coul/msm (o) <pair_coul>`
-   * :doc:`coul/slater/cut (ko) <pair_coul_slater>`
+   * :doc:`coul/slater/cut (gko) <pair_coul_slater>`
    * :doc:`coul/slater/long (gko) <pair_coul_slater>`
    * :doc:`coul/shield (ko) <pair_coul_shield>`
    * :doc:`coul/streitz (o) <pair_coul>`
    * :doc:`coul/tt (o) <pair_coul_tt>`
-   * :doc:`coul/wolf (ko) <pair_coul>`
+   * :doc:`coul/wolf (gko) <pair_coul>`
    * :doc:`coul/wolf/cs (ko) <pair_cs>`
    * :doc:`dispersion/d3 <pair_dispersion_d3>`
    * :doc:`dpd (giko) <pair_dpd>`
@@ -151,10 +151,10 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`lj/charmm/coul/long (gikot) <pair_charmm>`
    * :doc:`lj/charmm/coul/long/soft (ko) <pair_fep_soft>`
    * :doc:`lj/charmm/coul/msm (o) <pair_charmm>`
-   * :doc:`lj/charmmfsw/coul/charmmfsh (ko) <pair_charmm>`
-   * :doc:`lj/charmmfsw/coul/long (ko) <pair_charmm>`
+   * :doc:`lj/charmmfsw/coul/charmmfsh (gko) <pair_charmm>`
+   * :doc:`lj/charmmfsw/coul/long (gko) <pair_charmm>`
    * :doc:`lj/class2 (gko) <pair_class2>`
-   * :doc:`lj/class2/coul/cut (ko) <pair_class2>`
+   * :doc:`lj/class2/coul/cut (gko) <pair_class2>`
    * :doc:`lj/class2/coul/cut/soft (o) <pair_fep_soft>`
    * :doc:`lj/class2/coul/long (gko) <pair_class2>`
    * :doc:`lj/class2/coul/long/cs (ko) <pair_cs>`
@@ -175,7 +175,7 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`lj/cut/coul/long/soft (gko) <pair_fep_soft>`
    * :doc:`lj/cut/coul/msm (go) <pair_lj_cut_coul>`
    * :doc:`lj/cut/coul/msm/dielectric (o) <pair_dielectric>`
-   * :doc:`lj/cut/coul/wolf (ko) <pair_lj_cut_coul>`
+   * :doc:`lj/cut/coul/wolf (gko) <pair_lj_cut_coul>`
    * :doc:`lj/cut/dipole/cut (gko) <pair_dipole>`
    * :doc:`lj/cut/dipole/long (go) <pair_dipole>`
    * :doc:`lj/cut/dipole/sf (go) <pair_dipole>`

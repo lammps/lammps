@@ -34,6 +34,8 @@ action pair_amoeba_gpu.cpp pair_amoeba.cpp
 action pair_amoeba_gpu.h pair_amoeba.h
 action pair_beck_gpu.cpp pair_beck.cpp
 action pair_beck_gpu.h pair_beck.h
+action pair_born_coul_dsf_gpu.cpp pair_born_coul_dsf.cpp
+action pair_born_coul_dsf_gpu.h pair_born_coul_dsf.cpp
 action pair_born_coul_long_gpu.cpp pair_born_coul_long.cpp
 action pair_born_coul_long_gpu.h pair_born_coul_long.cpp
 action pair_born_coul_long_cs_gpu.cpp pair_born_coul_long_cs.cpp
@@ -62,10 +64,32 @@ action pair_coul_long_gpu.cpp pair_coul_long.cpp
 action pair_coul_long_gpu.h pair_coul_long.cpp
 action pair_coul_long_cs_gpu.cpp pair_coul_long_cs.cpp
 action pair_coul_long_cs_gpu.h pair_coul_long_cs.cpp
+action pair_coul_slater_cut_gpu.cpp pair_coul_slater_cut.cpp
+action pair_coul_slater_cut_gpu.h pair_coul_slater_cut.cpp
+action pair_coul_slater_long_gpu.cpp pair_coul_slater_long.cpp
+action pair_coul_slater_long_gpu.h pair_coul_slater_long.cpp
+action pair_coul_wolf_gpu.cpp
+action pair_coul_wolf_gpu.h
+action pair_dpd_coul_slater_long_gpu.cpp pair_dpd_coul_slater_long.cpp
+action pair_dpd_coul_slater_long_gpu.h pair_dpd_coul_slater_long.cpp
 action pair_dpd_gpu.cpp pair_dpd.cpp
 action pair_dpd_gpu.h pair_dpd.h
 action pair_dpd_tstat_gpu.cpp pair_dpd_tstat.cpp
 action pair_dpd_tstat_gpu.h pair_dpd_tstat.h
+action pair_edpd_gpu.cpp pair_edpd.cpp
+action pair_edpd_gpu.h pair_edpd.cpp
+action pair_lj_charmmfsw_coul_charmmfsh_gpu.cpp pair_lj_charmmfsw_coul_charmmfsh.cpp
+action pair_lj_charmmfsw_coul_charmmfsh_gpu.h pair_lj_charmmfsw_coul_charmmfsh.cpp
+action pair_lj_charmmfsw_coul_long_gpu.cpp pair_lj_charmmfsw_coul_long.cpp
+action pair_lj_charmmfsw_coul_long_gpu.h pair_lj_charmmfsw_coul_long.cpp
+action pair_lj_class2_coul_cut_gpu.cpp pair_lj_class2_coul_cut.cpp
+action pair_lj_class2_coul_cut_gpu.h pair_lj_class2_coul_cut.cpp
+action pair_lj_cut_coul_cut_soft_gpu.cpp pair_lj_cut_coul_cut_soft.cpp
+action pair_lj_cut_coul_cut_soft_gpu.h pair_lj_cut_coul_cut_soft.cpp
+action pair_lj_cut_coul_long_soft_gpu.cpp pair_lj_cut_coul_long_soft.cpp
+action pair_lj_cut_coul_long_soft_gpu.h pair_lj_cut_coul_long_soft.cpp
+action pair_lj_cut_coul_wolf_gpu.cpp pair_lj_cut_coul_wolf.cpp
+action pair_lj_cut_coul_wolf_gpu.h pair_lj_cut_coul_wolf.cpp
 action pair_lj_cut_dipole_cut_gpu.cpp pair_lj_cut_dipole_cut.cpp
 action pair_lj_cut_dipole_cut_gpu.h pair_lj_cut_dipole_cut.cpp
 action pair_lj_sf_dipole_sf_gpu.cpp pair_lj_sf_dipole_sf.cpp
@@ -124,6 +148,8 @@ action pair_lj_spica_coul_long_gpu.cpp pair_lj_spica_coul_long.cpp
 action pair_lj_spica_coul_long_gpu.h pair_lj_spica_coul_long.cpp
 action pair_lj_spica_gpu.cpp pair_lj_spica.cpp
 action pair_lj_spica_gpu.h pair_lj_spica.cpp
+action pair_mdpd_gpu.cpp pair_mdpd.cpp
+action pair_mdpd_gpu.h pair_mdpd.cpp
 action pair_mie_cut_gpu.cpp pair_mie_cut.cpp
 action pair_mie_cut_gpu.h pair_mie_cut.h
 action pair_morse_gpu.cpp
@@ -132,6 +158,12 @@ action pair_resquared_gpu.cpp pair_resquared.cpp
 action pair_resquared_gpu.h pair_resquared.cpp
 action pair_soft_gpu.cpp
 action pair_soft_gpu.h
+action pair_sph_heatconduction_gpu.cpp pair_sph_heatconduction.cpp
+action pair_sph_heatconduction_gpu.h pair_sph_heatconduction.cpp
+action pair_sph_lj_gpu.cpp pair_sph_lj.cpp
+action pair_sph_lj_gpu.h pair_sph_lj.cpp
+action pair_sph_taitwater_gpu.cpp pair_sph_taitwater.cpp
+action pair_sph_taitwater_gpu.h pair_sph_taitwater.cpp
 action pair_sw_gpu.cpp pair_sw.cpp
 action pair_sw_gpu.h pair_sw.h
 action pair_vashishta_gpu.cpp pair_vashishta.cpp

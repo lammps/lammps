@@ -125,8 +125,8 @@ Coulomb tables, so the `*_table*` YAML tests of a new long-range style get `gpu`
 
 - Constructor: `respa_enable = 0; suffix_flag |= Suffix::GPU;
   GPU_EXTRA::gpu_ready(lmp->modify, lmp->error);`.  Set `reinitflag = 0` when the
-  wrapper does NOT implement `reinit()`: `fix adapt` then stops with an error instead
-  of changing only the host copy of the parameters.
+  device class has no `reinit()`: `fix adapt` then stops with an error instead of
+  changing only the host copy of the parameters (also for hybrid sub-styles).
 - `compute()`: two paths.  `gpu_mode != GPU_FORCE` -> `_compute_n` builds the
   neighbor list on the device (needs sublo/subhi, tag, special); `GPU_FORCE` -> the
   host full list (`list->ilist` ...) goes to `_compute`.  Afterwards
@@ -136,8 +136,12 @@ Coulomb tables, so the `*_table*` YAML tests of a new long-range style get `gpu`
   computes in `init_style`/`init_one` (switching denominators, soft-core factors,
   force-switch constants), call `<prefix>_gpu_init(...)`, `GPU_EXTRA::check_flag()`,
   and request a full neighbor list only in `GPU_FORCE` mode.
-- `reinit()`: `Pair::reinit();` (recomputes via `init_one`) then `<prefix>_gpu_reinit()`
-  with the updated arrays.
+- Changed parameters (`fix adapt`, `compute fep`): override `init_one()` to set an
+  `update_coeffs` flag and call the parent's `init_one()`; at the start of `compute()`,
+  call `<prefix>_gpu_reinit()` with the updated arrays when the flag is set, then clear
+  it.  Do NOT override `reinit()`: inside `pair_style hybrid` only `PairHybrid::reinit()`
+  runs, which calls the sub-style's `init_one()` but never its `reinit()`.  This is how
+  KOKKOS styles update their device data, too.
 - Hybrid pair styles need host neighbor lists (`-pk gpu N neigh no`); `fix gpu` stops
   with an error otherwise.
 - Do not copy a CPU bug into the kernel: fix the CPU style (and its `/omp`, `/kk`

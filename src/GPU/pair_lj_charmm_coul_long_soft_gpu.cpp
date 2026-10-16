@@ -39,7 +39,7 @@ using namespace EwaldConst;
 /* ---------------------------------------------------------------------- */
 
 PairLJCharmmCoulLongSoftGPU::PairLJCharmmCoulLongSoftGPU(LAMMPS *lmp) :
-    PairLJCharmmCoulLongSoft(lmp), gpu_mode(GPU_FORCE)
+    PairLJCharmmCoulLongSoft(lmp), gpu_mode(GPU_FORCE), update_coeffs(false)
 {
   respa_enable = 0;
   suffix_flag |= Suffix::GPU;
@@ -60,6 +60,11 @@ PairLJCharmmCoulLongSoftGPU::~PairLJCharmmCoulLongSoftGPU()
 void PairLJCharmmCoulLongSoftGPU::compute(int eflag, int vflag)
 {
   ev_init(eflag, vflag);
+
+  if (update_coeffs) {
+    charmm_coul_long_soft_gpu_reinit(atom->ntypes + 1, cutsq, lj1, lj2, lj3, lj4, epsilon);
+    update_coeffs = false;
+  }
 
   int nall = atom->nlocal + atom->nghost;
   int inum;
@@ -153,11 +158,13 @@ void PairLJCharmmCoulLongSoftGPU::init_style()
 
 /* ---------------------------------------------------------------------- */
 
-void PairLJCharmmCoulLongSoftGPU::reinit()
+double PairLJCharmmCoulLongSoftGPU::init_one(int i, int j)
 {
-  Pair::reinit();
+  // the parameters may have been changed, e.g. by fix adapt,
+  // so copy them to the GPU again before the next compute()
 
-  charmm_coul_long_soft_gpu_reinit(atom->ntypes + 1, cutsq, lj1, lj2, lj3, lj4, epsilon);
+  update_coeffs = true;
+  return PairLJCharmmCoulLongSoft::init_one(i, j);
 }
 
 /* ---------------------------------------------------------------------- */

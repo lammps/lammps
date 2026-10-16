@@ -36,7 +36,7 @@ using namespace LAMMPS_GPU;
 /* ---------------------------------------------------------------------- */
 
 PairCoulSlaterCutGPU::PairCoulSlaterCutGPU(LAMMPS *lmp) :
-    PairCoulSlaterCut(lmp), gpu_mode(GPU_FORCE)
+    PairCoulSlaterCut(lmp), gpu_mode(GPU_FORCE), update_coeffs(false)
 {
   respa_enable = 0;
   suffix_flag |= Suffix::GPU;
@@ -57,6 +57,11 @@ PairCoulSlaterCutGPU::~PairCoulSlaterCutGPU()
 void PairCoulSlaterCutGPU::compute(int eflag, int vflag)
 {
   ev_init(eflag, vflag);
+
+  if (update_coeffs) {
+    coul_slater_cut_gpu_reinit(atom->ntypes + 1, scale);
+    update_coeffs = false;
+  }
 
   int nall = atom->nlocal + atom->nghost;
   int inum;
@@ -131,11 +136,13 @@ void PairCoulSlaterCutGPU::init_style()
 
 /* ---------------------------------------------------------------------- */
 
-void PairCoulSlaterCutGPU::reinit()
+double PairCoulSlaterCutGPU::init_one(int i, int j)
 {
-  Pair::reinit();
+  // the parameters may have been changed, e.g. by fix adapt,
+  // so copy them to the GPU again before the next compute()
 
-  coul_slater_cut_gpu_reinit(atom->ntypes + 1, scale);
+  update_coeffs = true;
+  return PairCoulSlaterCut::init_one(i, j);
 }
 
 /* ---------------------------------------------------------------------- */

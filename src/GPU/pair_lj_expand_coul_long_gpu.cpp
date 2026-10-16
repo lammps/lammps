@@ -39,7 +39,7 @@ using namespace EwaldConst;
 /* ---------------------------------------------------------------------- */
 
 PairLJExpandCoulLongGPU::PairLJExpandCoulLongGPU(LAMMPS *lmp) :
-    PairLJExpandCoulLong(lmp), gpu_mode(GPU_FORCE)
+    PairLJExpandCoulLong(lmp), gpu_mode(GPU_FORCE), update_coeffs(false)
 {
   respa_enable = 0;
   suffix_flag |= Suffix::GPU;
@@ -60,6 +60,11 @@ PairLJExpandCoulLongGPU::~PairLJExpandCoulLongGPU()
 void PairLJExpandCoulLongGPU::compute(int eflag, int vflag)
 {
   ev_init(eflag, vflag);
+
+  if (update_coeffs) {
+    ljecl_gpu_reinit(atom->ntypes + 1, cutsq, lj1, lj2, lj3, lj4, offset, shift, cut_ljsq);
+    update_coeffs = false;
+  }
 
   int nall = atom->nlocal + atom->nghost;
   int inum;
@@ -150,11 +155,13 @@ void PairLJExpandCoulLongGPU::init_style()
 
 /* ---------------------------------------------------------------------- */
 
-void PairLJExpandCoulLongGPU::reinit()
+double PairLJExpandCoulLongGPU::init_one(int i, int j)
 {
-  Pair::reinit();
+  // the parameters may have been changed, e.g. by fix adapt,
+  // so copy them to the GPU again before the next compute()
 
-  ljecl_gpu_reinit(atom->ntypes + 1, cutsq, lj1, lj2, lj3, lj4, offset, shift, cut_ljsq);
+  update_coeffs = true;
+  return PairLJExpandCoulLong::init_one(i, j);
 }
 
 /* ---------------------------------------------------------------------- */

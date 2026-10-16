@@ -39,7 +39,7 @@ using namespace EwaldConst;
 /* ---------------------------------------------------------------------- */
 
 PairLJCutCoulLongCSGPU::PairLJCutCoulLongCSGPU(LAMMPS *lmp) :
-    PairLJCutCoulLongCS(lmp), gpu_mode(GPU_FORCE)
+    PairLJCutCoulLongCS(lmp), gpu_mode(GPU_FORCE), update_coeffs(false)
 {
   respa_enable = 0;
   suffix_flag |= Suffix::GPU;
@@ -60,6 +60,11 @@ PairLJCutCoulLongCSGPU::~PairLJCutCoulLongCSGPU()
 void PairLJCutCoulLongCSGPU::compute(int eflag, int vflag)
 {
   ev_init(eflag, vflag);
+
+  if (update_coeffs) {
+    lj_cut_coul_long_cs_gpu_reinit(atom->ntypes + 1, cutsq, lj1, lj2, lj3, lj4, offset, cut_ljsq);
+    update_coeffs = false;
+  }
 
   int nall = atom->nlocal + atom->nghost;
   int inum;
@@ -149,11 +154,13 @@ void PairLJCutCoulLongCSGPU::init_style()
 
 /* ---------------------------------------------------------------------- */
 
-void PairLJCutCoulLongCSGPU::reinit()
+double PairLJCutCoulLongCSGPU::init_one(int i, int j)
 {
-  Pair::reinit();
+  // the parameters may have been changed, e.g. by fix adapt,
+  // so copy them to the GPU again before the next compute()
 
-  lj_cut_coul_long_cs_gpu_reinit(atom->ntypes + 1, cutsq, lj1, lj2, lj3, lj4, offset, cut_ljsq);
+  update_coeffs = true;
+  return PairLJCutCoulLongCS::init_one(i, j);
 }
 
 /* ---------------------------------------------------------------------- */

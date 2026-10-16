@@ -35,7 +35,8 @@ using namespace LAMMPS_GPU;
 
 /* ---------------------------------------------------------------------- */
 
-PairLJClass2SoftGPU::PairLJClass2SoftGPU(LAMMPS *lmp) : PairLJClass2Soft(lmp), gpu_mode(GPU_FORCE)
+PairLJClass2SoftGPU::PairLJClass2SoftGPU(LAMMPS *lmp) :
+    PairLJClass2Soft(lmp), gpu_mode(GPU_FORCE), update_coeffs(false)
 {
   respa_enable = 0;
   suffix_flag |= Suffix::GPU;
@@ -56,6 +57,11 @@ PairLJClass2SoftGPU::~PairLJClass2SoftGPU()
 void PairLJClass2SoftGPU::compute(int eflag, int vflag)
 {
   ev_init(eflag, vflag);
+
+  if (update_coeffs) {
+    lj_class2_soft_gpu_reinit(atom->ntypes + 1, cutsq, lj1, lj2, lj3, epsilon, offset);
+    update_coeffs = false;
+  }
 
   int nall = atom->nlocal + atom->nghost;
   int inum;
@@ -128,11 +134,13 @@ void PairLJClass2SoftGPU::init_style()
 
 /* ---------------------------------------------------------------------- */
 
-void PairLJClass2SoftGPU::reinit()
+double PairLJClass2SoftGPU::init_one(int i, int j)
 {
-  Pair::reinit();
+  // the parameters may have been changed, e.g. by fix adapt,
+  // so copy them to the GPU again before the next compute()
 
-  lj_class2_soft_gpu_reinit(atom->ntypes + 1, cutsq, lj1, lj2, lj3, epsilon, offset);
+  update_coeffs = true;
+  return PairLJClass2Soft::init_one(i, j);
 }
 
 /* ---------------------------------------------------------------------- */

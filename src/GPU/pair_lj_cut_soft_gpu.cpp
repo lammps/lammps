@@ -35,7 +35,8 @@ using namespace LAMMPS_GPU;
 
 /* ---------------------------------------------------------------------- */
 
-PairLJCutSoftGPU::PairLJCutSoftGPU(LAMMPS *lmp) : PairLJCutSoft(lmp), gpu_mode(GPU_FORCE)
+PairLJCutSoftGPU::PairLJCutSoftGPU(LAMMPS *lmp) :
+    PairLJCutSoft(lmp), gpu_mode(GPU_FORCE), update_coeffs(false)
 {
   respa_enable = 0;
   suffix_flag |= Suffix::GPU;
@@ -56,6 +57,11 @@ PairLJCutSoftGPU::~PairLJCutSoftGPU()
 void PairLJCutSoftGPU::compute(int eflag, int vflag)
 {
   ev_init(eflag, vflag);
+
+  if (update_coeffs) {
+    lj_cut_soft_gpu_reinit(atom->ntypes + 1, cutsq, lj1, lj2, lj3, epsilon, offset);
+    update_coeffs = false;
+  }
 
   int nall = atom->nlocal + atom->nghost;
   int inum;
@@ -128,11 +134,13 @@ void PairLJCutSoftGPU::init_style()
 
 /* ---------------------------------------------------------------------- */
 
-void PairLJCutSoftGPU::reinit()
+double PairLJCutSoftGPU::init_one(int i, int j)
 {
-  Pair::reinit();
+  // the parameters may have been changed, e.g. by fix adapt,
+  // so copy them to the GPU again before the next compute()
 
-  lj_cut_soft_gpu_reinit(atom->ntypes + 1, cutsq, lj1, lj2, lj3, epsilon, offset);
+  update_coeffs = true;
+  return PairLJCutSoft::init_one(i, j);
 }
 
 /* ---------------------------------------------------------------------- */

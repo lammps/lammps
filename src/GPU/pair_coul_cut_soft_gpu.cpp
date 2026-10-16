@@ -35,7 +35,8 @@ using namespace LAMMPS_GPU;
 
 /* ---------------------------------------------------------------------- */
 
-PairCoulCutSoftGPU::PairCoulCutSoftGPU(LAMMPS *lmp) : PairCoulCutSoft(lmp), gpu_mode(GPU_FORCE)
+PairCoulCutSoftGPU::PairCoulCutSoftGPU(LAMMPS *lmp) :
+    PairCoulCutSoft(lmp), gpu_mode(GPU_FORCE), update_coeffs(false)
 {
   respa_enable = 0;
   suffix_flag |= Suffix::GPU;
@@ -56,6 +57,11 @@ PairCoulCutSoftGPU::~PairCoulCutSoftGPU()
 void PairCoulCutSoftGPU::compute(int eflag, int vflag)
 {
   ev_init(eflag, vflag);
+
+  if (update_coeffs) {
+    coul_cut_soft_gpu_reinit(atom->ntypes + 1, lam1, lam2);
+    update_coeffs = false;
+  }
 
   int nall = atom->nlocal + atom->nghost;
   int inum;
@@ -130,11 +136,13 @@ void PairCoulCutSoftGPU::init_style()
 
 /* ---------------------------------------------------------------------- */
 
-void PairCoulCutSoftGPU::reinit()
+double PairCoulCutSoftGPU::init_one(int i, int j)
 {
-  Pair::reinit();
+  // the parameters may have been changed, e.g. by fix adapt,
+  // so copy them to the GPU again before the next compute()
 
-  coul_cut_soft_gpu_reinit(atom->ntypes + 1, lam1, lam2);
+  update_coeffs = true;
+  return PairCoulCutSoft::init_one(i, j);
 }
 
 /* ---------------------------------------------------------------------- */

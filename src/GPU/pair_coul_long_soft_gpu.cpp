@@ -38,7 +38,8 @@ using namespace EwaldConst;
 
 /* ---------------------------------------------------------------------- */
 
-PairCoulLongSoftGPU::PairCoulLongSoftGPU(LAMMPS *lmp) : PairCoulLongSoft(lmp), gpu_mode(GPU_FORCE)
+PairCoulLongSoftGPU::PairCoulLongSoftGPU(LAMMPS *lmp) :
+    PairCoulLongSoft(lmp), gpu_mode(GPU_FORCE), update_coeffs(false)
 {
   respa_enable = 0;
   suffix_flag |= Suffix::GPU;
@@ -59,6 +60,11 @@ PairCoulLongSoftGPU::~PairCoulLongSoftGPU()
 void PairCoulLongSoftGPU::compute(int eflag, int vflag)
 {
   ev_init(eflag, vflag);
+
+  if (update_coeffs) {
+    coul_long_soft_gpu_reinit(atom->ntypes + 1, scale, lam1, lam2);
+    update_coeffs = false;
+  }
 
   int nall = atom->nlocal + atom->nghost;
   int inum;
@@ -134,11 +140,13 @@ void PairCoulLongSoftGPU::init_style()
 
 /* ---------------------------------------------------------------------- */
 
-void PairCoulLongSoftGPU::reinit()
+double PairCoulLongSoftGPU::init_one(int i, int j)
 {
-  Pair::reinit();
+  // the parameters may have been changed, e.g. by fix adapt,
+  // so copy them to the GPU again before the next compute()
 
-  coul_long_soft_gpu_reinit(atom->ntypes + 1, scale, lam1, lam2);
+  update_coeffs = true;
+  return PairCoulLongSoft::init_one(i, j);
 }
 
 /* ---------------------------------------------------------------------- */

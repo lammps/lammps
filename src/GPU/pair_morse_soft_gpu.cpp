@@ -38,7 +38,7 @@ using namespace LAMMPS_GPU;
 /* ---------------------------------------------------------------------- */
 
 PairMorseSoftGPU::PairMorseSoftGPU(LAMMPS *lmp) :
-    PairMorseSoft(lmp), gpu_mode(GPU_FORCE), bs(nullptr), vs(nullptr)
+    PairMorseSoft(lmp), gpu_mode(GPU_FORCE), update_coeffs(false), bs(nullptr), vs(nullptr)
 {
   suffix_flag |= Suffix::GPU;
   GPU_EXTRA::gpu_ready(lmp->modify, lmp->error);
@@ -60,6 +60,12 @@ PairMorseSoftGPU::~PairMorseSoftGPU()
 void PairMorseSoftGPU::compute(int eflag, int vflag)
 {
   ev_init(eflag, vflag);
+
+  if (update_coeffs) {
+    setup_soft_factors();
+    morse_soft_gpu_reinit(atom->ntypes + 1, cutsq, morse1, r0, alpha, d0, offset, bs, vs);
+    update_coeffs = false;
+  }
 
   int nall = atom->nlocal + atom->nghost;
   int inum;
@@ -133,12 +139,13 @@ void PairMorseSoftGPU::init_style()
 
 /* ---------------------------------------------------------------------- */
 
-void PairMorseSoftGPU::reinit()
+double PairMorseSoftGPU::init_one(int i, int j)
 {
-  Pair::reinit();
+  // the parameters may have been changed, e.g. by fix adapt,
+  // so copy them to the GPU again before the next compute()
 
-  setup_soft_factors();
-  morse_soft_gpu_reinit(atom->ntypes + 1, cutsq, morse1, r0, alpha, d0, offset, bs, vs);
+  update_coeffs = true;
+  return PairMorseSoft::init_one(i, j);
 }
 
 /* ----------------------------------------------------------------------

@@ -106,7 +106,7 @@ __kernel void k_charmm_coul_long_soft(const __global numtyp4 *restrict x_,
         if (rsq < cut_ljsq) {
           r4sig6 = rsq*rsq / lj1[mtype].y;
           denlj = lj3[mtype].x + rsq*r4sig6;
-          force_lj = lj1[mtype].x * lj3[mtype].w *
+          force_lj = lj1[mtype].x * lj3[mtype].z *
             ((numtyp)48.0*r4sig6/(denlj*denlj*denlj) - (numtyp)24.0*r4sig6/(denlj*denlj));
           if (rsq > cut_lj_innersq) {
             // CHARMM switching; the soft-core force is already divided by r,
@@ -115,7 +115,7 @@ __kernel void k_charmm_coul_long_soft(const __global numtyp4 *restrict x_,
             numtyp switch2 = (numtyp)12.0*switch1*(rsq-cut_lj_innersq)/denom_lj;
             switch1 *= switch1;
             switch1 *= (cut_ljsq+(numtyp)2.0*rsq-(numtyp)3.0*cut_lj_innersq)/denom_lj;
-            numtyp philj = lj1[mtype].x * (numtyp)4.0 * lj3[mtype].w *
+            numtyp philj = lj1[mtype].x * (numtyp)4.0 * lj3[mtype].z *
               ((numtyp)1.0/(denlj*denlj) - (numtyp)1.0/denlj);
             force_lj = force_lj*switch1 + philj*switch2;
           }
@@ -152,7 +152,7 @@ __kernel void k_charmm_coul_long_soft(const __global numtyp4 *restrict x_,
             e_coul += prefactor*(_erfc-factor_coul);
           }
           if (rsq < cut_ljsq) {
-            numtyp e= lj1[mtype].x * (numtyp)4.0 * lj3[mtype].w *
+            numtyp e= lj1[mtype].x * (numtyp)4.0 * lj3[mtype].z *
               ((numtyp)1.0/(denlj*denlj) - (numtyp)1.0/denlj);
             if (rsq > cut_lj_innersq) e *= switch1;
             energy+=factor_lj*e;
@@ -253,7 +253,7 @@ __kernel void k_charmm_coul_long_soft_fast(const __global numtyp4 *restrict x_,
         if (rsq < cut_ljsq) {
           r4sig6 = rsq*rsq / lj1[mtype].y;
           denlj = lj3[mtype].x + rsq*r4sig6;
-          force_lj = lj1[mtype].x * lj3[mtype].w *
+          force_lj = lj1[mtype].x * lj3[mtype].z *
             ((numtyp)48.0*r4sig6/(denlj*denlj*denlj) - (numtyp)24.0*r4sig6/(denlj*denlj));
           if (rsq > cut_lj_innersq) {
             // CHARMM switching; the soft-core force is already divided by r,
@@ -262,7 +262,7 @@ __kernel void k_charmm_coul_long_soft_fast(const __global numtyp4 *restrict x_,
             numtyp switch2 = (numtyp)12.0*switch1*(rsq-cut_lj_innersq)/denom_lj;
             switch1 *= switch1;
             switch1 *= (cut_ljsq+(numtyp)2.0*rsq-(numtyp)3.0*cut_lj_innersq)/denom_lj;
-            numtyp philj = lj1[mtype].x * (numtyp)4.0 * lj3[mtype].w *
+            numtyp philj = lj1[mtype].x * (numtyp)4.0 * lj3[mtype].z *
               ((numtyp)1.0/(denlj*denlj) - (numtyp)1.0/denlj);
             force_lj = force_lj*switch1 + philj*switch2;
           }
@@ -299,7 +299,7 @@ __kernel void k_charmm_coul_long_soft_fast(const __global numtyp4 *restrict x_,
             e_coul += prefactor*(_erfc-factor_coul);
           }
           if (rsq < cut_ljsq) {
-            numtyp e= lj1[mtype].x * (numtyp)4.0 * lj3[mtype].w *
+            numtyp e= lj1[mtype].x * (numtyp)4.0 * lj3[mtype].z *
               ((numtyp)1.0/(denlj*denlj) - (numtyp)1.0/denlj);
             if (rsq > cut_lj_innersq) e *= switch1;
             energy+=factor_lj*e;

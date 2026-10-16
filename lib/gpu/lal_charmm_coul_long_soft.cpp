@@ -46,7 +46,7 @@ template <class numtyp, class acctyp>
 int CHARMMCoulLongSoftT::init(const int ntypes,
                            double **host_cutsq, double **host_lj1,
                            double **host_lj2, double **host_lj3,
-                           double **host_lj4, double **host_offset, double **host_epsilon,
+                           double **host_lj4, double **host_epsilon,
                            double *host_special_lj, const int nlocal,
                            const int nall, const int max_nbors,
                            const int maxspecial, const double cell_size,
@@ -84,7 +84,7 @@ int CHARMMCoulLongSoftT::init(const int ntypes,
 
   lj3.alloc(lj_types*lj_types,*(this->ucl_device),UCL_READ_ONLY);
   this->atom->type_pack4(ntypes,lj_types,lj3,host_write,host_lj3,host_lj4,
-                         host_offset, host_epsilon);
+                         host_epsilon);
 
   sp_lj.alloc(8,*(this->ucl_device),UCL_READ_ONLY);
   for (int i=0; i<4; i++) {
@@ -108,7 +108,7 @@ int CHARMMCoulLongSoftT::init(const int ntypes,
 template <class numtyp, class acctyp>
 void CHARMMCoulLongSoftT::reinit(const int ntypes, double **host_cutsq, double **host_lj1,
                          double **host_lj2, double **host_lj3, double **host_lj4,
-                         double **host_offset, double **host_epsilon) {
+                         double **host_epsilon) {
   // Allocate a host write buffer for data initialization
   UCL_H_Vec<numtyp> host_write(_lj_types*_lj_types*32,*(this->ucl_device),
                                UCL_WRITE_ONLY);
@@ -119,7 +119,7 @@ void CHARMMCoulLongSoftT::reinit(const int ntypes, double **host_cutsq, double *
   this->atom->type_pack4(ntypes,_lj_types,lj1,host_write,host_lj1,host_lj2,
                          host_cutsq);
   this->atom->type_pack4(ntypes,_lj_types,lj3,host_write,host_lj3,host_lj4,
-                         host_offset, host_epsilon);
+                         host_epsilon);
 }
 
 template <class numtyp, class acctyp>

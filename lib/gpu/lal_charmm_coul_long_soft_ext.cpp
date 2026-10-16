@@ -31,7 +31,7 @@ static CHARMMCoulLongSoft<PRECISION,ACC_PRECISION> CRMLSOFTMF;
 namespace LAMMPS_GPU {
 int charmm_coul_long_soft_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
                   double **host_lj2, double **host_lj3, double **host_lj4,
-                  double **offset, double **epsilon, double *special_lj, const int inum,
+                  double **epsilon, double *special_lj, const int inum,
                   const int nall, const int max_nbors, const int maxspecial,
                   const double cell_size, int &gpu_mode, FILE *screen,
                   double host_cut_ljsq, double host_cut_coulsq,
@@ -60,7 +60,7 @@ int charmm_coul_long_soft_gpu_init(const int ntypes, double **cutsq, double **ho
   int init_ok=0;
   if (world_me==0)
     init_ok=CRMLSOFTMF.init(ntypes, cutsq, host_lj1, host_lj2, host_lj3, host_lj4,
-                        offset, epsilon, special_lj, inum, nall, max_nbors, maxspecial,
+                        epsilon, special_lj, inum, nall, max_nbors, maxspecial,
                         cell_size, screen, host_cut_ljsq,
                         host_cut_coulsq, host_special_coul, qqrd2e, g_ewald,
                         cut_lj_innersq, denom_lj);
@@ -80,7 +80,7 @@ int charmm_coul_long_soft_gpu_init(const int ntypes, double **cutsq, double **ho
     }
     if (gpu_rank==i && world_me!=0)
       init_ok=CRMLSOFTMF.init(ntypes, cutsq, host_lj1, host_lj2, host_lj3, host_lj4,
-                          offset, epsilon, special_lj, inum, nall, max_nbors, maxspecial,
+                          epsilon, special_lj, inum, nall, max_nbors, maxspecial,
                           cell_size, screen, host_cut_ljsq,
                           host_cut_coulsq, host_special_coul, qqrd2e, g_ewald,
                         cut_lj_innersq, denom_lj);
@@ -102,20 +102,20 @@ int charmm_coul_long_soft_gpu_init(const int ntypes, double **cutsq, double **ho
 // ---------------------------------------------------------------------------
 void charmm_coul_long_soft_gpu_reinit(const int ntypes, double **cutsq, double **host_lj1,
                     double **host_lj2, double **host_lj3, double **host_lj4,
-                    double **offset, double **epsilon) {
+                    double **epsilon) {
   int world_me=CRMLSOFTMF.device->world_me();
   int gpu_rank=CRMLSOFTMF.device->gpu_rank();
   int procs_per_gpu=CRMLSOFTMF.device->procs_per_gpu();
 
   if (world_me==0)
     CRMLSOFTMF.reinit(ntypes, cutsq, host_lj1, host_lj2, host_lj3, host_lj4,
-                  offset, epsilon);
+                  epsilon);
   CRMLSOFTMF.device->world_barrier();
 
   for (int i=0; i<procs_per_gpu; i++) {
     if (gpu_rank==i && world_me!=0)
       CRMLSOFTMF.reinit(ntypes, cutsq, host_lj1, host_lj2, host_lj3, host_lj4,
-                    offset, epsilon);
+                    epsilon);
     CRMLSOFTMF.device->gpu_barrier();
   }
 }

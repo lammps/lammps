@@ -37,7 +37,7 @@ class CHARMMCoulLongSoft : public BaseCharge<numtyp, acctyp> {
     * - -5 Double precision is not supported on card **/
   int init(const int ntypes, double **host_cutsq,
            double **host_lj1, double **host_lj2, double **host_lj3,
-           double **host_lj4, double **host_offset, double **host_epsilon, double *host_special_lj,
+           double **host_lj4, double **host_epsilon, double *host_special_lj,
            const int nlocal, const int nall, const int max_nbors,
            const int maxspecial, const double cell_size,
            FILE *screen, const double host_cut_ljsq,
@@ -48,7 +48,7 @@ class CHARMMCoulLongSoft : public BaseCharge<numtyp, acctyp> {
   /// Send updated coeffs from host to device (to be compatible with fix adapt)
   void reinit(const int ntypes, double **host_cutsq,
               double **host_lj1, double **host_lj2, double **host_lj3,
-              double **host_lj4, double **host_offset, double **host_epsilon);
+              double **host_lj4, double **host_epsilon);
 
   /// Clear all host and device data
   /** \note This is called at the beginning of the init() routine **/
@@ -64,7 +64,7 @@ class CHARMMCoulLongSoft : public BaseCharge<numtyp, acctyp> {
 
   /// lj1.x = lj1, lj1.y = lj2, lj1.z = cutsq, lj1.w = cutsq_vdw
   UCL_D_Vec<numtyp4> lj1;
-  /// lj3.x = lj3, lj3.y = lj4, lj3.z = offset, lj3.w = epsilon
+  /// lj3.x = lj3, lj3.y = lj4, lj3.z = epsilon
   UCL_D_Vec<numtyp4> lj3;
   /// Special LJ values [0-3] and Special Coul values [4-7]
   UCL_D_Vec<numtyp> sp_lj;

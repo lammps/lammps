@@ -1350,7 +1350,7 @@ extern double ljcls_gpu_bytes();
 // pair lj/charmm/coul/long/soft
 extern int charmm_coul_long_soft_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
                                           double **host_lj2, double **host_lj3, double **host_lj4,
-                                          double **offset, double **epsilon, double *special_lj,
+                                          double **epsilon, double *special_lj,
                                           const int nlocal, const int nall, const int max_nbors,
                                           const int maxspecial, const double cell_size,
                                           int &gpu_mode, FILE *screen, double host_cut_ljsq,
@@ -1359,7 +1359,7 @@ extern int charmm_coul_long_soft_gpu_init(const int ntypes, double **cutsq, doub
                                           const double cut_lj_innersq, const double denom_lj);
 extern void charmm_coul_long_soft_gpu_reinit(const int ntypes, double **cutsq, double **host_lj1,
                                              double **host_lj2, double **host_lj3,
-                                             double **host_lj4, double **offset, double **epsilon);
+                                             double **host_lj4, double **epsilon);
 extern void charmm_coul_long_soft_gpu_clear();
 extern int **charmm_coul_long_soft_gpu_compute_n(
     const int ago, const int inum, const int nall, double **host_x, int *host_type, double *sublo,

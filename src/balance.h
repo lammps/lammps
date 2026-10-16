@@ -61,6 +61,7 @@ class Balance : public Command {
   std::string bstr;
 
   int shift_allocate;       // 1 if SHIFT vectors have been allocated
+  int shift_max;            // allocated length of SHIFT vectors (max procgrid dim)
   int ndim;                 // length of balance string bstr
   int *bdim;                // XYZ for each character in bstr
   double *onecost;          // work vector of counts in one dim
@@ -84,6 +85,7 @@ class Balance : public Command {
 
   double imbalance_splits();
   void shift_setup_static(const char *);
+  void shift_grow();
   void tally(int, int, double *);
   int adjust(int, double *);
 #ifdef BALANCE_DEBUG

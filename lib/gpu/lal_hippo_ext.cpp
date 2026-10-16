@@ -54,7 +54,7 @@ int hippo_gpu_init(const int ntypes, const int max_amtype, const int max_amclass
   int gpu_rank=HIPPOMF.device->gpu_rank();
   int procs_per_gpu=HIPPOMF.device->procs_per_gpu();
 
-  HIPPOMF.device->init_message(screen,"HIPPO",first_gpu,last_gpu);
+  HIPPOMF.device->init_message(screen,"hippo",first_gpu,last_gpu);
 
   bool message=false;
   if (HIPPOMF.device->replica_me()==0 && screen)

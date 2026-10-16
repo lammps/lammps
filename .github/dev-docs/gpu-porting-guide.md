@@ -148,7 +148,7 @@ Coulomb tables, so the `*_table*` YAML tests of a new long-range style get `gpu`
 
 - Build double precision first (`-D GPU_PREC=double`): it gives tight comparisons.
   Then mixed (the default).  Since the CMake rework (#5198) CUDA architectures are
-  numbers: `-D GPU_ARCH=70`, not `sm_70`.
+  numbers: `-D GPU_ARCH=70` (the old `sm_70` is converted with a deprecation warning).
 - Compile-only check without a GPU run: a HIP build compiles all `.cu` files with
   `cmake --build <build> --target gpu`; OpenCL kernels compile only at run time, so an
   OpenCL run is required before calling a kernel portable.

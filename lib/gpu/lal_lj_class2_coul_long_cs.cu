@@ -1,0 +1,329 @@
+// **************************************************************************
+//                                 lj_class2_coul_long_cs.cu
+//                             -------------------
+//      Claude Opus 5.5 (Anthropic), under the direction of Axel Kohlmeyer
+//
+//  Device code for acceleration of the lj/class2/coul/long/cs pair style
+//
+// __________________________________________________________________________
+//    This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
+// __________________________________________________________________________
+//
+//    begin                : October 2026
+// ***************************************************************************
+
+#if defined(NV_KERNEL) || defined(USE_HIP)
+
+#include "lal_aux_fun1.h"
+#ifndef _DOUBLE_DOUBLE
+_texture( pos_tex,float4);
+_texture( q_tex,float);
+#else
+_texture_2d( pos_tex,int4);
+_texture( q_tex,int2);
+#endif
+
+#else
+#define pos_tex x_
+#define q_tex q_
+#endif
+
+// Note: EWALD_P is different from that in lal_preprocessor.h
+//       acctyp is needed for these parameters
+#define CS_EWALD_P (acctyp)9.95473818e-1
+#define B0        (acctyp)-0.1335096380159268
+#define B1        (acctyp)-2.57839507e-1
+#define B2        (acctyp)-1.37203639e-1
+#define B3        (acctyp)-8.88822059e-3
+#define B4        (acctyp)-5.80844129e-3
+#define B5        (acctyp)1.14652755e-1
+
+// 2/sqrt(pi) with full precision for the excluded pair correction
+#define CS_EWALD_F (acctyp)1.12837916709551257389
+
+#if defined(_DOUBLE_DOUBLE) || defined(_SINGLE_DOUBLE)
+#define EPSILON (acctyp)(1.0e-20)
+#else
+#define EPSILON (numtyp)(1.0e-7)
+#endif
+
+__kernel void k_lj_class2_coul_long_cs(const __global numtyp4 *restrict x_,
+                               const __global numtyp4 *restrict lj1,
+                               const __global numtyp4 *restrict lj3,
+                               const int lj_types,
+                               const __global numtyp *restrict sp_lj_in,
+                               const __global int *dev_nbor,
+                               const __global int *dev_packed,
+                               __global acctyp3 *restrict ans,
+                               __global acctyp *restrict engv,
+                               const int eflag,  const int vflag,
+                               const int inum, const int nbor_pitch,
+                               const __global numtyp *restrict q_,
+                               const numtyp cut_coulsq, const numtyp qqrd2e,
+                               const numtyp g_ewald, const int t_per_atom) {
+  int tid, ii, offset;
+  atom_info(t_per_atom,ii,tid,offset);
+
+  __local numtyp sp_lj[8];
+  int n_stride;
+  local_allocate_store_charge();
+
+  sp_lj[0]=sp_lj_in[0];
+  sp_lj[1]=sp_lj_in[1];
+  sp_lj[2]=sp_lj_in[2];
+  sp_lj[3]=sp_lj_in[3];
+  sp_lj[4]=sp_lj_in[4];
+  sp_lj[5]=sp_lj_in[5];
+  sp_lj[6]=sp_lj_in[6];
+  sp_lj[7]=sp_lj_in[7];
+
+  acctyp3 f;
+  f.x=(acctyp)0; f.y=(acctyp)0; f.z=(acctyp)0;
+  acctyp energy, e_coul, virial[6];
+  if (EVFLAG) {
+    energy=(acctyp)0;
+    e_coul=(acctyp)0;
+    for (int i=0; i<6; i++) virial[i]=(acctyp)0;
+  }
+
+  if (ii<inum) {
+    int nbor, nbor_end;
+    int i, numj;
+    nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
+              n_stride,nbor_end,nbor);
+
+    numtyp4 ix; fetch4(ix,i,pos_tex); //x_[i];
+    numtyp qtmp; fetch(qtmp,i,q_tex);
+    int itype=ix.w;
+
+    for ( ; nbor<nbor_end; nbor+=n_stride) {
+      ucl_prefetch(dev_packed+nbor+n_stride);
+      int j=dev_packed[nbor];
+
+      numtyp factor_lj, factor_coul;
+      factor_lj = sp_lj[sbmask(j)];
+      factor_coul = (numtyp)1.0-sp_lj[sbmask(j)+4];
+      j &= NEIGHMASK;
+
+      numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];
+      int jtype=jx.w;
+
+      // Compute r12
+      numtyp delx = ix.x-jx.x;
+      numtyp dely = ix.y-jx.y;
+      numtyp delz = ix.z-jx.z;
+      numtyp rsq = delx*delx+dely*dely+delz*delz;
+
+      int mtype=itype*lj_types+jtype;
+      if (rsq<lj1[mtype].z) {
+        rsq += EPSILON; // Add Epsilon for case: r = 0; Interaction must be removed by special bond;
+        numtyp r2inv=ucl_recip(rsq);
+        numtyp force_lj, force, r6inv, r3inv;
+        acctyp forcecoul, prefactor, _erfc;
+
+        if (rsq < lj1[mtype].w) {
+          numtyp rinv=ucl_rsqrt(rsq);
+          r3inv=r2inv*rinv;
+          r6inv = r3inv*r3inv;
+          force_lj = factor_lj*r6inv*(lj1[mtype].x*r3inv-lj1[mtype].y);
+        } else
+          force_lj = (numtyp)0.0;
+
+        if (rsq < cut_coulsq) {
+          numtyp r = ucl_rsqrt(r2inv);
+          numtyp qj;
+          fetch(qj,j,q_tex);
+          prefactor = qqrd2e * qj*qtmp;
+
+          if (factor_coul > (acctyp)0) {
+            // for excluded pairs the correction nearly cancels the Ewald term: use erf()
+            // _erfc holds erfc - factor_coul
+            acctyp grij = g_ewald * r;
+            acctyp expm2 = exp(-grij*grij);
+            _erfc = (acctyp)1.0 - factor_coul - erf(grij);
+            prefactor /= r;
+            forcecoul = prefactor * (_erfc + CS_EWALD_F*grij*expm2);
+          } else {
+            numtyp grij = g_ewald * r;
+            numtyp expm2 = ucl_exp(-grij*grij);
+            acctyp t = (acctyp)1.0/((numtyp)1.0 + CS_EWALD_P*grij);
+            numtyp u = (numtyp)1.0 - t;
+            _erfc = t * ((numtyp)1.0 + u*(B0+u*(B1+u*(B2+u*(B3+u*(B4+u*B5)))))) * expm2;
+            prefactor /= r;
+            forcecoul = prefactor*(_erfc + EWALD_F*grij*expm2);
+          }
+        } else
+          forcecoul = (numtyp)0.0;
+
+        force = (force_lj + forcecoul) * r2inv;
+
+        f.x+=delx*force;
+        f.y+=dely*force;
+        f.z+=delz*force;
+
+        if (EVFLAG && eflag) {
+          if (rsq < cut_coulsq)
+            e_coul += prefactor*_erfc;
+          if (rsq < lj1[mtype].w) {
+            numtyp e=r6inv*(lj3[mtype].x*r3inv-lj3[mtype].y);
+            energy+=factor_lj*(e-lj3[mtype].z);
+          }
+        }
+        if (EVFLAG && vflag) {
+          virial[0] += delx*delx*force;
+          virial[1] += dely*dely*force;
+          virial[2] += delz*delz*force;
+          virial[3] += delx*dely*force;
+          virial[4] += delx*delz*force;
+          virial[5] += dely*delz*force;
+        }
+      }
+
+    } // for nbor
+  } // if ii
+  store_answers_q(f,energy,e_coul,virial,ii,inum,tid,t_per_atom,offset,eflag,
+                  vflag,ans,engv);
+}
+
+__kernel void k_lj_class2_coul_long_cs_fast(const __global numtyp4 *restrict x_,
+                                    const __global numtyp4 *restrict lj1_in,
+                                    const __global numtyp4 *restrict lj3_in,
+                                    const __global numtyp *restrict sp_lj_in,
+                                    const __global int *dev_nbor,
+                                    const __global int *dev_packed,
+                                    __global acctyp3 *restrict ans,
+                                    __global acctyp *restrict engv,
+                                    const int eflag, const int vflag,
+                                    const int inum, const int nbor_pitch,
+                                    const __global numtyp *restrict q_,
+                                    const numtyp cut_coulsq,
+                                    const numtyp qqrd2e,
+                                    const numtyp g_ewald,
+                                    const int t_per_atom) {
+  int tid, ii, offset;
+  atom_info(t_per_atom,ii,tid,offset);
+
+  __local numtyp4 lj1[MAX_SHARED_TYPES*MAX_SHARED_TYPES];
+  __local numtyp4 lj3[MAX_SHARED_TYPES*MAX_SHARED_TYPES];
+  __local numtyp sp_lj[8];
+  int n_stride;
+  local_allocate_store_charge();
+
+  if (tid<8)
+    sp_lj[tid]=sp_lj_in[tid];
+  if (tid<MAX_SHARED_TYPES*MAX_SHARED_TYPES) {
+    lj1[tid]=lj1_in[tid];
+    if (EVFLAG && eflag)
+      lj3[tid]=lj3_in[tid];
+  }
+
+  acctyp3 f;
+  f.x=(acctyp)0; f.y=(acctyp)0; f.z=(acctyp)0;
+  acctyp energy, e_coul, virial[6];
+  if (EVFLAG) {
+    energy=(acctyp)0;
+    e_coul=(acctyp)0;
+    for (int i=0; i<6; i++) virial[i]=(acctyp)0;
+  }
+
+  __syncthreads();
+
+  if (ii<inum) {
+    int nbor, nbor_end;
+    int i, numj;
+    nbor_info(dev_nbor,dev_packed,nbor_pitch,t_per_atom,ii,offset,i,numj,
+              n_stride,nbor_end,nbor);
+
+    numtyp4 ix; fetch4(ix,i,pos_tex); //x_[i];
+    numtyp qtmp; fetch(qtmp,i,q_tex);
+    int iw=ix.w;
+    int itype=fast_mul((int)MAX_SHARED_TYPES,iw);
+
+    for ( ; nbor<nbor_end; nbor+=n_stride) {
+      ucl_prefetch(dev_packed+nbor+n_stride);
+      int j=dev_packed[nbor];
+
+      numtyp factor_lj, factor_coul;
+      factor_lj = sp_lj[sbmask(j)];
+      factor_coul = (numtyp)1.0-sp_lj[sbmask(j)+4];
+      j &= NEIGHMASK;
+
+      numtyp4 jx; fetch4(jx,j,pos_tex); //x_[j];
+      int mtype=itype+jx.w;
+
+      // Compute r12
+      numtyp delx = ix.x-jx.x;
+      numtyp dely = ix.y-jx.y;
+      numtyp delz = ix.z-jx.z;
+      numtyp rsq = delx*delx+dely*dely+delz*delz;
+
+      if (rsq<lj1[mtype].z) {
+        rsq += EPSILON; // Add Epsilon for case: r = 0; Interaction must be removed by special bond;
+        numtyp r2inv=ucl_recip(rsq);
+        numtyp force_lj, force, r6inv, r3inv;
+        acctyp forcecoul, prefactor, _erfc;
+
+        if (rsq < lj1[mtype].w) {
+          numtyp rinv=ucl_rsqrt(rsq);
+          r3inv=r2inv*rinv;
+          r6inv = r3inv*r3inv;
+          force_lj = factor_lj*r6inv*(lj1[mtype].x*r3inv-lj1[mtype].y);
+        } else
+          force_lj = (numtyp)0.0;
+
+        if (rsq < cut_coulsq) {
+          numtyp r = ucl_rsqrt(r2inv);
+          numtyp qj;
+          fetch(qj,j,q_tex);
+          prefactor = qqrd2e * qj*qtmp;
+
+          if (factor_coul > (acctyp)0) {
+            // for excluded pairs the correction nearly cancels the Ewald term: use erf()
+            // _erfc holds erfc - factor_coul
+            acctyp grij = g_ewald * r;
+            acctyp expm2 = exp(-grij*grij);
+            _erfc = (acctyp)1.0 - factor_coul - erf(grij);
+            prefactor /= r;
+            forcecoul = prefactor * (_erfc + CS_EWALD_F*grij*expm2);
+          } else {
+            numtyp grij = g_ewald * r;
+            numtyp expm2 = ucl_exp(-grij*grij);
+            acctyp t = (acctyp)1.0/((numtyp)1.0 + CS_EWALD_P*grij);
+            numtyp u = (numtyp)1.0 - t;
+            _erfc = t * ((numtyp)1.0 + u*(B0+u*(B1+u*(B2+u*(B3+u*(B4+u*B5)))))) * expm2;
+            prefactor /= r;
+            forcecoul = prefactor*(_erfc + EWALD_F*grij*expm2);
+          }
+        } else
+          forcecoul = (numtyp)0.0;
+
+        force = (force_lj + forcecoul) * r2inv;
+
+        f.x+=delx*force;
+        f.y+=dely*force;
+        f.z+=delz*force;
+
+        if (EVFLAG && eflag) {
+          if (rsq < cut_coulsq)
+            e_coul += prefactor*_erfc;
+          if (rsq < lj1[mtype].w) {
+            numtyp e=r6inv*(lj3[mtype].x*r3inv-lj3[mtype].y);
+            energy+=factor_lj*(e-lj3[mtype].z);
+          }
+        }
+        if (EVFLAG && vflag) {
+          virial[0] += delx*delx*force;
+          virial[1] += dely*dely*force;
+          virial[2] += delz*delz*force;
+          virial[3] += delx*dely*force;
+          virial[4] += delx*delz*force;
+          virial[5] += dely*delz*force;
+        }
+      }
+
+    } // for nbor
+  } // if ii
+  store_answers_q(f,energy,e_coul,virial,ii,inum,tid,t_per_atom,offset,eflag,
+                  vflag,ans,engv);
+}
+

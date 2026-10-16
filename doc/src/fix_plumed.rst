@@ -102,6 +102,15 @@ pressure of the system via the :doc:`compute pressure
 :doc:`thermodynamic output <thermo_style>`.  The default setting for
 this fix is :doc:`fix_modify virial yes <fix_modify>`.
 
+.. versionadded:: TBD
+
+The :doc:`fix_modify <fix_modify>` *lookahead* option (default *no*)
+controls when the energy and virial are tallied.
+Without it the energy and virial are tallied on every step.
+The saving is largest for inexpensive pair styles such as
+Lennard-Jones or EAM, and small for expensive many-body or
+machine-learning potentials. Results are identical.
+
 This fix computes a global scalar which can be accessed by various
 :doc:`output commands <Howto_output>`.  The scalar is the PLUMED
 energy mentioned above.  The scalar value calculated by this fix is
@@ -128,7 +137,7 @@ Related commands
 Default
 """""""
 
-The default options are plumedfile = NULL and outfile = NULL
+The default options are plumedfile = NULL, outfile = NULL, and lookahead = no
 
 ----------
 

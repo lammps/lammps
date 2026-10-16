@@ -43,6 +43,7 @@ public:
     void run_pos(const yaml_event_t &event);
     void run_vel(const yaml_event_t &event);
     void run_torque(const yaml_event_t &event);
+    void init_charges(const yaml_event_t &event);
     void init_mag_forces(const yaml_event_t &event);
     void run_mag_forces(const yaml_event_t &event);
     void run_spin(const yaml_event_t &event);

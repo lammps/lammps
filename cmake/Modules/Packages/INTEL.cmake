@@ -113,6 +113,12 @@ endif()
 if(PKG_ML-SNAP)
   list(APPEND INTEL_SOURCES ${INTEL_SOURCES_DIR}/sna_intel.cpp)
 endif()
+if(PKG_ELECTRODE)
+  list(APPEND INTEL_SOURCES ${INTEL_SOURCES_DIR}/electrode_vector_intel.cpp)
+  list(APPEND INTEL_SOURCES ${INTEL_SOURCES_DIR}/wire_dipole_intel.cpp)
+  list(APPEND INTEL_SOURCES ${INTEL_SOURCES_DIR}/slab_dipole_intel.cpp)
+  list(APPEND INTEL_SOURCES ${INTEL_SOURCES_DIR}/slab_2d_intel.cpp)
+endif()
 
 # the "-fp-model precise" flag for the Intel LLVM compilers (set in cmake/CMakeLists.txt)
 # makes the INTEL package styles much slower, so it is overridden for the INTEL sources

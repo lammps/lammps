@@ -1512,6 +1512,9 @@ Bibliography
 **(Sanyal2)**
    Sanyal and Shell, Journal of Physical Chemistry B, 122 (21), 5678-5693.
 
+**(Savvidi)**
+   Savvidi *et al.*, J. Chem. Phys., 162, 174108 (2025).
+
 **(Scalfi)**
    Scalfi *et al.*, J. Chem. Phys., 153, 174704 (2020).
 

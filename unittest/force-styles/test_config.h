@@ -81,6 +81,7 @@ public:
     std::vector<coord_t> run_vel;
     std::vector<coord_t> restart_vel;
     std::vector<coord_t> run_torque;
+    std::vector<double> init_charges;
     // magnetic force (precession vector) and spin data for atom_style spin systems
     std::vector<coord_t> init_mag_forces;
     std::vector<coord_t> run_mag_forces;
@@ -119,6 +120,7 @@ public:
         run_mag_forces.clear();
         run_spin.clear();
         global_vector.clear();
+        init_charges.clear();
     }
     TestConfig(const TestConfig &)            = delete;
     TestConfig &operator=(const TestConfig &) = delete;

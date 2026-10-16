@@ -1,0 +1,30 @@
+LAMMPS data file. NaCl crystal. QEq charges and energy can be calculated analytically using the Madelung constant alpha. The Na charge is q = Delta chi / 2 / (hardness_avg - alpha/(4 pi epsilon_0 r)). The hardnesses have been adjusted to yield q = 1
+ 8 atoms
+ 0 bonds
+ 0 angles
+ 0 dihedrals
+ 0 impropers
+ 2 atom types
+ 0 bond types
+ 0 angle types
+ 0 dihedral types
+ 0 improper types
+ 0.0 5.64  xlo xhi
+ 0.0 5.64  ylo yhi
+ 0.0 5.64  zlo zhi
+
+ Masses
+
+1 22.989799 # Na
+2 35.452999 # Cl
+
+ Atoms # full
+
+1 1 1  0.0 0.0      0.0      0.0
+2 1 1  0.0 0.0      2.82     2.82
+3 1 1  0.0 2.82     0.0      2.82
+4 1 1  0.0 2.82     2.82     0.0
+5 2 2  0.0 2.82     0.0      0.0
+6 2 2  0.0 0.0      2.82     0.0
+7 2 2  0.0 0.0      0.0      2.82
+8 2 2  0.0 2.82     2.82     2.82

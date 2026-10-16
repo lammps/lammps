@@ -52,7 +52,7 @@ fix fxrigid    wall rigid/nve single
 
 # maintain constant potential during equilibration
 # 'algo cg' allows for moving electrodes
-fix fxele      ele electrode/conp 0.0 1.805 symm on algo cg 1e-4
+fix fxele      ele electrode/conp 0.0 eta 1.805 symm on algo cg 1e-4
 
 # setup output and run
 variable q atom q

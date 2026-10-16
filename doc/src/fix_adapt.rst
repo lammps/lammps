@@ -671,7 +671,12 @@ parameters on the outermost rRESPA level.
 
 Restrictions
 """"""""""""
-none
+
+Not all pair styles support changing their parameters during a run.
+This includes some accelerated variants of pair styles that support it
+otherwise, for example the pair styles in the INTEL package and many
+pair styles in the GPU package.  Fix adapt stops with an error for
+those, also when they are used as sub-styles of a hybrid pair style.
 
 Related commands
 """"""""""""""""

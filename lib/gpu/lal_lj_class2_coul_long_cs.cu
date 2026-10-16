@@ -112,17 +112,17 @@ __kernel void k_lj_class2_coul_long_cs(const __global numtyp4 *restrict x_,
       numtyp delx = ix.x-jx.x;
       numtyp dely = ix.y-jx.y;
       numtyp delz = ix.z-jx.z;
-      numtyp rsq = delx*delx+dely*dely+delz*delz;
+      acctyp rsq = delx*delx+dely*dely+delz*delz;
 
       int mtype=itype*lj_types+jtype;
       if (rsq<lj1[mtype].z) {
         rsq += EPSILON; // Add Epsilon for case: r = 0; Interaction must be removed by special bond;
-        numtyp r2inv=ucl_recip(rsq);
-        numtyp force_lj, force, r6inv, r3inv;
+        acctyp r2inv=(acctyp)1.0/rsq;
+        acctyp force_lj, force, r6inv, r3inv;
         acctyp forcecoul, prefactor, _erfc;
 
         if (rsq < lj1[mtype].w) {
-          numtyp rinv=ucl_rsqrt(rsq);
+          numtyp rinv=ucl_rsqrt((numtyp)rsq);
           r3inv=r2inv*rinv;
           r6inv = r3inv*r3inv;
           force_lj = factor_lj*r6inv*(lj1[mtype].x*r3inv-lj1[mtype].y);
@@ -165,7 +165,7 @@ __kernel void k_lj_class2_coul_long_cs(const __global numtyp4 *restrict x_,
           if (rsq < cut_coulsq)
             e_coul += prefactor*_erfc;
           if (rsq < lj1[mtype].w) {
-            numtyp e=r6inv*(lj3[mtype].x*r3inv-lj3[mtype].y);
+            acctyp e=r6inv*(lj3[mtype].x*r3inv-lj3[mtype].y);
             energy+=factor_lj*(e-lj3[mtype].z);
           }
         }
@@ -255,16 +255,16 @@ __kernel void k_lj_class2_coul_long_cs_fast(const __global numtyp4 *restrict x_,
       numtyp delx = ix.x-jx.x;
       numtyp dely = ix.y-jx.y;
       numtyp delz = ix.z-jx.z;
-      numtyp rsq = delx*delx+dely*dely+delz*delz;
+      acctyp rsq = delx*delx+dely*dely+delz*delz;
 
       if (rsq<lj1[mtype].z) {
         rsq += EPSILON; // Add Epsilon for case: r = 0; Interaction must be removed by special bond;
-        numtyp r2inv=ucl_recip(rsq);
-        numtyp force_lj, force, r6inv, r3inv;
+        acctyp r2inv=(acctyp)1.0/rsq;
+        acctyp force_lj, force, r6inv, r3inv;
         acctyp forcecoul, prefactor, _erfc;
 
         if (rsq < lj1[mtype].w) {
-          numtyp rinv=ucl_rsqrt(rsq);
+          numtyp rinv=ucl_rsqrt((numtyp)rsq);
           r3inv=r2inv*rinv;
           r6inv = r3inv*r3inv;
           force_lj = factor_lj*r6inv*(lj1[mtype].x*r3inv-lj1[mtype].y);
@@ -307,7 +307,7 @@ __kernel void k_lj_class2_coul_long_cs_fast(const __global numtyp4 *restrict x_,
           if (rsq < cut_coulsq)
             e_coul += prefactor*_erfc;
           if (rsq < lj1[mtype].w) {
-            numtyp e=r6inv*(lj3[mtype].x*r3inv-lj3[mtype].y);
+            acctyp e=r6inv*(lj3[mtype].x*r3inv-lj3[mtype].y);
             energy+=factor_lj*(e-lj3[mtype].z);
           }
         }

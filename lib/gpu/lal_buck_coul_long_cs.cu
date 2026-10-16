@@ -113,18 +113,18 @@ __kernel void k_buck_coul_long_cs(const __global numtyp4 *restrict x_,
       numtyp delx = ix.x-jx.x;
       numtyp dely = ix.y-jx.y;
       numtyp delz = ix.z-jx.z;
-      numtyp rsq = delx*delx+dely*dely+delz*delz;
+      acctyp rsq = delx*delx+dely*dely+delz*delz;
 
       int mtype=itype*lj_types+jtype;
       if (rsq<cutsq[mtype]) {
         rsq += EPSILON; // Add Epsilon for case: r = 0; Interaction must be removed by special bond;
-        numtyp r2inv=ucl_recip(rsq);
-        numtyp force_lj, force, r6inv;
+        acctyp r2inv=(acctyp)1.0/rsq;
+        acctyp force_lj, force, r6inv;
         acctyp forcecoul, prefactor, _erfc;
         numtyp rexp = (numtyp)0.0;
 
         if (rsq < coeff1[mtype].w) { // cut_ljsq
-          numtyp r=ucl_sqrt(rsq);
+          numtyp r=ucl_sqrt((numtyp)rsq);
           rexp = ucl_exp(-r*coeff1[mtype].x);
           r6inv = r2inv*r2inv*r2inv;
           force_lj = (coeff1[mtype].y*r*rexp
@@ -168,7 +168,7 @@ __kernel void k_buck_coul_long_cs(const __global numtyp4 *restrict x_,
           if (rsq < cut_coulsq)
             e_coul += prefactor*_erfc;
           if (rsq < coeff1[mtype].w) {
-            numtyp e=coeff2[mtype].x*rexp - coeff2[mtype].y*r6inv;
+            acctyp e=coeff2[mtype].x*rexp - coeff2[mtype].y*r6inv;
             energy+=factor_lj*(e-coeff2[mtype].z);
           }
         }
@@ -258,17 +258,17 @@ __kernel void k_buck_coul_long_cs_fast(const __global numtyp4 *restrict x_,
       numtyp delx = ix.x-jx.x;
       numtyp dely = ix.y-jx.y;
       numtyp delz = ix.z-jx.z;
-      numtyp rsq = delx*delx+dely*dely+delz*delz;
+      acctyp rsq = delx*delx+dely*dely+delz*delz;
 
       if (rsq<cutsq[mtype]) {
         rsq += EPSILON; // Add Epsilon for case: r = 0; Interaction must be removed by special bond;
-        numtyp r2inv=ucl_recip(rsq);
-        numtyp force_lj, force, r6inv;
+        acctyp r2inv=(acctyp)1.0/rsq;
+        acctyp force_lj, force, r6inv;
         acctyp forcecoul, prefactor, _erfc;
         numtyp rexp = (numtyp)0.0;
 
         if (rsq < coeff1[mtype].w) {
-          numtyp r=ucl_sqrt(rsq);
+          numtyp r=ucl_sqrt((numtyp)rsq);
           rexp = ucl_exp(-r*coeff1[mtype].x);
           r6inv = r2inv*r2inv*r2inv;
           force_lj = (coeff1[mtype].y*r*rexp
@@ -312,7 +312,7 @@ __kernel void k_buck_coul_long_cs_fast(const __global numtyp4 *restrict x_,
           if (rsq < cut_coulsq)
             e_coul += prefactor*_erfc;
           if (rsq < coeff1[mtype].w) {
-            numtyp e=coeff2[mtype].x*rexp - coeff2[mtype].y*r6inv;
+            acctyp e=coeff2[mtype].x*rexp - coeff2[mtype].y*r6inv;
             energy+=factor_lj*(e-coeff2[mtype].z);
           }
         }

@@ -1,7 +1,6 @@
 /***************************************************************************
                                  coul_wolf_ext.cpp
                              -------------------
-     Claude Opus 5.5 (Anthropic), under the direction of Axel Kohlmeyer
 
   Functions for LAMMPS access to coul/wolf acceleration routines.
 

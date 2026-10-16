@@ -1,7 +1,6 @@
 /***************************************************************************
                                  coul_long_soft.h
                              -------------------
-     Claude Opus 5.5 (Anthropic), under the direction of Axel Kohlmeyer
 
   Class for acceleration of the coul/long/soft pair style.
 

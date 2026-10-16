@@ -1,7 +1,6 @@
 /***************************************************************************
                                  buck_coul_long_cs.cpp
                              -------------------
-     Claude Opus 5.5 (Anthropic), under the direction of Axel Kohlmeyer
 
   Class for acceleration of the buck/coul/long/cs pair style.
 

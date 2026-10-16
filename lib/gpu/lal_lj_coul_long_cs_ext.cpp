@@ -1,7 +1,6 @@
 /***************************************************************************
                                  lj_coul_long_cs_ext.cpp
                              -------------------
-     Claude Opus 5.5 (Anthropic), under the direction of Axel Kohlmeyer
 
   Functions for LAMMPS access to lj/cut/coul/long/cs acceleration routines.
 

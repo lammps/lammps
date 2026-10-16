@@ -1,7 +1,6 @@
 // **************************************************************************
 //                                 born_coul_dsf.cu
 //                             -------------------
-//      Claude Opus 5.5 (Anthropic), under the direction of Axel Kohlmeyer
 //
 //  Device code for acceleration of the born/coul/dsf pair style
 //

@@ -1,7 +1,6 @@
 /***************************************************************************
                                  coul_cut_soft_ext.cpp
                              -------------------
-     Claude Opus 5.5 (Anthropic), under the direction of Axel Kohlmeyer
 
   Functions for LAMMPS access to coul/cut/soft acceleration routines.
 

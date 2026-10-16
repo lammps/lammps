@@ -1,7 +1,6 @@
 // **************************************************************************
 //                                 coul_slater_cut.cu
 //                             -------------------
-//      Claude Opus 5.5 (Anthropic), under the direction of Axel Kohlmeyer
 //
 //  Device code for acceleration of the coul/slater/cut pair style
 //

@@ -1,7 +1,6 @@
 /***************************************************************************
                                  born_coul_dsf_cs.cpp
                              -------------------
-     Claude Opus 5.5 (Anthropic), under the direction of Axel Kohlmeyer
 
   Class for acceleration of the born/coul/dsf/cs pair style.
 

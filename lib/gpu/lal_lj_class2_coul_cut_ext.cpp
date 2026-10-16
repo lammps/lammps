@@ -1,7 +1,6 @@
 /***************************************************************************
                                  lj_class2_coul_cut_ext.cpp
                              -------------------
-     Claude Opus 5.5 (Anthropic), under the direction of Axel Kohlmeyer
 
   Functions for LAMMPS access to lj/class2/coul/cut acceleration routines.
 

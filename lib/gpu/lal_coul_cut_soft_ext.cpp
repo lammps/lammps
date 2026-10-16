@@ -1,0 +1,141 @@
+/***************************************************************************
+                                 coul_cut_soft_ext.cpp
+                             -------------------
+     Claude Opus 5.5 (Anthropic), under the direction of Axel Kohlmeyer
+
+  Functions for LAMMPS access to coul/cut/soft acceleration routines.
+
+ __________________________________________________________________________
+    This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
+ __________________________________________________________________________
+
+    begin                : October 2026
+ ***************************************************************************/
+
+#include <iostream>
+#include <cassert>
+#include <cmath>
+
+#include "lal_coul_cut_soft.h"
+#include "lammps_gpu.h"
+
+using namespace std;
+using namespace LAMMPS_AL;
+
+static CoulCutSoft<PRECISION,ACC_PRECISION> CCSMF;
+
+// ---------------------------------------------------------------------------
+// Allocate memory on host and device and copy constants to device
+// ---------------------------------------------------------------------------
+
+namespace LAMMPS_GPU {
+int coul_cut_soft_gpu_init(const int ntypes, double **host_lam1, double **host_lam2,
+                  double **cutsq, double *special_coul,
+                  const int inum, const int nall, const int max_nbors,
+                  const int maxspecial, const double cell_size,
+                  int &gpu_mode, FILE *screen, const double qqrd2e) {
+  CCSMF.clear();
+  gpu_mode=CCSMF.device->gpu_mode();
+  int first_gpu=CCSMF.device->first_device();
+  int last_gpu=CCSMF.device->last_device();
+  int world_me=CCSMF.device->world_me();
+  int gpu_rank=CCSMF.device->gpu_rank();
+  int procs_per_gpu=CCSMF.device->procs_per_gpu();
+
+  CCSMF.device->init_message(screen,"coul/cut/soft",first_gpu,last_gpu);
+
+  bool message=false;
+  if (CCSMF.device->replica_me()==0 && screen)
+    message=true;
+
+  if (message) {
+    fprintf(screen,"Initializing GPU and compiling on process 0...");
+    fflush(screen);
+  }
+
+  int init_ok=0;
+  if (world_me==0)
+    init_ok=CCSMF.init(ntypes, host_lam1, host_lam2, cutsq, special_coul, inum, nall, max_nbors,
+                       maxspecial, cell_size, screen, qqrd2e);
+
+  CCSMF.device->world_barrier();
+  if (message)
+    fprintf(screen,"Done.\n");
+
+  for (int i=0; i<procs_per_gpu; i++) {
+    if (message) {
+      if (last_gpu-first_gpu==0)
+        fprintf(screen,"Initializing GPU %d on core %d...",first_gpu,i);
+      else
+        fprintf(screen,"Initializing GPUs %d-%d on core %d...",first_gpu,
+                last_gpu,i);
+      fflush(screen);
+    }
+    if (gpu_rank==i && world_me!=0)
+      init_ok=CCSMF.init(ntypes, host_lam1, host_lam2, cutsq, special_coul, inum, nall, max_nbors,
+                          maxspecial, cell_size, screen, qqrd2e);
+
+    CCSMF.device->serialize_init();
+    if (message)
+      fprintf(screen,"Done.\n");
+  }
+  if (message)
+    fprintf(screen,"\n");
+
+  if (init_ok==0)
+    CCSMF.estimate_gpu_overhead();
+  return init_ok;
+}
+
+// ---------------------------------------------------------------------------
+// Copy updated constants to device
+// ---------------------------------------------------------------------------
+void coul_cut_soft_gpu_reinit(const int ntypes, double **host_lam1, double **host_lam2) {
+  int world_me=CCSMF.device->world_me();
+  int gpu_rank=CCSMF.device->gpu_rank();
+  int procs_per_gpu=CCSMF.device->procs_per_gpu();
+
+  if (world_me==0)
+    CCSMF.reinit(ntypes, host_lam1, host_lam2);
+
+  CCSMF.device->world_barrier();
+
+  for (int i=0; i<procs_per_gpu; i++) {
+    if (gpu_rank==i && world_me!=0)
+      CCSMF.reinit(ntypes, host_lam1, host_lam2);
+
+    CCSMF.device->serialize_init();
+  }
+}
+
+void coul_cut_soft_gpu_clear() {
+  CCSMF.clear();
+}
+
+int **coul_cut_soft_gpu_compute_n(const int ago, const int inum_full, const int nall, double **host_x,
+                         int *host_type, double *sublo, double *subhi, tagint *tag, int **nspecial,
+                         tagint **special, const bool eflag, const bool vflag, const bool eatom,
+                         const bool vatom, int **ilist, int **jnum, bool &success, double *host_q,
+                         double *boxlo, double *prd, int *periodicity)
+{
+  return CCSMF.compute(ago, inum_full, nall, host_x, host_type, sublo,
+                       subhi, tag, nspecial, special, eflag, vflag, eatom,
+                       vatom, ilist, jnum, success,
+                       host_q, boxlo, prd, periodicity);
+}
+
+void coul_cut_soft_gpu_compute(const int ago, const int inum_full, const int nall,
+                     double **host_x, int *host_type, int *ilist, int *numj,
+                     int **firstneigh, const bool eflag, const bool vflag,
+                     const bool eatom, const bool vatom, bool &success, double *host_q,
+                     const int nlocal, double *boxlo, double *prd) {
+  CCSMF.compute(ago,inum_full,nall,host_x,host_type,ilist,numj,firstneigh,eflag,
+                vflag,eatom,vatom,success,host_q,
+                nlocal,boxlo,prd);
+}
+
+double coul_cut_soft_gpu_bytes() {
+  return CCSMF.host_memory_usage();
+}
+
+} // namespace LAMMPS_GPU

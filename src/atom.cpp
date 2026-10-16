@@ -3150,6 +3150,12 @@ void *Atom::extract(const char *name)
   if (strcmp(name,"ervel") == 0) return (void *) ervel;
   if (strcmp(name,"erforce") == 0) return (void *) erforce;
 
+  // CG-DNA package
+
+  if (strcmp(name,"id3p") == 0) return (void *) id3p;
+  if (strcmp(name,"id5p") == 0) return (void *) id5p;
+  if (strcmp(name,"qeff") == 0) return (void *) qeff;
+
   // RHEO package
 
   if (strcmp(name,"rheo_status") == 0) return (void *) rheo_status;
@@ -3315,6 +3321,12 @@ int Atom::extract_datatype(const char *name)
   if (strcmp(name,"eradius") == 0) return LAMMPS_DOUBLE;
   if (strcmp(name,"ervel") == 0) return LAMMPS_DOUBLE;
   if (strcmp(name,"erforce") == 0) return LAMMPS_DOUBLE;
+
+  // CG-DNA package
+
+  if (strcmp(name,"id3p") == 0) return LAMMPS_TAGINT;
+  if (strcmp(name,"id5p") == 0) return LAMMPS_TAGINT;
+  if (strcmp(name,"qeff") == 0) return LAMMPS_DOUBLE;
 
   // RHEO package
 

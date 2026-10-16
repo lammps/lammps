@@ -5,7 +5,6 @@ epsilon: 5e-13
 skip_tests:
 prerequisites: ! |
   atom full
-  pair hybrid/overlay
   pair lj/cut
   pair coul/cut/soft
 pre_commands: ! ""

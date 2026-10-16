@@ -5,7 +5,6 @@ epsilon: 3e-13
 skip_tests:
 prerequisites: |
   atom full
-  pair hybrid/overlay
   pair coul/long/soft
   pair lj/cut
   kspace ewald

@@ -46,7 +46,7 @@ int born_coul_dsf_gpu_init(const int ntypes, double **cutsq, double **host_rhoin
   int gpu_rank=BORNCDMF.device->gpu_rank();
   int procs_per_gpu=BORNCDMF.device->procs_per_gpu();
 
-  BORNCDMF.device->init_message(screen,"born/coul/wolf",first_gpu,last_gpu);
+  BORNCDMF.device->init_message(screen,"born/coul/dsf",first_gpu,last_gpu);
 
   bool message=false;
   if (BORNCDMF.device->replica_me()==0 && screen)

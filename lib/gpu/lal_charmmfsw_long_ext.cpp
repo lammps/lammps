@@ -47,7 +47,7 @@ int charmmfsw_long_gpu_init(const int ntypes, double cut_bothsq, double **host_l
   int gpu_rank=CRMFSWLMF.device->gpu_rank();
   int procs_per_gpu=CRMFSWLMF.device->procs_per_gpu();
 
-  CRMFSWLMF.device->init_message(screen,"lj/charmm/coul/long",first_gpu,last_gpu);
+  CRMFSWLMF.device->init_message(screen,"lj/charmmfsw/coul/long",first_gpu,last_gpu);
 
   bool message=false;
   if (CRMFSWLMF.device->replica_me()==0 && screen)

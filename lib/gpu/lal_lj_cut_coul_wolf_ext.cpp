@@ -46,7 +46,7 @@ int lj_cut_coul_wolf_gpu_init(const int ntypes, double **cutsq, double **host_lj
   int gpu_rank=LJCWMF.device->gpu_rank();
   int procs_per_gpu=LJCWMF.device->procs_per_gpu();
 
-  LJCWMF.device->init_message(screen,"lj/cut/coul/dsf",first_gpu,last_gpu);
+  LJCWMF.device->init_message(screen,"lj/cut/coul/wolf",first_gpu,last_gpu);
 
   bool message=false;
   if (LJCWMF.device->replica_me()==0 && screen)

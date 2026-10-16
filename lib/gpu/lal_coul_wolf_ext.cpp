@@ -43,7 +43,7 @@ int coul_wolf_gpu_init(const int ntypes, const int inum, const int nall,
   int gpu_rank=CWMF.device->gpu_rank();
   int procs_per_gpu=CWMF.device->procs_per_gpu();
 
-  CWMF.device->init_message(screen,"coul/dsf",first_gpu,last_gpu);
+  CWMF.device->init_message(screen,"coul/wolf",first_gpu,last_gpu);
 
   bool message=false;
   if (CWMF.device->replica_me()==0 && screen)

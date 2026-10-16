@@ -43,7 +43,7 @@ int coul_slater_cut_gpu_init(const int ntypes, double **host_scale,
   int gpu_rank=CSCMF.device->gpu_rank();
   int procs_per_gpu=CSCMF.device->procs_per_gpu();
 
-  CSCMF.device->init_message(screen,"coul/cut",first_gpu,last_gpu);
+  CSCMF.device->init_message(screen,"coul/slater/cut",first_gpu,last_gpu);
 
   bool message=false;
   if (CSCMF.device->replica_me()==0 && screen)

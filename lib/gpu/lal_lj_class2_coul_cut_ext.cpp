@@ -44,7 +44,7 @@ int lj_class2_coul_cut_gpu_init(const int ntypes, double **cutsq, double **host_
   int gpu_rank=LJC2CMF.device->gpu_rank();
   int procs_per_gpu=LJC2CMF.device->procs_per_gpu();
 
-  LJC2CMF.device->init_message(screen,"lj/cut/coul/cut",first_gpu,last_gpu);
+  LJC2CMF.device->init_message(screen,"lj/class2/coul/cut",first_gpu,last_gpu);
 
   bool message=false;
   if (LJC2CMF.device->replica_me()==0 && screen)

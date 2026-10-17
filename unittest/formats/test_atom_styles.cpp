@@ -5299,6 +5299,13 @@ TEST_F(AtomStyleTest, oxdna)
     ASSERT_NE(lmp->atom->mass_setflag, nullptr);
     ASSERT_NE(lmp->atom->id3p, nullptr);
     ASSERT_NE(lmp->atom->id5p, nullptr);
+    ASSERT_NE(lmp->atom->qeff, nullptr);
+    ASSERT_EQ(lmp->atom->extract("id3p"), (void *)lmp->atom->id3p);
+    ASSERT_EQ(lmp->atom->extract("id5p"), (void *)lmp->atom->id5p);
+    ASSERT_EQ(lmp->atom->extract("qeff"), (void *)lmp->atom->qeff);
+    ASSERT_EQ(lmp->atom->extract_datatype("id3p"), LAMMPS_TAGINT);
+    ASSERT_EQ(lmp->atom->extract_datatype("id5p"), LAMMPS_TAGINT);
+    ASSERT_EQ(lmp->atom->extract_datatype("qeff"), LAMMPS_DOUBLE);
 
     BEGIN_HIDE_OUTPUT();
     command("write_data test_atom_styles.data nocoeff");

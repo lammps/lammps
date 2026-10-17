@@ -1407,6 +1407,12 @@ void Atom::data_bonds(int n, char *buf, int *count, tagint id_offset,
             avec->data_bonds_post(m, num_bond[m], atom1, atom2, id_offset);
           }
         }
+      } else if (!count && (map(atom1) < 0) && ((m = map(atom2)) >= 0)) {
+
+        // with newton_bond on the bond is only stored with atom1, but the
+        // atom style may also need to process it for atom2 on its own processor
+
+        avec->data_bonds_post(m, num_bond[m], atom1, atom2, id_offset);
       }
     }
     buf = next + 1;
@@ -3144,6 +3150,12 @@ void *Atom::extract(const char *name)
   if (strcmp(name,"ervel") == 0) return (void *) ervel;
   if (strcmp(name,"erforce") == 0) return (void *) erforce;
 
+  // CG-DNA package
+
+  if (strcmp(name,"id3p") == 0) return (void *) id3p;
+  if (strcmp(name,"id5p") == 0) return (void *) id5p;
+  if (strcmp(name,"qeff") == 0) return (void *) qeff;
+
   // RHEO package
 
   if (strcmp(name,"rheo_status") == 0) return (void *) rheo_status;
@@ -3309,6 +3321,12 @@ int Atom::extract_datatype(const char *name)
   if (strcmp(name,"eradius") == 0) return LAMMPS_DOUBLE;
   if (strcmp(name,"ervel") == 0) return LAMMPS_DOUBLE;
   if (strcmp(name,"erforce") == 0) return LAMMPS_DOUBLE;
+
+  // CG-DNA package
+
+  if (strcmp(name,"id3p") == 0) return LAMMPS_TAGINT;
+  if (strcmp(name,"id5p") == 0) return LAMMPS_TAGINT;
+  if (strcmp(name,"qeff") == 0) return LAMMPS_DOUBLE;
 
   // RHEO package
 

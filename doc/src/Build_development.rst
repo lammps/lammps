@@ -300,6 +300,19 @@ tests will create a lot of false positives and thus they can be disabled
 by configuring compilation with the additional setting ``-D
 SKIP_DEATH_TESTS=on``.
 
+.. note::
+
+   When testing is enabled, LAMMPS should also be built as a shared
+   library with ``-D BUILD_SHARED_LIBS=on``.  With the default static
+   LAMMPS library, each of the more than 100 test programs contains its
+   own complete copy of LAMMPS.  With debug information included (as
+   with the default ``RelWithDebInfo`` build type), each test program
+   is then several hundred MBytes large, and the build folder can need
+   70 GBytes and more, even with only a few packages enabled.  With a
+   shared LAMMPS library, all test programs use the same library and
+   need only a few MBytes each.  For more ways to reduce the disk space
+   requirements, see :doc:`Notes for saving disk space <Build_diskspace>`.
+
 After compilation is complete, the unit testing is started in the build
 folder using the ``ctest`` command, which is part of the CMake software.
 The number of available tests will depend on the LAMMPS versions,
@@ -643,11 +656,12 @@ values are ``mold``, ``lld``, ``gold``, ``bfd``, or ``default``.  The
 linker is chosen explicitly.  This option is only available for the GNU
 or Clang C++ compilers.
 
-A small additional improvement can be obtained by building LAMMPS as a
-shared library with ``-D BUILD_SHARED_LIBS=on``.  But this is a small
-improvement due to reducing file I/O.  Using an alternate linker has an
-algorithmic improvement through using symbol resolution algorithms with
-lower algorithmic complexity.
+Building LAMMPS as a shared library with ``-D BUILD_SHARED_LIBS=on``
+gives a small additional improvement of the link times due to reducing
+file I/O, and it reduces the disk space requirements significantly (see
+the note in the section on unit testing above).  Using an alternate
+linker has an algorithmic improvement through using symbol resolution
+algorithms with lower algorithmic complexity.
 
 Tests for other components and utility functions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

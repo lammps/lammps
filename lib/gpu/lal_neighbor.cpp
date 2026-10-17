@@ -22,9 +22,7 @@
 using namespace LAMMPS_AL;
 
 int Neighbor::bytes_per_atom(const int max_nbors) const {
-  if (_gpu_nbor==1)
-    return (max_nbors+2)*sizeof(int);
-  else if (_gpu_nbor==2)
+  if (_gpu_nbor==2)
     return (max_nbors+3)*sizeof(int);
   else if (_use_packing)
     return ((max_nbors+2)*2)*sizeof(int);
@@ -36,8 +34,8 @@ bool Neighbor::init(NeighborShared *shared, const int inum,
                     const int host_inum, const int max_nbors,
                     const int maxspecial, UCL_Device &devi, const int gpu_nbor,
                     const int gpu_host, const bool pre_cut,
-                    const int block_cell_2d, const int block_cell_id,
-                    const int block_nbor_build, const int threads_per_atom,
+                    const int block_cell_2d, const int block_nbor_build,
+                    const int threads_per_atom,
                     const int simd_size, const bool time_device,
                     const std::string &compile_flags, const bool ilist_map) {
   clear();
@@ -45,7 +43,6 @@ bool Neighbor::init(NeighborShared *shared, const int inum,
 
   _threads_per_atom=threads_per_atom;
   _block_cell_2d=block_cell_2d;
-  _block_cell_id=block_cell_id;
   _block_nbor_build=block_nbor_build;
   _simd_size=simd_size;
   #ifndef LAL_USE_OLD_NEIGHBOR
@@ -566,10 +563,6 @@ void Neighbor::build_nbor_list(double **x, const int inum, const int host_inum,
       if (!success) return;
       cell_subgroup_counts.host[0]=0;
 #endif
-    } else {
-      cell_counts.device.clear();
-      success = success && (cell_counts.device.alloc(ncell_3d+1,
-                                                     *dev) == UCL_SUCCESS);
     }
     if (!success) return;
 
@@ -777,29 +770,6 @@ void Neighbor::build_nbor_list(double **x, const int inum, const int host_inum,
   _nbor_pitch=inum;
   _shared->neigh_tex.bind_float(atom.x,4);
 
-  // If binning on GPU, do this now
-  if (_gpu_nbor==1) {
-    mn = _max_nbors;
-    const auto i_cell_size=static_cast<numtyp>(1.0/_cell_size);
-    const int neigh_block=_block_cell_id;
-    const int GX=(int)ceil((double)nall/neigh_block);
-    const auto sublo0=static_cast<numtyp>(sublo[0]);
-    const auto sublo1=static_cast<numtyp>(sublo[1]);
-    const auto sublo2=static_cast<numtyp>(sublo[2]);
-    _shared->k_cell_id.set_size(GX,neigh_block);
-    _shared->k_cell_id.run(&atom.x, &atom.dev_cell_id,
-                           &atom.dev_particle_id, &sublo0, &sublo1,
-                           &sublo2, &i_cell_size, &ncellx, &ncelly, &ncellz,
-                           &nt, &nall, &cells_in_cutoff);
-
-    atom.sort_neighbor(nall);
-
-    /* calculate cell count */
-    _shared->k_cell_counts.set_size(GX,neigh_block);
-    _shared->k_cell_counts.run(&atom.dev_cell_id, &cell_counts, &nall,
-                               &ncell_3d);
-  }
-
   /* build the neighbor list */
   const int cell_block=_block_nbor_build;
 #ifndef LAL_USE_OLD_NEIGHBOR
@@ -824,36 +794,13 @@ void Neighbor::build_nbor_list(double **x, const int inum, const int host_inum,
                             &_threads_per_atom, &cells_in_cutoff);
 #endif
 
-  /* Get the maximum number of nbors and realloc if necessary */
+  /* Copy the neighbor counts for atoms with neighbor lists on the host */
   UCL_D_Vec<int> _numj_view;
-  if (_gpu_nbor!=2 || inum<nt) {
+  if (inum<nt) {
     _numj_view.view_offset(inum,dev_nbor,inum);
     ucl_copy(host_acc,_numj_view,inum,true);
-    if (nt>inum) {
-      _host_offset.view_offset(inum,host_acc,nt-inum);
-      ucl_copy(_host_offset,dev_numj_host,nt-inum,true);
-    }
-  }
-
-  if (_gpu_nbor!=2) {
-    host_acc.sync();
-    mn=host_acc[0];
-    for (int i=1; i<nt; i++)
-      mn=std::max(mn,host_acc[i]);
-    set_nbor_block_size(mn);
-
-    if (mn>_max_nbors) {
-      resize_max_neighbors<numtyp,acctyp>(mn,success);
-      if (!success)
-        return;
-      time_kernel.stop();
-      if (_time_device)
-        time_kernel.add_to_total();
-      build_nbor_list(x, inum, host_inum, nall, atom, sublo, subhi, tag,
-                       nspecial, special, success, mn, prd, periodicity,
-                       error_flag);
-      return;
-    }
+    _host_offset.view_offset(inum,host_acc,nt-inum);
+    ucl_copy(_host_offset,dev_numj_host,nt-inum,true);
   }
 
   if (_maxspecial>0) {

@@ -20,7 +20,7 @@ conference proceedings.
    have become quite popular and viable in assisting with the
    development of new code or with adding features to existing code.
    The LAMMPS developers have made some experiments and tried to assess
-   the how effective and reliable the results are.  Below are some of
+   how effective and reliable the results are.  Below are some of
    our observations and suggestions.  Since this is a rapidly evolving
    field, we will revise our position and the information here as
    needed.
@@ -32,17 +32,17 @@ conference proceedings.
    manual adjustments and thus careful checking of the resulting code is
    recommended.  Similarly, porting styles to the KOKKOS or OPENMP
    package can often be delegated, provided suitable template examples
-   exist and the coding agent is asked to look at those.  Github Copilot
-   and Claude code can also run LAMMPS unit tests and may even add unit
+   exist and the coding agent is asked to look at those.  GitHub Copilot
+   and Claude Code can also run LAMMPS unit tests and may even add unit
    tests for new styles if a suitable template already exists.  Asking a
    coding agent to create new functionality for which there is no
    similar code in either the LAMMPS sources or some other MD package
    repository or standalone code has a much lower chance of success.
 
    In general, it is best to be explicit and verbose when assigning
-   tasks to coding agents. It can also helpful to ask the agent to break
-   up complex tasks and create a detailed multi-step plan. Avoid asking
-   a coding agent to do too much at once.  For example, we have found
+   tasks to coding agents. It can also be helpful to ask the agent to
+   break up complex tasks and create a detailed multi-step plan. Avoid
+   asking a coding agent to do too much at once.  For example, we have found
    that porting groups of about 5 styles each to the KOKKOS or OPENMP
    package is reasonably efficient, without running into session
    timeouts or the coding agent losing focus.  When a session is
@@ -67,17 +67,18 @@ conference proceedings.
    To assist coding agents in their tasks, and particularly to provide
    instructions that GitHub Copilot and Claude Code will automatically
    read, we have created files in ``.github`` and ``.claude`` that
-   provide suitable instructions and are structured to that by default
+   provide suitable instructions and are structured so that by default
    only a minimum amount of text is parsed (and thus tokens consumed)
    and additional instructions are processed on demand.
 
    When contributing code to LAMMPS that was at least partially created
-   by a coding agent, please provide information in the pull request
-   description to the extent of AI usage and which model or models were
-   used.  While we do not object to use AI coding tools (we use them
+   by a coding agent, please describe the extent of AI usage and which
+   model or models were used in the pull request description, as
+   explained in the :ref:`current policy <ai-contributions-policy>`.
+   While we do not object to the use of AI coding tools (we use them
    ourselves), our requirements for accepting such code are higher (also
-   for our own code) and we will be much more likely reject a
-   contribution, since it can usually be re-create (with corrections)
+   for our own code) and we will be much more likely to reject a
+   contribution, since it can usually be re-created (with corrections)
    rather easily.  Our own experience is that for challenging tasks it
    may take starting over from scratch several times until the result is
    acceptable.

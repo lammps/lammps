@@ -17,7 +17,6 @@ Contributing Author: Jacob Gissinger (jgissing@stevens.edu)
 
 #include "topology_matcher.h"
 
-#include "atom.h"
 #include "error.h"
 #include "molecule.h"
 
@@ -26,7 +25,8 @@ Contributing Author: Jacob Gissinger (jgissing@stevens.edu)
 using namespace LAMMPS_NS;
 
 TopologyMatcher::TopologyMatcher(LAMMPS *lmp, bool constraints_flag, bool limit_tags_flag) :
-  Pointers(lmp), constraints_flag(constraints_flag), limit_tags_flag(limit_tags_flag)
+  Pointers(lmp), constraints_flag(constraints_flag), limit_tags_flag(limit_tags_flag),
+  default_topo(lmp), topo(&default_topo)
 {
 
   // checking reaction constraints inside topology_matcher
@@ -62,10 +62,6 @@ TopologyMatcher::~TopologyMatcher()
 
 std::string TopologyMatcher::match_topology(std::vector<tagint> &outglove, Reaction &rxn, std::array<tagint, 2> rxn_attempt)
 {
-  // full special lists - may need correction for unusual special bond settings
-  int **nxspecial = atom->nspecial;
-  tagint **xspecial = atom->special;
-
   status = Status::PROCEED;
 
   // quick description of important global indices you'll see floating about:
@@ -105,12 +101,12 @@ std::string TopologyMatcher::match_topology(std::vector<tagint> &outglove, React
   // special case, only two atoms in reaction templates
   // then: bonding reactant nspecials guaranteed to be equal, and either 0 or 1
   if (sp.glove_counter == rxn.reactant->natoms) {
-    tagint local_atom1 = atom->map(sp.glove[rxn.ibonding-1]);
-    tagint local_atom2 = atom->map(sp.glove[rxn.jbonding-1]);
-    if ( (nxspecial[local_atom1][0] == rxn.reactant->nspecial[rxn.ibonding-1][0] &&
-          nxspecial[local_atom2][0] == nxspecial[local_atom1][0]) &&
-         (nxspecial[local_atom1][0] == 0 ||
-          xspecial[local_atom1][0] == atom->tag[local_atom2]) &&
+    tagint atom1 = sp.glove[rxn.ibonding-1];
+    tagint atom2 = sp.glove[rxn.jbonding-1];
+    if ( (topo->nxspecial(atom1) == rxn.reactant->nspecial[rxn.ibonding-1][0] &&
+          topo->nxspecial(atom2) == topo->nxspecial(atom1)) &&
+         (topo->nxspecial(atom1) == 0 ||
+          topo->xspecial(atom1,0) == atom->tag[atom2]) &&
          constraints_check(rxn, sp.glove) ) status = Status::ACCEPT;
     else status = Status::REJECT;
   }
@@ -141,7 +137,7 @@ std::string TopologyMatcher::match_topology(std::vector<tagint> &outglove, React
         int nfirst_neighs = rxn.reactant->nspecial[i][0];
         for (int j = 0; j < nfirst_neighs; j++) {
           for (int k = 0; k < rxn.reactant->natoms; k++) {
-            if (xspecial[atom->map(sp.glove[i])][j] == sp.glove[k]) {
+            if (topo->xspecial(sp.glove[i],j) == sp.glove[k]) {
               assigned_count++;
               break;
             }
@@ -187,10 +183,6 @@ std::string TopologyMatcher::match_topology(std::vector<tagint> &outglove, React
 
 std::string TopologyMatcher::make_a_guess(Superimpose &super, Reaction &rxn)
 {
-  // full special lists - may need correction for unusual special bond settings
-  int **nxspecial = atom->nspecial;
-  tagint **xspecial = atom->special;
-
   Superimpose::StatePoint &sp = super.sp;
   int &avail_guesses = super.avail_guesses;
 
@@ -235,18 +227,18 @@ std::string TopologyMatcher::make_a_guess(Superimpose &super, Reaction &rxn)
   //  could technically fail unnecessarily during a wrong guess if near edge atoms
   //  we accept this temporary and infrequent decrease in reaction occurrences
 
-  for (int i = 0; i < nxspecial[atom->map(sp.glove[sp.pion])][0]; i++) {
-    if (atom->map(xspecial[atom->map(sp.glove[sp.pion])][i]) < 0) {
+  for (int i = 0; i < topo->nxspecial(sp.glove[sp.pion]); i++) {
+    if (atom->map(topo->xspecial(sp.glove[sp.pion],i)) < 0) {
       return "Superimpose algorithm needs ghost atoms from further away"; // parallel issues.
     }
-    if (limit_tags_flag && i_limit_tags[(int)atom->map(xspecial[atom->map(sp.glove[sp.pion])][i])] != 0) {
+    if (limit_tags_flag && i_limit_tags[(int)atom->map(topo->xspecial(sp.glove[sp.pion],i))] != 0) {
       status = Status::GUESSFAIL;
       return {};
     }
   }
 
   // check for same number of neighbors between unreacted mol and simulation
-  if (nfirst_neighs != nxspecial[atom->map(sp.glove[sp.pion])][0]) {
+  if (nfirst_neighs != topo->nxspecial(sp.glove[sp.pion])) {
     status = Status::GUESSFAIL;
     return {};
   }
@@ -256,7 +248,7 @@ std::string TopologyMatcher::make_a_guess(Superimpose &super, Reaction &rxn)
   for (int i = 0; i < nfirst_neighs; i++) {
     int imolatom = (int) rxn.reactant->special[sp.pion][i]-1;
     if (!rxn.atoms[imolatom].wildcard) mol_types.insert(rxn.reactant->type[imolatom]);
-    lcl_types.insert(type[atom->map(xspecial[atom->map(sp.glove[sp.pion])][i])]);
+    lcl_types.insert(type[atom->map(topo->xspecial(sp.glove[sp.pion],i))]);
   }
 
   if (!std::includes(lcl_types.begin(), lcl_types.end(), mol_types.begin(), mol_types.end())) {
@@ -304,10 +296,6 @@ std::string TopologyMatcher::neighbor_loop(Superimpose &super, Reaction &rxn)
 
 std::string TopologyMatcher::check_a_neighbor(Superimpose &super, Reaction &rxn)
 {
-  // full special lists - may need correction for unusual special bond settings
-  int **nxspecial = atom->nspecial;
-  tagint **xspecial = atom->special;
-
   Superimpose::StatePoint &sp = super.sp;
 
   int *type = atom->type;
@@ -319,21 +307,21 @@ std::string TopologyMatcher::check_a_neighbor(Superimpose &super, Reaction &rxn)
 
       for (int i = 0; i < nfirst_neighs; i++) {
 
-        int checktype = type[(int)atom->map(xspecial[(int)atom->map(sp.glove[sp.pion])][i])];
+        int checktype = type[(int)atom->map(topo->xspecial(sp.glove[sp.pion],i))];
         int reactant_atom = (int) rxn.reactant->special[sp.pion][sp.neigh];
         if (compare_atomtype(checktype, rxn, reactant_atom) &&
-            nxspecial[(int)atom->map(xspecial[(int)atom->map(sp.glove[sp.pion])][i])][0] == 1) {
+            topo->nxspecial(topo->xspecial(sp.glove[sp.pion],i)) == 1) {
 
           int already_assigned = 0;
           for (int j = 0; j < rxn.reactant->natoms; j++) {
-            if (sp.glove[j] == xspecial[atom->map(sp.glove[sp.pion])][i]) {
+            if (sp.glove[j] == topo->xspecial(sp.glove[sp.pion],i)) {
               already_assigned = 1;
               break;
             }
           }
 
           if (already_assigned == 0) {
-            sp.glove[(int)rxn.reactant->special[sp.pion][sp.neigh]-1] = xspecial[(int)atom->map(sp.glove[sp.pion])][i];
+            sp.glove[(int)rxn.reactant->special[sp.pion][sp.neigh]-1] = topo->xspecial(sp.glove[sp.pion],i);
 
             //another check for ghost atoms. perhaps remove the one in make_a_guess
             if (atom->map(sp.glove[(int)rxn.reactant->special[sp.pion][sp.neigh]-1]) < 0) {
@@ -372,21 +360,21 @@ std::string TopologyMatcher::check_a_neighbor(Superimpose &super, Reaction &rxn)
 
   for (int i = 0; i < nfirst_neighs; i++) {
 
-    int checktype = type[atom->map((int)xspecial[(int)atom->map(sp.glove[sp.pion])][i])];
+    int checktype = type[atom->map((int)topo->xspecial(sp.glove[sp.pion],i))];
     int reactant_atom = (int) rxn.reactant->special[sp.pion][sp.neigh];
     if (compare_atomtype(checktype, rxn, reactant_atom)) {
       int already_assigned = 0;
 
       //check if a first neighbor of the pioneer is already assigned to pre-reacted template
       for (int j = 0; j < rxn.reactant->natoms; j++) {
-        if (sp.glove[j] == xspecial[atom->map(sp.glove[sp.pion])][i]) {
+        if (sp.glove[j] == topo->xspecial(sp.glove[sp.pion],i)) {
           already_assigned = 1;
           break;
         }
       }
 
       if (already_assigned == 0) {
-        sp.glove[(int)rxn.reactant->special[sp.pion][sp.neigh]-1] = xspecial[(int)atom->map(sp.glove[sp.pion])][i];
+        sp.glove[(int)rxn.reactant->special[sp.pion][sp.neigh]-1] = topo->xspecial(sp.glove[sp.pion],i);
 
         //another check for ghost atoms. perhaps remove the one in make_a_guess
         if (atom->map(sp.glove[(int)rxn.reactant->special[sp.pion][sp.neigh]-1]) < 0) {
@@ -470,10 +458,6 @@ std::string TopologyMatcher::crosscheck_the_neighbor(Superimpose &super, Reactio
 
 std::string TopologyMatcher::inner_crosscheck_loop(Superimpose &super, Reaction &rxn)
 {
-  // full special lists - may need correction for unusual special bond settings
-  int **nxspecial = atom->nspecial;
-  tagint **xspecial = atom->special;
-
   Superimpose::StatePoint &sp = super.sp;
   int &avail_guesses = super.avail_guesses;
   std::vector<int> &guess_branch = super.guess_branch;
@@ -485,14 +469,14 @@ std::string TopologyMatcher::inner_crosscheck_loop(Superimpose &super, Reaction 
 
   int num_choices = 0;
   for (int i = 0; i < nfirst_neighs; i++) {
-    int checktype = type[(int)atom->map(xspecial[atom->map(sp.glove[sp.pion])][i])];
+    int checktype = type[(int)atom->map(topo->xspecial(sp.glove[sp.pion],i))];
     int reactant_atom = (int) rxn.reactant->special[sp.pion][sp.neigh];
     if (compare_atomtype(checktype, rxn, reactant_atom)) {
       if (num_choices == 5) { // here failed because too many identical first neighbors. but really no limit if situation arises
         status = Status::GUESSFAIL;
         return {};
       }
-      tag_choices[num_choices++] = xspecial[atom->map(sp.glove[sp.pion])][i];
+      tag_choices[num_choices++] = topo->xspecial(sp.glove[sp.pion],i);
     }
   }
 
@@ -569,10 +553,6 @@ bool TopologyMatcher::constraints_check(Reaction &rxn, const std::vector<tagint>
 
 bool TopologyMatcher::ring_check(Reaction &rxn, const std::vector<tagint> &glove)
 {
-  // full special lists - may need correction for unusual special bond settings
-  int **nxspecial = atom->nspecial;
-  tagint **xspecial = atom->special;
-
   // ring_check can be made more efficient by re-introducing 'frozen' atoms
   // 'frozen' atoms have been assigned and also are no longer pioneers
 
@@ -580,15 +560,15 @@ bool TopologyMatcher::ring_check(Reaction &rxn, const std::vector<tagint> &glove
   // otherwise, atoms at 'end' of symmetric ring can behave like edge atoms
   for (int i = 0; i < rxn.reactant->natoms; i++)
     if (rxn.atoms[i].edge == 0 &&
-        rxn.reactant->nspecial[i][0] != nxspecial[atom->map(glove[i])][0])
+        rxn.reactant->nspecial[i][0] != topo->nxspecial(glove[i]))
       return false;
 
   for (int i = 0; i < rxn.reactant->natoms; i++) {
     for (int j = 0; j < rxn.reactant->nspecial[i][0]; j++) {
       int ring_fail = 1;
       int ispecial = rxn.reactant->special[i][j];
-      for (int k = 0; k < nxspecial[atom->map(glove[i])][0]; k++) {
-        if (xspecial[atom->map(glove[i])][k] == glove[ispecial-1]) {
+      for (int k = 0; k < topo->nxspecial(glove[i]); k++) {
+        if (topo->xspecial(glove[i],k) == glove[ispecial-1]) {
           ring_fail = false;
           break;
         }

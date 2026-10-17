@@ -22,6 +22,8 @@
 #include "reaction.h"
 #include "reaction_constraints.h"
 
+#include "atom.h"
+
 #include <vector>
 
 namespace LAMMPS_NS {
@@ -51,6 +53,28 @@ private:
     } sp;
   };
   std::vector<Superimpose::StatePoint> restore_pts;
+
+  class TopoView {
+  protected:
+    LAMMPS_NS::LAMMPS *lmp;
+  public:
+    TopoView(LAMMPS_NS::LAMMPS *lmp_ptr = nullptr) : lmp(lmp_ptr) {}
+    virtual ~TopoView() = default;
+    virtual int type(tagint tag) const {
+      int i = lmp->atom->map(tag);
+      return (i >= 0) ? lmp->atom->type[i] : 0;
+    }
+    virtual int nxspecial(tagint tag) const {
+      int i = lmp->atom->map(tag);
+      return (i >= 0 && lmp->atom->nspecial) ? lmp->atom->nspecial[i][0] : 0;
+    }
+    virtual tagint xspecial(tagint tag, int k) const {
+      int i = lmp->atom->map(tag);
+      return (i >= 0 && lmp->atom->special) ? lmp->atom->special[i][k] : 0;
+    }
+  };
+  TopoView default_topo;
+  const TopoView* topo;
 
   std::string make_a_guess(Superimpose &, Reaction &rxn);
   std::string neighbor_loop(Superimpose &, Reaction &rxn);

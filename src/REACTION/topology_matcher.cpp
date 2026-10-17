@@ -186,7 +186,6 @@ std::string TopologyMatcher::make_a_guess(Superimpose &super, Reaction &rxn)
   Superimpose::StatePoint &sp = super.sp;
   int &avail_guesses = super.avail_guesses;
 
-  int *type = atom->type;
   int nfirst_neighs = rxn.reactant->nspecial[sp.pion][0];
 
   // per-atom property indicating if in bond/react master group
@@ -248,7 +247,7 @@ std::string TopologyMatcher::make_a_guess(Superimpose &super, Reaction &rxn)
   for (int i = 0; i < nfirst_neighs; i++) {
     int imolatom = (int) rxn.reactant->special[sp.pion][i]-1;
     if (!rxn.atoms[imolatom].wildcard) mol_types.insert(rxn.reactant->type[imolatom]);
-    lcl_types.insert(type[atom->map(topo->xspecial(sp.glove[sp.pion],i))]);
+    lcl_types.insert(topo->type(topo->xspecial(sp.glove[sp.pion],i)));
   }
 
   if (!std::includes(lcl_types.begin(), lcl_types.end(), mol_types.begin(), mol_types.end())) {
@@ -298,7 +297,6 @@ std::string TopologyMatcher::check_a_neighbor(Superimpose &super, Reaction &rxn)
 {
   Superimpose::StatePoint &sp = super.sp;
 
-  int *type = atom->type;
   int nfirst_neighs = rxn.reactant->nspecial[sp.pion][0];
 
   if (status != Status::RESTORE) {
@@ -307,7 +305,7 @@ std::string TopologyMatcher::check_a_neighbor(Superimpose &super, Reaction &rxn)
 
       for (int i = 0; i < nfirst_neighs; i++) {
 
-        int checktype = type[(int)atom->map(topo->xspecial(sp.glove[sp.pion],i))];
+        int checktype = topo->type(topo->xspecial(sp.glove[sp.pion],i));
         int reactant_atom = (int) rxn.reactant->special[sp.pion][sp.neigh];
         if (compare_atomtype(checktype, rxn, reactant_atom) &&
             topo->nxspecial(topo->xspecial(sp.glove[sp.pion],i)) == 1) {
@@ -360,7 +358,7 @@ std::string TopologyMatcher::check_a_neighbor(Superimpose &super, Reaction &rxn)
 
   for (int i = 0; i < nfirst_neighs; i++) {
 
-    int checktype = type[atom->map((int)topo->xspecial(sp.glove[sp.pion],i))];
+    int checktype = topo->type(topo->xspecial(sp.glove[sp.pion],i));
     int reactant_atom = (int) rxn.reactant->special[sp.pion][sp.neigh];
     if (compare_atomtype(checktype, rxn, reactant_atom)) {
       int already_assigned = 0;
@@ -462,14 +460,13 @@ std::string TopologyMatcher::inner_crosscheck_loop(Superimpose &super, Reaction 
   int &avail_guesses = super.avail_guesses;
   std::vector<int> &guess_branch = super.guess_branch;
 
-  int *type = atom->type;
   // arbitrarily limited to 5 identical first neighbors
   tagint tag_choices[5];
   int nfirst_neighs = rxn.reactant->nspecial[sp.pion][0];
 
   int num_choices = 0;
   for (int i = 0; i < nfirst_neighs; i++) {
-    int checktype = type[(int)atom->map(topo->xspecial(sp.glove[sp.pion],i))];
+    int checktype = topo->type(topo->xspecial(sp.glove[sp.pion],i));
     int reactant_atom = (int) rxn.reactant->special[sp.pion][sp.neigh];
     if (compare_atomtype(checktype, rxn, reactant_atom)) {
       if (num_choices == 5) { // here failed because too many identical first neighbors. but really no limit if situation arises

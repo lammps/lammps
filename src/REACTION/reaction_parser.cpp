@@ -57,7 +57,7 @@ void ReactionParser::parse_reaction(Reaction &rxn) {
   // read map file
 
   fp = fopen(rxn.mapfilename.c_str(),"r");
-  if (fp == nullptr) error->one(FLERR, "Fix bond/react: Cannot open map file {}", rxn.mapfilename);
+  if (fp == nullptr) error->one(FLERR, "Cannot open reaction map file {}", rxn.mapfilename);
   rxn.reactant->check_attributes();
   rxn.product->check_attributes();
   read_map_file(rxn);
@@ -109,7 +109,7 @@ void ReactionParser::read_map_file(Reaction &rxn)
 
   // skip 1st line of file
   eof = fgets(line,MAXLINE,fp);
-  if (eof == nullptr) error->one(FLERR,"Fix bond/react: Unexpected end of superimpose file");
+  if (eof == nullptr) error->one(FLERR,"Unexpected end of reaction map file");
 
   // read header lines
   // skip blank lines or lines that start with "#"
@@ -128,43 +128,43 @@ void ReactionParser::read_map_file(Reaction &rxn)
     if (strstr(line,"edgeIDs")) {
       nedge = firstint(line, "Map file header is incorrectly formatted");
       if ((nedge < 0) || (nedge > rxn.reactant->natoms))
-        error->one(FLERR,"Fix bond/react: Invalid number of edgeIDs in map file");
+        error->one(FLERR,"Invalid number of edgeIDs in reaction map file");
     }
     else if (strstr(line,"equivalences")) {
       nequivalent = firstint(line, "Map file header is incorrectly formatted");
       if (nequivalent != rxn.reactant->natoms)
-        error->one(FLERR,"Fix bond/react: Number of equivalences in map file must "
+        error->one(FLERR,"Number of equivalences in reaction map file must "
                    "equal number of atoms in reaction templates");
     }
     else if (strstr(line,"deleteIDs")) {
       ndelete = firstint(line, "Map file header is incorrectly formatted");
       if ((ndelete < 0) || (ndelete > rxn.reactant->natoms))
-        error->one(FLERR,"Fix bond/react: Invalid number of deleteIDs in map file");
+        error->one(FLERR,"Invalid number of deleteIDs in reaction map file");
     } else if (strstr(line,"createIDs")) {
       ncreate = firstint(line, "Map file header is incorrectly formatted");
       if ((ncreate < 0) || (ncreate > rxn.product->natoms))
-        error->one(FLERR,"Fix bond/react: Invalid number of createIDs in map file");
+        error->one(FLERR,"Invalid number of createIDs in reaction map file");
     } else if (strstr(line,"chiralIDs")) {
       nchiral = firstint(line, "Map file header is incorrectly formatted");
       if ((nchiral < 0) || (nchiral > rxn.reactant->natoms))
-        error->one(FLERR,"Fix bond/react: Invalid number of chiralIDs in map file");
+        error->one(FLERR,"Invalid number of chiralIDs in reaction map file");
     } else if (strstr(line,"wildcards")) {
       nwild = firstint(line, "Map file header is incorrectly formatted");
       if ((nwild < 0) || (nwild > rxn.reactant->natoms))
-        error->one(FLERR,"Fix bond/react: Invalid number of wildcards in map file");
+        error->one(FLERR,"Invalid number of wildcards in reaction map file");
     } else if (strstr(line,"constraints")) {
       int nconstraints = firstint(line, "Map file header is incorrectly formatted");
       if ((nconstraints < 0) || (nconstraints > 4096))
-        error->one(FLERR,"Fix bond/react: Invalid number of constraints in map file");
+        error->one(FLERR,"Invalid number of constraints in reaction map file");
       rxn.constraints.resize(nconstraints);
       for (int i = 0; i < nconstraints; i++) rxn.constraints[i].ID = i;
     } else break;
   }
 
   if (ncreate == 0 && rxn.reactant->natoms != rxn.product->natoms)
-    error->all(FLERR,"Fix bond/react: Reaction templates must contain the same number of atoms");
+    error->all(FLERR,"Reaction templates must contain the same number of atoms");
   else if (ncreate > 0 && rxn.reactant->natoms + ncreate != rxn.product->natoms)
-    error->all(FLERR,"Fix bond/react: Incorrect number of created atoms");
+    error->all(FLERR,"Incorrect number of created atoms in reaction template");
 
   // grab keyword and skip next line
 
@@ -177,16 +177,16 @@ void ReactionParser::read_map_file(Reaction &rxn)
   while (strlen(keyword)) {
     if (strcmp(keyword,"InitiatorIDs") == 0 || strcmp(keyword,"BondingIDs") == 0) {
       if (strcmp(keyword,"BondingIDs") == 0)
-        if (comm->me == 0) error->warning(FLERR,"Fix bond/react: The BondingIDs section title has been deprecated. Please use InitiatorIDs instead.");
+        if (comm->me == 0) error->warning(FLERR,"The BondingIDs section title has been deprecated. Please use InitiatorIDs instead.");
       bondflag = 1;
       readline(line);
       rxn.ibonding = firstint(line, "InitiatorIDs section is incorrectly formatted");
       if (rxn.ibonding > rxn.reactant->natoms)
-        error->one(FLERR,"Fix bond/react: Invalid template atom ID in map file");
+        error->one(FLERR,"Invalid template atom ID in reaction map file");
       readline(line);
       rxn.jbonding = firstint(line, "InitiatorIDs section is incorrectly formatted");
       if (rxn.jbonding > rxn.reactant->natoms)
-        error->one(FLERR,"Fix bond/react: Invalid template atom ID in map file");
+        error->one(FLERR,"Invalid template atom ID in reaction map file");
     } else if (strcmp(keyword,"EdgeIDs") == 0) {
       EdgeIDs(line, rxn, nedge);
     } else if (strcmp(keyword,"Equivalences") == 0) {
@@ -202,7 +202,7 @@ void ReactionParser::read_map_file(Reaction &rxn)
       ReadWildcards(line, rxn, nwild);
     } else if (strcmp(keyword,"Constraints") == 0) {
       ReadConstraints(line, rxn);
-    } else error->one(FLERR,"Fix bond/react: Unknown section in map file");
+    } else error->one(FLERR,"Unknown section in reaction map file");
 
     parse_keyword(1,line,keyword);
 
@@ -212,12 +212,12 @@ void ReactionParser::read_map_file(Reaction &rxn)
   for (int i = 0; i < rxn.reactant->natoms; i++) {
     int my_equiv = rxn.atoms[i].ramap[1];
     if (rxn.atoms[my_equiv-1].created == 1)
-      error->all(FLERR,"Fix bond/react: Created atoms cannot also be listed in Equivalences section\n");
+      error->all(FLERR,"Created atoms cannot also be listed in Equivalences section\n");
   }
 
   // error check
   if (bondflag == 0 || equivflag == 0)
-    error->all(FLERR,"Fix bond/react: Map file missing InitiatorIDs or Equivalences section\n");
+    error->all(FLERR,"Reaction map file missing InitiatorIDs or Equivalences section\n");
 }
 
 void ReactionParser::EdgeIDs(char *line, Reaction &rxn, int nedge)
@@ -229,7 +229,7 @@ void ReactionParser::EdgeIDs(char *line, Reaction &rxn, int nedge)
     readline(line);
     tmp = firstint(line, "EdgeIDs section is incorrectly formatted");
     if ((tmp < 1) || (tmp > rxn.reactant->natoms))
-      error->one(FLERR,"Fix bond/react: Invalid template atom ID in map file");
+      error->one(FLERR,"Invalid template atom ID in reaction map file");
     rxn.atoms[tmp-1].edge = 1;
   }
 }
@@ -247,7 +247,7 @@ void ReactionParser::Equivalences(char *line, Reaction &rxn, int nequivalent)
       error->one(FLERR, "Equivalences section is incorrectly formatted");
     }
     if ((tmp1 < 1) || (tmp1 > rxn.reactant->natoms) || (tmp2 < 1) || (tmp2 > rxn.product->natoms))
-      error->one(FLERR,"Fix bond/react: Invalid template atom ID in map file");
+      error->one(FLERR,"Invalid template atom ID in reaction map file");
     //equivalences is-> clmn 1: post-reacted, clmn 2: pre-reacted
     rxn.atoms[tmp2-1].amap[0] = tmp2;
     rxn.atoms[tmp2-1].amap[1] = tmp1;
@@ -262,7 +262,7 @@ void ReactionParser::Equivalences(char *line, Reaction &rxn, int nequivalent)
       if (rxn.atoms[j].created == 1) continue;
       if (rxn.atoms[i].amap[0] == rxn.atoms[j].amap[0] ||
           rxn.atoms[i].amap[1] == rxn.atoms[j].amap[1]) {
-        error->one(FLERR,"Fix bond/react: Repeated atoms IDs in Equivalences section");
+        error->one(FLERR,"Repeated atoms IDs in Equivalences section");
       }
     }
   }
@@ -275,7 +275,7 @@ void ReactionParser::DeleteAtoms(char *line, Reaction &rxn, int ndelete)
     readline(line);
     tmp = firstint(line, "DeleteIDs section is incorrectly formatted");
     if ((tmp < 1) || (tmp > rxn.reactant->natoms))
-      error->one(FLERR,"Fix bond/react: Invalid template atom ID in map file");
+      error->one(FLERR,"Invalid template atom ID in reaction map file");
     rxn.atoms[tmp-1].deleted = 1;
   }
 }
@@ -288,15 +288,15 @@ void ReactionParser::CreateAtoms(char *line, Reaction &rxn, int ncreate)
     readline(line);
     tmp = firstint(line, "CreateIDs section is incorrectly formatted");
     if ((tmp < 1) || (tmp > rxn.product->natoms))
-      error->one(FLERR, Error::NOLASTLINE, "Fix bond/react: Invalid atom ID in CreateIDs section of map file");
+      error->one(FLERR, Error::NOLASTLINE, "Invalid atom ID in CreateIDs section of reaction map file");
     rxn.atoms[tmp-1].created = 1;
   }
   if (rxn.product->xflag == 0)
     error->one(FLERR, Error::NOLASTLINE,
-               "Fix bond/react: 'Coords' section required in post-reaction template when creating new atoms");
+               "'Coords' section required in post-reaction template when creating new atoms");
   if (atom->rmass_flag && !rxn.product->rmassflag)
     error->one(FLERR, Error::NOLASTLINE,
-               "Fix bond/react: 'Masses' section required in post-reaction template when creating new atoms "
+               "'Masses' section required in post-reaction template when creating new atoms "
                "and per-atom masses are defined.");
 }
 
@@ -316,17 +316,17 @@ void ReactionParser::ChiralCenters(char *line, Reaction &rxn, int nchiral)
     readline(line);
     tmp = firstint(line, "ChiralIDs section is incorrectly formatted");
     if ((tmp < 1) || (tmp > rxn.reactant->natoms))
-      error->one(FLERR,"Fix bond/react: Invalid template atom ID in map file");
+      error->one(FLERR,"Invalid template atom ID in reaction map file");
     rxn.atoms[tmp-1].chiral[0] = 1;
     if (rxn.reactant->xflag == 0)
-      error->one(FLERR,"Fix bond/react: Molecule template 'Coords' section required for chiralIDs keyword");
+      error->one(FLERR,"Molecule template 'Coords' section required for chiralIDs keyword");
     if ((int) rxn.reactant->nspecial[tmp-1][0] != 4)
-      error->one(FLERR,"Fix bond/react: Chiral atoms must have exactly four first neighbors");
+      error->one(FLERR,"Chiral atoms in reaction template must have exactly four first neighbors");
     for (int j = 0; j < 4; j++) {
       for (int k = j+1; k < 4; k++) {
         if (rxn.reactant->type[rxn.reactant->special[tmp-1][j]-1] ==
             rxn.reactant->type[rxn.reactant->special[tmp-1][k]-1])
-          error->one(FLERR,"Fix bond/react: First neighbors of chiral atoms must be of mutually different types");
+          error->one(FLERR,"First neighbors of chiral atoms must be of mutually different types");
       }
     }
     // record order of atom types, and coords
@@ -349,7 +349,7 @@ void ReactionParser::ReadWildcards(char *line, Reaction &rxn, int nwild)
     readline(line);
     tmp = firstint(line, "Wildcards section is incorrectly formatted");
     if ((tmp < 1) || (tmp > rxn.reactant->natoms))
-      error->one(FLERR,"Bond/react: Invalid template atom ID in map file");
+      error->one(FLERR,"Invalid template atom ID in reaction map file");
     rxn.atoms[tmp-1].wildcard = true;
   }
 }
@@ -450,14 +450,14 @@ void ReactionParser::ReadConstraints(char *line, Reaction &rxn)
       constraint.ids[0] = -1; // optional molecule fragment
       if (isalpha(strargs[0][0])) {
         int ifragment = rxn.reactant->findfragment(strargs[0]);
-        if (ifragment < 0) error->one(FLERR,"Fix bond/react: Molecule fragment does not exist");
+        if (ifragment < 0) error->one(FLERR,"RMSD molecule fragment listed in reaction map file does not exist");
         else constraint.ids[0] = ifragment;
       }
     } else if (strcmp(constraint_type,"custom") == 0) {
       constraint.type = Reaction::Constraint::Type::CUSTOM;
       std::vector<std::string> args = utils::split_words(line);
       constraint.custom.str = args[1];
-    } else error->one(FLERR,"Fix bond/react: Illegal constraint type in 'Constraints' section of map file");
+    } else error->one(FLERR,"Illegal constraint type in 'Constraints' section of reaction map file");
   }
   rxn.constraintstr += ")"; // close boolean constraint logic string
   delete[] constraint_type;
@@ -475,13 +475,13 @@ void ReactionParser::readID(char *strarg, Reaction::Constraint &constraint, Reac
     constraint.idtypes[i] = Reaction::Constraint::IDType::FRAG; // fragment vs. atom ID flag
     int ifragment = rxn.reactant->findfragment(strarg);
     if (ifragment < 0)
-      error->one(FLERR,"Fix bond/react: Molecule fragment {} does not exist", strarg);
+      error->one(FLERR,"Molecule fragment {} does not exist", strarg);
     constraint.ids[i] = ifragment;
   } else {
     constraint.idtypes[i] = Reaction::Constraint::IDType::ATOM; // fragment vs. atom ID flag
     int iatom = utils::inumeric(FLERR, strarg, true, lmp);
     if (iatom > rxn.reactant->natoms)
-      error->one(FLERR,"Fix bond/react: Invalid template atom ID {} in map file", strarg);
+      error->one(FLERR,"Invalid template atom ID {} in reaction map file", strarg);
     constraint.ids[i] = iatom;
   }
 }
@@ -494,7 +494,7 @@ void ReactionParser::readline(char *line)
     else n = strlen(line) + 1;
   }
   MPI_Bcast(&n,1,MPI_INT,0,world);
-  if (n == 0) error->all(FLERR,"Fix bond/react: Unexpected end of map file");
+  if (n == 0) error->all(FLERR,"Unexpected end of reaction map file");
   MPI_Bcast(line,n,MPI_CHAR,0,world);
 }
 

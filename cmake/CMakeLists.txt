@@ -720,7 +720,7 @@ foreach(PKG_LIB H5MD)
   endif()
 endforeach()
 
-if(PKG_ELECTRODE OR PKG_ML-POD)
+if(PKG_ELECTRODE OR PKG_ML-POD OR PKG_RHEO)
   target_link_libraries(lammps PRIVATE ${LAPACK_LIBRARIES})
 endif()
 
@@ -942,12 +942,16 @@ if(BUILD_SHARED_LIBS)
   else()
     add_custom_target(
       install-python
-      ${CMAKE_COMMAND} -E echo "Must have Python installed to install the LAMMPS Python module")
+      COMMAND ${CMAKE_COMMAND} -E echo "Must have Python installed to install the LAMMPS Python module"
+      COMMAND ${CMAKE_COMMAND} -E false
+      VERBATIM)
   endif()
 else()
   add_custom_target(
     install-python
-    ${CMAKE_COMMAND} -E echo "Must build LAMMPS as a shared library to use the Python module")
+    COMMAND ${CMAKE_COMMAND} -E echo "Must build LAMMPS as a shared library to use the Python module"
+    COMMAND ${CMAKE_COMMAND} -E false
+    VERBATIM)
 endif()
 
 include(Testing)

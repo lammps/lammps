@@ -17,8 +17,9 @@ particles.  The following aspects are discussed in turn:
 * computes, thermodynamics, and dump output
 * rigid bodies composed of finite-size particles
 
-Example input scripts for these kinds of models are in the body,
-colloid, dipole, ellipse, line, peri, pour, and tri directories of the
+Example input scripts for these kinds of models are in the ASPHERE
+(with line and tri sub-directories), body, colloid, dipole, ellipse,
+peri, and pour directories of the
 :doc:`examples directory <Examples>` in the LAMMPS distribution.
 
 Atom styles
@@ -125,7 +126,7 @@ such interactions.  These are the various :doc:`pair styles <pair_style>` that g
 * :doc:`pair_style gran/hooke/history <pair_gran>`
 * :doc:`pair_style gran/hertz/history <pair_gran>`
 * :doc:`pair_style granular/superellipsoid <pair_granular_superellipsoid>`
-* :doc:`pair_style dipole/cut <pair_dipole>`
+* :doc:`pair_style lj/cut/dipole/cut <pair_dipole>`
 * :doc:`pair_style gayberne <pair_gayberne>`
 * :doc:`pair_style resquared <pair_resquared>`
 * :doc:`pair_style brownian <pair_brownian>`
@@ -165,7 +166,7 @@ ellipsoidal particles:
 The advantage of these fixes is that those which thermostat the
 particles include the rotational degrees of freedom in the temperature
 calculation and thermostatting.  The :doc:`fix langevin <fix_langevin>`
-command can also be used with its *omgea* or *angmom* options to
+command can also be used with its *omega* or *angmom* options to
 thermostat the rotational degrees of freedom for spherical or
 ellipsoidal particles.  Other thermostatting fixes only operate on the
 translational kinetic energy of finite-size particles.

@@ -143,9 +143,10 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
 
   std::string update_string = UPDATE_STRING; // NOLINT
 
-  // increment the version number for development branch
-  // so that it is larger than that of the release version
-  if (update_string == " - Development") ++num_ver;
+  // increment the version number for development and maintenance branch
+  // so that it is larger than that of the release version.
+  // this must match the version of the python module in python/setup.py
+  if ((update_string == " - Development") || (update_string == " - Maintenance")) ++num_ver;
 
   // append git descriptor info to update string when compiling development or maintenance version
   if (has_git_info() && ((update_string == " - Development") || (update_string == " - Maintenance")))

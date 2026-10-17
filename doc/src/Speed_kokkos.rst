@@ -227,6 +227,7 @@ be sufficient. In general, for best performance with OpenMP 4.0 or later
 set ``OMP_PROC_BIND=spread`` and ``OMP_PLACES=threads``.  For binding
 threads with the KOKKOS pthreads option, compile LAMMPS with the hwloc
 or libnuma support enabled as described in the :ref:`extra build options page <kokkos>`.
+
 Running on Knight's Landing (KNL) Intel Xeon Phi
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 

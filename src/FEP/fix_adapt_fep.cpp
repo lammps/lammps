@@ -285,12 +285,32 @@ void FixAdaptFEP::init()
       anypair = 1;
       Pair *pair = nullptr;
 
-      if (lmp->suffix_enable)
-        pair = force->pair_match(std::string(ad->pstyle)+"/"+lmp->suffix,1);
+      std::string pname;
+      if (lmp->suffix_enable) {
+        if (lmp->suffix) {
+          pname = std::string(ad->pstyle)+"/"+lmp->suffix;
+          pair = force->pair_match(pname,1);
+        }
+        if ((pair == nullptr) && lmp->suffix2) {
+          pname = std::string(ad->pstyle)+"/"+lmp->suffix2;
+          pair = force->pair_match(pname,1);
+        }
+      }
 
-      if (pair == nullptr) pair = force->pair_match(ad->pstyle,1);
+      if (pair == nullptr) {
+        pname = ad->pstyle;
+        pair = force->pair_match(ad->pstyle,1);
+      }
       if (pair == nullptr)
         error->all(FLERR, "Fix adapt/fep pair style does not exist");
+
+      // Pair::reinit() checks reinitflag only for the top-level pair style,
+      // so the check for sub-styles of hybrid pair styles must be done here.
+      // hybrid pair styles store the names of their sub-styles without suffix.
+
+      if (!pair->reinitflag)
+        error->all(FLERR, "Fix adapt/fep interface to {}pair style {} is not supported",
+                   pair->suffix_flag ? "the accelerated variant of " : "", pname);
       void *ptr = pair->extract(ad->pparam,ad->pdim);
       if (ptr == nullptr)
         error->all(FLERR,"Fix adapt/fep pair style param not supported");

@@ -35,7 +35,7 @@ const char *const XRDtypeList[XRDmaxType] = {
     "O1-",  "F",    "F1-",  "Ne",   "Na",   "Na1+", "Mg",   "Mg2+", "Al",   "Al3+", "Si",   "Sival",
     "Si4+", "P",    "S",    "Cl",   "Cl1-", "Ar",   "K",    "Ca",   "Ca2+", "Sc",   "Sc3+", "Ti",
     "Ti2+", "Ti3+", "Ti4+", "V",    "V2+",  "V3+",  "V5+",  "Cr",   "Cr2+", "Cr3+", "Mn",   "Mn2+",
-    "Mn3+", "Mn4+", "Fe",   "Fe2+", "Fe3+", "Co",   "Co2+", "Co",   "Ni",   "Ni2+", "Ni3+", "Cu",
+    "Mn3+", "Mn4+", "Fe",   "Fe2+", "Fe3+", "Co",   "Co2+", "Co3+", "Ni",   "Ni2+", "Ni3+", "Cu",
     "Cu1+", "Cu2+", "Zn",   "Zn2+", "Ga",   "Ga3+", "Ge",   "Ge4+", "As",   "Se",   "Br",   "Br1-",
     "Kr",   "Rb",   "Rb1+", "Sr",   "Sr2+", "Y",    "Y3+",  "Zr",   "Zr4+", "Nb",   "Nb3+", "Nb5+",
     "Mo",   "Mo3+", "Mo5+", "Mo6+", "Tc",   "Ru",   "Ru3+", "Ru4+", "Rh",   "Rh3+", "Rh4+", "Pd",

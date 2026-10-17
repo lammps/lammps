@@ -339,6 +339,7 @@ double PairRHEOSolid::single(int i, int j, int itype, int jtype, double rsq, dou
 
   smooth = rsq / cutsq[itype][jtype];
   smooth *= smooth;
+  smooth *= smooth;
   smooth = 1.0 - smooth;
   delx = x[i][0] - x[j][0];
   dely = x[i][1] - x[j][1];
@@ -349,7 +350,7 @@ double PairRHEOSolid::single(int i, int j, int itype, int jtype, double rsq, dou
   dot = delx * delvx + dely * delvy + delz * delvz;
   fpair -= gamma[itype][jtype] * dot * rinv * smooth;
 
-  fpair *= factor_lj;
+  fpair *= factor_lj * rinv;
   fforce = fpair;
 
   return 0.0;

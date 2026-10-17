@@ -97,6 +97,10 @@ void FixQEqSlaterOMP::init_matvec_thr()
       b_t[i]      = -1.0;
       t[i] = t_hist[i][2] + 3 * (t_hist[i][0] - t_hist[i][1]);
       s[i] = 4*(s_hist[i][0]+s_hist[i][2])-(6*s_hist[i][1]+s_hist[i][3]);
+    } else {
+      // atoms outside the group act as fixed charges on the s-solution only
+      s[i] = atom->q[i];
+      t[i] = 0.0;
     }
   }
 
@@ -153,6 +157,12 @@ void FixQEqSlaterOMP::compute_H_thr()
     m_fill += H.numnbrs[i];
   }
 
+  // check before filling the matrix to avoid writing past its end
+
+  if (m_fill >= H.m)
+    error->one(FLERR,"Fix qeq/slater/omp has insufficient H "
+                     "matrix size: m_fill={} H.m={}\n",m_fill,H.m);
+
   // pass 2: fill each atom's contiguous block (race-free)
 
 #if defined(_OPENMP)
@@ -192,9 +202,6 @@ void FixQEqSlaterOMP::compute_H_thr()
     chizj[i] = zjtmp;
   }
 
-  if (m_fill >= H.m)
-    error->all(FLERR,"Fix qeq/slater/omp has insufficient H "
-                     "matrix size: m_fill={} H.m={}\n",m_fill,H.m);
 }
 
 /* ----------------------------------------------------------------------
@@ -224,13 +231,13 @@ void FixQEqSlaterOMP::sparse_matvec(sparse_matrix *A, double *x, double *b)
 #pragma omp for schedule(dynamic,50)
 #endif
     for (int i = 0; i < nloc; ++i)
-      if (atom->mask[i] & groupbit) b[i] = (eta[atom->type[i]] - diag_shift) * x[i];
+      b[i] = (atom->mask[i] & groupbit) ? (eta[atom->type[i]] - diag_shift) * x[i] : 0.0;
 
 #if defined(_OPENMP)
 #pragma omp for schedule(dynamic,50)
 #endif
     for (int i = nloc; i < na; ++i)
-      if (atom->mask[i] & groupbit) b[i] = 0.0;
+      b[i] = 0.0;
 
     for (int i = 0; i < na; ++i) b_t[i] = 0.0;
 
@@ -239,12 +246,11 @@ void FixQEqSlaterOMP::sparse_matvec(sparse_matrix *A, double *x, double *b)
 #pragma omp for schedule(dynamic,50)
 #endif
     for (int i = 0; i < nloc; ++i) {
-      if (atom->mask[i] & groupbit) {
-        for (int itr_j = A->firstnbr[i]; itr_j < A->firstnbr[i]+A->numnbrs[i]; itr_j++) {
-          int j = A->jlist[itr_j];
-          b[i] += A->val[itr_j] * x[j];
-          b_t[j] += A->val[itr_j] * x[i];
-        }
+      // include the rows of atoms outside the group for their fixed charges
+      for (int itr_j = A->firstnbr[i]; itr_j < A->firstnbr[i]+A->numnbrs[i]; itr_j++) {
+        int j = A->jlist[itr_j];
+        b[i] += A->val[itr_j] * x[j];
+        b_t[j] += A->val[itr_j] * x[i];
       }
     }
 

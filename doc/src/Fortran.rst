@@ -318,7 +318,7 @@ of the contents of the :f:mod:`LIBLAMMPS` Fortran interface to LAMMPS.
    :ftype extract_variable: function
    :f set_variable: :f:subr:`set_variable`
    :ftype set_variable: subroutine
-   :f set_string_variable: :f:subr:`set_set_string_variable`
+   :f set_string_variable: :f:subr:`set_string_variable`
    :ftype set_string_variable: subroutine
    :f set_internal_variable: :f:subr:`set_internal_variable`
    :ftype set_internal_variable: subroutine
@@ -474,9 +474,9 @@ of the contents of the :f:mod:`LIBLAMMPS` Fortran interface to LAMMPS.
 
    .. note::
 
-      The :f:mod:`MPI_F08` module, which defines Fortran 2008 bindings for MPI,
+      The :f:mod:`!MPI_F08` module, which defines Fortran 2008 bindings for MPI,
       is not directly supported by this interface due to the complexities of
-      supporting both the :f:mod:`MPI_F08` and :f:mod:`MPI` modules at the same
+      supporting both the :f:mod:`!MPI_F08` and :f:mod:`!MPI` modules at the same
       time. However, you should be able to use the ``MPI_VAL`` member of the
       ``MPI_comm`` derived type to access the integer value of the
       communicator, such as in
@@ -806,7 +806,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
 
    .. note::
 
-      The :f:mod:`MPI_F08` module, which defines Fortran 2008 bindings for MPI,
+      The :f:mod:`!MPI_F08` module, which defines Fortran 2008 bindings for MPI,
       is not directly supported by this function.  However, you should be
       able to convert between the two using the `MPI_VAL` member of the
       communicator.  For example,
@@ -820,7 +820,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
          ! ... [commands to set up LAMMPS/etc.]
          comm%MPI_VAL = lmp%get_mpi_comm()
 
-      should assign an :f:mod:`MPI_F08` communicator properly.
+      should assign an :f:mod:`!MPI_F08` communicator properly.
 
 --------
 
@@ -933,10 +933,25 @@ Procedures Bound to the :f:type:`lammps` Derived Type
 
 --------
 
+.. f:function:: map_atom(id)
+
+   This function calls :cpp:func:`lammps_map_atom` to look up the local
+   index of the atom with the global atom ID *id*.
+
+   .. versionadded:: 27June2024
+
+   :p integer(kind=\*) id: global atom ID, either of kind ``c_int`` or
+    ``c_int64_t``
+   :to: :cpp:func:`lammps_map_atom`
+   :r integer(c_int) index: local index of the atom (starting from 1) or 0 if
+    the atom is not found or no atom map exists
+
+--------
+
 .. f:function:: extract_atom(name)
 
    This function calls :cpp:func:`lammps_extract_atom` and returns a pointer to
-   LAMMPS data tied to the :cpp:class:`Atom` class, depending on the data
+   LAMMPS data tied to the :cpp:class:`!Atom` class, depending on the data
    requested through *name*.
 
    .. versionadded:: 3Nov2022
@@ -1048,7 +1063,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
 .. f:function:: extract_compute(id, style, type)
 
    This function calls :cpp:func:`lammps_extract_compute` and returns a pointer
-   to LAMMPS data tied to the :cpp:class:`Compute` class, specifically data
+   to LAMMPS data tied to the :cpp:class:`!Compute` class, specifically data
    provided by the compute identified by *id*. Computes may provide global,
    per-atom, or local data, and those data may be a scalar, a vector, or an
    array. Since computes may provide multiple kinds of data, the user is
@@ -1077,7 +1092,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    will bind the variable *COM* to the center of mass of the atoms created in
    your simulation. The vector in this case has length 3; the length (or, in
    the case of array data, the number of rows and columns) is determined for
-   you based on data from the :cpp:class:`Compute` class.
+   you based on data from the :cpp:class:`!Compute` class.
 
    .. admonition:: Array index order
       :class: tip
@@ -1161,7 +1176,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
 .. f:function:: extract_fix(id, style, type[, nrow][, ncol])
 
    This function calls :cpp:func:`lammps_extract_fix` and returns a pointer to
-   LAMMPS data tied to the :cpp:class:`Fix` class, specifically data provided
+   LAMMPS data tied to the :cpp:class:`!Fix` class, specifically data provided
    by the fix identified by *id*. Fixes may provide global, per-atom, or
    local data, and those data may be a scalar, a vector, or an array. Since
    many fixes provide multiple kinds of data, the user is required to specify
@@ -2618,7 +2633,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    :p character(len=\*) category: category of styles
    :p integer(c_int) idx:         index of the style in the list of *category*
     styles :math:`(1 \leq idx \leq \text{style count})`
-   :p character(len\*) buffer:    string buffer to copy the name of the style
+   :p character(len=\*) buffer:   string buffer to copy the name of the style
     into
    :to: :cpp:func:`lammps_style_name`
 
@@ -2816,7 +2831,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    a derived type and pass an instance of the derived type to *caller*.
 
    The array *ids* is an array of length *nlocal* (as accessed from the
-   :cpp:class:`Atom` class or through :f:func:`extract_global`). The arrays
+   :cpp:class:`!Atom` class or through :f:func:`extract_global`). The arrays
    *x* and *fexternal* are :math:`3 \times {}`\ *nlocal* arrays; these are
    transposed from what they would look like in C (see note about array index
    order at :f:func:`extract_atom`).
@@ -3028,7 +3043,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
 
 --------
 
-.. f:subroutine:: set_fix_external_set_virial_peratom(id, virial)
+.. f:subroutine:: fix_external_set_virial_peratom(id, virial)
 
    This is a companion function to :f:subr:`set_fix_external_callback` to set
    the per-atom virial contribution due to the fix from the external program as
@@ -3056,7 +3071,7 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    :p character(len=*) id: fix ID of fix external instance
    :p real(c_double) virial [dimension(:,:)]: an array of :math:`6 \times{}`\
     *nlocal* components to be added to the per-atom virial
-   :to: :cpp:func:`lammps_set_virial_peratom`
+   :to: :cpp:func:`lammps_fix_external_set_virial_peratom`
 
 --------
 

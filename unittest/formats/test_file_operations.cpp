@@ -358,9 +358,17 @@ TEST_F(FileOperationsTest, write_restart)
     TEST_FAILURE(
         ".*ERROR on proc 0: Cannot open restart file noexist.restart: No such file or directory.*",
         command("read_restart noexist.restart"););
+    TEST_FAILURE(".*ERROR on proc 0: Found no restart file matching pattern.*",
+                 command("read_restart nomatch*.restart"););
+
+    // files that must not match the wildcard pattern "step*.restart"
+    for (const auto *decoy : {"step999.restart.bak", "oldstep777.restart", "step555xrestart"}) {
+        std::ofstream out(decoy);
+        out << "not a restart file\n";
+    }
 
     BEGIN_HIDE_OUTPUT();
-    command("read_restart step333.restart");
+    command("read_restart step*.restart");
     command("change_box all triclinic");
     command("write_restart triclinic.restart");
     END_HIDE_OUTPUT();
@@ -393,6 +401,9 @@ TEST_F(FileOperationsTest, write_restart)
     delete_file("noinit.restart");
     delete_file("test.restart");
     delete_file("step333.restart");
+    delete_file("step999.restart.bak");
+    delete_file("oldstep777.restart");
+    delete_file("step555xrestart");
     delete_file("multi-base.restart");
     delete_file("multi-0.restart");
     delete_file("multi2-base.restart");

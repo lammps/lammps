@@ -27,6 +27,7 @@
 #include "modify.h"
 #include "neighbor.h"
 #include "pair.h"
+#include "suffix.h"
 #include "timer.h"
 #include "update.h"
 
@@ -96,6 +97,16 @@ void FixTuneKspace::init()
     error->all(FLERR,"Cannot use fix tune/kspace with TIP4P water");
   if (force->kspace->dipoleflag)
     error->all(FLERR,"Cannot use fix tune/kspace with dipole long-range solver");
+
+  // replacing the pair and kspace styles is not (yet) supported with the OPENMP package
+
+  bool ompflag = (force->pair->suffix_flag & Suffix::OMP) ||
+      utils::strmatch(force->kspace_style, "/omp$");
+  if (lmp->suffix_enable) {
+    if (lmp->suffix && (strcmp(lmp->suffix, "omp") == 0)) ompflag = true;
+    if (lmp->suffix2 && (strcmp(lmp->suffix2, "omp") == 0)) ompflag = true;
+  }
+  if (ompflag) error->all(FLERR, "Fix tune/kspace is not supported with the OPENMP package");
 
   store_old_kspace_settings();
   double old_acc = force->kspace->accuracy/force->kspace->two_charge_force;

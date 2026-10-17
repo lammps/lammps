@@ -61,7 +61,8 @@ extern void InitializeOMP(reax_system *, control_params *, simulation_data *, st
 
 // multi body
 
-extern void Atom_EnergyOMP(reax_system *, simulation_data *, storage *, reax_list **);
+extern void Atom_EnergyOMP(reax_system *, control_params *, simulation_data *, storage *,
+                           reax_list **);
 
 // nonbonded
 

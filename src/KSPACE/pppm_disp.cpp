@@ -105,6 +105,7 @@ PPPMDisp::PPPMDisp(LAMMPS *lmp) : KSpace(lmp),
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);
   nfft_both = nfft_both_6 = 0;
+  order_6_allocated = 0;
   nxhi_in = nxlo_in = nxhi_out = nxlo_out = 0;
   nyhi_in = nylo_in = nyhi_out = nylo_out = 0;
   nzhi_in = nzlo_in = nzhi_out = nzlo_out = 0;
@@ -2025,6 +2026,7 @@ void _noopt PPPMDisp::allocate()
     memory->create2d_offset(drho1d,3,-order/2,order/2,"pppm/disp:rho1d");
     memory->create2d_offset(drho_coeff,order,(1-order)/2,order/2,
                             "pppm/disp:drho_coeff");
+    order_allocated = order;
 
     memory->create(greensfn,nfft_both,"pppm/disp:greensfn");
     memory->create(vg,nfft_both,6,"pppm/disp:vg");
@@ -2184,6 +2186,7 @@ void _noopt PPPMDisp::allocate()
     memory->create2d_offset(drho1d_6,3,-order_6/2,order_6/2,"pppm/disp:drho1d_6");
     memory->create2d_offset(drho_coeff_6,order_6,(1-order_6)/2,order_6/2,
                             "pppm/disp:drho_coeff_6");
+    order_6_allocated = order_6;
 
     memory->create(greensfn_6,nfft_both_6,"pppm/disp:greensfn_6");
     memory->create(vg_6,nfft_both_6,6,"pppm/disp:vg_6");
@@ -2243,6 +2246,7 @@ void _noopt PPPMDisp::allocate()
     memory->create2d_offset(drho1d_6,3,-order_6/2,order_6/2,"pppm/disp:drho1d_6");
     memory->create2d_offset(drho_coeff_6,order_6,(1-order_6)/2,order_6/2,
                             "pppm/disp:drho_coeff_6");
+    order_6_allocated = order_6;
 
     memory->create(greensfn_6,nfft_both_6,"pppm/disp:greensfn_6");
     memory->create(vg_6,nfft_both_6,6,"pppm/disp:vg_6");
@@ -2383,6 +2387,7 @@ void _noopt PPPMDisp::allocate()
     memory->create2d_offset(drho1d_6,3,-order_6/2,order_6/2,"pppm/disp:drho1d_6");
     memory->create2d_offset(drho_coeff_6,order_6,(1-order_6)/2,order_6/2,
                             "pppm/disp:drho_coeff_6");
+    order_6_allocated = order_6;
 
     memory->create(greensfn_6,nfft_both_6,"pppm/disp:greensfn_6");
     memory->create(vg_6,nfft_both_6,6,"pppm/disp:vg_6");
@@ -2813,18 +2818,19 @@ void PPPMDisp::deallocate()
   fkx2_6 = fky2_6 = fkz2_6 = nullptr;
 
   memory->destroy(gf_b);
-  memory->destroy2d_offset(rho1d,-order/2);
-  memory->destroy2d_offset(rho_coeff,(1-order)/2);
-  memory->destroy2d_offset(drho1d,-order/2);
-  memory->destroy2d_offset(drho_coeff, (1-order)/2);
+  // the order may have been changed since the arrays were allocated
+  memory->destroy2d_offset(rho1d,-order_allocated/2);
+  memory->destroy2d_offset(rho_coeff,(1-order_allocated)/2);
+  memory->destroy2d_offset(drho1d,-order_allocated/2);
+  memory->destroy2d_offset(drho_coeff, (1-order_allocated)/2);
   gf_b = nullptr;
   rho1d = rho_coeff = drho1d = drho_coeff = nullptr;
 
   memory->destroy(gf_b_6);
-  memory->destroy2d_offset(rho1d_6,-order_6/2);
-  memory->destroy2d_offset(rho_coeff_6,(1-order_6)/2);
-  memory->destroy2d_offset(drho1d_6,-order_6/2);
-  memory->destroy2d_offset(drho_coeff_6,(1-order_6)/2);
+  memory->destroy2d_offset(rho1d_6,-order_6_allocated/2);
+  memory->destroy2d_offset(rho_coeff_6,(1-order_6_allocated)/2);
+  memory->destroy2d_offset(drho1d_6,-order_6_allocated/2);
+  memory->destroy2d_offset(drho_coeff_6,(1-order_6_allocated)/2);
   gf_b_6 = nullptr;
   rho1d_6 = rho_coeff_6 = drho1d_6 = drho_coeff_6 = nullptr;
 

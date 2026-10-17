@@ -28,9 +28,9 @@ TopologyMatcher::TopologyMatcher(LAMMPS *lmp, bool constraints_flag, bool limit_
   Pointers(lmp), constraints_flag(constraints_flag), limit_tags_flag(limit_tags_flag),
   default_topo(lmp), topo(&default_topo)
 {
+  rxn_constraints = nullptr;
 
   // checking reaction constraints inside topology_matcher
-
   if (constraints_flag) rxn_constraints = new ReactionConstraints(lmp);
 
   status = Status::PROCEED;
@@ -38,7 +38,7 @@ TopologyMatcher::TopologyMatcher(LAMMPS *lmp, bool constraints_flag, bool limit_
 
 TopologyMatcher::~TopologyMatcher()
 {
-  if (constraints_flag) delete rxn_constraints;
+  delete rxn_constraints;
 }
 
 /* ----------------------------------------------------------------------
@@ -106,7 +106,7 @@ std::string TopologyMatcher::match_topology(std::vector<tagint> &outglove, React
     if ( (topo->nxspecial(atom1) == rxn.reactant->nspecial[rxn.ibonding-1][0] &&
           topo->nxspecial(atom2) == topo->nxspecial(atom1)) &&
          (topo->nxspecial(atom1) == 0 ||
-          topo->xspecial(atom1,0) == atom->tag[atom2]) &&
+          topo->xspecial(atom1,0) == atom2) &&
          constraints_check(rxn, sp.glove) ) status = Status::ACCEPT;
     else status = Status::REJECT;
   }
@@ -305,21 +305,22 @@ std::string TopologyMatcher::check_a_neighbor(Superimpose &super, Reaction &rxn)
 
       for (int i = 0; i < nfirst_neighs; i++) {
 
-        int checktype = topo->type(topo->xspecial(sp.glove[sp.pion],i));
+        tagint spectag = topo->xspecial(sp.glove[sp.pion],i);
+        int checktype = topo->type(spectag);
         int reactant_atom = (int) rxn.reactant->special[sp.pion][sp.neigh];
         if (compare_atomtype(checktype, rxn, reactant_atom) &&
-            topo->nxspecial(topo->xspecial(sp.glove[sp.pion],i)) == 1) {
+            topo->nxspecial(spectag) == 1) {
 
           int already_assigned = 0;
           for (int j = 0; j < rxn.reactant->natoms; j++) {
-            if (sp.glove[j] == topo->xspecial(sp.glove[sp.pion],i)) {
+            if (sp.glove[j] == spectag) {
               already_assigned = 1;
               break;
             }
           }
 
           if (already_assigned == 0) {
-            sp.glove[(int)rxn.reactant->special[sp.pion][sp.neigh]-1] = topo->xspecial(sp.glove[sp.pion],i);
+            sp.glove[(int)rxn.reactant->special[sp.pion][sp.neigh]-1] = spectag;
 
             //another check for ghost atoms. perhaps remove the one in make_a_guess
             if (atom->map(sp.glove[(int)rxn.reactant->special[sp.pion][sp.neigh]-1]) < 0) {

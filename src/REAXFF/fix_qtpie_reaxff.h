@@ -125,6 +125,7 @@ class FixQtpieReaxFF : public Fix {
   double memory_usage() override;
   void grow_arrays(int) override;
   void copy_arrays(int, int, int) override;
+  void set_arrays(int) override;
   int pack_exchange(int, double *) override;
   int unpack_exchange(int, double *) override;
 

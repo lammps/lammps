@@ -99,6 +99,15 @@ reduced memory requirements because it avoids the overheads of
 storing the matrix. This is only supported for the *qeq/reaxff/kk*
 style, with both full and half qeq neighbor lists supported.
 
+.. versionchanged:: TBD
+
+If the fix group does not contain all atoms, only the charges of the
+atoms in the fix group are equilibrated.  The charges of all other atoms
+are not changed, but they still contribute to the electrostatic
+potential at the atoms in the fix group, i.e. they act as fixed external
+charges.  All accelerated variants of this fix follow the same
+convention.
+
 .. note::
 
    In order to solve the self-consistent equations for electronegativity

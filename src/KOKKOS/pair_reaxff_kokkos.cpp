@@ -363,7 +363,7 @@ void PairReaxFFKokkos<DeviceType>::setup()
   // bond order cutoffs
   bo_cut = static_cast<KK_FLOAT>(0.01 * gp[29]);
   thb_cut = static_cast<KK_FLOAT>(api->control->thb_cut);
-  thb_cutsq = static_cast<KK_FLOAT>(0.000010); //thb_cut*thb_cut;
+  thb_cutsq = static_cast<KK_FLOAT>(api->control->thb_cutsq);
 
   // misc precision conversions
   C_ele_reduced = static_cast<KK_FLOAT>(C_ele);
@@ -508,6 +508,10 @@ int PairReaxFFKokkos<DeviceType>::Init_Lookup_Tables()
 
   for (i = 1; i <= num_atom_types; ++i) {
     for (j = i; j <= num_atom_types; ++j) {
+
+      // skip atom types that are not handled by this pair style (NULL in pair_coeff)
+      if ((map[i] == -1) || (map[j] == -1)) continue;
+
       LR[i][j].xmin = 0;
       LR[i][j].xmax = api->control->nonb_cut;
       LR[i][j].n = api->control->tabulate + 2;
@@ -4372,7 +4376,9 @@ void PairReaxFFKokkos<DeviceType>::FindBondSpecies()
   k_error_flag.sync_host();
 
   if (k_error_flag.view_host()())
-    error->all(FLERR,"Increase MAXSPECBOND in reaxff_defs.h");
+    error->one(FLERR, Error::NOLASTLINE,
+               "Atom(s) with more than {} bonds for ReaxFF species analysis; "
+               "increase MAXSPECBOND in reaxff_defs.h", MAXSPECBOND);
 }
 
 template<class DeviceType>
@@ -4400,10 +4406,13 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxFindBondSpecies, const 
     KK_FLOAT bo_tmp = d_BO(i, j_index);
 
     if (bo_tmp >= 0.10) { // Why is this a hardcoded value?
+      if (nj >= MAXSPECBOND) {
+        k_error_flag.view<DeviceType>()() = 1;
+        return;
+      }
       d_tmpid(i,nj) = j;
       d_tmpbo(i,nj) = bo_tmp;
       nj++;
-      if (nj > MAXSPECBOND) k_error_flag.view<DeviceType>()() = 1;
     }
   }
 }

@@ -42,6 +42,8 @@ using namespace MathConst;
 PairBuckIntel::PairBuckIntel(LAMMPS *lmp) : PairBuck(lmp)
 {
   suffix_flag |= Suffix::INTEL;
+  // parameters are copied to packed arrays in init_style(), fix adapt would not update them
+  reinitflag = 0;
 }
 
 void PairBuckIntel::compute(int eflag, int vflag)

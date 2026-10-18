@@ -759,6 +759,43 @@ TEST_F(ThermoTest, TriclinicGeneral)
     ASSERT_NEAR(get_variable_value("avecx"), lmp->domain->xprd,
                 prec_tol(lmp->domain->xprd, 1e-12));
 }
+
+TEST_F(ThermoTest, KeywordBeforeRun)
+{
+    // thermo keywords used in variable formulas need a thermo compute that a
+    // run has initialized; the error message must say so and name the fix.
+    auto expect_error = [&](const std::string &cmd, const std::string &needle) {
+        bool threw = false;
+        ::testing::internal::CaptureStdout();
+        try {
+            command(cmd);
+        } catch (...) {
+            threw = true;
+        }
+        auto out = ::testing::internal::GetCapturedStdout();
+        ASSERT_TRUE(threw) << cmd;
+        ASSERT_THAT(out, ::testing::HasSubstr(needle)) << cmd;
+    };
+
+    expect_error("print \"$(ke)\"", "needs a temperature compute");
+    expect_error("print \"$(press)\"", "needs a pressure compute");
+
+    // after initialization the same keywords evaluate without error
+    run0();
+    HIDE_OUTPUT([&] {
+        command("print \"$(ke)\"");
+        command("print \"$(pe)\"");
+        command("print \"$(press)\"");
+    });
+
+    // pe is reachable once energy has been tallied but the current thermo
+    // style no longer computes it
+    HIDE_OUTPUT([&] {
+        command("thermo_style custom step temp");
+    });
+    expect_error("print \"$(pe)\"", "needs a potential energy compute");
+}
+
 } // namespace LAMMPS_NS
 
 int main(int argc, char **argv)

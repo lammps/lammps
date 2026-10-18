@@ -1296,10 +1296,15 @@ int Thermo::add_variable(const char *id)
 void Thermo::check_temp(const std::string &keyword)
 {
   if (!temperature)
-    error->all(FLERR, "Thermo keyword {} in variable requires thermo to use/init temperature",
+    error->all(FLERR,
+               "Thermo keyword {} in variable needs a temperature compute initialized by a run. "
+               "Use 'run 0' before evaluating this variable and make sure thermo_style "
+               "includes a keyword such as 'temp' or 'ke'",
                keyword);
   if (!temperature->is_initialized())
-    error->all(FLERR, "Thermo keyword {} cannot be invoked before initialization by a run",
+    error->all(FLERR,
+               "Thermo keyword {} cannot be invoked before initialization by a run. "
+               "Use 'run 0' before evaluating this variable",
                keyword);
   if (!(temperature->invoked_flag & Compute::INVOKED_SCALAR)) {
     temperature->compute_scalar();
@@ -1317,10 +1322,15 @@ void Thermo::check_pe(const std::string &keyword)
     error->all(FLERR, Error::NOLASTLINE, "Energy was not tallied on needed timestep{}",
                utils::errorurl(22));
   if (!pe)
-    error->all(FLERR, "Thermo keyword {} in variable requires thermo to use/init potential energy",
+    error->all(FLERR,
+               "Thermo keyword {} in variable needs a potential energy compute initialized "
+               "by a run. Use 'run 0' before evaluating this variable and make sure "
+               "thermo_style includes 'pe'",
                keyword);
   if (!pe->is_initialized())
-    error->all(FLERR, "Thermo keyword {} cannot be invoked before initialization by a run",
+    error->all(FLERR,
+               "Thermo keyword {} cannot be invoked before initialization by a run. "
+               "Use 'run 0' before evaluating this variable",
                keyword);
   if (!(pe->invoked_flag & Compute::INVOKED_SCALAR)) {
     pe->compute_scalar();
@@ -1335,9 +1345,15 @@ void Thermo::check_pe(const std::string &keyword)
 void Thermo::check_press_scalar(const std::string &keyword)
 {
   if (!pressure)
-    error->all(FLERR, "Thermo keyword {} in variable requires thermo to use/init press", keyword);
+    error->all(FLERR,
+               "Thermo keyword {} in variable needs a pressure compute initialized by a run. "
+               "Use 'run 0' before evaluating this variable and make sure thermo_style "
+               "includes 'press'",
+               keyword);
   if (!pressure->is_initialized())
-    error->all(FLERR, "Thermo keyword {} cannot be invoked before initialization by a run",
+    error->all(FLERR,
+               "Thermo keyword {} cannot be invoked before initialization by a run. "
+               "Use 'run 0' before evaluating this variable",
                keyword);
   if (!(pressure->invoked_flag & Compute::INVOKED_SCALAR)) {
     pressure->compute_scalar();
@@ -1352,9 +1368,15 @@ void Thermo::check_press_scalar(const std::string &keyword)
 void Thermo::check_press_vector(const std::string &keyword)
 {
   if (!pressure)
-    error->all(FLERR, "Thermo keyword {} in variable requires thermo to use/init press", keyword);
+    error->all(FLERR,
+               "Thermo keyword {} in variable needs a pressure compute initialized by a run. "
+               "Use 'run 0' before evaluating this variable and make sure thermo_style "
+               "includes 'press'",
+               keyword);
   if (!pressure->is_initialized())
-    error->all(FLERR, "Thermo keyword {} cannot be invoked before initialization by a run",
+    error->all(FLERR,
+               "Thermo keyword {} cannot be invoked before initialization by a run. "
+               "Use 'run 0' before evaluating this variable",
                keyword);
   if (!(pressure->invoked_flag & Compute::INVOKED_VECTOR)) {
     pressure->compute_vector();

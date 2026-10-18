@@ -103,7 +103,9 @@ The *tangential* keyword with its model is required and the *damping*
 model is optional.  Other normal, damping, and tangential models, as well
 as the *rolling*, *twisting*, and *heat* models, *limit_damping*, and
 *synchronized_verlet* of :doc:`pair_style granular <pair_granular>` are
-not supported.  The *wallstyle* and the *wiggle* keyword are the same as
+not supported, for the reasons given for :doc:`pair_style
+body/rounded/polyhedron/granular <pair_body_rounded_polyhedron_granular>`.
+The *wallstyle* and the *wiggle* keyword are the same as
 for :doc:`fix wall/body/polyhedron <fix_wall_body_polyhedron>`.
 
 The input script *in.heap3d_granular* in the *examples/body* directory

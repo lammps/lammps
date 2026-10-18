@@ -199,11 +199,38 @@ The *tangential* keyword with its model is required, while the *damping*
 and *cohesion* keywords are optional.  The meaning of the coefficients
 is the same as for :doc:`pair_style granular <pair_granular>`, with the overlap and the effective radius of
 curvature of each contact as described above.  Other normal, damping,
-and tangential models, as well as the *rolling* and *twisting* models,
-*limit_damping*, and *synchronized_verlet* of :doc:`pair_style granular
-<pair_granular>` are not supported, since they are not well defined for
-the multiple contacts of polyhedra or for a single friction force per pair
-of particles.
+and tangential models, as well as the *rolling*, *twisting*, and *heat*
+models, *limit_damping*, and *synchronized_verlet* of :doc:`pair_style
+granular <pair_granular>` are not supported.  The sub-models here must
+satisfy two conditions: the normal force of a contact depends only on its
+overlap and its effective radius of curvature, and the damping and
+tangential forces can be combined into a single friction force per pair
+of particles, whose history is a single set of values per pair.  The
+contacts of two polyhedra are found anew at each time step and can change
+in number and kind, e.g. from a vertex on a face to two crossing edges,
+so that no values can be kept for an individual contact.  In detail:
+
+* The *dmt* normal model adds an adhesive force at each contact, in
+  addition to the cohesion of :ref:`Wang <pair-Wang>` (see *cohesion*).
+  For a face resting on another face, the contact is represented by
+  several vertex contacts, so that the adhesion would grow with the number
+  of these contacts rather than with the area of the contact region.
+* The *jkr* normal model keeps two particles in contact until they are
+  separated beyond a pull-off distance, which requires to remember whether
+  each contact has been formed, and acts at separations beyond the surfaces
+  of the particles.
+* The *mdr* normal model and damping model describe the large deformation
+  of spheres, with quantities stored per particle, such as the volume of
+  the spherical caps cut off by the contacts, which are not defined for
+  polyhedra.
+* The *viscoelastic*, *tsuji*, and *coeff_restitution* damping models
+  depend on the contact radius or the normal stiffness of a contact, and
+  the *mindlin* tangential models on the contact radius, which has no
+  single value for the friction force of a pair of particles that combines
+  several contacts.
+* The *rolling* and *twisting* models need the history of the relative
+  rotation and the contact radius of each contact, and the *heat* models
+  the contact radius or area of each contact.
 
 The input script *in.heap3d_granular* in the *examples/body* directory
 pours cubes and tetrahedra onto a floor with Hertzian contacts from the

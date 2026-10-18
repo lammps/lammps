@@ -762,8 +762,9 @@ TEST_F(ThermoTest, TriclinicGeneral)
 
 TEST_F(ThermoTest, KeywordBeforeRun)
 {
-    // thermo keywords used in variable formulas need a thermo compute that a
-    // run has initialized; the error message must say so and name the fix.
+    // thermo keywords in variable formulas need a compute that is both used by
+    // the current thermo style and initialized by a run.  The two failure modes
+    // must produce different messages that each name the right fix.
     auto expect_error = [&](const std::string &cmd, const std::string &needle) {
         bool threw = false;
         ::testing::internal::CaptureStdout();
@@ -777,8 +778,9 @@ TEST_F(ThermoTest, KeywordBeforeRun)
         ASSERT_THAT(out, ::testing::HasSubstr(needle)) << cmd;
     };
 
-    expect_error("print \"$(ke)\"", "needs a temperature compute");
-    expect_error("print \"$(press)\"", "needs a pressure compute");
+    // default thermo style uses temp and press, but no run has initialized them
+    expect_error("print \"$(ke)\"", "before the temperature compute is initialized");
+    expect_error("print \"$(press)\"", "before the pressure compute is initialized");
 
     // after initialization the same keywords evaluate without error
     run0();
@@ -788,12 +790,14 @@ TEST_F(ThermoTest, KeywordBeforeRun)
         command("print \"$(press)\"");
     });
 
-    // pe is reachable once energy has been tallied but the current thermo
-    // style no longer computes it
+    // a thermo style without the needed keywords cannot provide the computes
     HIDE_OUTPUT([&] {
-        command("thermo_style custom step temp");
+        command("thermo_style custom step");
     });
-    expect_error("print \"$(pe)\"", "needs a potential energy compute");
+    expect_error("print \"$(ke)\"", "Add a keyword such as 'temp' to thermo_style");
+    expect_error("print \"$(pe)\"", "Add a keyword such as 'pe' to thermo_style");
+    expect_error("print \"$(press)\"", "Add a keyword such as 'press' to thermo_style");
+    expect_error("print \"$(pxx)\"", "Add a keyword such as 'press' to thermo_style");
 }
 
 } // namespace LAMMPS_NS

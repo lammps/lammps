@@ -170,10 +170,19 @@ void PairLJClass2Soft::allocate()
 
 void PairLJClass2Soft::settings(int narg, char **arg)
 {
-  if (narg != 3) error->all(FLERR,"Illegal pair_style command");
+  if (narg < 3)
+    utils::missing_cmd_args(FLERR, "pair_style lj/class2/soft", error);
+  if (narg > 3)
+    error->all(FLERR, "Too many arguments in pair_style lj/class2/soft command");
 
   nlambda = utils::numeric(FLERR,arg[0],false,lmp);
   alphalj = utils::numeric(FLERR,arg[1],false,lmp);
+
+  if (nlambda < 0.0)
+    error->all(FLERR, "Pair style lj/class2/soft requires 0 < nlambda");
+
+  if (alphalj < 0.0)
+    error->all(FLERR, "Pair style lj/class2/soft requires 0 < alphalj");
 
   cut_global = utils::numeric(FLERR,arg[2],false,lmp);
 

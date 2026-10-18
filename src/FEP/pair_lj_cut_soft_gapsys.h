@@ -44,6 +44,7 @@ class PairLJCutSoftGapsys : public Pair {
  protected:
   double cut_global;
   double **cut;
+  double **cut_lj_inner;
   double **epsilon, **sigma;
   double **lambda;
   double **lj1, **lj2, **lj3, **lj4, **offset;

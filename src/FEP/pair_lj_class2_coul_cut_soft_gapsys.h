@@ -46,6 +46,7 @@ class PairLJClass2CoulCutSoftGapsys : public Pair {
   double cut_lj_global, cut_coul_global;
   double **cut_lj, **cut_ljsq;
   double **cut_coul, **cut_coulsq;
+  double **cut_lj_inner;
   double **epsilon, **sigma;
   double **lambda;
   double **lj1, **lj2, **lj3, **lj4, **offset;

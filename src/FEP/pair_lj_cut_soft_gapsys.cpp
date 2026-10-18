@@ -33,7 +33,8 @@ using namespace MathConst;
 /* ---------------------------------------------------------------------- */
 
 PairLJCutSoftGapsys::PairLJCutSoftGapsys(LAMMPS *lmp) :
-    Pair(lmp), cut(nullptr), epsilon(nullptr), sigma(nullptr), lambda(nullptr), lj1(nullptr),
+    Pair(lmp), cut(nullptr), cut_lj_inner(nullptr), epsilon(nullptr),
+    sigma(nullptr), lambda(nullptr), lj1(nullptr),
     lj2(nullptr), lj3(nullptr), lj4(nullptr), offset(nullptr)
 {
   writedata = 1;
@@ -52,6 +53,7 @@ PairLJCutSoftGapsys::~PairLJCutSoftGapsys()
     memory->destroy(cutsq);
 
     memory->destroy(cut);
+    memory->destroy(cut_lj_inner);
     memory->destroy(epsilon);
     memory->destroy(sigma);
     memory->destroy(lambda);
@@ -71,7 +73,6 @@ void PairLJCutSoftGapsys::compute(int eflag, int vflag)
   int i, j, ii, jj, inum, jnum, itype, jtype;
   double xtmp, ytmp, ztmp, delx, dely, delz, evdwl, fpair;
   double rsq, r2inv, r6inv, forcelj, factor_lj;
-  double cut_inner;
   int *ilist, *jlist, *numneigh, **firstneigh;
 
   evdwl = 0.0;
@@ -110,18 +111,16 @@ void PairLJCutSoftGapsys::compute(int eflag, int vflag)
       delz = ztmp - x[j][2];
       rsq = delx * delx + dely * dely + delz * delz;
       jtype = type[j];
-
-      cut_inner = alphalj * pow(26.0 * lambda[itype][jtype] / 7.0, 1.0 / 6.0) * sigma[itype][jtype];
-
-      if (rsq < cut_inner * cut_inner) {
+    
+      if (rsq < cut_lj_inner[itype][jtype] * cut_lj_inner[itype][jtype]) {
 
         double epsln = epsilon[itype][jtype];
 
-        double s_ri6 = pow(sigma[itype][jtype] / cut_inner, 6);
+        double s_ri6 = pow(sigma[itype][jtype] / cut_lj_inner[itype][jtype], 6);
         double s_ri12 = s_ri6 * s_ri6;
 
-        double b1 = -24.0 * epsln * (26.0 * s_ri12 - 7.0 * s_ri6) / (cut_inner * cut_inner);
-        double b2 = 96.0 * epsln * (7.0 * s_ri12 - 2.0 * s_ri6) / cut_inner;
+        double b1 = -24.0 * epsln * (26.0 * s_ri12 - 7.0 * s_ri6) / (cut_lj_inner[itype][jtype] * cut_lj_inner[itype][jtype]);
+        double b2 = 96.0 * epsln * (7.0 * s_ri12 - 2.0 * s_ri6) / cut_lj_inner[itype][jtype];
 
         fpair = factor_lj * (b1 + b2 / sqrt(rsq));
 
@@ -187,6 +186,7 @@ void PairLJCutSoftGapsys::allocate()
   memory->create(cutsq, n, n, "pair:cutsq");
 
   memory->create(cut, n, n, "pair:cut");
+  memory->create(cut_lj_inner, n, n, "pair:cut_lj_inner");
   memory->create(epsilon, n, n, "pair:epsilon");
   memory->create(sigma, n, n, "pair:sigma");
   memory->create(lambda, n, n, "pair:lambda");
@@ -282,6 +282,8 @@ double PairLJCutSoftGapsys::init_one(int i, int j)
   lj3[i][j] = 4.0 * epsilon[i][j] * pow(sigma[i][j], 12.0);
   lj4[i][j] = 4.0 * epsilon[i][j] * pow(sigma[i][j], 6.0);
 
+  cut_lj_inner[i][j] = alphalj * pow(26.0 * lambda[i][j] / 7.0, 1.0 / 6.0) * sigma[i][j];
+
   if (offset_flag && (cut[i][j] > 0.0)) {
     double ratio = sigma[i][j] / cut[i][j];
     offset[i][j] = 4.0 * epsilon[i][j] * (pow(ratio, 12.0) - pow(ratio, 6.0));
@@ -292,6 +294,7 @@ double PairLJCutSoftGapsys::init_one(int i, int j)
   sigma[j][i] = sigma[i][j];
   lambda[j][i] = lambda[i][j];
   cut[j][i] = cut[i][j];
+  cut_lj_inner[j][i] = cut_lj_inner[i][j];
   lj1[j][i] = lj1[i][j];
   lj2[j][i] = lj2[i][j];
   lj3[j][i] = lj3[i][j];
@@ -437,12 +440,9 @@ void PairLJCutSoftGapsys::write_data_all(FILE *fp)
 double PairLJCutSoftGapsys::single(int /*i*/, int /*j*/, int itype, int jtype, double rsq,
                          double /*factor_coul*/, double factor_lj, double &fforce)
 {
-  double cut_inner;
-  cut_inner = alphalj * pow(26.0 * lambda[itype][jtype] / 7.0, 1.0 / 6.0) * sigma[itype][jtype];
-
   double r2inv, r6inv, forcelj, philj;
 
-  if (rsq > cut_inner * cut_inner) {
+  if (rsq > cut_lj_inner[itype][jtype] * cut_lj_inner[itype][jtype]) {
 
     r2inv = 1.0 / rsq;
     r6inv = r2inv * r2inv * r2inv;
@@ -456,19 +456,17 @@ double PairLJCutSoftGapsys::single(int /*i*/, int /*j*/, int itype, int jtype, d
 
     double epsln = epsilon[itype][jtype];
 
-    double s_ri6 = pow(sigma[itype][jtype] / cut_inner, 6);
+    double s_ri6 = pow(sigma[itype][jtype] / cut_lj_inner[itype][jtype], 6);
     double s_ri12 = s_ri6 * s_ri6;
 
-    double b1 = -24.0 * epsln * (26.0 * s_ri12 - 7.0 * s_ri6) / (cut_inner * cut_inner);
-    double b2 = 96.0 * epsln * (7.0 * s_ri12 - 2.0 * s_ri6) / cut_inner;
+    double b1 = -24.0 * epsln * (26.0 * s_ri12 - 7.0 * s_ri6) / (cut_lj_inner[itype][jtype] * cut_lj_inner[itype][jtype]);
+    double b2 = 96.0 * epsln * (7.0 * s_ri12 - 2.0 * s_ri6) / cut_lj_inner[itype][jtype];
 
     fforce = factor_lj * (b1 + b2 / sqrt(rsq));
 
-    double a1 = 12.0 * epsln * (26.0 * s_ri12 - 7.0 * s_ri6) / (cut_inner * cut_inner);
-    double a2 = -96.0 * epsln * (7.0 * s_ri12 - 2.0 * s_ri6) / cut_inner;
     double a3 = 28.0 * epsln * (13.0 * s_ri12 - 4.0 * s_ri6);
 
-    return factor_lj * (a1 * rsq + a2 * sqrt(rsq) + a3 - offset[itype][jtype]);
+    return factor_lj * (-0.5 * b1 * rsq - b2 * sqrt(rsq) + a3 - offset[itype][jtype]);
 
   }
 }

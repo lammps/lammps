@@ -202,7 +202,10 @@ void PairLJClass2SoftGapsys::allocate()
 
 void PairLJClass2SoftGapsys::settings(int narg, char **arg)
 {
-  if (narg != 2) error->all(FLERR, "Illegal pair_style command");
+  if (narg < 2)
+    utils::missing_cmd_args(FLERR, "pair_style lj/class2/soft/gapsys", error);
+  if (narg > 2)
+    error->all(FLERR, "Too many arguments in pair_style lj/class2/soft/gapsys command");
 
   alphalj = utils::numeric(FLERR, arg[0], false, lmp);
   if (!(alphalj > 0.0))

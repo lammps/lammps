@@ -156,11 +156,8 @@ void PairLJCutCoulCutSoftGapsys::compute(int eflag, int vflag)
           double b2 = 96.0 * epsln * (7.0 * s_ri12 - 2.0 * s_ri6) / cut_inner_lj;
           forcelj = rsq * (b1 + b2 / sqrt(rsq));
           if (eflag) {
-            double a1 =
-                12.0 * epsln * (26.0 * s_ri12 - 7.0 * s_ri6) / (cut_inner_lj * cut_inner_lj);
-            double a2 = -96.0 * epsln * (7.0 * s_ri12 - 2.0 * s_ri6) / cut_inner_lj;
             double a3 = 28.0 * epsln * (13.0 * s_ri12 - 4.0 * s_ri6);
-            evdwl = a1 * rsq + a2 * sqrt(rsq) + a3 - offset[itype][jtype];
+            evdwl = -0.5 * b1 * rsq - b2 * sqrt(rsq) + a3 - offset[itype][jtype];
             evdwl *= factor_lj;
           }
         } else if (rsq < cut_ljsq[itype][jtype]) {
@@ -228,7 +225,10 @@ void PairLJCutCoulCutSoftGapsys::allocate()
 
 void PairLJCutCoulCutSoftGapsys::settings(int narg, char **arg)
 {
-  if (narg < 4 || narg > 5) error->all(FLERR, "Illegal pair_style command");
+  if (narg < 4)
+    utils::missing_cmd_args(FLERR, "pair_style lj/cut/coul/cut/soft/gapsys", error);
+  if (narg > 5)
+    error->all(FLERR, "Too many arguments in pair_style lj/cut/coul/cut/soft/gapsys command");
 
   alphalj = utils::numeric(FLERR, arg[0], false, lmp);
   if (!(alphalj > 0.0))

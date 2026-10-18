@@ -175,10 +175,18 @@ void PairCoulCutSoftGapsys::allocate()
 
 void PairCoulCutSoftGapsys::settings(int narg, char **arg)
 {
-  if (narg != 3) error->all(FLERR,"Illegal pair_style command");
+  if (narg < 3)
+    utils::missing_cmd_args(FLERR, "pair_style coul/cut/soft/gapsys", error);
+  if (narg > 3)
+    error->all(FLERR, "Too many arguments in pair_style coul/cut/soft/gapsys command");
 
   sigmaq = utils::numeric(FLERR,arg[0],false,lmp);
+  if (!(sigmaq > 0.0))
+    error->all(FLERR, "Pair style coul/cut/soft/gapsys requires sigmaq > 0");
+
   alphaq = utils::numeric(FLERR,arg[1],false,lmp);
+  if (!(alphaq > 0.0))
+    error->all(FLERR, "Pair style coul/cut/soft/gapsys requires alphaq > 0");
 
   cut_global = utils::numeric(FLERR,arg[2],false,lmp);
 

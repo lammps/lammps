@@ -111,7 +111,7 @@ void PairLJCutSoftGapsys::compute(int eflag, int vflag)
       delz = ztmp - x[j][2];
       rsq = delx * delx + dely * dely + delz * delz;
       jtype = type[j];
-    
+
       if (rsq < cut_lj_inner[itype][jtype] * cut_lj_inner[itype][jtype]) {
 
         double epsln = epsilon[itype][jtype];

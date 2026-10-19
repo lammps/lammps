@@ -201,8 +201,8 @@ void PairCoulLongSoft::settings(int narg, char **arg)
   if (!(nlambda > 0.0))
     error->all(FLERR, "Pair style coul/long/soft requires nlambda > 0");
 
-  if (!(alphac > 0.0))
-    error->all(FLERR, "Pair style coul/long/soft requires alphac > 0");
+  if (alphac < 0.0)
+    error->all(FLERR, "Pair style coul/long/soft requires alphac >= 0");
 
   cut_coul = utils::numeric(FLERR,arg[2],false,lmp);
 }

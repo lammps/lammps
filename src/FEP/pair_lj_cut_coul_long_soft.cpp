@@ -581,11 +581,11 @@ void PairLJCutCoulLongSoft::settings(int narg, char **arg)
   if (!(nlambda > 0.0))
     error->all(FLERR, "Pair style lj/cut/coul/long/soft requires nlambda > 0");
 
-  if (!(alphalj > 0.0))
-    error->all(FLERR, "Pair style lj/cut/coul/long/soft requires alphalj > 0");
+  if (alphalj < 0.0)
+    error->all(FLERR, "Pair style lj/cut/coul/long/soft requires alphalj >= 0");
 
-  if (!(alphac > 0.0))
-    error->all(FLERR, "Pair style lj/cut/coul/long/soft requires alphac > 0");
+  if (alphac < 0.0)
+    error->all(FLERR, "Pair style lj/cut/coul/long/soft requires alphac >= 0");
 
   cut_lj_global = utils::numeric(FLERR,arg[3],false,lmp);
   if (narg == 4) cut_coul = cut_lj_global;

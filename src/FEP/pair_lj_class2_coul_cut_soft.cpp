@@ -200,11 +200,23 @@ void PairLJClass2CoulCutSoft::allocate()
 
 void PairLJClass2CoulCutSoft::settings(int narg, char **arg)
 {
-  if (narg < 4 || narg > 5) error->all(FLERR,"Illegal pair_style command");
+  if (narg < 4)
+    utils::missing_cmd_args(FLERR, "pair_style lj/class2/coul/cut/soft", error);
+  if (narg > 5)
+    error->all(FLERR, "Too many arguments in pair_style lj/class2/coul/cut/soft command");
 
   nlambda = utils::numeric(FLERR,arg[0],false,lmp);
   alphalj = utils::numeric(FLERR,arg[1],false,lmp);
   alphac  = utils::numeric(FLERR,arg[2],false,lmp);
+
+  if (!(nlambda > 0.0))
+    error->all(FLERR, "Pair style lj/class2/coul/cut/soft requires nlambda > 0");
+
+  if (alphac < 0.0)
+    error->all(FLERR, "Pair style lj/class2/coul/cut/soft requires alphac >= 0");
+
+  if (alphalj < 0.0)
+    error->all(FLERR, "Pair style lj/class2/coul/cut/soft requires alphalj >= 0");
 
   cut_lj_global = utils::numeric(FLERR,arg[3],false,lmp);
   if (narg == 4) cut_coul_global = cut_lj_global;

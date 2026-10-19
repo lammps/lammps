@@ -32,7 +32,7 @@ using namespace MathConst;
 /* ---------------------------------------------------------------------- */
 
 PairLJClass2SoftGapsys::PairLJClass2SoftGapsys(LAMMPS *lmp) :
-    Pair(lmp), coeff_a3(nullprt), cut(nullptr), cut_lj_inner(nullptr),
+    Pair(lmp), coeff_a3(nullptr), cut(nullptr), cut_lj_inner(nullptr),
     epsilon(nullptr), sigma(nullptr), lambda(nullptr), lj1(nullptr),
     lj2(nullptr), lj3(nullptr), lj4(nullptr), offset(nullptr)
 {

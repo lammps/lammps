@@ -33,7 +33,7 @@ using namespace MathConst;
 /* ---------------------------------------------------------------------- */
 
 PairLJCutSoftGapsys::PairLJCutSoftGapsys(LAMMPS *lmp) :
-    Pair(lmp), cut(nullptr), cut_lj_inner(nullptr), epsilon(nullptr),
+    Pair(lmp), coeff_a3(nullptr), cut(nullptr), cut_lj_inner(nullptr), epsilon(nullptr),
     sigma(nullptr), lambda(nullptr), lj1(nullptr),
     lj2(nullptr), lj3(nullptr), lj4(nullptr), offset(nullptr)
 {
@@ -52,6 +52,7 @@ PairLJCutSoftGapsys::~PairLJCutSoftGapsys()
     memory->destroy(setflag);
     memory->destroy(cutsq);
 
+    memory->destroy(coeff_a3);
     memory->destroy(cut);
     memory->destroy(cut_lj_inner);
     memory->destroy(epsilon);
@@ -134,9 +135,7 @@ void PairLJCutSoftGapsys::compute(int eflag, int vflag)
         }
 
         if (eflag) {
-          double a3 = 28.0 * epsln * (13.0 * s_ri12 - 4.0 * s_ri6);
-
-          evdwl = -0.5 * b1 * rsq - b2 * sqrt(rsq) + a3 - offset[itype][jtype];
+          evdwl = -0.5 * b1 * rsq - b2 * sqrt(rsq) + coeff_a3[itype][jtype] - offset[itype][jtype];
           evdwl *= factor_lj;
         }
 
@@ -185,6 +184,7 @@ void PairLJCutSoftGapsys::allocate()
 
   memory->create(cutsq, n, n, "pair:cutsq");
 
+  memory->create(coeff_a3, n, n, "pair:coeff_a3");
   memory->create(cut, n, n, "pair:cut");
   memory->create(cut_lj_inner, n, n, "pair:cut_lj_inner");
   memory->create(epsilon, n, n, "pair:epsilon");
@@ -283,6 +283,8 @@ double PairLJCutSoftGapsys::init_one(int i, int j)
   lj4[i][j] = 4.0 * epsilon[i][j] * pow(sigma[i][j], 6.0);
 
   cut_lj_inner[i][j] = alphalj * pow(26.0 * lambda[i][j] / 7.0, 1.0 / 6.0) * sigma[i][j];
+  double s_ri6 = pow(sigma[i][j] / cut_lj_inner[i][j], 6);
+  coeff_a3[i][j] = 28.0 * epsilon[i][j] * s_ri6 * (13.0 * s_ri6 - 4.0);
 
   if (offset_flag && (cut[i][j] > 0.0)) {
     double ratio = sigma[i][j] / cut[i][j];
@@ -293,6 +295,7 @@ double PairLJCutSoftGapsys::init_one(int i, int j)
   epsilon[j][i] = epsilon[i][j];
   sigma[j][i] = sigma[i][j];
   lambda[j][i] = lambda[i][j];
+  coeff_a3[j][i] = coeff_a3[i][j];
   cut[j][i] = cut[i][j];
   cut_lj_inner[j][i] = cut_lj_inner[i][j];
   lj1[j][i] = lj1[i][j];
@@ -463,10 +466,7 @@ double PairLJCutSoftGapsys::single(int /*i*/, int /*j*/, int itype, int jtype, d
     double b2 = 96.0 * epsln * (7.0 * s_ri12 - 2.0 * s_ri6) / cut_lj_inner[itype][jtype];
 
     fforce = factor_lj * (b1 + b2 / sqrt(rsq));
-
-    double a3 = 28.0 * epsln * (13.0 * s_ri12 - 4.0 * s_ri6);
-
-    return factor_lj * (-0.5 * b1 * rsq - b2 * sqrt(rsq) + a3 - offset[itype][jtype]);
+    return factor_lj * (-0.5 * b1 * rsq - b2 * sqrt(rsq) + coeff_a3[itype][jtype] - offset[itype][jtype]);
 
   }
 }

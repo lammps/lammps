@@ -44,6 +44,7 @@ class PairLJCutCoulCutSoftGapsys : public Pair {
 
  protected:
   double cut_lj_global, cut_coul_global;
+  double **coeff_a3;
   double **cut_lj, **cut_ljsq;
   double **cut_coul, **cut_coulsq;
   double **cut_lj_inner;

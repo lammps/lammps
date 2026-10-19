@@ -29,7 +29,8 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairCoulCutSoftGapsys::PairCoulCutSoftGapsys(LAMMPS *lmp) : Pair(lmp), cut(nullptr), lambda(nullptr)
+PairCoulCutSoftGapsys::PairCoulCutSoftGapsys(LAMMPS *lmp) : Pair(lmp),
+  cut(nullptr), cut_factor(nullptr), lambda(nullptr)
 {
   centroidstressflag = CENTROID_SAME;
   cut_global = sigmaq = alphaq = 0.0;
@@ -44,6 +45,7 @@ PairCoulCutSoftGapsys::~PairCoulCutSoftGapsys()
     memory->destroy(cutsq);
 
     memory->destroy(cut);
+    memory->destroy(cut_factor);
     memory->destroy(lambda);
   }
 }
@@ -98,7 +100,7 @@ void PairCoulCutSoftGapsys::compute(int eflag, int vflag)
       rsq = delx*delx + dely*dely + delz*delz;
       jtype = type[j];
 
-      cut_inner = (1.0 + sigmaq * fabs(qtmp * q[j])) * alphaq * pow(lambda[itype][jtype], 1.0 / 6.0);
+      cut_inner = (1.0 + sigmaq * fabs(qtmp * q[j])) * cut_factor[itype][jtype];
 
       if (rsq < cut_inner * cut_inner) {
 
@@ -116,7 +118,7 @@ void PairCoulCutSoftGapsys::compute(int eflag, int vflag)
 
         if (eflag)
           ecoul = factor_coul * qqrd2e * qtmp * q[j] *
-          (rsq / pow(cut_inner, 3) - 3 * sqrt(rsq) / pow(cut_inner, 2) + 3 / cut_inner);
+          (rsq / (cut_inner * cut_inner) - 3 * sqrt(rsq) / cut_inner + 3.0) / cut_inner;
 
         if (evflag) ev_tally(i,j,nlocal,newton_pair,
                              0.0,ecoul,fpair,delx,dely,delz);
@@ -165,6 +167,7 @@ void PairCoulCutSoftGapsys::allocate()
 
   memory->create(cutsq,n+1,n+1,"pair:cutsq");
 
+  memory->create(cut_factor,n+1,n+1,"pair:cut_factor");
   memory->create(cut,n+1,n+1,"pair:cut");
   memory->create(lambda,n+1,n+1,"pair:lambda");
 }
@@ -257,7 +260,10 @@ double PairCoulCutSoftGapsys::init_one(int i, int j)
     cut[i][j] = mix_distance(cut[i][i],cut[j][j]);
   }
 
+  cut_factor[i][j] = alphaq * pow(lambda[i][j], 1.0 / 6.0);
+
   cut[j][i] = cut[i][j];
+  cut_factor[j][i] = cut_factor[i][j];
   lambda[j][i] = lambda[i][j];
 
   return cut[i][j];
@@ -378,7 +384,7 @@ double PairCoulCutSoftGapsys::single(int i, int j, int itype, int jtype,
     return 0.0;
   }
 
-  cut_inner = (1.0 + sigmaq * fabs(atom->q[i] * atom->q[j])) * alphaq * pow(lambda[itype][jtype], 1.0 / 6.0);
+  cut_inner = (1.0 + sigmaq * fabs(atom->q[i] * atom->q[j])) * cut_factor[itype][jtype];
 
   fforce = factor_coul * force->qqrd2e * atom->q[i] * atom->q[j];
   double phicoul = factor_coul * force->qqrd2e * atom->q[i] * atom->q[j];
@@ -392,8 +398,8 @@ double PairCoulCutSoftGapsys::single(int i, int j, int itype, int jtype,
 
   } else {
 
-    fforce *= - 2.0 / pow(cut_inner, 3) + 3.0 / (pow(cut_inner, 2) * sqrt(rsq));
-    phicoul *= rsq / pow(cut_inner, 3) - 3 * sqrt(rsq) / pow(cut_inner, 2) + 3 / cut_inner;
+    fforce *= (- 2.0 / cut_inner + 3.0 / sqrt(rsq)) / (cut_inner * cut_inner);
+    phicoul *= (rsq / (cut_inner * cut_inner) - 3 * sqrt(rsq) / cut_inner + 3.0) / cut_inner;
 
   }
 

@@ -381,7 +381,10 @@ void PairTIP4PLongSoft::compute(int eflag, int vflag)
 
 void PairTIP4PLongSoft::settings(int narg, char **arg)
 {
-  if (narg != 8) error->all(FLERR,"Illegal pair_style command");
+  if (narg < 8)
+    utils::missing_cmd_args(FLERR, "pair_style tip4p/long/soft", error);
+  if (narg > 8)
+    error->all(FLERR, "Too many arguments in pair_style tip4p/long/soft command");
 
   typeO_str = arg[0];
   typeH_str = arg[1];

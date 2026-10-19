@@ -35,8 +35,8 @@ using namespace MathConst;
 /* ---------------------------------------------------------------------- */
 
 PairLJClass2CoulCutSoftGapsys::PairLJClass2CoulCutSoftGapsys(LAMMPS *lmp) :
-    Pair(lmp), cut_lj(nullptr), cut_ljsq(nullptr), cut_lj_inner(nullptr),
-    cut_coul(nullptr), cut_coulsq(nullptr),
+    Pair(lmp), coeff_a3(nullptr), cut_factor(nullptr), cut_lj(nullptr), cut_ljsq(nullptr),
+    cut_lj_inner(nullptr), cut_coul(nullptr), cut_coulsq(nullptr),
     epsilon(nullptr), sigma(nullptr), lambda(nullptr), lj1(nullptr), lj2(nullptr), lj3(nullptr),
     lj4(nullptr), offset(nullptr)
 {
@@ -55,6 +55,8 @@ PairLJClass2CoulCutSoftGapsys::~PairLJClass2CoulCutSoftGapsys()
     memory->destroy(setflag);
     memory->destroy(cutsq);
 
+    memory->destroy(coeff_a3);
+    memory->destroy(cut_factor);
     memory->destroy(cut_lj);
     memory->destroy(cut_ljsq);
     memory->destroy(cut_coul);
@@ -128,7 +130,7 @@ void PairLJClass2CoulCutSoftGapsys::compute(int eflag, int vflag)
       if (rsq < cutsq[itype][jtype]) {
         r2inv = 1.0 / rsq;
 
-        cut_inner_q = (1.0 + sigmaq * fabs(qtmp * q[j])) * alphaq * pow(lambda[itype][jtype], 1.0 / 6.0);
+        cut_inner_q = (1.0 + sigmaq * fabs(qtmp * q[j])) * cut_factor[itype][jtype];
 
         // forcecoul and forcelj do not include the special bond factors.
         // those are applied once, when fpair, ecoul, and evdwl are assembled
@@ -160,8 +162,7 @@ void PairLJClass2CoulCutSoftGapsys::compute(int eflag, int vflag)
 
           forcelj = rsq * (b1 + b2 / sqrt(rsq));
           if (eflag) {
-            double a3 = 110.0 * epsln * s_ri9 - 84.0 * epsln * s_ri6;
-            evdwl = -0.5 * b1 * rsq - b2 * sqrt(rsq) + a3 - offset[itype][jtype];
+            evdwl = -0.5 * b1 * rsq - b2 * sqrt(rsq) + coeff_a3[itype][jtype] - offset[itype][jtype];
             evdwl *= factor_lj;
           }
         } else if (rsq < cut_ljsq[itype][jtype]) {
@@ -211,6 +212,8 @@ void PairLJClass2CoulCutSoftGapsys::allocate()
 
   memory->create(cutsq, np1, np1, "pair:cutsq");
 
+  memory->create(coeff_a3, np1, np1, "pair:coeff_a3");
+  memory->create(cut_factor, np1, np1, "pair:cut_factor");
   memory->create(cut_lj, np1, np1, "pair:cut_lj");
   memory->create(cut_ljsq, np1, np1, "pair:cut_ljsq");
   memory->create(cut_coul, np1, np1, "pair:cut_coul");
@@ -347,6 +350,7 @@ double PairLJClass2CoulCutSoftGapsys::init_one(int i, int j)
   double cut = MAX(cut_lj[i][j], cut_coul[i][j]);
   cut_ljsq[i][j] = cut_lj[i][j] * cut_lj[i][j];
   cut_coulsq[i][j] = cut_coul[i][j] * cut_coul[i][j];
+  cut_factor[i][j] = alphaq * pow(lambda[i][j], 1.0 / 6.0);
 
   lj1[i][j] = 18.0 * epsilon[i][j] * pow(sigma[i][j], 9.0);
   lj2[i][j] = 18.0 * epsilon[i][j] * pow(sigma[i][j], 6.0);
@@ -354,6 +358,8 @@ double PairLJClass2CoulCutSoftGapsys::init_one(int i, int j)
   lj4[i][j] = 3.0 * epsilon[i][j] * pow(sigma[i][j], 6.0);
 
   cut_lj_inner[i][j] = alphalj * pow(100.0 * lambda[i][j] / 49.0, 1.0 / 6.0) * sigma[i][j];
+  double s_ri3 = pow(sigma[i][j] / cut_lj_inner[i][j], 3);
+  coeff_a3[i][j] = epsilon[i][j] * (110.0 * s_ri3 - 84.0) * s_ri3 * s_ri3;
 
   if (offset_flag && (cut_lj[i][j] > 0.0)) {
     double ratio = sigma[i][j] / cut_lj[i][j];
@@ -364,6 +370,8 @@ double PairLJClass2CoulCutSoftGapsys::init_one(int i, int j)
   epsilon[j][i] = epsilon[i][j];
   sigma[j][i] = sigma[i][j];
   lambda[j][i] = lambda[i][j];
+  coeff_a3[j][i] = coeff_a3[i][j];
+  cut_factor[j][i] = cut_factor[i][j];
   cut_ljsq[j][i] = cut_ljsq[i][j];
   cut_coulsq[j][i] = cut_coulsq[i][j];
   cut_lj_inner[j][i] = cut_lj_inner[i][j];
@@ -529,7 +537,7 @@ double PairLJClass2CoulCutSoftGapsys::single(int i, int j, int itype, int jtype,
   double philj = 0.0;
 
   double cut_inner_q;
-  cut_inner_q = (1.0 + sigmaq * fabs(atom->q[i] * atom->q[j])) * alphaq * pow(lambda[itype][jtype], 1.0 / 6.0);
+  cut_inner_q = (1.0 + sigmaq * fabs(atom->q[i] * atom->q[j])) * cut_factor[itype][jtype];
 
   r2inv = 1.0 / rsq;
   if (rsq < cut_inner_q * cut_inner_q) {
@@ -537,7 +545,7 @@ double PairLJClass2CoulCutSoftGapsys::single(int i, int j, int itype, int jtype,
     forcecoul *= -2.0 / pow(cut_inner_q, 3) + 3.0 / (pow(cut_inner_q, 2) * sqrt(rsq));
     phicoul = force->qqrd2e * atom->q[i] * atom->q[j];
     phicoul *=
-        rsq / pow(cut_inner_q, 3) - 3.0 * sqrt(rsq) / pow(cut_inner_q, 2) + 3.0 / cut_inner_q;
+        (rsq / (cut_inner_q * cut_inner_q) - 3.0 * sqrt(rsq) / cut_inner_q + 3.0) / cut_inner_q;
   } else if (rsq < cut_coulsq[itype][jtype]) {
     phicoul = force->qqrd2e * atom->q[i] * atom->q[j] * sqrt(r2inv);
     forcecoul = phicoul * r2inv;
@@ -550,10 +558,9 @@ double PairLJClass2CoulCutSoftGapsys::single(int i, int j, int itype, int jtype,
 
     double b1 = 18.0 * epsln * (7.0 * s_ri6 - 10.0 * s_ri9) / (cut_lj_inner[itype][jtype] * cut_lj_inner[itype][jtype]);
     double b2 = 18.0 * epsln * (11.0 * s_ri9 - 8.0 * s_ri6) / cut_lj_inner[itype][jtype];
-    double a3 = 110.0 * epsln * s_ri9 - 84.0 * epsln * s_ri6;
 
     forcelj = b1 + b2 / sqrt(rsq);
-    philj = -0.5 * b1 * rsq - b2 * sqrt(rsq) + a3 - offset[itype][jtype];
+    philj = -0.5 * b1 * rsq - b2 * sqrt(rsq) + coeff_a3[itype][jtype] - offset[itype][jtype];
   } else if (rsq < cut_ljsq[itype][jtype]) {
     rinv = sqrt(r2inv);
     r3inv = r2inv * rinv;

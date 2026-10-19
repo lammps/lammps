@@ -206,7 +206,10 @@ void PairMorseSoft::coeff(int narg, char **arg)
 
 void PairMorseSoft::settings(int narg, char **arg)
 {
-  if (narg != 3) error->all(FLERR, "Illegal pair_style command");
+  if (narg < 3)
+    utils::missing_cmd_args(FLERR, "pair_style morse/soft", error);
+  if (narg > 3)
+    error->all(FLERR, "Too many arguments in pair_style morse/soft command");
 
   nlambda = utils::inumeric(FLERR, arg[0], false, lmp);
   shift_range = utils::numeric(FLERR, arg[1], false, lmp);

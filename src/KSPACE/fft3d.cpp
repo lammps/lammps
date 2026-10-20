@@ -59,6 +59,12 @@
      with a fast-varying, mid-varying, and slow-varying index
 ------------------------------------------------------------------------- */
 
+#if (defined(FFT_FFTW3) || defined(FFT_NVPL)) && defined(FFT_FFTW_THREADS)
+// number of existing FFTW plans and whether FFTW threads were initialized
+static int fftw_nplans = 0;
+static bool fftw_threads_initialized = false;
+#endif
+
 /* ----------------------------------------------------------------------
    Perform 3d FFT
 
@@ -527,7 +533,9 @@ struct fft_plan_3d *fft_3d_create_plan(
   if (nthreads > 1) {
     FFTW_API(init_threads)();
     FFTW_API(plan_with_nthreads)(nthreads);
+    fftw_threads_initialized = true;
   }
+  ++fftw_nplans;
 #endif
 
   plan->plan_fast_forward =
@@ -628,7 +636,12 @@ void fft_3d_destroy_plan(struct fft_plan_3d *plan)
   FFTW_API(destroy_plan)(plan->plan_fast_forward);
   FFTW_API(destroy_plan)(plan->plan_fast_backward);
 #if defined(FFT_FFTW_THREADS)
-  FFTW_API(cleanup_threads)();
+  // fftw_cleanup_threads() also does fftw_cleanup(), which invalidates all
+  // other existing plans, so call it only after the last plan is destroyed
+  if ((--fftw_nplans == 0) && fftw_threads_initialized) {
+    FFTW_API(cleanup_threads)();
+    fftw_threads_initialized = false;
+  }
 #endif
 #else
   if (plan->cfg_slow_forward != plan->cfg_fast_forward &&

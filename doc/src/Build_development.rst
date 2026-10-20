@@ -716,11 +716,12 @@ shared between multiple build folders.  The ``id`` of an entry is the
 index of the GPU as reported by ``nvidia-smi``.  An entry may be removed
 to keep that GPU free, e.g. for the graphics display of a workstation,
 or the ``slots`` value may be raised to let multiple tests share the same
-GPU.  The ``name`` and ``pci_bus_id`` entries
-are for information only.  If no GPU is found, no file is written and
-the tests are run without resource allocation.  Setting
-``LAMMPS_TEST_RESOURCE_SPEC_FILE`` to an empty string also disables this
-feature.
+GPU.  With KOKKOS/CUDA, however, sharing a GPU from multiple tests may
+(currently in fall 2026) lead to data corruption and spurious failed
+tests.  The ``name`` and ``pci_bus_id`` entries are for information only.
+If no GPU is found, no file is written and the tests are run without
+resource allocation.  Setting ``LAMMPS_TEST_RESOURCE_SPEC_FILE`` to an
+empty string also disables this feature.
 
 Tests for other components and utility functions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

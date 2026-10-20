@@ -148,4 +148,6 @@ void fft_3d_destroy_plan(struct fft_plan_3d *);
 void factor(int, int *, int *);
 void bifactor(int, int *, int *);
 void fft_1d_only(FFT_DATA *, int, int, struct fft_plan_3d *);
+void fft_3d_fftw_plan_created(int);
+int fft_3d_fftw_plan_destroyed();
 }

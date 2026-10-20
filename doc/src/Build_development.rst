@@ -681,12 +681,12 @@ With CMake 3.29 or later on Linux and similar operating systems, tests
 can instead be distributed over multiple NVIDIA GPUs through the `CTest
 resource allocation feature
 <https://cmake.org/cmake/help/latest/manual/ctest.1.html#resource-allocation>`_
-where available GPUs are listed as "slots" in a resource files.  Then
-every test requests one slot of a GPU and is run through a launcher
-script that sets assigned GPU.  This will restrict the number of
-concurrent runs to the number of available slots in the resource file.
-Thus a command like ``ctest -j 8`` runs at most 4 concurrent tests,
-if there are only 4 slots configured in the resource file.
+where available GPUs are listed as entries with an assigned "slots" value
+in a resource file.  Then every test requests one slot of a GPU and is run
+through a launcher script that sets the assigned GPU.  This will restrict
+the number of concurrent runs to the total number of available slots in
+the resource file. Thus a command like ``ctest -j 8`` runs at most 4
+concurrent tests, if there are only 4 slots configured in the resource file.
 
 The `resource specification file
 <https://cmake.org/cmake/help/latest/manual/ctest.1.html#resource-specification-file>`_

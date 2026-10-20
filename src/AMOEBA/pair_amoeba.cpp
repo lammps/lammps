@@ -100,6 +100,7 @@ PairAmoeba::PairAmoeba(LAMMPS *lmp) :
 
   cmp = fmp = nullptr;
   cphi = fphi = nullptr;
+  cphidir = fphidir = nullptr;
 
   _moduli_array = nullptr;
   _moduli_bsarray = nullptr;
@@ -220,6 +221,8 @@ PairAmoeba::~PairAmoeba()
   memory->destroy(fmp);
   memory->destroy(cphi);
   memory->destroy(fphi);
+  memory->destroy(cphidir);
+  memory->destroy(fphidir);
 
   memory->destroy(poli);
   memory->destroy(conj);
@@ -2287,6 +2290,8 @@ void PairAmoeba::grow_local()
   memory->destroy(fmp);
   memory->destroy(cphi);
   memory->destroy(fphi);
+  memory->destroy(cphidir);
+  memory->destroy(fphidir);
 
   // induce
 
@@ -2377,6 +2382,8 @@ void PairAmoeba::grow_local()
   memory->create(fmp,nmax,10,"ameoba/mpole:fmp");
   memory->create(cphi,nmax,10,"ameoba/mpole:cphi");
   memory->create(fphi,nmax,20,"ameoba/mpole:fphi");
+  memory->create(cphidir,nmax,10,"ameoba/induce:cphidir");
+  memory->create(fphidir,nmax,20,"ameoba/induce:fphidir");
 
   // induce
 

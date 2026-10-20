@@ -45,6 +45,7 @@ PairBPMPeri::PairBPMPeri(LAMMPS *_lmp) : Pair(_lmp), kspring(nullptr), cut(nullp
 {
   writedata = 1;
   single_enable = 1;
+  no_virial_fdotr_compute = 1;
 }
 
 /* ---------------------------------------------------------------------- */

@@ -2461,7 +2461,7 @@ double PairAmoeba::memory_usage()
   bytes += (double) 15 * nmax * sizeof(double);   // field/fieldp/ufld/dufld
   bytes += (double) 12 * nmax * sizeof(double);   // rsd/rsdp/zrsd/zrsdp
 
-  bytes += (double) 50 * nmax * sizeof(double);   // cmp/fmp/cphi/fphi
+  bytes += (double) 80 * nmax * sizeof(double);   // cmp/fmp/cphi/fphi/cphidir/fphidir
 
   bytes += (double) nmax * sizeof(double);        // poli
   bytes += (double) 12 * nmax * sizeof(double);   // conj/conjp/vec/vecp

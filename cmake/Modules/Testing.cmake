@@ -114,7 +114,7 @@ if(ENABLE_TESTING)
   \"comment\": [
     \"CTest resource spec file for running unit tests on multiple NVIDIA GPUs concurrently.\",
     \"Generated from the output of nvidia-smi.  Every test is assigned one slot of one GPU, and\",
-    \"the GPU of each entry is selected by its 'id', which is the nvidia-smi index of the GPU.\",
+    \"the GPU of each entry is selected by its 'id', which is the nvidia-smi index of the GPU.\"
   ],
   \"version\": { \"major\": 1, \"minor\": 0 },
   \"local\": [

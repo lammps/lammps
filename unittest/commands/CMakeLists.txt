@@ -110,6 +110,13 @@ target_link_libraries(test_pair_ldd PRIVATE lammps GTest::GMock)
 add_test(NAME PairLDD COMMAND test_pair_ldd)
 add_kokkos_test(NAME PairLDD COMMAND test_pair_ldd)
 
+if(PKG_AMOEBA)
+  add_executable(test_pair_amoeba test_pair_amoeba.cpp)
+  target_compile_definitions(test_pair_amoeba PRIVATE -DTEST_INPUT_FOLDER=${CMAKE_CURRENT_SOURCE_DIR})
+  target_link_libraries(test_pair_amoeba PRIVATE lammps GTest::GMock)
+  add_test(NAME PairAmoeba COMMAND test_pair_amoeba)
+endif()
+
 add_executable(test_labelmap test_labelmap.cpp)
 target_compile_definitions(test_labelmap PRIVATE -DTEST_INPUT_FOLDER=${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(test_labelmap PRIVATE lammps GTest::GMock)

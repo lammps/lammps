@@ -1147,19 +1147,21 @@ void PairAmoeba::udirect1(double **field)
   auto ***gridpost = (FFT_SCALAR ***) i_kspace->post_convolution();
 
   // get potential
+  // use fphidir,cphidir and not fphi,cphi which hold the scaled potential
+  //   from multipole_kspace() that polar_kspace() re-uses when aewald = aeewald
 
-  fphi_mpole(gridpost,fphi);
+  fphi_mpole(gridpost,fphidir);
 
   // convert the field from fractional to Cartesian
 
-  fphi_to_cphi(fphi,cphi);
+  fphi_to_cphi(fphidir,cphidir);
 
   // increment the field at each multipole site
 
   for (i = 0; i < nlocal; i++) {
-    field[i][0] -= cphi[i][1];
-    field[i][1] -= cphi[i][2];
-    field[i][2] -= cphi[i][3];
+    field[i][0] -= cphidir[i][1];
+    field[i][1] -= cphidir[i][2];
+    field[i][2] -= cphidir[i][3];
   }
 }
 

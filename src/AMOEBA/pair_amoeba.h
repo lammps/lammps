@@ -332,6 +332,7 @@ class PairAmoeba : public Pair {
 
   double **cmp, **fmp;    // Cartesian and fractional multipoles
   double **cphi, **fphi;
+  double **cphidir, **fphidir;    // udirect1() potential, kept apart from multipole_kspace()
 
   double *_moduli_array;    // buffers for moduli
   double *_moduli_bsarray;

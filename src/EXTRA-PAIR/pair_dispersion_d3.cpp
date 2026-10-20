@@ -628,7 +628,8 @@ void PairDispersionD3::compute(int eflag, int vflag)
 
         if (eflag) evdwl = -(s6 * e6 + s8 * e8) * factor_lj;
 
-        double rest = (s6 * e6 + s8 * e8) / C6;
+        // Scale the CN derivative with the pair energy that produces it.
+        double rest = factor_lj * (s6 * e6 + s8 * e8) / C6;
 
         dc6[i] += rest * c6_res[1];
         if (newton_pair || j < nlocal) { dc6[j] += rest * c6_res[2]; }
@@ -669,7 +670,6 @@ void PairDispersionD3::compute(int eflag, int vflag)
     for (int jj = 0; jj < jnum; jj++) {
 
       int j = jlist[jj];
-      double factor_lj = special_lj[sbmask(j)];
       j &= NEIGHMASK;
 
       double delx = xtmp - x[j][0];
@@ -693,7 +693,6 @@ void PairDispersionD3::compute(int eflag, int vflag)
         };
 
         double fpair = dcn * (dc6[i] + dc6[j]) / r;
-        fpair *= factor_lj;
 
         f[i][0] += delx * fpair;
         f[i][1] += dely * fpair;

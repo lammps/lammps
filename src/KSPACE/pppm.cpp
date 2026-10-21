@@ -1346,19 +1346,24 @@ double PPPM::estimate_ik_error(double h, double prd, bigint natoms)
 /* ----------------------------------------------------------------------
    adjust the g_ewald parameter to near its optimal value
    using a Newton-Raphson solver
+   newton_raphson_f() may be a sum over the entire FFT grid, so it is
+   evaluated only once per g_ewald value: f(g_ewald) is shared by the
+   convergence check, the derivative, and the Newton step
 ------------------------------------------------------------------------- */
 
 void PPPM::adjust_gewald()
 {
   double dx;
+  double fx = newton_raphson_f();
 
   for (int i = 0; i < LARGE; i++) {
-    double dfx = derivf();
+    double dfx = derivf(fx);
     if (dfx == 0.0 || dfx != dfx) break;    // flat/invalid derivative
-    dx = newton_raphson_f() / dfx;
+    dx = fx / dfx;
     while (g_ewald - dx <= 0.0) dx *= 0.5;   // damp the step so g_ewald stays > 0
     g_ewald -= dx;
-    if (fabs(newton_raphson_f()) < SMALL) return;
+    fx = newton_raphson_f();
+    if (fabs(fx) < SMALL) return;
   }
   error->all(FLERR, "Could not compute g_ewald");
 }
@@ -1384,15 +1389,15 @@ double PPPM::newton_raphson_f()
 
 /* ----------------------------------------------------------------------
    calculate numerical derivative f'(x) using forward difference
-   [f(x + h) - f(x)] / h
+   [f(x + h) - f(x)] / h, with f1 = f(x) = newton_raphson_f() at the
+   current g_ewald supplied by the caller
 ------------------------------------------------------------------------- */
 
-double PPPM::derivf()
+double PPPM::derivf(double f1)
 {
   double h = 0.000001;  //Derivative step-size
-  double df,f1,f2,g_ewald_old;
+  double df,f2,g_ewald_old;
 
-  f1 = newton_raphson_f();
   g_ewald_old = g_ewald;
   g_ewald += h;
   f2 = newton_raphson_f();

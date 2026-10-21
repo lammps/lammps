@@ -105,7 +105,7 @@ void PairCoulCutSoftGapsys::compute(int eflag, int vflag)
       if (rsq < cut_inner * cut_inner) {
 
         forcecoul = factor_coul * qqrd2e * qtmp * q[j];
-        fpair = (- 2.0 / pow(cut_inner, 3) + 3.0 / (pow(cut_inner, 2) * sqrt(rsq))) * forcecoul;
+        fpair = forcecoul * (- 2.0 / cut_inner + 3.0 / sqrt(rsq)) / (cut_inner * cut_inner);
 
         f[i][0] += delx*fpair;
         f[i][1] += dely*fpair;

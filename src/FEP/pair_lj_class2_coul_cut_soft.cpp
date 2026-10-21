@@ -143,16 +143,16 @@ void PairLJClass2CoulCutSoft::compute(int eflag, int vflag)
           f[j][2] -= delz*fpair;
         }
 
+        ecoul = evdwl = 0.0;
         if (eflag) {
           if (rsq < cut_coulsq[itype][jtype])
             ecoul = factor_coul * qqrd2e * lj1[itype][jtype] * qtmp*q[j] / denc;
-          else ecoul = 0.0;
+
           if (rsq < cut_ljsq[itype][jtype]) {
-            denlj = lj3[itype][jtype] + pow(rsq, 3) * pow(sigma[itype][jtype], -6.0);
             evdwl = lj1[itype][jtype] * epsilon[itype][jtype] * (2.0/(denlj*sqrt(denlj)) - 3.0/denlj) -
               offset[itype][jtype];
             evdwl *= factor_lj;
-          } else evdwl = 0.0;
+          }
         }
 
         if (evflag) ev_tally(i,j,nlocal,newton_pair,

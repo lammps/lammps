@@ -121,6 +121,7 @@ void PairLJClass2CoulLongSoft::compute(int eflag, int vflag)
 
       if (rsq < cutsq[itype][jtype]) {
 
+        forcecoul = forcelj = 0.0;
         if (rsq < cut_coulsq) {
           r = sqrt(rsq);
           grij = g_ewald * r;
@@ -135,14 +136,14 @@ void PairLJClass2CoulLongSoft::compute(int eflag, int vflag)
 
           forcecoul = prefactor * (erfc + EWALD_F*grij*expm2*denc*denc/rsq);
           if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor;
-        } else forcecoul = 0.0;
+        }
 
         if (rsq < cut_ljsq[itype][jtype]) {
           r4sig6 = rsq*rsq / lj2[itype][jtype];
           denlj = lj3[itype][jtype] + rsq*r4sig6;
           forcelj = lj1[itype][jtype] * epsilon[itype][jtype] *
             (18.0*r4sig6*pow(denlj, -2.5) - 18.0*r4sig6*pow(denlj, -2));
-        } else forcelj = 0.0;
+        }
 
         fpair = forcecoul + factor_lj*forcelj;
 
@@ -156,18 +157,17 @@ void PairLJClass2CoulLongSoft::compute(int eflag, int vflag)
         }
 
         if (eflag) {
+          ecoul = evdwl = 0.0;
           if (rsq < cut_coulsq) {
             prefactor = qqrd2e * lj1[itype][jtype] * qtmp*q[j] / denc;
             ecoul = prefactor*erfc;
             if (factor_coul < 1.0) ecoul -= (1.0-factor_coul)*prefactor;
-          } else ecoul = 0.0;
+          }
           if (rsq < cut_ljsq[itype][jtype]) {
-            r4sig6 = rsq*rsq / lj2[itype][jtype];
-            denlj = lj3[itype][jtype] + rsq*r4sig6;
             evdwl = lj1[itype][jtype] * epsilon[itype][jtype] * (2.0/(denlj*sqrt(denlj)) - 3.0/denlj) -
               offset[itype][jtype];
             evdwl *= factor_lj;
-          } else evdwl = 0.0;
+          }
         }
 
         if (evflag) ev_tally(i,j,nlocal,newton_pair,

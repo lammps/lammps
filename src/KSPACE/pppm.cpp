@@ -38,6 +38,7 @@
 
 #include <cmath>
 #include <cstring>
+#include <vector>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -1242,8 +1243,7 @@ double PPPM::compute_df_kspace()
 
 double PPPM::compute_qopt()
 {
-  int k,l,m,nx,ny,nz;
-  double argx,argy,argz,wx,wy,wz,sx,sy,sz,qx,qy,qz;
+  int k,l,m;
   double u1,u2,sqk;
   double sum1,sum2,sum3,sum4,dot2;
 
@@ -1260,6 +1260,36 @@ double PPPM::compute_qopt()
   const double unitkz = (MY_2PI/zprd_slab);
 
   const int twoorder = 2*order;
+
+  // the aliasing factors of each dimension depend only on the grid index in that
+  // dimension and on the alias image: compute them once per index and image
+  // instead of in the innermost loop.  same expressions and evaluation order as
+  // the direct computation, so the result does not change.
+
+  constexpr int nb = 2;
+  constexpr int nimg = 2*nb + 1;
+
+  struct Alias {
+    double q2, s, w;    // squared wave vector component, Gaussian factor, assignment factor
+  };
+
+  auto alias_factors = [&](int n, double unitk, double len) {
+    std::vector<Alias> vals;
+    for (int i = 0; i < n; i++) {
+      const int iper = i - n*(2*i/n);
+      for (int ni = -nb; ni <= nb; ni++) {
+        const double q = unitk*(iper+n*ni);
+        const double s = exp(-0.25*square(q/g_ewald));
+        const double arg = 0.5*q*len/n;
+        vals.push_back({q*q, s, powsinxx(arg,twoorder)});
+      }
+    }
+    return vals;
+  };
+
+  const std::vector<Alias> fx = alias_factors(nx_pppm,unitkx,xprd);
+  const std::vector<Alias> fy = alias_factors(ny_pppm,unitky,yprd);
+  const std::vector<Alias> fz = alias_factors(nz_pppm,unitkz,zprd_slab);
 
   // loop over entire FFT grid
   // each proc calculates contributions from every Pth grid point
@@ -1283,30 +1313,20 @@ double PPPM::compute_qopt()
 
     sum1 = sum2 = sum3 = sum4 = 0.0;
 
-    for (nx = -2; nx <= 2; nx++) {
-      qx = unitkx*(kper+nx_pppm*nx);
-      sx = exp(-0.25*square(qx/g_ewald));
-      argx = 0.5*qx*xprd/nx_pppm;
-      wx = powsinxx(argx,twoorder);
-      qx *= qx;
+    const Alias *ax = &fx[k*nimg];
+    const Alias *ay = &fy[l*nimg];
+    const Alias *az = &fz[m*nimg];
 
-      for (ny = -2; ny <= 2; ny++) {
-        qy = unitky*(lper+ny_pppm*ny);
-        sy = exp(-0.25*square(qy/g_ewald));
-        argy = 0.5*qy*yprd/ny_pppm;
-        wy = powsinxx(argy,twoorder);
-        qy *= qy;
+    for (int ix = 0; ix < nimg; ix++) {
+      for (int iy = 0; iy < nimg; iy++) {
+        const double q2xy = ax[ix].q2 + ay[iy].q2;
+        const double sxy = ax[ix].s*ay[iy].s;
+        const double wxy = ax[ix].w*ay[iy].w;
 
-        for (nz = -2; nz <= 2; nz++) {
-          qz = unitkz*(mper+nz_pppm*nz);
-          sz = exp(-0.25*square(qz/g_ewald));
-          argz = 0.5*qz*zprd_slab/nz_pppm;
-          wz = powsinxx(argz,twoorder);
-          qz *= qz;
-
-          dot2 = qx+qy+qz;
-          u1   = sx*sy*sz;
-          u2   = wx*wy*wz;
+        for (int iz = 0; iz < nimg; iz++) {
+          dot2 = q2xy+az[iz].q2;
+          u1   = sxy*az[iz].s;
+          u2   = wxy*az[iz].w;
 
           sum1 += u1*u1/dot2*MY_4PI*MY_4PI;
           sum2 += u1 * u2 * MY_4PI;

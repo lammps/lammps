@@ -60,6 +60,22 @@ static const char *key_unequal = "ewald\n"
                                  "pme-grid 16 16 16\n"
                                  "polar-eps 1.0e-10\n";
 
+// finite difference steps and tolerances. Single precision FFTs make the
+// energy noisier, so use larger steps and tolerances there. Without the fix
+// for equal Ewald coefficients, the errors are 1.2 kcal/mol/Angstrom in the
+// forces and 1.9 kcal/mol in the virial.
+#if defined(FFT_SINGLE)
+static constexpr double force_delta = 1.0e-3;
+static constexpr double force_tol   = 5.0e-3;
+static constexpr double strain      = 1.0e-4;
+static constexpr double virial_tol  = 2.0e-2;
+#else
+static constexpr double force_delta = 1.0e-4;
+static constexpr double force_tol   = 1.0e-3;
+static constexpr double strain      = 1.0e-5;
+static constexpr double virial_tol  = 1.0e-4;
+#endif
+
 class PairAmoebaTest : public LAMMPSTest {
 protected:
     void SetUp() override
@@ -183,17 +199,17 @@ TEST_F(PairAmoebaTest, forces_equal_alpha)
     if (!Info::has_package("AMOEBA")) GTEST_SKIP();
     if (lmp->comm->nprocs > 1) GTEST_SKIP();
     setup_system(key_equal);
-    EXPECT_LT(max_force_error(1.0e-4), 1.0e-3);
+    EXPECT_LT(max_force_error(force_delta), force_tol);
 }
 
-// ... and the virial was wrong (by 0.36 kcal/mol here).
+// ... and the virial was wrong (by 1.9 kcal/mol here).
 
 TEST_F(PairAmoebaTest, virial_equal_alpha)
 {
     if (!Info::has_package("AMOEBA")) GTEST_SKIP();
     if (lmp->comm->nprocs > 1) GTEST_SKIP();
     setup_system(key_equal);
-    EXPECT_LT(max_virial_error(1.0e-5), 1.0e-4);
+    EXPECT_LT(max_virial_error(strain), virial_tol);
 }
 
 TEST_F(PairAmoebaTest, forces_unequal_alpha)
@@ -201,7 +217,7 @@ TEST_F(PairAmoebaTest, forces_unequal_alpha)
     if (!Info::has_package("AMOEBA")) GTEST_SKIP();
     if (lmp->comm->nprocs > 1) GTEST_SKIP();
     setup_system(key_unequal);
-    EXPECT_LT(max_force_error(1.0e-4), 1.0e-3);
+    EXPECT_LT(max_force_error(force_delta), force_tol);
 }
 
 TEST_F(PairAmoebaTest, virial_unequal_alpha)
@@ -209,7 +225,7 @@ TEST_F(PairAmoebaTest, virial_unequal_alpha)
     if (!Info::has_package("AMOEBA")) GTEST_SKIP();
     if (lmp->comm->nprocs > 1) GTEST_SKIP();
     setup_system(key_unequal);
-    EXPECT_LT(max_virial_error(1.0e-5), 1.0e-4);
+    EXPECT_LT(max_virial_error(strain), virial_tol);
 }
 } // namespace LAMMPS_NS
 

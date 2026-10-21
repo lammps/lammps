@@ -328,7 +328,7 @@ class PairAmoeba : public Pair {
   // Kspace data for induce and polar
 
   double *qfac;        // convoulution pre-factors
-  double *gridfft1;    // copy of p_kspace FFT grid
+  FFT_SCALAR *gridfft1;    // copy of p_kspace FFT grid
 
   double **cmp, **fmp;    // Cartesian and fractional multipoles
   double **cphi, **fphi;

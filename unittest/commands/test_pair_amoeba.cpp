@@ -29,6 +29,7 @@
 #include <cmath>
 #include <cstdio>
 #include <cstring>
+#include <string>
 #include <vector>
 
 // whether to print verbose output (i.e. not capturing LAMMPS screen output).
@@ -69,11 +70,13 @@ static constexpr double force_delta = 1.0e-3;
 static constexpr double force_tol   = 5.0e-3;
 static constexpr double strain      = 1.0e-4;
 static constexpr double virial_tol  = 2.0e-2;
+static constexpr double predict_tol = 1.0e-3;
 #else
 static constexpr double force_delta = 1.0e-4;
 static constexpr double force_tol   = 1.0e-3;
 static constexpr double strain      = 1.0e-5;
 static constexpr double virial_tol  = 1.0e-4;
+static constexpr double predict_tol = 1.0e-4;
 #endif
 
 class PairAmoebaTest : public LAMMPSTest {
@@ -188,6 +191,30 @@ protected:
         }
         return maxerr;
     }
+
+    // energy after a single induced dipole iteration started from the
+    // predicted dipoles, minus the converged energy. Without time integration
+    // the atoms do not move, so the history of the predictor fills with the
+    // converged dipoles of this geometry, and a correct prediction of the
+    // next dipoles is those dipoles again.
+
+    double predictor_error(const char *predictor)
+    {
+        const std::string key = std::string(key_unequal) + "polar-predict " + predictor + "\n";
+        setup_system(key.c_str());
+        const double converged = energy();
+        BEGIN_HIDE_OUTPUT();
+        command("run 20 post no");
+        END_HIDE_OUTPUT();
+
+        FILE *fp = fopen("test_amoeba_water.key", "w");
+        fputs((key + "polar-iter 1\n").c_str(), fp);
+        fclose(fp);
+        BEGIN_HIDE_OUTPUT();
+        command("pair_coeff * * ${input_dir}/amoeba_water.prm test_amoeba_water.key");
+        END_HIDE_OUTPUT();
+        return energy() - converged;
+    }
 };
 
 // with equal Ewald coefficients, udirect1() overwrote the multipole potential
@@ -226,6 +253,25 @@ TEST_F(PairAmoebaTest, virial_unequal_alpha)
     if (lmp->comm->nprocs > 1) GTEST_SKIP();
     setup_system(key_unequal);
     EXPECT_LT(max_virial_error(strain), virial_tol);
+}
+
+// the coefficients of the Gear and ASPC predictors were never set, so the
+// predicted dipoles came from uninitialized memory. Here one iteration from
+// them was off by 0.92 kcal/mol; one iteration from the direct field, without
+// a predictor, is off by 0.04 kcal/mol.
+
+TEST_F(PairAmoebaTest, predictor_gear)
+{
+    if (!Info::has_package("AMOEBA")) GTEST_SKIP();
+    if (lmp->comm->nprocs > 1) GTEST_SKIP();
+    EXPECT_NEAR(predictor_error("gear"), 0.0, predict_tol);
+}
+
+TEST_F(PairAmoebaTest, predictor_aspc)
+{
+    if (!Info::has_package("AMOEBA")) GTEST_SKIP();
+    if (lmp->comm->nprocs > 1) GTEST_SKIP();
+    EXPECT_NEAR(predictor_error("aspc"), 0.0, predict_tol);
 }
 } // namespace LAMMPS_NS
 

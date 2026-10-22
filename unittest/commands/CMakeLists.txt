@@ -116,6 +116,13 @@ target_link_libraries(test_labelmap PRIVATE lammps GTest::GMock)
 add_test(NAME Labelmap COMMAND test_labelmap)
 add_kokkos_test(NAME Labelmap COMMAND test_labelmap)
 
+if(PKG_AMOEBA)
+  add_executable(test_pair_hippo test_pair_hippo.cpp)
+  target_compile_definitions(test_pair_hippo PRIVATE -DTEST_INPUT_FOLDER=${CMAKE_CURRENT_SOURCE_DIR})
+  target_link_libraries(test_pair_hippo PRIVATE lammps GTest::GMock)
+  add_test(NAME PairHippo COMMAND test_pair_hippo)
+endif()
+
 add_executable(test_compute_frenkel test_compute_frenkel.cpp)
 target_link_libraries(test_compute_frenkel PRIVATE lammps GTest::GMock)
 add_test(NAME ComputeFrenkel COMMAND test_compute_frenkel)

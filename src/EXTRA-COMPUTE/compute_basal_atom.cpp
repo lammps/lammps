@@ -213,7 +213,7 @@ void ComputeBasalAtom::compute_peratom()
           if (norm_k <= 0.) { continue; }
           bond_angle = (x_ij * x_ik + y_ij * y_ik + z_ij * z_ik) / (norm_j * norm_k);
           //find all bond angles that are about 180 degrees
-          if (-1. <= bond_angle && bond_angle < -0.945) {
+          if (bond_angle < -0.945) {
             x3[chi[0]] = x_ik - x_ij;
             y3[chi[0]] = y_ik - y_ij;
             z3[chi[0]] = z_ik - z_ij;
@@ -261,7 +261,7 @@ void ComputeBasalAtom::compute_peratom()
             zmean6 += z6[count];
             xmean7 += x7[count];
             ymean7 += y7[count];
-            zmean6 += z7[count];
+            zmean7 += z7[count];
             count++;
           }
         }
@@ -370,7 +370,7 @@ void ComputeBasalAtom::compute_peratom()
                 zmean6 = zmean6 + z6[m];
                 xmean7 = xmean7 + x7[m];
                 ymean7 = ymean7 + y7[m];
-                zmean6 = zmean6 + z7[m];
+                zmean7 = zmean7 + z7[m];
               }
               xmean5 = xmean5 / 3;
               xmean6 = xmean6 / 3;

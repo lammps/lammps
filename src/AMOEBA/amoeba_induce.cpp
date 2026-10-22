@@ -464,7 +464,7 @@ void PairAmoeba::ulspred()
     for (k = 0; k < nualt; k++) {
       b_ualt[k] = 0.0;
       bp_ualt[k] = 0.0;
-      for (m = k; m < nualt; m++) {
+      for (m = 0; m < nualt; m++) {
         c_ualt[k][m] = 0.0;
         cp_ualt[k][m] = 0.0;
       }
@@ -483,6 +483,11 @@ void PairAmoeba::ulspred()
         }
       }
     }
+
+    // sum the normal equations over all procs, so that all procs use the same coefficients
+
+    MPI_Allreduce(MPI_IN_PLACE,&c_ualt[0][0],maxualt*maxualt,MPI_DOUBLE,MPI_SUM,world);
+    MPI_Allreduce(MPI_IN_PLACE,&cp_ualt[0][0],maxualt*maxualt,MPI_DOUBLE,MPI_SUM,world);
 
     i = 0;
     for (k = 1; k < nualt; k++) {

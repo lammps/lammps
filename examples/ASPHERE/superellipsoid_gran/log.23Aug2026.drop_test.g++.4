@@ -1,0 +1,183 @@
+LAMMPS (4 Jul 2026 - Development - patch_4Jul2026-848-gd03be1b44b)
+  using 1 OpenMP thread(s) per MPI task
+# Lattice wall drop test
+
+units           si
+atom_style      ellipsoid superellipsoid
+dimension       3
+boundary        p p f
+comm_modify     vel yes
+newton          off
+processors      * * 1
+
+neighbor 0.5 bin
+neigh_modify   delay 0 every 1 check yes
+
+# Setup Simulation Box
+variable        box_length equal 9
+variable        box_height equal 15
+
+region          box block 0 ${box_length} 0 ${box_length} 0 ${box_height}
+region          box block 0 9 0 ${box_length} 0 ${box_height}
+region          box block 0 9 0 9 0 ${box_height}
+region          box block 0 9 0 9 0 15
+create_box      2 box
+Created orthogonal box = (0 0 0) to (9 9 15)
+  2 by 2 by 1 MPI processor grid
+
+# Create Lattice Wall (Type 1)
+lattice         sc 1.0
+Lattice spacing in x,y,z = 1 1 1
+region          floor_reg block 0 ${box_length} 0 ${box_length} 0 0.1
+region          floor_reg block 0 9 0 ${box_length} 0 0.1
+region          floor_reg block 0 9 0 9 0 0.1
+
+variable        insertion_length equal ${box_length}-1.0
+variable        insertion_length equal 9-1.0
+
+create_atoms    1 region floor_reg
+Created 81 atoms
+  using lattice units in orthogonal box = (0 0 0) to (9 9 15)
+  create_atoms CPU = 0.001 seconds
+
+# Create Falling Particles (Type 2)
+region          drop_zone block 1 ${insertion_length} 1 ${insertion_length} 5 ${box_height}
+region          drop_zone block 1 8 1 ${insertion_length} 5 ${box_height}
+region          drop_zone block 1 8 1 8 5 ${box_height}
+region          drop_zone block 1 8 1 8 5 15
+create_atoms    2 random 100 12345 drop_zone overlap 2.0 maxtry 100
+WARNING: Only inserted 59 particles out of 100 (src/create_atoms.cpp:938)
+Created 59 atoms
+  using lattice units in orthogonal box = (0 0 0) to (9 9 15)
+  create_atoms CPU = 0.004 seconds
+
+# Material Properties
+# Type 1: Wall particles
+set             type 1 mass 1.0
+Setting atom values ...
+  81 settings made for mass
+set             type 1 shape 1.0 1.0 1.0
+Setting atom values ...
+  81 settings made for shape
+
+# Type 2: Falling particles
+set             type 2 mass 1.0
+Setting atom values ...
+  59 settings made for mass
+set             type 2 shape 2.0 1.0 1.0
+Setting atom values ...
+  59 settings made for shape
+variable        blockiness equal 4.0
+set             type 1 block 4.0 4.0
+Setting atom values ...
+  81 settings made for block
+set             type 2 block ${blockiness} ${blockiness}
+set             type 2 block 4 ${blockiness}
+set             type 2 block 4 4
+Setting atom values ...
+  59 settings made for block
+set             type 2 quat/random 84729
+Setting atom values ...
+  59 settings made for quat/random
+
+# Define Groups
+group           wall type 1
+81 atoms in group wall
+group           mobile type 2
+59 atoms in group mobile
+
+# Interaction / Pair Style
+pair_style granular/superellipsoid curvature_gaussian
+pair_coeff * * hertz 10000.0 200.0 tangential classic 2850 0.0 0.5 damping viscoelastic
+# Computes and Output
+compute         diameter all property/atom shapex shapey shapez
+compute         orient all property/atom quatw quati quatj quatk
+compute         block all property/atom block1 block2
+
+# Define atom variables from block
+variable        phi atom "2/c_block[2]"
+variable        theta atom "2/c_block[1]"
+
+# dump            mydump all custom 1000 dump_drop_algebraic_block_${blockiness}_new_code.lammpstrj id type x y z fx fy fz tqx tqy tqz c_diameter[*] c_orient[*] v_phi v_theta
+# # Explicit mapping for Ovito
+# dump_modify     mydump colname c_orient[1] quatw colname c_orient[2] quati colname c_orient[3] quatj colname c_orient[4] quatk
+
+# Prevent the frozen wall particles (type 1) from interacting with each other
+neigh_modify exclude group wall wall
+
+# Apply gravity only to the mobile particles (Type 2)
+fix             2 mobile gravity 9.81 vector 0 0 -1
+
+# Integrate Equations of Motion
+fix             3 mobile nve/asphere
+
+compute rke all erotate/asphere
+
+# Run
+thermo          1000
+thermo_style  custom time step ke c_rke
+
+timestep        0.0001
+run             20000
+Generated 0 of 1 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 2.9494897
+  ghost atom cutoff = 2.9494897
+  binsize = 1.4747449, bins = 7 7 11
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair granular/superellipsoid, perpetual
+      attributes: half, newton off, size, history
+      pair build: half/size/bin/atomonly/newtoff
+      stencil: full/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 18.54 | 18.54 | 18.55 Mbytes
+     Time         Step         KinEng         c_rke     
+ 0                      0   0              0            
+ 0.1                 1000   28.389649      0            
+ 0.2                 2000   113.5586       0            
+ 0.3                 3000   255.50685      0            
+ 0.4                 4000   454.23439      0            
+ 0.5                 5000   709.74124      0            
+ 0.6                 6000   1022.0274      0            
+ 0.7                 7000   1391.0928      0            
+ 0.8                 8000   1816.9376      0            
+ 0.9                 9000   2270.7852      1.3354782    
+ 1                  10000   2448.9037      42.987566    
+ 1.1                11000   2358.0409      118.58688    
+ 1.2                12000   2379.7477      142.91819    
+ 1.3                13000   2232.8509      157.36231    
+ 1.4                14000   1817.6237      183.03773    
+ 1.5                15000   1265.2811      210.31755    
+ 1.6                16000   451.44601      202.95602    
+ 1.7                17000   174.0231       98.512508    
+ 1.8                18000   93.988117      53.971652    
+ 1.9                19000   63.946973      46.591583    
+ 2                  20000   45.601829      35.805682    
+Loop time of 2.23356 on 4 procs for 20000 steps with 140 atoms
+
+99.5% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 1.4914     | 1.7626     | 2.0253     |  17.0 | 78.91
+Neigh   | 0.00091431 | 0.0010509  | 0.0011881  |   0.3 |  0.05
+Comm    | 0.074509   | 0.076888   | 0.079421   |   0.6 |  3.44
+Output  | 0.00022386 | 0.00046035 | 0.00068987 |   0.0 |  0.02
+Modify  | 0.021274   | 0.022915   | 0.02599    |   1.2 |  1.03
+Other   |            | 0.3697     |            |       | 16.55
+
+Nlocal:             35 ave          41 max          32 min
+Histogram: 1 1 1 0 0 0 0 0 0 1
+Nghost:         143.75 ave         147 max         138 min
+Histogram: 1 0 0 0 0 0 1 0 1 1
+Neighs:            401 ave         440 max         382 min
+Histogram: 2 0 1 0 0 0 0 0 0 1
+
+Total # of neighbors = 1604
+Ave neighs/atom = 11.457143
+Neighbor list builds = 57
+Dangerous builds = 0
+Total wall time: 0:00:02

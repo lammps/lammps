@@ -8,7 +8,6 @@
 
 #if defined(KOKKOS_ENABLE_LIBQUADMATH)
 
-#include <Kokkos_MathematicalConstants.hpp>
 #include <Kokkos_MathematicalFunctions.hpp>
 
 #include <quadmath.h>
@@ -104,26 +103,6 @@ inline bool signbit(__float128 x) { return ::signbitq(x); }
 // isunordered
 // clang-format on
 }  // namespace Kokkos
-//</editor-fold>
-
-//<editor-fold desc="Mathematical constants __float128 specializations">
-namespace Kokkos::numbers {
-// clang-format off
-template <> constexpr __float128 e_v         <__float128> = 2.718281828459045235360287471352662498Q;
-template <> constexpr __float128 log2e_v     <__float128> = 1.442695040888963407359924681001892137Q;
-template <> constexpr __float128 log10e_v    <__float128> = 0.434294481903251827651128918916605082Q;
-template <> constexpr __float128 pi_v        <__float128> = 3.141592653589793238462643383279502884Q;
-template <> constexpr __float128 inv_pi_v    <__float128> = 0.318309886183790671537767526745028724Q;
-template <> constexpr __float128 inv_sqrtpi_v<__float128> = 0.564189583547756286948079451560772586Q;
-template <> constexpr __float128 ln2_v       <__float128> = 0.693147180559945309417232121458176568Q;
-template <> constexpr __float128 ln10_v      <__float128> = 2.302585092994045684017991454684364208Q;
-template <> constexpr __float128 sqrt2_v     <__float128> = 1.414213562373095048801688724209698079Q;
-template <> constexpr __float128 sqrt3_v     <__float128> = 1.732050807568877293527446341505872367Q;
-template <> constexpr __float128 inv_sqrt3_v <__float128> = 0.577350269189625764509148780501957456Q;
-template <> constexpr __float128 egamma_v    <__float128> = 0.577215664901532860606512090082402431Q;
-template <> constexpr __float128 phi_v       <__float128> = 1.618033988749894848204586834365638118Q;
-// clang-format on
-}  // namespace Kokkos::numbers
 //</editor-fold>
 
 #endif

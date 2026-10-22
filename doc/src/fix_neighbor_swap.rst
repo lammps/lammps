@@ -55,7 +55,7 @@ atom/swap <fix_atom_swap>` command which swaps pairs of atoms anywhere
 in the simulation domain, the restriction of the MC swapping to
 neighbors enables a hybrid MD/kMC-like simulation.
 
-Neighboring atoms are defined by using a Voronoi tesselation performed
+Neighboring atoms are defined by using a Voronoi tessellation performed
 by the :doc:`compute voronoi/atom <compute_voronoi_atom>` command.
 Two atoms are neighbors if their Voronoi cells share a common face
 (3d) or edge (2d).
@@ -84,7 +84,7 @@ and the atomic hopping (kMC event) timescale.
 The algorithm implemented by this fix is as follows:
 
    - The MD simulation is paused every *N* steps
-   - A Voronoi tesselation is performed for the current atom configuration.
+   - A Voronoi tessellation is performed for the current atom configuration.
    - Then *X* atom swaps are attempted, one after the other.
    - For each swap, an atom *I* is selected randomly from the list of
      atom types specified by either the *types* or *diff* keywords.
@@ -127,7 +127,7 @@ algorithm.
 
 Limitations are imposed on selection of *I,J* atom pairs to avoid
 swapping of atoms which are outside of a reasonable cutoff (e.g. due to
-a Voronoi tesselation near free surfaces) though the use of a
+a Voronoi tessellation near free surfaces) though the use of a
 distance-weighted probability scaling.
 
 ----------

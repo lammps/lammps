@@ -87,6 +87,8 @@ void PairTersoffTableOMP::compute(int eflag, int vflag)
     thr->timer(Timer::PAIR);
     reduce_thr(this, eflag, vflag, thr);
   } // end of omp parallel region
+
+  error_thr();
 }
 
 template <int EVFLAG, int VFLAG_EITHER>
@@ -512,6 +514,9 @@ void PairTersoffTableOMP::deallocatePreLoops()
 
 void PairTersoffTableOMP::allocatePreLoops()
 {
+  // free any arrays from a previous setup before re-allocating, matching the
+  // base PairTersoffTable::allocatePreLoops() (a repeated setup leaked them)
+  deallocatePreLoops();
   const int nthreads = comm->nthreads;
   memory->create(thrGtetaFunction,nthreads,leadingDimensionInteractionList,leadingDimensionInteractionList,"tersofftable:thrGtetaFunction");
 

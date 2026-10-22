@@ -200,16 +200,14 @@ void KimParam::command(int narg, char **arg)
 
           std::string::size_type npos = argtostr.find(':');
           if (npos != std::string::npos) {
-            argtostr[npos] = ' ';
-            auto words = utils::split_words(argtostr);
-            nlbound = std::stoi(words[0]);
-            nubound = std::stoi(words[1]);
+            nlbound = utils::inumeric(FLERR, argtostr.substr(0, npos), false, lmp);
+            nubound = utils::inumeric(FLERR, argtostr.substr(npos + 1), false, lmp);
 
             if ((nubound < 1) || (nubound > extent) || (nlbound < 1) || (nlbound > nubound))
               error->all(FLERR, "Illegal index_range '{}-{}' for '{}' parameter with the "
                          "extent of '{}'",nlbound, nubound, paramname, extent);
           } else {
-            nlbound = std::stoi(argtostr);
+            nlbound = utils::inumeric(FLERR, argtostr, false, lmp);
 
             if (nlbound < 1 || nlbound > extent)
               error->all(FLERR, "Illegal index '{}' for '{}' parameter with the extent of '{}'",

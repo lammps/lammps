@@ -89,6 +89,7 @@ class Error : protected Pointers {
   void set_numwarn(int val) { numwarn = val; }
   void set_maxwarn(int val) { maxwarn = val; }
   void set_allwarn(int val) { allwarn = val; }
+  void reset_warn();
 
   [[nodiscard]] std::string get_last_error() const;
   [[nodiscard]] ErrorType get_last_error_type() const;

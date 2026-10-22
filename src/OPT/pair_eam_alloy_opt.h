@@ -20,12 +20,11 @@ PairStyle(eam/alloy/opt,PairEAMAlloyOpt);
 #ifndef LMP_PAIR_EAM_ALLOY_OPT_H
 #define LMP_PAIR_EAM_ALLOY_OPT_H
 
-#include "pair_eam_alloy.h"
 #include "pair_eam_opt.h"
 
 namespace LAMMPS_NS {
 
-class PairEAMAlloyOpt : public PairEAMAlloy, public PairEAMOpt {
+class PairEAMAlloyOpt : public PairEAMOpt {
  public:
   PairEAMAlloyOpt(class LAMMPS *);
 };

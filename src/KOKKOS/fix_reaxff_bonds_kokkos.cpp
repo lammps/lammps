@@ -36,6 +36,7 @@ FixReaxFFBondsKokkos::FixReaxFFBondsKokkos(LAMMPS *lmp, int narg, char **arg) :
   kokkosable = 1;
   atomKK = (AtomKokkos *) atom;
 
+  nbuf = 0;
   datamask_read = EMPTY_MASK;
   datamask_modify = EMPTY_MASK;
 }

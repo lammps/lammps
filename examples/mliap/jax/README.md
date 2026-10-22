@@ -16,16 +16,15 @@ First make a Python environment with dependencies:
 Install LAMMPS:
 
     cd /path/to/lammps
-    mkdir build-jax; cd build-jax
-    cmake ../cmake -DLAMMPS_EXCEPTIONS=yes \
-                   -DBUILD_SHARED_LIBS=yes \
-                   -DMLIAP_ENABLE_PYTHON=yes \
-                   -DPKG_PYTHON=yes \
-                   -DPKG_ML-SNAP=yes \
-                   -DPKG_ML-IAP=yes \
-                   -DPYTHON_EXECUTABLE:FILEPATH=`which python`
-    make -j4
-    make install-python
+    cmake -S cmake -B build-jax \
+          -D BUILD_SHARED_LIBS=on \
+          -D MLIAP_ENABLE_PYTHON=on \
+          -D PKG_PYTHON=on \
+          -D PKG_ML-SNAP=on \
+          -D PKG_ML-IAP=on \
+          -D Python_EXECUTABLE:FILEPATH=`which python`
+    cmake --build build-jax
+    cmake --build build-jax --target install-python
 
 ### Kokkos install
 
@@ -43,20 +42,20 @@ Use same Python dependencies as above, with some extra changes:
 
 Install LAMMPS. Take care to change `Kokkos_ARCH_*` flag:
 
-    cmake ../cmake -DLAMMPS_EXCEPTIONS=yes \
-                  -DBUILD_SHARED_LIBS=yes \
-                  -DPKG_PYTHON=yes \
-                  -DPKG_ML-SNAP=yes \
-                  -DPKG_ML-IAP=yes \
-                  -DMLIAP_ENABLE_PYTHON=yes \
-                  -DPKG_KOKKOS=yes \
-                  -DKokkos_ARCH_TURING75=yes \
-                  -DKokkos_ENABLE_CUDA=yes \
-                  -DKokkos_ENABLE_OPENMP=yes \
-                  -DCMAKE_CXX_COMPILER=${HOME}/lammps/lib/kokkos/bin/nvcc_wrapper \
-                  -DPYTHON_EXECUTABLE:FILEPATH=`which python`
-    make -j
-    make install-python
+    cmake -S cmake -B build-jax-kokkos \
+          -D BUILD_SHARED_LIBS=on \
+          -D PKG_PYTHON=on \
+          -D PKG_ML-SNAP=on \
+          -D PKG_ML-IAP=on \
+          -D MLIAP_ENABLE_PYTHON=on \
+          -D PKG_KOKKOS=on \
+          -D Kokkos_ARCH_TURING75=on \
+          -D Kokkos_ENABLE_CUDA=on \
+          -D Kokkos_ENABLE_OPENMP=on \
+          -D CMAKE_CXX_COMPILER=${HOME}/lammps/lib/kokkos/bin/nvcc_wrapper \
+          -D Python_EXECUTABLE=$(which python)
+    cmake --build build-jax-kokkos
+    cmake --build build-jax-kokkos --target install-python
 
 Run example:
 

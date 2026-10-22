@@ -49,7 +49,7 @@ class PairCoulCutSoft : public Pair {
   double nlambda, alphac;
   double **lam1, **lam2;
 
-  void allocate();
+  virtual void allocate();
 };
 
 }    // namespace LAMMPS_NS

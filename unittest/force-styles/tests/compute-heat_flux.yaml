@@ -1,0 +1,22 @@
+---
+lammps_version: 4 Jul 2026
+tags:
+date_generated: Wed Aug  5 09:48:25 2026
+epsilon: 1e-08
+timestep: 0.25
+skip_tests:
+prerequisites: |
+  atom full
+  compute heat/flux
+pre_commands: ""
+post_commands: |
+  compute output_ke all ke/atom
+  compute output_pe all pe/atom
+  compute output_st all stress/atom NULL virial
+  compute test all heat/flux output_ke output_pe output_st
+input_file: in.fourmol
+input_coeffs: coeffs.fourmol
+natoms: 29
+global_vector: |-
+  6 -2.1680775485913539e-01  1.7626710256748219e+00  1.3866215923491059e+00 -2.5383181100125412e+00  3.3169323220660258e+00  1.5897644659117969e+00
+...

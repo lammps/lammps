@@ -42,7 +42,7 @@ static constexpr int VECLEN = 5;
 /* ---------------------------------------------------------------------- */
 
 FixHyperGlobal::FixHyperGlobal(LAMMPS *lmp, int narg, char **arg) :
-  FixHyper(lmp, narg, arg), blist(nullptr), xold(nullptr), tagold(nullptr)
+    FixHyper(lmp, narg, arg), list(nullptr), blist(nullptr), xold(nullptr), tagold(nullptr)
 {
   if (atom->map_style == Atom::MAP_NONE)
     error->all(FLERR,"Fix hyper/global command requires atom map");
@@ -441,7 +441,7 @@ void FixHyperGlobal::build_bond_list(int natom)
 
 void FixHyperGlobal::grow_bond()
 {
-  if (maxbond + DELTABOND > MAXSMALLINT)
+  if (maxbond > MAXSMALLINT - DELTABOND)
     error->one(FLERR,"Fix hyper/global bond count is too big");
   maxbond += DELTABOND;
   blist = (OneBond *)

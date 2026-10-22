@@ -105,7 +105,8 @@ thermo          1000
 
 #dump           1 all atom 1000 dump.box
 
-#dump           1 all image 1000 image.*.jpg type type zoom 1.6
-#dump_modify    1 pad 6 adiam 1 1 adiam 2 0.2
+#dump            viz all image 500 box-*.ppm type type size 600 600 &
+#                zoom 1.8 shiny 0.2  fsaa yes ssao yes 453983 0.6
+#dump_modify     viz pad 6 adiam 1 1 adiam 2 0.2
 
 run             10000

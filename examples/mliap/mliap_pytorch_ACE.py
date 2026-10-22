@@ -86,7 +86,7 @@ import torch
 torch_model = 'ACE_NN_Pytorch.pt'
 if not os.path.exists(torch_model):
     raise FileNotFoundError(f"Generate {torch_model} first")
-model = torch.load(torch_model)
+model = torch.load(torch_model, weights_only=False)
 
 # Connect the PyTorch model to the mliap pair style.
 lammps.mliap.load_model(model)

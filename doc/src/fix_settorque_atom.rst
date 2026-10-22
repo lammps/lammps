@@ -1,7 +1,10 @@
 .. index:: fix settorque/atom
+.. index:: fix settorque/atom/kk
 
 fix settorque/atom command
 ==========================
+
+Accelerator Variants: *settorque/atom/kk*
 
 Syntax
 """"""
@@ -84,6 +87,10 @@ to it.
    may be when it is used in conjunction with
    :doc:`fix setforce <fix_setforce>` to simultaneously zero forces and
    torques to freeze a rigid body.
+
+----------
+
+.. include:: accel_styles.rst
 
 ----------
 

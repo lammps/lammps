@@ -22,6 +22,7 @@ can be used in :doc:`thermostatting <Howto_thermostat>` and
 * :doc:`compute temp/profile <compute_temp_profile>`
 * :doc:`compute temp/ramp <compute_temp_ramp>`
 * :doc:`compute temp/region <compute_temp_region>`
+* :doc:`compute temp/rotate <compute_temp_rotate>`
 
 All but the first 3 calculate velocity biases directly (e.g. advection
 velocities) that are removed when computing the thermal temperature.
@@ -31,3 +32,13 @@ They both allow for velocity biases indirectly, via an optional extra
 argument which is another temperature compute that subtracts a
 velocity bias.  This allows the translational velocity of spherical or
 aspherical particles to be adjusted in prescribed ways.
+
+Additional temperature computes for specific particle types or models
+are provided by some packages: :doc:`compute temp/body
+<compute_temp_body>` for body particles, :doc:`compute temp/cs
+<compute_temp_cs>` for core/shell models, :doc:`compute temp/drude
+<compute_temp_drude>` for Drude oscillator models, :doc:`compute
+temp/eff <compute_temp_eff>` for the electron force field, and
+:doc:`compute temp/uef <compute_temp_uef>` for simulations with the
+UEF package.  The :doc:`compute temp/chunk <compute_temp_chunk>`
+command computes temperatures for chunks of atoms.

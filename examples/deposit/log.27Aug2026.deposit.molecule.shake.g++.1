@@ -1,0 +1,246 @@
+LAMMPS (4 Jul 2026 - Development - patch_4Jul2026-1067-g777d22319c-modified)
+  using 1 OpenMP thread(s) per MPI task
+# sample surface deposition script for molecules
+
+units		lj
+atom_style      bond
+boundary        p p f
+
+lattice		fcc 1.0
+Lattice spacing in x,y,z = 1.5874011 1.5874011 1.5874011
+region          box block 0 5 0 5 0 10
+create_box      3 box bond/types 1 extra/bond/per/atom 1
+Created orthogonal box = (0 0 0) to (7.9370053 7.9370053 15.874011)
+  1 by 1 by 1 MPI processor grid
+
+region		substrate block INF INF INF INF INF 3
+create_atoms	1 region substrate
+Created 350 atoms
+  using lattice units in orthogonal box = (0 0 0) to (7.9370053 7.9370053 15.874011)
+  create_atoms CPU = 0.000 seconds
+
+pair_style	lj/cut 2.5
+pair_coeff	* * 1.0 1.0
+pair_coeff	1 2 1.0 1.0 5.0
+mass		* 1.0
+
+bond_style	harmonic
+bond_coeff      1 5.0 1.0
+
+neigh_modify	delay 0
+
+group		addatoms empty
+0 atoms in group addatoms
+region          mobile block 0 5 0 5 2 INF
+group		mobile region mobile
+150 atoms in group mobile
+
+compute	add addatoms temp
+compute_modify	add dynamic/dof yes extra/dof 0
+
+fix		1 addatoms nve
+fix		2 mobile langevin 0.1 0.1 0.1 587283
+fix		3 mobile nve
+
+molecule        dimer molecule.dimer.shake
+Read molecule template dimer:
+# dimer molecule
+  1 molecules
+  0 fragments
+  0 bodies
+  2 atoms with max type 3
+  1 bonds with max type 1
+  0 angles with max type 0
+  0 dihedrals with max type 0
+  0 impropers with max type 0
+region          slab block 0 5 0 5 8 9
+fix		4 addatoms deposit 100 0 100 12345 region slab near 1.0                 mol dimer vz -1.0 -1.0 shake 6
+fix		5 addatoms wall/reflect zhi EDGE
+fix             6 all shake 0.0001 20 1000 b 1 mol dimer
+Finding SHAKE clusters ...
+       0 = # of size 2 clusters
+       0 = # of size 3 clusters
+       0 = # of size 4 clusters
+       0 = # of frozen angles
+  find clusters CPU = 0.000 seconds
+
+thermo_style	custom step atoms temp epair etotal press
+thermo          100
+thermo_modify	temp add lost/bond ignore lost warn
+WARNING: Temperature for thermo pressure is not for group all (src/thermo.cpp:570)
+
+#dump		1 all atom 50 dump.deposit_shake
+
+#dump            viz all image 50 deposit_shake-*.ppm type type bond atom type #                size 600 800 zoom 1.6 view 80 -30  center s 0.5 0.4 0.48 #                shiny 0.4 fsaa yes axes yes 0.5 0.1
+#dump_modify     viz pad 6 backcolor black backcolor2 white adiam * 0.75 adiam 1 1.5 #                color myred 0.9 0.05 0.05 acolor 1 myred acolor 2 forestgreen boxcolor gold
+
+#dump            viz all movie 50 deposit_shake.mp4 type type bond atom type #                size 600 800 zoom 1.6 view 80 -30  center s 0.5 0.4 0.48 #                shiny 0.4 fsaa yes axes yes 0.5 0.1
+#dump_modify     viz backcolor black backcolor2 white adiam * 0.75 adiam 1 1.5 #                color myred 0.9 0.05 0.05 acolor 1 myred acolor 2 forestgreen boxcolor gold
+
+run             10000
+Generated 0 of 3 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 5.3
+  ghost atom cutoff = 5.3
+  binsize = 2.65, bins = 3 3 6
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cut, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d
+      bin: standard
+SHAKE stats (type/ave/delta/count) on step 0
+Per MPI rank memory allocation (min/avg/max) = 5.027 | 5.027 | 5.027 Mbytes
+   Step        Atoms         Temp          E_pair         TotEng         Press     
+         0         350   0             -6.9215833     -6.9215833     -1.0052629    
+       100         352   1.0079368     -6.8875167     -6.8803581     -0.73353914   
+       200         354   1.0081552     -6.8594643     -6.8452248     -0.70421277   
+       300         356   1.0085803     -6.8171524     -6.7959042     -0.69178262   
+       400         358   1.0099188     -6.7852701     -6.7570601     -0.70371701   
+       500         360   1.0140221     -6.7493429     -6.7141338     -0.68415306   
+       600         362   1.026148      -6.7105231     -6.6680032     -0.68314407   
+       700         364   1.0683344     -6.6725162     -6.621154      -0.65738414   
+       800         366   1.0958949     -6.6412275     -6.5813425     -0.68790065   
+       900         368   1.1250033     -6.6101882     -6.541404      -0.66675714   
+SHAKE stats (type/ave/delta/count) on step 1000
+Bond:   1   1         1.66533e-15       10
+      1000         370   1.2326404     -6.599372      -6.5160855     -0.69684162   
+      1100         372   1.1397484     -6.5912866     -6.507031      -0.63346483   
+      1200         374   1.0514041     -6.5905734     -6.5062362     -0.71010706   
+      1300         376   1.0033279     -6.5747781     -6.4880543     -0.6548368    
+      1400         378   0.83001138    -6.5681802     -6.4913273     -0.60455636   
+      1500         380   0.9023851     -6.5752974     -6.4862462     -0.6655391    
+      1600         382   0.8639477     -6.5692155     -6.4787498     -0.65024272   
+      1700         384   0.64742759    -6.5644227     -6.4927673     -0.63062211   
+      1800         386   0.74284422    -6.551568      -6.464967      -0.67777417   
+      1900         388   0.72533282    -6.5564772     -6.46768       -0.66168829   
+SHAKE stats (type/ave/delta/count) on step 2000
+Bond:   1   1         2.33147e-15       20
+      2000         390   0.73490767    -6.5632846     -6.4690657     -0.64679149   
+      2100         392   0.76430782    -6.5573551     -6.4549924     -0.68855073   
+      2200         394   0.65959227    -6.5511495     -6.4590745     -0.71761593   
+      2300         396   0.70311003    -6.5727685     -6.4706755     -0.64368894   
+      2400         398   0.60538506    -6.5847231     -6.493459      -0.64035507   
+      2500         400   0.51011976    -6.5814244     -6.5017182     -0.68753564   
+      2600         402   0.52580848    -6.6005114     -6.5154926     -0.68854393   
+      2700         404   0.46510763    -6.5656978     -6.4879879     -0.72987954   
+      2800         406   0.48450098    -6.5699431     -6.4864084     -0.77005908   
+      2900         408   0.50665577    -6.5844006     -6.4943699     -0.63437469   
+SHAKE stats (type/ave/delta/count) on step 3000
+Bond:   1   1         2.66454e-15       30
+      3000         410   0.47017413    -6.5920472     -6.5060397     -0.73242026   
+      3100         412   0.44743822    -6.5973745     -6.5132084     -0.67663781   
+      3200         414   0.40915938    -6.5808003     -6.5017357     -0.76388626   
+      3300         416   0.44843905    -6.5805288     -6.4915956     -0.73522872   
+      3400         418   0.55646506    -6.5936802     -6.4805234     -0.7510748    
+      3500         420   0.44072036    -6.6033033     -6.5114865     -0.64701342   
+      3600         422   0.38215355    -6.6063199     -6.524818      -0.75033325   
+      3700         424   0.41610275    -6.6110333     -6.5202561     -0.73714576   
+      3800         426   0.45146916    -6.6053511     -6.5046714     -0.77443063   
+      3900         428   0.44798897    -6.6005182     -6.4984646     -0.71973642   
+SHAKE stats (type/ave/delta/count) on step 4000
+Bond:   1   1         2.33147e-15       40
+      4000         430   0.44907772    -6.6088725     -6.5044358     -0.70772177   
+      4100         432   0.3920222     -6.6162634     -6.5232489     -0.73293612   
+      4200         434   0.41211307    -6.6270769     -6.5273722     -0.79251601   
+      4300         436   0.44913057    -6.6292774     -6.5185399     -0.75138829   
+      4400         438   0.431528      -6.6409835     -6.5326089     -0.69350358   
+      4500         440   0.37798072    -6.626907      -6.5302642     -0.77392897   
+      4600         442   0.41955124    -6.6189045     -6.5097452     -0.70536335   
+      4700         444   0.41802078    -6.627914      -6.5172891     -0.74510456   
+      4800         446   0.43725005    -6.6197688     -6.502123      -0.75469539   
+      4900         448   0.40694384    -6.620051      -6.5087773     -0.80670539   
+SHAKE stats (type/ave/delta/count) on step 5000
+Bond:   1   1         2.55351e-15       50
+      5000         450   0.44791422    -6.6307365     -6.5063159     -0.80831005   
+      5100         452   0.42880456    -6.6415889     -6.5206319     -0.71010894   
+      5200         454   0.38931657    -6.6439951     -6.5325168     -0.790597     
+      5300         456   0.41180239    -6.6472891     -6.5276316     -0.78508127   
+      5400         458   0.37950565    -6.6637237     -6.5518606     -0.76559045   
+      5500         460   0.38194777    -6.6637098     -6.5495406     -0.72829135   
+      5600         462   0.40024684    -6.6689637     -6.5476768     -0.83594989   
+      5700         464   0.44486204    -6.6895616     -6.5529391     -0.80299481   
+      5800         466   0.37891753    -6.6955311     -6.5776276     -0.67667389   
+      5900         468   0.32315399    -6.6911032     -6.5892544     -0.7757983    
+SHAKE stats (type/ave/delta/count) on step 6000
+Bond:   1   1         2.66454e-15       60
+      6000         470   0.34097123    -6.6893924     -6.5805718     -0.8014931    
+      6100         472   0.31329195    -6.6840677     -6.5828452     -0.77463156   
+      6200         474   0.33730777    -6.6927225     -6.5824214     -0.74869561   
+      6300         476   0.34327005    -6.6935258     -6.5799438     -0.76123305   
+      6400         478   0.33655323    -6.6934195     -6.5807657     -0.7222007    
+      6500         480   0.40060665    -6.7092283     -6.5736062     -0.79025437   
+      6600         482   0.32951183    -6.6891195     -6.5763198     -0.8167385    
+      6700         484   0.3508288     -6.7079054     -6.5864925     -0.79738349   
+      6800         486   0.38280226    -6.7242559     -6.5903538     -0.84250928   
+      6900         488   0.37516098    -6.7124807     -6.5798674     -0.67925909   
+SHAKE stats (type/ave/delta/count) on step 7000
+Bond:   1   1         2.77556e-15       70
+      7000         490   0.35589165    -6.7221474     -6.5950432     -0.74226643   
+      7100         492   0.33992473    -6.7229446     -6.6003091     -0.79766052   
+      7200         494   0.34394704    -6.7252821     -6.5999573     -0.79595824   
+      7300         496   0.3005154     -6.7382426     -6.6276699     -0.80918909   
+      7400         498   0.34783909    -6.7462073     -6.61699       -0.80932832   
+      7500         500   0.33770805    -6.7489475     -6.6223069     -0.84395988   
+      7600         502   0.37501209    -6.761685      -6.6197482     -0.82793299   
+      7700         504   0.36139819    -6.7617662     -6.6237322     -0.8278792    
+      7800         506   0.34898802    -6.7564039     -6.6219124     -0.83536294   
+      7900         508   0.34478457    -6.7610788     -6.6270337     -0.8664263    
+SHAKE stats (type/ave/delta/count) on step 8000
+Bond:   1   1         2.10942e-15       80
+      8000         510   0.33717803    -6.7645303     -6.6323037     -0.84475668   
+      8100         512   0.35799447    -6.7832762     -6.6416866     -0.78410582   
+      8200         514   0.35618542    -6.7808201     -6.6387617     -0.84001274   
+      8300         516   0.34566743    -6.7769278     -6.6379239     -0.82134517   
+      8400         518   0.33128337    -6.7764187     -6.6421146     -0.80792872   
+      8500         520   0.33406604    -6.7816683     -6.645151      -0.85629572   
+      8600         522   0.36597195    -6.7748261     -6.6240905     -0.91628571   
+      8700         524   0.34349192    -6.7719677     -6.6293923     -0.91385232   
+      8800         526   0.33833203    -6.7685054     -6.6269977     -0.88302741   
+      8900         528   0.32346238    -6.7606961     -6.6243886     -0.84725258   
+SHAKE stats (type/ave/delta/count) on step 9000
+Bond:   1   1         2.66454e-15       90
+      9000         530   0.31786502    -6.7679201     -6.6329774     -0.8862218    
+      9100         532   0.30433361    -6.7664134     -6.6362708     -0.8372075    
+      9200         534   0.32153488    -6.7623995     -6.6239107     -0.84347681   
+      9300         536   0.29983403    -6.7472217     -6.6171631     -0.9506735    
+      9400         538   0.32160521    -6.7608564     -6.6203783     -1.0242743    
+      9500         540   0.33442495    -6.7705467     -6.6234617     -0.77736855   
+      9600         542   0.31855843    -6.7608629     -6.6198038     -0.76746077   
+      9700         544   0.31405331    -6.7595861     -6.6195899     -0.88905226   
+      9800         546   0.34941711    -6.7673359     -6.6105462     -0.94121674   
+      9900         548   0.32049175    -6.7645548     -6.6198072     -0.8015399    
+SHAKE stats (type/ave/delta/count) on step 10000
+Bond:   1   1         2.77556e-15      100
+     10000         550   0.29040347    -6.763152      -6.6311504     -0.88475801   
+Loop time of 2.12165 on 1 procs for 10000 steps with 550 atoms
+
+Performance: 2036147.989 tau/day, 4713.306 timesteps/s, 2.592 Matom-step/s
+99.6% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 1.0807     | 1.0807     | 1.0807     |   0.0 | 50.94
+Bond    | 0.0030677  | 0.0030677  | 0.0030677  |   0.0 |  0.14
+Neigh   | 0.85156    | 0.85156    | 0.85156    |   0.0 | 40.14
+Comm    | 0.051452   | 0.051452   | 0.051452   |   0.0 |  2.43
+Output  | 0.00060678 | 0.00060678 | 0.00060678 |   0.0 |  0.03
+Modify  | 0.12174    | 0.12174    | 0.12174    |   0.0 |  5.74
+Other   |            | 0.01254    |            |       |  0.59
+
+Nlocal:            550 ave         550 max         550 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:           2347 ave        2347 max        2347 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:          36881 ave       36881 max       36881 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 36881
+Ave neighs/atom = 67.056364
+Ave special neighs/atom = 0.36363636
+Neighbor list builds = 840
+Dangerous builds = 0
+Total wall time: 0:00:02

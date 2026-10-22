@@ -38,7 +38,10 @@ using namespace MathExtra;
 
 /* ---------------------------------------------------------------------- */
 
-DihedralSpherical::DihedralSpherical(LAMMPS *lmp) : Dihedral(lmp)
+DihedralSpherical::DihedralSpherical(LAMMPS *lmp) :
+    Dihedral(lmp), nterms(nullptr), Ccoeff(nullptr), phi_mult(nullptr), phi_shift(nullptr),
+    phi_offset(nullptr), theta1_mult(nullptr), theta1_shift(nullptr), theta1_offset(nullptr),
+    theta2_mult(nullptr), theta2_shift(nullptr), theta2_offset(nullptr)
 {
   writedata = 1;
   nterms_max = 0;
@@ -738,6 +741,12 @@ void DihedralSpherical::read_restart(FILE *fp)
 
   MPI_Bcast(&nterms_max, 1, MPI_INT, 0, world);
   MPI_Bcast(&nterms[1], atom->ndihedraltypes, MPI_INT, 0, world);
+
+  if ((nterms_max < 0) || (nterms_max > 4096))
+    error->all(FLERR, "Invalid number of terms in restart file");
+  for (int i = 1; i <= atom->ndihedraltypes; i++)
+    if ((nterms[i] < 0) || (nterms[i] > 4096))
+      error->all(FLERR, "Invalid number of terms in restart file");
 
   // allocate
   for (int i = 1; i <= atom->ndihedraltypes; i++) {

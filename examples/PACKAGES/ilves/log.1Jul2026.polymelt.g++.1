@@ -1,0 +1,146 @@
+LAMMPS (30 Mar 2026 - Development - patch_30Mar2026-2152-g107b880cf8-modified)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread.
+  using 1 OpenMP thread(s) per MPI task
+# Long-chain bead polymer melt with rigid bonds constrained by fix ilves.
+#
+# A few (5) very long linear chains (~10000 beads each, ~50000 beads total) form
+# a dense LJ melt; every backbone bond is held rigid by fix ilves.  Because the
+# chains are so long, each is a single large connected constraint cluster -- the
+# regime where a sparse coupled solver (ILVES) is needed and fix shake degrades.
+# Companion data file: data.polymelt.
+
+units           lj
+atom_style      bond
+boundary        p p p
+
+read_data       data.polymelt
+Reading data file ...
+  orthogonal box = (0.28588703 0.28588703 0.28588703) to (39.104113 39.104113 39.104113)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  51894 atoms
+  reading velocities ...
+  51894 velocities
+  scanning bonds ...
+  1 = max bonds/atom
+  orthogonal box = (0.28588703 0.28588703 0.28588703) to (39.104113 39.104113 39.104113)
+  1 by 1 by 1 MPI processor grid
+  reading bonds ...
+  51889 bonds
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0        0        0       
+  special bond factors coul:  0        0        0       
+     2 = max # of 1-2 neighbors
+     2 = max # of 1-3 neighbors
+     4 = max # of 1-4 neighbors
+     6 = max # of special neighbors
+  special bonds CPU = 0.015 seconds
+  read_data CPU = 0.201 seconds
+
+# bonded beads do not interact through the pair potential (the bond/constraint
+# sets their separation); all other pairs use a standard 12-6 LJ
+special_bonds   lj 0.0 1.0 1.0
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0        1        1       
+  special bond factors coul:  0        0        0       
+     2 = max # of 1-2 neighbors
+     2 = max # of 1-3 neighbors
+     4 = max # of 1-4 neighbors
+     6 = max # of special neighbors
+  special bonds CPU = 0.012 seconds
+pair_style      lj/cut 2.5
+pair_coeff      1 1 1.0 1.0
+
+# harmonic bond definition supplies the equilibrium length used as the rigid
+# constraint length; its stiffness is irrelevant once fix ilves constrains it
+bond_style      harmonic
+bond_coeff      1 200.0 0.97
+
+neighbor        0.5 bin
+neigh_modify    delay 0 every 1 check yes
+
+# constrain every bond (type 1); print per-bond statistics every 1000 steps
+fix             cstr all ilves 1.0e-4 100 500 b 1
+fix             1 all nvt temp 1.0 1.0 0.5
+
+timestep        0.005
+thermo          100
+thermo_style    custom step temp epair etotal press density
+
+# dump           viz all image 100 myimage-*.png mol type bond atom type #                                  size 800 800 view 80 10 zoom 1.4641 box yes 0.025 #                                  shiny 0.2  fsaa yes ssao yes 453983 0.6
+# dump_modify    viz pad 6 boxcolor steelblue backcolor black backcolor2 white adiam 1 0.75 #                color map1 0.243 0.298 0.078 color map2 0.780 0.867 0.529 color map3 0.729 0.525 0.361 #                color map4 0.275 0.953 0.243 color map5 0.992 0.349 0.145 #                amap 1 5 sa 1.0 5 map1 map2 map3 map4 map5
+
+run             500
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+
+- fix ilves command: doi:10.1021/acs.jctc.5c01376
+
+@Article{LopezVillellas2025,
+ author = {L{\'o}pez-Villellas, Lori{\'e}n and Mikkelsen, Carl Christian Kjelgaard and Galano-Frutos, Juan Jos{\'e} and Marco-Sola, Santiago and Alastruey-Bened{\'e}, Jes{\'u}s and Ib{\'a}{\~n}ez, Pablo and Echenique, Pablo and Moret{\'o}, Miquel and {De Rosa}, Maria Cristina and Garc{\'i}a-Risue{\~n}o, Pablo},
+ title = {ILVES: Accurate and Efficient Bond Length and Angle Constraints in Molecular Dynamics},
+ journal = {J.~Chem.\ Theory Comput.},
+ volume = 21,
+ pages = {8711--8719},
+ year = 2025
+}
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 3
+  ghost atom cutoff = 3
+  binsize = 1.5, bins = 26 26 26
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cut, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d
+      bin: standard
+Fix ilves: constraining 51889 bond(s) and 0 angle(s)
+ILVES stats (type/ave/delta/count) on step 0 (up to 0 Newton iterations)
+Bond:   1   0.969998  7.21532e-07    51889
+Per MPI rank memory allocation (min/avg/max) = 49.88 | 49.88 | 49.88 Mbytes
+   Step          Temp          E_pair         TotEng         Press         Density    
+         0   1.0013092     -4.8723643     -3.8710358      0.39330905     0.88717664   
+       100   1.0044699     -4.8768891     -3.8723998     -0.024192101    0.88717664   
+       200   0.9941371     -4.8747417     -3.8805855      0.0067099201   0.88717664   
+       300   0.98858839    -4.8742169     -3.8856094      0.0013958262   0.88717664   
+       400   0.99766134    -4.8741672     -3.8764866      0.01616944     0.88717664   
+ILVES stats (type/ave/delta/count) on step 500 (up to 1 Newton iterations)
+Bond:   1   0.97      9.63359e-06    51889
+       500   1.0050036     -4.8729312     -3.8679083      0.0019464694   0.88717664   
+Loop time of 16.1742 on 1 procs for 500 steps with 51894 atoms
+
+Performance: 13354.623 tau/day, 30.913 timesteps/s, 1.604 Matom-step/s
+99.5% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 10.597     | 10.597     | 10.597     |   0.0 | 65.52
+Bond    | 0.00037266 | 0.00037266 | 0.00037266 |   0.0 |  0.00
+Neigh   | 2.605      | 2.605      | 2.605      |   0.0 | 16.11
+Comm    | 0.10151    | 0.10151    | 0.10151    |   0.0 |  0.63
+Output  | 0.0014339  | 0.0014339  | 0.0014339  |   0.0 |  0.01
+Modify  | 2.7927     | 2.7927     | 2.7927     |   0.0 | 17.27
+Other   |            | 0.07594    |            |       |  0.47
+
+Nlocal:          51894 ave       51894 max       51894 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:          28003 ave       28003 max       28003 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    2.53412e+06 ave 2.53412e+06 max 2.53412e+06 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 2534122
+Ave neighs/atom = 48.832659
+Ave special neighs/atom = 5.9988438
+Neighbor list builds = 43
+Dangerous builds = 0
+Total wall time: 0:00:16

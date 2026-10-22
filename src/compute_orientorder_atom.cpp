@@ -53,9 +53,9 @@ static constexpr double QEPSILON = 1.0e-6;
 /* ---------------------------------------------------------------------- */
 
 ComputeOrientOrderAtom::ComputeOrientOrderAtom(LAMMPS *lmp, int narg, char **arg) :
-    Compute(lmp, narg, arg), qlist(nullptr), qnormfac(nullptr), qnormfac2(nullptr), distsq(nullptr),
-    nearest(nullptr), rlist(nullptr), qnarray(nullptr), qnm_r(nullptr), qnm_i(nullptr),
-    w3jlist(nullptr)
+    Compute(lmp, narg, arg), qlist(nullptr), qnormfac(nullptr), qnormfac2(nullptr), list(nullptr),
+    distsq(nullptr), nearest(nullptr), rlist(nullptr), qnarray(nullptr), qnm_r(nullptr),
+    qnm_i(nullptr), w3jlist(nullptr)
 {
   if (narg < 3) error->all(FLERR, "Illegal compute orientorder/atom command");
 

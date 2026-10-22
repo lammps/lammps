@@ -2,7 +2,8 @@ Configuration information
 =========================
 
 The following methods can be used to query the LAMMPS library
-about compile time settings and included packages and styles.
+about compile time settings, available external programs, and included
+packages and styles.
 
 .. code-block:: python
    :caption: Example for using configuration settings functions
@@ -22,7 +23,7 @@ about compile time settings and included packages and styles.
        lmp.command("dump d1 all atom/zstd 100 dump.zst")
    elif lmp.has_style("dump", "atom/gz"):
        lmp.command("dump d1 all atom/gz 100 dump.gz")
-   elif lmp.has_gzip_support():
+   elif lmp.has_gzip_support:
        lmp.command("dump d1 all atom 100 dump.gz")
    else:
        lmp.command("dump d1 all atom 100 dump")

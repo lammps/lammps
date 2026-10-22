@@ -137,7 +137,7 @@ FixWallFlow::FixWallFlow(LAMMPS *lmp, int narg, char **arg) :
     walls[w] = utils::numeric(FLERR, arg[iarg], do_abort, lmp) * scale;
   }
   walls.back() = domain->boxhi[flowax];
-  if (!std::is_sorted(walls.begin(), walls.end(), std::less_equal<double>())) {
+  if (!std::is_sorted(walls.begin(), walls.end(), std::less_equal<>())) {
     error->all(FLERR,
                "Wrong fix wall/flow wall ordering or some walls are outside simulation domain");
   }

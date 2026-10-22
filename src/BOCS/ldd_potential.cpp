@@ -30,7 +30,10 @@
 #include "memory.h"
 #include "neigh_list.h"
 #include "neighbor.h"
+#include "safe_pointers.h"
 #include "suffix.h"
+#include "text_file_reader.h"
+#include "tokenizer.h"
 #include "update.h"
 #include "utils.h"
 
@@ -63,16 +66,27 @@ LddPotential::~LddPotential()
 void LddPotential::read_table_file(char *fnm, bool bspline)
 {
   potl_table.n_pts = 0;
-  FILE *fp = nullptr;
-  char line[1000];
-  if (comm->me == 0)
-  {
-  fp = utils::open_potential(fnm, lmp, nullptr);
-  if (!fp)
-    error->one(FLERR, "unable to open table file {} for reading: {}", fnm, utils::getsyserror());
+  std::vector<double> rvals, uvals, fvals;
 
-  while (fgets(line, 1000, fp) != nullptr) { ++(potl_table.n_pts); }
-  rewind(fp);
+  if (comm->me == 0) {
+    SafeFilePtr fp = utils::open_potential(fnm, lmp, nullptr);
+    if (!fp)
+      error->one(FLERR, "unable to open table file {} for reading: {}", fnm, utils::getsyserror());
+
+    try {
+      TextFileReader reader(fp, "BOCS table");
+      char *line;
+      while ((line = reader.next_line()) != nullptr) {
+        ValueTokenizer values(line);
+        rvals.push_back(values.next_double());
+        uvals.push_back(values.next_double());
+        fvals.push_back(values.next_double());
+      }
+    } catch (std::exception &e) {
+      error->one(FLERR, "unable to read rho u f from line {} in file {}: {}", rvals.size() + 1,
+                 fnm, e.what());
+    }
+    potl_table.n_pts = (int) rvals.size();
   }
   MPI_Bcast(&potl_table.n_pts, 1, MPI_INT, 0, world );
 
@@ -84,20 +98,12 @@ void LddPotential::read_table_file(char *fnm, bool bspline)
     memory->create(potl_table.f2, potl_table.n_pts, "LDpotl:f2");
   }
 
-  if (comm->me == 0)
-  {
-  for (int i = 0; i < potl_table.n_pts; ++i) {
-    fgets(line, 1000, fp);
-    float rt, ut, ft;
-    int test_sscanf = sscanf(line, " %f %f %f ", &rt, &ut, &ft);
-    if (test_sscanf != 3)
-      error->one(FLERR, "unable to read rho u f from line {} in file {}", i, fnm);
-
-    potl_table.r[i] = (double) rt;
-    potl_table.u[i] = (double) ut;
-    potl_table.f[i] = (double) ft;
-  }
-  fclose(fp);
+  if (comm->me == 0) {
+    for (int i = 0; i < potl_table.n_pts; ++i) {
+      potl_table.r[i] = rvals[i];
+      potl_table.u[i] = uvals[i];
+      potl_table.f[i] = fvals[i];
+    }
   }
   MPI_Bcast(potl_table.r, potl_table.n_pts, MPI_DOUBLE, 0, world);
   MPI_Bcast(potl_table.u, potl_table.n_pts, MPI_DOUBLE, 0, world);

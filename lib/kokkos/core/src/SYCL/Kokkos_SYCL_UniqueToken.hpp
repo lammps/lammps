@@ -33,7 +33,6 @@ class UniqueToken<SYCL, UniqueTokenScope::Global> {
       : m_locks(Kokkos::Impl::sycl_global_unique_token_locks()) {}
 
   /// \brief upper bound for acquired values, i.e. 0 <= value < size()
-  KOKKOS_INLINE_FUNCTION
   size_type size() const noexcept { return m_locks.extent(0); }
 
  protected:
@@ -49,7 +48,6 @@ class UniqueToken<SYCL, UniqueTokenScope::Global> {
 
  private:
   /// \brief acquire value such that 0 <= value < size()
-  KOKKOS_INLINE_FUNCTION
   size_type impl_acquire() const {
 #if defined(KOKKOS_COMPILER_INTEL_LLVM) && \
     KOKKOS_COMPILER_INTEL_LLVM >= 20250000
@@ -81,14 +79,12 @@ class UniqueToken<SYCL, UniqueTokenScope::Global> {
 
  public:
   /// \brief acquire value such that 0 <= value < size()
-  KOKKOS_INLINE_FUNCTION
   size_type acquire() const {
     KOKKOS_IF_ON_DEVICE(return impl_acquire();)
     KOKKOS_IF_ON_HOST(return 0;)
   }
 
   /// \brief release an acquired value
-  KOKKOS_INLINE_FUNCTION
   void release(size_type idx) const noexcept {
     // Make sure my writes are visible to the next lock owner
     desul::atomic_thread_fence(desul::MemoryOrderRelease(),

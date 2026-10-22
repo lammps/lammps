@@ -64,7 +64,7 @@ is its angular velocity, which is computed from its angular momentum.
 
 A symmetric tensor, stored as a six-element vector, is also calculated
 by this compute for use in the computation of a pressure tensor by the
-:doc:`compute pressue <compute_pressure>` command.  The formula for
+:doc:`compute pressure <compute_pressure>` command.  The formula for
 the components of the tensor is the same as the above expression for
 :math:`E_\mathrm{kin}`, except that the 1/2 factor is NOT included and
 the :math:`v_i^2` and :math:`\omega^2` are replaced by :math:`v_x v_y`

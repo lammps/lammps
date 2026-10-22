@@ -48,6 +48,8 @@ class PairSWKokkos : public PairSW {
   void coeff(int, char **) override;
   void init_style() override;
 
+  class TuneKokkos* tuner;
+
   template<int NEIGHFLAG, int EVFLAG>
 // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION

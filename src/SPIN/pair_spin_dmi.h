@@ -26,7 +26,11 @@ namespace LAMMPS_NS {
 
 class PairSpinDmi : public PairSpin {
  public:
-  PairSpinDmi(LAMMPS *lmp) : PairSpin(lmp) {}
+  PairSpinDmi(LAMMPS *lmp) :
+      PairSpin(lmp), DM(nullptr), v_dmx(nullptr), v_dmy(nullptr), v_dmz(nullptr),
+      vmech_dmx(nullptr), vmech_dmy(nullptr), vmech_dmz(nullptr), cut_spin_dmi(nullptr)
+  {
+  }
   ~PairSpinDmi() override;
   void settings(int, char **) override;
   void coeff(int, char **) override;

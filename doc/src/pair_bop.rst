@@ -380,17 +380,18 @@ Restrictions
 """"""""""""
 
 These pair styles are part of the MANYBODY package.  They are only
-enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
+enabled if LAMMPS was built with that package.  See the :doc:`Build
+package <Build_package>` page for more info.
 
 These pair potentials require the :doc:`newtion <newton>` setting to be
 "on" for pair interactions.
 
 Pair style bop is not compatible with being used as a sub-style with
-doc:`hybrid pair styles <pair_hybrid>`. Pair style bop is also not
+doc:`hybrid pair styles <pair_hybrid>`.  Pair style bop is also not
 compatible with :doc:`multi-cutoff neighbor lists <neighbor>` or
-:doc:`multi-cutoff communitcation <comm_modify>`.
+:doc:`multi-cutoff communication <comm_modify>`.
 
-The .bop.table potential files provided with LAMMPS (see the
+The ``.bop.table`` potential files provided with LAMMPS (see the
 potentials directory) are parameterized for metal :doc:`units <units>`.
 You can use the BOP potential with any LAMMPS units, but you would need
 to create your own BOP potential file with coefficients listed in the

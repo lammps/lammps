@@ -23,7 +23,7 @@ Syntax
 
   .. parsed-literal::
 
-       *GAMMA* flags to treate the whole simulation box as a unit cell, so that the mapping
+       *GAMMA* flags to treat the whole simulation box as a unit cell, so that the mapping
        info can be generated internally. In this case, dynamical matrix at only the gamma-point
        will/can be evaluated.
 
@@ -142,7 +142,7 @@ box is treated as a unit cell, one can set *map_file* as *GAMMA*, so
 that the mapping info will be generated internally and a file is not
 needed. In this case, the dynamical matrix at only the gamma-point
 will/can be evaluated. Please keep in mind that fix-phonon is designed
-for cyrstals, it will be inefficient and even degrade the performance
+for crystals, it will be inefficient and even degrade the performance
 of LAMMPS in case the unit cell is too large.
 
 The calculated dynamical matrix elements are written out in

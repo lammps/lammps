@@ -20,7 +20,6 @@
 
 #include "file_writer.h"
 
-#include <string>
 #include <zlib.h>
 
 namespace LAMMPS_NS {

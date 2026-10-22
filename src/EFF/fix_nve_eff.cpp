@@ -30,8 +30,7 @@ using namespace FixConst;
 
 /* ---------------------------------------------------------------------- */
 
-FixNVEEff::FixNVEEff(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg)
+FixNVEEff::FixNVEEff(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg), step_respa(nullptr)
 {
   if (!atom->electron_flag)
     error->all(FLERR,"Fix nve/eff requires atom style electron");

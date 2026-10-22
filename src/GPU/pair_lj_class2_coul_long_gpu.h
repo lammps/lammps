@@ -28,7 +28,6 @@ class PairLJClass2CoulLongGPU : public PairLJClass2CoulLong {
  public:
   PairLJClass2CoulLongGPU(LAMMPS *lmp);
   ~PairLJClass2CoulLongGPU() override;
-  void cpu_compute(int, int, int, int, int *, int *, int **);
   void compute(int, int) override;
   void init_style() override;
   double memory_usage() override;
@@ -37,7 +36,6 @@ class PairLJClass2CoulLongGPU : public PairLJClass2CoulLong {
 
  private:
   int gpu_mode;
-  double cpu_time;
 };
 
 }    // namespace LAMMPS_NS

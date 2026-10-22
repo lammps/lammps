@@ -14,6 +14,7 @@ post_commands: ! |
   pair_coeff * * 0.02   2.5
   fix test solute adapt 1 pair lj/cut epsilon * * v_epsilon scale no
 input_file: in.fourmol
+input_coeffs: coeffs.fourmol
 natoms: 29
 run_pos: ! |2
     1 -3.2551307172152166e-01  2.4346451341937119e+00 -1.1396829659429568e-01

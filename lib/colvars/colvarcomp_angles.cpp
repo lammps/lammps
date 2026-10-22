@@ -63,13 +63,9 @@ void colvar::angle::calc_value()
   cvm::atom_pos const g2_pos = group2->center_of_mass();
   cvm::atom_pos const g3_pos = group3->center_of_mass();
 
-  r21  = is_enabled(f_cvc_pbc_minimum_image) ?
-    cvm::position_distance(g2_pos, g1_pos) :
-    g1_pos - g2_pos;
+  r21 = boundary_conditions.position_distance(g2_pos, g1_pos);
   r21l = r21.norm();
-  r23  = is_enabled(f_cvc_pbc_minimum_image) ?
-    cvm::position_distance(g2_pos, g3_pos) :
-    g3_pos - g2_pos;
+  r23 = boundary_conditions.position_distance(g2_pos, g3_pos);
   r23l = r23.norm();
 
   cvm::real const cos_theta = (r21*r23)/(r21l*r23l);
@@ -157,16 +153,18 @@ void colvar::dipole_angle::calc_value()
   group1->calc_dipole(g1_pos);
 
   r21 = group1->dipole();
-  cvm::log("r21 = " + cvm::to_str(r21) + " ; g1_pos = " + cvm::to_str(g1_pos) + "\n");
   r21l = r21.norm();
-  r23  = is_enabled(f_cvc_pbc_minimum_image) ?
-    cvm::position_distance(g2_pos, g3_pos) :
-    g3_pos - g2_pos;
+  r23 = boundary_conditions.position_distance(g2_pos, g3_pos);
   r23l = r23.norm();
 
-  cvm::real const cos_theta = (r21*r23)/(r21l*r23l);
-
-  x.real_value = (180.0/PI) * cvm::acos(cos_theta);
+  cvm::real denom = (r21l*r23l);
+  cvm::real const eps = 1.e-14;
+  if (denom > eps) {
+    cvm::real const cos_theta = (r21*r23)/(r21l*r23l);
+    x.real_value = (180.0/PI) * cvm::acos(cos_theta);
+  } else { // Zero vectors, cannot calculate angle
+    x.real_value = 0.0;
+  }
 }
 
 //to be implemented
@@ -175,14 +173,22 @@ void colvar::dipole_angle::calc_value()
 
 void colvar::dipole_angle::calc_gradients()
 {
-  cvm::real const cos_theta = (r21*r23)/(r21l*r23l);
-  cvm::real const dxdcos = -1.0 / cvm::sqrt(1.0 - cos_theta*cos_theta);
+  cvm::real denom = (r21l*r23l);
+  cvm::real const eps = 1.e-14;
+  if (denom > eps) {
+    cvm::real const cos_theta = (r21*r23)/(r21l*r23l);
+    cvm::real const dxdcos = -1.0 / cvm::sqrt(1.0 - cos_theta*cos_theta);
 
-  dxdr1 = (180.0/PI) * dxdcos *
-  (1.0/r21l)* (r23/r23l + (-1.0) * cos_theta * r21/r21l );
+    dxdr1 = (180.0/PI) * dxdcos *
+    (1.0/r21l)* (r23/r23l + (-1.0) * cos_theta * r21/r21l );
 
-  dxdr3 =  (180.0/PI) * dxdcos *
-    (1.0/r23l) * ( r21/r21l + (-1.0) * cos_theta * r23/r23l );
+    dxdr3 =  (180.0/PI) * dxdcos *
+      (1.0/r23l) * ( r21/r21l + (-1.0) * cos_theta * r23/r23l );
+
+  } else { // Zero vectors, cannot calculate gradient
+    dxdr1.reset();
+    dxdr3.reset();
+  }
 
   //this auxiliar variables are to avoid numerical errors inside "for"
   double aux1 = group1->total_charge/group1->total_mass;
@@ -269,15 +275,9 @@ void colvar::dihedral::calc_value()
   cvm::atom_pos const g4_pos = group4->center_of_mass();
 
   // Usual sign convention: r12 = r2 - r1
-  r12 = is_enabled(f_cvc_pbc_minimum_image) ?
-    cvm::position_distance(g1_pos, g2_pos) :
-    g2_pos - g1_pos;
-  r23 = is_enabled(f_cvc_pbc_minimum_image) ?
-    cvm::position_distance(g2_pos, g3_pos) :
-    g3_pos - g2_pos;
-  r34 = is_enabled(f_cvc_pbc_minimum_image) ?
-    cvm::position_distance(g3_pos, g4_pos) :
-    g4_pos - g3_pos;
+  r12 = boundary_conditions.position_distance(g1_pos, g2_pos);
+  r23 = boundary_conditions.position_distance(g2_pos, g3_pos);
+  r34 = boundary_conditions.position_distance(g3_pos, g4_pos);
 
   cvm::rvector const n1 = cvm::rvector::outer(r12, r23);
   cvm::rvector const n2 = cvm::rvector::outer(r23, r34);

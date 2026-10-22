@@ -85,12 +85,19 @@ compute         10 all property/atom corner1x corner1y corner1z &
 #               c_10[1] c_10[2] c_10[3] c_10[4] c_10[5] c_10[6] &
 #               c_10[7] c_10[8] c_10[9]
 
+#dump            viz all image 500 tri.srd-*.png type type tri atom 1 0.0 &
+#                    size 800 600 zoom 1.667 shiny 0.1  fsaa yes view 179 89 &
+#                    ssao yes 453983 0.15 box yes 0.02
+#dump_modify     viz pad 6 backcolor black backcolor2 white &
+#                    acolor 2 goldenrod acolor 1 violet boxcolor steelblue &
+#                    lights 0.25 0.9 0.6 0.9 adiam 2 0.16
+
 run             1000
 
 #undump          1
 #undump          2
 unfix           3
-
+#undump          viz
 change_box      all triclinic
 
 fix             2 small srd 20 big 1.0 1.0 49894 &
@@ -102,6 +109,12 @@ fix             2 small srd 20 big 1.0 1.0 49894 &
 #               c_10[1] c_10[2] c_10[3] c_10[4] c_10[5] c_10[6] &
 #               c_10[7] c_10[8] c_10[9]
 
+#dump            viz all image 500 tri.srd-*.png type type tri atom 1 0.0 &
+#                    size 800 600 zoom 1.333 shiny 0.1  fsaa yes view 179 89 &
+#                    ssao yes 453983 0.15 box yes 0.02
+#dump_modify     viz pad 6 backcolor black backcolor2 white &
+#                    acolor 2 goldenrod acolor 1 violet boxcolor steelblue &
+#                    lights 0.25 0.9 0.6 0.9 adiam 2 0.16
 fix             3 all deform 1 xy erate 0.05 units box remap v
 
 run             2000

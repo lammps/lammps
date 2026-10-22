@@ -32,7 +32,7 @@ static constexpr int MAXLOOP = 100;
 /* ---------------------------------------------------------------------- */
 
 ComputeClusterAtom::ComputeClusterAtom(LAMMPS *lmp, int narg, char **arg) :
-    Compute(lmp, narg, arg), clusterID(nullptr)
+    Compute(lmp, narg, arg), list(nullptr), clusterID(nullptr)
 {
   if (narg != 4) error->all(FLERR, "Illegal compute cluster/atom command");
 
@@ -69,8 +69,8 @@ void ComputeClusterAtom::init()
 
   neighbor->add_request(this, NeighConst::REQ_FULL | NeighConst::REQ_OCCASIONAL);
 
-  if (modify->get_compute_by_style(style).size() > 1)
-    if (comm->me == 0) error->warning(FLERR, "More than one compute {}", style);
+  if ((comm->me == 0) && (modify->get_compute_by_style("^cluster/atom").size() > 1))
+    error->warning(FLERR, "More than one compute {}", style);
 }
 
 /* ---------------------------------------------------------------------- */

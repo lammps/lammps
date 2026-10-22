@@ -42,8 +42,16 @@ class FixGJF : public Fix {
   void copy_arrays(int, int, int) override;
   int pack_exchange(int, double *) override;
   int unpack_exchange(int, double *) override;
+  int pack_restart(int, double *) override;
+  void unpack_restart(int, int) override;
+  int size_restart(int) override;
+  int maxsize_restart() override;
+  void write_restart(FILE *) override;
+  void restart(char *) override;
 
  protected:
+  enum { CONSTANT, EQUAL, ATOM };    // values of tstyle
+
   int osflag, tbiasflag, GJmethod, maxatom, lv_allocated;
   double t_start, t_stop, t_period, t_target, tsqrt;
   double gjfc1, gjfc2, gjfc3;

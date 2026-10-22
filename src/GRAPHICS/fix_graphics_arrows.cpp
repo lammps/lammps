@@ -226,6 +226,14 @@ void FixGraphicsArrows::init()
       error->all(FLERR, Error::NOLASTLINE,
                  "Per-chunk compute {} is not compatible with fix graphics/arrows", id_vec);
   }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixGraphicsArrows::setup(int /*vflag*/)
+{
+  // must defer collecting the graphics data to setup(), so that forces,
+  // computes, and variables referenced by the arrow source are available
 
   end_of_step();
 }

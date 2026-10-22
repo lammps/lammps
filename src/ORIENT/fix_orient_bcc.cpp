@@ -29,8 +29,8 @@
 #include "memory.h"
 #include "neigh_list.h"
 #include "neighbor.h"
+#include "potential_file_reader.h"
 #include "respa.h"
-#include "safe_pointers.h"
 #include "update.h"
 
 #include <cmath>
@@ -101,26 +101,13 @@ FixOrientBCC::FixOrientBCC(LAMMPS *lmp, int narg, char **arg) :
   // read xi and chi reference orientations from files
 
   if (me == 0) {
-    char line[IMGMAX];
-    char *result;
-    int count;
-
-    SafeFilePtr inpfile = fopen(xifilename,"r");
-    if (inpfile == nullptr) error->one(FLERR,"Fix orient/bcc file open failed");
-    for (int i = 0; i < half_bcc_nn; i++) {
-      result = fgets(line,IMGMAX,inpfile);
-      if (!result) error->one(FLERR,"Fix orient/bcc file read failed");
-      count = sscanf(line,"%lg %lg %lg",&Rxi[i][0],&Rxi[i][1],&Rxi[i][2]);
-      if (count != 3) error->one(FLERR,"Fix orient/bcc file read failed");
-    }
-
-    inpfile = fopen(chifilename,"r");
-    if (inpfile == nullptr) error->one(FLERR,"Fix orient/bcc file open failed");
-    for (int i = 0; i < half_bcc_nn; i++) {
-      result = fgets(line,IMGMAX,inpfile);
-      if (!result) error->one(FLERR,"Fix orient/bcc file read failed");
-      count = sscanf(line,"%lg %lg %lg",&Rchi[i][0],&Rchi[i][1],&Rchi[i][2]);
-      if (count != 3) error->one(FLERR,"Fix orient/bcc file read failed");
+    try {
+      PotentialFileReader xi_reader(lmp, xifilename, "fix orient/bcc");
+      xi_reader.next_dvector(&Rxi[0][0], half_bcc_nn*3);
+      PotentialFileReader chi_reader(lmp, chifilename, "fix orient/bcc");
+      chi_reader.next_dvector(&Rchi[0][0], half_bcc_nn*3);
+    } catch (std::exception &e) {
+      error->one(FLERR, "Fix orient/bcc file read failed: {}", e.what());
     }
   }
 

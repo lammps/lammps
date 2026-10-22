@@ -30,8 +30,8 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-AtomVecSphereKokkos::AtomVecSphereKokkos(LAMMPS *lmp) : AtomVec(lmp),
-AtomVecKokkos(lmp), AtomVecSphere(lmp)
+AtomVecSphereKokkos::AtomVecSphereKokkos(LAMMPS *lmp) :
+    AtomVec(lmp), AtomVecKokkos(lmp), AtomVecSphere(lmp), torque(nullptr)
 {
 }
 

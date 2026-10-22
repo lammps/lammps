@@ -45,8 +45,7 @@ begin a simulation.
 .. versionadded:: 11Feb2026
 
 The file may also be a compressed text file (detected by its suffix) if
-LAMMPS has been compiled with support for :ref:`compression commands
-<gzip>` and the corresponding compression program is available.
+the corresponding :ref:`compression program <gzip>` is installed.
 
 Similar to :doc:`dump <dump>` files, the data filename can contain a "\*"
 wild-card character.  The "\*" is replaced with the current timestep
@@ -179,6 +178,24 @@ in the input script after reading the data file, by specifying
 additional :doc:`pair_coeff <pair_coeff>` commands for any desired I,J
 pairs.
 
+.. note::
+
+   Before the data file is written, LAMMPS migrates atoms to their owning
+   subdomains, which deletes any atoms that lie outside of non-periodic
+   boundaries.  If this changes the total number of atoms, the
+   :doc:`thermo_modify lost <thermo_modify>` setting determines what happens:
+   with the default *error* setting LAMMPS aborts and does not write the
+   file; with *warn* or *ignore* the stored atom count is reset to the actual
+   number of atoms so that a self-consistent data file is written (with a
+   warning printed for *warn*).
+
+.. versionchanged:: 4Jul2026
+
+Previously, with the *warn* or *ignore* lost-atoms setting, the atom count in
+the data file header could disagree with the number of atoms actually written
+(a corrupted data file).  The count is now reset so the written file is always
+self-consistent.
+
 ----------
 
 Restrictions
@@ -189,9 +206,9 @@ before the data file is written.  This means that your system must be
 ready to perform a simulation before using this command (force fields
 setup, atom masses initialized, etc).
 
-To write compressed data files, you must compile LAMMPS with the
-``-DLAMMPS_GZIP`` option.  See the :doc:`Build settings
-<Build_settings>` doc page for details.
+To write compressed data files, the corresponding compression program
+must be installed.  See the :ref:`Build settings <gzip>` page for
+details.
 
 Related commands
 """"""""""""""""

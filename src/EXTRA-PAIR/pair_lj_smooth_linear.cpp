@@ -32,7 +32,10 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairLJSmoothLinear::PairLJSmoothLinear(LAMMPS *lmp) : Pair(lmp) {
+PairLJSmoothLinear::PairLJSmoothLinear(LAMMPS *lmp) :
+    Pair(lmp), cut(nullptr), epsilon(nullptr), sigma(nullptr), ljcut(nullptr), dljcut(nullptr),
+    lj1(nullptr), lj2(nullptr), lj3(nullptr), lj4(nullptr)
+{
   single_hessian_enable = 1;
 }
 
@@ -40,6 +43,8 @@ PairLJSmoothLinear::PairLJSmoothLinear(LAMMPS *lmp) : Pair(lmp) {
 
 PairLJSmoothLinear::~PairLJSmoothLinear()
 {
+  if (copymode) return;
+
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);
@@ -125,6 +130,7 @@ void PairLJSmoothLinear::compute(int eflag, int vflag)
           evdwl = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype]);
           evdwl = evdwl - ljcut[itype][jtype]
                           + (r-cut[itype][jtype])*dljcut[itype][jtype];
+          evdwl *= factor_lj;
         }
 
         if (evflag) ev_tally(i,j,nlocal,newton_pair,

@@ -147,7 +147,7 @@ MDSPAN_FUNCTION inline void default_precondition_violation_handler(const char* c
 #endif
 
 #ifndef MDSPAN_IMPL_CHECK_PRECONDITION
-  #ifndef NDEBUG
+  #ifdef NDEBUG
     #define MDSPAN_IMPL_CHECK_PRECONDITION 0
   #else
     #define MDSPAN_IMPL_CHECK_PRECONDITION 1

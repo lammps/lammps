@@ -1,0 +1,213 @@
+LAMMPS (30 Mar 2026 - Development - patch_30Mar2026-2152-g107b880cf8-modified)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread.
+  using 1 OpenMP thread(s) per MPI task
+# Solvated 5-mer peptide -- ILVES constraint solver
+# (mirror of examples/peptide/in.peptide using fix ilves)
+
+units           real
+atom_style      full
+
+pair_style      lj/charmm/coul/long 8.0 10.0 10.0
+bond_style      harmonic
+angle_style     charmm
+dihedral_style  charmm
+improper_style  harmonic
+kspace_style    pppm 0.0001
+
+read_data       data.peptide
+Reading data file ...
+  orthogonal box = (36.840194 41.013691 29.768095) to (64.21156 68.385058 57.139462)
+  1 by 2 by 2 MPI processor grid
+  reading atoms ...
+  2004 atoms
+  reading velocities ...
+  2004 velocities
+  scanning bonds ...
+  3 = max bonds/atom
+  scanning angles ...
+  6 = max angles/atom
+  scanning dihedrals ...
+  14 = max dihedrals/atom
+  scanning impropers ...
+  1 = max impropers/atom
+  orthogonal box = (36.840194 41.013691 29.768095) to (64.21156 68.385058 57.139462)
+  1 by 2 by 2 MPI processor grid
+  reading bonds ...
+  1365 bonds
+  reading angles ...
+  786 angles
+  reading dihedrals ...
+  207 dihedrals
+  reading impropers ...
+  12 impropers
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0        0        0       
+  special bond factors coul:  0        0        0       
+     4 = max # of 1-2 neighbors
+     7 = max # of 1-3 neighbors
+    14 = max # of 1-4 neighbors
+    18 = max # of special neighbors
+  special bonds CPU = 0.000 seconds
+  read_data CPU = 0.012 seconds
+
+neighbor        2.0 bin
+neigh_modify    delay 5
+
+timestep        2.0
+
+thermo_style    multi
+thermo          50
+
+fix             1 all nvt temp 275.0 275.0 100.0 tchain 1
+
+group           peptide type <= 12
+84 atoms in group peptide
+group           waters  type > 12
+1920 atoms in group waters
+
+fix             cstr all ilves 0.0001 2 100 b 4 6 8 10 12 14 18 a 31 mode fixed
+
+run             300
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+
+- fix ilves command: doi:10.1021/acs.jctc.5c01376
+
+@Article{LopezVillellas2025,
+ author = {L{\'o}pez-Villellas, Lori{\'e}n and Mikkelsen, Carl Christian Kjelgaard and Galano-Frutos, Juan Jos{\'e} and Marco-Sola, Santiago and Alastruey-Bened{\'e}, Jes{\'u}s and Ib{\'a}{\~n}ez, Pablo and Echenique, Pablo and Moret{\'o}, Miquel and {De Rosa}, Maria Cristina and Garc{\'i}a-Risue{\~n}o, Pablo},
+ title = {ILVES: Accurate and Efficient Bond Length and Angle Constraints in Molecular Dynamics},
+ journal = {J.~Chem.\ Theory Comput.},
+ volume = 21,
+ pages = {8711--8719},
+ year = 2025
+}
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+PPPM initialization ...
+  using 12-bit tables for long-range coulomb
+  G vector (1/distance) = 0.26872465
+  grid = 15 15 15
+  stencil order = 5
+  estimated absolute RMS force accuracy = 0.022820853
+  estimated relative force accuracy = 6.872432e-05
+  using double precision FFTW3
+  3d grid and FFT values/proc = 4312 960
+Generated 91 of 91 mixed pair_coeff terms from arithmetic mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 5 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 12
+  ghost atom cutoff = 12
+  binsize = 6, bins = 5 5 5
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/charmm/coul/long, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d
+      bin: standard
+Fix ilves: constraining 1320 bond(s) and 640 angle(s)
+ILVES stats (type/ave/delta/count) on step 0 (0 Newton iterations)
+Bond:    4   1.111     1.44264e-05        9
+Bond:    6   0.996998  7.26967e-06        6
+Bond:    8   1.08      1.32536e-05        7
+Bond:   10   1.111     1.22749e-05        8
+Bond:   12   1.08      1.11767e-05        9
+Bond:   14   0.96      0                  1
+Bond:   18   0.957206  4.37979e-05     1280
+Angle:  31   104.519   0.00396029       640
+Per MPI rank memory allocation (min/avg/max) = 16.43 | 16.63 | 16.82 Mbytes
+------------ Step              0 ----- CPU =            0 (sec) -------------
+TotEng   =     -5237.4649 KinEng   =      1134.9117 Temp     =       282.0988 
+PotEng   =     -6372.3765 E_bond   =        16.5572 E_angle  =        36.3726 
+E_dihed  =        15.5190 E_impro  =         1.9426 E_vdwl   =       692.8945 
+E_coul   =     26772.2647 E_long   =    -33907.9271 Press    =      -223.0568
+------------ Step             50 ----- CPU =    0.1208985 (sec) -------------
+TotEng   =     -5247.6140 KinEng   =      1132.3431 Temp     =       281.4603 
+PotEng   =     -6379.9571 E_bond   =        12.2117 E_angle  =        31.7363 
+E_dihed  =        18.8124 E_impro  =         2.3610 E_vdwl   =       658.2109 
+E_coul   =     26804.4088 E_long   =    -33907.6984 Press    =     -1331.4960
+ILVES stats (type/ave/delta/count) on step 100 (2 Newton iterations)
+Bond:    4   1.111     7.34248e-07        9
+Bond:    6   0.997     1.06899e-06        6
+Bond:    8   1.08      7.51217e-07        7
+Bond:   10   1.111     6.46707e-07        8
+Bond:   12   1.08      2.67417e-07        9
+Bond:   14   0.96      0                  1
+Bond:   18   0.9572    4.30676e-06     1280
+Angle:  31   104.52    0.000388776      640
+------------ Step            100 ----- CPU =    0.2482096 (sec) -------------
+TotEng   =     -5257.9792 KinEng   =      1077.8136 Temp     =       267.9063 
+PotEng   =     -6335.7929 E_bond   =        14.4862 E_angle  =        43.4387 
+E_dihed  =        15.2580 E_impro  =         2.3158 E_vdwl   =       708.2702 
+E_coul   =     26787.0080 E_long   =    -33906.5699 Press    =      -648.8318
+------------ Step            150 ----- CPU =    0.3766156 (sec) -------------
+TotEng   =     -5287.1619 KinEng   =      1098.8183 Temp     =       273.1273 
+PotEng   =     -6385.9801 E_bond   =        17.4933 E_angle  =        32.8642 
+E_dihed  =        15.1672 E_impro  =         1.6541 E_vdwl   =       737.2849 
+E_coul   =     26716.7362 E_long   =    -33907.1801 Press    =      -331.6735
+ILVES stats (type/ave/delta/count) on step 200 (2 Newton iterations)
+Bond:    4   1.111     1.60502e-07        9
+Bond:    6   0.997     1.30956e-07        6
+Bond:    8   1.08      5.04918e-08        7
+Bond:   10   1.111     1.74703e-07        8
+Bond:   12   1.08      1.51862e-07        9
+Bond:   14   0.96      0                  1
+Bond:   18   0.9572    2.32293e-06     1280
+Angle:  31   104.52    0.000318774      640
+------------ Step            200 ----- CPU =    0.4993156 (sec) -------------
+TotEng   =     -5308.0213 KinEng   =      1101.5049 Temp     =       273.7950 
+PotEng   =     -6409.5261 E_bond   =        18.2440 E_angle  =        33.3291 
+E_dihed  =        16.8461 E_impro  =         2.5689 E_vdwl   =       685.2476 
+E_coul   =     26736.1631 E_long   =    -33901.9249 Press    =     -1495.2279
+------------ Step            250 ----- CPU =     0.627395 (sec) -------------
+TotEng   =     -5289.1521 KinEng   =      1071.5388 Temp     =       266.3465 
+PotEng   =     -6360.6908 E_bond   =        14.5487 E_angle  =        39.9982 
+E_dihed  =        19.1623 E_impro  =         3.0963 E_vdwl   =       747.8192 
+E_coul   =     26722.0097 E_long   =    -33907.3252 Press    =      -264.3150
+ILVES stats (type/ave/delta/count) on step 300 (2 Newton iterations)
+Bond:    4   1.111     3.95325e-06        9
+Bond:    6   0.997001  4.38906e-06        6
+Bond:    8   1.08      2.10962e-06        7
+Bond:   10   1.111     4.71249e-06        8
+Bond:   12   1.08      2.45246e-06        9
+Bond:   14   0.96      0                  1
+Bond:   18   0.957201  7.15426e-06     1280
+Angle:  31   104.52    0.000681945      640
+------------ Step            300 ----- CPU =    0.7534751 (sec) -------------
+TotEng   =     -5239.7257 KinEng   =      1132.3676 Temp     =       281.4664 
+PotEng   =     -6372.0933 E_bond   =        14.5011 E_angle  =        39.7885 
+E_dihed  =        17.8079 E_impro  =         2.2225 E_vdwl   =       732.0787 
+E_coul   =     26730.3289 E_long   =    -33908.8210 Press    =      -254.0793
+Loop time of 0.753495 on 4 procs for 300 steps with 2004 atoms
+
+Performance: 68.799 ns/day, 0.349 hours/ns, 398.144 timesteps/s, 797.881 katom-step/s
+99.4% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.54697    | 0.55496    | 0.56591    |   1.0 | 73.65
+Bond    | 0.00048387 | 0.001354   | 0.0022551  |   2.1 |  0.18
+Kspace  | 0.049229   | 0.059738   | 0.069666   |   3.3 |  7.93
+Neigh   | 0.06807    | 0.068191   | 0.068261   |   0.0 |  9.05
+Comm    | 0.015066   | 0.016033   | 0.016488   |   0.5 |  2.13
+Output  | 0.00012627 | 0.00013221 | 0.00014825 |   0.0 |  0.02
+Modify  | 0.051748   | 0.05189    | 0.051986   |   0.0 |  6.89
+Other   |            | 0.0012     |            |       |  0.16
+
+Nlocal:            501 ave         513 max         487 min
+Histogram: 1 0 0 0 0 1 1 0 0 1
+Nghost:           6572 ave        6610 max        6539 min
+Histogram: 1 1 0 0 0 0 0 1 0 1
+Neighs:         176999 ave      182027 max      169353 min
+Histogram: 1 0 0 0 0 0 1 1 0 1
+
+Total # of neighbors = 707997
+Ave neighs/atom = 353.29192
+Ave special neighs/atom = 2.3403194
+Neighbor list builds = 25
+Dangerous builds = 0
+Total wall time: 0:00:00

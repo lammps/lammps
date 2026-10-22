@@ -60,7 +60,8 @@ static const char cite_pair_reax_c[] =
 
 /* ---------------------------------------------------------------------- */
 
-PairReaxFF::PairReaxFF(LAMMPS *lmp) : Pair(lmp)
+PairReaxFF::PairReaxFF(LAMMPS *lmp) :
+    Pair(lmp), tmpr(nullptr), chi(nullptr), eta(nullptr), gamma(nullptr), bcut_acks2(nullptr)
 {
   if (lmp->citeme) lmp->citeme->add(cite_pair_reax_c);
 

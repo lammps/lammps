@@ -52,7 +52,7 @@ int DPDCoulSlaterLongT::init(const int ntypes,
                const int nlocal, const int nall,
                const int max_nbors, const int maxspecial,
                const double cell_size,
-               const double gpu_split, FILE *_screen, double *host_special_coul,
+                           FILE *_screen, double *host_special_coul,
                const double qqrd2e, const double g_ewald, double lamda) {
   const int max_shared_types=this->device->max_shared_types();
 
@@ -73,8 +73,9 @@ int DPDCoulSlaterLongT::init(const int ntypes,
                         // q
   int success;
   bool need_charges = true;
-  success=this->init_atomic(nlocal,nall,max_nbors,maxspecial,cell_size,
-                            gpu_split,_screen,dpd_coul_slater_long,"k_dpd_coul_slater_long",onetype, extra_fields, need_charges);
+  success = this->init_atomic(nlocal, nall, max_nbors, maxspecial, cell_size, _screen,
+                              dpd_coul_slater_long, "k_dpd_coul_slater_long", onetype, extra_fields,
+                              need_charges);
 
   if (success!=0)
     return success;
@@ -211,16 +212,6 @@ int DPDCoulSlaterLongT::loop(const int eflag, const int vflag) {
   }
   this->time_pair.stop();
   return GX;
-}
-
-template <class numtyp, class acctyp>
-void DPDCoulSlaterLongT::update_coeff(int ntypes, double **host_a0, double **host_gamma,
-                        double **host_sigma, double **host_cut_dpd)
-{
-  UCL_H_Vec<numtyp> host_write(_lj_types*_lj_types*32,*(this->ucl_device),
-                               UCL_WRITE_ONLY);
-  this->atom->type_pack4(ntypes,_lj_types,coeff,host_write,host_a0,host_gamma,
-                         host_sigma,host_cut_dpd);
 }
 
 // ---------------------------------------------------------------------------

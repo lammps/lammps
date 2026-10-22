@@ -166,36 +166,49 @@ TEST(hip, space_access) {
   static_assert(
       std::is_same_v<Kokkos::Impl::HostMirror<Kokkos::HIPSpace>::Space,
                      Kokkos::HostSpace>);
+  static_assert(
+      std::is_same_v<Kokkos::Impl::HostMirror<Kokkos::HIPSpace>::device_type,
+                     Kokkos::Device<Kokkos::DefaultHostExecutionSpace,
+                                    Kokkos::HostSpace>>);
 #else
+  // Memory space stays the same as host can access HIPSpace
   static_assert(
       std::is_same_v<Kokkos::Impl::HostMirror<Kokkos::HIPSpace>::Space,
-                     Kokkos::Device<Kokkos::HostSpace::execution_space,
-                                    Kokkos::HIPSpace>>);
+                     Kokkos::HIPSpace>);
+  static_assert(
+      std::is_same_v<
+          Kokkos::Impl::HostMirror<Kokkos::HIPSpace>::device_type,
+          Kokkos::Device<Kokkos::DefaultHostExecutionSpace, Kokkos::HIPSpace>>);
 #endif
+
+  static_assert(
+      std::is_same_v<Kokkos::Impl::HostMirror<Kokkos::HIPManagedSpace>::Space,
+                     Kokkos::HIPManagedSpace>);
+  static_assert(std::is_same_v<
+                Kokkos::Impl::HostMirror<Kokkos::HIPManagedSpace>::device_type,
+                Kokkos::Device<Kokkos::HostSpace::execution_space,
+                               Kokkos::HIPManagedSpace>>);
 
   static_assert(std::is_same_v<
                 Kokkos::Impl::HostMirror<Kokkos::HIPHostPinnedSpace>::Space,
                 Kokkos::HIPHostPinnedSpace>);
-
   static_assert(
-      std::is_same_v<Kokkos::Impl::HostMirror<Kokkos::HIPManagedSpace>::Space,
-                     Kokkos::Device<Kokkos::HostSpace::execution_space,
-                                    Kokkos::HIPManagedSpace>>);
-
-  static_assert(
-      Kokkos::SpaceAccessibility<Kokkos::Impl::HostMirror<Kokkos::HIP>::Space,
-                                 Kokkos::HostSpace>::accessible);
+      std::is_same_v<
+          Kokkos::Impl::HostMirror<Kokkos::HIPHostPinnedSpace>::device_type,
+          Kokkos::Device<Kokkos::HostSpace::execution_space,
+                         Kokkos::HIPHostPinnedSpace>>);
 
   static_assert(Kokkos::SpaceAccessibility<
-                Kokkos::Impl::HostMirror<Kokkos::HIPSpace>::Space,
+                Kokkos::Impl::HostMirror<Kokkos::HIPSpace>::device_type,
                 Kokkos::HostSpace>::accessible);
 
-  static_assert(Kokkos::SpaceAccessibility<
-                Kokkos::Impl::HostMirror<Kokkos::HIPHostPinnedSpace>::Space,
-                Kokkos::HostSpace>::accessible);
+  static_assert(
+      Kokkos::SpaceAccessibility<
+          Kokkos::Impl::HostMirror<Kokkos::HIPHostPinnedSpace>::device_type,
+          Kokkos::HostSpace>::accessible);
 
   static_assert(Kokkos::SpaceAccessibility<
-                Kokkos::Impl::HostMirror<Kokkos::HIPManagedSpace>::Space,
+                Kokkos::Impl::HostMirror<Kokkos::HIPManagedSpace>::device_type,
                 Kokkos::HostSpace>::accessible);
 }
 

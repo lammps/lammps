@@ -16,6 +16,8 @@
 #include "atom.h"
 #include "error.h"
 #include "set.h"
+
+#include <memory>
 #include "update.h"
 
 using namespace LAMMPS_NS;
@@ -36,14 +38,17 @@ FixSet::FixSet(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 
   // create instance of Set class
 
-  set = new Set(lmp);
+  // process_args() below raises errors, and the destructor of a fix whose
+  // constructor threw is never called, so hold the instance while it runs
+  auto newset = std::make_unique<Set>(lmp);
 
   // pass remaining args to Set class
   // only keywords which use per-atom variables are currently allowed
   // NOTE: could also allow when set style = region,
   //       since atoms may move in/out of regions
 
-  set->process_args(Set::FIXSET, narg-5, &arg[5]);
+  newset->process_args(Set::FIXSET, narg-5, &arg[5]);
+  set = newset.release();
 }
 
 /* ---------------------------------------------------------------------- */

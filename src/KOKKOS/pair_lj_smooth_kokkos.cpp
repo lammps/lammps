@@ -97,22 +97,22 @@ void PairLJSmoothKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   nlocal = atom->nlocal;
   nall = atom->nlocal + atom->nghost;
   newton_pair = force->newton_pair;
-  special_lj[0] = force->special_lj[0];
-  special_lj[1] = force->special_lj[1];
-  special_lj[2] = force->special_lj[2];
-  special_lj[3] = force->special_lj[3];
+  special_lj[0] = static_cast<KK_FLOAT>(force->special_lj[0]);
+  special_lj[1] = static_cast<KK_FLOAT>(force->special_lj[1]);
+  special_lj[2] = static_cast<KK_FLOAT>(force->special_lj[2]);
+  special_lj[3] = static_cast<KK_FLOAT>(force->special_lj[3]);
 
   copymode = 1;
   EV_FLOAT ev = pair_compute<PairLJSmoothKokkos<DeviceType>,void>(this,(NeighListKokkos<DeviceType>*)list);
 
-  if (eflag_global) eng_vdwl += ev.evdwl;
+  if (eflag_global) eng_vdwl += static_cast<double>(ev.evdwl);
   if (vflag_global) {
-    virial[0] += ev.v[0];
-    virial[1] += ev.v[1];
-    virial[2] += ev.v[2];
-    virial[3] += ev.v[3];
-    virial[4] += ev.v[4];
-    virial[5] += ev.v[5];
+    virial[0] += static_cast<double>(ev.v[0]);
+    virial[1] += static_cast<double>(ev.v[1]);
+    virial[2] += static_cast<double>(ev.v[2]);
+    virial[3] += static_cast<double>(ev.v[3]);
+    virial[4] += static_cast<double>(ev.v[4]);
+    virial[5] += static_cast<double>(ev.v[5]);
   }
 
   if (vflag_fdotr) pair_virial_fdotr_compute(this);
@@ -150,7 +150,7 @@ compute_fpair(const KK_FLOAT &rsq, const int &, const int &, const int &itype, c
     const KK_FLOAT ljsw2 = STACKPARAMS ? m_params[itype][jtype].ljsw2 : params(itype,jtype).ljsw2;
     const KK_FLOAT ljsw3 = STACKPARAMS ? m_params[itype][jtype].ljsw3 : params(itype,jtype).ljsw3;
     const KK_FLOAT ljsw4 = STACKPARAMS ? m_params[itype][jtype].ljsw4 : params(itype,jtype).ljsw4;
-    const KK_FLOAT r = sqrt(rsq);
+    const KK_FLOAT r = Kokkos::sqrt(rsq);
     const KK_FLOAT t = r - cut_inner;
     const KK_FLOAT tsq = t*t;
     const KK_FLOAT fskin = ljsw1 + ljsw2*t + ljsw3*tsq + ljsw4*tsq*t;
@@ -180,7 +180,7 @@ compute_evdwl(const KK_FLOAT &rsq, const int &, const int &, const int &itype, c
     const KK_FLOAT ljsw2 = STACKPARAMS ? m_params[itype][jtype].ljsw2 : params(itype,jtype).ljsw2;
     const KK_FLOAT ljsw3 = STACKPARAMS ? m_params[itype][jtype].ljsw3 : params(itype,jtype).ljsw3;
     const KK_FLOAT ljsw4 = STACKPARAMS ? m_params[itype][jtype].ljsw4 : params(itype,jtype).ljsw4;
-    const KK_FLOAT r = sqrt(rsq);
+    const KK_FLOAT r = Kokkos::sqrt(rsq);
     const KK_FLOAT t = r - cut_inner;
     const KK_FLOAT tsq = t*t;
     return ljsw0 - ljsw1*t - ljsw2*tsq/static_cast<KK_FLOAT>(2.0)

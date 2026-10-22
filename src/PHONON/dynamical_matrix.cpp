@@ -46,7 +46,7 @@ enum{REGULAR,ESKM};
 
 /* ---------------------------------------------------------------------- */
 
-DynamicalMatrix::DynamicalMatrix(LAMMPS *lmp) : Command(lmp), fp(nullptr)
+DynamicalMatrix::DynamicalMatrix(LAMMPS *lmp) : Command(lmp), groupmap(nullptr), fp(nullptr)
 {
   external_force_clear = 0;
 }
@@ -221,9 +221,10 @@ void DynamicalMatrix::options(int narg, char **arg)
       iarg += 2;
     } else error->all(FLERR,"Illegal dynamical_matrix command");
   }
-  if (file_flag == 1) {
-    openfile(filename);
-  }
+  // always open the output file (documented default name unless changed
+  // with the file keyword); without it the matrix was silently discarded
+
+  openfile(filename);
 }
 
 /* ----------------------------------------------------------------------
@@ -240,8 +241,11 @@ void DynamicalMatrix::openfile(const char *filename)
 
   if (me == 0) {
     if (compressed) {
-      fp = platform::compressed_write(std::string(filename)+".gz");
-      if (!fp) error->one(FLERR, Error::NOLASTLINE, "Cannot open gzip compressed file");
+      std::string gzfile = std::string(filename) + ".gz";
+      fp = platform::compressed_write(gzfile);
+      if (!fp)
+        error->one(FLERR, Error::NOLASTLINE, "Cannot open compressed file {}: {}", gzfile,
+                   platform::compressed_open_error(gzfile));
     } else if (binaryflag) {
       fp = fopen(filename,"wb");
     } else {

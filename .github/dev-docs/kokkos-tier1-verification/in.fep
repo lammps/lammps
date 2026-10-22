@@ -1,0 +1,21 @@
+include         mol_head.mod
+variable        ps index lj/cut/soft
+if "${ps} == coul/cut/soft"  then "pair_style ${ps} 1 10.0 9.0"     &
+elif "${ps} == coul/long/soft"  "pair_style ${ps} 1 10.0 9.0"       &
+elif "${ps} == morse/soft"      "pair_style ${ps} 4 0.9 10.0"       &
+elif "${ps} == lj/class2/soft"  "pair_style ${ps} 2 0.5 10.0"       &
+elif "${ps} == lj/cut/coul/cut/soft" "pair_style ${ps} 2 0.5 10.0 9.0 9.0" &
+elif "${ps} == lj/cut/coul/long/soft" "pair_style ${ps} 2 0.5 10.0 9.0"    &
+elif "${ps} == lj/charmm/coul/long/soft" "pair_style ${ps} 2 0.5 10.0 8.0 9.0" &
+else "pair_style ${ps} 2 0.5 10.0"
+if "${ps} == morse/soft" then "pair_coeff * * 0.2 2.0 3.0 0.9" &
+elif "${ps} == coul/cut/soft" "pair_coeff * * 0.9" &
+elif "${ps} == coul/long/soft" "pair_coeff * * 0.9" &
+else "pair_coeff * * 0.02 3.0 0.9"
+if "${ps} == coul/long/soft" then "kspace_style ewald 1.0e-6" &
+elif "${ps} == lj/cut/coul/long/soft" "kspace_style ewald 1.0e-6" &
+elif "${ps} == lj/charmm/coul/long/soft" "kspace_style ewald 1.0e-6"
+fix             1 all nve
+thermo_style    custom step temp pe evdwl ecoul elong press
+thermo          5
+run             20 post no

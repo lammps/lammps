@@ -11,23 +11,17 @@
 #include <cuda_fp16.h>
 #include <cuda_bf16.h>
 
-#ifndef KOKKOS_IMPL_HALF_TYPE_DEFINED
-// Make sure no one else tries to define half_t
-#define KOKKOS_IMPL_HALF_TYPE_DEFINED
-
 namespace Kokkos::Impl {
 
 struct half_impl_t {
   using type = __half;
 };
-#define KOKKOS_IMPL_BHALF_TYPE_DEFINED
 struct bhalf_impl_t {
   using type = __nv_bfloat16;
 };
 
 }  // namespace Kokkos::Impl
 
-#endif  // KOKKOS_IMPL_HALF_TYPE_DEFINED
 #endif  // Disables for half_t on cuda: MAXWELL50||MAXWELL52
 
 #endif

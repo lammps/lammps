@@ -41,8 +41,7 @@ using MathSpecial::powint;
 /* ---------------------------------------------------------------------- */
 
 ComputePressureBocs::ComputePressureBocs(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg),
-  vptr(nullptr), id_temp(nullptr)
+    Compute(lmp, narg, arg), vptr(nullptr), kspace_virial(nullptr), id_temp(nullptr)
 {
   if (narg < 4) utils::missing_cmd_args(FLERR,"compute pressure/bocs", error);
   if (igroup) error->all(FLERR, 1, "Compute pressure/bocs must use group all");
@@ -56,6 +55,13 @@ ComputePressureBocs::ComputePressureBocs(LAMMPS *lmp, int narg, char **arg) :
 
   p_match_flag = 0;
   phi_coeff = nullptr;
+
+  // no pressure correction is applied until fix bocs provides one via send_cg_info()
+
+  p_basis_type = -1;
+  N_basis = 0;
+  N_mol = 0;
+  vavg = 0.0;
 
   // store temperature ID used by pressure computation
   // ensure it is valid for temperature computation
@@ -110,11 +116,16 @@ ComputePressureBocs::ComputePressureBocs(LAMMPS *lmp, int narg, char **arg) :
                "Compute pressure/bocs requires temperature ID to include kinetic energy");
 
   vector = new double[size_vector];
+  dimension = domain->dimension;
+  boltz = force->boltz;
+  nktv2p = force->nktv2p;
+  inv_volume = 0.0;
   nvirial = 0;
   vptr = nullptr;
 
   splines = nullptr;
   spline_length = 0;
+  temperature = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */

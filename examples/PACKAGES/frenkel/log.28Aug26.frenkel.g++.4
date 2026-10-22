@@ -1,0 +1,147 @@
+LAMMPS (4 Jul 2026 - Development - patch_4Jul2026-1129-g2262d634e6-modified)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread.
+  using 1 OpenMP thread(s) per MPI task
+# On-the-fly Wigner-Seitz defect analysis of a bcc iron crystal.
+#
+# A single Frenkel pair is created by hand: one atom is removed to leave a
+# vacancy behind and one extra atom is inserted next to an occupied lattice
+# site to create an interstitial.  The crystal is then run at 600 K, and
+# compute frenkel counts the vacancies and interstitials on the fly.  The
+# defect clusters are written to a dump file with dump local.
+#
+# For a simulation with a changing box, e.g. under fix npt, add the keyword
+# "rescale yes" to the compute so that the reference sites follow the box.
+
+units           metal
+atom_style      atomic
+atom_modify     map array
+boundary        p p p
+
+lattice         bcc 2.8553
+Lattice spacing in x,y,z = 2.8553 2.8553 2.8553
+region          box block 0 10 0 10 0 10
+create_box      1 box
+Created orthogonal box = (0 0 0) to (28.553 28.553 28.553)
+  2 by 1 by 2 MPI processor grid
+create_atoms    1 box
+Created 2000 atoms
+  using lattice units in orthogonal box = (0 0 0) to (28.553 28.553 28.553)
+  create_atoms CPU = 0.000 seconds
+
+pair_style      eam/fs
+pair_coeff      * * Fe_mm.eam.fs Fe
+Reading eam/fs potential file Fe_mm.eam.fs with DATE: 2007-06-11
+
+# remove one atom to create a vacancy
+
+region          hole sphere 5.0 5.0 5.0 0.3 units lattice
+delete_atoms    region hole compress no
+Deleted 1 atoms, new total = 1999
+
+# replace the atom of another site by a <110> dumbbell, so that this site
+# holds two atoms and thus one interstitial
+
+region          dumbbell sphere 2.5 2.5 2.5 0.3 units lattice
+delete_atoms    region dumbbell compress no
+Deleted 1 atoms, new total = 1998
+create_atoms    1 single 2.25 2.25 2.5 units lattice
+Created 1 atoms
+  using lattice units in orthogonal box = (0 0 0) to (28.553 28.553 28.553)
+  create_atoms CPU = 0.000 seconds
+create_atoms    1 single 2.75 2.75 2.5 units lattice
+Created 1 atoms
+  using lattice units in orthogonal box = (0 0 0) to (28.553 28.553 28.553)
+  create_atoms CPU = 0.000 seconds
+
+velocity        all create 1200.0 4928459 mom yes rot yes loop geom
+
+# the reference lattice is the one defined by the lattice command above
+
+compute         fr all frenkel
+
+# c_fr[1] = vacancies, c_fr[2] = interstitials, c_fr[3] = sites with > 2 atoms
+
+thermo_style    custom step temp pe c_fr[1] c_fr[2] c_fr[3]
+thermo          100
+
+# one line per defect cluster: ID, size, and the position of its center
+
+dump            def all local 250 dump.frenkel index c_fr[1] c_fr[2] c_fr[3] c_fr[4] c_fr[5]
+
+fix             1 all nvt temp 600.0 600.0 0.1
+timestep        0.001
+run             1000
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+
+- compute_frenkel command: doi:10.1016/j.cpc.2019.106862
+
+@article{Hammond2020a,
+  author  = "Hammond, Karl D.",
+  title   = "Parallel Point Defect Identification in Molecular Dynamics
+             Simulations Without Post-Processing: A Compute and Dump Style
+             for {LAMMPS}",
+  journal = "Computer Physics Communications",
+  volume  = 247,
+  pages   = 106862,
+  doi     = 10.1016/j.cpc.2019.106862,
+  year    = 2020,
+}
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Compute fr nearest neighbor distance 2.47276 with cluster connection distances 3.70914 for vacancies and 4.50043 for interstitials
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 7.3
+  ghost atom cutoff = 7.3
+  binsize = 3.65, bins = 8 8 8
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair eam/fs, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 3.759 | 3.759 | 3.759 Mbytes
+   Step          Temp          PotEng        c_fr[1]        c_fr[2]        c_fr[3]    
+         0   1200          -8231.7312      1              1              0            
+       100   608.38929     -8078.1413      1              1              0            
+       200   574.49674     -8064.8057      1              1              0            
+       300   621.3738      -8076.2868      1              1              0            
+       400   595.03756     -8073.2538      1              1              0            
+       500   584.89363     -8076.0442      1              1              0            
+       600   578.4585      -8078.8405      0              0              0            
+       700   578.51536     -8080.039       0              0              0            
+       800   606.43402     -8083.3448      0              0              0            
+       900   611.46254     -8080.0163      0              0              0            
+      1000   634.63275     -8085.4413      0              0              0            
+Loop time of 0.51699 on 4 procs for 1000 steps with 2000 atoms
+
+Performance: 167.121 ns/day, 0.144 hours/ns, 1934.274 timesteps/s, 3.869 Matom-step/s
+99.4% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.37414    | 0.38551    | 0.39564    |   1.5 | 74.57
+Neigh   | 0.0027648  | 0.0027711  | 0.0027778  |   0.0 |  0.54
+Comm    | 0.018423   | 0.028578   | 0.039916   |   5.6 |  5.53
+Output  | 0.093002   | 0.09303    | 0.093104   |   0.0 | 17.99
+Modify  | 0.0051955  | 0.0053101  | 0.0053943  |   0.1 |  1.03
+Other   |            | 0.001792   |            |       |  0.35
+
+Nlocal:            500 ave         507 max         488 min
+Histogram: 1 0 0 0 0 0 1 0 1 1
+Nghost:        2871.25 ave        2880 max        2852 min
+Histogram: 1 0 0 0 0 0 0 0 2 1
+Neighs:          35476 ave       36914 max       33731 min
+Histogram: 1 0 1 0 0 0 0 0 0 2
+
+Total # of neighbors = 141904
+Ave neighs/atom = 70.952
+Neighbor list builds = 4
+Dangerous builds = 0
+Total wall time: 0:00:00

@@ -1136,3 +1136,71 @@ desired and changes are made and commands renamed or removed.  In that
 case an error message is printed describing why the command cannot be
 executed.  More details can be found on the manual page
 :doc:`Commands_removed`.
+
+.. _err0039:
+
+Cached download settings differ from the current defaults
+---------------------------------------------------------
+
+Several optional packages and tools in LAMMPS depend on external
+libraries that CMake can download and compile automatically, for example
+when configuring with ``-D PKG_MBX=on`` or ``-D DOWNLOAD_KOKKOS=on``.
+The URL of the archive to download and its SHA-256 checksum are stored
+in the CMake cache of the build folder as variables ``<NAME>_URL`` and
+``<NAME>_SHA256`` (e.g. ``KOKKOS_URL`` and ``KOKKOS_SHA256``).  This
+makes it possible to permanently override the defaults for a build
+folder, e.g. to use a local copy of the archive on machines without
+internet access, or to test a different version of the library.
+
+The downside of this is that CMake keeps the cached settings when the
+LAMMPS sources used with a build folder are updated to a newer version
+that requires a different version of the external library.  LAMMPS thus
+also records the default checksum in the cache and updates the cached
+settings automatically when they are unchanged from the previous
+defaults.  When that is not possible, because the settings have been
+customized or because the build folder was last configured with an older
+LAMMPS version that did not record the default, this warning is printed
+instead.  It shows the cached settings and the current default URL.
+
+If the different settings are intentional, the warning can be ignored.
+Otherwise the cached settings should be reset to the current defaults by
+removing them from the CMake cache when re-running CMake, e.g. with:
+
+.. code-block:: bash
+
+   cmake -U KOKKOS_URL -U KOKKOS_SHA256 build
+
+Alternatively, the variables can be set explicitly with ``-D`` to the
+desired values, or a new build folder can be used.
+
+.. _err0040:
+
+LAMMPS is run with superuser or administrator privileges
+--------------------------------------------------------
+
+The LAMMPS executable prints this warning when it is started from the
+"root" account on Linux or macOS (this includes using ``sudo``), or with
+"Run as administrator" on Windows.  LAMMPS does not need such privileges
+for anything, and running it that way is strongly discouraged.
+
+A LAMMPS input can read, change, and delete files, run other programs,
+and access the network (see :doc:`Build_security`).  For a regular user
+the damage from a mistake in an input file, from a bug in LAMMPS or in
+one of the libraries it uses, or from an input file with malicious
+content is limited to what that user is allowed to access.  With
+superuser or administrator privileges it can affect the entire machine,
+including the operating system and the files of all other users.
+
+To avoid the warning, run LAMMPS from a regular user account.  The same
+applies to compiling and installing LAMMPS: by default, LAMMPS is
+installed into a folder inside the home directory of the user, so that
+no special privileges are needed, and CMake prints a similar warning
+when it is run as superuser.  Programs in containers often run as "root"
+by default.  In that case it is recommended to create a regular user
+account inside the container, or to tell the container software to run
+as a regular user, for example with the ``--user`` flag of ``docker
+run``.
+
+LAMMPS continues after printing the warning.  The warning is only
+printed by the LAMMPS executable and not when LAMMPS is used as a
+library from another program or through the LAMMPS Python module.

@@ -121,7 +121,7 @@ void Integrate::ev_set(bigint ntimestep)
   int eflag_atom = 0;
   for (auto &icompute : elist_atom)
     if (icompute->matchstep(ntimestep)) flag = 1;
-  if (flag || (tdflag && (elist_atom.size() > 0))) eflag_atom = ENERGY_ATOM;
+  if (flag || (tdflag && (!elist_atom.empty()))) eflag_atom = ENERGY_ATOM;
 
   if (eflag_global) update->eflag_global = ntimestep;
   if (eflag_atom) update->eflag_atom = ntimestep;
@@ -137,13 +137,13 @@ void Integrate::ev_set(bigint ntimestep)
   int vflag_atom = 0;
   for (auto &icompute : vlist_atom)
     if (icompute->matchstep(ntimestep)) flag = 1;
-  if (flag || (tdflag && (vlist_atom.size() > 0))) vflag_atom = VIRIAL_ATOM;
+  if (flag || (tdflag && (!vlist_atom.empty()))) vflag_atom = VIRIAL_ATOM;
 
   flag = 0;
   int cvflag_atom = 0;
   for (auto &icompute : cvlist_atom)
     if (icompute->matchstep(ntimestep)) flag = 1;
-  if (flag || (tdflag && (cvlist_atom.size() > 0))) cvflag_atom = VIRIAL_CENTROID;
+  if (flag || (tdflag && (!cvlist_atom.empty()))) cvflag_atom = VIRIAL_CENTROID;
 
   if (vflag_global) update->vflag_global = ntimestep;
   if (vflag_atom || cvflag_atom) update->vflag_atom = ntimestep;

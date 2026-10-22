@@ -163,43 +163,50 @@ TEST(cuda, space_access) {
   static_assert(
       std::is_same_v<Kokkos::Impl::HostMirror<Kokkos::CudaSpace>::Space,
                      Kokkos::HostSpace>);
+  static_assert(
+      std::is_same_v<Kokkos::Impl::HostMirror<Kokkos::CudaSpace>::device_type,
+                     Kokkos::Device<Kokkos::DefaultHostExecutionSpace,
+                                    Kokkos::HostSpace>>);
 #else
+  // Memory space stays the same as host can access CudaSpace
   static_assert(
       std::is_same_v<Kokkos::Impl::HostMirror<Kokkos::CudaSpace>::Space,
-                     Kokkos::Device<Kokkos::HostSpace::execution_space,
+                     Kokkos::CudaSpace>);
+  static_assert(
+      std::is_same_v<Kokkos::Impl::HostMirror<Kokkos::CudaSpace>::device_type,
+                     Kokkos::Device<Kokkos::DefaultHostExecutionSpace,
                                     Kokkos::CudaSpace>>);
 #endif
 
   static_assert(
       std::is_same_v<Kokkos::Impl::HostMirror<Kokkos::CudaUVMSpace>::Space,
-                     Kokkos::Device<Kokkos::HostSpace::execution_space,
-                                    Kokkos::CudaUVMSpace>>);
+                     Kokkos::CudaUVMSpace>);
+  static_assert(std::is_same_v<
+                Kokkos::Impl::HostMirror<Kokkos::CudaUVMSpace>::device_type,
+                Kokkos::Device<Kokkos::DefaultHostExecutionSpace,
+                               Kokkos::CudaUVMSpace>>);
 
   static_assert(std::is_same_v<
                 Kokkos::Impl::HostMirror<Kokkos::CudaHostPinnedSpace>::Space,
                 Kokkos::CudaHostPinnedSpace>);
+  static_assert(
+      std::is_same_v<
+          Kokkos::Impl::HostMirror<Kokkos::CudaHostPinnedSpace>::device_type,
+          Kokkos::Device<Kokkos::DefaultHostExecutionSpace,
+                         Kokkos::CudaHostPinnedSpace>>);
+
+  static_assert(Kokkos::SpaceAccessibility<
+                Kokkos::Impl::HostMirror<Kokkos::CudaSpace>::device_type,
+                Kokkos::HostSpace>::accessible);
+
+  static_assert(Kokkos::SpaceAccessibility<
+                Kokkos::Impl::HostMirror<Kokkos::CudaUVMSpace>::device_type,
+                Kokkos::HostSpace>::accessible);
 
   static_assert(
-      std::is_same_v<Kokkos::Device<Kokkos::HostSpace::execution_space,
-                                    Kokkos::CudaUVMSpace>,
-                     Kokkos::Device<Kokkos::HostSpace::execution_space,
-                                    Kokkos::CudaUVMSpace>>);
-
-  static_assert(
-      Kokkos::SpaceAccessibility<Kokkos::Impl::HostMirror<Kokkos::Cuda>::Space,
-                                 Kokkos::HostSpace>::accessible);
-
-  static_assert(Kokkos::SpaceAccessibility<
-                Kokkos::Impl::HostMirror<Kokkos::CudaSpace>::Space,
-                Kokkos::HostSpace>::accessible);
-
-  static_assert(Kokkos::SpaceAccessibility<
-                Kokkos::Impl::HostMirror<Kokkos::CudaUVMSpace>::Space,
-                Kokkos::HostSpace>::accessible);
-
-  static_assert(Kokkos::SpaceAccessibility<
-                Kokkos::Impl::HostMirror<Kokkos::CudaHostPinnedSpace>::Space,
-                Kokkos::HostSpace>::accessible);
+      Kokkos::SpaceAccessibility<
+          Kokkos::Impl::HostMirror<Kokkos::CudaHostPinnedSpace>::device_type,
+          Kokkos::HostSpace>::accessible);
 }
 
 TEST(cuda, uvm) {

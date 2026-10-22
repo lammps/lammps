@@ -1,7 +1,7 @@
 # -*- CMake -*- file for testing the direct calls to individual C++ classes
 
 add_executable(test_lammps_class test_lammps_class.cpp)
-target_link_libraries(test_lammps_class PRIVATE lammps GTest::GMockMain)
+target_link_libraries(test_lammps_class PRIVATE lammps GTest::GMock)
 add_test(NAME LammpsClass COMMAND test_lammps_class)
 set_tests_properties(LammpsClass PROPERTIES ENVIRONMENT "OMP_NUM_THREADS=2;OMP_PROC_BIND=false")
 
@@ -16,6 +16,12 @@ add_test(NAME AdvancedUtils COMMAND test_advanced_utils)
 add_executable(test_error_class test_error_class.cpp)
 target_link_libraries(test_error_class PRIVATE lammps GTest::GMock)
 add_test(NAME ErrorClass COMMAND test_error_class)
+
+add_executable(test_kspace_styles test_kspace_styles.cpp)
+target_link_libraries(test_kspace_styles PRIVATE lammps GTest::GMock)
+add_test(NAME KSpaceStyles COMMAND test_kspace_styles)
+set_tests_properties(KSpaceStyles PROPERTIES LABELS "slow"
+  ENVIRONMENT "OMP_NUM_THREADS=2;OMP_PROC_BIND=false")
 
 add_executable(test_neighbor_class test_neighbor_class.cpp)
 target_link_libraries(test_neighbor_class PRIVATE lammps GTest::GMock)

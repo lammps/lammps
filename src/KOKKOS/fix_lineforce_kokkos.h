@@ -37,7 +37,6 @@ class FixLineForceKokkos : public FixLineForce {
   typedef ArrayTypes<DeviceType> AT;
 
   FixLineForceKokkos(class LAMMPS *, int, char **);
-  ~FixLineForceKokkos() override {}
   void init() override;
   void post_force(int) override;
 
@@ -46,8 +45,6 @@ class FixLineForceKokkos : public FixLineForce {
   void operator()(TagFixLineForce, const int &) const;
 
  private:
-  class AtomKokkos *atomKK;
-  ExecutionSpace execution_space;
 
   typename AT::t_kkacc_1d_3 f;
   typename AT::t_int_1d_randomread mask;

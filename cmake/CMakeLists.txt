@@ -2,7 +2,7 @@
 ########################################
 # CMake build system
 # This file is part of LAMMPS
-cmake_minimum_required(VERSION 3.20)
+cmake_minimum_required(VERSION 3.27)
 ########################################
 # initialize version variables with project command
 if(POLICY CMP0048)
@@ -17,17 +17,27 @@ if(POLICY CMP0075)
   cmake_policy(SET CMP0075 NEW)
 endif()
 # set policy to silence warnings about requiring execute permission for find_program
-# we use OLD because the python-config script for the Fedora MinGW cross-compiler requires it currently
+# as of Oct 2nd 2026 changed to NEW since Fedora 43 and 44 have an executable python-config script
 if(POLICY CMP0109)
-  cmake_policy(SET CMP0109 OLD)
+  cmake_policy(SET CMP0109 NEW)
 endif()
-# set policy to silence warnings about timestamps of downloaded files. review occasionally if it may be set to NEW
+# set policy so set(CACHE) command does not remove any normal variable of the same name from the current scope
+if(POLICY CMP0126)
+  cmake_policy(SET CMP0126 NEW)
+endif()
+# set policy to use the time of extraction as timestamps of files unpacked from downloaded
+# archives, so that updating an archive version triggers rebuilding all dependent objects
 if(POLICY CMP0135)
-  cmake_policy(SET CMP0135 OLD)
+  cmake_policy(SET CMP0135 NEW)
+endif()
+# set policy to ignore CMAKE_WARN_DEPRECATED and CMAKE_ERROR_DEPRECATED if available.
+# we are not using those AFAIK anyway.
+if(POLICY CMP0218)
+  cmake_policy(SET CMP0218 NEW)
 endif()
 
 ########################################
-
+# General project settings
 project(lammps
         DESCRIPTION "The LAMMPS Molecular Dynamics Simulator"
         HOMEPAGE_URL "https://www.lammps.org"
@@ -46,8 +56,9 @@ set(LAMMPS_SOURCE_DIR     ${LAMMPS_DIR}/src)
 set(LAMMPS_LIB_SOURCE_DIR ${LAMMPS_DIR}/lib)
 set(LAMMPS_DOC_DIR        ${LAMMPS_DIR}/doc)
 set(LAMMPS_TOOLS_DIR      ${LAMMPS_DIR}/tools)
-set(LAMMPS_PYTHON_DIR     ${LAMMPS_DIR}/python)
+set(LAMMPS_PACKAGING_DIR  ${LAMMPS_DIR}/cmake/packaging)
 set(LAMMPS_POTENTIALS_DIR ${LAMMPS_DIR}/potentials)
+set(LAMMPS_PYTHON_DIR     ${LAMMPS_DIR}/python)
 set(LAMMPS_THIRDPARTY_DIR ${LAMMPS_DIR}/third_party)
 
 set(LAMMPS_DOWNLOADS_URL "https://download.lammps.org" CACHE STRING "Base URL for LAMMPS downloads")
@@ -55,7 +66,15 @@ set(LAMMPS_POTENTIALS_URL "${LAMMPS_DOWNLOADS_URL}/potentials")
 set(LAMMPS_THIRDPARTY_URL "${LAMMPS_DOWNLOADS_URL}/thirdparty")
 mark_as_advanced(LAMMPS_DOWNLOADS_URL)
 
-find_package(Git)
+# compiling, installing, or running LAMMPS as superuser (root) is strongly discouraged. warn about it.
+if(CMAKE_HOST_UNIX)
+  execute_process(COMMAND id -u OUTPUT_VARIABLE _LAMMPS_USER_ID OUTPUT_STRIP_TRAILING_WHITESPACE ERROR_QUIET)
+  if(_LAMMPS_USER_ID STREQUAL "0")
+    message(WARNING "LAMMPS is being configured as superuser (root).  Compiling, installing, "
+      "or running LAMMPS as superuser is strongly discouraged.\n"
+      "For more information see https://docs.lammps.org/err0040")
+  endif()
+endif()
 
 # by default, install into $HOME/.local (not /usr/local), so that no root access (and sudo!!) is needed
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
@@ -199,6 +218,33 @@ if (NOT PKG_SCAFACOS)
 endif()
 
 ########################################################################
+# Obsolete settings                                                    #
+########################################################################
+# report settings that no longer have any effect and remove them from
+# the cache.  entries may be removed after a few stable releases.
+function(obsolete_setting name reason)
+  if(DEFINED ${name})
+    # referencing the value avoids a CMake warning about an unused variable
+    message(WARNING "Ignoring obsolete setting ${name}=${${name}}: ${reason}")
+    unset(${name} CACHE)
+  endif()
+endfunction()
+
+obsolete_setting(LAMMPS_EXCEPTIONS "C++ exceptions are always used for error handling")
+obsolete_setting(BUILD_LAMMPS_SHELL "The LAMMPS shell was replaced by LAMMPS-GUI")
+obsolete_setting(WITH_GZIP "Support for compressed files is detected at runtime")
+obsolete_setting(WITH_FFMPEG "Support for dump movie is detected at runtime")
+obsolete_setting(PKG_ATC "The ATC package was removed. Last stable version with it: 22Jul2025")
+obsolete_setting(PKG_AWPMD "The AWPMD package was removed. Last stable version with it: 22Jul2025")
+obsolete_setting(PKG_ML-RANN "The ML-RANN package was removed. Last stable version with it: 22Jul2025")
+obsolete_setting(PKG_POEMS "The POEMS package was removed. Last stable version with it: 22Jul2025")
+obsolete_setting(PKG_VTK "Dump style vtk is now part of the EXTRA-DUMP package")
+obsolete_setting(PKG_MPIIO "The MPIIO package was removed. Last stable version with it: 2Aug2023")
+obsolete_setting(PKG_MSCG "The MSCG package was removed. Last stable version with it: 2Aug2023")
+obsolete_setting(PKG_LATTE "The LATTE package was removed. Last stable version with it: 23Jun2022")
+obsolete_setting(PKG_MESSAGE "The MESSAGE package was replaced by the MDI package")
+
+########################################################################
 # User input options                                                   #
 ########################################################################
 # backward compatibility with older LAMMPS documentation
@@ -245,6 +291,16 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_L
   target_link_libraries(lammps PRIVATE stdc++fs)
 elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9.0)
   target_link_libraries(lammps PRIVATE c++fs)
+endif()
+
+# zlib is used by multiple packages and by the VTK file writer in the core, so
+# we look for it once here instead of repeating the search in each package file.
+find_package(ZLIB QUIET)
+option(WITH_ZLIB "Enable compression support via the zlib library" ${ZLIB_FOUND})
+if(WITH_ZLIB)
+  find_package(ZLIB REQUIRED)
+  target_compile_definitions(lammps PRIVATE -DLAMMPS_ZLIB)
+  target_link_libraries(lammps PRIVATE ZLIB::ZLIB)
 endif()
 
 # tell CMake to export all symbols to a .dll on Windows with MinGW cross-compilers
@@ -294,9 +350,11 @@ set(STANDARD_PACKAGES
   EXTRA-FIX
   EXTRA-MOLECULE
   EXTRA-PAIR
+  FENIX
   FEP
   GRAPHICS
   GRANULAR
+  GRANSURF
   H5MD
   INTERLAYER
   KIM
@@ -319,7 +377,6 @@ set(STANDARD_PACKAGES
   ML-POD
   ML-QUIP
   ML-RUNNER
-  ML-RANN
   ML-SNAP
   ML-UF3
   MOFFF
@@ -335,6 +392,7 @@ set(STANDARD_PACKAGES
   PYTHON
   QEQ
   QMMM
+  QMMM-XTB
   QTB
   REACTION
   REAXFF
@@ -350,7 +408,6 @@ set(STANDARD_PACKAGES
   TALLY
   UEF
   VORONOI
-  VTK
   YAFF)
 
 set(SUFFIX_PACKAGES CORESHELL GPU KOKKOS OPT INTEL OPENMP)
@@ -454,6 +511,7 @@ pkg_depends(ELECTRODE KSPACE)
 pkg_depends(EXTRA-MOLECULE MOLECULE)
 pkg_depends(MESONT MOLECULE)
 pkg_depends(ML-RUNNER KSPACE)
+pkg_depends(QMMM-XTB KSPACE)
 pkg_depends(RHEO BPM)
 pkg_depends(APIP ML-PACE)
 
@@ -562,6 +620,9 @@ if(PKG_ML-QUIP OR PKG_ML-POD OR PKG_ELECTRODE OR PKG_RHEO OR BUILD_TOOLS OR PKG_
     file(GLOB LINALG_SOURCES CONFIGURE_DEPENDS ${LAMMPS_LIB_SOURCE_DIR}/linalg/[^.]*.cpp)
     add_library(linalg STATIC ${LINALG_SOURCES})
     set_target_properties(linalg PROPERTIES OUTPUT_NAME lammps_linalg${LAMMPS_MACHINE})
+    if(LAMMPS_CXX_COMPILER_NAME STREQUAL "hipcc")
+      target_compile_options(linalg PRIVATE "$<$<COMPILE_LANGUAGE:CXX>:SHELL:-x c++>")
+    endif()
     set(BLAS_LIBRARIES "$<TARGET_FILE:linalg>")
     set(LAPACK_LIBRARIES "$<TARGET_FILE:linalg>")
     target_link_libraries(lammps PRIVATE linalg)
@@ -569,19 +630,6 @@ if(PKG_ML-QUIP OR PKG_ML-POD OR PKG_ELECTRODE OR PKG_RHEO OR BUILD_TOOLS OR PKG_
     list(APPEND LAPACK_LIBRARIES ${BLAS_LIBRARIES})
   endif()
 endif()
-
-
-find_program(GZIP_EXECUTABLE gzip)
-find_package_handle_standard_args(GZIP REQUIRED_VARS GZIP_EXECUTABLE)
-option(WITH_GZIP "Enable GZIP support" ${GZIP_FOUND})
-if(WITH_GZIP)
-  if(GZIP_FOUND OR ((CMAKE_SYSTEM_NAME STREQUAL "Windows") AND CMAKE_CROSSCOMPILING))
-    target_compile_definitions(lammps PRIVATE -DLAMMPS_GZIP)
-  else()
-    message(FATAL_ERROR "gzip executable not found")
-  endif()
-endif()
-
 
 if(BUILD_SHARED_LIBS)
   set(CONFIGURE_REQUEST_PIC "--with-pic")
@@ -594,7 +642,7 @@ else()
 endif()
 
 foreach(PKG_WITH_INCL GRAPHICS KSPACE PYTHON ML-IAP VORONOI COLVARS ML-HDNNP MDI MOLFILE NETCDF
-        PLUMED QMMM ML-QUIP ML-RUNNER SCAFACOS MACHDYN VTK KIM COMPRESS ML-PACE LEPTON EXTRA-COMMAND MBX)
+        PLUMED QMMM QMMM-XTB ML-QUIP ML-RUNNER SCAFACOS MACHDYN KIM COMPRESS ML-PACE LEPTON FENIX EXTRA-COMMAND MBX)
   if(PKG_${PKG_WITH_INCL})
     include(Packages/${PKG_WITH_INCL})
   endif()
@@ -697,7 +745,7 @@ foreach(PKG_LIB H5MD)
   endif()
 endforeach()
 
-if(PKG_ELECTRODE OR PKG_ML-POD)
+if(PKG_ELECTRODE OR PKG_ML-POD OR PKG_RHEO)
   target_link_libraries(lammps PRIVATE ${LAPACK_LIBRARIES})
 endif()
 
@@ -741,9 +789,14 @@ endif()
 set(LAMMPS_STYLE_HEADERS_DIR ${CMAKE_CURRENT_BINARY_DIR}/styles)
 
 GenerateStyleHeaders(${LAMMPS_STYLE_HEADERS_DIR})
-GeneratePackagesHeaders(${LAMMPS_STYLE_HEADERS_DIR})
+GenerateStyleSources(${LAMMPS_STYLE_HEADERS_DIR})
+GeneratePackageRegistry(${LAMMPS_STYLE_HEADERS_DIR})
 
 target_include_directories(lammps PRIVATE ${LAMMPS_STYLE_HEADERS_DIR})
+
+# add the generated style_*.cpp registration translation units to the library
+get_property(LAMMPS_STYLE_SOURCES GLOBAL PROPERTY LAMMPS_STYLE_SOURCES)
+target_sources(lammps PRIVATE ${LAMMPS_STYLE_SOURCES})
 
 ######################################
 # Generate lmpinstalledpkgs.h
@@ -765,11 +818,12 @@ execute_process(COMMAND ${CMAKE_COMMAND} -E copy_if_different "${LAMMPS_STYLE_HE
 ######################################
 # Generate lmpgitversion.h
 ######################################
+find_package(Git)
 add_custom_target(gitversion COMMAND ${CMAKE_COMMAND}
-  -DLAMMPS_DIR="${LAMMPS_DIR}"
-  -DGIT_EXECUTABLE="${GIT_EXECUTABLE}"
-  -DGIT_FOUND="${GIT_FOUND}"
-  -DLAMMPS_STYLE_HEADERS_DIR="${LAMMPS_STYLE_HEADERS_DIR}"
+  -D LAMMPS_DIR="${LAMMPS_DIR}"
+  -D GIT_EXECUTABLE="${GIT_EXECUTABLE}"
+  -D GIT_FOUND="${GIT_FOUND}"
+  -D LAMMPS_STYLE_HEADERS_DIR="${LAMMPS_STYLE_HEADERS_DIR}"
   -P ${CMAKE_CURRENT_SOURCE_DIR}/Modules/generate_lmpgitversion.cmake)
 set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES ${LAMMPS_STYLE_HEADERS_DIR}/gitversion.h)
 add_dependencies(lammps gitversion)
@@ -788,6 +842,20 @@ set(LAMMPS_CXX_HEADERS angle.h atom.h bond.h citeme.h comm.h command.h compute.h
   output.h pair.h platform.h pointers.h region.h timer.h universe.h update.h utils.h variable.h)
 set(LAMMPS_FMT_HEADERS core.h format.h)
 set(LAMMPS_JSON_HEADERS json_fwd.hpp json.hpp)
+
+# The ROCm hipcc wrapper compiles every .cpp in HIP language mode by default,
+# which triggers an extra device-code compilation pass (e.g. --offload-arch=gfxNNN)
+# and applies HIP host/device call restrictions even to the host pass.  The LAMMPS
+# host library and executable contain no HIP device code, but some host-only headers
+# - most notably the bundled nlohmann/json - use template metaprogramming that clang
+# rejects in HIP language mode: its is_detected SFINAE disables the JSON conversion
+# operators, breaking molecule.cpp, info.cpp, library.cpp, and others.  Force these
+# translation units to be compiled as plain C++ so hipcc skips the HIP passes for
+# them.  The GPU kernel library (lib/gpu) is built by separate targets and keeps HIP.
+if(LAMMPS_CXX_COMPILER_NAME STREQUAL "hipcc")
+  target_compile_options(lammps PRIVATE "$<$<COMPILE_LANGUAGE:CXX>:SHELL:-x c++>")
+  target_compile_options(lmp PRIVATE "$<$<COMPILE_LANGUAGE:CXX>:SHELL:-x c++>")
+endif()
 
 set_target_properties(lammps PROPERTIES OUTPUT_NAME lammps${LAMMPS_MACHINE})
 set_target_properties(lammps PROPERTIES SOVERSION ${SOVERSION})
@@ -847,6 +915,7 @@ endif()
 install(FILES ${LAMMPS_DOC_DIR}/lammps.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1 RENAME ${LAMMPS_BINARY}.1)
 
 include(Tools)
+include(Packaging)
 include(Documentation)
 
 ###############################################################################
@@ -867,6 +936,13 @@ install(
         ${CMAKE_BINARY_DIR}/etc/profile.d/lammps.csh
   DESTINATION ${CMAKE_INSTALL_SYSCONFDIR}/profile.d
 )
+
+###############################################################################
+# On Linux systems (any others, too?) we may need to update the shared linker cache
+###############################################################################
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+  install(CODE "execute_process(COMMAND ldconfig || exit 0)")
+endif()
 
 ###############################################################################
 # Install LAMMPS lib and python module into site-packages folder with
@@ -891,21 +967,17 @@ if(BUILD_SHARED_LIBS)
   else()
     add_custom_target(
       install-python
-      ${CMAKE_COMMAND} -E echo "Must have Python installed to install the LAMMPS Python module")
+      COMMAND ${CMAKE_COMMAND} -E echo "Must have Python installed to install the LAMMPS Python module"
+      COMMAND ${CMAKE_COMMAND} -E false
+      VERBATIM)
   endif()
 else()
   add_custom_target(
     install-python
-    ${CMAKE_COMMAND} -E echo "Must build LAMMPS as a shared library to use the Python module")
+    COMMAND ${CMAKE_COMMAND} -E echo "Must build LAMMPS as a shared library to use the Python module"
+    COMMAND ${CMAKE_COMMAND} -E false
+    VERBATIM)
 endif()
-
-###############################################################################
-# Create tarball for download with html and PDF version of manual included
-###############################################################################
-add_custom_target(tarball
-  COMMAND ${LAMMPS_DIR}/cmake/packaging/build_tarball.sh ${LAMMPS_DIR}/doc
-)
-
 
 include(Testing)
 include(CodeCoverage)

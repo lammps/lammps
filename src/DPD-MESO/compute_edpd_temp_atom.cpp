@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -13,23 +12,27 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_edpd_temp_atom.h"
-#include <cstring>
+
 #include "atom.h"
-#include "update.h"
-#include "modify.h"
 #include "comm.h"
-#include "memory.h"
 #include "error.h"
+#include "memory.h"
+#include "modify.h"
+#include "update.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
 ComputeEDPDTempAtom::ComputeEDPDTempAtom(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg)
+    Compute(lmp, narg, arg)
 {
-  if (narg != 3) error->all(FLERR,"Number of arguments for compute edpd/temp/atom command != 3");
-  if (atom->edpd_flag != 1) error->all(FLERR,"compute edpd/temp/atom command requires atom_style with temperature (e.g. edpd)");
+  if (narg != 3)
+    error->all(FLERR, 2, "Number of arguments for compute edpd/temp/atom command != 3");
+  if (atom->edpd_flag != 1)
+    error->all(FLERR, 2, "compute edpd/temp/atom command requires atom_style edpd");
 
   peratom_flag = 1;
   size_peratom_cols = 0;
@@ -50,11 +53,8 @@ ComputeEDPDTempAtom::~ComputeEDPDTempAtom()
 void ComputeEDPDTempAtom::init()
 {
 
-  int count = 0;
-  for (int i = 0; i < modify->ncompute; i++)
-    if (strcmp(modify->compute[i]->style,"temp_vector/atom") == 0) count++;
-  if (count > 1 && comm->me == 0)
-    error->warning(FLERR,"More than one compute temp_vector/atom");
+  if ((comm->me == 0) && (modify->get_compute_by_style("^edpd/temp/atom").size() > 1))
+    error->warning(FLERR, "More than one compute {}", style);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -68,7 +68,7 @@ void ComputeEDPDTempAtom::compute_peratom()
   if (atom->nmax > nmax) {
     memory->sfree(temp_vector);
     nmax = atom->nmax;
-    temp_vector = (double *) memory->smalloc(nmax*sizeof(double),"temp_vector/atom:temp_vector");
+    temp_vector = (double *) memory->smalloc(nmax * sizeof(double), "edpd/temp/atom:temp_vector");
     vector_atom = temp_vector;
   }
 
@@ -76,14 +76,13 @@ void ComputeEDPDTempAtom::compute_peratom()
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
-    for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
-              temp_vector[i] = edpd_temp[i];
-      }
-      else {
-              temp_vector[i] = 0.0;
-      }
+  for (int i = 0; i < nlocal; i++) {
+    if (mask[i] & groupbit) {
+      temp_vector[i] = edpd_temp[i];
+    } else {
+      temp_vector[i] = 0.0;
     }
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -92,6 +91,6 @@ void ComputeEDPDTempAtom::compute_peratom()
 
 double ComputeEDPDTempAtom::memory_usage()
 {
-  double bytes = (double)nmax * sizeof(double);
+  double bytes = (double) nmax * sizeof(double);
   return bytes;
 }

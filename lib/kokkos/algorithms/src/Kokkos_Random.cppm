@@ -11,6 +11,7 @@ export {
   namespace Kokkos {
   using ::Kokkos::fill_random;
   using ::Kokkos::rand;
+  using ::Kokkos::Random_SFC64_Pool;
   using ::Kokkos::Random_XorShift1024_Pool;
   using ::Kokkos::Random_XorShift64_Pool;
   }  // namespace Kokkos

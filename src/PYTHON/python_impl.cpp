@@ -365,7 +365,7 @@ void PythonImpl::invoke_function(int ifunc, char *result, double *dvalue)
           error->all(FLERR, Error::NOLASTLINE,
                      "Could not evaluate Python function {} input variable: {}", pfuncs[ifunc].name,
                      pfuncs[ifunc].svalue[i]);
-        pValue = PY_INT_FROM_LONG(PY_LONG_FROM_STRING(str));
+        pValue = PyLong_FromLongLong(utils::bnumeric(FLERR, str, false, lmp));
       } else if (pfuncs[ifunc].ivarflag[i] == INTERNALVAR) {
         double value = input->variable->compute_equal(pfuncs[ifunc].internal_var[i]);
         pValue = PyLong_FromDouble(value);

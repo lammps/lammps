@@ -9,11 +9,11 @@ temperature.  Typically a target temperature (T) and/or pressure (P)
 is specified by the user, and the thermostat or barostat attempts to
 equilibrate the system to the requested T and/or P.
 
-Thermostatting in LAMMPS is performed by :doc:`fixes <fix>`, or in one
-case by a pair style.  Several thermostatting fixes are available:
-Nose-Hoover (nvt), Berendsen, CSVR, Langevin, and direct rescaling
-(temp/rescale).  Dissipative particle dynamics (DPD) thermostatting
-can be invoked via the *dpd/tstat* pair style:
+Thermostatting in LAMMPS is performed by :doc:`fixes <fix>`, or by
+pair styles.  Several thermostatting fixes are available: Nose-Hoover
+(nvt), Berendsen, CSVR and CSLD, Langevin, and direct rescaling
+(temp/rescale).  Dissipative particle dynamics (DPD) thermostatting can
+be invoked via the *dpd/tstat* and *dpd/ext/tstat* pair styles:
 
 * :doc:`fix nvt <fix_nh>`
 * :doc:`fix nvt/sphere <fix_nvt_sphere>`
@@ -21,6 +21,7 @@ can be invoked via the *dpd/tstat* pair style:
 * :doc:`fix nvt/sllod <fix_nvt_sllod>`
 * :doc:`fix temp/berendsen <fix_temp_berendsen>`
 * :doc:`fix temp/csvr <fix_temp_csvr>`
+* :doc:`fix temp/csld <fix_temp_csvr>`
 * :doc:`fix ffl <fix_ffl>`
 * :doc:`fix gjf <fix_gjf>`
 * :doc:`fix gld <fix_gld>`
@@ -41,7 +42,7 @@ velocities for spherical and aspherical particles.
 
 .. note::
 
-   A recent (2017) book by :ref:`(Daivis and Todd) <Daivis-thermostat>`
+   The book by :ref:`(Daivis and Todd) <Daivis-thermostat>`
    discusses use of the SLLOD method and non-equilibrium MD (NEMD)
    thermostatting generally, for both simple and complex fluids,
    e.g. molecular systems.  The latter can be tricky to do correctly.
@@ -89,8 +90,9 @@ that:
 
    Not all thermostat fixes perform time integration, meaning they update
    the velocities and positions of particles due to forces and velocities
-   respectively.  The other thermostat fixes only adjust velocities; they
-   do NOT perform time integration updates.  Thus, they should be used in
+   respectively.  Only the fixes nvt, nvt/sphere, nvt/asphere,
+   nvt/sllod, gjf, and gld do this.  The other thermostat fixes only
+   adjust velocities; they do NOT perform time integration updates.  Thus, they should be used in
    conjunction with a constant NVE integration fix such as these:
 
 * :doc:`fix nve <fix_nve>`

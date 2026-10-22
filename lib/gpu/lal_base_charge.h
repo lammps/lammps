@@ -18,7 +18,6 @@
 #define LAL_BASE_CHARGE_H
 
 #include "lal_device.h"
-#include "lal_balance.h"
 #include "mpi.h"
 
 #if defined(USE_OPENCL)
@@ -42,7 +41,6 @@ class BaseCharge {
   /// Clear any previous data and set up for a new LAMMPS run
   /** \param max_nbors initial number of rows in the neighbor matrix
     * \param cell_size cutoff + skin
-    * \param gpu_split fraction of particles handled by device
     * \param k_name name for the kernel for force calculation
     * \param disable_fast_math override any fast math opts for kernel JIT
     *
@@ -54,7 +52,7 @@ class BaseCharge {
     * - -5 Double precision is not supported on card **/
   int init_atomic(const int nlocal, const int nall, const int max_nbors,
                   const int maxspecial, const double cell_size,
-                  const double gpu_split, FILE *screen,
+                  FILE *screen,
                   const void *pair_program, const char *k_name,
                   const int disable_fast_math = 0);
 
@@ -139,8 +137,7 @@ class BaseCharge {
   void compute(const int f_ago, const int inum_full, const int nall,
                double **host_x, int *host_type, int *ilist, int *numj,
                int **firstneigh, const bool eflag, const bool vflag,
-               const bool eatom, const bool vatom, int &host_start,
-               const double cpu_time, bool &success, double *charge,
+               const bool eatom, const bool vatom, bool &success, double *charge,
                const int nlocal, double *boxlo, double *prd);
 
   /// Pair loop with device neighboring
@@ -148,8 +145,7 @@ class BaseCharge {
                 double **host_x, int *host_type, double *sublo,
                 double *subhi, tagint *tag, int **nspecial,
                 tagint **special, const bool eflag, const bool vflag,
-                const bool eatom, const bool vatom, int &host_start,
-                int **ilist, int **numj, const double cpu_time, bool &success,
+                const bool eatom, const bool vatom, int **ilist, int **numj, bool &success,
                 double *charge, double *boxlo, double *prd, int* periodicity=nullptr);
 
   // -------------------------- DEVICE DATA -------------------------
@@ -164,7 +160,6 @@ class BaseCharge {
   UCL_Timer time_pair;
 
   /// Host device load balancer
-  Balance<numtyp,acctyp> hd_balancer;
 
   /// LAMMPS pointer for screen output
   FILE *screen;
@@ -204,6 +199,7 @@ class BaseCharge {
   int _block_size, _block_bio_size, _threads_per_atom;
   double  _max_bytes, _max_an_bytes;
   double _gpu_overhead, _driver_overhead;
+  int _timestep;
   UCL_D_Vec<int> *_nbor_data;
 
   void compile_kernels(UCL_Device &dev, const void *pair_string,

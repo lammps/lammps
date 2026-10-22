@@ -57,6 +57,36 @@ struct LayoutFromArrayLayout<LayoutStride> {
   using type = layout_stride;
 };
 
+template <class Layout>
+struct ArrayLayoutFromLayout;
+
+template <>
+struct ArrayLayoutFromLayout<layout_left> {
+  using type = LayoutLeft;
+};
+
+template <size_t Padding>
+struct ArrayLayoutFromLayout<
+    Kokkos::Experimental::layout_left_padded<Padding>> {
+  using type = LayoutLeft;
+};
+
+template <>
+struct ArrayLayoutFromLayout<layout_right> {
+  using type = LayoutRight;
+};
+
+template <size_t Padding>
+struct ArrayLayoutFromLayout<
+    Kokkos::Experimental::layout_right_padded<Padding>> {
+  using type = LayoutRight;
+};
+
+template <>
+struct ArrayLayoutFromLayout<layout_stride> {
+  using type = LayoutStride;
+};
+
 template <class ArrayLayout, class MDSpanType>
 KOKKOS_INLINE_FUNCTION auto array_layout_from_mapping(
     const typename MDSpanType::mapping_type &mapping) {
@@ -170,6 +200,7 @@ KOKKOS_INLINE_FUNCTION auto mapping_from_array_layout_impl(
           }))
 #endif
 
+      // NOLINTNEXTLINE(bugprone-branch-clone)
       if (layout.stride == KOKKOS_IMPL_CTOR_DEFAULT_ARG) {
         return MappingType{extents_type{
             dextents<index_type, MappingType::extents_type::rank()>{

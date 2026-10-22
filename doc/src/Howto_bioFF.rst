@@ -2,8 +2,8 @@ CHARMM, AMBER, COMPASS, ClassII-xe, DREIDING, and OPLS force fields
 ===================================================================
 
 Here we only discuss formulas implemented in LAMMPS that correspond to
-formulas commonly used in the CHARMM, AMBER, COMPASS, and DREIDING force
-fields.  Setting coefficients is done either from special sections in an
+formulas commonly used in the CHARMM, AMBER, COMPASS, ClassII-xe,
+DREIDING, and OPLS force fields.  Setting coefficients is done either from special sections in an
 input data file via the :doc:`read_data <read_data>` command or in the
 input script with commands like :doc:`pair_coeff <pair_coeff>` or
 :doc:`bond_coeff <bond_coeff>` and so on.  See the :doc:`Tools <Tools>`
@@ -52,13 +52,16 @@ command's documentation for the formula it computes.
 
 * :doc:`bond_style harmonic <bond_harmonic>`
 * :doc:`angle_style charmm <angle_charmm>`
-* :doc:`dihedral_style charmmfsh <dihedral_charmm>`
+* :doc:`angle_style harmonic <angle_harmonic>`
+* :doc:`dihedral_style charmmfsw <dihedral_charmm>`
 * :doc:`dihedral_style charmm <dihedral_charmm>`
+* :doc:`dihedral_style fourier <dihedral_fourier>`
 * :doc:`pair_style lj/charmmfsw/coul/charmmfsh <pair_charmm>`
 * :doc:`pair_style lj/charmmfsw/coul/long <pair_charmm>`
 * :doc:`pair_style lj/charmm/coul/charmm <pair_charmm>`
 * :doc:`pair_style lj/charmm/coul/charmm/implicit <pair_charmm>`
 * :doc:`pair_style lj/charmm/coul/long <pair_charmm>`
+* :doc:`pair_style lj/cut/coul/long <pair_lj_cut_coul>`
 * :doc:`special_bonds charmm <special_bonds>`
 * :doc:`special_bonds amber <special_bonds>`
 
@@ -240,7 +243,7 @@ converted into the ClassII-xe functional form.  The conversion from
 ClassII to ClassII-xe functional form requires reparameterizing the
 cross-terms, which can be accomplished via the LUNAR tool, for which a
 link is provided on the `Pre/Post processing
-<https://www.lammps.org/prepost.html>`_ page.  LUNAR can be used to
+<https://www.lammps.org/ecosystem/prepost/>`_ page.  LUNAR can be used to
 build a model from scratch in either COMPASS or PCFF (using its
 'atom_typing' and 'all2lmp' modules) and then convert that model to
 COMPASS-xe or PCFF-xe (using its 'auto_morse_bond_update' module).  To
@@ -269,15 +272,15 @@ removed.  On the other hand, :doc:`fix bond/react <fix_bond_react>` can
 relax high-energy configurations via the ``stabilization`` keyword,
 whereby a small local group of atoms involved in the discontinuity are
 integrated with :doc:`fix nve/limit <fix_nve_limit>`.  `LUNAR
-<https://www.lammps.org/prepost.html>`_ can also be used to assist with
-setting up simulations that include :doc:`fix bond/react
+<https://www.lammps.org/ecosystem/prepost/>`_ can also be used to assist
+with setting up simulations that include :doc:`fix bond/react
 <fix_bond_react>`.
 
 DREIDING
 --------
 
 DREIDING is a generic force field developed by the `Goddard group
-<http://www.wag.caltech.edu>`_ at Caltech and is useful for predicting
+<https://www.wag.caltech.edu>`_ at Caltech and is useful for predicting
 structures and dynamics of organic, biological and main-group inorganic
 molecules.  The philosophy in DREIDING is to use general force constants
 and geometry parameters based on simple hybridization considerations,
@@ -326,7 +329,7 @@ OPLS
 OPLS (Optimized Potentials for Liquid Simulations) is a general force
 field for atomistic simulation of organic molecules in solvent.  It was
 developed by the `Jorgensen group
-<https://traken.chem.yale.edu/oplsaam.html>`_ at Purdue University and
+<https://zarbi.chem.yale.edu/oplsaam.html>`_ at Purdue University and
 later at Yale University.  Multiple versions of the OPLS parameters
 exist for united atom representations (OPLS-UA) and for all-atom
 representations (OPLS-AA).
@@ -358,7 +361,7 @@ compatible with a subset of OPLS interactions.
 
 .. _howto-MacKerell:
 
-**(MacKerell)** MacKerell, Bashford, Bellott, Dunbrack, Evanseck, Field, Fischer, Gao, Guo, Ha, et al (1998).  J Phys Chem, 102, 3586 . https://doi.org/10.1021/jp973084f
+**(MacKerell)** MacKerell, Bashford, Bellott, Dunbrack, Evanseck, Field, Fischer, Gao, Guo, Ha, et al (1998).  J Phys Chem B, 102, 3586. https://doi.org/10.1021/jp973084f
 
 .. _howto-Cornell:
 
@@ -382,7 +385,7 @@ compatible with a subset of OPLS interactions.
 
 .. _howto-Jorgensen:
 
-**(Jorgensen)** Jorgensen, Tirado-Rives (1988). J Am Chem Soc, 110, 1657-1666. https://doi.org/10.1021/ja00214a001
+**(Jorgensen2)** Jorgensen, Tirado-Rives (1988). J Am Chem Soc, 110, 1657-1666. https://doi.org/10.1021/ja00214a001
 
 .. _howto-Maple:
 

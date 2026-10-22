@@ -183,34 +183,29 @@ void PairSRPREACT::init_style()
   // if bond type is 0, then all bonds have bond particles
   // btype = bond type
 
-  char c0[20];
-  char* arg0[2];
-  sprintf(c0, "%d", btype);
-  arg0[0] = (char *) "btype";
-  arg0[1] = c0;
+  std::string bval = std::to_string(btype);
+  char *arg0[2] = {(char *) "btype", bval.data()};
   f_srp->modify_params(2, arg0);
 
   // bptype = bond particle type
-  sprintf(c0, "%d", bptype);
+  std::string bpval = std::to_string(bptype);
   arg0[0] = (char *) "bptype";
-  arg0[1] = c0;
+  arg0[1] = bpval.data();
   f_srp->modify_params(2, arg0);
 
   // if using fix bond/break, set id of fix bond/break in fix srp
   // idbreak = id of fix bond break
   if (bond_break) {
-    sprintf(c0, "%s", idbreak);
     arg0[0] = (char *) "bond/break";
-    arg0[1] = c0;
+    arg0[1] = idbreak;
     f_srp->modify_params(2, arg0);
   }
 
   // if using fix bond/create, set id of fix bond/create in fix srp
   // idcreate = id of fix bond break
   if (bond_create) {
-    sprintf(c0, "%s", idcreate);
     arg0[0] = (char *) "bond/create";
-    arg0[1] = c0;
+    arg0[1] = idcreate;
     f_srp->modify_params(2, arg0);
   }
 

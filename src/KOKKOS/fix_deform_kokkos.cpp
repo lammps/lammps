@@ -46,8 +46,23 @@ FixDeformKokkos::FixDeformKokkos(LAMMPS *lmp, int narg, char **arg) : FixDeform(
 
 void FixDeformKokkos::pre_exchange()
 {
-  atomKK->sync(Host,ALL_MASK);
+  // everything the base class does here goes through DomainKokkos, which runs
+  // on the device and declares itself, except the atom migration below.
+  // Bracketing the whole call for the host claimed a side the device work had
+  // already claimed, and left the migration reading host data that the device
+  // work had since overtaken.
+
   FixDeform::pre_exchange();
+}
+
+/* ----------------------------------------------------------------------
+   the migration is the one host only step in pre_exchange()
+------------------------------------------------------------------------- */
+
+void FixDeformKokkos::migrate_atoms()
+{
+  atomKK->sync(Host,ALL_MASK);
+  FixDeform::migrate_atoms();
   atomKK->modified(Host,ALL_MASK);
 }
 
@@ -55,11 +70,11 @@ void FixDeformKokkos::pre_exchange()
 
 void FixDeformKokkos::update_box()
 {
-  if (remapflag == Domain::X_REMAP && rfix.size() > 0)
-    atomKK->sync(Host,ALL_MASK);
+  // no host bracket here: the base class remaps the atom positions through
+  // DomainKokkos::x2lamda()/lamda2x(), which run on the device and declare the
+  // device copy modified.  Claiming the host side afterwards would make the
+  // stale pre-deform host coordinates win over the remapped device data.
+  // The rigid fixes called in between only transform their own body arrays.
 
   FixDeform::update_box();
-
-  if (remapflag == Domain::X_REMAP && rfix.size() > 0)
-    atomKK->modified(Host,ALL_MASK);
 }

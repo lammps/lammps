@@ -36,6 +36,7 @@
 #include "neighbor.h"
 #include "pair.h"
 #include "text_file_reader.h"
+#include "update.h"
 #include "variable.h"
 
 #include <algorithm>
@@ -405,6 +406,11 @@ int FixElectrodeConp::groupnum_from_name(char *groupname)
 
 void FixElectrodeConp::init()
 {
+  // the electrode charges are updated from pre_force() and pre_reverse(), for which
+  // run style respa provides no hooks -> the charges would silently never be updated
+  if (utils::strmatch(update->integrate_style, "^respa"))
+    error->all(FLERR, Error::NOLASTLINE, "Fix {} is not compatible with run_style respa", style);
+
   pair = nullptr;    // not sure if needed -- remove if unnecessary
   pair = (Pair *) force->pair_match("coul", 0);
   if (pair == nullptr) {    // couldn't find a pair with name coul -- maybe hybrid
@@ -483,7 +489,7 @@ void FixElectrodeConp::post_constructor()
   input->variable->set(fmt::format("{} equal f_{}[{}]", var_vtop, fixname, 1 + top_group));
   input->variable->set(fmt::format("{} equal (v_{}-v_{})/lz", var_efield, var_vbot, var_vtop));
   // check for other efields and warn if found
-  if ((modify->get_fix_by_style("^efield").size() > 0) && (comm->me == 0))
+  if ((!modify->get_fix_by_style("^efield").empty()) && (comm->me == 0))
     error->warning(FLERR, "Other efield fixes found -- please make sure this is intended!");
   // call fix command:
   // fix [varstem]_efield all efield 0.0 0.0 [var_vdiff]/lz

@@ -19,8 +19,6 @@ template <unsigned N, Iterate OuterDir = Iterate::Default,
           Iterate InnerDir = Iterate::Default>
 struct Rank {
   static_assert(N != 0u, "Kokkos Error: rank 0 undefined");
-  static_assert(N != 1u,
-                "Kokkos Error: rank 1 is not a multi-dimensional range");
   static_assert(N < 9u, "Kokkos Error: Unsupported rank...");
 
   using iteration_pattern = Rank<N, OuterDir, InnerDir>;

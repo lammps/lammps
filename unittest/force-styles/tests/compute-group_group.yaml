@@ -1,0 +1,20 @@
+---
+lammps_version: 4 Jul 2026
+tags:
+date_generated: Thu Jul  9 16:34:12 2026
+epsilon: 1e-08
+timestep: 0.25
+skip_tests:
+prerequisites: |
+  atom full
+  compute group/group
+pre_commands: ""
+post_commands: |
+  compute test solute group/group solvent
+input_file: in.fourmol
+input_coeffs: coeffs.fourmol
+natoms: 29
+global_scalar: -0.08928205316110635
+global_vector: |-
+  3  3.8442988351628064e-02  3.1806351238341274e-02 -2.1663271532210471e-02
+...

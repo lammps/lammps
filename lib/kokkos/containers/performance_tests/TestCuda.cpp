@@ -25,12 +25,20 @@ import kokkos.unordered_impl;
 #include <TestGlobal2LocalIds.hpp>
 #include <TestUnorderedMapPerformance.hpp>
 
+#include <TestDualView.hpp>
+
 namespace Performance {
 
 TEST(cuda, dynrankview_perf) {
   std::cout << "Cuda" << std::endl;
   std::cout << " DynRankView vs View: Initialization Only " << std::endl;
   test_dynrankview_op_perf<Kokkos::Cuda>(40960);
+}
+
+TEST(cuda, dualview_perf) {
+  std::cout << "Cuda" << std::endl;
+  std::cout << " DualView Access Performance " << std::endl;
+  test_dualview<size_t, Kokkos::Cuda>();
 }
 
 TEST(cuda, global_2_local) {

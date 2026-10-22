@@ -200,9 +200,11 @@ __kernel void k_sph_lj(const __global numtyp4 *restrict x_,
 
         // apply long-range correction to model a LJ fluid with cutoff
         // this implies that the modelled LJ fluid has cutoff == SPH cutoff
+        // the correction enters the pressure term of both atoms of the pair;
+        // add both halves to the pair-local fj so the per-atom fi is not
+        // corrupted across neighbor list entries
         numtyp lrc = (numtyp)-11.1701 * (ihcub * ihcub * ihcub - (numtyp)1.5 * ihcub);
-        fi += lrc;
-        fj += lrc;
+        fj += (numtyp)2.0 * lrc;
 
         // dot product of velocity delta and distance vector
         numtyp delvx = iv.x - jv.x;
@@ -374,9 +376,11 @@ __kernel void k_sph_lj_fast(const __global numtyp4 *restrict x_,
 
         // apply long-range correction to model a LJ fluid with cutoff
         // this implies that the modelled LJ fluid has cutoff == SPH cutoff
+        // the correction enters the pressure term of both atoms of the pair;
+        // add both halves to the pair-local fj so the per-atom fi is not
+        // corrupted across neighbor list entries
         numtyp lrc = (numtyp)-11.1701 * (ihcub * ihcub * ihcub - (numtyp)1.5 * ihcub);
-        fi += lrc;
-        fj += lrc;
+        fj += (numtyp)2.0 * lrc;
 
         // dot product of velocity delta and distance vector
         numtyp delvx = iv.x - jv.x;

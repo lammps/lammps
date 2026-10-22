@@ -87,10 +87,11 @@ int cvscript_command_n_args_max(char const *c)
   int CVSCRIPT_COMM_FNAME(COMM)(void *pobj,                             \
                                 int objc, unsigned char *const objv[])  \
   {                                                                     \
-    if (cvm::debug()) {                                                 \
-      cvm::log("Executing script function \""+std::string(#COMM)+"\""); \
+    colvarscript *script = colvarscript_obj(pobj);                      \
+    colvarmodule *cvmodule = script->module();                          \
+    if (cvm::debug()) {                                            \
+      cvmodule->log("Executing script function \""+std::string(#COMM)+"\""); \
     }                                                                   \
-    colvarscript *script = colvarscript_obj();                          \
     script->clear_str_result();                                         \
     if (script->check_module_cmd_nargs(#COMM,                           \
                                        objc, N_ARGS_MIN, N_ARGS_MAX) != \
@@ -99,7 +100,6 @@ int cvscript_command_n_args_max(char const *c)
     }                                                                   \
     if (objc > 1) {                                                     \
       /* Silence unused parameter warning */                            \
-      (void) pobj;                                                      \
       (void) objv[0];                                                   \
     }                                                                   \
     FN_BODY;                                                            \

@@ -12,6 +12,7 @@ post_commands: ! |
   fix test solute shake 1.0e-5 20 4 m 4.00794
   fix_modify test virial yes
 input_file: in.fourmol
+input_coeffs: coeffs.fourmol
 natoms: 29
 run_stress: ! |2-
    4.1327164284089424e+00  4.1298776885725212e+00  7.7065049821613400e+01  7.3427739401911385e-01  3.1021321349896283e+01  3.0482918118325731e+01

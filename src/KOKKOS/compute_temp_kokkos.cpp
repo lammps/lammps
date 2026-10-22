@@ -84,11 +84,11 @@ KOKKOS_INLINE_FUNCTION
 void ComputeTempKokkos<DeviceType>::operator()(TagComputeTempScalar<RMASS>, const int &i, CTEMP& t_kk) const {
   if (RMASS) {
     if (mask[i] & groupbit)
-      t_kk.t0 += (v(i,0)*v(i,0) + v(i,1)*v(i,1) + v(i,2)*v(i,2)) * rmass[i];
+      t_kk.t0 += static_cast<double>((v(i,0)*v(i,0) + v(i,1)*v(i,1) + v(i,2)*v(i,2)) * rmass[i]);
   } else {
     if (mask[i] & groupbit)
-      t_kk.t0 += (v(i,0)*v(i,0) + v(i,1)*v(i,1) + v(i,2)*v(i,2)) *
-        mass[type[i]];
+      t_kk.t0 += static_cast<double>((v(i,0)*v(i,0) + v(i,1)*v(i,1) + v(i,2)*v(i,2)) *
+        mass[type[i]]);
   }
 }
 
@@ -144,12 +144,12 @@ void ComputeTempKokkos<DeviceType>::operator()(TagComputeTempVector<RMASS>, cons
     KK_FLOAT massone = 0.0;
     if (RMASS) massone = rmass[i];
     else massone = mass[type[i]];
-    t_kk.t0 += massone * v(i,0)*v(i,0);
-    t_kk.t1 += massone * v(i,1)*v(i,1);
-    t_kk.t2 += massone * v(i,2)*v(i,2);
-    t_kk.t3 += massone * v(i,0)*v(i,1);
-    t_kk.t4 += massone * v(i,0)*v(i,2);
-    t_kk.t5 += massone * v(i,1)*v(i,2);
+    t_kk.t0 += static_cast<double>(massone * v(i,0)*v(i,0));
+    t_kk.t1 += static_cast<double>(massone * v(i,1)*v(i,1));
+    t_kk.t2 += static_cast<double>(massone * v(i,2)*v(i,2));
+    t_kk.t3 += static_cast<double>(massone * v(i,0)*v(i,1));
+    t_kk.t4 += static_cast<double>(massone * v(i,0)*v(i,2));
+    t_kk.t5 += static_cast<double>(massone * v(i,1)*v(i,2));
   }
 }
 

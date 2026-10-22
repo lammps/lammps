@@ -1,0 +1,157 @@
+LAMMPS (4 Jul 2026 - Development - patch_4Jul2026-848-gd03be1b44b)
+  using 1 OpenMP thread(s) per MPI task
+## This script first constructs an alpha quartz structure of a given size. It then uses fix qtb to equilibrate the computational cell to the specified temperature and pressure.
+variable                x_rep equal 2                                                                           #x-direction replication number
+variable                y_rep equal 2                                                                           #y-direction replication number
+variable                z_rep equal 2                                                                           #z-direction replication number
+variable                cut_off equal 10.0                                                                      #Cut-off distance for the Buckingham term (Angstrom in metal units)
+variable                pressure equal 1.03125                                                                  #Initial state pressure (bar in metal units)
+variable                temperature equal 300.0                                                                 #Initial state quantum temperature (K in metal units)
+variable                delta_t equal 1.0e-3                                                                    #MD timestep length (ps in metal units)
+variable                damp_qtb equal 1                                                                        #1/gamma where gamma is the friction coefficient in quantum thermal bath (ps in metal units)
+
+## This part defines units, alpha-quartz crystal, and atomic information
+#General
+units                   metal
+dimension               3
+boundary                p p p
+atom_style              charge
+
+#Lattice
+lattice                 custom 1.0                         a1      4.916000 0.000000 0.000000                         a2      -2.45800 4.257381 0.000000                         a3      0.000000 0.000000 5.405400                                                 basis   0.469700 0.000000 0.000000                         basis   0.000000 0.469700 0.666667                         basis   0.530300 0.530300 0.333333                                                 basis   0.413500 0.266900 0.119100                         basis   0.266900 0.413500 0.547567                         basis   0.733100 0.146600 0.785767                         basis   0.586500 0.853400 0.214233                         basis   0.853400 0.586500 0.452433                         basis   0.146600 0.733100 0.880900                                                      #American Mineralogist 65 920 1980 (Space Group 154)
+Lattice spacing in x,y,z = 7.374 4.257381 5.4054
+
+#Computational Cell
+region                  orthorhombic_unit_cell block 0 4.916000 0 8.514762 0 5.405400 units box
+create_box              2 orthorhombic_unit_cell
+Created orthogonal box = (0 0 0) to (4.916 8.514762 5.4054)
+  1 by 1 by 1 MPI processor grid
+create_atoms            1 box                         basis   1 1                         basis   2 1                         basis   3 1                         basis   4 2                         basis   5 2                         basis   6 2                         basis   7 2                         basis   8 2                         basis   9 2
+Created 18 atoms
+  using lattice units in orthogonal box = (0 0 0) to (4.916 8.514762 5.4054)
+  create_atoms CPU = 0.000 seconds
+replicate               ${x_rep} ${y_rep} ${z_rep}
+replicate               2 ${y_rep} ${z_rep}
+replicate               2 2 ${z_rep}
+replicate               2 2 2
+Replication is creating a 2x2x2 = 8 times larger system...
+  orthogonal box = (0 0 0) to (9.832 17.029524 10.8108)
+  1 by 1 by 1 MPI processor grid
+  144 atoms
+  replicate CPU = 0.000 seconds
+
+#Atomic Information
+mass                    1 28.085500
+mass                    2 15.999400
+set                     type 1 charge +2.4
+Setting atom values ...
+  48 settings made for charge
+set                     type 2 charge -1.2
+Setting atom values ...
+  96 settings made for charge
+
+
+## This part implements the BKS pair potential with a cut-off distance for the Buckingham term. Long range Coulomb interactions are evaluated with the pppm method.
+#Pair Potentials
+pair_style              buck/coul/long ${cut_off}                                                               #BKS interaction, PRL 64 1955 (1990)
+pair_style              buck/coul/long 10                                                               
+pair_coeff              1 1 0.0 1.0 0.0
+pair_coeff              1 2 18003.757200 0.205205 133.538100
+pair_coeff              2 2 1388.773000  0.362319 175.000000
+pair_modify             shift yes
+kspace_style            pppm 1.0e-4
+
+#Neighbor style
+neighbor                2.0 bin
+neigh_modify            check yes every 1 delay 0 page 100000 one 2000
+
+
+## This part equilibrates your crystal to a pressure of ${pressure}(unit pressure) and a temperature of ${temperature}(unit temperatureture) with quantum nuclear effects
+variable                p_damp equal ${delta_t}*1000                                                            #Recommended pressure damping parameter in fix nph
+variable                p_damp equal 0.001*1000                                                            
+fix                     scapegoat_qtb all nph iso ${pressure} ${pressure} ${p_damp} ptemp ${temperature}                                #NPH does the time integration
+fix                     scapegoat_qtb all nph iso 1.03125 ${pressure} ${p_damp} ptemp ${temperature}                                
+fix                     scapegoat_qtb all nph iso 1.03125 1.03125 ${p_damp} ptemp ${temperature}                                
+fix                     scapegoat_qtb all nph iso 1.03125 1.03125 1 ptemp ${temperature}                                
+fix                     scapegoat_qtb all nph iso 1.03125 1.03125 1 ptemp 300                                
+fix                     quartz_qtb all qtb temp ${temperature} damp ${damp_qtb} seed 35082 f_max 120.00 N_f 100 #Change f_max (THz) if your Debye frequency is higher
+fix                     quartz_qtb all qtb temp 300 damp ${damp_qtb} seed 35082 f_max 120.00 N_f 100 
+fix                     quartz_qtb all qtb temp 300 damp 1 seed 35082 f_max 120.00 N_f 100 
+thermo_style            custom step temp press etotal vol lx ly lz pxx pyy pzz pxy pyz pxz
+thermo                  500
+run                     10000                                                                                   # 20 ps
+PPPM initialization ...
+  using 12-bit tables for long-range coulomb
+  G vector (1/distance) = 0.30741421
+  grid = 9 15 10
+  stencil order = 5
+  estimated absolute RMS force accuracy = 0.00082292169
+  estimated relative force accuracy = 5.7148748e-05
+  using double precision FFTW3
+  3d grid and FFT values/proc = 5984 1350
+Generated 0 of 1 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 12
+  ghost atom cutoff = 12
+  binsize = 6, bins = 2 3 2
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair buck/coul/long, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 79.54 | 79.54 | 79.54 Mbytes
+   Step          Temp          Press          TotEng         Volume           Lx             Ly             Lz            Pxx            Pyy            Pzz            Pxy            Pyz            Pxz      
+         0   0             -34025.834     -2793.6042      1810.0985      9.832          17.029524      10.8108       -37478.507     -37477.418     -27121.578      9.1695757e-13  1.3389073      4.3241904e-10
+       500   281.29081     -40385.316     -2786.6755      1844.5575      9.893999       17.136909      10.878971     -44649.526     -45631.479     -30874.941     -5970.3786      3630.1497      5208.9151    
+      1000   405.39833     -15491.737     -2783.3315      1874.0851      9.9465141      17.227868      10.936714     -7770.5895     -21469.955     -17234.668     -4706.568      -8313.9728     -5109.7941    
+      1500   428.98589     -12118.944     -2781.3231      1874.1627      9.9466514      17.228106      10.936865     -11239.069     -11740.073     -13377.689     -3778.9442     -6220.1287      12775.393    
+      2000   522.1193      -6687.4898     -2779.2181      1855.9626      9.9143491      17.172157      10.901347     -8015.9986     -10737.271     -1309.1995     -4980.3842      5270.2371      5848.6033    
+      2500   496.74391      4264.2477     -2778.9979      1849.3244      9.9025148      17.151659      10.888335     -477.16669      3487.1932      9782.7166     -4961.1802      2380.6928      4736.0158    
+      3000   456.49644      2320.8144     -2779.3844      1853.2924      9.9095922      17.163918      10.896117      5479.6065     -2954.2289      4437.0656      3719.873       4445.0523     -3278.4767    
+      3500   485.20715     -7480.2934     -2778.6062      1859.6308      9.9208765      17.183463      10.908524     -9340.7489     -6130.0027     -6970.1286     -7379.298       1772.8487      334.30336    
+      4000   527.61267     -13499.649     -2777.3433      1889.9407      9.9744859      17.276317      10.967471     -16483.048     -7465.0326     -16550.865     -2517.0909     -1863.0181      3314.8004    
+      4500   519.94103      721.48535     -2777.8505      1879.6565      9.9563608      17.244923      10.947541     -913.38143     -1765.9324      4843.7699      4466.6086     -14141.151     -6439.5828    
+      5000   505.27751     -6278.4611     -2777.3641      1881.2935      9.9592504      17.249928      10.950718     -14254.363     -2653.6691     -1927.3516      1838.2614      5767.9017      597.43557    
+      5500   500.70939      11303.749     -2777.8881      1871.0079      9.9410671      17.218434      10.930725     -6452.9864      24877.082      15487.151      522.03646      10473.322      9780.8588    
+      6000   526.65288      7991.2312     -2777.172       1856.9231      9.916059       17.175119      10.903227     -68.785111      11005.45       13037.029      1253.808       10039.459      1052.9726    
+      6500   485.30032      12811.638     -2777.5866      1845.3102      9.8953447      17.13924       10.880451      10063.881      20215.116      8155.9178     -3886.9094      2249.1648      4855.0853    
+      7000   507.85498      2649.7692     -2777.3359      1861.2874      9.9238216      17.188564      10.911763     -4215.0129      6995.3481      5168.9724     -2188.559       6157.1189      533.71073    
+      7500   528.57271      3161.2692     -2779.0851      1855.7942      9.9140492      17.171637      10.901017      2935.2638     -2873.4265      9421.9704      771.17375     -4360.8154      4939.5772    
+      8000   533.77209      4534.716      -2777.6539      1858.4769      9.918824       17.179908      10.906268     -1188.2311      15739.426     -947.04665     -5187.8008      2446.6         8079.2599    
+      8500   518.71612      1108.9431     -2777.7018      1866.6125      9.9332764      17.20494       10.922159      8720.6113     -8235.129       2841.347       5148.5636     -2125.2795     -4127.5641    
+      9000   536.7153      -496.96985     -2778.0261      1877.7098      9.9529225      17.238968      10.943761     -3481.5215     -4611.8835      6602.4955     -2788.6206     -13323.577      4338.9401    
+      9500   527.06767     -235.95825     -2778.1125      1895.9228      9.9849987      17.294526      10.97903      -12233.414      7578.103       3947.4363     -6398.7803      995.43927      8590.5217    
+     10000   526.7748      -4481.1152     -2777.717       1886.901       9.9691356      17.26705       10.961588     -3140.4814      1336.8312     -11639.695      13496.457     -11543.606     -6180.7338    
+Loop time of 4.94406 on 1 procs for 10000 steps with 144 atoms
+
+Performance: 174.755 ns/day, 0.137 hours/ns, 2022.631 timesteps/s, 291.259 katom-step/s
+99.6% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 3.3246     | 3.3246     | 3.3246     |   0.0 | 67.24
+Kspace  | 0.69642    | 0.69642    | 0.69642    |   0.0 | 14.09
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0.077166   | 0.077166   | 0.077166   |   0.0 |  1.56
+Output  | 0.0002249  | 0.0002249  | 0.0002249  |   0.0 |  0.00
+Modify  | 0.83484    | 0.83484    | 0.83484    |   0.0 | 16.89
+Other   |            | 0.0108     |            |       |  0.22
+
+Nlocal:            144 ave         144 max         144 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:           3804 ave        3804 max        3804 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:          41952 ave       41952 max       41952 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 41952
+Ave neighs/atom = 291.33333
+Neighbor list builds = 0
+Dangerous builds = 0
+unfix                   quartz_qtb
+unfix                   scapegoat_qtb
+Total wall time: 0:00:04

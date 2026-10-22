@@ -139,6 +139,8 @@ DihedralTableCut::DihedralTableCut(LAMMPS *lmp) : DihedralTable(lmp)
 
 DihedralTableCut::~DihedralTableCut()
 {
+  if (copymode) return;
+
   memory->destroy(aat_k);
   memory->destroy(aat_theta0_1);
   memory->destroy(aat_theta0_2);

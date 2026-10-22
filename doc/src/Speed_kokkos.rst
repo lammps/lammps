@@ -3,8 +3,8 @@ KOKKOS package
 
 Kokkos is a templated C++ library that provides abstractions to allow
 a single implementation of an application kernel (e.g. a pair style)
-to run efficiently on different kinds of hardware, such as GPUs
-or many-core CPUs. Kokkos maps the C++ kernel onto
+to run efficiently on different kinds of hardware, such as GPUs, Intel
+Xeon Phis, or many-core CPUs. Kokkos maps the C++ kernel onto
 different back end languages such as CUDA, OpenMP, or Pthreads.  The
 Kokkos library also provides data abstractions to adjust (at compile
 time) the memory layout of data structures like 2d and 3d arrays to
@@ -34,8 +34,8 @@ see the `Kokkos Wiki <https://kokkos.org/kokkos-core-wiki/>`_.
    incorrect execution or crashes.
 
 Kokkos currently provides full support for 4 modes of execution (per MPI
-task). These are Serial (MPI-only for CPUs), OpenMP
-(threading for many-core CPUs), CUDA (for NVIDIA GPUs) and
+task). These are Serial (MPI-only for CPUs and Intel Phi), OpenMP
+(threading for many-core CPUs and Intel Phi), CUDA (for NVIDIA GPUs) and
 HIP (for AMD GPUs).  Additional modes (e.g. OpenMP target, Intel data
 center GPUs) are under development.  You choose the mode at build time
 to produce an executable compatible with a specific hardware.
@@ -125,16 +125,16 @@ for CPU acceleration, assuming one or more 16-core nodes.
 .. code-block:: bash
 
    # 1 node, 16 MPI tasks/node, no multi-threading
-   mpirun -np 16 lmp_kokkos_mpi_only -k on -sf kk -in in.lj
+   mpirun -np 16 lmp -k on -sf kk -in in.lj
 
    # 2 nodes, 1 MPI task/node, 16 threads/task
-   mpirun -np 2 -ppn 1 lmp_kokkos_omp -k on t 16 -sf kk -in in.lj
+   mpirun -np 2 -ppn 1 lmp -k on t 16 -sf kk -in in.lj
 
    # 1 node,  2 MPI tasks/node, 8 threads/task
-   mpirun -np 2 lmp_kokkos_omp -k on t 8 -sf kk -in in.lj
+   mpirun -np 2 lmp -k on t 8 -sf kk -in in.lj
 
    # 8 nodes, 4 MPI tasks/node, 4 threads/task
-   mpirun -np 32 -ppn 4 lmp_kokkos_omp -k on t 4 -sf kk -in in.lj
+   mpirun -np 32 -ppn 4 lmp -k on t 4 -sf kk -in in.lj
 
 To run using the KOKKOS package, use the ``-k on``, ``-sf kk`` and ``-pk
 kokkos`` :doc:`command-line switches <Run_options>` in your ``mpirun``
@@ -166,8 +166,8 @@ below.
 .. note::
 
    When using ONLY a single OpenMP thread, the Kokkos Serial back end
-   (i.e. ``-D Kokkos_ENABLE_SERIAL=yes``) will give better performance
-   than the OpenMP back end (i.e.  ``-D Kokkos_ENABLE_OPENMP=yes``)
+   (i.e. ``-D Kokkos_ENABLE_SERIAL=on``) will give better performance
+   than the OpenMP back end (i.e.  ``-D Kokkos_ENABLE_OPENMP=on``)
    because some of the overhead to make the code thread-safe is removed.
 
 .. note::
@@ -180,7 +180,7 @@ below.
 .. code-block:: bash
 
    # Newton on, Half neighbor list, non-threaded comm
-   mpirun -np 16 lmp_kokkos_mpi_only -k on -sf kk \
+   mpirun -np 16 lmp -k on -sf kk \
           -pk kokkos newton on neigh half comm no -in in.lj
 
 If the :doc:`newton <newton>` command is used in the input
@@ -215,10 +215,10 @@ for your MPI installation), binding can be forced with these flags:
 .. code-block:: bash
 
    # OpenMPI 1.8
-   mpirun -np 2 --bind-to socket --map-by socket ./lmp_openmpi ...
+   mpirun -np 2 --bind-to socket --map-by socket lmp ...
 
    # Mvapich2 2.0
-   mpiexec -np 2 --bind-to socket --map-by socket ./lmp_mvapich ...
+   mpiexec -np 2 --bind-to socket --map-by socket lmp ...
 
 For binding threads with KOKKOS OpenMP, use thread affinity environment
 variables to force binding. With OpenMP 3.1 (gcc 4.7 or later, intel 12
@@ -227,6 +227,78 @@ be sufficient. In general, for best performance with OpenMP 4.0 or later
 set ``OMP_PROC_BIND=spread`` and ``OMP_PLACES=threads``.  For binding
 threads with the KOKKOS pthreads option, compile LAMMPS with the hwloc
 or libnuma support enabled as described in the :ref:`extra build options page <kokkos>`.
+Running on Knight's Landing (KNL) Intel Xeon Phi
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Here is a quick overview of how to use the KOKKOS package for the
+Intel Knight's Landing (KNL) Xeon Phi:
+
+KNL Intel Phi chips have 68 physical cores. Typically 1 to 4 cores are
+reserved for the OS, and only 64 or 66 cores are used. Each core has 4
+Hyper-Threads,so there are effectively N = 256 (4\*64) or N = 264 (4\*66)
+cores to run on. The product of MPI tasks \* OpenMP threads/task should
+not exceed this limit, otherwise performance will suffer. Note that
+with the KOKKOS package you do not need to specify how many KNLs there
+are per node; each KNL is simply treated as running some number of MPI
+tasks.
+
+Examples of mpirun commands that follow these rules are shown below.
+
+.. code-block:: bash
+
+   # Running on an Intel KNL node with 68 cores
+   # (272 threads/node via 4x hardware threading):
+
+   # 1 node, 64 MPI tasks/node, 4 threads/task
+   mpirun -np 64 lmp -k on t 4 -sf kk -in in.lj
+
+   # 1 node, 66 MPI tasks/node, 4 threads/task
+   mpirun -np 66 lmp -k on t 4 -sf kk -in in.lj
+
+   # 1 node, 32 MPI tasks/node, 8 threads/task
+   mpirun -np 32 lmp -k on t 8 -sf kk -in in.lj
+
+   # 8 nodes, 64 MPI tasks/node, 4 threads/task
+   mpirun -np 512 -ppn 64 lmp -k on t 4 -sf kk -in in.lj
+
+The ``-np`` setting of the mpirun command sets the number of MPI
+tasks/node. The ``-k on t Nt`` command-line switch sets the number of
+threads/task as ``Nt``. The product of these two values should be N, i.e.
+256 or 264.
+
+.. note::
+
+   The default for the :doc:`package kokkos <package>` command when
+   running on KNL is to use "half" neighbor lists and set the Newton
+   flag to "on" for both pairwise and bonded interactions. This will
+   typically be best for many-body potentials. For simpler pairwise
+   potentials, it may be faster to use a "full" neighbor list with
+   Newton flag to "off".  Use the ``-pk kokkos`` :doc:`command-line switch
+   <Run_options>` to change the default :doc:`package kokkos <package>`
+   options. See its documentation page for details and default
+   settings. Experimenting with its options can provide a speed-up for
+   specific calculations. For example:
+
+.. code-block:: bash
+
+   #  Newton on, half neighbor list, threaded comm
+   mpirun -np 64 lmp -k on t 4 -sf kk -pk kokkos comm host -in in.reax
+
+   # Newton off, full neighbor list, non-threaded comm
+   mpirun -np 64 lmp -k on t 4 -sf kk \
+          -pk kokkos newton off neigh full comm no -in in.lj
+
+.. note::
+
+   MPI tasks and threads should be bound to cores as described
+   above for CPUs.
+
+.. note::
+
+   To build with Kokkos support for Intel Xeon Phi co-processors
+   such as Knight's Corner (KNC), your system must be configured to use
+   them in "native" mode, not "offload" mode like the INTEL package
+   supports.
 
 Running on GPUs
 ^^^^^^^^^^^^^^^
@@ -256,10 +328,10 @@ one or more nodes, each with two GPUs:
 .. code-block:: bash
 
    # 1 node,   2 MPI tasks/node, 2 GPUs/node
-   mpirun -np 2 lmp_kokkos_cuda_openmpi -k on g 2 -sf kk -in in.lj
+   mpirun -np 2 lmp -k on g 2 -sf kk -in in.lj
 
    # 16 nodes, 2 MPI tasks/node, 2 GPUs/node (32 GPUs total)
-   mpirun -np 32 -ppn 2 lmp_kokkos_cuda_openmpi -k on g 2 -sf kk -in in.lj
+   mpirun -np 32 -ppn 2 lmp -k on g 2 -sf kk -in in.lj
 
 .. note::
 
@@ -280,7 +352,7 @@ one or more nodes, each with two GPUs:
 .. code-block:: bash
 
    # Newton on, half neighbor list, set binsize = neighbor ghost cutoff
-   mpirun -np 2 lmp_kokkos_cuda_openmpi -k on g 2 -sf kk \
+   mpirun -np 2 lmp -k on g 2 -sf kk \
           -pk kokkos newton on neigh half binsize 2.8 -in in.lj
 
 .. note::
@@ -326,7 +398,7 @@ As noted above, KOKKOS by default assumes that the MPI library is
 GPU-aware.  This is not always the case and can lead to segmentation
 faults when using more than one MPI process.  Normally, LAMMPS will
 print a warning like "*Turning off GPU-aware MPI since it is not
-detected*", or an error message like "*Kokkos with GPU-enabled backend
+detected*", or an error message like "*Kokkos with GPU-enabled back end
 assumes GPU-aware MPI is available*", OR a **segmentation fault**.  To
 confirm that a segmentation fault is caused by this, you can turn off
 the GPU-aware assumption via the :doc:`package kokkos command <package>`
@@ -352,7 +424,7 @@ before executing your LAMMPS Kokkos run. Example:
 .. code-block:: bash
 
     export KOKKOS_TOOLS_LIBS=${HOME}/kokkos-tools/src/tools/memory-events/kp_memory_event.so
-    mpirun -np 4 lmp_kokkos_cuda_openmpi -in in.lj -k on g 4 -sf kk
+    mpirun -np 4 lmp -in in.lj -k on g 4 -sf kk
 
 Starting with the NVIDIA Pascal GPU architecture, CUDA supports
 `"Unified Virtual Memory" (UVM)
@@ -363,8 +435,14 @@ between CPU and GPU as needed.  The resulting LAMMPS performance depends
 on `memory access pattern, data residency, and GPU memory
 oversubscription
 <https://developer.nvidia.com/blog/improving-gpu-memory-oversubscription-performance/>`_
-. The CMake option ``-DKokkos_ENABLE_CUDA_UVM=on`` enables using
-:ref:`UVM with Kokkos <kokkos>` when compiling LAMMPS.
+. The CMake option ``-D Kokkos_ENABLE_IMPL_CUDA_UNIFIED_MEMORY=on``
+enables using :ref:`unified memory with Kokkos <kokkos>` when compiling
+LAMMPS; it requires CUDA 12.2 or later.
+
+.. versionchanged:: 2Sep2026
+
+This option replaces ``-D Kokkos_ENABLE_CUDA_UVM=on``, which Kokkos no
+longer supports.
 
 Run with the KOKKOS package by editing an input script
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -400,7 +478,7 @@ file.
 
 .. code-block:: bash
 
-   cmake -DKokkos_ENABLE_CUDA=yes -DKokkos_ENABLE_OPENMP=yes ../cmake
+   cmake -S cmake -B build -D Kokkos_ENABLE_CUDA=on -D Kokkos_ENABLE_OPENMP=on
 
 The suffix "/kk" is equivalent to "/kk/device", and for Kokkos CUDA,
 using the ``-sf kk`` in the command-line gives the default CUDA version
@@ -417,7 +495,7 @@ For example, the command to run with 1 GPU and 8 OpenMP threads is then:
 
 .. code-block:: bash
 
-   mpiexec -np 1 lmp_kokkos_cuda_openmpi -in in.lj -k on g 1 t 8 -sf kk
+   mpiexec -np 1 lmp -in in.lj -k on g 1 t 8 -sf kk
 
 Conversely, if the ``-sf kk/host`` is used in the command-line and then
 the "/kk" or "/kk/device" suffix is added to a specific style in your
@@ -454,6 +532,9 @@ Generally speaking, the following rules of thumb apply:
   package.
 * When running large number of atoms per GPU, KOKKOS is typically faster
   than the GPU package when both are compiled for double precision.
+* When running on Intel Phi hardware, KOKKOS is not as fast as
+  the INTEL package, which is optimized for x86 hardware (not just
+  from Intel) and compilation with the Intel compilers.
 * The KOKKOS package by default assumes that you are using exactly one
   MPI rank per GPU. When trying to use multiple MPI ranks per GPU it is
   mandatory to enable `CUDA Multi-Process Service (MPS)
@@ -462,9 +543,11 @@ Generally speaking, the following rules of thumb apply:
   MPI ranks in order to avoid competing with the MPS daemon for
   CPU resources.
 
-See the `Benchmark page <https://www.lammps.org/bench.html>`_ of the
-LAMMPS website for performance of the KOKKOS package on different
-hardware.
+..
+   FIXME:
+   See the `Benchmark page <https://www.lammps.org/bench.html>`_ of the
+   LAMMPS website for performance of the KOKKOS package on different
+   hardware.
 
 Advanced Kokkos options
 """""""""""""""""""""""

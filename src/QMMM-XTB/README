@@ -1,0 +1,46 @@
+QMMM-XTB package
+================
+
+This CMake-only package provides `fix qmmm/xtb`, an in-process GFN1-xTB and
+GFN2-xTB QM/MM implementation with self-consistent periodic PPPM embedding.
+The SCC adapter uses libxtb's Fortran module interface because the public C
+API does not expose the atom-dependent potential callback needed during every
+SCC iteration.
+
+Requirements
+------------
+
+* libxtb 6.7 or newer and its `xtb.pc` pkg-config file
+* the libxtb Fortran `.mod` files, built with the same Fortran compiler as
+  LAMMPS
+* mctc-lib and BLAS
+* a CMake LAMMPS build with the KSPACE package; simulations must select
+  `kspace_style pppm/xtb` or `pppm/tip4p/xtb`
+
+The adapter compiles against libxtb's internal SCC modules, whose source API
+is not covered by libxtb's public compatibility guarantee.  Compatible newer
+versions are accepted and an incompatible API fails at compile time.  A
+normal xTB library installation may omit these private Fortran modules.  Build
+xTB with its Meson `-Dinstall_modules=true` option, or copy the generated
+`.mod` files from the xTB build tree into a dedicated include directory.
+
+Configuration
+-------------
+
+Make sure pkg-config can find xTB and mctc-lib, then configure LAMMPS, for
+example:
+
+```
+export PKG_CONFIG_PATH=/path/to/xtb/lib/pkgconfig:/path/to/mctc/lib/pkgconfig
+cmake -S cmake -B build \
+  -D PKG_QMMM-XTB=on \
+  -D XTB_FORTRAN_MODULE_DIR=/path/to/xtb-modules
+cmake --build build -j 8
+```
+
+At runtime, the dynamic loader must be able to find libxtb and its
+dependencies, and `XTBPATH` must point to the directory containing
+`param_gfn1-xtb.txt` and `param_gfn2-xtb.txt` when they are not installed in
+xTB's default data path.
+
+See `doc/src/fix_qmmm_xtb.rst` and `examples/PACKAGES/qmmm-xtb` for usage.

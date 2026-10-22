@@ -165,7 +165,7 @@ which modifies the behavior of the density summation. Typically, the density
 where :math:`W_{ij}` is the kernel, and :math:`M_j` is the mass of particle :math:`j`.
 The *self/mass* keyword augments this expression by replacing :math:`M_j` with
 :math:`M_i`. This may be useful in simulations of multiple fluid phases with large
-differences in density, :ref:`(Hu) <fix_rheo_hu>`.
+differences in density, :ref:`(Hu2) <fix_rheo_hu>`.
 
 The *density* keyword is used to specify the equilibrium density of each of the N
 particle types. It must be followed by N numerical values specifying each type's
@@ -228,4 +228,4 @@ Default
 
 .. _fix_rheo_hu:
 
-**(Hu)** Hu, and Adams, J. Comp. Physics, 213, 844-861 (2006).
+**(Hu2)** Hu, and Adams, J. Comp. Physics, 213, 844-861 (2006).

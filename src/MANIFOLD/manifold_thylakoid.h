@@ -15,9 +15,8 @@
 #define LMP_MANIFOLD_THYLAKOID_H
 
 #include "manifold.h"
+
 #include <vector>
-
-
 
 namespace LAMMPS_NS::user_manifold {
   struct thyla_part;

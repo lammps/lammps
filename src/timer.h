@@ -22,8 +22,8 @@ class Timer : protected Pointers {
  public:
   enum ttype {
     RESET = -2,
-    START = -1,
-    TOTAL = 0,
+    START,
+    TOTAL,
     PAIR,
     BOND,
     KSPACE,

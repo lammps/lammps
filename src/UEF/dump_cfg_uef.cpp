@@ -36,18 +36,11 @@ void DumpCFGUef::init_style()
   DumpCFG::init_style();
 
   // check to make sure the other uef fix is on
-  // borrowed from Pieter's nvt/sllod code
-  int i=0;
-  for (i=0; i<modify->nfix; i++)
-  {
-    if (strcmp(modify->fix[i]->style,"nvt/uef")==0)
-      break;
-    if (strcmp(modify->fix[i]->style,"npt/uef")==0)
-      break;
-  }
-  if (i==modify->nfix)
+
+  auto uef_fixes = modify->get_fix_by_style("^n[vp]t/uef");
+  if (uef_fixes.empty())
     error->all(FLERR,"Can't use dump cfg/uef without defining a fix nvt/npt/uef");
-  ifix_uef=i;
+  fix_uef = dynamic_cast<FixNHUef *>(uef_fixes.front());
 }
 
 /* ----------------------------------------------------------------------
@@ -66,8 +59,8 @@ void DumpCFGUef::write_header(bigint n)
   //   so molecules are not split across periodic box boundaries
 
   double box[3][3],rot[3][3];
-  (dynamic_cast<FixNHUef*>(modify->fix[ifix_uef]))->get_box(box);
-  (dynamic_cast<FixNHUef*>(modify->fix[ifix_uef]))->get_rot(rot);
+  fix_uef->get_box(box);
+  fix_uef->get_rot(rot);
   // rot goes from "lab frame" to "upper triangular frame"
   // it's transpose takes the simulation box to the flow frame
   for (int i=0;i<3;i++)

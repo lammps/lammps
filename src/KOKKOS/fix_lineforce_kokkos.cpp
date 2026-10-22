@@ -73,10 +73,13 @@ KOKKOS_INLINE_FUNCTION
 void FixLineForceKokkos<DeviceType>::operator()(TagFixLineForce, const int &i) const
 {
   if (mask[i] & groupbit) {
-    const double dot = f(i,0)*xdir + f(i,1)*ydir + f(i,2)*zdir;
-    f(i,0) = dot*xdir;
-    f(i,1) = dot*ydir;
-    f(i,2) = dot*zdir;
+    const KK_FLOAT xdir_kk = static_cast<KK_FLOAT>(xdir);
+    const KK_FLOAT ydir_kk = static_cast<KK_FLOAT>(ydir);
+    const KK_FLOAT zdir_kk = static_cast<KK_FLOAT>(zdir);
+    const KK_FLOAT dot = static_cast<KK_FLOAT>(f(i,0))*xdir_kk + static_cast<KK_FLOAT>(f(i,1))*ydir_kk + static_cast<KK_FLOAT>(f(i,2))*zdir_kk;
+    f(i,0) = static_cast<KK_ACC_FLOAT>(dot*xdir_kk);
+    f(i,1) = static_cast<KK_ACC_FLOAT>(dot*ydir_kk);
+    f(i,2) = static_cast<KK_ACC_FLOAT>(dot*zdir_kk);
   }
 }
 

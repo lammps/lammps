@@ -32,7 +32,7 @@ namespace LAMMPS_NS {
 
 struct TagFixShakePreNeighbor{};
 
-template<int NEIGHFLAG, int VFLAG>
+template<int NEIGHFLAG, int EVFLAG>
 struct TagFixShakeMinPostForce{};
 
 template<int NEIGHFLAG, int EVFLAG>
@@ -86,13 +86,13 @@ class FixShakeKokkos : public FixShake, public KokkosBase {
   KOKKOS_INLINE_FUNCTION
   void operator()(TagFixShakePreNeighbor, const int&) const;
 
-  template<int NEIGHFLAG, int VFLAG>
+  template<int NEIGHFLAG, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
-  void operator()(TagFixShakeMinPostForce<NEIGHFLAG,VFLAG>, const int&, EV_FLOAT&) const;
+  void operator()(TagFixShakeMinPostForce<NEIGHFLAG,EVFLAG>, const int&, EV_FLOAT&) const;
 
-  template<int NEIGHFLAG, int VFLAG>
+  template<int NEIGHFLAG, int EVFLAG>
   KOKKOS_INLINE_FUNCTION
-  void operator()(TagFixShakeMinPostForce<NEIGHFLAG,VFLAG>, const int&) const;
+  void operator()(TagFixShakeMinPostForce<NEIGHFLAG,EVFLAG>, const int&) const;
 
   template<int NEIGHFLAG, int EVFLAG>
 // NOLINTNEXTLINE
@@ -234,6 +234,11 @@ class FixShakeKokkos : public FixShake, public KokkosBase {
   KOKKOS_INLINE_FUNCTION
   void v_tally(EV_FLOAT&, int, int *, KK_FLOAT, KK_FLOAT *) const;
 
+  template<int NEIGHFLAG>
+// NOLINTNEXTLINE
+  KOKKOS_INLINE_FUNCTION
+  void ev_tally(EV_FLOAT&, int, int *, KK_FLOAT, KK_FLOAT, KK_FLOAT *) const;
+
   int first,nsend;
 
   typename AT::t_int_1d d_sendlist;
@@ -242,9 +247,6 @@ class FixShakeKokkos : public FixShake, public KokkosBase {
   typename AT::t_int_1d d_exchange_sendlist;
   typename AT::t_int_1d d_copylist;
   typename AT::t_int_1d d_indices;
-
-  typename AT::t_double_2d d_b_stats;
-  typename AT::t_double_2d d_a_stats;
 
   KK_FLOAT dx,dy,dz;
   KK_FLOAT dtv_kk,dtfsq_kk;
@@ -256,7 +258,7 @@ class FixShakeKokkos : public FixShake, public KokkosBase {
     if constexpr (std::is_same_v<real_t, double>) {
       return 1e150;
     } else {
-      return 1e30f;
+      return 1e30F;
     }
   }
 

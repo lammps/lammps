@@ -17,6 +17,7 @@
 #include "atom_kokkos.h"
 #include "atom_masks.h"
 #include "comm.h"
+#include "group.h"
 #include "kokkos.h"
 #include "memory_kokkos.h"
 #include "update.h"
@@ -85,6 +86,12 @@ void NBinKokkos<DeviceType>::bin_atoms()
 {
   last_bin = update->ntimestep;
 
+  // an include group restricts which atoms go into the bins, see below
+
+  includegroup_bitmask = includegroup ? group->bitmask[includegroup] : 0;
+  includegroup_nfirst = atom->nfirst;
+  includegroup_nlocal = atom->nlocal;
+
   k_bins.template sync<DeviceType>();
   k_bincount.template sync<DeviceType>();
   k_atom2bin.template sync<DeviceType>();
@@ -102,17 +109,49 @@ void NBinKokkos<DeviceType>::bin_atoms()
     atomKK->sync(ExecutionSpaceFromDevice<DeviceType>::space,X_MASK);
     x = atomKK->k_x.view<DeviceType>();
 
+    if (includegroup_bitmask) {
+      atomKK->sync(ExecutionSpaceFromDevice<DeviceType>::space,MASK_MASK);
+      mask = atomKK->k_mask.view<DeviceType>();
+    }
+
     bboxlo_[0] = bboxlo[0]; bboxlo_[1] = bboxlo[1]; bboxlo_[2] = bboxlo[2];
     bboxhi_[0] = bboxhi[0]; bboxhi_[1] = bboxhi[1]; bboxhi_[2] = bboxhi[2];
 
+    copymode = 1;
     NPairKokkosBinAtomsFunctor<DeviceType> f(*this);
 
     Kokkos::parallel_for(atom->nlocal+atom->nghost, f);
+    copymode = 0;
 
     Kokkos::deep_copy(h_resize, d_resize);
     if (h_resize()) {
 
-      atoms_per_bin += 16;
+      // A bin overflowed its capacity.  bincount now holds the true
+      // occupancy of every bin, because the atomic increment in
+      // binatomsItem() runs for every binned atom whether or not the bin
+      // was already full.  Size atoms_per_bin from the actual maximum
+      // occupancy in a single step instead of growing by a fixed increment
+      // and re-binning all atoms once per increment.  The latter costs
+      // O(max bin occupancy) reallocations and re-bins and dominates
+      // neighbor setup for skewed distributions, e.g. the large cutoff bins
+      // used by the KOKKOS package on GPUs.
+
+      auto d_bincount = k_bincount.view<DeviceType>();
+      int max_bincount = 0;
+      Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType>(0,mbins),
+        LAMMPS_LAMBDA(const int i, int &max_val) {
+          max_val = MAX(max_val,d_bincount[i]);
+        },Kokkos::Max<int>(max_bincount));
+
+      // grow to the true maximum occupancy plus ~10% headroom (at least 16)
+      // so small density fluctuations on later steps do not immediately
+      // force another regrow.  Reaching this branch means a bin overflowed,
+      // so max_bincount > atoms_per_bin and the new capacity strictly
+      // exceeds both the old one and the true occupancy: the next pass
+      // cannot overflow, bounding the loop at one more re-bin.
+
+      atoms_per_bin = max_bincount + MAX(16,max_bincount/10);
+
       k_bins = DAT::tdual_int_2d("Neighbor::bins", mbins, atoms_per_bin);
       bins = k_bins.view<DeviceType>();
       c_bins = bins;
@@ -131,9 +170,36 @@ template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void NBinKokkos<DeviceType>::binatomsItem(const int &i) const
 {
-  const int ibin = coord2bin(x(i, 0), x(i, 1), x(i, 2));
+  // a non-numeric coordinate would produce a bogus bin index and the atomic
+  // update below would write out of bounds, so stop right here
+
+  if (!Kokkos::isfinite(x(i, 0)) || !Kokkos::isfinite(x(i, 1)) || !Kokkos::isfinite(x(i, 2)))
+    Kokkos::abort("Non-numeric positions - simulation unstable");
+
+  const int ibin = coord2bin(static_cast<double>(x(i, 0)), static_cast<double>(x(i, 1)), static_cast<double>(x(i, 2)));
+
+  // an atom that has left the region covered by the bins gets a bin index
+  // outside of the bin arrays and the atomic update below would write out of
+  // bounds.  this happens when atoms are lost or move too far between two
+  // neighbor list builds, so stop right here as well
+
+  if ((ibin < 0) || (ibin >= mbins))
+    Kokkos::abort("Atom outside of neighbor bin range - simulation unstable");
 
   atom2bin(i) = ibin;
+
+  // with an include group only the atoms the group's pairs are built from
+  // belong in the bins: the owned atoms of the group, which sorting has put
+  // first, and the ghosts that are in the group.  Binning the rest would put
+  // them in the neighbor lists of the group's atoms, which is what the plain
+  // NBinStandard::bin_atoms() leaves out.
+
+  if (includegroup_bitmask) {
+    if (i < includegroup_nlocal) {
+      if (i >= includegroup_nfirst) return;
+    } else if (!(mask(i) & includegroup_bitmask)) return;
+  }
+
   const int ac = Kokkos::atomic_fetch_add(&bincount[ibin], (int)1);
   if (ac < (int)bins.extent(1)) {
     bins(ibin, ac) = i;

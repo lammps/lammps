@@ -73,6 +73,15 @@ void PairLocalDensityOMP::compute(int eflag, int vflag)
     for (int k = 0; k < nLD; k++)
       memset(&localrho[k][tid*nall], 0, nall * sizeof(double));
 
+    // zero fp. pass 2 assigns it only for those local densities that apply
+    // to the type of the central atom, while pass 3 reads all of them.
+    // fp is shared, so each thread only zeroes its own chunk of atoms.
+
+    int kfrom, kto;
+    loop_setup_thr(kfrom, kto, tid, nall, nthreads);
+    for (int k = 0; k < nLD; k++)
+      memset(&fp[k][kfrom], 0, (kto-kfrom) * sizeof(double));
+
     // -------------------------------------------------------------------
     // Pass 1: compute per-thread local densities
 
@@ -135,7 +144,11 @@ void PairLocalDensityOMP::compute(int eflag, int vflag)
 
     // reverse comm: master thread only
 #if defined(_OPENMP)
+#if _OPENMP >= 202011
+#pragma omp masked
+#else
 #pragma omp master
+#endif
 #endif
     { if (newton_pair) comm->reverse_comm(this); }
 
@@ -189,7 +202,11 @@ void PairLocalDensityOMP::compute(int eflag, int vflag)
 
     // forward comm: master thread only
 #if defined(_OPENMP)
+#if _OPENMP >= 202011
+#pragma omp masked
+#else
 #pragma omp master
+#endif
 #endif
     { comm->forward_comm(this); }
 

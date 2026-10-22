@@ -34,7 +34,9 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-PairLJCutCoulWolf::PairLJCutCoulWolf(LAMMPS *lmp) : Pair(lmp)
+PairLJCutCoulWolf::PairLJCutCoulWolf(LAMMPS *lmp) :
+    Pair(lmp), cut_lj(nullptr), cut_ljsq(nullptr), epsilon(nullptr), sigma(nullptr), lj1(nullptr),
+    lj2(nullptr), lj3(nullptr), lj4(nullptr), offset(nullptr)
 {
   single_enable = 0;
   writedata = 1;

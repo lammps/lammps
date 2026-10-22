@@ -107,10 +107,10 @@ void PairLJClass2Soft::compute(int eflag, int vflag)
       jtype = type[j];
 
       if (rsq < cutsq[itype][jtype]) {
-        denlj = lj3[itype][jtype] + pow(rsq, 3) * pow(sigma[itype][jtype], -6.0);
+        denlj = lj3[itype][jtype] + pow(rsq, 3) / lj2[itype][jtype];
         r4sig6 = rsq*rsq / lj2[itype][jtype];
         forcelj = lj1[itype][jtype] * epsilon[itype][jtype] *
-            (18.0*r4sig6*pow(denlj, -2.5) - 18.0*r4sig6/(denlj * denlj));
+            18.0*r4sig6*(1.0/sqrt(denlj) - 1.0)/(denlj * denlj);
         fpair = factor_lj*forcelj;
 
         f[i][0] += delx*fpair;
@@ -123,7 +123,7 @@ void PairLJClass2Soft::compute(int eflag, int vflag)
         }
 
         if (eflag) {
-          evdwl = lj1[itype][jtype] * epsilon[itype][jtype] * (2.0/(denlj*sqrt(denlj)) - 3.0/denlj) -
+          evdwl = lj1[itype][jtype] * epsilon[itype][jtype] * (2.0/sqrt(denlj) - 3.0)/denlj -
             offset[itype][jtype];
           evdwl *= factor_lj;
         }
@@ -422,13 +422,13 @@ double PairLJClass2Soft::single(int /*i*/, int /*j*/, int itype, int jtype, doub
     r4sig6 = rsq*rsq / lj2[itype][jtype];
     denlj = lj3[itype][jtype] + rsq*r4sig6;
     forcelj = lj1[itype][jtype] * epsilon[itype][jtype] *
-      (18.0*r4sig6/(denlj*denlj*sqrt(denlj)) - 18.0*r4sig6/(denlj*denlj));
+      18.0*r4sig6*(1.0/sqrt(denlj) - 1.0)/(denlj*denlj);
   } else forcelj = 0.0;
   fforce = factor_lj*forcelj;
 
   if (rsq < cutsq[itype][jtype]) {
     denlj = lj3[itype][jtype] + rsq*rsq*rsq / lj2[itype][jtype];
-    philj = lj1[itype][jtype] * epsilon[itype][jtype] * (2.0/(denlj*sqrt(denlj)) - 3.0/denlj) -
+    philj = lj1[itype][jtype] * epsilon[itype][jtype] * (2.0/sqrt(denlj) - 3.0)/denlj -
       offset[itype][jtype];
   } else philj = 0.0;
 

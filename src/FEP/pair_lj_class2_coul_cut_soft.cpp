@@ -126,10 +126,11 @@ void PairLJClass2CoulCutSoft::compute(int eflag, int vflag)
         } else forcecoul = 0.0;
 
         if (rsq < cut_ljsq[itype][jtype]) {
-          denlj = lj3[itype][jtype] + pow(rsq, 3) * pow(sigma[itype][jtype], -6.0);
+          denlj = lj3[itype][jtype] + pow(rsq, 3) / lj2[itype][jtype];
+          double inv_sqdenlj = 1.0 / (denlj * denlj);
           r4sig6 = rsq*rsq / lj2[itype][jtype];
           forcelj = lj1[itype][jtype] * epsilon[itype][jtype] *
-           (18.0*r4sig6*pow(denlj, -2.5) - 18.0*r4sig6*pow(denlj, -2));
+           (18.0*r4sig6/sqrt(denlj) - 18.0*r4sig6) * inv_sqdenlj;
         } else forcelj = 0.0;
 
         fpair = factor_coul*forcecoul + factor_lj*forcelj;
@@ -149,7 +150,7 @@ void PairLJClass2CoulCutSoft::compute(int eflag, int vflag)
             ecoul = factor_coul * qqrd2e * lj1[itype][jtype] * qtmp*q[j] / denc;
 
           if (rsq < cut_ljsq[itype][jtype]) {
-            evdwl = lj1[itype][jtype] * epsilon[itype][jtype] * (2.0/(denlj*sqrt(denlj)) - 3.0/denlj) -
+            evdwl = lj1[itype][jtype] * epsilon[itype][jtype] * (2.0/sqrt(denlj) - 3.0)/denlj -
               offset[itype][jtype];
             evdwl *= factor_lj;
           }
@@ -503,7 +504,7 @@ double PairLJClass2CoulCutSoft::single(int i, int j, int itype, int jtype,
     r4sig6 = rsq*rsq / lj2[itype][jtype];
     denlj = lj3[itype][jtype] + rsq*r4sig6;
     forcelj = lj1[itype][jtype] * epsilon[itype][jtype] *
-      (18.0*r4sig6/(denlj*denlj*sqrt(denlj)) - 18.0*r4sig6/(denlj*denlj));
+      (18.0*r4sig6/sqrt(denlj) - 18.0*r4sig6)/(denlj*denlj);
   } else forcelj = 0.0;
   fforce = factor_coul*forcecoul + factor_lj*forcelj;
 
@@ -514,7 +515,7 @@ double PairLJClass2CoulCutSoft::single(int i, int j, int itype, int jtype,
   }
   if (rsq < cut_ljsq[itype][jtype]) {
     philj = lj1[itype][jtype] * epsilon[itype][jtype] *
-      (2.0/(denlj*sqrt(denlj)) - 3.0/denlj) - offset[itype][jtype];
+      (2.0/sqrt(denlj) - 3.0)/denlj - offset[itype][jtype];
     eng += factor_lj*philj;
   }
 

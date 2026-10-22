@@ -40,6 +40,8 @@ using namespace LAMMPS_NS;
 #include "modify.h"
 #include "suffix.h"
 
+#include <cstring>
+
 using namespace LAMMPS_NS;
 using namespace MathConst;
 

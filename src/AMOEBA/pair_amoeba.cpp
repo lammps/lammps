@@ -2019,8 +2019,25 @@ void PairAmoeba::allocate_smallsize()
   bpreds = new double[maxualt];
   bpredps = new double[maxualt];
   if (use_pred) {
-    if (polpred == GEAR) gear = new double[maxualt];
-    if (polpred == ASPC) aspc = new double[maxualt];
+
+    // predictor coefficients, as set in Tinker's predict.f:
+    // 6th-order Gear binomial coefficients and the always stable
+    // predictor-corrector (ASPC) coefficients of Kolafa
+
+    if (polpred == GEAR) {
+      static constexpr double gear_coeff[7] = {6.0, -15.0, 20.0, -15.0, 6.0, -1.0, 0.0};
+      gear = new double[maxualt];
+      for (int i = 0; i < maxualt; i++) gear[i] = gear_coeff[i];
+    }
+    if (polpred == ASPC) {
+      static constexpr double aspc_coeff[17] = {
+          62.0 / 17.0,     -310.0 / 51.0,   2170.0 / 323.0, -2329.0 / 400.0, 1701.0 / 409.0,
+          -806.0 / 323.0,  1024.0 / 809.0,  -479.0 / 883.0, 257.0 / 1316.0,  -434.0 / 7429.0,
+          191.0 / 13375.0, -62.0 / 22287.0, 3.0 / 7217.0,   -3.0 / 67015.0,  2.0 / 646323.0,
+          -1.0 / 9694845.0, 0.0};
+      aspc = new double[maxualt];
+      for (int i = 0; i < maxualt; i++) aspc[i] = aspc_coeff[i];
+    }
   }
 }
 

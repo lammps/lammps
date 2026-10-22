@@ -58,6 +58,8 @@ ucl_inline void damprep(const numtyp r, const numtyp r2, const numtyp rr1,
 
   // compute tolerance value for damping exponents
 
+  // overlap prefactors as in Tinker 8.9 and later (see PairAmoeba::damprep())
+
   eps = (numtyp)0.001;
   diff = dmpi-dmpk; // fabs(dmpi-dmpk)
   if (diff < (numtyp)0) diff = -diff;
@@ -78,7 +80,7 @@ ucl_inline void damprep(const numtyp r, const numtyp r2, const numtyp rr1,
     dmpi24 = dmpi23 * dmpi2;
     dmpi25 = dmpi24 * dmpi2;
     dmpi26 = dmpi25 * dmpi2;
-    pre = (numtyp)128.0;
+    pre = (numtyp)2.0;
     s = (r + dmpi2*r2 + dmpi22*r3/(numtyp)3.0) * expi;
 
     ds = (dmpi22*r3 + dmpi23*r4) * expi / (numtyp)3.0;
@@ -112,7 +114,7 @@ ucl_inline void damprep(const numtyp r, const numtyp r2, const numtyp rr1,
     dmpk24 = dmpk23 * dmpk2;
     dmpk25 = dmpk24 * dmpk2;
     term = dmpi22 - dmpk22;
-    pre = (numtyp)8192.0 * dmpi23 * dmpk23 / (term*term*term*term); //ucl_powr(term,(numtyp)4.0);
+    pre = (numtyp)128.0 * dmpi23 * dmpk23 / (term*term*term*term); //ucl_powr(term,(numtyp)4.0);
     tmp = (numtyp)4.0 * dmpi2 * dmpk2 / term;
     s = (dampi-tmp)*expk + (dampk+tmp)*expi;
 

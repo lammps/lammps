@@ -450,7 +450,7 @@ void PPPMDisp::init()
       gc = new Grid3d(lmp,world,nx_pppm,ny_pppm,nz_pppm);
       gc->set_distance(0.5*neighbor->skin + qdist);
       gc->set_stencil_atom(-nlower,nupper);
-      gc->set_shift_atom(shiftatom_lo,shiftatom_lo);
+      gc->set_shift_atom(shiftatom_lo,shiftatom_hi);
       gc->set_zfactor(slab_volfactor);
 
       gc->setup_grid(nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
@@ -3068,10 +3068,10 @@ void PPPMDisp::set_grid_local(int order_either,
   // shiftatom_hi = max shift on hi side
   // for PPPMStagger, stagger value (0.0 or 0.5) also affects this
 
-  if (order % 2) {
+  if (order_either % 2) {
     shiftatom_lo_either = 0.5;
     shiftatom_hi_either = 0.5;
-  } else if (order % 2 == 0) {
+  } else {
     shiftatom_lo_either = 0.0;
     shiftatom_hi_either = 0.0;
   }

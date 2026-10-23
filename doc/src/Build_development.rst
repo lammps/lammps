@@ -663,6 +663,65 @@ the note in the section on unit testing above).  Using an alternate
 linker has an algorithmic improvement through using symbol resolution
 algorithms with lower algorithmic complexity.
 
+Distribute unit tests across multiple NVIDIA GPUs
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. versionadded:: TBD
+
+When LAMMPS is compiled with the GPU package or the KOKKOS package with
+GPU support, running tests in parallel with ``ctest -jN`` will run *all*
+tests on the *same* (first available) GPU.  This can lead to false
+negative tests due to insufficient resources on the GPU or undesired
+interactions between multiple GPU kernels.  In case of using NVIDIA
+GPUs, *different* GPUs can be exposed by setting the ``CUDA_VISIBLE_DEVICES``
+environment variable.
+
+With CMake 3.29 or later on Linux and similar operating systems, tests
+can instead be distributed over multiple NVIDIA GPUs through the `CTest
+resource allocation feature
+<https://cmake.org/cmake/help/latest/manual/ctest.1.html#resource-allocation>`_
+where available GPUs are listed as entries with an assigned "slots" value
+in a resource file.  Then every test requests one slot of a GPU and is run
+through a launcher script that sets the assigned GPU.  This will restrict
+the number of concurrent runs to the total number of available slots in
+the resource file. Thus a command like ``ctest -j 8`` runs at most 4
+concurrent tests, if there are only 4 slots configured in the resource file.
+
+The `resource specification file
+<https://cmake.org/cmake/help/latest/manual/ctest.1.html#resource-specification-file>`_
+is in JSON format and its location is set with the CMake variable
+``LAMMPS_TEST_RESOURCE_SPEC_FILE`` and defaults to
+``ctest-resources.json`` in the build folder.  If the file does not
+exist, CMake generates it from the output of the ``nvidia-smi`` command
+with one slot for each GPU it reports.  Such a generated file looks as
+follows:
+
+.. code-block:: json
+
+   {
+     "version": { "major": 1, "minor": 0 },
+     "local": [
+       {
+         "gpus": [
+           { "id": "0", "slots": 1, "name": "Tesla V100-SXM2-16GB", "pci_bus_id": "00000000:1A:00.0" },
+           { "id": "1", "slots": 1, "name": "Tesla V100-SXM2-16GB", "pci_bus_id": "00000000:3A:00.0" }
+         ]
+       }
+     ]
+   }
+
+An existing file is used unchanged, so it can be edited and also be
+shared between multiple build folders.  The ``id`` of an entry is the
+index of the GPU as reported by ``nvidia-smi``.  An entry may be removed
+to keep that GPU free, e.g. for the graphics display of a workstation,
+or the ``slots`` value may be increased to let multiple tests share the same
+GPU.  With KOKKOS/CUDA, however, sharing a GPU from multiple tests may
+(currently in fall 2026) lead to data corruption and spurious failed
+tests.  The ``name`` and ``pci_bus_id`` entries are for information only.
+If no GPU is found, no file is written and the tests are run without
+resource allocation.  Setting ``LAMMPS_TEST_RESOURCE_SPEC_FILE`` to an
+empty string also disables this feature.
+
 Tests for other components and utility functions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 

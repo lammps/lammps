@@ -59,6 +59,99 @@ namespace ReaxFF {
     }
   }
 
+  /* ----------------------------------------------------------------------
+     ACKS2 kinetic energy term of a pair of atoms from the far neighbor
+     list.  returns true if the pair contributes, with its energy and the
+     scalar force factor.  pairs with ghost atoms are only included once.
+  ------------------------------------------------------------------------- */
+
+  bool ACKS2_Kinetic_Pair(reax_system *system, storage *workspace, int i,
+                          far_neighbor_data *nbr_pj, double &e_ele, double &d_bond_softness)
+  {
+    const double SMALL = 0.0001;
+    const int natoms = system->n;
+    const int j = nbr_pj->nbr;
+    const rc_tagint orig_i = system->my_atoms[i].orig_id;
+    const rc_tagint orig_j = system->my_atoms[j].orig_id;
+    int flag = 0;
+
+    /* kinetic energy terms */
+    double xcut = 0.5 * (system->reax_param.sbp[system->my_atoms[i].type].bcut_acks2
+                         + system->reax_param.sbp[system->my_atoms[j].type].bcut_acks2);
+
+    if (nbr_pj->d <= xcut) {
+      if (j < natoms) flag = 1;
+      else if (orig_i < orig_j) flag = 1;
+      else if (orig_i == orig_j) {
+        if (nbr_pj->dvec[2] > SMALL) flag = 1;
+        else if (fabs(nbr_pj->dvec[2]) < SMALL) {
+          if (nbr_pj->dvec[1] > SMALL) flag = 1;
+          else if (fabs(nbr_pj->dvec[1]) < SMALL && nbr_pj->dvec[0] > SMALL)
+            flag = 1;
+        }
+      }
+    }
+    if (!flag) return false;
+
+    const double d = nbr_pj->d / xcut;
+    const double bond_softness = system->reax_param.gp.l[34] * pow( d, 3.0 )
+                               * pow( 1.0 - d, 6.0 );
+    if (!(bond_softness > 0.0)) return false;
+
+    /* Coulombic energy contribution */
+    const double effpot_diff = workspace->s[system->N + i]
+                             - workspace->s[system->N + j];
+    e_ele = -0.5 * KCALpMOL_to_EV * bond_softness
+                 * SQR( effpot_diff );
+
+    /* forces contribution */
+    d_bond_softness = system->reax_param.gp.l[34]
+                    * 3.0 / xcut * pow( d, 2.0 )
+                    * pow( 1.0 - d, 5.0 ) * (1.0 - 3.0 * d);
+    d_bond_softness = -0.5 * d_bond_softness
+                    * SQR( effpot_diff );
+    d_bond_softness = KCALpMOL_to_EV * d_bond_softness
+                    / nbr_pj->d;
+    return true;
+  }
+
+  /* ---------------------------------------------------------------------- */
+
+  static void ACKS2_Kinetic_Energy(reax_system *system, simulation_data *data,
+                                   storage *workspace, reax_list *far_nbrs)
+  {
+    const int natoms = system->n;
+    double e_ele, d_bond_softness, f_tmp, delij[3];
+
+    for (int i = 0; i < natoms; ++i) {
+      if (system->my_atoms[i].type < 0) continue;
+      const int start_i = Start_Index(i, far_nbrs);
+      const int end_i   = End_Index(i, far_nbrs);
+
+      for (int pj = start_i; pj < end_i; ++pj) {
+        far_neighbor_data *nbr_pj = &(far_nbrs->select.far_nbr_list[pj]);
+        const int j = nbr_pj->nbr;
+        if (system->my_atoms[j].type < 0) continue;
+
+        if (ACKS2_Kinetic_Pair(system, workspace, i, nbr_pj, e_ele, d_bond_softness)) {
+          data->my_en.e_ele += e_ele;
+
+          /* tally into per-atom energy */
+          if (system->pair_ptr->evflag || system->pair_ptr->vflag_atom) {
+            rvec_ScaledSum( delij, 1., system->my_atoms[i].x,
+                                  -1., system->my_atoms[j].x );
+            f_tmp = -d_bond_softness;
+            system->pair_ptr->ev_tally(i,j,natoms,1,0.0,e_ele,
+                              f_tmp,delij[0],delij[1],delij[2]);
+          }
+
+          rvec_ScaledAdd( workspace->f[i], -d_bond_softness, nbr_pj->dvec );
+          rvec_ScaledAdd( workspace->f[j], d_bond_softness, nbr_pj->dvec );
+        }
+      }
+    }
+  }
+
   void vdW_Coulomb_Energy(reax_system *system, control_params *control,
                           simulation_data *data, storage *workspace,
                           reax_list **lists)
@@ -73,7 +166,6 @@ namespace ReaxFF {
     double dr3gamij_1, dr3gamij_3;
     double e_ele, e_vdW, e_core, SMALL = 0.0001;
     double e_lg, de_lg, r_ij5, r_ij6, re6;
-    double bond_softness, d_bond_softness, d, effpot_diff;
     two_body_parameters *twbp;
     far_neighbor_data *nbr_pj;
     reax_list *far_nbrs;
@@ -217,80 +309,9 @@ namespace ReaxFF {
     /* contribution to energy and gradients (atoms and cell)
      * due to geometry-dependent terms in the ACKS2
      * kinetic energy */
-    if (system->acks2_flag)
-    for( i = 0; i < natoms; ++i ) {
-      if (system->my_atoms[i].type < 0) continue;
-      start_i = Start_Index(i, far_nbrs);
-      end_i   = End_Index(i, far_nbrs);
-      orig_i  = system->my_atoms[i].orig_id;
+    if (system->acks2_flag) ACKS2_Kinetic_Energy(system, data, workspace, far_nbrs);
 
-      for( pj = start_i; pj < end_i; ++pj ) {
-        nbr_pj = &(far_nbrs->select.far_nbr_list[pj]);
-        j = nbr_pj->nbr;
-        if (system->my_atoms[j].type < 0) continue;
-        orig_j  = system->my_atoms[j].orig_id;
-
-        flag = 0;
-
-        /* kinetic energy terms */
-        double xcut = 0.5 * (system->reax_param.sbp[system->my_atoms[i].type].bcut_acks2
-                             + system->reax_param.sbp[system->my_atoms[j].type].bcut_acks2);
-
-        if(nbr_pj->d <= xcut) {
-          if (j < natoms) flag = 1;
-          else if (orig_i < orig_j) flag = 1;
-          else if (orig_i == orig_j) {
-            if (nbr_pj->dvec[2] > SMALL) flag = 1;
-            else if (fabs(nbr_pj->dvec[2]) < SMALL) {
-              if (nbr_pj->dvec[1] > SMALL) flag = 1;
-              else if (fabs(nbr_pj->dvec[1]) < SMALL && nbr_pj->dvec[0] > SMALL)
-                flag = 1;
-            }
-          }
-        }
-
-        if (flag) {
-
-          d = nbr_pj->d / xcut;
-          bond_softness = system->reax_param.gp.l[34] * pow( d, 3.0 )
-                        * pow( 1.0 - d, 6.0 );
-
-          if ( bond_softness > 0.0 )
-          {
-            /* Coulombic energy contribution */
-            effpot_diff = workspace->s[system->N + i]
-                        - workspace->s[system->N + j];
-            e_ele = -0.5 * KCALpMOL_to_EV * bond_softness
-                         * SQR( effpot_diff );
-
-            data->my_en.e_ele += e_ele;
-
-            /* forces contribution */
-            d_bond_softness = system->reax_param.gp.l[34]
-                            * 3.0 / xcut * pow( d, 2.0 )
-                            * pow( 1.0 - d, 5.0 ) * (1.0 - 3.0 * d);
-            d_bond_softness = -0.5 * d_bond_softness
-                            * SQR( effpot_diff );
-            d_bond_softness = KCALpMOL_to_EV * d_bond_softness
-                            / nbr_pj->d;
-
-            /* tally into per-atom energy */
-            if (system->pair_ptr->evflag || system->pair_ptr->vflag_atom) {
-              rvec_ScaledSum( delij, 1., system->my_atoms[i].x,
-                                    -1., system->my_atoms[j].x );
-              f_tmp = -d_bond_softness;
-              system->pair_ptr->ev_tally(i,j,natoms,1,0.0,e_ele,
-                                f_tmp,delij[0],delij[1],delij[2]);
-            }
-
-            rvec_ScaledAdd( workspace->f[i], -d_bond_softness, nbr_pj->dvec );
-            rvec_ScaledAdd( workspace->f[j], d_bond_softness, nbr_pj->dvec );
-          }
-        }
-      }
-    }
-
-    Compute_Polarization_Energy( system, data, workspace );
+    Compute_Polarization_Energy(system, data, workspace);
   }
 
   void Tabulated_vdW_Coulomb_Energy(reax_system *system, control_params *control,
@@ -305,7 +326,6 @@ namespace ReaxFF {
     double e_vdW, e_ele;
     double CEvd, CEclmb, SMALL = 0.0001;
     double f_tmp, delij[3];
-    double bond_softness, d_bond_softness, d, effpot_diff;
 
     far_neighbor_data *nbr_pj;
     reax_list *far_nbrs;
@@ -393,78 +413,7 @@ namespace ReaxFF {
     /* contribution to energy and gradients (atoms and cell)
      * due to geometry-dependent terms in the ACKS2
      * kinetic energy */
-    if (system->acks2_flag)
-    for( i = 0; i < natoms; ++i ) {
-      if (system->my_atoms[i].type < 0) continue;
-      start_i = Start_Index(i, far_nbrs);
-      end_i   = End_Index(i, far_nbrs);
-      orig_i  = system->my_atoms[i].orig_id;
-
-      for( pj = start_i; pj < end_i; ++pj ) {
-        nbr_pj = &(far_nbrs->select.far_nbr_list[pj]);
-        j = nbr_pj->nbr;
-        if (system->my_atoms[j].type < 0) continue;
-        orig_j  = system->my_atoms[j].orig_id;
-
-        flag = 0;
-
-        /* kinetic energy terms */
-        double xcut = 0.5 * (system->reax_param.sbp[ system->my_atoms[i].type ].bcut_acks2
-                             + system->reax_param.sbp[ system->my_atoms[j].type ].bcut_acks2);
-
-        if(nbr_pj->d <= xcut) {
-          if (j < natoms) flag = 1;
-          else if (orig_i < orig_j) flag = 1;
-          else if (orig_i == orig_j) {
-            if (nbr_pj->dvec[2] > SMALL) flag = 1;
-            else if (fabs(nbr_pj->dvec[2]) < SMALL) {
-              if (nbr_pj->dvec[1] > SMALL) flag = 1;
-              else if (fabs(nbr_pj->dvec[1]) < SMALL && nbr_pj->dvec[0] > SMALL)
-                flag = 1;
-            }
-          }
-        }
-
-        if (flag) {
-
-          d = nbr_pj->d / xcut;
-          bond_softness = system->reax_param.gp.l[34] * pow( d, 3.0 )
-                        * pow( 1.0 - d, 6.0 );
-
-          if ( bond_softness > 0.0 )
-          {
-            /* Coulombic energy contribution */
-            effpot_diff = workspace->s[system->N + i]
-                        - workspace->s[system->N + j];
-            e_ele = -0.5 * KCALpMOL_to_EV * bond_softness
-                         * SQR( effpot_diff );
-
-            data->my_en.e_ele += e_ele;
-
-            /* forces contribution */
-            d_bond_softness = system->reax_param.gp.l[34]
-                            * 3.0 / xcut * pow( d, 2.0 )
-                            * pow( 1.0 - d, 5.0 ) * (1.0 - 3.0 * d);
-            d_bond_softness = -0.5 * d_bond_softness
-                            * SQR( effpot_diff );
-            d_bond_softness = KCALpMOL_to_EV * d_bond_softness
-                            / nbr_pj->d;
-
-            /* tally into per-atom energy */
-            if (system->pair_ptr->evflag || system->pair_ptr->vflag_atom) {
-              rvec_ScaledSum( delij, 1., system->my_atoms[i].x,
-                                    -1., system->my_atoms[j].x );
-              f_tmp = -d_bond_softness;
-              system->pair_ptr->ev_tally(i,j,natoms,1,0.0,e_ele,
-                                f_tmp,delij[0],delij[1],delij[2]);
-            }
-
-            rvec_ScaledAdd( workspace->f[i], -d_bond_softness, nbr_pj->dvec );
-            rvec_ScaledAdd( workspace->f[j], d_bond_softness, nbr_pj->dvec );
-          }
-        }
-      }
-    }
+    if (system->acks2_flag) ACKS2_Kinetic_Energy(system, data, workspace, far_nbrs);
 
     Compute_Polarization_Energy(system, data, workspace);
   }

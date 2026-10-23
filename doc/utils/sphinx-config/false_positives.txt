@@ -3191,6 +3191,7 @@ Pedone
 peID
 PEigenDense
 Peng
+pentane
 peptide
 peratom
 Perf
@@ -4630,6 +4631,7 @@ xlat
 xlattice
 xlcg
 xldamp
+xlguard
 xlkappa
 xlmd
 xlo

@@ -131,7 +131,7 @@ Syntax
      *lj/cut/soft* args = n alpha_lj cutoff
        n, alpha_LJ = parameters of soft-core potential
        cutoff = global cutoff for Lennard-Jones interactions (distance units)
-     *lj/cut/soft/gapsys* args = alpha_lj cutoff
+     *lj/cut/soft/gapsys* args = alpha_LJ cutoff
        alpha_LJ = parameters of soft-core potential
        cutoff = global cutoff for Lennard-Jones interactions (distance units)
      *lj/cut/coul/cut/soft* args = n alpha_LJ alpha_C cutoff (cutoff2)
@@ -160,7 +160,7 @@ Syntax
      *lj/class2/soft* args = n alpha_lj cutoff
        n, alpha_LJ = parameters of soft-core potential
        cutoff = global cutoff for Lennard-Jones interactions (distance units)
-     *lj/class2/soft/gapsys* args = alpha_lj cutoff
+     *lj/class2/soft/gapsys* args = alpha_LJ cutoff
        alpha_LJ = parameter of soft-core potential
        cutoff = global cutoff for Lennard-Jones interactions (distance units)
      *lj/class2/coul/cut/soft* args = n alpha_LJ alpha_C cutoff (cutoff2)
@@ -331,12 +331,13 @@ every 0.1.
 .. image:: JPG/lj_soft.jpg
 .. image:: JPG/coul_soft.jpg
 
-For the *lj/cut/coul/cut/soft* or *lj/cut/coul/long/soft* pair styles, as well
-as for the equivalent *class2* versions, the following coefficients must be
-defined for each pair of atoms types via the :doc:`pair_coeff <pair_coeff>`
-command as in the examples above, or in the data file or restart files read by
-the :doc:`read_data <read_data>` or :doc:`read_restart <read_restart>` commands,
-or by mixing as described below:
+For the *lj/cut/coul/cut/soft* or *lj/cut/coul/long/soft* pair styles,
+as well as for the equivalent *class2* versions, the following
+coefficients must be defined for each pair of atom types via the
+:doc:`pair_coeff <pair_coeff>` command as in the examples above, or in
+the data file or restart files read by the :doc:`read_data <read_data>`
+or :doc:`read_restart <read_restart>` commands, or by mixing as
+described below:
 
 * :math:`\epsilon` (energy units)
 * :math:`\sigma` (distance units)
@@ -552,27 +553,38 @@ The cutoff is optional.  If not specified, the global cutoff is used.
 
 The pair style *lj/class2/soft/gapsys* applies the same soft-core
 treatment to the 9-6 potential of :doc:`pair_style lj/class2
-<pair_class2>`.  The distance :math:`r_{inner}` is computed with the
-same expression as for *lj/cut/soft/gapsys*.  For distances larger than
-:math:`r_{inner}`, the energy is computed by
+<pair_class2>`.  The distance :math:`r_{inner}` is given by
 
 .. math::
-  E = \epsilon \left[ 2 \left(\frac{\sigma}{r}\right)^{9} -
-      3 \left(\frac{\sigma}{r}\right)^6 \right]   \qquad r_{inner} < r < r_c
+
+   r_{inner} = \alpha_{LJ} \left( 100 \lambda / 49 \right)^{1 / 6} \sigma
+
+For :math:`\alpha_{LJ} = 1` and :math:`\lambda = 1`, this is the
+inflection point of the 9-6 potential, like :math:`r_{inner}` of
+*lj/cut/soft/gapsys* is for the 12-6 potential.  For distances larger
+than :math:`r_{inner}`, the energy is computed by
+
+.. math::
+
+   E = \epsilon \left[ 2 \left(\frac{\sigma}{r}\right)^{9} -
+       3 \left(\frac{\sigma}{r}\right)^6 \right]   \qquad r_{inner} < r < r_c
 
 For distances shorter than :math:`r_{inner}`, the energy is computed by
 
 .. math::
-  \begin{split}
-  E   & = 9 \epsilon c_1 r^2 - 18 \epsilon c_2 r + 2 \epsilon c_3 \qquad r < r_{inner} < r_c \\
-  c_1 & = 10 \sigma^{9} / r_{inner}^{11} - 7 \sigma^6 / r_{inner}^8 \\
-  c_2 & = 11 \sigma^{9} / r_{inner}^{10} - 8 \sigma^6 / r_{inner}^7 \\
-  c_3 & = 55 \sigma^{9} / r_{inner}^{9} - 42 \sigma^6 / r_{inner}^6
-  \end{split}
 
-This pair style requires the same pair coefficients as *lj/cut/soft/gapsys*.
+   \begin{split}
+   E   & = 9 \epsilon c_1 r^2 - 18 \epsilon c_2 r + 2 \epsilon c_3 \qquad r < r_{inner} < r_c \\
+   c_1 & = 10 \sigma^{9} / r_{inner}^{11} - 7 \sigma^6 / r_{inner}^8 \\
+   c_2 & = 11 \sigma^{9} / r_{inner}^{10} - 8 \sigma^6 / r_{inner}^7 \\
+   c_3 & = 55 \sigma^{9} / r_{inner}^{9} - 42 \sigma^6 / r_{inner}^6
+   \end{split}
+
+This pair style requires the same pair coefficients as
+*lj/cut/soft/gapsys*.
 
 .. versionadded:: TBD
+
 The pair styles *lj/cut/coul/cut/soft/gapsys* and
 *lj/class2/coul/cut/soft/gapsys* combine the Lennard-Jones part of
 *lj/cut/soft/gapsys* or *lj/class2/soft/gapsys*, respectively, with the
@@ -620,10 +632,11 @@ mix value is *geometric* for 12-6 styles.
 
 The mixing rule for epsilon and sigma for the *lj/class2/soft*,
 *lj/class2/soft/gapsys*, and *lj/class2/coul/cut/soft/gapsys* 9-6
-potentials is to use the *sixthpower* formulas. The :doc:`pair_modify mix <pair_modify>` setting
-is thus ignored for class2 potentials for :math:`\epsilon` and
-:math:`\sigma`. However it is still followed for mixing the cutoff distance. See
-the :doc:`pair_modify <pair_modify>` command for details.
+potentials is to use the *sixthpower* formulas.  The :doc:`pair_modify
+mix <pair_modify>` setting is thus ignored for class2 potentials for
+:math:`\epsilon` and :math:`\sigma`.  However it is still followed for
+mixing the cutoff distance.  See the :doc:`pair_modify <pair_modify>`
+command for details.
 
 The *morse/soft* pair style does not support mixing. Thus, coefficients for all
 LJ pairs must be specified explicitly.

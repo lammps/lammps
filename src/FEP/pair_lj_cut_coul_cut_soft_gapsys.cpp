@@ -35,11 +35,10 @@ using namespace MathConst;
 /* ---------------------------------------------------------------------- */
 
 PairLJCutCoulCutSoftGapsys::PairLJCutCoulCutSoftGapsys(LAMMPS *lmp) :
-    Pair(lmp), coeff_a3(nullptr), coeff_b1(nullptr), coeff_b2(nullptr),
-    cut_factor(nullptr), cut_lj(nullptr), cut_ljsq(nullptr),
-    cut_lj_inner(nullptr), cut_coul(nullptr), cut_coulsq(nullptr),
-    epsilon(nullptr), sigma(nullptr), lambda(nullptr), lj1(nullptr), lj2(nullptr), lj3(nullptr),
-    lj4(nullptr), offset(nullptr)
+    Pair(lmp), coeff_a3(nullptr), coeff_b1(nullptr), coeff_b2(nullptr), cut_factor(nullptr),
+    cut_lj(nullptr), cut_ljsq(nullptr), cut_coul(nullptr), cut_coulsq(nullptr),
+    cut_lj_inner(nullptr), epsilon(nullptr), sigma(nullptr), lambda(nullptr), lj1(nullptr),
+    lj2(nullptr), lj3(nullptr), lj4(nullptr), offset(nullptr)
 {
   writedata = 1;
   allocated = 0;
@@ -156,7 +155,8 @@ void PairLJCutCoulCutSoftGapsys::compute(int eflag, int vflag)
         if (rsq < cut_lj_inner[itype][jtype] * cut_lj_inner[itype][jtype]) {
           forcelj = rsq * (coeff_b1[itype][jtype] + coeff_b2[itype][jtype] / sqrt(rsq));
           if (eflag) {
-            evdwl = -0.5 * coeff_b1[itype][jtype] * rsq - coeff_b2[itype][jtype] * sqrt(rsq) + coeff_a3[itype][jtype] - offset[itype][jtype];
+            evdwl = -0.5 * coeff_b1[itype][jtype] * rsq - coeff_b2[itype][jtype] * sqrt(rsq) +
+                coeff_a3[itype][jtype] - offset[itype][jtype];
             evdwl *= factor_lj;
           }
         } else if (rsq < cut_ljsq[itype][jtype]) {
@@ -227,22 +227,25 @@ void PairLJCutCoulCutSoftGapsys::allocate()
 
 void PairLJCutCoulCutSoftGapsys::settings(int narg, char **arg)
 {
-  if (narg < 4)
-    utils::missing_cmd_args(FLERR, "pair_style lj/cut/coul/cut/soft/gapsys", error);
+  if (narg < 4) utils::missing_cmd_args(FLERR, "pair_style lj/cut/coul/cut/soft/gapsys", error);
   if (narg > 5)
-    error->all(FLERR, "Too many arguments in pair_style lj/cut/coul/cut/soft/gapsys command");
+    error->all(FLERR, 6, "Too many arguments in pair_style lj/cut/coul/cut/soft/gapsys command");
 
   alphalj = utils::numeric(FLERR, arg[0], false, lmp);
-  if (!(alphalj > 0.0))
-    error->all(FLERR, "Pair style lj/cut/coul/cut/soft/gapsys requires alphalj > 0");
-
+  if (alphalj <= 0.0)
+    error->all(FLERR, 1,
+               "Pair style lj/cut/coul/cut/soft/gapsys requires alpha_LJ > 0, but alpha_LJ = {}",
+               alphalj);
   sigmaq = utils::numeric(FLERR, arg[1], false, lmp);
-  if (!(sigmaq > 0.0))
-    error->all(FLERR, "Pair style lj/cut/coul/cut/soft/gapsys requires sigmaq > 0");
-
+  if (sigmaq <= 0.0)
+    error->all(FLERR, 2,
+               "Pair style lj/cut/coul/cut/soft/gapsys requires sigma_q > 0, but sigma_q = {}",
+               sigmaq);
   alphaq = utils::numeric(FLERR, arg[2], false, lmp);
-  if (!(alphaq > 0.0))
-    error->all(FLERR, "Pair style lj/cut/coul/cut/soft/gapsys requires alphaq > 0");
+  if (alphaq <= 0.0)
+    error->all(FLERR, 3,
+               "Pair style lj/cut/coul/cut/soft/gapsys requires alpha_q > 0, but alpha_q = {}",
+               alphaq);
 
   cut_lj_global = utils::numeric(FLERR, arg[3], false, lmp);
   if (narg == 4)
@@ -269,7 +272,8 @@ void PairLJCutCoulCutSoftGapsys::settings(int narg, char **arg)
 
 void PairLJCutCoulCutSoftGapsys::coeff(int narg, char **arg)
 {
-  if (narg < 5 || narg > 7) error->all(FLERR, "Incorrect args for pair coefficients" + utils::errorurl(21));
+  if (narg < 5 || narg > 7)
+    error->all(FLERR, "Incorrect args for pair coefficients" + utils::errorurl(21));
   if (!allocated) allocate();
 
   int ilo, ihi, jlo, jhi;
@@ -278,10 +282,10 @@ void PairLJCutCoulCutSoftGapsys::coeff(int narg, char **arg)
 
   double epsilon_one = utils::numeric(FLERR, arg[2], false, lmp);
   double sigma_one = utils::numeric(FLERR, arg[3], false, lmp);
-  double lambda_one = utils::numeric(FLERR,arg[4],false,lmp);
+  double lambda_one = utils::numeric(FLERR, arg[4], false, lmp);
 
   if (sigma_one <= 0.0 || epsilon_one <= 0.0)
-    error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
+    error->all(FLERR, "Incorrect args for pair coefficients" + utils::errorurl(21));
   if (lambda_one < 0.0 || lambda_one > 1.0)
     error->all(FLERR, "Pair style lj/cut/coul/cut/soft/gapsys requires 0 <= lambda <= 1");
 
@@ -312,7 +316,8 @@ void PairLJCutCoulCutSoftGapsys::coeff(int narg, char **arg)
 
 void PairLJCutCoulCutSoftGapsys::init_style()
 {
-  if (!atom->q_flag) error->all(FLERR, "Pair style lj/cut/coul/cut/soft/gapsys requires atom attribute q");
+  if (!atom->q_flag)
+    error->all(FLERR, "Pair style lj/cut/coul/cut/soft/gapsys requires atom attribute q");
 
   neighbor->add_request(this);
 }
@@ -327,7 +332,7 @@ double PairLJCutCoulCutSoftGapsys::init_one(int i, int j)
     epsilon[i][j] = mix_energy(epsilon[i][i], epsilon[j][j], sigma[i][i], sigma[j][j]);
     sigma[i][j] = mix_distance(sigma[i][i], sigma[j][j]);
     if (lambda[i][i] != lambda[j][j])
-      error->all(FLERR,"Pair lj/cut/coul/cut/soft/gapsys different lambda values in mix");
+      error->all(FLERR, "Pair lj/cut/coul/cut/soft/gapsys different lambda values in mix");
     lambda[i][j] = lambda[i][i];
     cut_lj[i][j] = mix_distance(cut_lj[i][i], cut_lj[j][j]);
     cut_coul[i][j] = mix_distance(cut_coul[i][i], cut_coul[j][j]);
@@ -348,7 +353,8 @@ double PairLJCutCoulCutSoftGapsys::init_one(int i, int j)
   if (cut_lj_inner[i][j] > 0.0) {
     double s_ri6 = pow(sigma[i][j] / cut_lj_inner[i][j], 6);
     coeff_a3[i][j] = 28.0 * epsilon[i][j] * s_ri6 * (13.0 * s_ri6 - 4.0);
-    coeff_b1[i][j] = -24.0 * epsilon[i][j] * s_ri6 * (26.0 * s_ri6 - 7.0) / (cut_lj_inner[i][j] * cut_lj_inner[i][j]);
+    coeff_b1[i][j] = -24.0 * epsilon[i][j] * s_ri6 * (26.0 * s_ri6 - 7.0) /
+        (cut_lj_inner[i][j] * cut_lj_inner[i][j]);
     coeff_b2[i][j] = 96.0 * epsilon[i][j] * s_ri6 * (7.0 * s_ri6 - 2.0) / cut_lj_inner[i][j];
   } else {
     coeff_a3[i][j] = coeff_b1[i][j] = coeff_b2[i][j] = 0.0;
@@ -508,7 +514,7 @@ void PairLJCutCoulCutSoftGapsys::read_restart_settings(FILE *fp)
 void PairLJCutCoulCutSoftGapsys::write_data(FILE *fp)
 {
   for (int i = 1; i <= atom->ntypes; i++)
-     fprintf(fp, "%d %g %g %g\n", i, epsilon[i][i], sigma[i][i], lambda[i][i]);
+    fprintf(fp, "%d %g %g %g\n", i, epsilon[i][i], sigma[i][i], lambda[i][i]);
 }
 
 /* ----------------------------------------------------------------------
@@ -519,13 +525,14 @@ void PairLJCutCoulCutSoftGapsys::write_data_all(FILE *fp)
 {
   for (int i = 1; i <= atom->ntypes; i++)
     for (int j = i; j <= atom->ntypes; j++)
-      fprintf(fp, "%d %d %g %g %g %g\n", i, j, epsilon[i][j], sigma[i][j], lambda[i][j], cut_lj[i][j]);
+      fprintf(fp, "%d %d %g %g %g %g\n", i, j, epsilon[i][j], sigma[i][j], lambda[i][j],
+              cut_lj[i][j]);
 }
 
 /* ---------------------------------------------------------------------- */
 
-double PairLJCutCoulCutSoftGapsys::single(int i, int j, int itype, int jtype, double rsq, double factor_coul,
-                                double factor_lj, double &fforce)
+double PairLJCutCoulCutSoftGapsys::single(int i, int j, int itype, int jtype, double rsq,
+                                          double factor_coul, double factor_lj, double &fforce)
 {
   double r2inv, r6inv;
   double forcecoul = 0.0;
@@ -551,7 +558,8 @@ double PairLJCutCoulCutSoftGapsys::single(int i, int j, int itype, int jtype, do
 
   if (rsq < cut_lj_inner[itype][jtype] * cut_lj_inner[itype][jtype]) {
     forcelj = coeff_b1[itype][jtype] + coeff_b2[itype][jtype] / sqrt(rsq);
-    philj = -0.5 * coeff_b1[itype][jtype] * rsq - coeff_b2[itype][jtype] * sqrt(rsq) + coeff_a3[itype][jtype] - offset[itype][jtype];
+    philj = -0.5 * coeff_b1[itype][jtype] * rsq - coeff_b2[itype][jtype] * sqrt(rsq) +
+        coeff_a3[itype][jtype] - offset[itype][jtype];
   } else if (rsq < cut_ljsq[itype][jtype]) {
     r6inv = r2inv * r2inv * r2inv;
     forcelj = r6inv * (lj1[itype][jtype] * r6inv - lj2[itype][jtype]) * r2inv;
@@ -569,6 +577,6 @@ void *PairLJCutCoulCutSoftGapsys::extract(const char *str, int &dim)
   dim = 2;
   if (strcmp(str, "epsilon") == 0) return (void *) epsilon;
   if (strcmp(str, "sigma") == 0) return (void *) sigma;
-  if (strcmp(str,"lambda") == 0) return (void *) lambda;
+  if (strcmp(str, "lambda") == 0) return (void *) lambda;
   return nullptr;
 }

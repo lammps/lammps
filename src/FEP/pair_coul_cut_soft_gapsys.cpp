@@ -29,8 +29,8 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairCoulCutSoftGapsys::PairCoulCutSoftGapsys(LAMMPS *lmp) : Pair(lmp),
-  cut(nullptr), cut_factor(nullptr), lambda(nullptr)
+PairCoulCutSoftGapsys::PairCoulCutSoftGapsys(LAMMPS *lmp) :
+    Pair(lmp), cut_factor(nullptr), cut(nullptr), lambda(nullptr)
 {
   centroidstressflag = CENTROID_SAME;
   cut_global = sigmaq = alphaq = 0.0;
@@ -181,15 +181,16 @@ void PairCoulCutSoftGapsys::settings(int narg, char **arg)
   if (narg < 3)
     utils::missing_cmd_args(FLERR, "pair_style coul/cut/soft/gapsys", error);
   if (narg > 3)
-    error->all(FLERR, "Too many arguments in pair_style coul/cut/soft/gapsys command");
+    error->all(FLERR, 4, "Too many arguments in pair_style coul/cut/soft/gapsys command");
 
   sigmaq = utils::numeric(FLERR,arg[0],false,lmp);
-  if (!(sigmaq > 0.0))
-    error->all(FLERR, "Pair style coul/cut/soft/gapsys requires sigmaq > 0");
-
+  if (sigmaq <= 0.0)
+    error->all(FLERR, 1, "Pair style coul/cut/soft/gapsys requires sigma_q > 0, but sigma_q = {}",
+               sigmaq);
   alphaq = utils::numeric(FLERR,arg[1],false,lmp);
-  if (!(alphaq > 0.0))
-    error->all(FLERR, "Pair style coul/cut/soft/gapsys requires alphaq > 0");
+  if (alphaq <= 0.0)
+    error->all(FLERR, 2, "Pair style coul/cut/soft/gapsys requires alpha_q > 0, but alpha_q = {}",
+               alphaq);
 
   cut_global = utils::numeric(FLERR,arg[2],false,lmp);
 

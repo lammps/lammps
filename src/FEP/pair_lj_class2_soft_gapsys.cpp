@@ -32,9 +32,8 @@ using namespace MathConst;
 /* ---------------------------------------------------------------------- */
 
 PairLJClass2SoftGapsys::PairLJClass2SoftGapsys(LAMMPS *lmp) :
-    Pair(lmp), coeff_a3(nullptr), coeff_b1(nullptr), coeff_b2(nullptr),
-    cut(nullptr), cut_lj_inner(nullptr), epsilon(nullptr),
-    sigma(nullptr), lambda(nullptr), lj1(nullptr),
+    Pair(lmp), cut(nullptr), cut_lj_inner(nullptr), coeff_a3(nullptr), coeff_b1(nullptr),
+    coeff_b2(nullptr), epsilon(nullptr), sigma(nullptr), lambda(nullptr), lj1(nullptr),
     lj2(nullptr), lj3(nullptr), lj4(nullptr), offset(nullptr)
 {
   writedata = 1;
@@ -115,7 +114,7 @@ void PairLJClass2SoftGapsys::compute(int eflag, int vflag)
       rsq = delx * delx + dely * dely + delz * delz;
       jtype = type[j];
 
-      if (rsq < cut_lj_inner[itype][jtype]* cut_lj_inner[itype][jtype]) {
+      if (rsq < cut_lj_inner[itype][jtype] * cut_lj_inner[itype][jtype]) {
 
         fpair = factor_lj * (coeff_b1[itype][jtype] + coeff_b2[itype][jtype] / sqrt(rsq));
 
@@ -129,7 +128,8 @@ void PairLJClass2SoftGapsys::compute(int eflag, int vflag)
         }
 
         if (eflag) {
-          evdwl = -0.5 * coeff_b1[itype][jtype] * rsq - coeff_b2[itype][jtype] * sqrt(rsq) + coeff_a3[itype][jtype] - offset[itype][jtype];
+          evdwl = -0.5 * coeff_b1[itype][jtype] * rsq - coeff_b2[itype][jtype] * sqrt(rsq) +
+              coeff_a3[itype][jtype] - offset[itype][jtype];
           evdwl *= factor_lj;
         }
 
@@ -200,14 +200,16 @@ void PairLJClass2SoftGapsys::allocate()
 
 void PairLJClass2SoftGapsys::settings(int narg, char **arg)
 {
-  if (narg < 2)
-    utils::missing_cmd_args(FLERR, "pair_style lj/class2/soft/gapsys", error);
+  if (narg < 2) utils::missing_cmd_args(FLERR, "pair_style lj/class2/soft/gapsys", error);
   if (narg > 2)
-    error->all(FLERR, "Too many arguments in pair_style lj/class2/soft/gapsys command");
+    error->all(FLERR, 3, "Too many arguments in pair_style lj/class2/soft/gapsys command");
 
   alphalj = utils::numeric(FLERR, arg[0], false, lmp);
-  if (!(alphalj > 0.0))
-    error->all(FLERR, "Pair style lj/class2/soft/gapsys requires alphalj > 0");
+  if (alphalj <= 0.0)
+    error->all(FLERR, 1,
+               "Pair style lj/class2/soft/gapsys requires alpha_LJ > 0, but alpha_LJ = {}",
+               alphalj);
+
   cut_global = utils::numeric(FLERR, arg[1], false, lmp);
 
   // reset cutoffs that have been explicitly set
@@ -226,7 +228,8 @@ void PairLJClass2SoftGapsys::settings(int narg, char **arg)
 
 void PairLJClass2SoftGapsys::coeff(int narg, char **arg)
 {
-  if (narg < 5 || narg > 6) error->all(FLERR, "Incorrect args for pair coefficients" + utils::errorurl(21));
+  if (narg < 5 || narg > 6)
+    error->all(FLERR, "Incorrect args for pair coefficients" + utils::errorurl(21));
   if (!allocated) allocate();
 
   int ilo, ihi, jlo, jhi;
@@ -235,10 +238,10 @@ void PairLJClass2SoftGapsys::coeff(int narg, char **arg)
 
   double epsilon_one = utils::numeric(FLERR, arg[2], false, lmp);
   double sigma_one = utils::numeric(FLERR, arg[3], false, lmp);
-  double lambda_one = utils::numeric(FLERR,arg[4],false,lmp);
+  double lambda_one = utils::numeric(FLERR, arg[4], false, lmp);
 
   if (sigma_one <= 0.0 || epsilon_one <= 0.0)
-    error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
+    error->all(FLERR, "Incorrect args for pair coefficients" + utils::errorurl(21));
   if (lambda_one < 0.0 || lambda_one > 1.0)
     error->all(FLERR, "Pair style lj/class2/soft/gapsys requires 0 <= lambda <= 1");
 
@@ -274,7 +277,7 @@ double PairLJClass2SoftGapsys::init_one(int i, int j)
         pow(sigma[j][j], 3.0) / (pow(sigma[i][i], 6.0) + pow(sigma[j][j], 6.0));
     sigma[i][j] = pow((0.5 * (pow(sigma[i][i], 6.0) + pow(sigma[j][j], 6.0))), 1.0 / 6.0);
     if (lambda[i][i] != lambda[j][j])
-      error->all(FLERR,"Pair lj/class2/soft/gapsys different lambda values in mix");
+      error->all(FLERR, "Pair lj/class2/soft/gapsys different lambda values in mix");
     lambda[i][j] = lambda[i][i];
     cut[i][j] = mix_distance(cut[i][i], cut[j][j]);
     did_mix = true;
@@ -289,8 +292,10 @@ double PairLJClass2SoftGapsys::init_one(int i, int j)
   if (cut_lj_inner[i][j] > 0.0) {
     double s_ri3 = pow(sigma[i][j] / cut_lj_inner[i][j], 3);
     coeff_a3[i][j] = epsilon[i][j] * (110.0 * s_ri3 - 84.0) * s_ri3 * s_ri3;
-    coeff_b1[i][j] = 18.0 * epsilon[i][j] * (7.0 - 10.0 * s_ri3) * s_ri3 * s_ri3 / (cut_lj_inner[i][j] * cut_lj_inner[i][j]);
-    coeff_b2[i][j] = 18.0 * epsilon[i][j] * (11.0 * s_ri3 - 8.0) * s_ri3 * s_ri3 / cut_lj_inner[i][j];
+    coeff_b1[i][j] = 18.0 * epsilon[i][j] * (7.0 - 10.0 * s_ri3) * s_ri3 * s_ri3 /
+        (cut_lj_inner[i][j] * cut_lj_inner[i][j]);
+    coeff_b2[i][j] =
+        18.0 * epsilon[i][j] * (11.0 * s_ri3 - 8.0) * s_ri3 * s_ri3 / cut_lj_inner[i][j];
   } else {
     coeff_a3[i][j] = coeff_b1[i][j] = coeff_b2[i][j] = 0.0;
   }
@@ -414,7 +419,7 @@ void PairLJClass2SoftGapsys::read_restart_settings(FILE *fp)
 {
   int me = comm->me;
   if (me == 0) {
-    utils::sfread(FLERR,&alphalj, sizeof(double), 1, fp, nullptr, error);
+    utils::sfread(FLERR, &alphalj, sizeof(double), 1, fp, nullptr, error);
     utils::sfread(FLERR, &cut_global, sizeof(double), 1, fp, nullptr, error);
     utils::sfread(FLERR, &offset_flag, sizeof(int), 1, fp, nullptr, error);
     utils::sfread(FLERR, &mix_flag, sizeof(int), 1, fp, nullptr, error);
@@ -451,7 +456,7 @@ void PairLJClass2SoftGapsys::write_data_all(FILE *fp)
 /* ---------------------------------------------------------------------- */
 
 double PairLJClass2SoftGapsys::single(int /*i*/, int /*j*/, int itype, int jtype, double rsq,
-                            double /*factor_coul*/, double factor_lj, double &fforce)
+                                      double /*factor_coul*/, double factor_lj, double &fforce)
 {
   double r2inv, rinv, r3inv, r6inv, forcelj, philj;
 
@@ -470,8 +475,9 @@ double PairLJClass2SoftGapsys::single(int /*i*/, int /*j*/, int itype, int jtype
   } else {
 
     fforce = factor_lj * (coeff_b1[itype][jtype] + coeff_b2[itype][jtype] / sqrt(rsq));
-    return factor_lj * (-0.5 * coeff_b1[itype][jtype] * rsq - coeff_b2[itype][jtype] * sqrt(rsq) + coeff_a3[itype][jtype] - offset[itype][jtype]);
-
+    return factor_lj *
+        (-0.5 * coeff_b1[itype][jtype] * rsq - coeff_b2[itype][jtype] * sqrt(rsq) +
+         coeff_a3[itype][jtype] - offset[itype][jtype]);
   }
 }
 
@@ -482,6 +488,6 @@ void *PairLJClass2SoftGapsys::extract(const char *str, int &dim)
   dim = 2;
   if (strcmp(str, "epsilon") == 0) return (void *) epsilon;
   if (strcmp(str, "sigma") == 0) return (void *) sigma;
-  if (strcmp(str,"lambda") == 0) return (void *) lambda;
+  if (strcmp(str, "lambda") == 0) return (void *) lambda;
   return nullptr;
 }

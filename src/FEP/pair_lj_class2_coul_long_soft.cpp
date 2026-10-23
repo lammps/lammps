@@ -141,9 +141,8 @@ void PairLJClass2CoulLongSoft::compute(int eflag, int vflag)
         if (rsq < cut_ljsq[itype][jtype]) {
           r4sig6 = rsq*rsq / lj2[itype][jtype];
           denlj = lj3[itype][jtype] + rsq*r4sig6;
-          double inv_denlj = 1.0 / (denlj * denlj);
           forcelj = lj1[itype][jtype] * epsilon[itype][jtype] *
-            18.0*r4sig6*(1.0/sqrt(denlj) - 1.0)*inv_denlj;
+            18.0*r4sig6*(1.0/sqrt(denlj) - 1.0)/(denlj*denlj);
         }
 
         fpair = forcecoul + factor_lj*forcelj;
@@ -216,20 +215,21 @@ void PairLJClass2CoulLongSoft::settings(int narg, char **arg)
   if (narg < 4)
     utils::missing_cmd_args(FLERR, "pair_style lj/class2/coul/long/soft", error);
   if (narg > 5)
-    error->all(FLERR, "Too many arguments in pair_style lj/class2/coul/long/soft command");
+    error->all(FLERR, 6, "Too many arguments in pair_style lj/class2/coul/long/soft command");
 
   nlambda = utils::numeric(FLERR,arg[0],false,lmp);
+  if (nlambda <= 0.0)
+    error->all(FLERR, 1, "Pair style lj/class2/coul/long/soft requires n > 0, but n = {}", nlambda);
   alphalj = utils::numeric(FLERR,arg[1],false,lmp);
-  alphac  = utils::numeric(FLERR,arg[2],false,lmp);
-
-  if (!(nlambda > 0.0))
-    error->all(FLERR, "Pair style lj/class2/coul/long/soft requires nlambda > 0");
-
-  if (alphac < 0.0)
-    error->all(FLERR, "Pair style lj/class2/coul/long/soft requires alphac >= 0");
-
   if (alphalj < 0.0)
-    error->all(FLERR, "Pair style lj/class2/coul/long/soft requires alphalj >= 0");
+    error->all(FLERR, 2,
+               "Pair style lj/class2/coul/long/soft requires alpha_LJ >= 0, but alpha_LJ = {}",
+               alphalj);
+  alphac  = utils::numeric(FLERR,arg[2],false,lmp);
+  if (alphac < 0.0)
+    error->all(FLERR, 3,
+               "Pair style lj/class2/coul/long/soft requires alpha_C >= 0, but alpha_C = {}",
+               alphac);
 
   cut_lj_global = utils::numeric(FLERR,arg[3],false,lmp);
   if (narg == 4) cut_coul = cut_lj_global;
@@ -520,7 +520,7 @@ double PairLJClass2CoulLongSoft::single(int i, int j, int itype, int jtype,
     r4sig6 = rsq*rsq / lj2[itype][jtype];
     denlj = lj3[itype][jtype] + rsq*r4sig6;
     forcelj = lj1[itype][jtype] * epsilon[itype][jtype] *
-      (18.0*r4sig6/(denlj*denlj*sqrt(denlj)) - 18.0*r4sig6/(denlj*denlj));
+      18.0*r4sig6*(1.0/sqrt(denlj) - 1.0)/(denlj*denlj);
   } else forcelj = 0.0;
   fforce = forcecoul + factor_lj*forcelj;
 

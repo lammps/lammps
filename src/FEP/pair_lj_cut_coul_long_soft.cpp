@@ -572,20 +572,20 @@ void PairLJCutCoulLongSoft::settings(int narg, char **arg)
   if (narg < 4)
     utils::missing_cmd_args(FLERR, "pair_style lj/cut/coul/long/soft", error);
   if (narg > 5)
-    error->all(FLERR, "Too many arguments in pair_style lj/cut/coul/long/soft command");
+    error->all(FLERR, 6, "Too many arguments in pair_style lj/cut/coul/long/soft command");
 
   nlambda = utils::numeric(FLERR,arg[0],false,lmp);
+  if (nlambda <= 0.0)
+    error->all(FLERR, 1, "Pair style lj/cut/coul/long/soft requires n > 0, but n = {}", nlambda);
   alphalj = utils::numeric(FLERR,arg[1],false,lmp);
-  alphac  = utils::numeric(FLERR,arg[2],false,lmp);
-
-  if (!(nlambda > 0.0))
-    error->all(FLERR, "Pair style lj/cut/coul/long/soft requires nlambda > 0");
-
   if (alphalj < 0.0)
-    error->all(FLERR, "Pair style lj/cut/coul/long/soft requires alphalj >= 0");
-
+    error->all(FLERR, 2,
+               "Pair style lj/cut/coul/long/soft requires alpha_LJ >= 0, but alpha_LJ = {}",
+               alphalj);
+  alphac  = utils::numeric(FLERR,arg[2],false,lmp);
   if (alphac < 0.0)
-    error->all(FLERR, "Pair style lj/cut/coul/long/soft requires alphac >= 0");
+    error->all(FLERR, 3, "Pair style lj/cut/coul/long/soft requires alpha_C >= 0, but alpha_C = {}",
+               alphac);
 
   cut_lj_global = utils::numeric(FLERR,arg[3],false,lmp);
   if (narg == 4) cut_coul = cut_lj_global;

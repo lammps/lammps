@@ -209,9 +209,12 @@ void PairMorseSoft::settings(int narg, char **arg)
   if (narg < 3)
     utils::missing_cmd_args(FLERR, "pair_style morse/soft", error);
   if (narg > 3)
-    error->all(FLERR, "Too many arguments in pair_style morse/soft command");
+    error->all(FLERR, 4, "Too many arguments in pair_style morse/soft command");
 
   nlambda = utils::inumeric(FLERR, arg[0], false, lmp);
+  if (nlambda <= 0)
+    error->all(FLERR, 1, "Pair style morse/soft requires n > 0, but n = {}", nlambda);
+
   shift_range = utils::numeric(FLERR, arg[1], false, lmp);
   cut_global = utils::numeric(FLERR, arg[2], false, lmp);
 

@@ -39,6 +39,8 @@ PairLJCutIntel::PairLJCutIntel(LAMMPS *lmp) :
   PairLJCut(lmp)
 {
   suffix_flag |= Suffix::INTEL;
+  // parameters are copied to packed arrays in init_style(), fix adapt would not update them
+  reinitflag = 0;
   respa_enable = 0;
   cut_respa = nullptr;
 }

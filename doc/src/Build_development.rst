@@ -673,7 +673,7 @@ GPU support, running tests in parallel with ``ctest -jN`` will run *all*
 tests on the *same* (first available) GPU.  This can lead to false
 negative tests due to insufficient resources on the GPU or undesired
 interactions between multiple GPU kernels.  In case of using NVIDIA
-GPUs, *different* GPUs can be exposed by setting the ``CUDA_VISIBLE_DEVICES`` 
+GPUs, *different* GPUs can be exposed by setting the ``CUDA_VISIBLE_DEVICES``
 environment variable.
 
 With CMake 3.29 or later on Linux and similar operating systems, tests

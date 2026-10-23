@@ -142,7 +142,7 @@ void PairMorseSoft::compute(int eflag, int vflag)
           f[j][2] -= delz * fpair;
         }
 
-        if (eflag) { evdwl = phi * factor_lj; }
+        if (eflag) { evdwl = (phi - offset[itype][jtype]) * factor_lj; }
 
         if (evflag) ev_tally(i, j, nlocal, newton_pair, evdwl, 0.0, fpair, delx, dely, delz);
       }

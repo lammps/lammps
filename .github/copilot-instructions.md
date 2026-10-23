@@ -23,7 +23,7 @@ is in `cmake/`, NOT the repository root.
 
 ```bash
 cmake -S cmake -B build -C cmake/presets/gcc.cmake -C cmake/presets/most.cmake \
-      -D ENABLE_TESTING=on -D DOWNLOAD_POTENTIALS=off -G Ninja
+      -D ENABLE_TESTING=on -D BUILD_SHARED_LIBS=on -D DOWNLOAD_POTENTIALS=off -G Ninja
 cmake --build build -j 4
 # Executable: build/lmp
 ```
@@ -35,6 +35,10 @@ cmake --build build -j 4
   optional packages in `src/<PACKAGE-NAME>/` directories.
 - Use `-D DOWNLOAD_POTENTIALS=off` to avoid network dependence in CI or restricted
   environments.
+- With `-D ENABLE_TESTING=on`, ALWAYS also set `-D BUILD_SHARED_LIBS=on`: with the
+  default static library, each of the 100+ test executables links its own copy of
+  LAMMPS (several hundred MB each with the default RelWithDebInfo debug info), and a
+  static testing build can exceed 70 GB even with few packages.
 - If MPI is not found, install your distribution's MPI development package or set
   `-D MPI_CXX_COMPILER=mpicxx` explicitly.  LAMMPS uses its bundled KISS FFT by
   default; FFTW3 is optional, not required.

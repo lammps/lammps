@@ -4,7 +4,8 @@ applyTo: "unittest/**"
 
 # LAMMPS Unit-Test Conventions (force-style YAML tests and friends)
 
-Unit tests are CTest-based; build with `-D ENABLE_TESTING=on`, run with
+Unit tests are CTest-based; build with `-D ENABLE_TESTING=on -D BUILD_SHARED_LIBS=on`
+(a static library is linked into every test executable and needs tens of GB), run with
 `ctest --test-dir build -V [-R <pattern>]`.  Tests are organized by category under
 `unittest/` (`force-styles/`, `commands/`, `formats/`, `c-library/`, `fortran/`,
 `python/`, `utils/`, `granular/` -- the latter has its own instructions file).

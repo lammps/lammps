@@ -17,7 +17,7 @@ This section documents the following functions:
 --------------------
 
 The :cpp:func:`lammps_open` and :cpp:func:`lammps_open_no_mpi` functions
-are used to create and initialize a :cpp:func:`LAMMPS` instance.  They
+are used to create and initialize a :cpp:class:`LAMMPS <LAMMPS_NS::LAMMPS>` instance.  They
 return a reference to this instance as a ``void *`` pointer to be used
 as the "handle" argument in subsequent function calls until that
 instance is destroyed by calling :cpp:func:`lammps_close`.  Here is a
@@ -127,3 +127,5 @@ calling program.
 
 .. doxygenfunction:: lammps_error
    :project: progguide
+
+.. doxygenenum:: _LMP_ERROR_CONST

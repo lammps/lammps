@@ -286,7 +286,13 @@ TEST_F(ComputeGlobalTest, Reduction)
     command("compute ave all reduce/region half ave z fz v_v");
     command("compute sum allwater reduce/region half sum vx vy vz");
     command("compute rep all reduce max v_id v_v v_id y replace 1 2 replace 3 4");
-    std::string thermo_style = "c_min[*] c_chg c_max[*] c_sum[*] c_ave[*] c_rep[*]";
+    command("variable absfx atom abs(fx)");
+    command("variable absvy atom abs(vy)");
+    command("compute sumabs all reduce sumabs fx vy");
+    command("compute aveabs all reduce aveabs fx vy");
+    command("compute abssum all reduce sum v_absfx v_absvy");
+    std::string thermo_style = "c_min[*] c_chg c_max[*] c_sum[*] c_ave[*] c_rep[*] "
+                               "c_sumabs[*] c_aveabs[*] c_abssum[*]";
 
     command("thermo_style custom " + thermo_style);
     command("run 0 post no");
@@ -297,6 +303,9 @@ TEST_F(ComputeGlobalTest, Reduction)
     auto *sum = get_vector("sum");
     auto *ave = get_vector("ave");
     auto *rep = get_vector("rep");
+    auto *sumabs = get_vector("sumabs");
+    auto *aveabs = get_vector("aveabs");
+    auto *abssum = get_vector("abssum");
 
     EXPECT_SCALAR_EQ("chg", 0.51000000000000001);
 
@@ -322,6 +331,13 @@ TEST_F(ComputeGlobalTest, Reduction)
     // index of max y
     EXPECT_DOUBLE_EQ_PREC(rep[2], 26);
     EXPECT_DOUBLE_EQ(rep[3], max[0]);
+
+    // vector output of the sumabs and aveabs modes
+    const double natoms = lammps_get_natoms(lmp);
+    EXPECT_DOUBLE_EQ(sumabs[0], abssum[0]);
+    EXPECT_DOUBLE_EQ(sumabs[1], abssum[1]);
+    EXPECT_DOUBLE_EQ(aveabs[0], abssum[0] / natoms);
+    EXPECT_DOUBLE_EQ(aveabs[1], abssum[1] / natoms);
 }
 
 TEST_F(ComputeGlobalTest, Counts)

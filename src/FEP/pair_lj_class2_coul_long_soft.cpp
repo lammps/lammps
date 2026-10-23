@@ -322,7 +322,7 @@ double PairLJClass2CoulLongSoft::init_one(int i, int j)
 
   if (offset_flag && (cut_lj[i][j] > 0.0)) {
     double denlj = lj3[i][j] + pow(cut_lj[i][j] / sigma[i][j], 6.0);
-    offset[i][j] = epsilon[i][j] * (2.0*pow(denlj,-1.5) - 3.0*pow(denlj,-1.0));
+    offset[i][j] = lj1[i][j] * epsilon[i][j] * (2.0*pow(denlj,-1.5) - 3.0*pow(denlj,-1.0));
   } else offset[i][j] = 0.0;
 
   epsilon[j][i] = epsilon[i][j];

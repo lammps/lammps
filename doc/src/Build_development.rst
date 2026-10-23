@@ -673,9 +673,8 @@ GPU support, running tests in parallel with ``ctest -jN`` will run *all*
 tests on the *same* (first available) GPU.  This can lead to false
 negative tests due to insufficient resources on the GPU or undesired
 interactions between multiple GPU kernels.  In case of using NVIDIA
-GPUs, *different* GPUs can be exposed to the tests runs as the first
-available GPU by setting the ``CUDA_VISIBLE_DEVICES`` environment
-variable.
+GPUs, *different* GPUs can be exposed by setting the ``CUDA_VISIBLE_DEVICES`` 
+environment variable.
 
 With CMake 3.29 or later on Linux and similar operating systems, tests
 can instead be distributed over multiple NVIDIA GPUs through the `CTest
@@ -715,7 +714,7 @@ An existing file is used unchanged, so it can be edited and also be
 shared between multiple build folders.  The ``id`` of an entry is the
 index of the GPU as reported by ``nvidia-smi``.  An entry may be removed
 to keep that GPU free, e.g. for the graphics display of a workstation,
-or the ``slots`` value may be raised to let multiple tests share the same
+or the ``slots`` value may be increased to let multiple tests share the same
 GPU.  With KOKKOS/CUDA, however, sharing a GPU from multiple tests may
 (currently in fall 2026) lead to data corruption and spurious failed
 tests.  The ``name`` and ``pci_bus_id`` entries are for information only.

@@ -1,0 +1,98 @@
+# rounded regular tetrahedra of different sizes in NVT with the contact
+# models of the GRANULAR package
+#
+# 216 tetrahedra with random edge lengths from 1.0 to 2.0, random
+# orientations, and unit mass density share the rounded diameter 0.25.
+# The contacts use a Hertzian normal force from the elastic properties of
+# the bodies, a damping proportional to the effective mass, and a
+# tangential spring with the contact history.  The thermostat of fix
+# nvt/body replaces the energy dissipated by the contacts: a single
+# thermostat variable (tchain 1) and a short damping time are used, since
+# with a Nose-Hoover chain the temperature settles below T when energy is
+# removed all the time.
+# The stiffness E keeps the overlaps at T = 1 well below the rounded
+# radius 0.125, so that the cores of the bodies do not penetrate.
+#
+# The dilute lattice of data.tetra (volume fraction of the cores 0.016) is
+# compressed with fix deform to the volume fraction phi of the cores, and
+# then run in NVT at that density.  With unit density, mass(all) is the
+# total volume of the cores, so that v_phinow = mass(all)/vol.  The rounded
+# shell more than doubles the volume of a tetrahedron with an edge of 1.5,
+# so that phi = 0.25 is a dense packing.  The friction coefficient mu = 0.1
+# lets the bodies still rotate at this density; with mu = 0.5, the bodies
+# lock into each other and c_trot drops to nearly zero.  Higher densities,
+# such as phi = 0.35, require compressing gradually from an equilibrated
+# state at phi = 0.25, for example with fix npt/body; a fast compression
+# pushes the cores of the bodies into each other.
+#
+# The bodies start without rotation, so c_trot grows only through the
+# contacts.  Since the contacts dissipate energy and the thermostat scales
+# translation and rotation alike, the translational (c_ttra) and rotational
+# (c_trot) temperatures settle at different values, increasingly so at
+# higher density, while c_tb, over all 6 degrees of freedom, stays near T.
+
+variable    steps     index 5000
+variable    steps_compress index 10000
+variable    phi       index 0.25
+variable    T         index 1.0
+
+units       lj
+dimension   3
+boundary    p p p
+comm_modify vel yes
+
+atom_style  body rounded/polyhedron 1 8
+atom_modify map array
+
+read_data   data.tetra
+
+velocity    all create ${T} 4928459 dist gaussian mom yes rot yes
+
+variable cut_inner  equal 0.5
+variable A_ua       equal 1
+variable k_na       equal 1
+variable E          equal 1e5
+variable damp       equal 5
+variable nu         equal 0.3
+variable k_t        equal 1e3
+variable xt         equal 0.25
+variable mu         equal 0.1
+
+pair_style body/rounded/polyhedron/granular ${A_ua} ${cut_inner}
+pair_coeff * * hertz/material ${E} ${damp} ${nu} damping mass_velocity &
+           tangential linear_history ${k_t} ${xt} ${mu} cohesion ${k_na}
+
+neighbor     0.5 bin
+neigh_modify every 1 delay 0 check yes
+
+timestep     0.0005
+
+fix          1 all nvt/body temp ${T} ${T} 0.02 tchain 1
+
+compute      tb all temp/body
+compute      p2 all pressure tb
+compute      ttra all temp
+compute      trot all temp/body dof rotate
+variable     phinow equal mass(all)/vol
+thermo_style custom step c_tb c_ttra c_trot pe c_p2 v_phinow
+thermo_modify norm yes
+thermo       500
+
+compute      1 all body/local id 1 2 3
+dump         1 all local 1000 dump.tetra.* index c_1[1] c_1[2] c_1[3] c_1[4]
+
+dump         viz all image 500 image.*.jpg type type size 800 800 zoom 1.24872 &
+                 shiny 0.2 fsaa yes ssao yes 4539 0.6 box yes 0.01 axes no 0.5 0.025 &
+                 view 75 5 body type 0 0
+dump_modify  viz pad 9 backcolor black acolor 1 gray
+
+# compress the box to the volume fraction phi of the cores of the bodies,
+# with unit density, mass(all) is the total volume of the cores
+
+variable     L equal (mass(all)/${phi})^(1.0/3.0)
+fix          2 all deform 1 x final 0 ${L} y final 0 ${L} z final 0 ${L} remap x
+run          ${steps_compress}
+unfix        2
+
+run          ${steps}
+

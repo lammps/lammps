@@ -208,7 +208,8 @@ class Device {
     gpu_barrier();
     #endif
   }
-  /// Return the 'mode' for acceleration: GPU_FORCE, GPU_NEIGH or GPU_HYB_NEIGH
+  /// Return the 'mode' for acceleration: GPU_FORCE or GPU_HYB_NEIGH
+  /// (GPU_NEIGH is always replaced by GPU_HYB_NEIGH during initialization)
   inline int gpu_mode() const { return _gpu_mode; }
   /// Index of first device used by a node
   inline int first_device() const { return _first_device; }
@@ -330,7 +331,6 @@ class Device {
   int _max_shared_types, _max_bio_shared_types, _pppm_max_spline;
   int _nbor_prefetch;
   int _use_old_nbor_build; // 1 if using old/legacy neighbor build, 0 otherwise
-  int _use_device_sort;    // 1 if using sorting particles using their cell IDs on the device, 0 otherwise
 
   UCL_Program *dev_program;
   UCL_Kernel k_zero, k_info;

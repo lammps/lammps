@@ -300,6 +300,19 @@ tests will create a lot of false positives and thus they can be disabled
 by configuring compilation with the additional setting ``-D
 SKIP_DEATH_TESTS=on``.
 
+.. note::
+
+   When testing is enabled, LAMMPS should also be built as a shared
+   library with ``-D BUILD_SHARED_LIBS=on``.  With the default static
+   LAMMPS library, each of the more than 100 test programs contains its
+   own complete copy of LAMMPS.  With debug information included (as
+   with the default ``RelWithDebInfo`` build type), each test program
+   is then several hundred MBytes large, and the build folder can need
+   70 GBytes and more, even with only a few packages enabled.  With a
+   shared LAMMPS library, all test programs use the same library and
+   need only a few MBytes each.  For more ways to reduce the disk space
+   requirements, see :doc:`Notes for saving disk space <Build_diskspace>`.
+
 After compilation is complete, the unit testing is started in the build
 folder using the ``ctest`` command, which is part of the CMake software.
 The number of available tests will depend on the LAMMPS versions,
@@ -643,11 +656,71 @@ values are ``mold``, ``lld``, ``gold``, ``bfd``, or ``default``.  The
 linker is chosen explicitly.  This option is only available for the GNU
 or Clang C++ compilers.
 
-A small additional improvement can be obtained by building LAMMPS as a
-shared library with ``-D BUILD_SHARED_LIBS=on``.  But this is a small
-improvement due to reducing file I/O.  Using an alternate linker has an
-algorithmic improvement through using symbol resolution algorithms with
-lower algorithmic complexity.
+Building LAMMPS as a shared library with ``-D BUILD_SHARED_LIBS=on``
+gives a small additional improvement of the link times due to reducing
+file I/O, and it reduces the disk space requirements significantly (see
+the note in the section on unit testing above).  Using an alternate
+linker has an algorithmic improvement through using symbol resolution
+algorithms with lower algorithmic complexity.
+
+Distribute unit tests across multiple NVIDIA GPUs
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. versionadded:: TBD
+
+When LAMMPS is compiled with the GPU package or the KOKKOS package with
+GPU support, running tests in parallel with ``ctest -jN`` will run *all*
+tests on the *same* (first available) GPU.  This can lead to false
+negative tests due to insufficient resources on the GPU or undesired
+interactions between multiple GPU kernels.  In case of using NVIDIA
+GPUs, *different* GPUs can be exposed by setting the ``CUDA_VISIBLE_DEVICES``
+environment variable.
+
+With CMake 3.29 or later on Linux and similar operating systems, tests
+can instead be distributed over multiple NVIDIA GPUs through the `CTest
+resource allocation feature
+<https://cmake.org/cmake/help/latest/manual/ctest.1.html#resource-allocation>`_
+where available GPUs are listed as entries with an assigned "slots" value
+in a resource file.  Then every test requests one slot of a GPU and is run
+through a launcher script that sets the assigned GPU.  This will restrict
+the number of concurrent runs to the total number of available slots in
+the resource file. Thus a command like ``ctest -j 8`` runs at most 4
+concurrent tests, if there are only 4 slots configured in the resource file.
+
+The `resource specification file
+<https://cmake.org/cmake/help/latest/manual/ctest.1.html#resource-specification-file>`_
+is in JSON format and its location is set with the CMake variable
+``LAMMPS_TEST_RESOURCE_SPEC_FILE`` and defaults to
+``ctest-resources.json`` in the build folder.  If the file does not
+exist, CMake generates it from the output of the ``nvidia-smi`` command
+with one slot for each GPU it reports.  Such a generated file looks as
+follows:
+
+.. code-block:: json
+
+   {
+     "version": { "major": 1, "minor": 0 },
+     "local": [
+       {
+         "gpus": [
+           { "id": "0", "slots": 1, "name": "Tesla V100-SXM2-16GB", "pci_bus_id": "00000000:1A:00.0" },
+           { "id": "1", "slots": 1, "name": "Tesla V100-SXM2-16GB", "pci_bus_id": "00000000:3A:00.0" }
+         ]
+       }
+     ]
+   }
+
+An existing file is used unchanged, so it can be edited and also be
+shared between multiple build folders.  The ``id`` of an entry is the
+index of the GPU as reported by ``nvidia-smi``.  An entry may be removed
+to keep that GPU free, e.g. for the graphics display of a workstation,
+or the ``slots`` value may be increased to let multiple tests share the same
+GPU.  With KOKKOS/CUDA, however, sharing a GPU from multiple tests may
+(currently in fall 2026) lead to data corruption and spurious failed
+tests.  The ``name`` and ``pci_bus_id`` entries are for information only.
+If no GPU is found, no file is written and the tests are run without
+resource allocation.  Setting ``LAMMPS_TEST_RESOURCE_SPEC_FILE`` to an
+empty string also disables this feature.
 
 Tests for other components and utility functions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

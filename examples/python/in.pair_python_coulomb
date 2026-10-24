@@ -25,18 +25,19 @@ fix             2 all nvt temp 300.0 300.0 100.0
 
 # create combined lj/coul table for all atom types
 # generate tabulated potential from python variant
-pair_write      1 1 2000 rsq 0.1 12 spce.table OW-OW -0.8472 -0.8472
-pair_write      1 2 2000 rsq 0.1 12 spce.table OW-HW -0.8472  0.4236
-pair_write      2 2 2000 rsq 0.1 12 spce.table HW-HW  0.4236  0.4236
+shell rm -f spce_coul.table
+pair_write      1 1 2000 rsq 0.1 12 spce_coul.table OW-OW -0.8472 -0.8472
+pair_write      1 2 2000 rsq 0.1 12 spce_coul.table OW-HW -0.8472  0.4236
+pair_write      2 2 2000 rsq 0.1 12 spce_coul.table HW-HW  0.4236  0.4236
 
 # switch to tabulated potential
 pair_style      table linear 2000 pppm
-pair_coeff      1 1 spce.table OW-OW
-pair_coeff      1 2 spce.table OW-HW
-pair_coeff      2 2 spce.table HW-HW
+pair_coeff      1 1 spce_coul.table OW-OW
+pair_coeff      1 2 spce_coul.table OW-HW
+pair_coeff      2 2 spce_coul.table HW-HW
 
 thermo 10
 run 100
 
-shell rm spce.table
+shell rm spce_coul.table
 

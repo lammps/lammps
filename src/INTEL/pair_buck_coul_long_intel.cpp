@@ -45,6 +45,8 @@ PairBuckCoulLongIntel::PairBuckCoulLongIntel(LAMMPS *lmp) :
   PairBuckCoulLong(lmp)
 {
   suffix_flag |= Suffix::INTEL;
+  // parameters are copied to packed arrays in init_style(), fix adapt would not update them
+  reinitflag = 0;
 }
 
 void PairBuckCoulLongIntel::compute(int eflag, int vflag)

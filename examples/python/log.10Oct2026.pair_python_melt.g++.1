@@ -1,0 +1,230 @@
+LAMMPS (30 Sep 2026 - Development - patch_30Sep2026-370-gf4fad8ee3a-modified)
+  using 1 OpenMP thread(s) per MPI task
+# 3d Lennard-Jones melt
+
+units           lj
+atom_style      atomic
+
+lattice         fcc 0.8442
+Lattice spacing in x,y,z = 1.6795962 1.6795962 1.6795962
+region          box block 0 10 0 10 0 10
+create_box      1 box
+Created orthogonal box = (0 0 0) to (16.795962 16.795962 16.795962)
+  1 by 1 by 1 MPI processor grid
+create_atoms    1 box
+Created 4000 atoms
+  using lattice units in orthogonal box = (0 0 0) to (16.795962 16.795962 16.795962)
+  create_atoms CPU = 0.000 seconds
+mass            * 1.0
+
+velocity        all create 3.0 87287 loop geom
+
+pair_style      python 2.5
+pair_coeff      * * py_pot.LJCutMelt lj
+
+neighbor        0.3 bin
+neigh_modify    every 20 delay 0 check no
+
+fix             1 all nve
+
+thermo          50
+run             250
+Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 20 steps, delay = 0 steps, check = no
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 2.8
+  ghost atom cutoff = 2.8
+  binsize = 1.4, bins = 12 12 12
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair python, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 3.222 | 3.222 | 3.222 Mbytes
+   Step          Temp          E_pair         E_mol          TotEng         Press     
+         0   3             -6.7733681      0             -2.2744931     -3.7033504    
+        50   1.6842865     -4.8082494      0             -2.2824513      5.5666131    
+       100   1.6712577     -4.7875609      0             -2.281301       5.6613913    
+       150   1.6444751     -4.7471034      0             -2.2810074      5.8614211    
+       200   1.6471542     -4.7509053      0             -2.2807916      5.8805431    
+       250   1.6645597     -4.7774327      0             -2.2812174      5.7526089    
+Loop time of 4.63215 on 1 procs for 250 steps with 4000 atoms
+
+Performance: 23315.316 tau/day, 53.971 timesteps/s, 215.883 katom-step/s
+99.7% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 4.5749     | 4.5749     | 4.5749     |   0.0 | 98.76
+Neigh   | 0.044184   | 0.044184   | 0.044184   |   0.0 |  0.95
+Comm    | 0.0058088  | 0.0058088  | 0.0058088  |   0.0 |  0.13
+Output  | 0.00016099 | 0.00016099 | 0.00016099 |   0.0 |  0.00
+Modify  | 0.0060857  | 0.0060857  | 0.0060857  |   0.0 |  0.13
+Other   |            | 0.001009   |            |       |  0.02
+
+Nlocal:           4000 ave        4000 max        4000 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:           5506 ave        5506 max        5506 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:         151788 ave      151788 max      151788 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 151788
+Ave neighs/atom = 37.947
+Neighbor list builds = 12
+Dangerous builds not checked
+
+write_data      melt.data
+System init for write_data ...
+Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+write_restart   melt.restart
+System init for write_restart ...
+Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+
+clear
+  using 1 OpenMP thread(s) per MPI task
+
+read_restart    melt.restart
+Reading restart file ...
+  restart file = 30 Sep 2026, LAMMPS = 30 Sep 2026
+  restoring atom style atomic from restart
+  orthogonal box = (0 0 0) to (16.795962 16.795962 16.795962)
+  1 by 1 by 1 MPI processor grid
+  pair style python stores no restart info
+  4000 atoms
+  read_restart CPU = 0.001 seconds
+
+pair_style      python 2.5
+pair_coeff      * * py_pot.LJCutMelt lj
+
+fix             1 all nve
+
+thermo          50
+run             250
+Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 2.8
+  ghost atom cutoff = 2.8
+  binsize = 1.4, bins = 12 12 12
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair python, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 3.683 | 3.683 | 3.683 Mbytes
+   Step          Temp          E_pair         E_mol          TotEng         Press     
+       250   1.6645597     -4.7774368      0             -2.2812215      5.752602     
+       300   1.669283      -4.7846564      0             -2.2813579      5.6993645    
+       350   1.6634769     -4.7750418      0             -2.2804503      5.7745309    
+       400   1.6424113     -4.744109       0             -2.2811079      5.877718     
+       450   1.6629007     -4.775262       0             -2.2815345      5.8033544    
+       500   1.6523377     -4.759431       0             -2.2815441      5.7883706    
+Loop time of 4.73811 on 1 procs for 250 steps with 4000 atoms
+
+Performance: 22793.901 tau/day, 52.764 timesteps/s, 211.055 katom-step/s
+99.7% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 4.5583     | 4.5583     | 4.5583     |   0.0 | 96.21
+Neigh   | 0.15944    | 0.15944    | 0.15944    |   0.0 |  3.37
+Comm    | 0.0090214  | 0.0090214  | 0.0090214  |   0.0 |  0.19
+Output  | 0.00016765 | 0.00016765 | 0.00016765 |   0.0 |  0.00
+Modify  | 0.0067086  | 0.0067086  | 0.0067086  |   0.0 |  0.14
+Other   |            | 0.004469   |            |       |  0.09
+
+Nlocal:           4000 ave        4000 max        4000 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:           5475 ave        5475 max        5475 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:         151376 ave      151376 max      151376 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 151376
+Ave neighs/atom = 37.844
+Neighbor list builds = 43
+Dangerous builds = 0
+
+clear
+  using 1 OpenMP thread(s) per MPI task
+
+units           lj
+atom_style      atomic
+
+read_data       melt.data
+Reading data file ...
+  orthogonal box = (0 0 0) to (16.795962 16.795962 16.795962)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  4000 atoms
+  reading velocities ...
+  4000 velocities
+  read_data CPU = 0.010 seconds
+
+pair_style      python 2.5
+pair_coeff      * * py_pot.LJCutMelt lj
+
+neighbor        0.3 bin
+neigh_modify    every 20 delay 0 check no
+
+fix             1 all nve
+
+thermo          50
+run             250
+Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 20 steps, delay = 0 steps, check = no
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 2.8
+  ghost atom cutoff = 2.8
+  binsize = 1.4, bins = 12 12 12
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair python, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 3.183 | 3.183 | 3.183 Mbytes
+   Step          Temp          E_pair         E_mol          TotEng         Press     
+         0   1.6645597     -4.7774368      0             -2.2812215      5.752602     
+        50   1.6691668     -4.784751       0             -2.2816268      5.6988558    
+       100   1.6631594     -4.7752345      0             -2.2811191      5.7734419    
+       150   1.642058      -4.7444504      0             -2.2819792      5.8757152    
+       200   1.6626804     -4.7761636      0             -2.2827666      5.7989478    
+       250   1.6534474     -4.7626093      0             -2.2830582      5.7750215    
+Loop time of 4.57685 on 1 procs for 250 steps with 4000 atoms
+
+Performance: 23597.029 tau/day, 54.623 timesteps/s, 218.491 katom-step/s
+99.6% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 4.5228     | 4.5228     | 4.5228     |   0.0 | 98.82
+Neigh   | 0.044522   | 0.044522   | 0.044522   |   0.0 |  0.97
+Comm    | 0.0042316  | 0.0042316  | 0.0042316  |   0.0 |  0.09
+Output  | 0.00018501 | 0.00018501 | 0.00018501 |   0.0 |  0.00
+Modify  | 0.0043348  | 0.0043348  | 0.0043348  |   0.0 |  0.09
+Other   |            | 0.00078    |            |       |  0.02
+
+Nlocal:           4000 ave        4000 max        4000 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:           5485 ave        5485 max        5485 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:         151496 ave      151496 max      151496 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 151496
+Ave neighs/atom = 37.874
+Neighbor list builds = 12
+Dangerous builds not checked
+
+shell rm melt.data melt.restart
+Total wall time: 0:00:14

@@ -84,7 +84,6 @@ LAL_USE_OLD_NEIGHBOR    Use old neighbor list algorithm
 MPI_GERYON              Library should use MPI_Abort for unhandled errors
 UCL_NO_EXIT             LAMMPS should handle errors instead of Geryon lib
 UCL_DEBUG               Debug build for Geryon (-DGPU_DEBUG=on)
-USE_CUDPP               Enable GPU binning in neighbor builds (not recommended)
 THREE_CONCURRENT        Concurrent 3-body kernels in separate queues, untested
 
 For CUDA builds:
@@ -110,11 +109,6 @@ GERYON_FORCE_SHARED_MAIN_MEM_OFF     Should only be used for builds where the
                                      auto-detect. Impacts OpenCL only.
 LAL_NO_OCL_EV_JIT       Turn off JIT specialization for kernels in OpenCL
 LAL_OCL_EXTRA_ARGS      Supply extra args for OpenCL compiler delimited with :
-
-For HIP builds:
-
-USE_HIP_DEVICE_SORT     Enable GPU binning for HIP builds
-                        (-DHIP_USE_DEVICE_SORT=yes)
 
 ------------------------------------------------------------------------------
                               DEVICE QUERY

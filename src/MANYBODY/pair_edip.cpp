@@ -175,6 +175,12 @@ void PairEDIP::compute(int eflag, int vflag)
     jlist = firstneigh[i];
     jnum = numneigh[i];
 
+    // the per-neighbor scratch arrays have a fixed size
+
+    if (jnum > leadDimInteractionList)
+      error->one(FLERR, "Pair style edip supports at most {} neighbors per atom; atom {} has {}",
+                 leadDimInteractionList, atom->tag[i], jnum);
+
     // pre-loop to compute environment coordination f(Z)
 
     for (int neighbor_j = 0; neighbor_j < jnum; neighbor_j++) {

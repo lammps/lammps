@@ -28,7 +28,7 @@ with name = "image" if you want the single integer storing the image
 flags unpacked into 3 components ("x", "y", and "z").
 
 Note that the data returned by the gather methods,
-e.g. :py:meth:`gather_atoms("x") <lammps.lammps.gather_atoms()>`, is
+e.g. :py:meth:`!gather_atoms("x")`, is
 different from the data structure returned by
 :py:meth:`extract_atom("x") <lammps.lammps.extract_atom()>` in four ways.
 (1) :code:`gather_atoms()` returns a vector which you index as x[i];
@@ -43,7 +43,7 @@ points directly to the internal data.  This means you can change
 values inside LAMMPS from Python by assigning a new values to the
 :code:`extract_atom()` array.  To do this with the :code:`gather_atoms()` vector, you
 need to change values in the vector, then invoke the
-:py:meth:`scatter_atoms("x") <lammps.lammps.scatter_atoms()>` method.
+:py:meth:`!scatter_atoms("x")` method.
 
 For the scatter methods, the array of coordinates passed to must be a
 ctypes vector of ints or doubles, allocated and initialized something

@@ -129,7 +129,7 @@ comparing serial and parallel results where having the same fixed number
 of iterations is desired, which can be achieved by using a very small
 tolerance and setting *maxiter* to the desired number of iterations.
 
-.. versionchanged:: TBD
+.. versionchanged:: 30Sep2026-backport
 
 If the fix group does not contain all atoms, only the charges of the
 atoms in the fix group are equilibrated.  The charges of all other atoms

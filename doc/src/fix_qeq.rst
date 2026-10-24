@@ -258,7 +258,7 @@ parameters and *Nevery*, *cutoff*, and *tolerance* are the same.
 Style *qeq/point* is typically faster, *qeq/dynamic* scales better on
 larger sizes, and *qeq/fire* is faster than *qeq/dynamic*\ .
 
-.. versionchanged:: TBD
+.. versionchanged:: 30Sep2026-backport
 
 If the fix group does not contain all atoms, only the charges of the
 atoms in the fix group are equilibrated.  The charges of all other atoms

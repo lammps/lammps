@@ -99,7 +99,7 @@ reduced memory requirements because it avoids the overheads of
 storing the matrix. This is only supported for the *qeq/reaxff/kk*
 style, with both full and half qeq neighbor lists supported.
 
-.. versionchanged:: TBD
+.. versionchanged:: 30Sep2026-backport
 
 If the fix group does not contain all atoms, only the charges of the
 atoms in the fix group are equilibrated.  The charges of all other atoms

@@ -297,7 +297,7 @@ The "fix reaxff/species" requires that :doc:`pair_style reaxff <pair_reaxff>` is
 This fix is part of the REAXFF package.  It is only enabled if LAMMPS was built with that
 package.  See the :doc:`Build package <Build_package>` page for more info.
 
-.. versionchanged:: TBD
+.. versionchanged:: 30Sep2026-backport
 
 The species analysis is skipped with a warning on timesteps for which no
 bond-order data averaged over all *Nrepeat* samples is available yet,

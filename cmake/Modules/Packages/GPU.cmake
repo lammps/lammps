@@ -311,13 +311,21 @@ elseif(GPU_API STREQUAL "HIP")
   elseif(HIP_PLATFORM STREQUAL "spirv")
     set(GPU_ARCH "spirv" CACHE STRING "LAMMPS GPU architecture")
     set(HIP_ARCH "${GPU_ARCH}")
-  elseif(HIP_PLATFORM STREQUAL "nvcc")
+  elseif(HIP_PLATFORM STREQUAL "nvidia")
+    # GPU sorting with hipCUB requires the host code of the GPU library to be
+    # compiled with nvcc, but for NVIDIA GPUs it is compiled with the C++ compiler
+    if(HIP_USE_DEVICE_SORT)
+      message(STATUS "GPU sorting is not available with HIP_PLATFORM=nvidia. Disabling it.")
+      set(HIP_USE_DEVICE_SORT OFF CACHE BOOL "Use GPU sorting" FORCE)
+    endif()
     find_package(CUDA REQUIRED)
     set(GPU_ARCH "sm_75" CACHE STRING "LAMMPS GPU architecture (e.g. sm_75 for HIP/NVCC)")
     set(HIP_ARCH "${GPU_ARCH}")
 
-    if(CUDA_VERSION VERSION_LESS 8.0)
-      message(FATAL_ERROR "CUDA Toolkit version 8.0 or later is required")
+    # kernels compiled with CUDA 10 or older use texture references, which the
+    # HIP back end does not bind
+    if(CUDA_VERSION VERSION_LESS 11.0)
+      message(FATAL_ERROR "CUDA Toolkit version 11.0 or later is required for HIP_PLATFORM=nvidia")
     elseif(CUDA_VERSION VERSION_GREATER_EQUAL "12.0")
       message(WARNING "Untested CUDA Toolkit version ${CUDA_VERSION}. Use at your own risk")
       set(HIP_CUDA_GENCODE "-arch=all")
@@ -373,6 +381,17 @@ elseif(GPU_API STREQUAL "HIP")
     endif()
   endif()
 
+  # The HIP CMake package of some distributions (e.g. Ubuntu 26.04) does not
+  # set HIP_HIPCC_EXECUTABLE, so look for hipcc if the package did not provide it
+  if(NOT HIP_HIPCC_EXECUTABLE)
+    unset(HIP_HIPCC_EXECUTABLE)
+    unset(HIP_HIPCC_EXECUTABLE CACHE)
+    find_program(HIP_HIPCC_EXECUTABLE NAMES hipcc HINTS ${hip_BIN_INSTALL_DIR} ${ROCM_PATH}/bin ENV HIP_PATH PATH_SUFFIXES bin)
+  endif()
+  if(NOT HIP_HIPCC_EXECUTABLE)
+    message(FATAL_ERROR "Could not find hipcc, use -DHIP_HIPCC_EXECUTABLE=/path/to/hipcc to help cmake finding it.")
+  endif()
+
   file(GLOB GPU_LIB_CU CONFIGURE_DEPENDS ${LAMMPS_LIB_SOURCE_DIR}/gpu/[^.]*.cu ${CMAKE_CURRENT_SOURCE_DIR}/gpu/[^.]*.cu)
   list(REMOVE_ITEM GPU_LIB_CU ${LAMMPS_LIB_SOURCE_DIR}/gpu/lal_pppm.cu)
 
@@ -399,7 +418,7 @@ elseif(GPU_API STREQUAL "HIP")
             DEPENDS ${CU_CPP_FILE}
             COMMENT "Generating ${CU_NAME}.cubin")
         endif()
-    elseif(HIP_PLATFORM STREQUAL "nvcc")
+    elseif(HIP_PLATFORM STREQUAL "nvidia")
         add_custom_command(OUTPUT ${CUBIN_FILE}
           VERBATIM COMMAND ${HIP_HIPCC_EXECUTABLE} --fatbin --use_fast_math -DUSE_HIP -D_${GPU_PREC_SETTING} -DLAMMPS_${LAMMPS_SIZES} ${HIP_CUDA_GENCODE} -I${LAMMPS_LIB_SOURCE_DIR}/gpu -o ${CUBIN_FILE} ${CU_FILE}
           DEPENDS ${CU_FILE}
@@ -448,7 +467,7 @@ elseif(GPU_API STREQUAL "HIP")
     target_link_libraries(gpu PRIVATE hip::hipcub)
     target_compile_definitions(gpu PRIVATE -DUSE_HIP_DEVICE_SORT)
 
-    if(HIP_PLATFORM STREQUAL "nvcc")
+    if(HIP_PLATFORM STREQUAL "nvidia")
       find_package(CUB)
 
       if(CUB_FOUND)
@@ -495,12 +514,14 @@ elseif(GPU_API STREQUAL "HIP")
   target_compile_definitions(hip_get_devices PRIVATE -DUCL_HIP)
   target_link_libraries(hip_get_devices PRIVATE hip::host)
 
-  if(HIP_PLATFORM STREQUAL "nvcc")
-    target_compile_definitions(gpu PRIVATE -D__HIP_PLATFORM_NVCC__)
+  if(HIP_PLATFORM STREQUAL "nvidia")
+    # the hip::host target of the HIP package does not set the platform macro for
+    # NVIDIA GPUs; current HIP headers require __HIP_PLATFORM_NVIDIA__
+    target_compile_definitions(gpu PRIVATE -D__HIP_PLATFORM_NVIDIA__ -D__HIP_PLATFORM_NVCC__)
     target_include_directories(gpu PRIVATE ${CUDA_INCLUDE_DIRS})
     target_link_libraries(gpu PRIVATE ${CUDA_LIBRARIES} ${CUDA_CUDA_LIBRARY})
 
-    target_compile_definitions(hip_get_devices PRIVATE -D__HIP_PLATFORM_NVCC__)
+    target_compile_definitions(hip_get_devices PRIVATE -D__HIP_PLATFORM_NVIDIA__ -D__HIP_PLATFORM_NVCC__)
     target_include_directories(hip_get_devices PRIVATE ${CUDA_INCLUDE_DIRS})
     target_link_libraries(hip_get_devices PRIVATE ${CUDA_LIBRARIES} ${CUDA_CUDA_LIBRARY})
   endif()

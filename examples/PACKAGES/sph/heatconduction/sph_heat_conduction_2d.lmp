@@ -10,7 +10,7 @@ atom_style	sph
 boundary        f p p
 
 lattice		sq 0.01
-region		box block 0 100 0 10 0 0.1 
+region		box block 0 100 0 10 -0.05 0.05
 create_box	1 box
 create_atoms	1 box
 mass            1 1.0e-5

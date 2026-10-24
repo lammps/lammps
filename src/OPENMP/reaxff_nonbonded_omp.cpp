@@ -93,6 +93,7 @@ namespace ReaxFF {
         for (pj = start_i; pj < end_i; ++pj) {
           nbr_pj = &(far_nbrs->select.far_nbr_list[pj]);
           j = nbr_pj->nbr;
+          if (system->my_atoms[j].type < 0) continue;
           orig_j  = system->my_atoms[j].orig_id;
 
           flag = 0;

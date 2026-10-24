@@ -60,6 +60,7 @@ class PairGranular : public Pair {
   int use_history;
 
   int neighprev;
+  double *history_single;    // copy of the history of one contact for single()
   double *onerad_dynamic, *onerad_frozen;
   double *maxrad_dynamic, *maxrad_frozen;
 
@@ -76,6 +77,7 @@ class PairGranular : public Pair {
 
   void allocate();
   void prune_models();
+  void set_heat_flag();
 
   int size_history;
   int heat_flag;

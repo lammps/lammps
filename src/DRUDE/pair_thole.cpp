@@ -95,6 +95,7 @@ void PairThole::compute(int eflag, int vflag)
       continue;
 
     di = domain->closest_image(i, atom->map(drudeid[i]));
+    if (di < 0) error->one(FLERR, "Drude partner of atom {} not found", atom->tag[i]);
     // get dq of the core via the drude charge
     if (drudetype[type[i]] == DRUDE_TYPE)
       qi = q[i];
@@ -117,14 +118,6 @@ void PairThole::compute(int eflag, int vflag)
       if (drudetype[type[j]] == NOPOL_TYPE || j == di)
         continue;
 
-      // get dq of the core via the drude charge
-      if (drudetype[type[j]] == DRUDE_TYPE)
-        qj = q[j];
-      else {
-        dj = domain->closest_image(j, atom->map(drudeid[j]));
-        qj = -q[dj];
-      }
-
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];
       delz = ztmp - x[j][2];
@@ -132,6 +125,19 @@ void PairThole::compute(int eflag, int vflag)
       jtype = type[j];
 
       if (rsq < cutsq[itype][jtype]) {
+
+        // get dq of the core via the drude charge
+        // look up the drude partner only within the cutoff, since it may
+        // not be present as a ghost atom for more distant neighbors
+
+        if (drudetype[type[j]] == DRUDE_TYPE)
+          qj = q[j];
+        else {
+          dj = domain->closest_image(j, atom->map(drudeid[j]));
+          if (dj < 0) error->one(FLERR, "Drude partner of atom {} not found", atom->tag[j]);
+          qj = -q[dj];
+        }
+
         r2inv = 1.0/rsq;
         rinv = sqrt(r2inv);
 

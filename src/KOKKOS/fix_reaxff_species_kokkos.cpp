@@ -18,7 +18,7 @@
 
 #include "fix_reaxff_species_kokkos.h"
 
-#include "atom.h"
+#include "atom_kokkos.h"
 #include "atom_masks.h"
 #include "comm.h"
 #include "error.h"
@@ -114,7 +114,7 @@ void FixReaxFFSpeciesKokkos::FindMolecule()
         for (jj = 0; jj < MAXSPECBOND; jj++) {
           j = reaxff->tmpid[i][jj];
 
-          if ((j == 0) && (j < i)) continue;
+          if ((j == 0) || (j < i)) continue;
           if (!(mask[j] & groupbit)) continue;
 
           if (clusterID[i] == clusterID[j]
@@ -141,4 +141,20 @@ void FixReaxFFSpeciesKokkos::FindMolecule()
     if (looptot >= 400*comm->nprocs) break;
 
   }
+}
+
+/* ----------------------------------------------------------------------
+   deleting molecules removes atoms from the host copy of all per-atom
+   data with AtomVec::copy(), so all of it must be current on the host
+   before, and the device copy must be updated after atoms were removed
+------------------------------------------------------------------------- */
+
+void FixReaxFFSpeciesKokkos::DeleteSpecies(int Nmole, int Nspec)
+{
+  atomKK->sync(Host, ALL_MASK);
+  const int nlocal_old = atom->nlocal;
+
+  FixReaxFFSpecies::DeleteSpecies(Nmole, Nspec);
+
+  if (atom->nlocal != nlocal_old) atomKK->modified(Host, ALL_MASK);
 }

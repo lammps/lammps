@@ -298,7 +298,7 @@ back ends.  The back end specific ``HIP_ARCH`` (for ``GPU_API=hip``)
 variable is still accepted for backward compatibility, but its use is
 deprecated and prints a warning.
 
-For ``GPU_API=cuda`` and ``GPU_API=hip`` with ``HIP_PLATFORM=nvcc``, the
+For ``GPU_API=cuda`` and ``GPU_API=hip`` with ``HIP_PLATFORM=nvidia``, the
 ``GPU_ARCH`` settings for different GPU hardware are as follows:
 
 * ``sm_30`` for Kepler (supported since CUDA 5 and until CUDA 10.x)
@@ -422,7 +422,7 @@ option in preparations to run on Aurora system at Argonne.
 
    # CUDA target (not recommended, use GPU_API=cuda)
    # !!! DO NOT set CMAKE_CXX_COMPILER !!!
-   export HIP_PLATFORM=nvcc
+   export HIP_PLATFORM=nvidia
    export HIP_PATH=/path/to/HIP/install
    export CUDA_PATH=/usr/local/cuda
    cmake -D PKG_GPU=on -D GPU_API=HIP -D HIP_ARCH=sm_70 ..
@@ -1724,7 +1724,9 @@ pre-compiled version already present on your system.
       .. code-block:: bash
 
          -D RUNNER_LIB_DIR=path      # Directory containing the RuNNer library.
-                                     # (default: $HOME/.local/lib)
+                                     # (default: empty, search the folders in
+                                     # LD_LIBRARY_PATH, LIBRARY_PATH, and the
+                                     # standard system library folders)
          -D RUNNER_LIB_NAME=name     # Filename of the library (without extension).
                                      # (default: libRuNNer_mpi)
 
@@ -1757,14 +1759,16 @@ pre-compiled version already present on your system.
      - Download and build RuNNer from source
      - ``yes``
    * - ``RUNNER_LIB_DIR``
-     - Path to a pre-installed RuNNer library
-     - ``$HOME/.local/lib``
+     - Path to a pre-installed RuNNer library; if empty, the folders in
+       ``LD_LIBRARY_PATH`` and ``LIBRARY_PATH`` and the standard system
+       library folders are searched
+     - (empty)
    * - ``RUNNER_LIB_NAME``
      - Name of the RuNNer library file without extension
      - ``libRuNNer_mpi``
    * - ``RUNNER_SHARED_LIB``
      - Link against a shared RuNNer library
-     - ``yes``
+     - ``no``
    * - ``FFT``
      - FFT library to use (FFTW3 or MKL)
      - ``auto-detected``
@@ -1810,7 +1814,11 @@ code when using features from the INTEL package.
       adds the flags ``-xHost`` and ``-qopt-zmm-usage=high`` and compiles
       the INTEL package sources with ``-fp-model=fast=2``.  The ``-xHost``
       flag is omitted when a target architecture is already selected in
-      ``CMAKE_CXX_FLAGS``, e.g. when compiling for a different CPU.
+      ``CMAKE_CXX_FLAGS``, e.g. when compiling for a different CPU.  The
+      main program of the LAMMPS executable is compiled with ``-ftz``, so
+      that very small floating-point numbers (subnormals) are flushed to
+      zero, which avoids a large slowdown of some INTEL package styles in
+      mixed precision.
 
    .. tab:: Traditional make
 
@@ -2039,7 +2047,7 @@ verified to work in February 2020 with Quantum Espresso versions 6.3 to
       .. code-block:: bash
 
          cmake -C ../cmake/presets/basic.cmake -D PKG_QMMM=yes \
-             -D BUILD_LIB=yes -DBUILD_SHARED_LIBS=yes ../cmake
+             -D BUILD_SHARED_LIBS=yes ../cmake
 
       After completing the LAMMPS build and also configuring and
       compiling Quantum ESPRESSO with external library support (via

@@ -91,11 +91,14 @@ void PairLJCutTholeLongOMP::compute(int eflag, int vflag)
     thr->timer(Timer::PAIR);
     reduce_thr(this, eflag, vflag, thr);
   } // end of omp parallel region
+
+  error_thr();
 }
 
 template <int EVFLAG, int EFLAG, int NEWTON_PAIR>
 void PairLJCutTholeLongOMP::eval(int iifrom, int iito, ThrData * const thr)
 {
+  const int tid = thr->get_tid();
   const auto * _noalias const x = (dbl3_t *) atom->x[0];
   auto * _noalias const f = (dbl3_t *) thr->get_f()[0];
   const double * const q = atom->q;
@@ -147,7 +150,7 @@ void PairLJCutTholeLongOMP::eval(int iifrom, int iito, ThrData * const thr)
 
     if (drudetype[type[i]] != NOPOL_TYPE) {
       di = atom->map(drudeid[i]);
-      if (di < 0) error->all(FLERR, "Drude partner not found");
+      if (check_error_thr((di < 0), tid, FLERR, "Drude partner not found")) return;
       di_closest = domain->closest_image(i, di);
       if (drudetype[type[i]] == CORE_TYPE)
         dqi = -q[di];
@@ -210,6 +213,7 @@ void PairLJCutTholeLongOMP::eval(int iifrom, int iito, ThrData * const thr)
             if (j != di_closest) {
               if (drudetype[type[j]] == CORE_TYPE) {
                 dj = atom->map(drudeid[j]);
+                if (check_error_thr((dj < 0), tid, FLERR, "Drude partner not found")) return;
                 dqj = -q[dj];
               } else dqj = qj;
               asr = ascreen[type[i]][type[j]] * r;

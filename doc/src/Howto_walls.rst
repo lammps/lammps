@@ -65,7 +65,10 @@ shape or *union* or *intersection*\ .  :doc:`Regions <region>` can also be
 "dynamic" meaning they move with constant velocity, oscillate, or
 rotate.
 
-The only frictional idealized walls currently in LAMMPS are flat or
-curved surfaces specified by the :doc:`fix wall/gran <fix_wall_gran>`
-command.  At some point we plan to allow region surfaces to be used as
-frictional walls, as well as triangulated surfaces.
+Frictional idealized walls for granular particles are available as
+flat or curved surfaces specified by the :doc:`fix wall/gran
+<fix_wall_gran>` command, as region surfaces with the :doc:`fix
+wall/gran/region <fix_wall_gran_region>` command, and as triangulated
+or line segment surfaces with the :doc:`fix surface/global
+<fix_surface_global>` and :doc:`fix surface/local <fix_surface_local>`
+commands.

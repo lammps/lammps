@@ -28,6 +28,7 @@
 #include "memory.h"
 
 #include <cmath>
+#include <cstring>
 
 using namespace std;
 using namespace LAMMPS_NS;

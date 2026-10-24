@@ -33,12 +33,14 @@ class FixACKS2ReaxFF : public FixQEqReaxFF {
   void init() override;
   void init_storage() override;
   void pre_force(int) override;
+  double compute_scalar() override;
   double memory_usage() override;
 
   double *get_s() { return s; }
 
   void grow_arrays(int) override;
   void copy_arrays(int, int, int) override;
+  void set_arrays(int) override;
 
   int pack_forward_comm(int, int *, double *, int, int *) override;
   void unpack_forward_comm(int, int, double *) override;

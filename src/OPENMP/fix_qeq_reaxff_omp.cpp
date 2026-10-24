@@ -59,14 +59,7 @@ FixQEqReaxFFOMP::FixQEqReaxFFOMP(LAMMPS *lmp, int narg, char **arg) :
   FixQEqReaxFF(lmp, narg, arg)
 {
   b_temp = nullptr;
-
-  // ASPC: Kolafa, J. Comp. Chem., 25(3), 335 (2003)
-  do_aspc = 0;
-  aspc_order = 1;
-  // Must be consistent with nprev to store history: nprev = aspc_order + 2
-  aspc_order_max = nprev - 2;
-  aspc_omega = 0.0;
-  aspc_b = nullptr;
+  dual_supported = 1;
 }
 
 FixQEqReaxFFOMP::~FixQEqReaxFFOMP()
@@ -74,17 +67,6 @@ FixQEqReaxFFOMP::~FixQEqReaxFFOMP()
   memory->destroy(b_temp);
 }
 
-/* ---------------------------------------------------------------------- */
-
-void FixQEqReaxFFOMP::post_constructor()
-{
-  grow_arrays(atom->nmax);
-  for (int i = 0; i < atom->nmax; i++)
-    for (int j = 0; j < nprev; ++j)
-      s_hist[i][j] = t_hist[i][j] = 0;
-
-  pertype_parameters(pertype_option);
-}
 
 /* ---------------------------------------------------------------------- */
 
@@ -105,41 +87,6 @@ void FixQEqReaxFFOMP::deallocate_storage()
   memory->destroy(b_temp);
 
   FixQEqReaxFF::deallocate_storage();
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixQEqReaxFFOMP::init()
-{
-  FixQEqReaxFF::init();
-
-  // APSC setup
-  if (do_aspc) {
-    memory->create(aspc_b, aspc_order_max+2, "qeq/reaxff/aspc_b");
-
-    // Calculate damping factor
-    auto  o = double(aspc_order);
-    aspc_omega = (o+2.0) / (2*o+3.0);
-
-    // Calculate B coefficients
-    double c = (4.0 * o + 6.0) / (o + 3.0);
-    aspc_b[0] = c;
-
-    double n =  1.0;
-    double d =  4.0;
-    double s = -1.0;
-    double f =  2.0;
-
-    for (int i=1; i<aspc_order_max+2; i++) {
-      c*= (o + n) / (o + d);
-      aspc_b[i] = s * f * c;
-
-      s *= -1.0;
-      f += 1.0;
-      n -= 1.0;
-      d += 1.0;
-    }
-  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -168,6 +115,13 @@ void FixQEqReaxFFOMP::compute_H()
   }
   m_fill = num_nbrs;
 
+  // check before filling the matrix to avoid writing past its end
+
+  if (m_fill >= H.m)
+    error->one(FLERR,  Error::NOLASTLINE,
+               "Fix qeq/reaxff: H matrix size has been exceeded: m_fill={} H.m={}\n",
+               m_fill, H.m);
+
   // fill in the H matrix
 
 #if defined(_OPENMP)
@@ -185,49 +139,47 @@ void FixQEqReaxFFOMP::compute_H()
 #endif
     for (int ii = 0; ii < nn; ii++) {
       int i = ilist[ii];
-      if (mask[i] & groupbit) {
-        jlist = firstneigh[i];
-        jnum = numneigh[i];
-        mfill = H.firstnbr[i];
+      const bool igroup = mask[i] & groupbit;
+      jlist = firstneigh[i];
+      jnum = numneigh[i];
+      mfill = H.firstnbr[i];
 
-        for (int jj = 0; jj < jnum; jj++) {
-          int j = jlist[jj];
-          j &= NEIGHMASK;
+      // atoms outside the fix group act as fixed charges and only need
+      // the matrix elements with their neighbors in the group
 
-          dx = x[j][0] - x[i][0];
-          dy = x[j][1] - x[i][1];
-          dz = x[j][2] - x[i][2];
-          r_sqr = SQR(dx) + SQR(dy) + SQR(dz);
+      for (int jj = 0; jj < jnum; jj++) {
+        int j = jlist[jj];
+        j &= NEIGHMASK;
+        if (!igroup && !(mask[j] & groupbit)) continue;
 
-          flag = 0;
-          if (r_sqr <= SQR(swb)) {
-            if (j < atom->nlocal) flag = 1;
-            else if (tag[i] < tag[j]) flag = 1;
-            else if (tag[i] == tag[j]) {
-              if (dz > SMALL) flag = 1;
-              else if (fabs(dz) < SMALL) {
-                if (dy > SMALL) flag = 1;
-                else if (fabs(dy) < SMALL && dx > SMALL) flag = 1;
-              }
+        dx = x[j][0] - x[i][0];
+        dy = x[j][1] - x[i][1];
+        dz = x[j][2] - x[i][2];
+        r_sqr = SQR(dx) + SQR(dy) + SQR(dz);
+
+        flag = 0;
+        if (r_sqr <= SQR(swb)) {
+          if (j < atom->nlocal) flag = 1;
+          else if (tag[i] < tag[j]) flag = 1;
+          else if (tag[i] == tag[j]) {
+            if (dz > SMALL) flag = 1;
+            else if (fabs(dz) < SMALL) {
+              if (dy > SMALL) flag = 1;
+              else if (fabs(dy) < SMALL && dx > SMALL) flag = 1;
             }
-          }
-
-          if (flag) {
-            H.jlist[mfill] = j;
-            H.val[mfill] = calculate_H(sqrt(r_sqr), shld[type[i]][type[j]]);
-            mfill++;
           }
         }
 
-        H.numnbrs[i] = mfill - H.firstnbr[i];
+        if (flag) {
+          H.jlist[mfill] = j;
+          H.val[mfill] = calculate_H(sqrt(r_sqr), shld[type[i]][type[j]]);
+          mfill++;
+        }
       }
+
+      H.numnbrs[i] = mfill - H.firstnbr[i];
     }
   } // omp
-
-  if (m_fill >= H.m)
-    error->all(FLERR,  Error::NOLASTLINE,
-               "Fix qeq/reaxff: H matrix size has been exceeded: m_fill={} H.m={}\n",
-               m_fill, H.m);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -299,64 +251,27 @@ void FixQEqReaxFFOMP::init_matvec()
 
   int i;
 
-  // Should really be more careful with initialization and first (aspc_order+2) MD steps
-  if (do_aspc) {
-
-    double m_aspc_omega = 1.0 - aspc_omega;
 #if defined(_OPENMP)
 #pragma omp parallel for schedule(dynamic,50) private(i)
 #endif
-    for (int ii = 0; ii < nn; ++ii) {
-      i = ilist[ii];
-      if (atom->mask[i] & groupbit) {
+  for (int ii = 0; ii < nn; ++ii) {
+    i = ilist[ii];
+    if (atom->mask[i] & groupbit) {
 
-        /* init pre-conditioner for H and init solution vectors */
-        Hdia_inv[i] = 1. / eta[atom->type[i]];
-        b_s[i]      = -chi[atom->type[i]];
-        if (efield) b_s[i] -= chi_field[i];
-        b_t[i]      = -1.0;
+      /* init pre-conditioner for H and init solution vectors */
+      Hdia_inv[i] = 1. / eta[atom->type[i]];
+      b_s[i]      = -chi[atom->type[i]];
+      if (efield) b_s[i] -= chi_field[i];
+      b_t[i]      = -1.0;
 
-        // Predictor Step
-        double tp = 0.0;
-        double sp = 0.0;
-        for (int j=0; j<aspc_order+2; j++) {
-          tp+= aspc_b[j] * t_hist[i][j];
-          sp+= aspc_b[j] * s_hist[i][j];
-        }
+      /* quadratic extrapolation for t and cubic extrapolation for s from previous solutions */
+      t[i] = t_hist[i][2] + 3 * (t_hist[i][0] - t_hist[i][1]);
+      s[i] = 4*(s_hist[i][0]+s_hist[i][2])-(6*s_hist[i][1]+s_hist[i][3]);
+    } else {
 
-        // Corrector Step
-        t[i] = aspc_omega * t_hist[i][0] + m_aspc_omega * tp;
-        s[i] = aspc_omega * s_hist[i][0] + m_aspc_omega * sp;
-      }
-    }
-
-  } else {
-
-#if defined(_OPENMP)
-#pragma omp parallel for schedule(dynamic,50) private(i)
-#endif
-    for (int ii = 0; ii < nn; ++ii) {
-      i = ilist[ii];
-      if (atom->mask[i] & groupbit) {
-
-        /* init pre-conditioner for H and init solution vectors */
-        Hdia_inv[i] = 1. / eta[atom->type[i]];
-        b_s[i]      = -chi[atom->type[i]];
-        if (efield) b_s[i] -= chi_field[i];
-        b_t[i]      = -1.0;
-
-        /* linear extrapolation for s & t from previous solutions */
-        //s[i] = 2 * s_hist[i][0] - s_hist[i][1];
-        //t[i] = 2 * t_hist[i][0] - t_hist[i][1];
-
-        /* quadratic extrapolation for s & t from previous solutions */
-        //s[i] = s_hist[i][2] + 3 * (s_hist[i][0] - s_hist[i][1]);
-        t[i] = t_hist[i][2] + 3 * (t_hist[i][0] - t_hist[i][1]);
-
-        /* cubic extrapolation for s & t from previous solutions */
-        s[i] = 4*(s_hist[i][0]+s_hist[i][2])-(6*s_hist[i][1]+s_hist[i][3]);
-        //t[i] = 4*(t_hist[i][0]+t_hist[i][2])-(6*t_hist[i][1]+t_hist[i][3]);
-      }
+      /* atoms outside the group act as fixed charges on the s-solution only */
+      s[i] = atom->q[i];
+      t[i] = 0.0;
     }
   }
 
@@ -394,7 +309,7 @@ int FixQEqReaxFFOMP::CG(double *b, double *x)
 
       tmp1 += b[ii] * b[ii];
       tmp2 += r[ii] * d[ii];
-    }
+    } else d[ii] = 0.0;  // atoms outside the group have fixed charges
   }
 
   my_buf[0] = tmp1;
@@ -403,6 +318,9 @@ int FixQEqReaxFFOMP::CG(double *b, double *x)
   MPI_Allreduce(&my_buf, &buf, 2, MPI_DOUBLE, MPI_SUM, world);
 
   b_norm = sqrt(buf[0]);
+
+  // use the absolute residual when the right-hand side vanishes
+  if (b_norm == 0.0) b_norm = 1.0;
   sig_new = buf[1];
 
   for (i = 1; i < imax && sqrt(sig_new) / b_norm > tolerance; ++i) {
@@ -426,7 +344,11 @@ int FixQEqReaxFFOMP::CG(double *b, double *x)
 
 #if defined(_OPENMP)
 #pragma omp barrier
+#if _OPENMP >= 202011
+#pragma omp masked
+#else
 #pragma omp master
+#endif
 #endif
       {
         MPI_Allreduce(&tmp1, &tmp2, 1, MPI_DOUBLE, MPI_SUM, world);
@@ -500,14 +422,13 @@ void FixQEqReaxFFOMP::sparse_matvec(sparse_matrix *A, double *x, double *b)
     for (ii = 0; ii < nn; ++ii) {
       i = ilist[ii];
       if (atom->mask[i] & groupbit) b[i] = eta[atom->type[i]] * x[i];
+      else b[i] = 0.0;
     }
 
 #if defined(_OPENMP)
 #pragma omp for schedule(dynamic,50)
 #endif
-    for (i = nlocal; i < nall; ++i) {
-      if (atom->mask[i] & groupbit) b[i] = 0;
-    }
+    for (i = nlocal; i < nall; ++i) b[i] = 0.0;
 
 #if defined(_OPENMP)
 #pragma omp for schedule(dynamic,50)
@@ -522,13 +443,11 @@ void FixQEqReaxFFOMP::sparse_matvec(sparse_matrix *A, double *x, double *b)
 #endif
     for (ii = 0; ii < nn; ++ii) {
       i = ilist[ii];
-      if (atom->mask[i] & groupbit) {
-        for (itr_j=A->firstnbr[i]; itr_j<A->firstnbr[i]+A->numnbrs[i]; itr_j++) {
-          j = A->jlist[itr_j];
-          b[i] += A->val[itr_j] * x[j];
+      for (itr_j=A->firstnbr[i]; itr_j<A->firstnbr[i]+A->numnbrs[i]; itr_j++) {
+        j = A->jlist[itr_j];
+        b[i] += A->val[itr_j] * x[j];
 
-          b_temp[tid][j] += A->val[itr_j] * x[i];
-        }
+        b_temp[tid][j] += A->val[itr_j] * x[i];
       }
     }
 
@@ -666,6 +585,8 @@ int FixQEqReaxFFOMP::dual_CG(double *b1, double *b2, double *x1, double *x2)
 
       tmp3 += r[indxI] * d[indxI];
       tmp4 += r[indxI+1] * d[indxI+1];
+    } else {
+      d[2*ii] = d[2*ii+1] = 0.0;  // atoms outside the group have fixed charges
     }
   }
 
@@ -678,6 +599,10 @@ int FixQEqReaxFFOMP::dual_CG(double *b1, double *b2, double *x1, double *x2)
 
   b_norm_s = sqrt(buf[0]);
   b_norm_t = sqrt(buf[1]);
+
+  // use the absolute residual when the right-hand side vanishes
+  if (b_norm_s == 0.0) b_norm_s = 1.0;
+  if (b_norm_t == 0.0) b_norm_t = 1.0;
 
   sig_new_s = buf[2];
   sig_new_t = buf[3];
@@ -707,7 +632,11 @@ int FixQEqReaxFFOMP::dual_CG(double *b1, double *b2, double *x1, double *x2)
 
 #if defined(_OPENMP)
 #pragma omp barrier
+#if _OPENMP >= 202011
+#pragma omp masked
+#else
 #pragma omp master
+#endif
 #endif
       {
         my_buf[0] = tmp1;
@@ -828,10 +757,12 @@ void FixQEqReaxFFOMP::dual_sparse_matvec(sparse_matrix *A, double *x1, double *x
 #endif
     for (ii = 0; ii < nn; ++ii) {
       i = ilist[ii];
+      indxI = 2 * i;
       if (atom->mask[i] & groupbit) {
-        indxI = 2 * i;
         b[indxI] = eta[atom->type[i]] * x1[i];
         b[indxI+1] = eta[atom->type[i]] * x2[i];
+      } else {
+        b[indxI] = b[indxI+1] = 0.0;
       }
     }
 
@@ -839,11 +770,9 @@ void FixQEqReaxFFOMP::dual_sparse_matvec(sparse_matrix *A, double *x1, double *x
 #pragma omp for schedule(dynamic,50)
 #endif
     for (i = nlocal; i < nall; ++i) {
-      if (atom->mask[i] & groupbit) {
-        indxI = 2 * i;
-        b[indxI]   = 0;
-        b[indxI+1] = 0;
-      }
+      indxI = 2 * i;
+      b[indxI]   = 0;
+      b[indxI+1] = 0;
     }
 
 #if defined(_OPENMP)
@@ -864,17 +793,15 @@ void FixQEqReaxFFOMP::dual_sparse_matvec(sparse_matrix *A, double *x1, double *x
 #endif
     for (ii = 0; ii < nn; ++ii) {
       i = ilist[ii];
-      if (atom->mask[i] & groupbit) {
-        indxI = 2 * i;
-        for (itr_j=A->firstnbr[i]; itr_j<A->firstnbr[i]+A->numnbrs[i]; itr_j++) {
-          j = A->jlist[itr_j];
-          indxJ = 2 * j;
-          b[indxI] += A->val[itr_j] * x1[j];
-          b[indxI+1] += A->val[itr_j] * x2[j];
+      indxI = 2 * i;
+      for (itr_j=A->firstnbr[i]; itr_j<A->firstnbr[i]+A->numnbrs[i]; itr_j++) {
+        j = A->jlist[itr_j];
+        indxJ = 2 * j;
+        b[indxI] += A->val[itr_j] * x1[j];
+        b[indxI+1] += A->val[itr_j] * x2[j];
 
-          b_temp[tid][indxJ] += A->val[itr_j] * x1[i];
-          b_temp[tid][indxJ+1] += A->val[itr_j] * x2[i];
-        }
+        b_temp[tid][indxJ] += A->val[itr_j] * x1[i];
+        b_temp[tid][indxJ+1] += A->val[itr_j] * x2[i];
       }
     }
 
@@ -920,10 +847,12 @@ void FixQEqReaxFFOMP::dual_sparse_matvec(sparse_matrix *A, double *x, double *b)
 #endif
     for (ii = 0; ii < nn; ++ii) {
       i = ilist[ii];
+      indxI = 2 * i;
       if (atom->mask[i] & groupbit) {
-        indxI = 2 * i;
         b[indxI] = eta[atom->type[i]] * x[indxI];
         b[indxI+1] = eta[atom->type[i]] * x[indxI+1];
+      } else {
+        b[indxI] = b[indxI+1] = 0.0;
       }
     }
 
@@ -931,11 +860,9 @@ void FixQEqReaxFFOMP::dual_sparse_matvec(sparse_matrix *A, double *x, double *b)
 #pragma omp for schedule(dynamic,50)
 #endif
     for (i = nlocal; i < nall; ++i) {
-      if (atom->mask[i] & groupbit) {
-        indxI = 2 * i;
-        b[indxI]   = 0;
-        b[indxI+1] = 0;
-      }
+      indxI = 2 * i;
+      b[indxI]   = 0;
+      b[indxI+1] = 0;
     }
 
 #if defined(_OPENMP)
@@ -956,17 +883,15 @@ void FixQEqReaxFFOMP::dual_sparse_matvec(sparse_matrix *A, double *x, double *b)
 #endif
     for (ii = 0; ii < nn; ++ii) {
       i = ilist[ii];
-      if (atom->mask[i] & groupbit) {
-        indxI = 2 * i;
-        for (itr_j=A->firstnbr[i]; itr_j<A->firstnbr[i]+A->numnbrs[i]; itr_j++) {
-          j = A->jlist[itr_j];
-          indxJ = 2 * j;
-          b[indxI] += A->val[itr_j] * x[indxJ];
-          b[indxI+1] += A->val[itr_j] * x[indxJ+1];
+      indxI = 2 * i;
+      for (itr_j=A->firstnbr[i]; itr_j<A->firstnbr[i]+A->numnbrs[i]; itr_j++) {
+        j = A->jlist[itr_j];
+        indxJ = 2 * j;
+        b[indxI] += A->val[itr_j] * x[indxJ];
+        b[indxI+1] += A->val[itr_j] * x[indxJ+1];
 
-          b_temp[tid][indxJ] += A->val[itr_j] * x[indxI];
-          b_temp[tid][indxJ+1] += A->val[itr_j] * x[indxI+1];
-        }
+        b_temp[tid][indxJ] += A->val[itr_j] * x[indxI];
+        b_temp[tid][indxJ+1] += A->val[itr_j] * x[indxI+1];
       }
     }
 

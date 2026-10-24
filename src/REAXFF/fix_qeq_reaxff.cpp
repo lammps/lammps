@@ -89,7 +89,7 @@ FixQEqReaxFF::FixQEqReaxFF(LAMMPS *lmp, int narg, char **arg) :
   // dual CG support only available for OPENMP variant
   // check for compatibility is in Fix::post_constructor()
 
-  dual_enabled = 0;
+  dual_enabled = dual_supported = 0;
   matvecs_s = matvecs_t = 0;
 
   // matrix-free support only available for Kokkos backend
@@ -117,6 +117,10 @@ FixQEqReaxFF::FixQEqReaxFF(LAMMPS *lmp, int narg, char **arg) :
   s = nullptr;
   t = nullptr;
   nprev = 4;
+  maxexchange = 2*nprev;
+
+  // initialize the per-atom history of atoms created during a run
+  create_attribute = 1;
 
   Hdia_inv = nullptr;
   b_s = nullptr;
@@ -148,7 +152,7 @@ FixQEqReaxFF::FixQEqReaxFF(LAMMPS *lmp, int narg, char **arg) :
   // perform initial allocation of atom-based arrays
   // register with Atom class
 
-  reaxff = dynamic_cast<PairReaxFF *>(force->pair_match("^reaxff",0));
+  reaxff = nullptr;
   reaxflag = 0;
   nlevels_respa = 1;
 
@@ -200,8 +204,10 @@ void FixQEqReaxFF::post_constructor()
       s_hist[i][j] = t_hist[i][j] = 0;
 
   pertype_parameters(pertype_option);
-  if (dual_enabled)
+  if (dual_enabled && !dual_supported)
     error->all(FLERR, Error::NOLASTLINE, "Dual keyword only supported with fix qeq/reaxff/omp");
+  if (matrix_free && !kokkosable && (comm->me == 0))
+    error->warning(FLERR, "Keyword matfree is only supported by fix qeq/reaxff/kk and is ignored");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -416,6 +422,19 @@ void FixQEqReaxFF::init()
 
   if (group->count(igroup) == 0)
     error->all(FLERR, Error::NOLASTLINE, "Fix {} group has no atoms", style);
+
+  // look up pair reaxff and its parameters here and not in the constructor,
+  // since the pair style may have been redefined in the meantime
+
+  if (reaxflag) pertype_parameters(pertype_option);
+
+  // this fix borrows the neighbor list of pair reaxff when it can, to avoid
+  // building a second one.  The KOKKOS version of pair reaxff builds its list
+  // on the device, where the plain ilist, numneigh and firstneigh are not
+  // filled in, so use the list this fix requests for itself instead.
+
+  reaxff = dynamic_cast<PairReaxFF *>(force->pair_match("^reaxff",0));
+  if (reaxff && reaxff->kokkosable) reaxff = nullptr;
 
   // compute net charge and print warning if too large
 
@@ -668,6 +687,11 @@ void FixQEqReaxFF::init_matvec()
 
       /* cubic extrapolation for s & t from previous solutions */
       s[i] = 4*(s_hist[i][0]+s_hist[i][2])-(6*s_hist[i][1]+s_hist[i][3]);
+    } else {
+
+      /* atoms outside the group act as fixed charges on the s-solution only */
+      s[i] = atom->q[i];
+      t[i] = 0.0;
     }
   }
 
@@ -691,51 +715,61 @@ void FixQEqReaxFF::compute_H()
   double **x = atom->x;
   int *mask = atom->mask;
 
-  // fill in the H matrix
+  // fill in the H matrix.  atoms outside the fix group keep their charge, but
+  // contribute to the electrostatic potential at the atoms in the group.  with
+  // a half neighbor list, a pair of a group atom and a non-group atom may be
+  // listed with either one, so rows are also built for non-group atoms, but
+  // only with their neighbors in the group.
+
   m_fill = 0;
   r_sqr = 0;
   for (ii = 0; ii < nn; ii++) {
     i = ilist[ii];
-    if (mask[i] & groupbit) {
-      jlist = firstneigh[i];
-      jnum = numneigh[i];
-      H.firstnbr[i] = m_fill;
+    const bool igroup = mask[i] & groupbit;
+    jlist = firstneigh[i];
+    jnum = numneigh[i];
+    H.firstnbr[i] = m_fill;
 
-      for (jj = 0; jj < jnum; jj++) {
-        j = jlist[jj];
-        j &= NEIGHMASK;
+    for (jj = 0; jj < jnum; jj++) {
+      j = jlist[jj];
+      j &= NEIGHMASK;
+      if (!igroup && !(mask[j] & groupbit)) continue;
 
-        dx = x[j][0] - x[i][0];
-        dy = x[j][1] - x[i][1];
-        dz = x[j][2] - x[i][2];
-        r_sqr = SQR(dx) + SQR(dy) + SQR(dz);
+      dx = x[j][0] - x[i][0];
+      dy = x[j][1] - x[i][1];
+      dz = x[j][2] - x[i][2];
+      r_sqr = SQR(dx) + SQR(dy) + SQR(dz);
 
-        flag = 0;
-        if (r_sqr <= SQR(swb)) {
-          if (j < atom->nlocal) flag = 1;
-          else if (tag[i] < tag[j]) flag = 1;
-          else if (tag[i] == tag[j]) {
-            if (dz > EPSILON) flag = 1;
-            else if (fabs(dz) < EPSILON) {
-              if (dy > EPSILON) flag = 1;
-              else if (fabs(dy) < EPSILON && dx > EPSILON)
-                flag = 1;
-            }
+      flag = 0;
+      if (r_sqr <= SQR(swb)) {
+        if (j < atom->nlocal) flag = 1;
+        else if (tag[i] < tag[j]) flag = 1;
+        else if (tag[i] == tag[j]) {
+          if (dz > EPSILON) flag = 1;
+          else if (fabs(dz) < EPSILON) {
+            if (dy > EPSILON) flag = 1;
+            else if (fabs(dy) < EPSILON && dx > EPSILON)
+              flag = 1;
           }
         }
-
-        if (flag) {
-          H.jlist[m_fill] = j;
-          H.val[m_fill] = calculate_H(sqrt(r_sqr), shld[type[i]][type[j]]);
-          m_fill++;
-        }
       }
-      H.numnbrs[i] = m_fill - H.firstnbr[i];
+
+      if (flag) {
+        // check before writing past the end of the matrix
+        if (m_fill >= H.m)
+          error->one(FLERR, Error::NOLASTLINE,
+                     "Fix qeq/reaxff H matrix size has been exceeded: m_fill={} H.m={}\n",
+                     m_fill, H.m);
+        H.jlist[m_fill] = j;
+        H.val[m_fill] = calculate_H(sqrt(r_sqr), shld[type[i]][type[j]]);
+        m_fill++;
+      }
     }
+    H.numnbrs[i] = m_fill - H.firstnbr[i];
   }
 
   if (m_fill >= H.m)
-    error->all(FLERR, Error::NOLASTLINE, "Fix qeq/reaxff H matrix size has been exceeded: m_fill={} H.m={}\n",
+    error->one(FLERR, Error::NOLASTLINE, "Fix qeq/reaxff H matrix size has been exceeded: m_fill={} H.m={}\n",
                m_fill, H.m);
 }
 
@@ -779,9 +813,15 @@ int FixQEqReaxFF::CG(double *b, double *x)
     j = ilist[jj];
     if (atom->mask[j] & groupbit)
       d[j] = r[j] * Hdia_inv[j]; //pre-condition
+    else
+      d[j] = 0.0;  // atoms outside the group have fixed charges
   }
 
   b_norm = parallel_norm(b, nn);
+
+  // use the absolute residual when the right-hand side vanishes, e.g. for
+  // QTPIE with only one element.  the relative residual is undefined then.
+  if (b_norm == 0.0) b_norm = 1.0;
   sig_new = parallel_dot(r, d, nn);
 
   for (i = 1; i < imax && sqrt(sig_new) / b_norm > tolerance; ++i) {
@@ -827,20 +867,22 @@ void FixQEqReaxFF::sparse_matvec(sparse_matrix *A, double *x, double *b)
     i = ilist[ii];
     if (atom->mask[i] & groupbit)
       b[i] = eta[atom->type[i]] * x[i];
+    else
+      b[i] = 0.0;
   }
 
   int nall = atom->nlocal + atom->nghost;
   for (i = atom->nlocal; i < nall; ++i)
       b[i] = 0;
 
+  // the rows of atoms outside the fix group only contain neighbors in the group
+
   for (ii = 0; ii < nn; ++ii) {
     i = ilist[ii];
-    if (atom->mask[i] & groupbit) {
-      for (itr_j=A->firstnbr[i]; itr_j<A->firstnbr[i]+A->numnbrs[i]; itr_j++) {
-        j = A->jlist[itr_j];
-        b[i] += A->val[itr_j] * x[j];
-        b[j] += A->val[itr_j] * x[i];
-      }
+    for (itr_j=A->firstnbr[i]; itr_j<A->firstnbr[i]+A->numnbrs[i]; itr_j++) {
+      j = A->jlist[itr_j];
+      b[i] += A->val[itr_j] * x[j];
+      b[j] += A->val[itr_j] * x[i];
     }
   }
 
@@ -1007,6 +1049,17 @@ void FixQEqReaxFF::copy_arrays(int i, int j, int /*delflag*/)
     s_hist[j][m] = s_hist[i][m];
     t_hist[j][m] = t_hist[i][m];
   }
+}
+
+/* ----------------------------------------------------------------------
+   initialize history for an atom created during the run. grow_arrays()
+   leaves the new storage uninitialized, which would feed garbage into
+   the initial guess extrapolation
+------------------------------------------------------------------------- */
+
+void FixQEqReaxFF::set_arrays(int i)
+{
+  for (int m = 0; m < nprev; m++) s_hist[i][m] = t_hist[i][m] = 0.0;
 }
 
 /* ----------------------------------------------------------------------

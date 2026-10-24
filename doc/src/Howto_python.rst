@@ -41,8 +41,9 @@ Step 1: Building LAMMPS as a shared library
 
 To use LAMMPS inside of Python it has to be compiled as shared library.
 This library is then loaded by the Python interface.  In this example we
-enable the :ref:`MOLECULE package <PKG-MOLECULE>` and compile LAMMPS
-with :ref:`PNG, JPEG and FFMPEG output support <graphics>` enabled.
+enable the :ref:`MOLECULE <PKG-MOLECULE>` and :ref:`GRAPHICS <PKG-GRAPHICS>`
+packages and compile LAMMPS with :ref:`PNG, JPEG and FFMPEG output
+support <graphics>` enabled.
 
 .. tabs::
 
@@ -54,7 +55,7 @@ with :ref:`PNG, JPEG and FFMPEG output support <graphics>` enabled.
          cd  $LAMMPS_DIR/build-shared
 
          # MPI, PNG, Jpeg, FFMPEG are auto-detected
-         cmake ../cmake -DPKG_MOLECULE=yes -DPKG_PYTHON=on -DBUILD_SHARED_LIBS=yes
+         cmake ../cmake -DPKG_MOLECULE=yes -DPKG_GRAPHICS=yes -DPKG_PYTHON=on -DBUILD_SHARED_LIBS=yes
          make
 
    .. tab:: Traditional make
@@ -65,6 +66,7 @@ with :ref:`PNG, JPEG and FFMPEG output support <graphics>` enabled.
 
          # add LAMMPS packages if necessary
          make yes-MOLECULE
+         make yes-GRAPHICS
          make yes-PYTHON
 
          # compile shared library using Makefile
@@ -131,7 +133,7 @@ Benefits of using a virtualenv
 
 .. code-block:: bash
 
-   apt-get install python-venv
+   apt-get install python3-venv
 
 Creating a virtualenv with lammps installed
 """""""""""""""""""""""""""""""""""""""""""
@@ -241,7 +243,7 @@ Accessing atom data
 
 All per-atom properties that are part of the :doc:`atom style
 <atom_style>` in the current simulation can be accessed using the
-:py:meth:`extract_atoms() <lammps.lammps.extract_atoms()>` method.  This
+:py:meth:`extract_atom() <lammps.lammps.extract_atom()>` method.  This
 can be retrieved as ctypes objects or as NumPy arrays through the
 lammps.numpy module.  Those represent the *local* atoms of the
 individual sub-domain for the current MPI process and may contain
@@ -359,7 +361,7 @@ setting its position from Python, which changes the dihedral angle.
 
 .. code-block:: python
 
-   phi = [d \* math.pi / 180 for d in range(360)]
+   phi = [d * math.pi / 180 for d in range(360)]
 
    pos = [(1.0, math.cos(p), math.sin(p)) for p in phi]
 
@@ -401,8 +403,8 @@ It is then disordered by moving each atom by a random delta.
    natoms = x.shape[0]
 
    for i in range(natoms):
-       dx = deltaperturb \* random.uniform(-1, 1)
-       dy = deltaperturb \* random.uniform(-1, 1)
+       dx = deltaperturb * random.uniform(-1, 1)
+       dy = deltaperturb * random.uniform(-1, 1)
        x[i][0] += dx
        x[i][1] += dy
 
@@ -435,8 +437,8 @@ moves random atoms by a random delta and only accepts certain moves.
        x0 = current_atom[0]
        y0 = current_atom[1]
 
-       dx = deltamove \* random.uniform(-1, 1)
-       dy = deltamove \* random.uniform(-1, 1)
+       dx = deltamove * random.uniform(-1, 1)
+       dy = deltamove * random.uniform(-1, 1)
 
        current_atom[0] = x0 + dx
        current_atom[1] = y0 + dy
@@ -449,7 +451,7 @@ moves random atoms by a random delta and only accepts certain moves.
        if e <= elast:
            naccept += 1
            elast = e
-       elif random.random() <= math.exp(natoms\*(elast-e)/kT):
+       elif random.random() <= math.exp(natoms*(elast-e)/kT):
            naccept += 1
            elast = e
        else:

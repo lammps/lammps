@@ -413,7 +413,7 @@ void FixACKS2ReaxFFKokkos<DeviceType>::pre_force(int /*vflag*/)
 
   // bicgstab solve over b_s, s
 
-  bicgstab_solve();
+  matvecs = bicgstab_solve();
 
   calculate_Q();
 
@@ -588,7 +588,13 @@ void FixACKS2ReaxFFKokkos<DeviceType>::compute_h_item(int ii, bigint &m_fill, co
   const int i = d_ilist[ii];
   int j,jj,jtype;
 
-  if (mask[i] & groupbit) {
+  // atoms outside the fix group act as fixed charges.  with a half neighbor
+  // list, a pair of a group atom and a non-group atom may be listed with
+  // either one, so rows are also built for non-group atoms, but only with
+  // their neighbors in the group.
+
+  const bool igroup = mask[i] & groupbit;
+  if (igroup || (NEIGHFLAG != FULL)) {
 
     const KK_FLOAT xtmp = x(i,0);
     const KK_FLOAT ytmp = x(i,1);
@@ -602,6 +608,7 @@ void FixACKS2ReaxFFKokkos<DeviceType>::compute_h_item(int ii, bigint &m_fill, co
     for (jj = 0; jj < jnum; jj++) {
       j = d_neighbors(i,jj);
       j &= NEIGHMASK;
+      if (!igroup && !(mask[j] & groupbit)) continue;
       jtype = type(j);
 
       const KK_FLOAT delx = x(j,0) - xtmp;
@@ -734,8 +741,10 @@ void FixACKS2ReaxFFKokkos<DeviceType>::compute_h_team(
 
         if (ii < nn) {
           const int i = s_ilist[idx];
+          const bool igroup = mask[i] & groupbit;
 
-          if (mask[i] & groupbit) {
+          // see comment in compute_h_item()
+          if (igroup || (NEIGHFLAG != FULL)) {
             const KK_FLOAT xtmp = x(i, 0);
             const KK_FLOAT ytmp = x(i, 1);
             const KK_FLOAT ztmp = x(i, 2);
@@ -784,7 +793,7 @@ void FixACKS2ReaxFFKokkos<DeviceType>::compute_h_team(
                       const KK_FLOAT delz = x(j, 2) - ztmp;
 
                       // valid nbr interaction
-                      bool valid = true;
+                      bool valid = igroup || (mask[j] & groupbit);
                       if (NEIGHFLAG != FULL) {
                         // skip half of the interactions
                         const tagint jtag = tag(j);
@@ -906,6 +915,8 @@ void FixACKS2ReaxFFKokkos<DeviceType>::compute_x_item(int ii, bigint &m_fill, co
     for (jj = 0; jj < jnum; jj++) {
       j = d_neighbors(i,jj);
       j &= NEIGHMASK;
+      // the X matrix only couples atoms in the group
+      if (!(mask[j] & groupbit)) continue;
       jtype = type(j);
 
       const KK_FLOAT delx = x(j,0) - xtmp;
@@ -1095,7 +1106,8 @@ void FixACKS2ReaxFFKokkos<DeviceType>::compute_x_team(
                       const KK_FLOAT delz = x(j, 2) - ztmp;
 
                       // valid nbr interaction
-                      bool valid = true;
+                      // the X matrix only couples atoms in the group
+                      bool valid = mask[j] & groupbit;
                       if (NEIGHFLAG != FULL) {
                         // skip half of the interactions
                         const tagint jtag = tag(j);
@@ -1196,13 +1208,13 @@ template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void FixACKS2ReaxFFKokkos<DeviceType>::operator() (TagACKS2InitMatvec, const int &ii) const
 {
-  if (d_X_diag[ii] == 0.0)
-    d_Xdia_inv[ii] = 1.0;
-  else
-    d_Xdia_inv[ii] = 1.0 / d_X_diag[ii];
-
   const int i = d_ilist[ii];
   const int itype = type(i);
+
+  if (d_X_diag[i] == 0.0)
+    d_Xdia_inv[i] = 1.0;
+  else
+    d_Xdia_inv[i] = 1.0 / d_X_diag[i];
 
   if (mask[i] & groupbit) {
     d_Hdia_inv[i] = 1.0 / params(itype).eta;
@@ -1211,6 +1223,10 @@ void FixACKS2ReaxFFKokkos<DeviceType>::operator() (TagACKS2InitMatvec, const int
 
     d_s[i] = 4*(d_s_hist(i,0)+d_s_hist(i,2))-(6*d_s_hist(i,1)+d_s_hist(i,3));
     d_s[NN+i] = 4*(d_s_hist_X(i,0)+d_s_hist_X(i,2))-(6*d_s_hist_X(i,1)+d_s_hist_X(i,3));
+  } else {
+    // atoms outside the group only contribute their fixed charge
+    d_s[i] = q(i);
+    d_s[NN+i] = 0.0;
   }
 
   // last two rows
@@ -1384,7 +1400,7 @@ int FixACKS2ReaxFFKokkos<DeviceType>::bicgstab_solve()
     if (omega == 0 || rho == 0) {
       error->warning(FLERR,"Fix acks2/reaxff/kk BiCGStab numerical breakdown, omega = {:.8}, rho = {:.8}",
                       omega,rho);
-    } else if (i >= imax) {
+    } else if ((i >= imax) && maxwarn) {
       error->warning(FLERR,"Fix acks2/reaxff/kk BiCGStab convergence failed after {} iterations "
                            "at step {}", i, update->ntimestep);
     }
@@ -1487,16 +1503,17 @@ void FixACKS2ReaxFFKokkos<DeviceType>::operator() (TagACKS2SparseMatvec3_Half<NE
   auto a_bb = v_bb.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
 
   const int i = d_ilist[ii];
-  if (mask[i] & groupbit) {
-    KK_FLOAT tmp = 0.0;
+  KK_FLOAT tmp = 0.0;
 
-    // H Matrix
-    for (bigint jj = d_firstnbr[i]; jj < d_firstnbr[i] + d_numnbrs[i]; jj++) {
-      const int j = d_jlist(jj);
-      tmp += d_val(jj) * d_xx[j];
-      a_bb[j] += d_val(jj) * d_xx[i];
-    }
-    a_bb[i] += tmp;
+  // H Matrix: the rows of atoms outside the group only contain neighbors in the group
+  for (bigint jj = d_firstnbr[i]; jj < d_firstnbr[i] + d_numnbrs[i]; jj++) {
+    const int j = d_jlist(jj);
+    tmp += d_val(jj) * d_xx[j];
+    a_bb[j] += d_val(jj) * d_xx[i];
+  }
+  a_bb[i] += tmp;
+
+  if (mask[i] & groupbit) {
 
     // X Matrix
     tmp = 0.0;
@@ -1646,6 +1663,9 @@ void FixACKS2ReaxFFKokkos<DeviceType>::operator() (TagACKS2Precon1A, const int &
 
       d_d[i] = d_p[i]*d_Hdia_inv[i];
       d_d[NN+i] = d_p[NN+i]*d_Xdia_inv[i];
+  } else {
+    // atoms outside the group have fixed charges
+    d_d[i] = d_d[NN+i] = 0.0;
   }
 
   // last two rows
@@ -1675,6 +1695,9 @@ void FixACKS2ReaxFFKokkos<DeviceType>::operator() (TagACKS2Precon1B, const int &
 
       d_d[i] = d_p[i]*d_Hdia_inv[i];
       d_d[NN+i] = d_p[NN+i]*d_Xdia_inv[i];
+  } else {
+    // atoms outside the group have fixed charges
+    d_d[i] = d_d[NN+i] = 0.0;
   }
 
   // last two rows
@@ -1804,6 +1827,9 @@ void FixACKS2ReaxFFKokkos<DeviceType>::operator() (TagACKS2Precon2, const int &i
   if (mask[i] & groupbit) {
     d_q_hat[i] = d_q[i]*d_Hdia_inv[i];
     d_q_hat[NN+i] = d_q[NN+i]*d_Xdia_inv[i];
+  } else {
+    // atoms outside the group have fixed charges
+    d_q_hat[i] = d_q_hat[NN+i] = 0.0;
   }
 
   // last two rows
@@ -1945,6 +1971,22 @@ void FixACKS2ReaxFFKokkos<DeviceType>::copy_arrays(int i, int j, int delflag)
   k_s_hist_X.sync_host();
 
   FixACKS2ReaxFF::copy_arrays(i,j,delflag);
+
+  k_s_hist.modify_host();
+  k_s_hist_X.modify_host();
+}
+
+/* ----------------------------------------------------------------------
+   initialize history for an atom created during the run
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+void FixACKS2ReaxFFKokkos<DeviceType>::set_arrays(int i)
+{
+  k_s_hist.sync_host();
+  k_s_hist_X.sync_host();
+
+  FixACKS2ReaxFF::set_arrays(i);
 
   k_s_hist.modify_host();
   k_s_hist_X.modify_host();

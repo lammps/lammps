@@ -82,9 +82,12 @@ Mixing, shift, table, tail correction, restart, rRESPA info
 This pair style does not support parameter mixing. Coefficients must
 be given explicitly for each type of particle pairs.
 
-This pair style supports the :doc:`pair_modify <pair_modify>` shift
-option for the energy of the Gauss-potential portion of the pair
-interaction.
+.. versionchanged:: 30Sep2026-backport
+
+The :doc:`pair_modify <pair_modify>` shift option is not relevant for
+this pair style, since the energy goes to zero at large distances
+where :math:`\epsilon_D(r)` approaches :math:`\epsilon`.  Previously,
+the shift option subtracted an incorrect energy offset.
 
 The :doc:`pair_modify <pair_modify>` table option is not relevant
 for this pair style.

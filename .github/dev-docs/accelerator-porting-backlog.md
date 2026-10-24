@@ -212,7 +212,10 @@ stores the short list and the coordination Z, the base functions run on a device
 of the `Param` table; newton on with a half list).  `lj/cut/soft/gapsys/kk` copies the
 coefficients the base style now precomputes.  Verified as for the earlier batches,
 including 15-type decks for the non-stack parameter path and decks in which both
-soft cores contribute; HIP compile of the new files.
+soft cores contribute; HIP compile of the new files; a CUDA round (V100, double and
+mixed precision) that also ran the `fix adapt` lambda ramp on the device, to check
+that coefficients recomputed on the host reach the GPU.  Mixed precision needed
+`epsilon: 5e-13` for the edip/multi YAML test (one nearly cancelled force component).
 
 Atom styles (`sph`, `peri`, `edpd`/`mdpd`/`tdpd`, `electron`, `smd`, `apip`, `oxdna`)
 remain the highest-leverage *gating* items: `AtomKokkos::new_avec` hard-errors on them,

@@ -6,6 +6,7 @@
 .. index:: pair_style coul/cut/global/kk
 .. index:: pair_style coul/cut/global/omp
 .. index:: pair_style coul/ctip
+.. index:: pair_style coul/ctip/kk
 .. index:: pair_style coul/ctip/omp
 .. index:: pair_style coul/debye
 .. index:: pair_style coul/debye/gpu
@@ -16,6 +17,7 @@
 .. index:: pair_style coul/dsf/kk
 .. index:: pair_style coul/dsf/omp
 .. index:: pair_style coul/esp
+.. index:: pair_style coul/esp/kk
 .. index:: pair_style coul/esp/omp
 .. index:: pair_style coul/exclude
 .. index:: pair_style coul/exclude/omp
@@ -50,7 +52,7 @@ Accelerator Variants: *coul/cut/global/kk*, *coul/cut/global/omp*
 pair_style coul/ctip command
 ============================
 
-Accelerator Variants: *coul/ctip/omp*
+Accelerator Variants: *coul/ctip/kk*, *coul/ctip/omp*
 
 pair_style coul/debye command
 =============================
@@ -65,7 +67,7 @@ Accelerator Variants: *coul/dsf/gpu*, *coul/dsf/kk*, *coul/dsf/omp*
 pair_style coul/esp command
 ===========================
 
-Accelerator Variants: *coul/esp/omp*
+Accelerator Variants: *coul/esp/kk*, *coul/esp/omp*
 
 pair_style coul/exclude command
 ===============================

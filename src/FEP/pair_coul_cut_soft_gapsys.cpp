@@ -39,6 +39,8 @@ PairCoulCutSoftGapsys::PairCoulCutSoftGapsys(LAMMPS *lmp) : Pair(lmp), cut(nullp
 
 PairCoulCutSoftGapsys::~PairCoulCutSoftGapsys()
 {
+  if (copymode) return;
+
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);

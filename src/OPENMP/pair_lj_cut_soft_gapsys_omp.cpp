@@ -118,20 +118,10 @@ void PairLJCutSoftGapsysOMP::eval(int iifrom, int iito, ThrData *const thr)
       const double rsq = delx * delx + dely * dely + delz * delz;
       const int jtype = type[j];
 
-      const double cut_inner =
-          alphalj * pow(26.0 * lambda[itype][jtype] / 7.0, 1.0 / 6.0) * sigma[itype][jtype];
+      if (rsq < cut_lj_inner[itype][jtype] * cut_lj_inner[itype][jtype]) {
 
-      if (rsq < cut_inner * cut_inner) {
-
-        const double epsln = epsilon[itype][jtype];
-
-        const double s_ri6 = pow(sigma[itype][jtype] / cut_inner, 6);
-        const double s_ri12 = s_ri6 * s_ri6;
-
-        const double b1 = -24.0 * epsln * (26.0 * s_ri12 - 7.0 * s_ri6) / (cut_inner * cut_inner);
-        const double b2 = 96.0 * epsln * (7.0 * s_ri12 - 2.0 * s_ri6) / cut_inner;
-
-        const double fpair = factor_lj * (b1 + b2 / sqrt(rsq));
+        const double fpair =
+            factor_lj * (coeff_b1[itype][jtype] + coeff_b2[itype][jtype] / sqrt(rsq));
 
         fxtmp += delx * fpair;
         fytmp += dely * fpair;
@@ -143,11 +133,8 @@ void PairLJCutSoftGapsysOMP::eval(int iifrom, int iito, ThrData *const thr)
         }
 
         if (EFLAG) {
-          const double a1 = 12.0 * epsln * (26.0 * s_ri12 - 7.0 * s_ri6) / (cut_inner * cut_inner);
-          const double a2 = -96.0 * epsln * (7.0 * s_ri12 - 2.0 * s_ri6) / cut_inner;
-          const double a3 = 28.0 * epsln * (13.0 * s_ri12 - 4.0 * s_ri6);
-
-          evdwl = a1 * rsq + a2 * sqrt(rsq) + a3 - offset[itype][jtype];
+          evdwl = -0.5 * coeff_b1[itype][jtype] * rsq - coeff_b2[itype][jtype] * sqrt(rsq) +
+              coeff_a3[itype][jtype] - offset[itype][jtype];
           evdwl *= factor_lj;
         }
 

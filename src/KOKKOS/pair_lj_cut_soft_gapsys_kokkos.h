@@ -50,12 +50,12 @@ class PairLJCutSoftGapsysKokkos : public PairLJCutSoftGapsys {
   struct params_lj{
 // NOLINTNEXTLINE
     KOKKOS_INLINE_FUNCTION
-    params_lj() {cutsq=0;cut_innersq=0;lj1=0;lj2=0;lj3=0;lj4=0;offset=0;a1=0;a2=0;a3=0;b1=0;b2=0;};
+    params_lj() {cutsq=0;cut_innersq=0;lj1=0;lj2=0;lj3=0;lj4=0;offset=0;a3=0;b1=0;b2=0;};
 // NOLINTNEXTLINE
     KOKKOS_INLINE_FUNCTION
-    params_lj(int /*i*/) {cutsq=0;cut_innersq=0;lj1=0;lj2=0;lj3=0;lj4=0;offset=0;a1=0;a2=0;a3=0;b1=0;b2=0;};
-    // a1..a3 and b1,b2: energy and force polynomial coefficients inside the soft-core radius
-    KK_FLOAT cutsq,cut_innersq,lj1,lj2,lj3,lj4,offset,a1,a2,a3,b1,b2;
+    params_lj(int /*i*/) {cutsq=0;cut_innersq=0;lj1=0;lj2=0;lj3=0;lj4=0;offset=0;a3=0;b1=0;b2=0;};
+    // a3, b1, b2: energy and force polynomial coefficients inside the soft-core radius
+    KK_FLOAT cutsq,cut_innersq,lj1,lj2,lj3,lj4,offset,a3,b1,b2;
   };
 
  protected:

@@ -165,10 +165,10 @@ compute_evdwl(const KK_FLOAT &rsq, const int &, const int &, const int &itype, c
   const KK_FLOAT offset = (STACKPARAMS?m_params[itype][jtype].offset:params(itype,jtype).offset);
 
   if (rsq < (STACKPARAMS?m_params[itype][jtype].cut_innersq:params(itype,jtype).cut_innersq)) {
-    const KK_FLOAT a1 = (STACKPARAMS?m_params[itype][jtype].a1:params(itype,jtype).a1);
-    const KK_FLOAT a2 = (STACKPARAMS?m_params[itype][jtype].a2:params(itype,jtype).a2);
     const KK_FLOAT a3 = (STACKPARAMS?m_params[itype][jtype].a3:params(itype,jtype).a3);
-    return a1 * rsq + a2 * Kokkos::sqrt(rsq) + a3 - offset;
+    const KK_FLOAT b1 = (STACKPARAMS?m_params[itype][jtype].b1:params(itype,jtype).b1);
+    const KK_FLOAT b2 = (STACKPARAMS?m_params[itype][jtype].b2:params(itype,jtype).b2);
+    return static_cast<KK_FLOAT>(-0.5) * b1 * rsq - b2 * Kokkos::sqrt(rsq) + a3 - offset;
   }
 
   const KK_FLOAT lj3 = (STACKPARAMS?m_params[itype][jtype].lj3:params(itype,jtype).lj3);
@@ -234,35 +234,17 @@ double PairLJCutSoftGapsysKokkos<DeviceType>::init_one(int i, int j)
 {
   double cutone = PairLJCutSoftGapsys::init_one(i,j);
 
-  // the soft-core radius and the polynomial coefficients inside it depend only on
-  // the type pair, so they are computed here with the same expressions as the base
-
-  const double cut_inner =
-      alphalj * pow(26.0 * lambda[i][j] / 7.0, 1.0 / 6.0) * sigma[i][j];
-  double a1 = 0.0, a2 = 0.0, a3 = 0.0, b1 = 0.0, b2 = 0.0;
-  if (cut_inner > 0.0) {
-    const double epsln = epsilon[i][j];
-    const double s_ri6 = pow(sigma[i][j] / cut_inner, 6);
-    const double s_ri12 = s_ri6 * s_ri6;
-    b1 = -24.0 * epsln * (26.0 * s_ri12 - 7.0 * s_ri6) / (cut_inner * cut_inner);
-    b2 = 96.0 * epsln * (7.0 * s_ri12 - 2.0 * s_ri6) / cut_inner;
-    a1 = 12.0 * epsln * (26.0 * s_ri12 - 7.0 * s_ri6) / (cut_inner * cut_inner);
-    a2 = - 96.0 * epsln * (7.0 * s_ri12 - 2.0 * s_ri6) / cut_inner;
-    a3 = 28.0 * epsln * (13.0 * s_ri12 - 4.0 * s_ri6);
-  }
-
   k_params.view_host()(i,j).lj1 = static_cast<KK_FLOAT>(lj1[i][j]);
   k_params.view_host()(i,j).lj2 = static_cast<KK_FLOAT>(lj2[i][j]);
   k_params.view_host()(i,j).lj3 = static_cast<KK_FLOAT>(lj3[i][j]);
   k_params.view_host()(i,j).lj4 = static_cast<KK_FLOAT>(lj4[i][j]);
   k_params.view_host()(i,j).offset = static_cast<KK_FLOAT>(offset[i][j]);
   k_params.view_host()(i,j).cutsq = static_cast<KK_FLOAT>(cutone*cutone);
-  k_params.view_host()(i,j).cut_innersq = static_cast<KK_FLOAT>(cut_inner*cut_inner);
-  k_params.view_host()(i,j).a1 = static_cast<KK_FLOAT>(a1);
-  k_params.view_host()(i,j).a2 = static_cast<KK_FLOAT>(a2);
-  k_params.view_host()(i,j).a3 = static_cast<KK_FLOAT>(a3);
-  k_params.view_host()(i,j).b1 = static_cast<KK_FLOAT>(b1);
-  k_params.view_host()(i,j).b2 = static_cast<KK_FLOAT>(b2);
+  k_params.view_host()(i,j).cut_innersq =
+    static_cast<KK_FLOAT>(cut_lj_inner[i][j]*cut_lj_inner[i][j]);
+  k_params.view_host()(i,j).a3 = static_cast<KK_FLOAT>(coeff_a3[i][j]);
+  k_params.view_host()(i,j).b1 = static_cast<KK_FLOAT>(coeff_b1[i][j]);
+  k_params.view_host()(i,j).b2 = static_cast<KK_FLOAT>(coeff_b2[i][j]);
   k_params.view_host()(j,i) = k_params.view_host()(i,j);
   if (i<MAX_TYPES_STACKPARAMS+1 && j<MAX_TYPES_STACKPARAMS+1) {
     m_params[i][j] = m_params[j][i] = k_params.view_host()(i,j);

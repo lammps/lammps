@@ -54,6 +54,7 @@ private:
   };
   std::vector<Superimpose::StatePoint> restore_pts;
 
+  // wait, bond/react communicated xspecials. that is currently not happening for topo_matcher
   class TopoView {
   protected:
     LAMMPS_NS::LAMMPS *lmp;

@@ -579,12 +579,8 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
   // forward is big due to comm of broken bonds and 1-2 neighbors
 
   comm_forward = MAX(2,2+atom->maxspecial);
-  comm_reverse = 2;
 
   // allocate arrays local to this fix
-  nmax = 0;
-  partner = finalpartner = nullptr;
-  distsq = nullptr;
   my_num_mega = 0;
   local_num_mega = 0;
   ghostly_num_mega = 0;
@@ -612,9 +608,6 @@ FixBondReact::~FixBondReact()
   delete topo_matcher;
   delete reset_mol_ids;
 
-  memory->destroy(partner);
-  memory->destroy(finalpartner);
-  memory->destroy(distsq);
   memory->destroy(global_mega_glove);
 
   if (stabilization_flag == 1) {
@@ -836,21 +829,7 @@ void FixBondReact::post_integrate()
 
   // acquire updated ghost atom positions
   // necessary b/c are calling this after integrate, but before Verlet comm
-
   comm->forward_comm();
-
-  // resize bond partner list and initialize it
-  // needs to be atom->nmax in length
-
-  if (atom->nmax > nmax) {
-    memory->destroy(partner);
-    memory->destroy(finalpartner);
-    memory->destroy(distsq);
-    nmax = atom->nmax;
-    memory->create(partner,nmax,"bond/react:partner");
-    memory->create(finalpartner,nmax,"bond/react:finalpartner");
-    memory->create(distsq,nmax,2,"bond/react:distsq");
-  }
 
   // reset rxn attempts
   attempts.clear();
@@ -900,95 +879,9 @@ void FixBondReact::post_integrate()
   for (auto &rxn : rxns) {
     if ((update->ntimestep % rxn.nevery) ||
         (rxn_limit_flag[rxn.ID] == 0)) continue;
-
-    for (int ii = 0; ii < nall; ii++) {
-      partner[ii] = 0;
-      finalpartner[ii] = 0;
-      distsq[ii][0] = 0.0;
-      distsq[ii][1] = BIG;
-    }
-
     // fork between far and close_partner here
-    rxnptr = &rxn; // for reverse_comm
-    if (rxn.closeneigh < 0) {
-      far_partner(rxn);
-      // reverse comm of distsq and partner
-      // not needed if newton_pair off since I,J pair was seen by both procs
-      commflag = 2;
-      if (force->newton_pair) comm->reverse_comm(this);
-    } else {
-      close_partner(rxn);
-      commflag = 2;
-      comm->reverse_comm(this);
-    }
-
-    // each atom now knows its winning partner
-    // forward comm of partner, so ghosts have it
-
-    commflag = 2;
-    comm->forward_comm(this,1);
-
-    // consider for reaction:
-    // only if both atoms list each other as winning bond partner
-    // if other atom is owned by another proc, it should do same thing
-
-    int temp_nattempt = 0;
-    for (int i = 0; i < nlocal; i++) {
-      if (partner[i] == 0) {
-        continue;
-      }
-
-      j = atom->map(partner[i]);
-      if (partner[j] != tag[i]) {
-        continue;
-      }
-
-      // store final bond partners and count the rxn possibility once
-
-      finalpartner[i] = tag[j];
-      finalpartner[j] = tag[i];
-
-      if (tag[i] < tag[j]) temp_nattempt++;
-    }
-
-    // cycle loop if no even eligible bonding atoms were found (on any proc)
-    int some_chance;
-    MPI_Allreduce(&temp_nattempt,&some_chance,1,MPI_INT,MPI_SUM,world);
-    if (!some_chance) continue;
-
-    // communicate final partner
-
-    commflag = 3;
-    comm->forward_comm(this);
-
-    // add instance to 'attempt' only if this processor
-    // owns the atoms with smaller global ID
-    // NOTE: we no longer care about ghost-ghost instances as bond/create did
-    // this is because we take care of updating topology later (and differently)
-    for (int i = 0; i < nlocal; i++) {
-
-      if (finalpartner[i] == 0) continue;
-
-      j = atom->map(finalpartner[i]);
-      ReactionAttempt rxn_attempt;
-      if (tag[i] < tag[j]) {
-        // to ensure types remain in same order
-        if (rxn.iatomtype == type[i]) {
-          rxn_attempt.init_ids = {tag[i], finalpartner[i]};
-          rxn_attempt.rxn_ids = {rxn.ID};
-          attempts.push_back(rxn_attempt);
-          // add another attempt if initiator atoms are same type
-          if (rxn.iatomtype == rxn.jatomtype) {
-            rxn_attempt.init_ids = {finalpartner[i], tag[i]};
-            attempts.push_back(rxn_attempt);
-          }
-        } else {
-          rxn_attempt.init_ids = {finalpartner[i], tag[i]};
-          rxn_attempt.rxn_ids = {rxn.ID};
-          attempts.push_back(rxn_attempt);
-        }
-      }
-    }
+    if (rxn.closeneigh < 0) far_partner(rxn);
+    else close_partner(rxn);
   }
 
   // break loop if no even eligible bonding atoms were found (on any proc)
@@ -1102,13 +995,17 @@ void FixBondReact::far_partner(Reaction &rxn)
       if (rsq >= rxn.rmaxsq || rsq <= rxn.rminsq) {
         continue;
       }
-      if (rsq < distsq[i][1]) {
-        partner[i] = tag[j];
-        distsq[i][1] = rsq;
+      ReactionAttempt rxn_attempt;
+      if (itype == rxn.iatomtype && jtype == rxn.jatomtype) {
+        rxn_attempt.init_ids = {tag[i], tag[j]};
+        rxn_attempt.rxn_ids = {rxn.ID};
+        attempts.push_back(rxn_attempt);
       }
-      if (rsq < distsq[j][1]) {
-        partner[j] = tag[i];
-        distsq[j][1] = rsq;
+
+      if (itype == rxn.jatomtype && jtype == rxn.iatomtype) {
+        rxn_attempt.init_ids = {tag[j], tag[i]};
+        rxn_attempt.rxn_ids = {rxn.ID};
+        attempts.push_back(rxn_attempt);
       }
     }
   }
@@ -1171,25 +1068,10 @@ void FixBondReact::close_partner(Reaction &rxn)
       }
       if (rsq >= rxn.rmaxsq || rsq <= rxn.rminsq) continue;
 
-      if (rxn.closeneigh == 0) {
-        if (rsq > distsq[i1][0]) {
-          partner[i1] = tag[i2];
-          distsq[i1][0] = rsq;
-        }
-        if (rsq > distsq[i2][0]) {
-          partner[i2] = tag[i1];
-          distsq[i2][0] = rsq;
-        }
-      } else {
-        if (rsq < distsq[i1][1]) {
-          partner[i1] = tag[i2];
-          distsq[i1][1] = rsq;
-        }
-        if (rsq < distsq[i2][1]) {
-          partner[i2] = tag[i1];
-          distsq[i2][1] = rsq;
-        }
-      }
+      ReactionAttempt rxn_attempt;
+      rxn_attempt.init_ids = {tag[i1], tag[i2]};
+      rxn_attempt.rxn_ids = {rxn.ID};
+      attempts.push_back(rxn_attempt);
     }
   }
 }
@@ -3232,14 +3114,6 @@ int FixBondReact::pack_forward_comm(int n, int *list, double *buf,
     return m;
   }
 
-  if (commflag == 2) {
-    for (i = 0; i < n; i++) {
-      j = list[i];
-      buf[m++] = ubuf(partner[j]).d;
-    }
-    return m;
-  }
-
   if (commflag == 4) {
     for (i = 0; i < n; i++) {
       j = list[i];
@@ -3251,7 +3125,6 @@ int FixBondReact::pack_forward_comm(int n, int *list, double *buf,
   m = 0;
   for (i = 0; i < n; i++) {
     j = list[i];
-    buf[m++] = ubuf(finalpartner[j]).d;
     ns = nxspecial[j][0];
     buf[m++] = ubuf(ns).d;
     for (k = 0; k < ns; k++)
@@ -3273,9 +3146,6 @@ void FixBondReact::unpack_forward_comm(int n, int first, double *buf)
     for (i = first; i < last; i++)
       for (k = 0; k < topo_matcher->rxn_constraints->ncustomvars; k++)
         topo_matcher->rxn_constraints->vvec[i][k] = buf[m++];
-  } else if (commflag == 2) {
-    for (i = first; i < last; i++)
-      partner[i] = (tagint) ubuf(buf[m++]).i;
   } else if (commflag == 4) {
     for (i = first; i < last; i++)
       atom->molecule[i] = (tagint) ubuf(buf[m++]).i;
@@ -3283,54 +3153,10 @@ void FixBondReact::unpack_forward_comm(int n, int first, double *buf)
     m = 0;
     last = first + n;
     for (i = first; i < last; i++) {
-      finalpartner[i] = (tagint) ubuf(buf[m++]).i;
       ns = (int) ubuf(buf[m++]).i;
       nxspecial[i][0] = ns;
       for (j = 0; j < ns; j++)
         xspecial[i][j] = (tagint) ubuf(buf[m++]).i;
-    }
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
-int FixBondReact::pack_reverse_comm(int n, int first, double *buf)
-{
-  int i,m,last;
-
-  m = 0;
-  last = first + n;
-
-  for (i = first; i < last; i++) {
-    buf[m++] = ubuf(partner[i]).d;
-    if (rxnptr->closeneigh != 0)
-      buf[m++] = distsq[i][1];
-    else
-      buf[m++] = distsq[i][0];
-  }
-  return m;
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixBondReact::unpack_reverse_comm(int n, int *list, double *buf)
-{
-  int i,j,m;
-
-  m = 0;
-
-  for (i = 0; i < n; i++) {
-    j = list[i];
-    if (rxnptr->closeneigh != 0) {
-      if (buf[m+1] < distsq[j][1]) {
-        partner[j] = (tagint) ubuf(buf[m++]).i;
-        distsq[j][1] = buf[m++];
-      } else m += 2;
-    } else {
-      if (buf[m+1] > distsq[j][0]) {
-        partner[j] = (tagint) ubuf(buf[m++]).i;
-        distsq[j][0] = buf[m++];
-      } else m += 2;
     }
   }
 }

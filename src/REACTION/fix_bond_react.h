@@ -52,8 +52,6 @@ class FixBondReact : public Fix {
 
   int pack_forward_comm(int, int *, double *, int, int *) override;
   void unpack_forward_comm(int, int, double *) override;
-  int pack_reverse_comm(int, int, double *) override;
-  void unpack_reverse_comm(int, int *, double *) override;
   double compute_vector(int) override;
   std::string get_thermo_colname(int) override;
   int modify_param(int, char **) override;
@@ -83,10 +81,7 @@ class FixBondReact : public Fix {
   std::vector<Reaction> rxns;
   TopologyMatcher *topo_matcher;
 
-  int nmax;                                                // max num local atoms
   int max_natoms;                                          // max natoms in a molecule template
-  tagint *partner, *finalpartner;
-  double **distsq;
   unsigned shuffle_seed;                                   // user-provided value for the 'shuffle_seed' common keyword
 
   Fix *fix1;                                               // nve/limit used to relax reaction sites
@@ -104,7 +99,6 @@ class FixBondReact : public Fix {
   std::string master_group;                                // group containing relaxing atoms from all fix rxns
   std::string exclude_group;                               // group for system-wide thermostat
 
-  Reaction *rxnptr;                                        // for reverse_comm
   int countflag, commflag;
   int nlevels_respa;
 

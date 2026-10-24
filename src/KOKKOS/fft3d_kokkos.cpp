@@ -24,6 +24,14 @@
 
 #include <cmath>
 
+#if defined(FFT_KOKKOS_FFTW_THREADS)
+// bookkeeping of FFTW plans shared with FFT3d, see KSPACE/fft3d.cpp
+extern "C" {
+void fft_3d_fftw_plan_created(int);
+int fft_3d_fftw_plan_destroyed();
+}
+#endif
+
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
@@ -700,6 +708,7 @@ struct fft_plan_3d_kokkos<DeviceType>* FFT3dKokkos<DeviceType>::fft_3d_create_pl
     FFTW_API(init_threads)();
     FFTW_API(plan_with_nthreads)(nthreads);
   }
+  fft_3d_fftw_plan_created(nthreads > 1);
 #endif
 
   plan->plan_fast_forward =
@@ -845,7 +854,7 @@ void FFT3dKokkos<DeviceType>::fft_3d_destroy_plan_kokkos(struct fft_plan_3d_kokk
   FFTW_API(destroy_plan)(plan->plan_fast_backward);
 
 #if defined (FFT_KOKKOS_FFTW_THREADS)
-  FFTW_API(cleanup_threads)();
+  if (fft_3d_fftw_plan_destroyed()) FFTW_API(cleanup_threads)();
 #endif
 
 #elif defined (FFT_KOKKOS_KISS)

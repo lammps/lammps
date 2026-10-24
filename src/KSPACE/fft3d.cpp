@@ -60,6 +60,35 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
+   Bookkeeping of the FFTW plans of FFT3d and FFT3dKokkos
+   FFTW keeps its thread support in global state shared by all plans, and
+   fftw_cleanup_threads() also does fftw_cleanup(), after which all existing
+   plans are undefined. So the thread support may only be cleaned up after
+   the last plan of either FFT3d or FFT3dKokkos is destroyed.
+------------------------------------------------------------------------- */
+
+static int fftw_nplans = 0;
+static int fftw_threads_initialized = 0;
+
+void fft_3d_fftw_plan_created(int threads_initialized)
+{
+  ++fftw_nplans;
+  if (threads_initialized) fftw_threads_initialized = 1;
+}
+
+// returns 1 if the last plan was destroyed and the FFTW thread support
+// was initialized, i.e. fftw_cleanup_threads() should be called now
+
+int fft_3d_fftw_plan_destroyed()
+{
+  if (--fftw_nplans > 0) return 0;
+  fftw_nplans = 0;
+  const int cleanup = fftw_threads_initialized;
+  fftw_threads_initialized = 0;
+  return cleanup;
+}
+
+/* ----------------------------------------------------------------------
    Perform 3d FFT
 
    Arguments:
@@ -528,6 +557,7 @@ struct fft_plan_3d *fft_3d_create_plan(
     FFTW_API(init_threads)();
     FFTW_API(plan_with_nthreads)(nthreads);
   }
+  fft_3d_fftw_plan_created(nthreads > 1);
 #endif
 
   plan->plan_fast_forward =
@@ -628,7 +658,7 @@ void fft_3d_destroy_plan(struct fft_plan_3d *plan)
   FFTW_API(destroy_plan)(plan->plan_fast_forward);
   FFTW_API(destroy_plan)(plan->plan_fast_backward);
 #if defined(FFT_FFTW_THREADS)
-  FFTW_API(cleanup_threads)();
+  if (fft_3d_fftw_plan_destroyed()) FFTW_API(cleanup_threads)();
 #endif
 #else
   if (plan->cfg_slow_forward != plan->cfg_fast_forward &&

@@ -117,10 +117,10 @@ void PairLJClass2SoftOMP::eval(int iifrom, int iito, ThrData * const thr)
       jtype = type[j];
 
       if (rsq < cutsq[itype][jtype]) {
-        denlj = lj3[itype][jtype] + pow(rsq, 3) * pow(sigma[itype][jtype], -6.0);
         r4sig6 = rsq*rsq / lj2[itype][jtype];
+        denlj = lj3[itype][jtype] + rsq*r4sig6;
         forcelj = lj1[itype][jtype] * epsilon[itype][jtype] *
-            (18.0*r4sig6*pow(denlj, -2.5) - 18.0*r4sig6*pow(denlj, -2));
+          18.0*r4sig6*(1.0/sqrt(denlj) - 1.0)/(denlj*denlj);
         fpair = factor_lj*forcelj;
 
         f[i][0] += delx*fpair;
@@ -133,8 +133,7 @@ void PairLJClass2SoftOMP::eval(int iifrom, int iito, ThrData * const thr)
         }
 
         if (EFLAG) {
-          denlj = lj3[itype][jtype] + pow(rsq, 3) * pow(sigma[itype][jtype], -6.0);
-          evdwl = lj1[itype][jtype] * epsilon[itype][jtype] * (2.0/(denlj*sqrt(denlj)) - 3.0/denlj) -
+          evdwl = lj1[itype][jtype] * epsilon[itype][jtype] * (2.0/sqrt(denlj) - 3.0)/denlj -
             offset[itype][jtype];
           evdwl *= factor_lj;
         }

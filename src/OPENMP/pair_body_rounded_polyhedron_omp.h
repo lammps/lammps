@@ -27,25 +27,44 @@ PairStyle(body/rounded/polyhedron/omp,PairBodyRoundedPolyhedronOMP);
 #include "pair_body_rounded_polyhedron.h"
 #include "thr_omp.h"
 
+#include <vector>
+
 namespace LAMMPS_NS {
 
-class PairBodyRoundedPolyhedronOMP : public PairBodyRoundedPolyhedron, public ThrOMP {
+// threaded compute of pair style body/rounded/polyhedron and of the pair
+// styles derived from it, given as BASE, which provide the contact models.
+// The member functions are defined in pair_body_rounded_polyhedron_omp_impl.h
+// and instantiated in the source file of each threaded style.
+
+template <class BASE> class PairBodyRoundedPolyhedronOMPT : public BASE, public ThrOMP {
 
  public:
-  PairBodyRoundedPolyhedronOMP(class LAMMPS *);
-  ~PairBodyRoundedPolyhedronOMP() override;
+  PairBodyRoundedPolyhedronOMPT(class LAMMPS *);
+  ~PairBodyRoundedPolyhedronOMPT() override;
 
   void compute(int, int) override;
   double memory_usage() override;
 
+ protected:
+  // set up the per-thread data of the contact models before the threaded loop
+  virtual void init_thr(int /*nthreads*/) {}
+
  private:
-  double **fnc_thr;                     // per-thread fnc, see PairBodyRoundedPolyhedron
-  int nmax_thr;                         // allocated number of atoms per thread in fnc_thr
-  std::vector<Scratch> scratch_thr;    // per-thread scratch space
+  double **fnc_thr;    // per-thread fnc, see PairBodyRoundedPolyhedron
+  int nmax_thr;        // allocated number of atoms per thread in fnc_thr
+  std::vector<PairBodyRoundedPolyhedron::Scratch> scratch_thr;    // per-thread scratch space
 
   template <int EVFLAG, int EFLAG, int NEWTON_PAIR>
-  void eval(int ifrom, int ito, ThrData *const thr, double **fnc_t, Scratch &s);
+  void eval(int ifrom, int ito, ThrData *const thr, double **fnc_t,
+            PairBodyRoundedPolyhedron::Scratch &s);
 };
+
+class PairBodyRoundedPolyhedronOMP : public PairBodyRoundedPolyhedronOMPT<PairBodyRoundedPolyhedron> {
+ public:
+  PairBodyRoundedPolyhedronOMP(class LAMMPS *);
+};
+
+extern template class PairBodyRoundedPolyhedronOMPT<PairBodyRoundedPolyhedron>;
 
 }    // namespace LAMMPS_NS
 

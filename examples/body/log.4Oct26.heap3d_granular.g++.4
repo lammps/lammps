@@ -1,0 +1,224 @@
+LAMMPS (2 Sep 2026)
+  using 1 OpenMP thread(s) per MPI task
+# heap of 3d rounded polyhedron bodies with the contact models of the
+# GRANULAR package
+#
+# as in.heap3d, cubes and tetrahedra are poured onto the floor, where they
+# come to rest in a heap, and then gravity is tilted by 20 degrees.  Here
+# the contacts between the bodies use the sub-models of pair style granular:
+# a Hertzian normal force from the elastic properties of each body type,
+# mixed for contacts between cubes and tetrahedra, a damping proportional to
+# the effective mass, and a tangential spring with the contact history,
+# whose static friction keeps the tilted heap at rest (tan 20 degrees < mu),
+# as the x coordinate of its center of mass (v_xcm) shows.  The floor uses
+# the same contact models with fix wall/body/polyhedron/granular.
+# The stiffness E is chosen so that the normal force at an overlap of 0.05
+# at a vertex is about that of k_n = 100 in in.heap3d.
+
+variable    steps       index 10000
+variable    steps_tilt  index 10000
+variable    tilt        index 20.0
+
+units       lj
+boundary    p p fm
+comm_modify vel yes
+
+atom_style  body rounded/polyhedron 1 8
+atom_modify map array
+
+region      reg block 0 20 0 20 0 40 units box
+create_box  2 reg
+Created orthogonal box = (0 0 0) to (20 20 40)
+  1 by 1 by 4 MPI processor grid
+
+variable cut_inner  equal 0.5
+variable A_ua       equal 1
+variable k_na       equal 1
+variable damp       equal 20
+variable k_t        equal 30
+variable xt         equal 0.25
+variable mu         equal 0.5
+
+# type 1 = cubes, type 2 = tetrahedra, the coefficients of
+# cube-tetrahedron contacts are mixed
+
+pair_style body/rounded/polyhedron/granular ${A_ua} ${cut_inner}
+pair_style body/rounded/polyhedron/granular 1 ${cut_inner}
+pair_style body/rounded/polyhedron/granular 1 0.5
+pair_coeff 1 1 hertz/material 1200 ${damp} 0.3 damping mass_velocity            tangential linear_history ${k_t} ${xt} ${mu} cohesion ${k_na}
+pair_coeff 1 1 hertz/material 1200 20 0.3 damping mass_velocity            tangential linear_history ${k_t} ${xt} ${mu} cohesion ${k_na}
+pair_coeff 1 1 hertz/material 1200 20 0.3 damping mass_velocity            tangential linear_history 30 ${xt} ${mu} cohesion ${k_na}
+pair_coeff 1 1 hertz/material 1200 20 0.3 damping mass_velocity            tangential linear_history 30 0.25 ${mu} cohesion ${k_na}
+pair_coeff 1 1 hertz/material 1200 20 0.3 damping mass_velocity            tangential linear_history 30 0.25 0.5 cohesion ${k_na}
+pair_coeff 1 1 hertz/material 1200 20 0.3 damping mass_velocity            tangential linear_history 30 0.25 0.5 cohesion 1
+pair_coeff 2 2 hertz/material 800 ${damp} 0.25 damping mass_velocity            tangential linear_history ${k_t} ${xt} ${mu} cohesion ${k_na}
+pair_coeff 2 2 hertz/material 800 20 0.25 damping mass_velocity            tangential linear_history ${k_t} ${xt} ${mu} cohesion ${k_na}
+pair_coeff 2 2 hertz/material 800 20 0.25 damping mass_velocity            tangential linear_history 30 ${xt} ${mu} cohesion ${k_na}
+pair_coeff 2 2 hertz/material 800 20 0.25 damping mass_velocity            tangential linear_history 30 0.25 ${mu} cohesion ${k_na}
+pair_coeff 2 2 hertz/material 800 20 0.25 damping mass_velocity            tangential linear_history 30 0.25 0.5 cohesion ${k_na}
+pair_coeff 2 2 hertz/material 800 20 0.25 damping mass_velocity            tangential linear_history 30 0.25 0.5 cohesion 1
+
+neighbor     0.5 bin
+neigh_modify every 1 delay 0 check yes
+
+timestep     0.002
+
+fix          1 all nve/body
+fix          2 all gravity 1.0 vector 0.0 0.0 -1.0
+
+molecule     object molecule.cube molecule.tetra toff 1
+Read molecule template object:
+# 3d polygon body: cubes, moment of inertia I = m edge^2/ 6
+  1 molecules
+  0 fragments
+  1 bodies
+  1 atoms with max type 1
+  0 bonds with max type 0
+  0 angles with max type 0
+  0 dihedrals with max type 0
+  0 impropers with max type 0
+Read molecule template object:
+# 3d polygon body: regular tetrahedra, moment of inertia I = m edge^2/ 20
+  1 molecules
+  0 fragments
+  1 bodies
+  1 atoms with max type 2
+  0 bonds with max type 0
+  0 angles with max type 0
+  0 dihedrals with max type 0
+  0 impropers with max type 0
+region       slab block 2 18 2 18 4 20 units box
+
+fix          ins all pour 50 0 4767548 vol 0.25 10 region slab mol object              molfrac 0.5 0.5
+
+# the floor has the elastic properties and friction of the cubes
+
+fix          4 all wall/body/polyhedron/granular hertz/material 1200 ${damp} 0.3              damping mass_velocity tangential linear_history ${k_t} ${xt} ${mu}              zplane 0.0 NULL
+fix          4 all wall/body/polyhedron/granular hertz/material 1200 20 0.3              damping mass_velocity tangential linear_history ${k_t} ${xt} ${mu}              zplane 0.0 NULL
+fix          4 all wall/body/polyhedron/granular hertz/material 1200 20 0.3              damping mass_velocity tangential linear_history 30 ${xt} ${mu}              zplane 0.0 NULL
+fix          4 all wall/body/polyhedron/granular hertz/material 1200 20 0.3              damping mass_velocity tangential linear_history 30 0.25 ${mu}              zplane 0.0 NULL
+fix          4 all wall/body/polyhedron/granular hertz/material 1200 20 0.3              damping mass_velocity tangential linear_history 30 0.25 0.5              zplane 0.0 NULL
+
+compute      tb all temp/body
+compute_modify thermo_temp dynamic/dof yes
+compute_modify tb dynamic/dof yes
+variable     xcm equal xcm(all,x)
+thermo_style custom step atoms ke c_tb pe v_xcm
+thermo_modify norm yes
+thermo       1000
+
+#dump         2 all image 1000 image.*.jpg type type body type 0.05 3 #             fix 4 type 0 0 view 75 15 center s 0.5 0.5 0.3 zoom 1.4 box no 0.0
+#dump_modify  2 pad 6
+
+run          ${steps}
+run          10000
+Generated 0 of 1 mixed pair_coeff terms from geometric mixing rule
+Particle insertion: 31 every 2828 steps, 50 by step 2829
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 4.9641016
+  ghost atom cutoff = 4.9641016
+  binsize = 2.4820508, bins = 9 9 17
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair body/rounded/polyhedron/granular, perpetual
+      attributes: half, newton on, history
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 5.78 | 5.78 | 5.78 Mbytes
+   Step        Atoms        KinEng          c_tb          PotEng         v_xcm     
+         0           0  -0              0              0              0            
+      1000          31   5.3535377      1.8189737     -0.0091698929   9.9629115    
+      2000          31   4.5096332      1.5781722     -0.071324004    10.005264    
+      3000          50   2.7083855      0.96090062    -0.11893219     9.5230085    
+      4000          50   2.2561209      0.77283358    -0.18638249     9.4411312    
+      5000          50   1.0595699      0.3669783     -0.31371386     9.4033151    
+      6000          50   0.025467899    0.011507375   -0.37239754     9.460467     
+      7000          50   0.0010480273   0.00048658486 -0.40795109     9.476152     
+      8000          50   0.00048899335  0.00021468384 -0.40824981     9.4667313    
+      9000          50   0.00059375637  0.00026034204 -0.41100089     9.4554328    
+     10000          50   0.00041056289  0.00026296838 -0.41172726     9.4464469    
+Loop time of 10.2065 on 4 procs for 10000 steps with 50 atoms
+
+Performance: 169304.579 tau/day, 979.772 timesteps/s, 48.989 katom-step/s
+99.9% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.0014106  | 2.9993     | 9.9523     | 236.7 | 29.39
+Neigh   | 0.00029709 | 0.0010447  | 0.002769   |   3.1 |  0.01
+Comm    | 0.0064995  | 0.023035   | 0.03837    |   8.8 |  0.23
+Output  | 0.00036683 | 0.0077786  | 0.011202   |   5.0 |  0.08
+Modify  | 0.0037991  | 0.04926    | 0.17829    |  33.6 |  0.48
+Other   |            | 7.126      |            |       | 69.82
+
+Nlocal:           12.5 ave          50 max           0 min
+Histogram: 3 0 0 0 0 0 0 0 0 1
+Nghost:          14.25 ave          57 max           0 min
+Histogram: 3 0 0 0 0 0 0 0 0 1
+Neighs:          54.25 ave         217 max           0 min
+Histogram: 3 0 0 0 0 0 0 0 0 1
+
+Total # of neighbors = 217
+Ave neighs/atom = 4.34
+Neighbor list builds = 266
+Dangerous builds = 0
+
+# tilt gravity: the heap stays at rest
+# fix pour requires gravity along -z, and all bodies are inserted by now
+
+variable     sx equal sin(${tilt}*PI/180.0)
+variable     sx equal sin(20.0*PI/180.0)
+variable     sz equal -cos(${tilt}*PI/180.0)
+variable     sz equal -cos(20.0*PI/180.0)
+unfix        ins
+unfix        2
+fix          2 all gravity 1.0 vector ${sx} 0.0 ${sz}
+fix          2 all gravity 1.0 vector 0.342020143325669 0.0 ${sz}
+fix          2 all gravity 1.0 vector 0.342020143325669 0.0 -0.939692620785908
+
+run          ${steps_tilt}
+run          10000
+Generated 0 of 1 mixed pair_coeff terms from geometric mixing rule
+Per MPI rank memory allocation (min/avg/max) = 5.781 | 12.18 | 14.46 Mbytes
+   Step        Atoms        KinEng          c_tb          PotEng         v_xcm     
+     10000          50   0.00041056289  0.00026296838 -0.41172726     9.4464469    
+     11000          50   0.0060618892   0.0024252982  -0.41423033     9.5762004    
+     12000          50   0.0093145919   0.0044187519  -0.42045826     9.7127015    
+     13000          50   0.00020698457  9.1342463e-05 -0.42202769     9.7363239    
+     14000          50   1.8976431e-06  8.5814162e-07 -0.42264844     9.7381359    
+     15000          50   2.5055791e-06  1.0342025e-06 -0.42270252     9.7368323    
+     16000          50   7.5538934e-07  3.0348824e-07 -0.422682       9.7372997    
+     17000          50   2.6478782e-08  1.0696654e-08 -0.42269141     9.7373492    
+     18000          50   8.4307675e-09  3.4262486e-09 -0.42269123     9.7372392    
+     19000          50   4.583456e-09   1.7973096e-09 -0.42268998     9.7372837    
+     20000          50   3.3202625e-10  1.2702899e-10 -0.42269068     9.7372848    
+Loop time of 16.3402 on 4 procs for 10000 steps with 50 atoms
+
+Performance: 105751.516 tau/day, 611.988 timesteps/s, 30.599 katom-step/s
+100.0% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.0012128  | 4.0154     | 16.057     | 346.9 | 24.57
+Neigh   | 1.269e-05  | 3.9111e-05 | 0.00011449 |   0.0 |  0.00
+Comm    | 0.0035912  | 0.0098592  | 0.02746    |  10.2 |  0.06
+Output  | 0.00038999 | 0.012478   | 0.016514   |   6.2 |  0.08
+Modify  | 0.0018383  | 0.055974   | 0.21757    |  39.4 |  0.34
+Other   |            | 12.25      |            |       | 74.95
+
+Nlocal:           12.5 ave          50 max           0 min
+Histogram: 3 0 0 0 0 0 0 0 0 1
+Nghost:           13.5 ave          54 max           0 min
+Histogram: 3 0 0 0 0 0 0 0 0 1
+Neighs:           54.5 ave         218 max           0 min
+Histogram: 3 0 0 0 0 0 0 0 0 1
+
+Total # of neighbors = 218
+Ave neighs/atom = 4.36
+Neighbor list builds = 7
+Dangerous builds = 0
+Total wall time: 0:00:26

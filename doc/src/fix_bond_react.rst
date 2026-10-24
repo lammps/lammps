@@ -713,7 +713,7 @@ Custom Constraint
 ^^^^^^^^^^^^^^^^^
 
 The 'custom' constraint type allows you to define reaction constraints
-using any valid LAMMPS variable, using the syntax below
+using any valid LAMMPS variable, with the syntax:
 
 .. parsed-literal::
 

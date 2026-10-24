@@ -221,6 +221,55 @@ extern void borncw_gpu_compute(const int ago, const int inum_full, const int nal
                                double *boxlo, double *prd);
 extern double borncw_gpu_bytes();
 
+// pair born/coul/dsf
+extern int born_coul_dsf_gpu_init(const int ntypes, double **cutsq, double **host_rhoinv,
+                                  double **host_born1, double **host_born2, double **host_born3,
+                                  double **host_a, double **host_c, double **host_d, double **sigma,
+                                  double **offset, double *special_lj, const int inum,
+                                  const int nall, const int max_nbors, const int maxspecial,
+                                  const double cell_size, int &gpu_mode, FILE *screen,
+                                  double **host_cut_ljsq, double host_cut_coulsq,
+                                  double *host_special_coul, const double qqrd2e,
+                                  const double alpha, const double e_shift, const double f_shift);
+extern void born_coul_dsf_gpu_clear();
+extern int **born_coul_dsf_gpu_compute_n(const int ago, const int inum_full, const int nall,
+                                         double **host_x, int *host_type, double *sublo,
+                                         double *subhi, tagint *tag, int **nspecial,
+                                         tagint **special, const bool eflag, const bool vflag,
+                                         const bool eatom, const bool vatom, int **ilist,
+                                         int **jnum, bool &success, double *host_q, double *boxlo,
+                                         double *prd, int *periodicity);
+extern void born_coul_dsf_gpu_compute(const int ago, const int inum_full, const int nall,
+                                      double **host_x, int *host_type, int *ilist, int *numj,
+                                      int **firstneigh, const bool eflag, const bool vflag,
+                                      const bool eatom, const bool vatom, bool &success,
+                                      double *host_q, const int nlocal, double *boxlo, double *prd);
+extern double born_coul_dsf_gpu_bytes();
+
+// pair born/coul/dsf/cs
+extern int born_coul_dsf_cs_gpu_init(
+    const int ntypes, double **cutsq, double **host_rhoinv, double **host_born1,
+    double **host_born2, double **host_born3, double **host_a, double **host_c, double **host_d,
+    double **sigma, double **offset, double *special_lj, const int inum, const int nall,
+    const int max_nbors, const int maxspecial, const double cell_size, int &gpu_mode, FILE *screen,
+    double **host_cut_ljsq, double host_cut_coulsq, double *host_special_coul, const double qqrd2e,
+    const double alpha, const double e_shift, const double f_shift);
+extern void born_coul_dsf_cs_gpu_clear();
+extern int **born_coul_dsf_cs_gpu_compute_n(const int ago, const int inum_full, const int nall,
+                                            double **host_x, int *host_type, double *sublo,
+                                            double *subhi, tagint *tag, int **nspecial,
+                                            tagint **special, const bool eflag, const bool vflag,
+                                            const bool eatom, const bool vatom, int **ilist,
+                                            int **jnum, bool &success, double *host_q,
+                                            double *boxlo, double *prd, int *periodicity);
+extern void born_coul_dsf_cs_gpu_compute(const int ago, const int inum_full, const int nall,
+                                         double **host_x, int *host_type, int *ilist, int *numj,
+                                         int **firstneigh, const bool eflag, const bool vflag,
+                                         const bool eatom, const bool vatom, bool &success,
+                                         double *host_q, const int nlocal, double *boxlo,
+                                         double *prd);
+extern double born_coul_dsf_cs_gpu_bytes();
+
 // pair born
 extern int born_gpu_init(const int ntypes, double **cutsq, double **host_rhoinv,
                          double **host_born1, double **host_born2, double **host_born3,
@@ -287,6 +336,31 @@ extern void buckcl_gpu_compute(const int ago, const int inum_full, const int nal
                                double *boxlo, double *prd);
 extern double buckcl_gpu_bytes();
 
+// pair buck/coul/long/cs
+extern int buck_coul_long_cs_gpu_init(const int ntypes, double **cutsq, double **host_rhoinv,
+                                      double **host_buck1, double **host_buck2, double **host_a,
+                                      double **host_c, double **offset, double *special_lj,
+                                      const int inum, const int nall, const int max_nbors,
+                                      const int maxspecial, const double cell_size, int &gpu_mode,
+                                      FILE *screen, double **host_cut_ljsq, double host_cut_coulsq,
+                                      double *host_special_coul, const double qqrd2e,
+                                      const double g_ewald);
+extern void buck_coul_long_cs_gpu_clear();
+extern int **buck_coul_long_cs_gpu_compute_n(const int ago, const int inum_full, const int nall,
+                                             double **host_x, int *host_type, double *sublo,
+                                             double *subhi, tagint *tag, int **nspecial,
+                                             tagint **special, const bool eflag, const bool vflag,
+                                             const bool eatom, const bool vatom, int **ilist,
+                                             int **jnum, bool &success, double *host_q,
+                                             double *boxlo, double *prd, int *periodicity);
+extern void buck_coul_long_cs_gpu_compute(const int ago, const int inum_full, const int nall,
+                                          double **host_x, int *host_type, int *ilist, int *numj,
+                                          int **firstneigh, const bool eflag, const bool vflag,
+                                          const bool eatom, const bool vatom, bool &success,
+                                          double *host_q, const int nlocal, double *boxlo,
+                                          double *prd);
+extern double buck_coul_long_cs_gpu_bytes();
+
 // pair buck
 extern int buck_gpu_init(const int ntypes, double **cutsq, double **host_rhoinv,
                          double **host_buck1, double **host_buck2, double **host_a, double **host_c,
@@ -350,6 +424,51 @@ extern void coul_gpu_compute(const int ago, const int inum, const int nall, doub
                              double *prd);
 extern double coul_gpu_bytes();
 
+// pair coul/cut/soft
+extern int coul_cut_soft_gpu_init(const int ntypes, double **host_lam1, double **host_lam2,
+                                  double **cutsq, double *special_coul, const int nlocal,
+                                  const int nall, const int max_nbors, const int maxspecial,
+                                  const double cell_size, int &gpu_mode, FILE *screen,
+                                  const double qqrd2e);
+extern void coul_cut_soft_gpu_reinit(const int ntypes, double **host_lam1, double **host_lam2);
+extern void coul_cut_soft_gpu_clear();
+extern int **coul_cut_soft_gpu_compute_n(const int ago, const int inum, const int nall,
+                                         double **host_x, int *host_type, double *sublo,
+                                         double *subhi, tagint *tag, int **nspecial,
+                                         tagint **special, const bool eflag, const bool vflag,
+                                         const bool eatom, const bool vatom, int **ilist,
+                                         int **jnum, bool &success, double *host_q, double *boxlo,
+                                         double *prd, int *periodicity);
+extern void coul_cut_soft_gpu_compute(const int ago, const int inum, const int nall,
+                                      double **host_x, int *host_type, int *ilist, int *numj,
+                                      int **firstneigh, const bool eflag, const bool vflag,
+                                      const bool eatom, const bool vatom, bool &success,
+                                      double *host_q, const int nlocal, double *boxlo, double *prd);
+extern double coul_cut_soft_gpu_bytes();
+
+// pair coul/slater/cut
+extern int coul_slater_cut_gpu_init(const int ntypes, double **host_scale, double **cutsq,
+                                    double *special_coul, const int nlocal, const int nall,
+                                    const int max_nbors, const int maxspecial,
+                                    const double cell_size, int &gpu_mode, FILE *screen,
+                                    const double qqrd2e, const double lamda);
+extern void coul_slater_cut_gpu_reinit(const int ntypes, double **host_scale);
+extern void coul_slater_cut_gpu_clear();
+extern int **coul_slater_cut_gpu_compute_n(const int ago, const int inum, const int nall,
+                                           double **host_x, int *host_type, double *sublo,
+                                           double *subhi, tagint *tag, int **nspecial,
+                                           tagint **special, const bool eflag, const bool vflag,
+                                           const bool eatom, const bool vatom, int **ilist,
+                                           int **jnum, bool &success, double *host_q, double *boxlo,
+                                           double *prd, int *periodicity);
+extern void coul_slater_cut_gpu_compute(const int ago, const int inum, const int nall,
+                                        double **host_x, int *host_type, int *ilist, int *numj,
+                                        int **firstneigh, const bool eflag, const bool vflag,
+                                        const bool eatom, const bool vatom, bool &success,
+                                        double *host_q, const int nlocal, double *boxlo,
+                                        double *prd);
+extern double coul_slater_cut_gpu_bytes();
+
 // pair coul/debye
 extern int cdebye_gpu_init(const int ntypes, double **host_scale, double **cutsq,
                            double *special_coul, const int nlocal, const int nall,
@@ -390,6 +509,47 @@ extern void cdsf_gpu_compute(const int ago, const int inum, const int nall, doub
                              double *prd);
 extern double cdsf_gpu_bytes();
 
+// pair coul/wolf
+extern int coul_wolf_gpu_init(const int ntypes, const int nlocal, const int nall,
+                              const int max_nbors, const int maxspecial, const double cell_size,
+                              int &gpu_mode, FILE *screen, const double host_cut_coulsq,
+                              double *host_special_coul, const double qqrd2e, const double e_shift,
+                              const double f_shift, const double alpha);
+extern void coul_wolf_gpu_clear();
+extern int **coul_wolf_gpu_compute_n(const int ago, const int inum, const int nall, double **host_x,
+                                     int *host_type, double *sublo, double *subhi, tagint *tag,
+                                     int **nspecial, tagint **special, const bool eflag,
+                                     const bool vflag, const bool eatom, const bool vatom,
+                                     int **ilist, int **jnum, bool &success, double *host_q,
+                                     double *boxlo, double *prd, int *periodicity);
+extern void coul_wolf_gpu_compute(const int ago, const int inum, const int nall, double **host_x,
+                                  int *host_type, int *ilist, int *numj, int **firstneigh,
+                                  const bool eflag, const bool vflag, const bool eatom,
+                                  const bool vatom, bool &success, double *host_q, const int nlocal,
+                                  double *boxlo, double *prd);
+extern double coul_wolf_gpu_bytes();
+
+// pair coul/wolf/cs
+extern int coul_wolf_cs_gpu_init(const int ntypes, const int nlocal, const int nall,
+                                 const int max_nbors, const int maxspecial, const double cell_size,
+                                 int &gpu_mode, FILE *screen, const double host_cut_coulsq,
+                                 double *host_special_coul, const double qqrd2e,
+                                 const double e_shift, const double f_shift, const double alpha);
+extern void coul_wolf_cs_gpu_clear();
+extern int **coul_wolf_cs_gpu_compute_n(const int ago, const int inum, const int nall,
+                                        double **host_x, int *host_type, double *sublo,
+                                        double *subhi, tagint *tag, int **nspecial,
+                                        tagint **special, const bool eflag, const bool vflag,
+                                        const bool eatom, const bool vatom, int **ilist, int **jnum,
+                                        bool &success, double *host_q, double *boxlo, double *prd,
+                                        int *periodicity);
+extern void coul_wolf_cs_gpu_compute(const int ago, const int inum, const int nall, double **host_x,
+                                     int *host_type, int *ilist, int *numj, int **firstneigh,
+                                     const bool eflag, const bool vflag, const bool eatom,
+                                     const bool vatom, bool &success, double *host_q,
+                                     const int nlocal, double *boxlo, double *prd);
+extern double coul_wolf_cs_gpu_bytes();
+
 // pair coul/long/cs
 extern int clcs_gpu_init(const int ntypes, double **scale, const int nlocal, const int nall,
                          const int max_nbors, const int maxspecial, const double cell_size,
@@ -429,6 +589,30 @@ extern void cl_gpu_compute(const int ago, const int inum, const int nall, double
                            bool &success, double *host_q, const int nlocal, double *boxlo,
                            double *prd);
 extern double cl_gpu_bytes();
+
+// pair coul/long/soft
+extern int coul_long_soft_gpu_init(const int ntypes, double **scale, double **lam1, double **lam2,
+                                   const int nlocal, const int nall, const int max_nbors,
+                                   const int maxspecial, const double cell_size, int &gpu_mode,
+                                   FILE *screen, double host_cut_coulsq, double *host_special_coul,
+                                   const double qqrd2e, const double g_ewald);
+extern void coul_long_soft_gpu_reinit(const int ntypes, double **scale, double **lam1,
+                                      double **lam2);
+extern void coul_long_soft_gpu_clear();
+extern int **coul_long_soft_gpu_compute_n(const int ago, const int inum, const int nall,
+                                          double **host_x, int *host_type, double *sublo,
+                                          double *subhi, tagint *tag, int **nspecial,
+                                          tagint **special, const bool eflag, const bool vflag,
+                                          const bool eatom, const bool vatom, int **ilist,
+                                          int **jnum, bool &success, double *host_q, double *boxlo,
+                                          double *prd, int *periodicity);
+extern void coul_long_soft_gpu_compute(const int ago, const int inum, const int nall,
+                                       double **host_x, int *host_type, int *ilist, int *numj,
+                                       int **firstneigh, const bool eflag, const bool vflag,
+                                       const bool eatom, const bool vatom, bool &success,
+                                       double *host_q, const int nlocal, double *boxlo,
+                                       double *prd);
+extern double coul_long_soft_gpu_bytes();
 
 // pair coul/slater/long
 extern int csl_gpu_init(const int ntypes, double **scale, const int nlocal, const int nall,
@@ -757,6 +941,50 @@ extern void lj96_gpu_compute(const int ago, const int inum, const int nall, doub
                              bool &success);
 extern double lj96_gpu_bytes();
 
+// pair lj/cut/soft
+extern int lj_cut_soft_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
+                                double **host_lj2, double **host_lj3, double **host_epsilon,
+                                double **offset, double *special_lj, const int nlocal,
+                                const int nall, const int max_nbors, const int maxspecial,
+                                const double cell_size, int &gpu_mode, FILE *screen);
+extern void lj_cut_soft_gpu_reinit(const int ntypes, double **cutsq, double **host_lj1,
+                                   double **host_lj2, double **host_lj3, double **host_epsilon,
+                                   double **offset);
+extern void lj_cut_soft_gpu_clear();
+extern int **lj_cut_soft_gpu_compute_n(const int ago, const int inum, const int nall,
+                                       double **host_x, int *host_type, double *sublo,
+                                       double *subhi, tagint *tag, int **nspecial, tagint **special,
+                                       const bool eflag, const bool vflag, const bool eatom,
+                                       const bool vatom, int **ilist, int **jnum, bool &success,
+                                       double *prd, int *periodicity);
+extern void lj_cut_soft_gpu_compute(const int ago, const int inum, const int nall, double **host_x,
+                                    int *host_type, int *ilist, int *numj, int **firstneigh,
+                                    const bool eflag, const bool vflag, const bool eatom,
+                                    const bool vatom, bool &success);
+extern double lj_cut_soft_gpu_bytes();
+
+// pair lj/class2/soft
+extern int lj_class2_soft_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
+                                   double **host_lj2, double **host_lj3, double **host_epsilon,
+                                   double **offset, double *special_lj, const int nlocal,
+                                   const int nall, const int max_nbors, const int maxspecial,
+                                   const double cell_size, int &gpu_mode, FILE *screen);
+extern void lj_class2_soft_gpu_reinit(const int ntypes, double **cutsq, double **host_lj1,
+                                      double **host_lj2, double **host_lj3, double **host_epsilon,
+                                      double **offset);
+extern void lj_class2_soft_gpu_clear();
+extern int **lj_class2_soft_gpu_compute_n(const int ago, const int inum, const int nall,
+                                          double **host_x, int *host_type, double *sublo,
+                                          double *subhi, tagint *tag, int **nspecial,
+                                          tagint **special, const bool eflag, const bool vflag,
+                                          const bool eatom, const bool vatom, int **ilist,
+                                          int **jnum, bool &success, double *prd, int *periodicity);
+extern void lj_class2_soft_gpu_compute(const int ago, const int inum, const int nall,
+                                       double **host_x, int *host_type, int *ilist, int *numj,
+                                       int **firstneigh, const bool eflag, const bool vflag,
+                                       const bool eatom, const bool vatom, bool &success);
+extern double lj_class2_soft_gpu_bytes();
+
 // pair lj/charmm/coul/charmm
 extern int crm_gpu_init(const int ntypes, double cut_bothsq, double **host_lj1, double **host_lj2,
                         double **host_lj3, double **host_lj4, double *special_lj, const int nlocal,
@@ -803,6 +1031,53 @@ extern void crml_gpu_compute(const int ago, const int inum, const int nall, doub
                              double *prd);
 extern double crml_gpu_bytes();
 
+// pair lj/charmmfsw/coul/long
+extern int charmmfsw_long_gpu_init(
+    const int ntypes, double cut_bothsq, double **host_lj1, double **host_lj2, double **host_lj3,
+    double **host_lj4, double **offset, double *special_lj, const int nlocal, const int nall,
+    const int max_nbors, const int maxspecial, const double cell_size, int &gpu_mode, FILE *screen,
+    double host_cut_ljsq, double host_cut_coulsq, double *host_special_coul, const double qqrd2e,
+    const double g_ewald, const double cut_lj_innersq, const double denom_lj, double **epsilon,
+    double **sigma, const bool mix_arithmetic, double *host_fsw);
+extern void charmmfsw_long_gpu_clear();
+extern int **charmmfsw_long_gpu_compute_n(const int ago, const int inum, const int nall,
+                                          double **host_x, int *host_type, double *sublo,
+                                          double *subhi, tagint *tag, int **nspecial,
+                                          tagint **special, const bool eflag, const bool vflag,
+                                          const bool eatom, const bool vatom, int **ilist,
+                                          int **jnum, bool &success, double *host_q, double *boxlo,
+                                          double *prd, int *periodicity);
+extern void charmmfsw_long_gpu_compute(const int ago, const int inum, const int nall,
+                                       double **host_x, int *host_type, int *ilist, int *numj,
+                                       int **firstneigh, const bool eflag, const bool vflag,
+                                       const bool eatom, const bool vatom, bool &success,
+                                       double *host_q, const int nlocal, double *boxlo,
+                                       double *prd);
+extern double charmmfsw_long_gpu_bytes();
+
+// pair lj/charmmfsw/coul/charmmfsh
+extern int charmmfsw_fsh_gpu_init(
+    const int ntypes, double cut_bothsq, double **host_lj1, double **host_lj2, double **host_lj3,
+    double **host_lj4, double **offset, double *special_lj, const int nlocal, const int nall,
+    const int max_nbors, const int maxspecial, const double cell_size, int &gpu_mode, FILE *screen,
+    double host_cut_ljsq, double host_cut_coulsq, double *host_special_coul, const double qqrd2e,
+    const double cut_coulinv, const double cut_lj_innersq, const double denom_lj, double **epsilon,
+    double **sigma, const bool mix_arithmetic, double *host_fsw);
+extern void charmmfsw_fsh_gpu_clear();
+extern int **charmmfsw_fsh_gpu_compute_n(const int ago, const int inum, const int nall,
+                                         double **host_x, int *host_type, double *sublo,
+                                         double *subhi, tagint *tag, int **nspecial,
+                                         tagint **special, const bool eflag, const bool vflag,
+                                         const bool eatom, const bool vatom, int **ilist,
+                                         int **jnum, bool &success, double *host_q, double *boxlo,
+                                         double *prd, int *periodicity);
+extern void charmmfsw_fsh_gpu_compute(const int ago, const int inum, const int nall,
+                                      double **host_x, int *host_type, int *ilist, int *numj,
+                                      int **firstneigh, const bool eflag, const bool vflag,
+                                      const bool eatom, const bool vatom, bool &success,
+                                      double *host_q, const int nlocal, double *boxlo, double *prd);
+extern double charmmfsw_fsh_gpu_bytes();
+
 // pair lj/class2/coul/long
 extern int c2cl_gpu_init(const int ntypes, double **cutsq, double **host_lj1, double **host_lj2,
                          double **host_lj3, double **host_lj4, double **offset, double *special_lj,
@@ -823,6 +1098,29 @@ extern void c2cl_gpu_compute(const int ago, const int inum, const int nall, doub
                              bool &success, double *host_q, const int nlocal, double *boxlo,
                              double *prd);
 extern double c2cl_gpu_bytes();
+
+// pair lj/class2/coul/long/cs
+extern int lj_class2_coul_long_cs_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
+                                           double **host_lj2, double **host_lj3, double **host_lj4,
+                                           double **offset, double *special_lj, const int nlocal,
+                                           const int nall, const int max_nbors,
+                                           const int maxspecial, const double cell_size,
+                                           int &gpu_mode, FILE *screen, double **host_cut_ljsq,
+                                           double host_cut_coulsq, double *host_special_coul,
+                                           const double qqrd2e, const double g_ewald);
+extern void lj_class2_coul_long_cs_gpu_clear();
+extern int **lj_class2_coul_long_cs_gpu_compute_n(
+    const int ago, const int inum, const int nall, double **host_x, int *host_type, double *sublo,
+    double *subhi, tagint *tag, int **nspecial, tagint **special, const bool eflag,
+    const bool vflag, const bool eatom, const bool vatom, int **ilist, int **jnum, bool &success,
+    double *host_q, double *boxlo, double *prd, int *periodicity);
+extern void lj_class2_coul_long_cs_gpu_compute(const int ago, const int inum, const int nall,
+                                               double **host_x, int *host_type, int *ilist,
+                                               int *numj, int **firstneigh, const bool eflag,
+                                               const bool vflag, const bool eatom, const bool vatom,
+                                               bool &success, double *host_q, const int nlocal,
+                                               double *boxlo, double *prd);
+extern double lj_class2_coul_long_cs_gpu_bytes();
 
 // pair lj/cubic
 extern int ljcb_gpu_init(const int ntypes, double **cutsq, double **cut_inner_sq,
@@ -861,6 +1159,30 @@ extern void ljc_gpu_compute(const int ago, const int inum, const int nall, doubl
                             bool &success, double *host_q, const int nlocal, double *boxlo,
                             double *prd);
 extern double ljc_gpu_bytes();
+
+// pair lj/class2/coul/cut
+extern int lj_class2_coul_cut_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
+                                       double **host_lj2, double **host_lj3, double **host_lj4,
+                                       double **offset, double *special_lj, const int nlocal,
+                                       const int nall, const int max_nbors, const int maxspecial,
+                                       const double cell_size, int &gpu_mode, FILE *screen,
+                                       double **host_cut_ljsq, double **host_cut_coulsq,
+                                       double *host_special_coul, const double qqrd2e);
+extern void lj_class2_coul_cut_gpu_clear();
+extern int **lj_class2_coul_cut_gpu_compute_n(const int ago, const int inum, const int nall,
+                                              double **host_x, int *host_type, double *sublo,
+                                              double *subhi, tagint *tag, int **nspecial,
+                                              tagint **special, const bool eflag, const bool vflag,
+                                              const bool eatom, const bool vatom, int **ilist,
+                                              int **jnum, bool &success, double *host_q,
+                                              double *boxlo, double *prd, int *periodicity);
+extern void lj_class2_coul_cut_gpu_compute(const int ago, const int inum, const int nall,
+                                           double **host_x, int *host_type, int *ilist, int *numj,
+                                           int **firstneigh, const bool eflag, const bool vflag,
+                                           const bool eatom, const bool vatom, bool &success,
+                                           double *host_q, const int nlocal, double *boxlo,
+                                           double *prd);
+extern double lj_class2_coul_cut_gpu_bytes();
 
 // pair lj/cut/coul/cut/soft
 extern int ljcs_gpu_init(const int ntypes, double **cutsq, double **host_lj1, double **host_lj2,
@@ -926,6 +1248,29 @@ extern void ljd_gpu_compute(const int ago, const int inum, const int nall, doubl
                             double *prd);
 extern double ljd_gpu_bytes();
 
+// pair lj/cut/coul/wolf
+extern int lj_cut_coul_wolf_gpu_init(
+    const int ntypes, double **cutsq, double **host_lj1, double **host_lj2, double **host_lj3,
+    double **host_lj4, double **offset, double *special_lj, const int nlocal, const int nall,
+    const int max_nbors, const int maxspecial, const double cell_size, int &gpu_mode, FILE *screen,
+    double **host_cut_ljsq, const double host_cut_coulsq, double *host_special_coul,
+    const double qqrd2e, const double e_shift, const double f_shift, const double alpha);
+extern void lj_cut_coul_wolf_gpu_clear();
+extern int **lj_cut_coul_wolf_gpu_compute_n(const int ago, const int inum, const int nall,
+                                            double **host_x, int *host_type, double *sublo,
+                                            double *subhi, tagint *tag, int **nspecial,
+                                            tagint **special, const bool eflag, const bool vflag,
+                                            const bool eatom, const bool vatom, int **ilist,
+                                            int **jnum, bool &success, double *host_q,
+                                            double *boxlo, double *prd, int *periodicity);
+extern void lj_cut_coul_wolf_gpu_compute(const int ago, const int inum, const int nall,
+                                         double **host_x, int *host_type, int *ilist, int *numj,
+                                         int **firstneigh, const bool eflag, const bool vflag,
+                                         const bool eatom, const bool vatom, bool &success,
+                                         double *host_q, const int nlocal, double *boxlo,
+                                         double *prd);
+extern double lj_cut_coul_wolf_gpu_bytes();
+
 // pair lj/cut/coul/long
 extern int ljcl_gpu_init(const int ntypes, double **cutsq, double **host_lj1, double **host_lj2,
                          double **host_lj3, double **host_lj4, double **offset, double *special_lj,
@@ -950,6 +1295,34 @@ extern void ljcl_gpu_compute(const int ago, const int inum, const int nall, doub
                              double *prd);
 extern double ljcl_gpu_bytes();
 
+// pair lj/cut/coul/long/cs
+extern int lj_cut_coul_long_cs_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
+                                        double **host_lj2, double **host_lj3, double **host_lj4,
+                                        double **offset, double *special_lj, const int nlocal,
+                                        const int nall, const int max_nbors, const int maxspecial,
+                                        const double cell_size, int &gpu_mode, FILE *screen,
+                                        double **host_cut_ljsq, double host_cut_coulsq,
+                                        double *host_special_coul, const double qqrd2e,
+                                        const double g_ewald);
+extern void lj_cut_coul_long_cs_gpu_reinit(const int ntypes, double **cutsq, double **host_lj1,
+                                           double **host_lj2, double **host_lj3, double **host_lj4,
+                                           double **offset, double **host_lj_cutsq);
+extern void lj_cut_coul_long_cs_gpu_clear();
+extern int **lj_cut_coul_long_cs_gpu_compute_n(const int ago, const int inum, const int nall,
+                                               double **host_x, int *host_type, double *sublo,
+                                               double *subhi, tagint *tag, int **nspecial,
+                                               tagint **special, const bool eflag, const bool vflag,
+                                               const bool eatom, const bool vatom, int **ilist,
+                                               int **jnum, bool &success, double *host_q,
+                                               double *boxlo, double *prd, int *periodicity);
+extern void lj_cut_coul_long_cs_gpu_compute(const int ago, const int inum, const int nall,
+                                            double **host_x, int *host_type, int *ilist, int *numj,
+                                            int **firstneigh, const bool eflag, const bool vflag,
+                                            const bool eatom, const bool vatom, bool &success,
+                                            double *host_q, const int nlocal, double *boxlo,
+                                            double *prd);
+extern double lj_cut_coul_long_cs_gpu_bytes();
+
 // pair lj/cut/coul/long/soft
 extern int ljcls_gpu_init(const int ntypes, double **cutsq, double **host_lj1, double **host_lj2,
                           double **host_lj3, double **host_lj4, double **offset, double **epsilon,
@@ -973,6 +1346,33 @@ extern void ljcls_gpu_compute(const int ago, const int inum, const int nall, dou
                               const bool vatom, bool &success, double *host_q, const int nlocal,
                               double *boxlo, double *prd);
 extern double ljcls_gpu_bytes();
+
+// pair lj/charmm/coul/long/soft
+extern int charmm_coul_long_soft_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
+                                          double **host_lj2, double **host_lj3, double **host_lj4,
+                                          double **epsilon, double *special_lj,
+                                          const int nlocal, const int nall, const int max_nbors,
+                                          const int maxspecial, const double cell_size,
+                                          int &gpu_mode, FILE *screen, double host_cut_ljsq,
+                                          double host_cut_coulsq, double *host_special_coul,
+                                          const double qqrd2e, const double g_ewald,
+                                          const double cut_lj_innersq, const double denom_lj);
+extern void charmm_coul_long_soft_gpu_reinit(const int ntypes, double **cutsq, double **host_lj1,
+                                             double **host_lj2, double **host_lj3,
+                                             double **host_lj4, double **epsilon);
+extern void charmm_coul_long_soft_gpu_clear();
+extern int **charmm_coul_long_soft_gpu_compute_n(
+    const int ago, const int inum, const int nall, double **host_x, int *host_type, double *sublo,
+    double *subhi, tagint *tag, int **nspecial, tagint **special, const bool eflag,
+    const bool vflag, const bool eatom, const bool vatom, int **ilist, int **jnum, bool &success,
+    double *host_q, double *boxlo, double *prd, int *periodicity);
+extern void charmm_coul_long_soft_gpu_compute(const int ago, const int inum, const int nall,
+                                              double **host_x, int *host_type, int *ilist,
+                                              int *numj, int **firstneigh, const bool eflag,
+                                              const bool vflag, const bool eatom, const bool vatom,
+                                              bool &success, double *host_q, const int nlocal,
+                                              double *boxlo, double *prd);
+extern double charmm_coul_long_soft_gpu_bytes();
 
 // pair lj/cut/coul/msm
 extern int ljcm_gpu_init(const int ntypes, double **cutsq, double **host_lj1, double **host_lj2,
@@ -1288,6 +1688,29 @@ extern void mor_gpu_compute(const int ago, const int inum, const int nall, doubl
                             const bool eflag, const bool vflag, const bool eatom, const bool vatom,
                             bool &success);
 extern double mor_gpu_bytes();
+
+// pair morse/soft
+extern int morse_soft_gpu_init(const int ntypes, double **cutsq, double **host_morse1,
+                               double **host_r0, double **host_alpha, double **host_d0,
+                               double **offset, double **host_bs, double **host_vs,
+                               double *special_lj, const int nlocal, const int nall,
+                               const int max_nbors, const int maxspecial, const double cell_size,
+                               int &gpu_mode, FILE *screen);
+extern void morse_soft_gpu_reinit(const int ntypes, double **cutsq, double **host_morse1,
+                                  double **host_r0, double **host_alpha, double **host_d0,
+                                  double **offset, double **host_bs, double **host_vs);
+extern void morse_soft_gpu_clear();
+extern int **morse_soft_gpu_compute_n(const int ago, const int inum, const int nall,
+                                      double **host_x, int *host_type, double *sublo, double *subhi,
+                                      tagint *tag, int **nspecial, tagint **special,
+                                      const bool eflag, const bool vflag, const bool eatom,
+                                      const bool vatom, int **ilist, int **jnum, bool &success,
+                                      double *prd, int *periodicity);
+extern void morse_soft_gpu_compute(const int ago, const int inum, const int nall, double **host_x,
+                                   int *host_type, int *ilist, int *numj, int **firstneigh,
+                                   const bool eflag, const bool vflag, const bool eatom,
+                                   const bool vatom, bool &success);
+extern double morse_soft_gpu_bytes();
 
 // pair resquared
 extern int re_gpu_init(const int ntypes, double **shape, double **well, double **cutsq,

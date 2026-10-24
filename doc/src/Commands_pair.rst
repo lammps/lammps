@@ -111,7 +111,7 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`eam/he (gkot) <pair_eam>`
    * :doc:`eam/apip <pair_eam_apip>`
    * :doc:`edip (ko) <pair_edip>`
-   * :doc:`edip/multi (o) <pair_edip>`
+   * :doc:`edip/multi (ko) <pair_edip>`
    * :doc:`edpd (go) <pair_mesodpd>`
    * :doc:`eff/cut <pair_eff>`
    * :doc:`eim (o) <pair_eim>`

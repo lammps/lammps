@@ -522,6 +522,8 @@ action pair_eam_kokkos.cpp pair_eam.cpp
 action pair_eam_kokkos.h pair_eam.h
 action pair_edip_kokkos.cpp pair_edip.cpp
 action pair_edip_kokkos.h pair_edip.h
+action pair_edip_multi_kokkos.cpp pair_edip_multi.cpp
+action pair_edip_multi_kokkos.h pair_edip_multi.h
 action pair_exp6_rx_kokkos.cpp pair_exp6_rx.cpp
 action pair_exp6_rx_kokkos.h pair_exp6_rx.h
 action pair_gauss_kokkos.cpp pair_gauss.cpp

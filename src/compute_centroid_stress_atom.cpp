@@ -66,6 +66,25 @@ static const char cite_centroid_shake_rigid[] =
     " url = {https://doi.org/10.1063/5.0070930},\n"
     "}\n\n";
 
+    static const char cite_centroid_pair_manybody[] =
+    "compute centroid/stress/atom for general many-body potentials: "
+    "doi:10.1103/mtkk-kyyy\n\n"
+    "@article{Poulos2026,\n"
+    " title = {Exact formula and spectral decomposition of the heat flux in molecular dynamics \n"
+    "          for arbitrary many-body potentials},\n"
+    " author = {Poulos, Markos and Surblys, Donatas and Termentzidis, Konstantinos},\n"
+    " journal = {Phys. Rev. B},\n"
+    " volume = {113},\n"
+    " issue = {4},\n"
+    " pages = {045414},\n"
+    " numpages = {10},\n"
+    " year = {2026},\n"
+    " month = {Jan},\n"
+    " publisher = {American Physical Society},\n"
+    " doi = {10.1103/mtkk-kyyy},\n"
+    " url = {https://link.aps.org/doi/10.1103/mtkk-kyyy}\n"
+    "}\n\n";
+
 /* ---------------------------------------------------------------------- */
 
 ComputeCentroidStressAtom::ComputeCentroidStressAtom(LAMMPS *lmp, int narg, char **arg) :
@@ -142,6 +161,8 @@ ComputeCentroidStressAtom::ComputeCentroidStressAtom(LAMMPS *lmp, int narg, char
     if (angleflag || dihedralflag || improperflag)
       lmp->citeme->add(cite_centroid_angle_improper_dihedral);
     if (fixflag) lmp->citeme->add(cite_centroid_shake_rigid);
+    if (pairflag && force->pair && force->pair->manybody_flag)
+      lmp->citeme->add(cite_centroid_pair_manybody);
   }
 }
 

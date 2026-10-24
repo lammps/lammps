@@ -101,6 +101,9 @@ package.  :doc:`Dynamic groups <group>` are not supported, and at least
 one of *lattice* and *spin* must be *moving*.  A barostat cannot be
 used with *lattice frozen*.
 
+With SPIN pair styles, these fixes cannot be combined with
+:doc:`fix nve/spin <fix_nve_spin>`, even on disjoint groups.
+
 There is no KOKKOS version.  Magnetic interactions must satisfy the
 full-force requirement described for :doc:`fix nve/tspin <fix_nve_tspin>`.
 

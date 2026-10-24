@@ -81,6 +81,27 @@ protected:
         END_HIDE_OUTPUT();
     }
 
+    // Static PairSpin setup used only with run 0; no trajectories are evolved.
+    void build_dipole()
+    {
+        command("clear");
+        command("units metal");
+        command("atom_style spin");
+        command("atom_modify map array");
+        command("boundary p p p");
+        command("region box block -10 10 -10 10 -10 10 units box");
+        command("create_box 1 box");
+        command("create_atoms 1 single -0.75 0 0 units box");
+        command("create_atoms 1 single 0.75 0 0 units box");
+        command("mass 1 55.845");
+        command("set atom 1 spin/atom 2.0 0.7071067811865475 0.7071067811865475 0.0");
+        command("set atom 2 spin/atom 3.0 0.6 0.0 0.8");
+        command("pair_style spin/dipole/cut 4.0");
+        command("pair_coeff * * 4.0");
+        command("group oldspin id 1");
+        command("group auxiliary id 2");
+    }
+
     double *smass()
     {
         int flag, cols;
@@ -494,6 +515,102 @@ TEST_F(TSpinTest, SpinPairStylesAreRejected)
     TEST_FAILURE(".*does not provide the derivative of the energy with respect to the full spin "
                  "vector.*",
                  command("run 0 post no"););
+}
+
+// PairSpin has one lattice flag even when the integrator groups are disjoint.
+
+TEST_F(TSpinTest, MixedSpinIntegratorsAreRejected)
+{
+    if (!info->has_style("pair", "spin/dipole/cut"))
+        GTEST_SKIP() << "pair spin/dipole/cut missing";
+    if (!Info::has_exceptions()) GTEST_SKIP() << "LAMMPS exceptions required";
+
+    const std::array<std::array<const char *, 2>, 4> integrators = {{
+        {{"nve/tspin", ""}},
+        {{"nvt/tspin", "temp 300.0 300.0 0.1"}},
+        {{"npt/tspin", "temp 300.0 300.0 0.1 iso 0.0 0.0 1.0"}},
+        {{"nph/tspin", "iso 0.0 0.0 1.0 ptemp 300.0"}},
+    }};
+    const std::array<std::array<bool, 2>, 3> lattice_modes = {{
+        {{true, false}}, {{false, true}}, {{true, true}},
+    }};
+
+    for (const auto &integrator : integrators) {
+        const std::string style = integrator[0];
+        const bool barostat = (style == "npt/tspin") || (style == "nph/tspin");
+        for (const auto &mode : lattice_modes) {
+            if (barostat && !mode[1]) continue;
+            const char *old_lattice = mode[0] ? "moving" : "frozen";
+            const char *aux_lattice = mode[1] ? "moving" : "frozen";
+            for (const bool old_first : {false, true}) {
+                SCOPED_TRACE(fmt::format("{}: old={}, auxiliary={}, old first={}", style,
+                                         old_lattice, aux_lattice, old_first));
+                BEGIN_HIDE_OUTPUT();
+                build_dipole();
+                const auto old_fix = fmt::format("fix old oldspin nve/spin lattice {}",
+                                                old_lattice);
+                const auto aux_fix = fmt::format("fix aux auxiliary {} {} lattice {} spinmass 0.0075",
+                                                style, integrator[1], aux_lattice);
+                command(old_first ? old_fix : aux_fix);
+                command(old_first ? aux_fix : old_fix);
+
+                // Only rank zero prints the error, but every rank receives its message.
+                std::string message;
+                try {
+                    command("run 0 post no");
+                } catch (const LAMMPSException &error) {
+                    message = error.what();
+                }
+                END_HIDE_OUTPUT();
+                EXPECT_THAT(message, ::testing::HasSubstr(
+                                         "Cannot combine fix nve/spin with tspin integrators "
+                                         "when using SPIN pair styles"));
+            }
+        }
+    }
+}
+
+// A single integrator must still select the mechanical force correctly.
+
+TEST_F(TSpinTest, SingleSpinIntegratorKeepsDipoleLatticeForces)
+{
+    if (!info->has_style("pair", "spin/dipole/cut"))
+        GTEST_SKIP() << "pair spin/dipole/cut missing";
+
+    const std::array<std::array<const char *, 2>, 5> integrators = {{
+        {{"nve/spin", ""}},
+        {{"nve/tspin", "spinmass 0.0075"}},
+        {{"nvt/tspin", "temp 300.0 300.0 0.1 spinmass 0.0075"}},
+        {{"npt/tspin", "temp 300.0 300.0 0.1 iso 0.0 0.0 1.0 spinmass 0.0075"}},
+        {{"nph/tspin", "iso 0.0 0.0 1.0 ptemp 300.0 spinmass 0.0075"}},
+    }};
+
+    for (const auto &integrator : integrators) {
+        const std::string style = integrator[0];
+        const bool barostat = (style == "npt/tspin") || (style == "nph/tspin");
+        for (const bool moving : {false, true}) {
+            if (barostat && !moving) continue;
+            const char *lattice = moving ? "moving" : "frozen";
+            SCOPED_TRACE(fmt::format("{}: lattice={}", style, lattice));
+            BEGIN_HIDE_OUTPUT();
+            build_dipole();
+            command(fmt::format("fix integrate all {} {} lattice {}", style, integrator[1],
+                                lattice));
+            command("run 0 post no");
+            END_HIDE_OUTPUT();
+
+            double local_max = 0.0;
+            for (int i = 0; i < lmp->atom->nlocal; ++i)
+                for (int d = 0; d < 3; ++d)
+                    local_max = std::max(local_max, std::abs(lmp->atom->f[i][d]));
+            double global_max;
+            MPI_Allreduce(&local_max, &global_max, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
+            if (moving)
+                EXPECT_GT(global_max, 1.0e-6);
+            else
+                EXPECT_DOUBLE_EQ(global_max, 0.0);
+        }
+    }
 }
 
 // spin/dipole/cut defines an energy on the complete spin vectors.  Its fm

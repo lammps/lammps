@@ -116,7 +116,8 @@ conservation checks and :doc:`compute temp/tspin <compute_temp_tspin>`
 for the kinetic spin temperature.
 
 Do not combine inertial and fixed-modulus spin integrators on the same
-atoms.  Choose spin masses and timesteps for stable integration and
+atoms.  With SPIN pair styles, this restriction also applies to disjoint
+groups.  Choose spin masses and timesteps for stable integration and
 converged equilibrium averages.
 
 .. note::

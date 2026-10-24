@@ -67,6 +67,12 @@ if(PKG_SPIN)
   if(TEST TSpinTemperatureMPI)
     set_property(TEST TSpinTemperatureMPI APPEND PROPERTY LABELS "spin")
   endif()
+  add_mpi_test(NAME TSpinIntegratorCompatibilityMPI NUM_PROCS 4
+               COMMAND $<TARGET_FILE:test_tspin>
+               --gtest_filter=TSpinTest.MixedSpinIntegratorsAreRejected:TSpinTest.SingleSpinIntegratorKeepsDipoleLatticeForces)
+  if(TEST TSpinIntegratorCompatibilityMPI)
+    set_property(TEST TSpinIntegratorCompatibilityMPI APPEND PROPERTY LABELS "spin")
+  endif()
 endif()
 
 add_executable(test_kspace_auto_slab test_kspace_auto_slab.cpp)

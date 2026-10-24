@@ -110,8 +110,11 @@ are not supported.  There is no KOKKOS version, and use inside a KOKKOS
 build is not supported.
 
 Do not combine this fix with :doc:`fix nve/spin <fix_nve_spin>` on the
-same atoms.  Magnetic interactions must supply the full Cartesian spin
-force described above.  Compatibility of additional magnetic fixes,
+same atoms.  With SPIN pair styles, this restriction also applies to
+disjoint groups.
+
+Magnetic interactions must supply the full Cartesian spin force described
+above.  Compatibility of additional magnetic fixes,
 such as :doc:`fix precession/spin <fix_precession_spin>`, is not checked
 automatically.
 

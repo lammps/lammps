@@ -15,13 +15,15 @@ post_commands: |
   kspace_style ewald 1.0e-6
   kspace_modify gewald 0.3
   kspace_modify compute no
-  # bonded interactions and atom sorting at every reneighboring: accelerated pair
-  # styles that build the topology lists themselves (GPU) must rebuild them.
-  # bond style hybrid keeps the bond coefficients out of the data file, which
-  # is read back with the bond style zero of in.fourmol.
+  # bonded interactions, and bonded atom 20 starts 2e-4 below yhi and leaves the
+  # box during step 1, so the reneighboring at step 2 wraps it and changes the
+  # closest images of its bond: accelerated pair styles that build the topology
+  # lists themselves (GPU) must rebuild them.  shifting all atoms does not change
+  # the forces; bond style hybrid keeps the bond coefficients out of the data
+  # file, which is read back with the bond style zero of in.fourmol.
   bond_style hybrid harmonic
   bond_coeff * harmonic 300.0 1.2
-  atom_modify sort 1 0.0
+  displace_atoms all move 0.0 3.6236 0.0 units box
 input_file: in.fourmol
 pair_style: lj/charmm/coul/long/soft 4.0 2.5 6.4 7.0 8.0
 pair_coeff: |

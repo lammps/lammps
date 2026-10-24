@@ -42,7 +42,7 @@ _texture( dgcons_tex,int2);
 
 /* ----------------------------------------------------------------------
    compute gamma for MSM and pair styles
-   see Eq 4 from Parallel Computing 35 (2009) 164177
+   see Eq 4 from Parallel Computing 35 (2009) 164-177
 ------------------------------------------------------------------------- */
 
 ucl_inline numtyp gamma(const numtyp rho, const int order,

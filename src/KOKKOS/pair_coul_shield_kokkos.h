@@ -46,11 +46,11 @@ class PairCoulShieldKokkos : public PairCoulShield {
   struct params_coul_shield {
 // NOLINTNEXTLINE
     KOKKOS_INLINE_FUNCTION
-    params_coul_shield() {cutsq=0;sigmae=0;offset=0;cut=0;};
+    params_coul_shield() {cutsq=0;sigmae=0;cut=0;};
 // NOLINTNEXTLINE
     KOKKOS_INLINE_FUNCTION
-    params_coul_shield(int /*i*/) {cutsq=0;sigmae=0;offset=0;cut=0;};
-    KK_FLOAT cutsq,sigmae,offset,cut;
+    params_coul_shield(int /*i*/) {cutsq=0;sigmae=0;cut=0;};
+    KK_FLOAT cutsq,sigmae,cut;
   };
 
  protected:

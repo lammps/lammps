@@ -51,7 +51,7 @@ class PairLJClass2SoftGapsys : public Pair {
   double **lj1, **lj2, **lj3, **lj4, **offset;
   double alphalj;
 
-  void allocate();
+  virtual void allocate();
 };
 
 }    // namespace LAMMPS_NS

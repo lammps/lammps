@@ -260,7 +260,7 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`oxrna2/stk <pair_oxrna2>`
    * :doc:`oxrna2/xstk <pair_oxrna2>`
    * :doc:`oxrna2/coaxstk <pair_oxrna2>`
-   * :doc:`pace (k) <pair_pace>`
+   * :doc:`pace (ko) <pair_pace>`
    * :doc:`pace/extrapolation (k) <pair_pace>`
    * :doc:`pace/apip <pair_pace_apip>`
    * :doc:`pace/fast/apip <pair_pace_apip>`

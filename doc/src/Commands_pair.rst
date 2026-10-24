@@ -8,7 +8,7 @@ accelerated versions.  This is indicated by additional letters in
 parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
 
 .. table_from_list::
-:columns: 3
+   :columns: 3
 
    * :doc:`none <pair_none>`
    * :doc:`zero <pair_zero>`

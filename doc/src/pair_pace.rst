@@ -1,5 +1,6 @@
 .. index:: pair_style pace
 .. index:: pair_style pace/kk
+.. index:: pair_style pace/omp
 .. index:: pair_style pace/extrapolation
 .. index:: pair_style pace/extrapolation/kk
 

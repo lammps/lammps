@@ -61,6 +61,9 @@ class ThrData {
   [[nodiscard]] double *get_edpd_flux() const { return _edpd_flux; };
   [[nodiscard]] double **get_cc_flux() const { return _cc_flux; };
 
+  // per-thread centroid stress of pair styles that tally it themselves
+  [[nodiscard]] double **get_cvatom_pair() const { return cvatom_pair; };
+
   // setup and erase per atom arrays
   void init_adp(int, double *, double **, double **);    // ADP (+ EAM)
   void init_eam(int, double *);                          // EAM

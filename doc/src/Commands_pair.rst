@@ -39,8 +39,8 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`body/nparticle (o) <pair_body_nparticle>`
    * :doc:`body/rounded/polygon (o) <pair_body_rounded_polygon>`
    * :doc:`body/rounded/polyhedron (o) <pair_body_rounded_polyhedron>`
-   * :doc:`bondval (k) <pair_bondval>`
-   * :doc:`bondval/vec (k) <pair_bondval>`
+   * :doc:`bondval (ko) <pair_bondval>`
+   * :doc:`bondval/vec (ko) <pair_bondval>`
    * :doc:`bop <pair_bop>`
    * :doc:`born (gko) <pair_born>`
    * :doc:`born/coul/dsf (ko) <pair_born>`
@@ -112,7 +112,7 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`eam/apip <pair_eam_apip>`
    * :doc:`edip (ko) <pair_edip>`
    * :doc:`edip/multi (o) <pair_edip>`
-   * :doc:`edpd (g) <pair_mesodpd>`
+   * :doc:`edpd (go) <pair_mesodpd>`
    * :doc:`eff/cut <pair_eff>`
    * :doc:`eim (o) <pair_eim>`
    * :doc:`exp6/rx (k) <pair_exp6_rx>`
@@ -285,7 +285,7 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`runner <pair_runner>`
    * :doc:`saip/metal (t) <pair_saip_metal>`
    * :doc:`saip/metal/tmd (t) <pair_saip_metal>`
-   * :doc:`sdpd/taitwater/isothermal <pair_sdpd_taitwater_isothermal>`
+   * :doc:`sdpd/taitwater/isothermal (o) <pair_sdpd_taitwater_isothermal>`
    * :doc:`smatb (o) <pair_smatb>`
    * :doc:`smatb/single (o) <pair_smatb>`
    * :doc:`smd/hertz <pair_smd_hertz>`
@@ -315,7 +315,7 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`sw/angle/table (ko) <pair_sw_angle_table>`
    * :doc:`sw/mod (ko) <pair_sw>`
    * :doc:`table/rx (k) <pair_table_rx>`
-   * :doc:`tdpd <pair_mesodpd>`
+   * :doc:`tdpd (o) <pair_mesodpd>`
    * :doc:`tersoff (giko) <pair_tersoff>`
    * :doc:`tersoff/mod (gko) <pair_tersoff_mod>`
    * :doc:`tersoff/mod/c (ko) <pair_tersoff_mod>`
@@ -328,7 +328,7 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`tip4p/long/soft (ko) <pair_fep_soft>`
    * :doc:`tri/lj (o) <pair_tri_lj>`
    * :doc:`ufm (gkot) <pair_ufm>`
-   * :doc:`uf3 (k) <pair_uf3>`
+   * :doc:`uf3 (ko) <pair_uf3>`
    * :doc:`vashishta (gko) <pair_vashishta>`
    * :doc:`vashishta/table (ko) <pair_vashishta>`
    * :doc:`wf/cut (ko) <pair_wf_cut>`

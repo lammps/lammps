@@ -79,8 +79,7 @@ __kernel void k_coul_cut_soft_gapsys(const __global numtyp4 *restrict x_,
       ucl_prefetch(dev_packed+nbor+n_stride);
 
       int j=dev_packed[nbor];
-      numtyp factor_lj, factor_coul;
-      factor_lj = sp_lj[sbmask(j)];
+      numtyp factor_coul;
       factor_coul = sp_lj[sbmask(j)+4];
       j &= NEIGHMASK;
 
@@ -186,8 +185,7 @@ __kernel void k_coul_cut_soft_gapsys_fast(const __global numtyp4 *restrict x_,
       ucl_prefetch(dev_packed+nbor+n_stride);
 
       int j=dev_packed[nbor];
-      numtyp factor_lj, factor_coul;
-      factor_lj = sp_lj[sbmask(j)];
+      numtyp factor_coul;
       factor_coul = sp_lj[sbmask(j)+4];
       j &= NEIGHMASK;
 

@@ -451,10 +451,18 @@ void PairLJCutSoft::allocate()
 
 void PairLJCutSoft::settings(int narg, char **arg)
 {
-  if (narg != 3) error->all(FLERR,"Illegal pair_style command");
+  if (narg < 3)
+    utils::missing_cmd_args(FLERR, "pair_style lj/cut/soft", error);
+  if (narg > 3)
+    error->all(FLERR, 4, "Too many arguments in pair_style lj/cut/soft command");
 
   nlambda = utils::numeric(FLERR,arg[0],false,lmp);
+  if (nlambda <= 0.0)
+    error->all(FLERR, 1, "Pair style lj/cut/soft requires n > 0, but n = {}", nlambda);
   alphalj = utils::numeric(FLERR,arg[1],false,lmp);
+  if (alphalj < 0.0)
+    error->all(FLERR, 2, "Pair style lj/cut/soft requires alpha_LJ >= 0, but alpha_LJ = {}",
+               alphalj);
 
   cut_global = utils::numeric(FLERR,arg[2],false,lmp);
 

@@ -240,6 +240,7 @@ Babadi
 Babaei
 Baconnier
 backcolor
+backend
 backtick
 Baczewski
 badi
@@ -247,6 +248,7 @@ Baer
 Bagchi
 Bagi
 Bagnold
+Bai
 Baig
 Bajaj
 bak
@@ -3319,6 +3321,7 @@ pre
 Pre
 prec
 precession
+precisions
 precond
 prefactor
 prefactors
@@ -4331,6 +4334,7 @@ uncompute
 underdamped
 underprediction
 undump
+unformatted
 uniaxial
 uniaxially
 unicaen

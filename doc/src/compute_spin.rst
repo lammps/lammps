@@ -35,6 +35,13 @@ This compute calculates the following 6 magnetic quantities:
 * The sixth one is referred to as the spin temperature, according
   to the work of :ref:`(Nurdin) <Nurdin1>`.
 
+The magnetic energy includes only recognized SPIN pair interactions and
+:doc:`fix precession/spin <fix_precession_spin>` contributions.  It excludes
+lattice potentials, :doc:`fix spring/tspin <fix_spring_tspin>`, and the full
+energy of external magnetic machine-learning potentials.  For the total
+potential energy, use *pe* and enable relevant fix contributions with
+:doc:`fix_modify energy <fix_modify>`.
+
 The sixth quantity is a torque-based temperature estimator for
 fixed-modulus spins.  Use :doc:`compute temp/tspin <compute_temp_tspin>`
 for the auxiliary kinetic spin temperature in TSPIN.

@@ -50,104 +50,79 @@ and atomic motions.
 The minimization style :doc:`min/spin <min_spin>` can be applied
 to the spins to perform a minimization of the spin configuration.
 
-Inertial spin dynamics
-======================
+Inertial spin dynamics (TSPIN)
+------------------------------
 
 .. versionadded:: TBD
 
-All of the above describes fixed-modulus spin dynamics, in which the
-magnitude of each spin is a constant of the motion and only its
-direction evolves.  The SPIN package also supports inertial spin
-dynamics, in which the spin modulus itself is a dynamical degree of
-freedom.  Each spin then carries a spin velocity and a spin mass, and
-obeys a Newtonian second-order equation of motion instead of the
-first-order Landau-Lifshitz precession equation.
+TSPIN provides auxiliary inertial dynamics for equilibrium sampling of
+spin-lattice systems with variable spin magnitudes.  Both the direction
+and magnitude evolve under a Newtonian equation of motion.  The spin
+velocities and masses are auxiliary sampling variables; their trajectories
+do not represent physical Landau-Lifshitz precession or relaxation times.
 
-It runs on the same :doc:`atom_style spin <atom_style>` and reuses the
-per-atom *sp* and *fm* arrays, so existing SPIN data and restart files do not
-need a new atom style.  It does not, however, accept every fixed-modulus SPIN
-potential.  An inertial integrator needs all three components of the derivative
-with respect to the unconstrained spin vector, including the component that
-changes its modulus.
+TSPIN uses the existing :doc:`atom_style spin <atom_style>` and requires
+magnetic interactions that provide the full Cartesian spin force, including
+its longitudinal component.  See :doc:`fix nve/tspin <fix_nve_tspin>` for
+the force convention and compatibility requirements.
 
-* :doc:`fix nve/tspin <fix_nve_tspin>` integrates the equations of
-  motion.
-* :doc:`fix nvt/tspin, fix npt/tspin and fix nph/tspin <fix_nvt_tspin>`
-  do the same and add a Nose-Hoover chain on the spin velocities on top of
-  the usual lattice thermostat and barostat, while
-  :doc:`fix langevin/tspin <fix_langevin_tspin>` provides a Langevin
-  bath for the spin degrees of freedom alone.
-* :doc:`fix spring/tspin <fix_spring_tspin>` supplies a longitudinal
-  potential on the spin modulus.  The modulus is a free coordinate, so
-  unless the magnetic potential itself restores it, this fix or an
-  equivalent one is required.
-* :doc:`velocity/tspin <velocity_tspin>` initializes the spin velocities
-  at a given spin temperature.
-* :doc:`compute ke/tspin <compute_ke_tspin>` reports the kinetic energy
-  of the spin degrees of freedom, which is not part of the
-  thermodynamic keyword *ke*.
-* :doc:`compute temp/tspin <compute_temp_tspin>` reports the auxiliary
-  kinetic spin temperature.
+The following commands support TSPIN simulations:
 
-A minimal thermostatted example on a fixed lattice is:
+* :doc:`fix nve/tspin <fix_nve_tspin>` integrates the auxiliary spin
+  and lattice equations of motion.
+* :doc:`fix nvt/tspin, npt/tspin and nph/tspin <fix_nvt_tspin>` provide
+  Nose-Hoover temperature and/or pressure control; *nph/tspin* does
+  not thermostat the spins or lattice.
+* :doc:`fix langevin/tspin <fix_langevin_tspin>` thermostats spin
+  velocities when combined with *nve/tspin*.
+* :doc:`fix spring/tspin <fix_spring_tspin>` provides a longitudinal
+  restoring potential when needed.
+* :doc:`velocity/tspin <velocity_tspin>` initializes auxiliary spin
+  velocities and can assign spin masses.
+* :doc:`compute ke/tspin <compute_ke_tspin>` and
+  :doc:`compute temp/tspin <compute_temp_tspin>` report the auxiliary
+  spin kinetic energy and temperature.
+
+The following fixed-lattice example assumes that the simulation box,
+atoms, masses, and initial spins have been defined.  It demonstrates
+commands using a harmonic modulus potential without spin-spin interactions.
 
 .. code-block:: LAMMPS
 
-   atom_style      spin
-   pair_style      zero 4.0
-   pair_coeff      * *
+   pair_style zero 4.0
+   pair_coeff * *
+   fix 1 all spring/tspin 1.0 2.2
+   fix_modify 1 energy yes
+   fix 2 all nve/tspin lattice frozen
+   velocity/tspin all create 300.0 12345 spinmass 0.0075
+   fix 3 all langevin/tspin 300.0 300.0 0.05 48279
+   compute 1 all temp/tspin
+   compute 2 all ke/tspin
+   thermo_style custom step pe c_1 c_2
 
-   fix             pin  all spring/tspin 1.0 2.2
-   fix             1    all nve/tspin lattice frozen spinmass 0.0075
-   velocity/tspin  all create 300.0 12345
-   fix             bath all langevin/tspin 300.0 300.0 0.05 48279
+Magnetic output
+^^^^^^^^^^^^^^^
 
-   compute         st all temp/tspin
-   compute         ske all ke/tspin
-   thermo_style    custom step pe f_pin c_ske c_st
+:doc:`compute spin <compute_spin>` reports averages of unit spin
+directions, selected magnetic energies, and a torque-based temperature.
+For variable-magnitude spins, these directional averages are not
+modulus-weighted magnetic moments, and this temperature is not the
+TSPIN kinetic temperature.  Use :doc:`compute property/atom
+<compute_property_atom>` to access spin magnitudes and directions.
 
-The per-atom array *fm* keeps the rad.THz units used by the SPIN package.  A
-TSPIN-compatible interaction must encode the full magnetic force
+The usual *ke*, *etotal*, and *econserve* exclude auxiliary spin kinetic
+energy.  See :doc:`compute ke/tspin <compute_ke_tspin>` for energy
+conservation checks and :doc:`compute temp/tspin <compute_temp_tspin>`
+for the kinetic spin temperature.
 
-.. math::
+Do not combine inertial and fixed-modulus spin integrators on the same
+atoms.  Choose spin masses and timesteps for stable integration and
+converged equilibrium averages.
 
-   \vec{F}^{m}_i = -\frac{\partial U}{\partial \vec{S}_i}
+.. note::
 
-in that array as
-
-.. math::
-
-   \vec{fm}_i = \frac{|\vec{S}_i|}{\hbar}\vec{F}^{m}_i.
-
-The inertial integrator multiplies *fm* by
-:math:`\hbar/|\vec{S}_i|` to recover the force.  This is a stronger contract
-than the one needed by fixed-modulus Landau-Lifshitz dynamics, where any
-component of *fm* parallel to the spin disappears from the cross product.
-:doc:`pair_style spin/dipole/cut <pair_spin_dipole>` uses the spin moduli in
-its energy and explicitly provides this full-gradient encoding, so it can be
-used with the TSPIN integrators.  The other SPIN pair styles only guarantee the
-resulting torque and are rejected.  A variable-moment potential that explicitly
-uses the same encoding, such as *pair_style deepspin* of the DeePMD-kit package,
-can also be used without changing its force output.
-
-The inertial and the fixed-modulus styles describe different physics
-and must not be combined on the same group of atoms.  Because the
-resulting spin dynamics is second order in time, its characteristic
-frequencies scale as the inverse square root of the spin mass and are
-not the Landau-Lifshitz precession frequencies.  Static thermodynamic
-averages should be verified to be independent of the spin mass.
-
-----------
-
-All the computed magnetic properties can be output by two main
-commands. The first one is :doc:`compute spin <compute_spin>`, that
-enables to evaluate magnetic averaged quantities, such as the total
-magnetization of the system along x, y, or z, the spin temperature, or
-the magnetic energy. The second command
-is :doc:`compute property/atom <compute_property_atom>`.
-It enables to output all the per atom magnetic quantities. Typically,
-the orientation of a given magnetic spin, or the magnetic force
-acting on this spin.
+   Do not :doc:`unfix <unfix>` the automatically created *TSPIN_STATE*
+   fix while TSPIN styles are in use.
 
 ----------
 

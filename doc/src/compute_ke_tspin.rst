@@ -34,23 +34,32 @@ group,
    E^{s}_{kin} = \sum_i \frac{1}{2} m_s \left| \vec{v}^{s}_i \right|^2
 
 where :math:`m_s` is the spin mass of atom i and :math:`\vec{v}^{s}_i`
-its spin velocity.
+its auxiliary spin velocity.  This kinetic energy belongs to the sampling
+dynamics and is distinct from the magnetic potential energy.
 
 Use :doc:`compute temp/tspin <compute_temp_tspin>` to report the
 corresponding auxiliary kinetic spin temperature.
 
 This energy is not included in the thermodynamic keyword *ke*, which
-counts only the translational kinetic energy of the atoms.  Reference
-this compute with a *c_ID* keyword in :doc:`thermo_style custom
-<thermo_style>` to output it, and add it to the potential energy to
-check the energy conservation of a :doc:`fix nve/tspin
-<fix_nve_tspin>` run:
+counts only the translational kinetic energy of the atoms, or in *etotal*
+or *econserve*.  Reference this compute with a *c_ID* keyword in
+:doc:`thermo_style custom <thermo_style>` to output it.  For a microcanonical
+run with :doc:`fix nve/tspin <fix_nve_tspin>` and a moving lattice, with no
+thermostat or barostat active and with all relevant potential-energy
+contributions included in *pe*, the conserved energy includes the potential
+energy, the lattice kinetic energy, and this auxiliary spin kinetic energy:
 
 .. code-block:: LAMMPS
 
    compute      ske all ke/tspin
-   variable     etot equal pe+c_ske
-   thermo_style custom step pe c_ske v_etot
+   variable     H equal etotal+c_ske
+   thermo_style custom step pe ke c_ske v_H
+
+Include all potential energy contributions in *pe*.  For example, the energy
+of :doc:`fix spring/tspin <fix_spring_tspin>` requires :doc:`fix_modify
+energy yes <fix_modify>`.  With *lattice frozen* and zero atomic velocities,
+the lattice kinetic energy vanishes and the expression reduces to
+``pe+c_ske``.
 
 Output info
 """""""""""

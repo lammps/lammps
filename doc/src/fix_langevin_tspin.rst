@@ -38,60 +38,60 @@ Description
 
 .. versionadded:: TBD
 
-Apply a Langevin thermostat to the spin velocities of inertial spin
-dynamics.  A friction term and a random force are added to the magnetic
-force of every magnetic atom in the group,
+Used with :doc:`fix nve/tspin <fix_nve_tspin>`, this fix generates
+inertial Langevin dynamics of the full Cartesian spin vectors for
+equilibrium sampling.  These auxiliary dynamics do not represent physical
+spin precession.  Friction and random forces modify the generalized spin
+force on each atom in the group with positive spin mass,
 
 .. math::
 
-   \vec{F}^{m}_{i} \rightarrow \vec{F}^{m}_{i}
-   - \frac{m_s}{T_{damp}} \vec{v}^{s}_i
-   + \sqrt{\frac{2 m_s k_B T_s}{T_{damp}\, dt}}\, \vec{R}_i
+   \vec{F}^{m}_i \rightarrow \vec{F}^{m}_i
+   - \frac{m_{s,i}}{T_{\mathrm{damp}}}\vec{v}^{s}_i
+   + \sqrt{\frac{2m_{s,i}k_B T_{\mathrm{target}}(t)}
+                 {T_{\mathrm{damp}}\,\Delta t}}\,\boldsymbol{\xi}_i.
 
-where :math:`\vec{R}_i` is a vector of uniform random numbers with zero
-mean and unit variance.  The two terms together make the spin
-velocities sample a Maxwell-Boltzmann distribution at the target spin
-temperature, which is ramped linearly from Tstart to Tstop over the
-course of the run.
+Here :math:`m_{s,i}` is the spin mass, :math:`\Delta t` is the timestep,
+and :math:`\boldsymbol{\xi}_i` is a dimensionless random vector.
+The target temperature :math:`T_{\mathrm{target}}(t)` varies linearly
+from *Tstart* to *Tstop*.  With *zero yes*, the mean random force over
+the active spins is subtracted after sampling.
 
-These bath terms are full forces in energy per Bohr magneton.  Before adding
-them to *fm*, the fix multiplies them by
-:math:`|\vec{S}_i|/\hbar`, preserving the rad.THz units and the full-gradient
-encoding required by the TSPIN integrator.
+Only spin velocities are thermostatted.  Atomic velocities can be
+thermostatted separately if needed.  Do not thermostat the same spins
+with :doc:`fix nvt/tspin or fix npt/tspin <fix_nvt_tspin>`, or combine
+this bath with :doc:`fix langevin/spin <fix_langevin_spin>`.  See
+:doc:`fix nve/tspin <fix_nve_tspin>` for the longitudinal-potential
+requirement.
 
-This fix does not perform time integration; combine it with :doc:`fix
-nve/tspin <fix_nve_tspin>`.  The warning in that page about the need
-for a longitudinal potential on the spin modulus applies here as well.
+For example, after defining the atoms, atomic masses, and initial spins,
+and assigning spin masses:
 
-This thermostat acts on the spin momenta and is unrelated to
-:doc:`fix langevin/spin <fix_langevin_spin>`, which adds transverse
-Gilbert damping and a fluctuating field to the fixed-modulus
-Landau-Lifshitz-Gilbert equation.  The two fixes should not be combined.
+.. code-block:: LAMMPS
 
-Note: the random number *seed* must be a positive integer.  A Marsaglia
-random number generator is used.  Each processor uses the input seed to
-generate its own unique seed and its own stream of random numbers.
-Thus the dynamics of the system will not be identical on two runs on
-different numbers of processors.
+   fix 1 all spring/tspin 1.0 2.2
+   fix 2 all langevin/tspin 300.0 300.0 0.05 48279
+   fix 3 all nve/tspin lattice frozen
 
-Use :doc:`compute temp/tspin <compute_temp_tspin>` to report the
-auxiliary kinetic spin temperature.
+Report the auxiliary spin kinetic energy with :doc:`compute ke/tspin
+<compute_ke_tspin>` and the corresponding kinetic spin temperature with
+:doc:`compute temp/tspin <compute_temp_tspin>`.  The bath exchanges
+energy with the spins, so *etotal* plus *c_ske* is not conserved.  This
+fix does not tally that exchange.
 
 ----------
 
 Restart, fix_modify, output, run start/stop, minimize info
 """"""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-No information about this fix is written to :doc:`binary restart files
-<restart>`.  Because the state of the random number generator is not
-saved in restart files, this means you cannot do "exact" restarts with
-this fix, where the simulation continues on the same as if no restart
-had taken place.  However, in a statistical sense, a restarted
-simulation should produce the same behavior.
+The random-number generator state is not written to :doc:`binary
+restart files <restart>`.  Restarts preserve statistical sampling but
+do not reproduce the same trajectory.  Each MPI rank uses a separate
+random-number stream, so changing the number of ranks changes the
+trajectory.
 
-None of the :doc:`fix_modify <fix_modify>` options are relevant to this
-fix.  No global or per-atom quantities are stored by this fix for
-access by various :doc:`output commands <Howto_output>`.
+No :doc:`fix_modify <fix_modify>` options or :doc:`output quantities
+<Howto_output>` are supported.
 
 This fix is not invoked during :doc:`energy minimization <minimize>`.
 

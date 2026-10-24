@@ -553,16 +553,20 @@ The cutoff is optional.  If not specified, the global cutoff is used.
 
 The pair style *lj/class2/soft/gapsys* applies the same soft-core
 treatment to the 9-6 potential of :doc:`pair_style lj/class2
-<pair_class2>`.  The distance :math:`r_{inner}` is given by
+<pair_class2>`as the *lj/cut/soft/gapsys* to the 12-6 Lennard-Jones
+potential :doc:`pair_style lj/cut
+<pair_lj>`.  The distance :math:`r_{inner}` is given by
 
 .. math::
 
    r_{inner} = \alpha_{LJ} \left( 100 \lambda / 49 \right)^{1 / 6} \sigma
 
-For :math:`\alpha_{LJ} = 1` and :math:`\lambda = 1`, this is the
+For :math:`\alpha_{LJ} = 1` and :math:`\lambda = 1`, :math:`r_{inner}` is the
 inflection point of the 9-6 potential, like :math:`r_{inner}` of
-*lj/cut/soft/gapsys* is for the 12-6 potential.  For distances larger
-than :math:`r_{inner}`, the energy is computed by
+*lj/cut/soft/gapsys* is for the 12-6 potential. For :math:`\alpha_{LJ}`,
+a value of 0.85 was proposed by Gapsys et al :ref:`(Gapsys)
+<Gapsys>`. For distances larger than :math:`r_{inner}`, the
+energy is computed by
 
 .. math::
 

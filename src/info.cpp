@@ -300,10 +300,8 @@ void Info::command(int narg, char **arg)
     fputs(get_json_info().c_str(), out);
 
     fputs("\nActive compile time flags:\n\n",out);
-    if (has_gzip_support()) fputs("-DLAMMPS_GZIP\n",out);
     if (has_png_support()) fputs("-DLAMMPS_PNG\n",out);
     if (has_jpeg_support()) fputs("-DLAMMPS_JPEG\n",out);
-    if (has_ffmpeg_support()) fputs("-DLAMMPS_FFMPEG\n",out);
     if (has_curl_support()) fputs("-DLAMMPS_CURL\n",out);
     if (has_fft_single_support()) fputs("-DFFT_SINGLE\n",out);
 
@@ -312,7 +310,9 @@ void Info::command(int narg, char **arg)
 #elif defined(LAMMPS_SMALLBIG)
     fputs("-DLAMMPS_SMALLBIG\n",out);
 #endif
-    if (has_gzip_support()) utils::print(out,"\n{}\n",platform::compress_info());
+    utils::print(out,"\n{}",platform::compress_info());
+    auto ffmpeg = platform::find_exe_path("ffmpeg");
+    utils::print(out, "\nFFmpeg executable: {}\n", ffmpeg.empty() ? "not found" : ffmpeg);
 
     int ncword, ncline = 0;
     fputs("\nInstalled packages:\n\n",out);
@@ -799,17 +799,25 @@ bool Info::is_available(const char *category, const char *name)
 {
   if ((category == nullptr) || (name == nullptr)) return false;
 
+  // external programs are searched for at runtime, so use the result
+  // from MPI rank 0 to make certain that all MPI ranks agree
+  auto check_on_rank0 = [&](bool (*has_support)()) {
+    int flag = (comm->me == 0) ? has_support() : 0;
+    MPI_Bcast(&flag, 1, MPI_INT, 0, world);
+    return flag != 0;
+  };
+
   if (has_style(category, name)) {
     return true;
   } else if (strcmp(category,"feature") == 0) {
     if (strcmp(name,"gzip") == 0) {
-      return has_gzip_support();
+      return check_on_rank0(has_gzip_support);
     } else if (strcmp(name,"png") == 0) {
       return has_png_support();
     } else if (strcmp(name,"jpeg") == 0) {
       return has_jpeg_support();
     } else if (strcmp(name,"ffmpeg") == 0) {
-      return has_ffmpeg_support();
+      return check_on_rank0(has_ffmpeg_support);
     } else if (strcmp(name,"curl") == 0) {
       return has_curl_support();
     } else if (strcmp(name,"fft_single") == 0) {
@@ -975,11 +983,7 @@ void print_columns(FILE *fp, const CreatorRegistry<Creator> &styles)
 }
 
 bool Info::has_gzip_support() {
-#ifdef LAMMPS_GZIP
-  return true;
-#else
-  return false;
-#endif
+  return !platform::find_exe_path("gzip").empty();
 }
 
 bool Info::has_png_support() {
@@ -999,11 +1003,7 @@ bool Info::has_jpeg_support() {
 }
 
 bool Info::has_ffmpeg_support() {
-#ifdef LAMMPS_FFMPEG
-  return true;
-#else
-  return false;
-#endif
+  return !platform::find_exe_path("ffmpeg").empty();
 }
 
 bool Info::has_curl_support() {
@@ -1111,6 +1111,13 @@ bool Info::has_accelerator_feature(const std::string &package,
       return setting == "mixed";
 #endif
     }
+    if (category == "rng") {
+#if defined(LMP_KOKKOS_DEBUG_RNG)
+      return setting == "host";
+#else
+      return setting == "device";
+#endif
+    }
     if (category == "layout") {
 #if defined(LMP_KOKKOS_LAYOUT_LEGACY)
       return setting == "legacy";
@@ -1211,6 +1218,9 @@ std::string Info::get_accelerator_info(const std::string &package)
     if (has_accelerator_feature("KOKKOS","precision","single")) mesg += " single";
     if (has_accelerator_feature("KOKKOS","precision","mixed"))  mesg += " mixed";
     if (has_accelerator_feature("KOKKOS","precision","double")) mesg += " double";
+    mesg +=  "\nKOKKOS package random numbers:";
+    if (has_accelerator_feature("KOKKOS","rng","host"))   mesg += " host";
+    if (has_accelerator_feature("KOKKOS","rng","device")) mesg += " device";
     mesg +=  "\nKOKKOS package view layout:";
     if (has_accelerator_feature("KOKKOS","layout","legacy")) mesg += " legacy";
     if (has_accelerator_feature("KOKKOS","layout","default"))  mesg += " default";

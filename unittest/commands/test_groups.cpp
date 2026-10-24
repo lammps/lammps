@@ -418,9 +418,9 @@ TEST_F(GroupTest, VariableFunctions)
     command("set atom 25 charge $(2.0+2.0*sin(PI/32*25))");
     command("set atom 32 charge $(-2.0+2.0*sin(PI/32*32))");
     command("pair_style lj/cut 5.0");
-    command("pair_coeff * * 0.4 3.0");
-    command("pair_coeff 2 2 0.5 3.3");
-    command("pair_coeff 3 3 0.2 3.5");
+    command("pair_coeff * * 0.4 0.8");
+    command("pair_coeff 2 2 0.5 0.9");
+    command("pair_coeff 3 3 0.2 1.0");
     command("run 0 post no");
     END_HIDE_OUTPUT();
 
@@ -526,25 +526,33 @@ TEST_F(GroupTest, VariableFunctions)
     EXPECT_DOUBLE_EQ(center[1], 0);
     EXPECT_DOUBLE_EQ(center[2], 0);
 
+    // the total force on a group of this symmetric system is zero up to the
+    // roundoff of the sum over its atoms.  the individual values depend on the
+    // summation order and thus on the accelerator package in use, so only the
+    // magnitude is checked here.  the pair forces are of order 1, which leaves
+    // a remainder of about 1.0e-5 when the forces are summed in single precision
+
+    const double FORCE_EPSILON = prec_tol(0.0, 1.0e-10);
+
     group->fcm(0, center);
-    EXPECT_NEAR(center[0], 1.9375372195540308e-08, EPSILON);
-    EXPECT_NEAR(center[1], -1.0289756668946382e-07, EPSILON);
-    EXPECT_NEAR(center[2], -1.3366961142124989e-07, EPSILON);
+    EXPECT_NEAR(center[0], 0, FORCE_EPSILON);
+    EXPECT_NEAR(center[1], 0, FORCE_EPSILON);
+    EXPECT_NEAR(center[2], 0, FORCE_EPSILON);
 
     group->fcm(two, center);
-    EXPECT_NEAR(center[0], 2.4316524016576579e-08, EPSILON);
-    EXPECT_NEAR(center[1], -6.0179227712175987e-08, EPSILON);
-    EXPECT_NEAR(center[2], -1.4393012942592875e-07, EPSILON);
+    EXPECT_NEAR(center[0], 0, FORCE_EPSILON);
+    EXPECT_NEAR(center[1], 0, FORCE_EPSILON);
+    EXPECT_NEAR(center[2], 0, FORCE_EPSILON);
 
     group->fcm(three, center);
-    EXPECT_NEAR(center[0], 0, EPSILON);
-    EXPECT_NEAR(center[1], 0, EPSILON);
-    EXPECT_NEAR(center[2], 0, EPSILON);
+    EXPECT_NEAR(center[0], 0, FORCE_EPSILON);
+    EXPECT_NEAR(center[1], 0, FORCE_EPSILON);
+    EXPECT_NEAR(center[2], 0, FORCE_EPSILON);
 
     group->fcm(one, center, top);
-    EXPECT_NEAR(center[0], -5.5879354476928711e-09, EPSILON);
-    EXPECT_NEAR(center[1], -1.6743454178680395e-08, EPSILON);
-    EXPECT_NEAR(center[2], 2.6166095290491853e-08, EPSILON);
+    EXPECT_NEAR(center[0], 0, FORCE_EPSILON);
+    EXPECT_NEAR(center[1], 0, FORCE_EPSILON);
+    EXPECT_NEAR(center[2], 0, FORCE_EPSILON);
 
     EXPECT_DOUBLE_EQ(group->ke(one), 0);
     EXPECT_DOUBLE_EQ(group->ke(one, top), 0);
@@ -633,6 +641,8 @@ TEST_F(GroupTest, InertiaSphere)
 
 TEST_F(GroupTest, InertiaSuperellipsoid)
 {
+    // atom style ellipsoid/kk does not support the superellipsoid option
+    if (lmp->suffix_enable) GTEST_SKIP() << "superellipsoid is not supported with an accelerator suffix";
     if (!info->has_style("atom", "ellipsoid")) GTEST_SKIP();
 
     // same configuration as InertiaEllipsoid, but atom_style "ellipsoid
@@ -674,6 +684,11 @@ TEST_F(GroupTest, InertiaSuperellipsoid)
 TEST_F(GroupTest, InertiaBody)
 {
     if (!lammps_config_has_package("BODY")) GTEST_SKIP();
+
+    // the KOKKOS package requires a Kokkos-enabled atom style, and there is
+    // no accelerated version of atom style body
+    if (lmp->kokkos && !info->has_style("atom", "body/kk"))
+        GTEST_SKIP() << "atom style body has no KOKKOS version";
 
     // single body/nparticle at the origin with a known diagonal inertia
     // tensor (2,3,4); Group::inertia must return it unchanged
@@ -852,6 +867,13 @@ int main(int argc, char **argv)
     if ((argc > 1) && (strcmp(argv[1], "-v") == 0)) verbose = true;
 
     int rv = RUN_ALL_TESTS();
+
+    // finalize the KOKKOS package explicitly: otherwise Kokkos is torn down by
+    // static destructors at program exit, leading to segfaults in some cases
+    // same workaround as the force-style and FFT3d test drivers
+
+    lammps_kokkos_finalize();
+
     MPI_Finalize();
     return rv;
 }

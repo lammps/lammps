@@ -204,8 +204,13 @@ class ColorMap : protected Pointers {
   class Image *image;              // caller with color2rgb() method
   int mstyle, mrange;              // 2-letter style/range of color map
   int mlo, mhi;                    // bounds = NUMERIC or MINVALUE or MAXVALUE
+  int rounddown_flag;              // for sequential color map,
+                                   // ensure value at hi end of range is not
+                                   //   assigned color of bin starting at hi,
+                                   //   but rather the color of bin ending at hi
   double mlovalue, mhivalue;       // user bounds if NUMERIC
   double locurrent, hicurrent;     // current bounds for this snapshot
+                                   //   from user bounds or dynamic bounds
   double mbinsize, mbinsizeinv;    // bin size for sequential color map
   double interpolate[3];           // local storage for returned RGB color
 

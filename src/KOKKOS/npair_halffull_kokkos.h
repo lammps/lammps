@@ -218,7 +218,7 @@ NPairStyle(halffull/newton/tri/trim/kk/host,
 
 using NPairKokkosHalffullNewtonTriTrimDevice = NPairHalffullKokkos<LMPDeviceType,1,1,1>;
 NPairStyle(halffull/newton/tri/trim/skip/kk/device,
-           NPairKokkosHalffullNewtonTrimDevice,
+           NPairKokkosHalffullNewtonTriTrimDevice,
            NP_HALF_FULL | NP_NEWTON | NP_HALF | NP_NSQ | NP_BIN | NP_MULTI |
            NP_ORTHO | NP_TRI | NP_SKIP | NP_TRIM | NP_KOKKOS_DEVICE);
 
@@ -366,6 +366,8 @@ class NPairHalffullKokkos : public NPair {
   double cutsq_custom,delta;
 
   typename AT::t_kkfloat_1d_3_lr_randomread x;
+  typename AT::t_int_1d_randomread type;
+  typename AT::t_kkfloat_2d d_cutneighsq;
 
   typename AT::t_neighbors_2d_const d_neighbors_full;
   typename AT::t_int_1d_const d_ilist_full;

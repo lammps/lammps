@@ -129,7 +129,11 @@ void PairLJClass2CoulLongSoft::compute(int eflag, int vflag)
           erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
           denc = sqrt(lj4[itype][jtype] + rsq);
           prefactor = qqrd2e * lj1[itype][jtype] * qtmp*q[j] / (denc*denc*denc);
-          forcecoul = prefactor * (erfc + EWALD_F*grij*expm2);
+          // the soft core replaces only the 1/r factor, while the Ewald damping
+          // keeps the true distance, so differentiating erfc(g*r)/denc leaves the
+          // exponential term scaled by denc^2/r^2 against a plain 1/r kernel
+
+          forcecoul = prefactor * (erfc + EWALD_F*grij*expm2*denc*denc/rsq);
           if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor;
         } else forcecoul = 0.0;
 
@@ -318,7 +322,7 @@ double PairLJClass2CoulLongSoft::init_one(int i, int j)
 
   if (offset_flag && (cut_lj[i][j] > 0.0)) {
     double denlj = lj3[i][j] + pow(cut_lj[i][j] / sigma[i][j], 6.0);
-    offset[i][j] = epsilon[i][j] * (2.0*pow(denlj,-1.5) - 3.0*pow(denlj,-1.0));
+    offset[i][j] = lj1[i][j] * epsilon[i][j] * (2.0*pow(denlj,-1.5) - 3.0*pow(denlj,-1.0));
   } else offset[i][j] = 0.0;
 
   epsilon[j][i] = epsilon[i][j];
@@ -496,7 +500,7 @@ double PairLJClass2CoulLongSoft::single(int i, int j, int itype, int jtype,
       denc = sqrt(lj4[itype][jtype] + rsq);
       prefactor = force->qqrd2e * lj1[itype][jtype] * atom->q[i]*atom->q[j] /
         (denc*denc*denc);
-      forcecoul = prefactor * (erfc + EWALD_F*grij*expm2);
+      forcecoul = prefactor * (erfc + EWALD_F*grij*expm2*denc*denc/rsq);
       if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor;
   } else forcecoul = 0.0;
   if (rsq < cut_ljsq[itype][jtype]) {

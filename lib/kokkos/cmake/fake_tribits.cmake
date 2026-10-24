@@ -60,6 +60,10 @@ function(KOKKOS_ADD_TEST)
     add_test(NAME ${TEST_NAME} WORKING_DIRECTORY ${LIBRARY_OUTPUT_PATH} COMMAND ${EXE}${CMAKE_EXECUTABLE_SUFFIX}
                                                                                 ${TEST_ARGS} ${${TEST_NAME}_EXTRA_ARGS}
     )
+  elseif(KOKKOS_ENABLE_NEXTSILICON)
+    add_test(NAME ${TEST_NAME} COMMAND ${KOKKOS_SOURCE_DIR}/scripts/nextsilicon-test-wrapper.sh ${EXE} ${TEST_ARGS}
+                                       ${${TEST_NAME}_EXTRA_ARGS}
+    )
   else()
     add_test(NAME ${TEST_NAME} COMMAND ${EXE} ${TEST_ARGS} ${${TEST_NAME}_EXTRA_ARGS})
   endif()

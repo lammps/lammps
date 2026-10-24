@@ -12,7 +12,14 @@ RSTDIR         = $(BUILDDIR)/src
 VENV           = $(BUILDDIR)/docenv
 SPHINXCONFIG   = $(BUILDDIR)/utils/sphinx-config
 MATHJAX        = $(SPHINXCONFIG)/_static/mathjax
+# keep in sync with the MathJax download settings in cmake/Modules/Documentation.cmake
 MATHJAXTAG     = 4.1.3
+MATHJAXSUM     = f487c39d2913f371eb42dab078559a902da69acca38a9ebec7640a6581535ba3
+# the fonts are distributed separately. their version must match the MathJax version
+MATHJAXFONT    = $(MATHJAX)/mathjax-newcm-font
+MATHJAXFONTTGZ = mathjax-newcm-font-$(MATHJAXTAG).tgz
+MATHJAXFONTSUM = 87d7b869c6a2a6169d9a53acc4eab6c846a9cbe11752738226461bb5070c8b88
+THIRDPARTYURL  = https://download.lammps.org/thirdparty
 
 PYTHON         = $(word 3,$(shell type python3))
 DOXYGEN        = $(word 3,$(shell type doxygen))
@@ -68,12 +75,13 @@ help:
 	@echo "  upgrade       upgrade sphinx, extensions, and dependencies to latest supported versions"
 	@echo "  clean         remove all intermediate files"
 	@echo "  clean-all     reset the entire build environment"
-	@echo "  check         run 'anchor_check', 'style_check', 'package_check', 'char_check', and 'role_check'"
+	@echo "  check         run 'anchor_check', 'style_check', 'package_check', 'char_check', 'role_check', and 'example_check'"
 	@echo "  anchor_check  scan for duplicate anchor labels"
 	@echo "  style_check   check for complete and consistent style lists"
 	@echo "  package_check check for complete and consistent package lists"
 	@echo "  char_check    check for non-ASCII characters"
 	@echo "  role_check    check for misformatted role keywords"
+	@echo "  example_check check for broken or missing links to examples"
 	@echo "  link_check    check external links in the manual"
 	@echo "  extract_check check extract() function consistency with tables in the manual"
 	@echo "  spelling      spell-check the manual"
@@ -101,7 +109,7 @@ $(SPHINXCONFIG)/conf.py: $(SPHINXCONFIG)/conf.py.in
 globbed-tocs:
 	$(PYTHON) $(BUILDDIR)/utils/make-globbed-tocs.py -d $(RSTDIR)
 
-html: xmlgen globbed-tocs $(VENV) $(SPHINXCONFIG)/conf.py $(MATHJAX)
+html: xmlgen globbed-tocs $(VENV) $(SPHINXCONFIG)/conf.py $(MATHJAX) $(MATHJAXFONT)
 	@if [ "$(HAS_BASH)" == "NO" ] ; then echo "bash was not found at $(OSHELL)! Please use: $(MAKE) SHELL=/path/to/bash" 1>&2; exit 1; fi
 	@if [ "$(WEB_SEARCH)" == "YES" ] ; then \
 		cp -v utils/sphinx-config/_themes/lammps_theme/google_search.html \
@@ -127,6 +135,7 @@ html: xmlgen globbed-tocs $(VENV) $(SPHINXCONFIG)/conf.py $(MATHJAX)
 		$(PYTHON) $(BUILDDIR)/utils/check-styles.py -s ../src -d src ;\
 		env LC_ALL=C grep -n -E '^ *\.\. [a-z0-9]+:(\s+.*|)$$' \
                          $(RSTDIR)/*.rst ../src/*.{cpp,h} ../src/*/*.{cpp,h} ;\
+		$(PYTHON) utils/find_example_refs.py --check ;\
 		echo "############################################" ;\
 		deactivate ;\
 	)
@@ -226,6 +235,7 @@ pdf: xmlgen globbed-tocs $(VENV) $(SPHINXCONFIG)/conf.py
 		$(PYTHON) utils/check-styles.py -s ../src -d src ;\
 		env LC_ALL=C grep -n -E '^ *\.\. [a-z0-9]+:(\s+.*|)$$' \
                          $(RSTDIR)/*.rst ../src/*.{cpp,h} ../src/*/*.{cpp,h} ;\
+		$(PYTHON) utils/find_example_refs.py --check ;\
 		echo "############################################" ;\
 		deactivate ;\
 	)
@@ -246,7 +256,7 @@ pdf: xmlgen globbed-tocs $(VENV) $(SPHINXCONFIG)/conf.py
 	@rm -rf latex/PDF/.[sg]*
 	@echo "Build finished. Manual.pdf is in this directory."
 
-check : anchor_check style_check package_check char_check role_check
+check : anchor_check style_check package_check char_check role_check example_check
 
 anchor_check :
 	@( env PYTHONWARNINGS= PYTHONDONTWRITEBYTECODE=1 \
@@ -284,6 +294,13 @@ extract_check : $(VENV)
 		deactivate ;\
 	)
 
+example_check : $(VENV)
+	@(\
+		. $(VENV)/bin/activate ; env PYTHONWARNINGS= PYTHONDONTWRITEBYTECODE=1 \
+		$(PYTHON) utils/find_example_refs.py --check ;\
+		deactivate ;\
+	)
+
 upgrade: $(VENV)
 	@(\
 		. $(VENV)/bin/activate; \
@@ -316,5 +333,12 @@ $(VENV):
 	)
 
 $(MATHJAX):
-	@git clone -b $(MATHJAXTAG) -c advice.detachedHead=0 --depth 1 https://github.com/mathjax/MathJax.git $@
+	@$(PYTHON) $(BUILDDIR)/utils/fetch-archive.py -s $(MATHJAXSUM) -d $@ \
+		-u https://github.com/mathjax/MathJax/archive/$(MATHJAXTAG).tar.gz \
+		-u $(THIRDPARTYURL)/mathjax-$(MATHJAXTAG).tar.gz
 	@test -e es5 || ln -sf . es5
+
+$(MATHJAXFONT): | $(MATHJAX)
+	@$(PYTHON) $(BUILDDIR)/utils/fetch-archive.py -s $(MATHJAXFONTSUM) -d $@ -k chtml -k package.json \
+		-u https://registry.npmjs.org/@mathjax/mathjax-newcm-font/-/$(MATHJAXFONTTGZ) \
+		-u $(THIRDPARTYURL)/$(MATHJAXFONTTGZ)

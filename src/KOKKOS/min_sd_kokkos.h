@@ -32,7 +32,9 @@ class MinSDKokkos : public MinLineSearchKokkos {
   MinSDKokkos(class LAMMPS *);
   int iterate(int) override;
 
- private:
+  // public rather than private: nvcc refuses an extended __host__ __device__
+  // lambda in a member function with private or protected access
+
   void set_search_direction();
 };
 

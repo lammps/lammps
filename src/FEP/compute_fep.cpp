@@ -18,6 +18,7 @@
 #include "compute_fep.h"
 
 #include "atom.h"
+#include "atom_masks.h"
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
@@ -54,7 +55,7 @@ ComputeFEP::ComputeFEP(LAMMPS *lmp, int narg, char **arg) : Compute(lmp, narg, a
 
   const int ntypes = atom->ntypes;
   vector = new double[size_vector];
-  fepinitflag = 0;    // avoid init to run entirely when called by write_data
+  fepinitflag = 0;    // print settings only at the first init()
 
   temp_fep = utils::numeric(FLERR, arg[3], false, lmp);
 
@@ -140,14 +141,13 @@ ComputeFEP::ComputeFEP(LAMMPS *lmp, int narg, char **arg) : Compute(lmp, narg, a
       memory->create(perturb[m].array_orig, ntypes + 1, ntypes + 1, "fep:array_orig");
   }
 
-  // allocate space for charge, force, energy, virial arrays
+  // charge, force, energy, virial per-atom arrays are allocated in init()
 
+  nmax = 0;
   f_orig = nullptr;
   q_orig = nullptr;
   peatom_orig = keatom_orig = nullptr;
   pvatom_orig = kvatom_orig = nullptr;
-
-  allocate_storage();
 
   fixgpu = nullptr;
 }
@@ -177,12 +177,8 @@ void ComputeFEP::init()
 {
   int i, j;
 
-  if (!fepinitflag)    // avoid init to run entirely when called by write_data
-    fepinitflag = 1;
-  else
-    return;
-
-  // setup and error checks
+  // setup and error checks, repeated at every init() since the pair style
+  // or kspace style may have been changed or added since the previous run
 
   pairflag = 0;
 
@@ -200,15 +196,31 @@ void ComputeFEP::init()
     if (pert->which == PAIR) {
       pairflag = 1;
       Pair *pair = nullptr;
+      std::string pname;
       if (lmp->suffix_enable) {
-        if (lmp->suffix)
-          pair = force->pair_match(fmt::format("{}/{}", pert->pstyle, lmp->suffix), 1);
-        if ((pair == nullptr) && lmp->suffix2)
-          pair = force->pair_match(fmt::format("{}/{}", pert->pstyle, lmp->suffix2), 1);
+        if (lmp->suffix) {
+          pname = fmt::format("{}/{}", pert->pstyle, lmp->suffix);
+          pair = force->pair_match(pname, 1);
+        }
+        if ((pair == nullptr) && lmp->suffix2) {
+          pname = fmt::format("{}/{}", pert->pstyle, lmp->suffix2);
+          pair = force->pair_match(pname, 1);
+        }
       }
 
-      if (pair == nullptr) pair = force->pair_match(pert->pstyle, 1);
+      if (pair == nullptr) {
+        pname = pert->pstyle;
+        pair = force->pair_match(pert->pstyle, 1);
+      }
       if (pair == nullptr) error->all(FLERR, "Compute fep pair style {} not found", pert->pstyle);
+
+      // Pair::reinit() checks reinitflag only for the top-level pair style,
+      // so the check for sub-styles of hybrid pair styles must be done here.
+      // hybrid pair styles store the names of their sub-styles without suffix.
+
+      if (!pair->reinitflag)
+        error->all(FLERR, "Compute fep interface to {}pair style {} is not supported",
+                   pair->suffix_flag ? "the accelerated variant of " : "", pname);
 
       void *ptr = pair->extract(pert->pparam, pert->pdim);
       if (ptr == nullptr)
@@ -242,11 +254,18 @@ void ComputeFEP::init()
                  "compute tail corrections");
   }
 
+  // (re-)allocate per-atom storage, the kspace arrays depend on force->kspace
+
+  deallocate_storage();
+  allocate_storage();
+
   // detect if package gpu is present
 
   fixgpu = modify->get_fix_by_id("package_gpu");
 
-  if (comm->me == 0) {
+  // print settings only once and not again when called by write_data or later runs
+
+  if ((comm->me == 0) && !fepinitflag) {
     auto mesg = fmt::format("FEP settings ...\n  temperature = {:f}\n", temp_fep);
     mesg += fmt::format("  tail {}\n", (tailflag ? "yes" : "no"));
     for (int m = 0; m < npert; m++) {
@@ -259,6 +278,7 @@ void ComputeFEP::init()
     }
     utils::logmesg(lmp, mesg);
   }
+  fepinitflag = 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -367,6 +387,11 @@ void ComputeFEP::perturb_params()
     } else if (pert->which == ATOM) {
 
       if (pert->aparam == CHARGE) {    // modify charges
+
+        // written through the host pointers ahead of a KOKKOS force evaluation
+
+        atom->sync_host_arrays(Q_MASK | TYPE_MASK | MASK_MASK);
+
         int *atype = atom->type;
         double *q = atom->q;
         int *mask = atom->mask;
@@ -375,6 +400,8 @@ void ComputeFEP::perturb_params()
         for (i = 0; i < natom; i++)
           if (atype[i] >= pert->ilo && atype[i] <= pert->ihi)
             if (mask[i] & groupbit) q[i] += delta;
+
+        atom->modified_host_arrays(Q_MASK);
       }
     }
   }
@@ -474,9 +501,13 @@ void ComputeFEP::backup_qfev()
 {
   int i;
 
+  // sync the host copies, the arrays are read below through the host pointers
+
+  atom->sync_host_arrays(F_MASK | (chgflag ? Q_MASK : EMPTY_MASK));
+
   int nall = atom->nlocal + atom->nghost;
   int natom = atom->nlocal;
-  if (force->newton || force->kspace->tip4pflag) natom += atom->nghost;
+  if (force->newton || (force->kspace && force->kspace->tip4pflag)) natom += atom->nghost;
 
   double **f = atom->f;
   for (i = 0; i < natom; i++) {
@@ -549,9 +580,14 @@ void ComputeFEP::restore_qfev()
 {
   int i;
 
+  // written back through the host pointers, then handed to the device
+
+  const uint64_t qfev_mask = F_MASK | (chgflag ? Q_MASK : EMPTY_MASK);
+  atom->sync_host_arrays(qfev_mask);
+
   int nall = atom->nlocal + atom->nghost;
   int natom = atom->nlocal;
-  if (force->newton || force->kspace->tip4pflag) natom += atom->nghost;
+  if (force->newton || (force->kspace && force->kspace->tip4pflag)) natom += atom->nghost;
 
   double **f = atom->f;
   for (i = 0; i < natom; i++) {
@@ -616,6 +652,8 @@ void ComputeFEP::restore_qfev()
       }
     }
   }
+
+  atom->modified_host_arrays(qfev_mask);
 }
 
 /* ---------------------------------------------------------------------- */

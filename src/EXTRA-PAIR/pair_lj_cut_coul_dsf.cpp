@@ -441,11 +441,12 @@ double PairLJCutCoulDSF::single(int i, int j, int itype, int jtype, double rsq,
 
   if (rsq < cut_coulsq) {
     r = sqrt(rsq);
-    prefactor = factor_coul * force->qqrd2e * atom->q[i]*atom->q[j]/r;
+    prefactor = force->qqrd2e * atom->q[i]*atom->q[j]/r;
     erfcc = erfc(alpha*r);
     erfcd = exp(-alpha*alpha*r*r);
     forcecoul = prefactor * (erfcc/r + 2.0*alpha/MY_PIS * erfcd +
       r*f_shift) * r;
+    if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor;
   } else forcecoul = 0.0;
 
   fforce = (forcecoul + factor_lj*forcelj) * r2inv;
@@ -459,6 +460,7 @@ double PairLJCutCoulDSF::single(int i, int j, int itype, int jtype, double rsq,
 
   if (rsq < cut_coulsq) {
     phicoul = prefactor * (erfcc - r*e_shift - rsq*f_shift);
+    if (factor_coul < 1.0) phicoul -= (1.0-factor_coul)*prefactor;
     eng += phicoul;
   }
 

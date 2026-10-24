@@ -62,16 +62,6 @@ struct ErrorReporterDriverBase {
     using namespace std;
     int num_reported = m_errorReporter.num_reports();
     int num_attempts = m_errorReporter.num_report_attempts();
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
-#ifdef KOKKOS_ENABLE_DEPRECATION_WARNINGS
-    KOKKOS_IMPL_DISABLE_DEPRECATED_WARNINGS_PUSH()
-#endif
-    EXPECT_EQ(num_reported, m_errorReporter.getNumReports());
-    EXPECT_EQ(num_attempts, m_errorReporter.getNumReportAttempts());
-#ifdef KOKKOS_ENABLE_DEPRECATION_WARNINGS
-    KOKKOS_IMPL_DISABLE_DEPRECATED_WARNINGS_POP()
-#endif
-#endif
 
     int expected_num_reports = min(reporter_capacity, test_size / 2);
     EXPECT_EQ(expected_num_reports, num_reported);
@@ -98,37 +88,6 @@ void TestErrorReporter() {
   tester_type test2(10, 100);
   auto [reporters2, reports2] = test2.m_errorReporter.get_reports();
   checkReportersAndReportsAgree(reporters2, reports2);
-
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
-#ifdef KOKKOS_ENABLE_DEPRECATION_WARNINGS
-  KOKKOS_IMPL_DISABLE_DEPRECATED_WARNINGS_PUSH()
-#endif
-  test2.m_errorReporter.getReports(reporters, reports);
-  checkReportersAndReportsAgree(reporters, reports);
-
-  typename Kokkos::View<int *,
-                        typename ErrorReporterDriverType::execution_space>::
-      host_mirror_type view_reporters;
-  typename Kokkos::View<typename tester_type::report_type *,
-                        typename ErrorReporterDriverType::execution_space>::
-      host_mirror_type view_reports;
-  test2.m_errorReporter.getReports(view_reporters, view_reports);
-
-  int num_reports = view_reporters.extent(0);
-  reporters.clear();
-  reports.clear();
-  reporters.reserve(num_reports);
-  reports.reserve(num_reports);
-
-  for (int i = 0; i < num_reports; ++i) {
-    reporters.push_back(view_reporters(i));
-    reports.push_back(view_reports(i));
-  }
-  checkReportersAndReportsAgree(reporters, reports);
-#ifdef KOKKOS_ENABLE_DEPRECATION_WARNINGS
-  KOKKOS_IMPL_DISABLE_DEPRECATED_WARNINGS_POP()
-#endif
-#endif
 }
 
 template <typename DeviceType>

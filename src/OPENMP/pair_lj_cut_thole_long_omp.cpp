@@ -44,8 +44,6 @@ static constexpr double B4      = -5.80844129e-3;
 static constexpr double B5      =  1.14652755e-1;
 
 static constexpr double EPSILON = 1.0e-20;
-static constexpr double EPS_EWALD = 1.0e-6;
-static constexpr double EPS_EWALD_SQR = 1.0e-12;
 
 /* ---------------------------------------------------------------------- */
 
@@ -93,11 +91,14 @@ void PairLJCutTholeLongOMP::compute(int eflag, int vflag)
     thr->timer(Timer::PAIR);
     reduce_thr(this, eflag, vflag, thr);
   } // end of omp parallel region
+
+  error_thr();
 }
 
 template <int EVFLAG, int EFLAG, int NEWTON_PAIR>
 void PairLJCutTholeLongOMP::eval(int iifrom, int iito, ThrData * const thr)
 {
+  const int tid = thr->get_tid();
   const auto * _noalias const x = (dbl3_t *) atom->x[0];
   auto * _noalias const f = (dbl3_t *) thr->get_f()[0];
   const double * const q = atom->q;
@@ -149,7 +150,7 @@ void PairLJCutTholeLongOMP::eval(int iifrom, int iito, ThrData * const thr)
 
     if (drudetype[type[i]] != NOPOL_TYPE) {
       di = atom->map(drudeid[i]);
-      if (di < 0) error->all(FLERR, "Drude partner not found");
+      if (check_error_thr((di < 0), tid, FLERR, "Drude partner not found")) return;
       di_closest = domain->closest_image(i, di);
       if (drudetype[type[i]] == CORE_TYPE)
         dqi = -q[di];
@@ -178,15 +179,20 @@ void PairLJCutTholeLongOMP::eval(int iifrom, int iito, ThrData * const thr)
           r = sqrt(rsq);
 
           if (!ncoultablebits || rsq <= tabinnersq) {
-            grij = g_ewald * (r + EPS_EWALD);
+            grij = g_ewald * r;
             expm2 = exp(-grij*grij);
-            t = 1.0 / (1.0 + EWALD_P*grij);
-            u = 1. - t;
-            erfc = t * (1.+u*(B0+u*(B1+u*(B2+u*(B3+u*(B4+u*B5)))))) * expm2;
-            prefactor = qqrd2e * qi*qj/(r + EPS_EWALD);
-            forcecoul = prefactor * (erfc + EWALD_F*grij*expm2);
-            if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor;
-            r2inv = 1.0/(rsq + EPS_EWALD_SQR);
+            prefactor = qqrd2e * qi*qj/r;
+            if (factor_coul < 1.0) {
+              // for excluded pairs the correction nearly cancels the Ewald term: use erf()
+              // erfc holds erfc - (1 - factor_coul)
+              erfc = factor_coul - erf(grij);
+              forcecoul = prefactor * (erfc + MY_ISPI4*grij*expm2);
+            } else {
+              t = 1.0 / (1.0 + EWALD_P*grij);
+              u = 1. - t;
+              erfc = t * (1.+u*(B0+u*(B1+u*(B2+u*(B3+u*(B4+u*B5)))))) * expm2;
+              forcecoul = prefactor * (erfc + EWALD_F*grij*expm2);
+            }
           } else {
             union_int_float_t rsq_lookup;
             rsq_lookup.f = rsq;
@@ -207,6 +213,7 @@ void PairLJCutTholeLongOMP::eval(int iifrom, int iito, ThrData * const thr)
             if (j != di_closest) {
               if (drudetype[type[j]] == CORE_TYPE) {
                 dj = atom->map(drudeid[j]);
+                if (check_error_thr((dj < 0), tid, FLERR, "Drude partner not found")) return;
                 dqj = -q[dj];
               } else dqj = qj;
               asr = ascreen[type[i]][type[j]] * r;
@@ -244,8 +251,8 @@ void PairLJCutTholeLongOMP::eval(int iifrom, int iito, ThrData * const thr)
             else {
               table = etable[itable] + fraction*detable[itable];
               ecoul = qi*qj * table;
+              if (factor_coul < 1.0) ecoul -= (1.0-factor_coul)*prefactor;
             }
-            if (factor_coul < 1.0) ecoul -= (1.0-factor_coul)*prefactor;
             if (drudetype[type[i]] != NOPOL_TYPE &&
                 drudetype[type[j]] != NOPOL_TYPE && j != di_closest) {
               ecoul += factor_e * dcoul;

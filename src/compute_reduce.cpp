@@ -198,7 +198,7 @@ ComputeReduce::ComputeReduce(LAMMPS *lmp, int narg, char **arg) :
 
   // optional args
 
-  nvalues = values.size();
+  nvalues = (int)values.size();
   replace = new int[nvalues];
   for (int i = 0; i < nvalues; ++i) replace[i] = -1;
   input_mode = PERATOM;
@@ -460,7 +460,7 @@ void ComputeReduce::compute_vector()
       indices[m] = index;
     }
 
-  if (mode == SUM || mode == SUMSQ || mode == AVEABS) {
+  if (mode == SUM || mode == SUMSQ || mode == SUMABS) {
     for (int m = 0; m < nvalues; m++)
       MPI_Allreduce(&onevec[m], &vector[m], 1, MPI_DOUBLE, MPI_SUM, world);
   } else if (mode == MINABS || mode == MAXABS) {

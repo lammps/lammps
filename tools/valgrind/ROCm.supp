@@ -66,3 +66,13 @@
    fun:_ZN3amd*guessTlsSizeEv*
    ...
 }
+{
+   ROCm_amdocl_queue_thread_tls
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:calloc
+   ...
+   fun:pthread_create@*
+   fun:_ZN3amd2Os14createOsThreadE*
+   ...
+}

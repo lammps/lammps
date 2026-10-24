@@ -278,6 +278,11 @@ class ParallelReduce<CombinedFunctorReducerType, Kokkos::RangePolicy<Traits...>,
         }
       }
 
+      // Only let one instance at a time resize the instance's scratch memory
+      // allocations.
+      std::scoped_lock<std::mutex> scratch_buffers_lock(
+          m_policy.space().impl_internal_space_instance()->m_mutexScratchSpace);
+
       // TODO: down casting these uses more space than required?
       m_scratch_space =
           (word_size_type*)::Kokkos::Impl::hip_internal_scratch_space(

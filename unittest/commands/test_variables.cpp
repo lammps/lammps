@@ -18,6 +18,7 @@
 #include "group.h"
 #include "info.h"
 #include "input.h"
+#include "library.h"
 #include "math_const.h"
 #include "region.h"
 #include "variable.h"
@@ -212,6 +213,14 @@ TEST_F(VariableTest, CreateDelete)
     ASSERT_THAT(variable->retrieve("seven"), StrEq("simpletest2"));
     ASSERT_THAT(variable->retrieve("eight"), StrEq("2"));
     ASSERT_THAT(variable->retrieve("three"), StrEq("four four"));
+
+    // non-ASCII lookalikes are replaced, all other UTF-8 encoded characters are kept
+    BEGIN_HIDE_OUTPUT();
+    command(
+        "variable utf8 string \"M\xc3\xbcller\xc2\xa0\xc2\xb5m \xe2\x84\xab \xf0\x9f\x98\x80\"");
+    END_HIDE_OUTPUT();
+    ASSERT_THAT(variable->retrieve("utf8"),
+                StrEq("M\xc3\xbcller \xc2\xb5m \xe2\x84\xab \xf0\x9f\x98\x80"));
 
     ASSERT_EQ(variable->equalstyle(variable->find("one")), 0);
     ASSERT_EQ(variable->equalstyle(variable->find("two")), 1);
@@ -617,39 +626,47 @@ TEST_F(VariableTest, IfCommand)
     text = END_CAPTURE_OUTPUT();
     ASSERT_THAT(text, ContainsRegex(".*bingo!.*"));
 
-    TEST_FAILURE(".*ERROR: Invalid Boolean syntax in if command.*",
+    TEST_FAILURE(".*ERROR: Invalid boolean syntax in '' of if command.*",
                  command("if () then 'print \"bingo!\"'"););
-    TEST_FAILURE(".*ERROR: Invalid Boolean syntax in if command.*",
+    TEST_FAILURE(".*ERROR: Invalid boolean syntax in '1 1' of if command.*",
                  command("if \"1 1\" then 'print \"bingo!\"'"););
-    TEST_FAILURE(".*ERROR: Invalid Boolean syntax in if command.*",
+    TEST_FAILURE(".*ERROR: Invalid boolean syntax in '1a' of if command.*",
                  command("if 1a then 'print \"bingo!\"'"););
-    TEST_FAILURE(".*ERROR: Invalid Boolean syntax in if command.*",
+    TEST_FAILURE(".*ERROR: Invalid boolean syntax in '1=<2' of if command.*",
                  command("if 1=<2 then 'print \"bingo!\"'"););
-    TEST_FAILURE(".*ERROR: If command boolean is comparing string to number.*",
+    TEST_FAILURE(".*ERROR: If command boolean in '1!=a' is comparing string to number.*",
                  command("if 1!=a then 'print \"bingo!\"'"););
-    TEST_FAILURE(".*ERROR: If command boolean can only operate on numbers.*",
+    TEST_FAILURE(".*ERROR: If command boolean not in '!a' cannot operate on string.*",
+                 command("if !a then 'print \"bingo!\"'"););
+    TEST_FAILURE(".*ERROR: If command boolean in 'a<b' can only operate on numbers.*",
                  command("if a<b then 'print \"bingo!\"'"););
-    TEST_FAILURE(".*ERROR: If command boolean can only operate on numbers.*",
+    TEST_FAILURE(".*ERROR: If command boolean in 'a>b' can only operate on numbers.*",
                  command("if a>b then 'print \"bingo!\"'"););
-    TEST_FAILURE(".*ERROR: If command boolean can only operate on numbers.*",
+    TEST_FAILURE(".*ERROR: If command boolean in 'a<=b' can only operate on numbers.*",
                  command("if a<=b then 'print \"bingo!\"'"););
-    TEST_FAILURE(".*ERROR: If command boolean can only operate on numbers.*",
-                 command("if a<=b then 'print \"bingo!\"'"););
-    TEST_FAILURE(".*ERROR: Invalid Boolean syntax in if command.*",
+    TEST_FAILURE(".*ERROR: If command boolean in 'a>=b' can only operate on numbers.*",
+                 command("if a>=b then 'print \"bingo!\"'"););
+    TEST_FAILURE(".*ERROR: If command boolean in 'a&&b' can only operate on numbers.*",
+                 command("if a&&b then 'print \"bingo!\"'"););
+    TEST_FAILURE(".*ERROR: If command boolean in 'a\\|\\|b' can only operate on numbers.*",
+                 command("if a||b then 'print \"bingo!\"'"););
+    TEST_FAILURE(".*ERROR: If command boolean in 'a\\|\\^b' can only operate on numbers.*",
+                 command("if a|^b then 'print \"bingo!\"'"););
+    TEST_FAILURE(".*ERROR: Invalid boolean syntax in '1&<2' of if command.*",
                  command("if 1&<2 then 'print \"bingo!\"'"););
-    TEST_FAILURE(".*ERROR: Invalid Boolean syntax in if command.*",
+    TEST_FAILURE(".*ERROR: Invalid boolean syntax in '1\\|<2' of if command.*",
                  command("if 1|<2 then 'print \"bingo!\"'"););
-    TEST_FAILURE(".*ERROR: Invalid Boolean syntax in if command.*",
+    TEST_FAILURE(".*ERROR: Invalid boolean syntax in '\\(1\\)\\(' of if command.*",
                  command("if (1)( then 'print \"bingo!\"'"););
-    TEST_FAILURE(".*ERROR: Invalid Boolean syntax in if command.*",
+    TEST_FAILURE(".*ERROR: Invalid boolean syntax in '\\(1\\)1' of if command.*",
                  command("if (1)1 then 'print \"bingo!\"'"););
-    TEST_FAILURE(".*ERROR: If command boolean is comparing string to number.*",
+    TEST_FAILURE(".*ERROR: If command boolean in 'v_one==1.0' is comparing string to number.*",
                  command("if (v_one==1.0)&&(2>=1) then 'print \"bingo!\"'"););
-    TEST_FAILURE(".*ERROR: If command boolean cannot be single string.*",
+    TEST_FAILURE(".*ERROR: If command boolean in 'something' cannot be single string.*",
                  command("if (something) then 'print \"bingo!\"'"););
-    TEST_FAILURE(".*ERROR: If command boolean cannot be single string.*",
+    TEST_FAILURE(".*ERROR: If command boolean in 'v_one' cannot be single string.*",
                  command("if (v_one) then 'print \"bingo!\"'"););
-    TEST_FAILURE(".*ERROR: If command boolean cannot be single string.*",
+    TEST_FAILURE(".*ERROR: If command boolean in 'xx' cannot be single string.*",
                  command("if (${two}) then 'print \"bingo!\"'"););
 }
 
@@ -698,6 +715,8 @@ TEST_F(VariableTest, NextCommand)
 
 TEST_F(VariableTest, LabelMapAtomic)
 {
+    // label maps are currently not supported with the KOKKOS package
+    if (lmp->suffix_enable) GTEST_SKIP() << "label maps are not supported with an accelerator suffix";
     BEGIN_HIDE_OUTPUT();
     command("region box block 0 2 0 2 0 2");
     command("create_box 4 box");
@@ -729,6 +748,8 @@ TEST_F(VariableTest, LabelMapAtomic)
 
 TEST_F(VariableTest, LabelMapMolecular)
 {
+    // label maps are currently not supported with the KOKKOS package
+    if (lmp->suffix_enable) GTEST_SKIP() << "label maps are not supported with an accelerator suffix";
     if (!info->has_style("atom", "full")) GTEST_SKIP();
 
     BEGIN_HIDE_OUTPUT();
@@ -1108,6 +1129,13 @@ int main(int argc, char **argv)
     if ((argc > 1) && (strcmp(argv[1], "-v") == 0)) verbose = true;
 
     int rv = RUN_ALL_TESTS();
+
+    // finalize the KOKKOS package explicitly: otherwise Kokkos is torn down by
+    // static destructors at program exit, leading to segfaults in some cases
+    // same workaround as the force-style and FFT3d test drivers
+
+    lammps_kokkos_finalize();
+
     MPI_Finalize();
     return rv;
 }

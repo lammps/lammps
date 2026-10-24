@@ -44,7 +44,7 @@ Examples
    bond_style bpm/spring/plastic
    bond_coeff 1 1.0 0.05 0.1 0.02
 
-   bond_style bpm/spring/plastic myfix 1000 time id1 id2
+   bond_style bpm/spring/plastic store/local myfix 1000 time id1 id2
    dump 1 all local 1000 dump.broken f_myfix[1] f_myfix[2] f_myfix[3]
    dump_modify 1 write_header no
 

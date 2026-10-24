@@ -375,6 +375,24 @@ struct is_pair_like<Kokkos::pair<T, U>> : std::true_type {};
 template <class T, class U>
 struct is_pair_like<std::pair<T, U>> : std::true_type {};
 
+template <typename T>
+struct is_std_pair : std::false_type {};
+
+template <typename T1, typename T2>
+struct is_std_pair<std::pair<T1, T2>> : std::true_type {};
+
+template <typename T>
+auto convert_to_kokkos_pair_if_std_pair(T t) {
+  if constexpr (is_std_pair<T>::value)
+    return Kokkos::pair<typename T::first_type, typename T::second_type>{t};
+  else
+    return t;
+}
+
+// Concept that checks if ANY type in a pack is a std::pair
+template <typename... Args>
+concept ContainsStdPair = (is_std_pair<Args>::value || ...);
+
 }  // end namespace Impl
 
 }  // namespace Kokkos

@@ -16,6 +16,7 @@
 #include "atom_kokkos.h"
 #include "atom_masks.h"
 #include "neigh_list_kokkos.h"
+#include "neighbor_kokkos.h"
 #include "my_page.h"
 #include "error.h"
 
@@ -24,7 +25,10 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-NPairTrimKokkos<DeviceType>::NPairTrimKokkos(LAMMPS *lmp) : NPair(lmp) {}
+NPairTrimKokkos<DeviceType>::NPairTrimKokkos(LAMMPS *lmp) : NPair(lmp) {
+  atomKK = (AtomKokkos *) atom;
+  execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
+}
 
 /* ----------------------------------------------------------------------
    create list which is simply a copy of parent list
@@ -54,7 +58,12 @@ template<class DeviceType>
 void NPairTrimKokkos<DeviceType>::trim_to_kokkos(NeighList *list)
 {
   x = atomKK->k_x.view<DeviceType>();
-  atomKK->sync(execution_space,X_MASK);
+  type = atomKK->k_type.view<DeviceType>();
+  atomKK->sync(execution_space,X_MASK|TYPE_MASK);
+
+  NeighborKokkos* neighborKK = (NeighborKokkos*) neighbor;
+  neighborKK->k_cutneighsq.template sync<DeviceType>();
+  d_cutneighsq = neighborKK->k_cutneighsq.template view<DeviceType>();
 
   cutsq_custom = cutoff_custom*cutoff_custom;
 
@@ -110,7 +119,11 @@ void NPairTrimKokkos<DeviceType>::operator()(TagNPairTrim, const int &ii) const 
     const double delz = ztmp - static_cast<double>(x(j,2));
     const double rsq = delx*delx + dely*dely + delz*delz;
 
-    if (rsq > cutsq_custom) continue;
+    // a trim list whose own request carries no custom cutoff must fall back to
+    // the pairwise neighbour cutoff, as NPairTrim::build() does
+    const double cutsq_trim = (cutsq_custom > 0.0) ? cutsq_custom :
+      static_cast<double>(d_cutneighsq(type(i),type(j)));
+    if (rsq > cutsq_trim) continue;
 
     neighbors_i(n++) = joriginal;
   }

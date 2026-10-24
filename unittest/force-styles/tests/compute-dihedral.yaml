@@ -1,0 +1,28 @@
+---
+lammps_version: 2 Sep 2026
+tags:
+date_generated: Fri Sep 11 23:27:38 2026
+epsilon: 1e-08
+timestep: 0.25
+skip_tests:
+prerequisites: |
+  atom full
+  compute dihedral
+  dihedral hybrid
+  dihedral opls
+  dihedral harmonic
+pre_commands: ""
+post_commands: |
+  dihedral_style hybrid opls harmonic
+  dihedral_coeff 1 opls     1.0 0.5 0.25 0.0
+  dihedral_coeff 2 opls     0.8 0.4 0.20 0.0
+  dihedral_coeff 3 harmonic 1.5 -1 2
+  dihedral_coeff 4 harmonic 2.0  1 3
+  dihedral_coeff 5 opls     1.2 0.6 0.30 0.0
+  compute test all dihedral
+input_file: in.fourmol
+input_coeffs: coeffs.fourmol
+natoms: 29
+global_vector: |-
+  2  2.1099014846726259e+01  1.4006241038294908e+01
+...

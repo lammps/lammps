@@ -56,6 +56,7 @@ class PairLJLongTIP4PLongOMP : public PairLJLongTIP4PLong, public ThrOMP {
   void eval_inner(int, int, ThrData *const);
   void eval_middle(int, int, ThrData *const);
 
+  void cache_msite_thr(int);
   void compute_newsite_thr(const dbl3_t &, const dbl3_t &, const dbl3_t &, dbl3_t &) const;
 };
 

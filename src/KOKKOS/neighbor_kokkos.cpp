@@ -51,22 +51,28 @@ NeighborKokkos::NeighborKokkos(LAMMPS *lmp) : Neighbor(lmp),
 
 NeighborKokkos::~NeighborKokkos()
 {
-  if (!copymode) {
-    memoryKK->destroy_kokkos(k_cutneighsq,cutneighsq);
-    cutneighsq = nullptr;
-
-    memoryKK->destroy_kokkos(k_cutneighghostsq,cutneighghostsq);
-    cutneighghostsq = nullptr;
-
-    memoryKK->destroy_kokkos(k_ex_type,ex_type);
-    memoryKK->destroy_kokkos(k_ex1_type,ex1_type);
-    memoryKK->destroy_kokkos(k_ex2_type,ex2_type);
-    memoryKK->destroy_kokkos(k_ex_mol_group,ex_mol_group);
-    memoryKK->destroy_kokkos(k_ex1_bit,ex1_bit);
-    memoryKK->destroy_kokkos(k_ex2_bit,ex2_bit);
-    memoryKK->destroy_kokkos(k_ex_mol_bit,ex_mol_bit);
-    memoryKK->destroy_kokkos(k_ex_mol_intra,ex_mol_intra);
+  // kernel copies of this object also copy neighbond_host/device by value;
+  // pass copymode on so their destructors do not free the live bond lists
+  if (copymode) {
+    neighbond_host.copymode = 1;
+    neighbond_device.copymode = 1;
+    return;
   }
+
+  memoryKK->destroy_kokkos(k_cutneighsq,cutneighsq);
+  cutneighsq = nullptr;
+
+  memoryKK->destroy_kokkos(k_cutneighghostsq,cutneighghostsq);
+  cutneighghostsq = nullptr;
+
+  memoryKK->destroy_kokkos(k_ex_type,ex_type);
+  memoryKK->destroy_kokkos(k_ex1_type,ex1_type);
+  memoryKK->destroy_kokkos(k_ex2_type,ex2_type);
+  memoryKK->destroy_kokkos(k_ex_mol_group,ex_mol_group);
+  memoryKK->destroy_kokkos(k_ex1_bit,ex1_bit);
+  memoryKK->destroy_kokkos(k_ex2_bit,ex2_bit);
+  memoryKK->destroy_kokkos(k_ex_mol_bit,ex_mol_bit);
+  memoryKK->destroy_kokkos(k_ex_mol_intra,ex_mol_intra);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -133,8 +139,11 @@ void NeighborKokkos::create_kokkos_list(int i)
 
 /* ---------------------------------------------------------------------- */
 
+// called every run; create_kokkos() does not free the old allocation
+
 void NeighborKokkos::init_ex_type_kokkos(int n)
 {
+  memoryKK->destroy_kokkos(k_ex_type,ex_type);
   memoryKK->create_kokkos(k_ex_type,ex_type,n+1,n+1,"neigh:ex_type");
   k_ex_type.modify_host();
 }
@@ -143,8 +152,10 @@ void NeighborKokkos::init_ex_type_kokkos(int n)
 
 void NeighborKokkos::init_ex_bit_kokkos()
 {
+  memoryKK->destroy_kokkos(k_ex1_bit, ex1_bit);
   memoryKK->create_kokkos(k_ex1_bit, ex1_bit, nex_group, "neigh:ex1_bit");
   k_ex1_bit.modify_host();
+  memoryKK->destroy_kokkos(k_ex2_bit, ex2_bit);
   memoryKK->create_kokkos(k_ex2_bit, ex2_bit, nex_group, "neigh:ex2_bit");
   k_ex2_bit.modify_host();
 }
@@ -153,6 +164,7 @@ void NeighborKokkos::init_ex_bit_kokkos()
 
 void NeighborKokkos::init_ex_mol_bit_kokkos()
 {
+  memoryKK->destroy_kokkos(k_ex_mol_bit, ex_mol_bit);
   memoryKK->create_kokkos(k_ex_mol_bit, ex_mol_bit, nex_mol, "neigh:ex_mol_bit");
   k_ex_mol_bit.modify_host();
 }
@@ -420,17 +432,6 @@ void NeighborKokkos::build_topology() {
     k_dihedrallist = neighbond_device.k_dihedrallist;
     k_improperlist = neighbond_device.k_improperlist;
 
-    // Transfer topology neighbor lists to Host for non-Kokkos styles
-
-    if (force->bond && force->bond->execution_space == Host)
-      k_bondlist.sync_host();
-    if (force->angle && force->angle->execution_space == Host)
-      k_anglelist.sync_host();
-    if (force->dihedral && force->dihedral->execution_space == Host)
-      k_dihedrallist.sync_host();
-    if (force->improper && force->improper->execution_space == Host)
-      k_improperlist.sync_host();
-
    } else {
     neighbond_host.build_topology_kk();
 
@@ -439,4 +440,16 @@ void NeighborKokkos::build_topology() {
     k_dihedrallist = neighbond_host.k_dihedrallist;
     k_improperlist = neighbond_host.k_improperlist;
   }
+
+  // transfer topology neighbor lists to the host for non-Kokkos styles,
+  // which read them through the plain pointers in Neighbor
+
+  if (force->bond && force->bond->execution_space == Host)
+    k_bondlist.sync_host();
+  if (force->angle && force->angle->execution_space == Host)
+    k_anglelist.sync_host();
+  if (force->dihedral && force->dihedral->execution_space == Host)
+    k_dihedrallist.sync_host();
+  if (force->improper && force->improper->execution_space == Host)
+    k_improperlist.sync_host();
 }

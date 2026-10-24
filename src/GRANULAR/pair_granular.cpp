@@ -44,7 +44,7 @@ using namespace MathExtra;
 
 /* ---------------------------------------------------------------------- */
 
-PairGranular::PairGranular(LAMMPS *lmp) : Pair(lmp), fix_rigid(nullptr)
+PairGranular::PairGranular(LAMMPS *lmp) : Pair(lmp)
 {
   single_enable = 1;
   no_virial_fdotr_compute = 1;
@@ -82,7 +82,13 @@ PairGranular::PairGranular(LAMMPS *lmp) : Pair(lmp), fix_rigid(nullptr)
   // this is so final order of Modify:fix will conform to input script
 
 id_dummy = utils::strdup(std::string("NEIGH_HISTORY_GRANULAR_DUMMY") + std::to_string(instance_me));
-id_history = utils::strdup(std::string("NEIGH_HISTORY_GRANULAR") + std::to_string(instance_me));
+
+  // the id of the history fix is built in init_style() and not here: it has to
+  // be the same in the run that writes a restart file and in the run that reads
+  // it back, so it cannot come from instance_me, which counts every Pair ever
+  // created in the process, and the hybrid sub-style list is not populated yet
+
+  id_history = nullptr;
 
   cutoff_global = -1.0;
   fix_history = nullptr;
@@ -145,19 +151,23 @@ void PairGranular::compute(int eflag, int vflag)
   // body[i] = which body atom I is in, -1 if none
   // mass_body = mass of each rigid body
 
-  if (fix_rigid && neighbor->ago == 0) {
-    int tmp;
-    int *body = (int *) fix_rigid->extract("body",tmp);
-    auto *mass_body = (double *) fix_rigid->extract("masstotal",tmp);
-    if (atom->nmax > nmax) {
-      memory->destroy(mass_rigid);
-      nmax = atom->nmax;
-      memory->create(mass_rigid,nmax,"pair:mass_rigid");
-    }
-    int nlocal = atom->nlocal;
-    for (i = 0; i < nlocal; i++)
-      if (body[i] >= 0) mass_rigid[i] = mass_body[body[i]];
-      else mass_rigid[i] = 0.0;
+  if (!fix_rigid.empty() && neighbor->ago == 0) {
+     if (atom->nmax > nmax) {
+       memory->destroy(mass_rigid);
+       nmax = atom->nmax;
+       memory->create(mass_rigid,nmax,"pair:mass_rigid");
+     }
+     int nlocal = atom->nlocal;
+     for (i = 0; i < nlocal; i++) mass_rigid[i] = 0.0;
+
+     for (const auto &ifix : fix_rigid) {
+       int tmp;
+       int *body = (int *) ifix->extract("body",tmp);
+       auto *mass_body = (double *) ifix->extract("masstotal",tmp);
+
+       for (i = 0; i < nlocal; i++)
+         if (body[i] >= 0) mass_rigid[i] = mass_body[body[i]];
+     }
     comm->forward_comm(this);
   }
 
@@ -239,7 +249,7 @@ void PairGranular::compute(int eflag, int vflag)
       // if I or J is frozen, meff is other particle
       mi = rmass[i];
       mj = rmass[j];
-      if (fix_rigid) {
+      if (!fix_rigid.empty()) {
         if (mass_rigid[i] > 0.0) mi = mass_rigid[i];
         if (mass_rigid[j] > 0.0) mj = mass_rigid[j];
       }
@@ -312,6 +322,9 @@ void PairGranular::allocate()
   memory->create(cutsq,n+1,n+1,"pair:cutsq");
   memory->create(cutoff_type,n+1,n+1,"pair:cutoff_type");
   memory->create(types_indices,n+1,n+1,"pair:types_indices");
+  for (int i = 0; i <= n; i++)
+    for (int j = 0; j <= n; j++)
+      types_indices[i][j] = -1;
 
   maxmodels = n * n + 1; // should never need any more space
   models_list = (GranularModel **) memory->smalloc(maxmodels * sizeof(GranularModel *), "pair:models_list");
@@ -376,7 +389,6 @@ void PairGranular::coeff(int narg, char **arg)
       iarg = model->add_sub_model(arg, iarg + 1, narg, TWISTING);
     } else if (strcmp(arg[iarg], "heat") == 0) {
       iarg = model->add_sub_model(arg, iarg + 1, narg, HEAT);
-      heat_flag = 1;
     } else if (strcmp(arg[iarg], "cutoff") == 0) {
       if (iarg + 1 >= narg)
         error->all(FLERR, "Illegal pair_coeff command, not enough parameters for cutoff keyword");
@@ -425,6 +437,7 @@ void PairGranular::init_style()
   if (comm->ghost_velocity == 0)
     error->all(FLERR,"Pair granular requires ghost atoms store velocity");
 
+  set_heat_flag();
   if (heat_flag) {
     if (!atom->temperature_flag)
       error->all(FLERR,"Heat conduction in pair granular requires atom style with temperature property");
@@ -491,6 +504,11 @@ void PairGranular::init_style()
   // it replaces FixDummy, created in the constructor
   // this is so its order in the fix list is preserved
 
+  if (use_history) {
+    delete[] id_history;
+    id_history = utils::strdup(fmt::format("NEIGH_HISTORY_GRANULAR{}", instance_index()));
+  }
+
   if (use_history && fix_history == nullptr) {
     fix_history = dynamic_cast<FixNeighHistory *>(modify->replace_fix(id_dummy, fmt::format("{} all NEIGH_HISTORY {}", id_history, size_history),0));
     fix_history->pair = this;
@@ -511,14 +529,9 @@ void PairGranular::init_style()
 
   // check for FixRigid so can extract rigid body masses
 
-  fix_rigid = nullptr;
-  for (const auto &ifix : modify->get_fix_list()) {
-    if (ifix->rigid_flag) {
-      if (fix_rigid)
-        error->all(FLERR, "Only one fix rigid command at a time allowed");
-      else fix_rigid = ifix;
-    }
-  }
+  fix_rigid.clear();
+  for (const auto &ifix : modify->get_fix_list())
+    if (ifix->rigid_flag) fix_rigid.push_back(ifix);
 
   // check for FixPour and FixDeposit so can extract particle radii
 
@@ -600,8 +613,9 @@ double PairGranular::init_one(int i, int j)
 
   model = models_list[types_indices[i][j]];
   // Check if heat model is defined for all type combinations
-  if (heat_flag && !model->heat_model)
-    error->all(FLERR, "Must specify a heat model for all pair types");
+  if (heat_flag && (model->sub_models[HEAT]->name == "none"))
+    error->all(FLERR, "Must specify a heat model for all pair types, missing for types {} and {}",
+               i, j);
 
   // It is possible that cut[i][j] at this point is still 0.0.
   // This can happen when
@@ -785,7 +799,7 @@ double PairGranular::single(int i, int j, int itype, int jtype,
 
   double mi = rmass[i];
   double mj = rmass[j];
-  if (fix_rigid) {
+  if (!fix_rigid.empty()) {
     if (mass_rigid[i] > 0.0) mi = mass_rigid[i];
     if (mass_rigid[j] > 0.0) mj = mass_rigid[j];
   }
@@ -923,4 +937,19 @@ void PairGranular::prune_models()
     models_list[nmodels-1] = nullptr;
     nmodels -= 1;
   }
+}
+
+/* ----------------------------------------------------------------------
+   enable heat conduction if any explicitly set pair of atom types uses a
+   heat model.  this is derived from the models, so it is also set after
+   reading a restart file and reset when pair coefficients are replaced.
+------------------------------------------------------------------------- */
+
+void PairGranular::set_heat_flag()
+{
+  heat_flag = 0;
+  for (int i = 1; i <= atom->ntypes; i++)
+    for (int j = i; j <= atom->ntypes; j++)
+      if (setflag[i][j] && (models_list[types_indices[i][j]]->sub_models[HEAT]->name != "none"))
+        heat_flag = 1;
 }

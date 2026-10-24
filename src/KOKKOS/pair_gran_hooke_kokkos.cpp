@@ -172,10 +172,8 @@ void PairGranHookeKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     }
   }
 
-  if (eflag_atom) {
-    k_eatom.template modify<DeviceType>();
-    k_eatom.sync_host();
-  }
+  // granular styles have no pair energy: the per-atom energy view stays the
+  // zeros it was created with, so there is nothing to claim or copy back
 
   if (vflag_global) {
     virial[0] += static_cast<double>(ev.v[0]);

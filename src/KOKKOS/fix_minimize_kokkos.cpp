@@ -31,6 +31,12 @@ FixMinimizeKokkos::FixMinimizeKokkos(LAMMPS *lmp, int narg, char **arg) :
 {
   kokkosable = 1;
   atomKK = (AtomKokkos *) atom;
+
+  // this fix only stores per-atom data of its own; it syncs the atom data it
+  // touches itself, so Modify must not sync or invalidate any of it
+
+  datamask_read = EMPTY_MASK;
+  datamask_modify = EMPTY_MASK;
 }
 
 /* ---------------------------------------------------------------------- */

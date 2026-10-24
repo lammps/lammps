@@ -24,7 +24,7 @@ Syntax
       zero or more keyword/value pairs may be appended
       keywords = *neigh* or *newton* or *pair/only* or *binsize* or *gpuID* or *tpa* or *blocksize* or *omp* or *platform* or *device_type* or *ocl_args* or *split* (deprecated)
         *neigh* value = *yes* or *no* or *hybrid*
-          *yes* = neighbor list build on GPU (default)
+          *yes* = neighbor list build on GPU (default), same as *hybrid*
           *no* = neighbor list build on CPU
           *hybrid* = perform binning on the CPU but build neighbor list on the GPU
         *newton* = *off* or *on*
@@ -228,7 +228,8 @@ computation will be built.  If *neigh* is *yes*, which is the default,
 neighbor list building is performed on the GPU.  If *neigh* is *no*,
 neighbor list building is instead performed on the CPU.  If *neigh* is
 *hybrid* the binning step of the neighbor list build is performed on the
-CPU and the list themselves on the GPU.  GPU neighbor list building
+CPU and the list themselves on the GPU.  Since binning on the GPU is no
+longer supported, *yes* and *hybrid* are equivalent.  GPU neighbor list building
 currently is not fully compatible with a triclinic box; if the behavior
 is significantly different from the CPU case, use the *neigh no*
 setting.  GPU neighbor lists are not accessible for commands that are
@@ -247,7 +248,7 @@ is left unchanged, that is it keeps the value selected by the
 *off* causes more computation but less communication.  Note that the
 newton setting for bonded interactions is not affected by this keyword.
 
-.. versionchanged:: TBD
+.. versionchanged:: 2Sep2026
 
 A pairwise Newton setting of *on* is no longer restricted.  Previously,
 combining it with a *split* value of less than 1.0 was an error, because
@@ -279,7 +280,7 @@ computations (:doc:`bond <bond_style>`, :doc:`angle <angle_style>`,
 the GPU pair force calculation, which is the primary source of GPU/CPU
 overlap performance.
 
-.. versionchanged:: TBD
+.. versionchanged:: 2Sep2026
 
    The *split* keyword is deprecated; its value is ignored.
 
@@ -757,9 +758,9 @@ launching LAMMPS:
 
 .. code-block:: bash
 
-   env OMP_NUM_THREADS=4 lmp_machine -sf omp -in in.script
-   env OMP_NUM_THREADS=2 mpirun -np 2 lmp_machine -sf omp -in in.script
-   mpirun -x OMP_NUM_THREADS=2 -np 2 lmp_machine -sf omp -in in.script
+   env OMP_NUM_THREADS=4 lmp -sf omp -in in.script
+   env OMP_NUM_THREADS=2 mpirun -np 2 lmp -sf omp -in in.script
+   mpirun -x OMP_NUM_THREADS=2 -np 2 lmp -sf omp -in in.script
 
 or you can set it permanently in your shell's start-up script.
 All three of these examples use a total of 4 CPU cores.
@@ -828,6 +829,16 @@ doc page for more info.
 The *omp* style of this command can only be invoked if LAMMPS was built
 with the OPENMP package.  See the :doc:`Build package <Build_package>`
 doc page for more info.
+
+.. versionchanged:: TBD
+
+The *omp* style of this command cannot be used again while styles with
+OpenMP support (e.g. a pair style with the */omp* suffix) are defined,
+since those styles depend on the settings of the previous *package omp*
+command.  Such styles have to be reset first (e.g. with "pair_style
+none"), or the *package omp* command must be used before defining them.
+This also applies to styles that were defined with the */omp* suffix
+added by the "-sf omp" :doc:`command-line switch <Run_options>`.
 
 Related commands
 """"""""""""""""

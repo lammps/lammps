@@ -16,6 +16,8 @@
 #include "exceptions.h"
 #include "input.h"
 #include "library.h"
+#include "platform.h"
+#include "utils.h"
 
 #include "json.h"
 
@@ -60,6 +62,19 @@ int main(int argc, char **argv)
   if (mdi_flag)
     if (MDI_MPI_get_world_comm(&lammps_comm)) MPI_Abort(MPI_COMM_WORLD, 1);
 #endif
+
+  // warn if LAMMPS is run with superuser or administrator privileges.  this is
+  // done as early as possible and the warning is printed only by the first MPI rank
+
+  int me = 0;
+  MPI_Comm_rank(lammps_comm, &me);
+  if ((me == 0) && platform::is_superuser())
+    utils::print(stderr,
+                 "\nWARNING: LAMMPS is run with superuser or administrator privileges.\n"
+                 "WARNING: This is STRONGLY discouraged, because typos or mistakes in an\n"
+                 "WARNING: input file or errors in LAMMPS itself can damage the entire\n"
+                 "WARNING: system to the point of requiring a re-installation.{}\n\n",
+                 utils::errorurl(40));
 
   // the outer try block catches exceptions thrown while reporting an error
   // (e.g. when composing the error message text fails) so they cannot escape main()

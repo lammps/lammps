@@ -82,6 +82,8 @@ void PairLeptonCoulOMP::compute(int eflag, int vflag)
     thr->timer(Timer::PAIR);
     reduce_thr(this, eflag, vflag, thr);
   }    // end of omp parallel region
+
+  error_thr();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -132,7 +134,9 @@ void PairLeptonCoulOMP::eval(int iifrom, int iito, ThrData *const thr)
       }
     }
   } catch (std::exception &e) {
-    error->all(FLERR, e.what());
+    // errors must be deferred until the end of the threaded region
+    check_error_thr(true, thr->get_tid(), FLERR, e.what());
+    return;
   }
 
   // loop over neighbors of my atoms

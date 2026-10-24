@@ -16,6 +16,9 @@ concurrency:
   group: ${{ github.event_name }}-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: ${{github.event_name == 'pull_request'}}
 
+permissions:
+  contents: read
+
 jobs:
   build:
     name: Windows Compilation Test
@@ -29,6 +32,7 @@ jobs:
       uses: actions/checkout@v7
       with:
         fetch-depth: 2
+        persist-credentials: false
 
     - name: Enable MSVC++
       uses: lammps/setup-msvc-dev@v4
@@ -50,19 +54,29 @@ jobs:
       with:
         python-version: '3.11'
 
-    - name: Building LAMMPS via CMake
+    - name: Configuring LAMMPS via CMake
       run: |
         ccache -z -M 3
         python3 -m pip install numpy
         python3 -m pip install pyyaml
         cmake -C cmake\presets\windows.cmake -D CMAKE_CXX_COMPILER=cl -D CMAKE_CXX_COMPILER_LAUNCHER=ccache -D CMAKE_C_COMPILER=cl -D CMAKE_C_COMPILER_LAUNCHER=ccache -D CMAKE_Fortran_COMPILER="" -D DOWNLOAD_POTENTIALS=off -D PKG_PYTHON=on -D WITH_PNG=off -D WITH_JPEG=off -S cmake -B build -D BUILD_SHARED_LIBS=on -D ENABLE_TESTING=on -D CMAKE_BUILD_TYPE=Release -G Ninja
-        cmake --build build
-        ccache -s
+
+    - name: Building LAMMPS via CMake/Ninja
+      run: cmake --build build
+
+    - name: CCache statistics
+      run: ccache -s
 
     - name: Run LAMMPS executable
+      shell: bash
       run: |
-        build\lmp.exe -h
-        build\lmp.exe -in bench\in.lj
+        if [ ! -f "build/lmp.exe" ]
+        then \
+            echo "::error::Compilation failed: no lmp.exe file"
+            exit 1
+        fi
+        build/lmp.exe -h
+        build/lmp.exe -in bench/in.lj
 
     - name: Run Unit Tests
       working-directory: build

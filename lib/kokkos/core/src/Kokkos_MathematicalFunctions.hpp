@@ -15,6 +15,7 @@
 #include <type_traits>
 
 #ifdef KOKKOS_ENABLE_SYCL
+#include <cstdint>
 #include <sycl/sycl.hpp>
 #endif
 
@@ -284,10 +285,12 @@ using promote_3_t = typename promote_3<T, U, V>::type;
   KOKKOS_INLINE_FUNCTION bool FUNC(float x, float y) {                         \
     KOKKOS_IF_ON_DEVICE(return OP;)                                            \
     KOKKOS_IF_ON_HOST(using std::FUNC; return FUNC(x, y);)                     \
+    KOKKOS_IMPL_UNREACHABLE();                                                 \
   }                                                                            \
   KOKKOS_INLINE_FUNCTION bool FUNC(double x, double y) {                       \
     KOKKOS_IF_ON_DEVICE(return OP;)                                            \
     KOKKOS_IF_ON_HOST(using std::FUNC; return FUNC(x, y);)                     \
+    KOKKOS_IMPL_UNREACHABLE();                                                 \
   }                                                                            \
   inline bool FUNC(long double x, long double y) {                             \
     using std::FUNC;                                                           \
@@ -305,6 +308,7 @@ using promote_3_t = typename promote_3<T, U, V>::type;
     auto y         = static_cast<Promoted>(b);                                 \
     KOKKOS_IF_ON_DEVICE(return OP;)                                            \
     KOKKOS_IF_ON_HOST(using std::FUNC; return FUNC(x, y);)                     \
+    KOKKOS_IMPL_UNREACHABLE();                                                 \
   }                                                                            \
   template <class T1, class T2>                                                \
   inline std::enable_if_t<std::is_arithmetic_v<T1> &&                          \
@@ -529,8 +533,12 @@ KOKKOS_INLINE_FUNCTION double nan(char const* arg) { return ::nan(arg); }
 // sycl::nan does not follow the C/C++ standard library and takes an unsigned
 // integer as argument.  The current implementation does not attempt to convert
 // the character string arg into the quiet NaN value.
-KOKKOS_INLINE_FUNCTION float nanf(char const*) { return sycl::nan(0u); }
-KOKKOS_INLINE_FUNCTION double nan(char const*) { return sycl::nan(0ul); }
+KOKKOS_INLINE_FUNCTION float nanf(char const*) {
+  return sycl::nan(std::uint32_t(0));
+}
+KOKKOS_INLINE_FUNCTION double nan(char const*) {
+  return sycl::nan(std::uint64_t(0));
+}
 #endif
 inline long double nanl(char const* arg) { return ::nanl(arg); }
 // Exponential functions
@@ -695,19 +703,19 @@ KOKKOS_IMPL_MATH_BINARY_FUNCTION(copysign)
 // FIXME_NVHPC nvhpc's fpclassify return FP_ZERO for subnormal values.
 #if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_SYCL) || \
     defined(KOKKOS_COMPILER_NVHPC)
-#define KOKKOS_IMPL_MATH_FPCLASSIFY(SPECIFIER, TYPE)                       \
-  SPECIFIER int fpclassify(TYPE x) {                                       \
-    if (x != x) {                                                          \
-      return FP_NAN;                                                       \
-    } else if (x == 0) {                                                   \
-      return FP_ZERO;                                                      \
-    } else if (Kokkos::abs(x) < Kokkos::Experimental::norm_min_v<TYPE>) {  \
-      return FP_SUBNORMAL;                                                 \
-    } else if (Kokkos::abs(x) == Kokkos::Experimental::infinity_v<TYPE>) { \
-      return FP_INFINITE;                                                  \
-    } else {                                                               \
-      return FP_NORMAL;                                                    \
-    }                                                                      \
+#define KOKKOS_IMPL_MATH_FPCLASSIFY(SPECIFIER, TYPE)         \
+  SPECIFIER int fpclassify(TYPE x) {                         \
+    if (x != x) {                                            \
+      return FP_NAN;                                         \
+    } else if (x == 0) {                                     \
+      return FP_ZERO;                                        \
+    } else if (Kokkos::abs(x) < Kokkos::norm_min_v<TYPE>) {  \
+      return FP_SUBNORMAL;                                   \
+    } else if (Kokkos::abs(x) == Kokkos::infinity_v<TYPE>) { \
+      return FP_INFINITE;                                    \
+    } else {                                                 \
+      return FP_NORMAL;                                      \
+    }                                                        \
   }
 
 KOKKOS_IMPL_MATH_FPCLASSIFY(KOKKOS_INLINE_FUNCTION, float)
@@ -732,11 +740,11 @@ KOKKOS_IMPL_MATH_UNARY_PREDICATE(isfinite)
 KOKKOS_IMPL_MATH_UNARY_PREDICATE(isinf)
 KOKKOS_IMPL_MATH_UNARY_PREDICATE(isnan)
 #if defined(KOKKOS_ENABLE_CUDA)
-#define KOKKOS_IMPL_MATH_ISNORMAL(SPECIFIER, TYPE)            \
-  SPECIFIER bool isnormal(TYPE x) {                           \
-    auto const abs = Kokkos::abs(x);                          \
-    return (abs >= Kokkos::Experimental::norm_min_v<TYPE>)&&( \
-        abs <= Kokkos::Experimental::finite_max_v<TYPE>);     \
+#define KOKKOS_IMPL_MATH_ISNORMAL(SPECIFIER, TYPE)                          \
+  SPECIFIER bool isnormal(TYPE x) {                                         \
+    auto const abs = Kokkos::abs(x);                                        \
+    return (abs >= Kokkos::norm_min_v<TYPE>)&&(abs <=                       \
+                                               Kokkos::finite_max_v<TYPE>); \
   }
 
 KOKKOS_IMPL_MATH_ISNORMAL(KOKKOS_INLINE_FUNCTION, float)

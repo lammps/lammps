@@ -380,7 +380,7 @@ floating-point value.  The default format is "%.15g".  This variable
 style allows an equal-style variable to be formatted precisely when it
 is evaluated.
 
-.. versionchanged:: TBD
+.. versionchanged:: 2Sep2026
 
 A conversion in the format string must match a floating-point value.  The
 string may now also contain additional text and use all flags and
@@ -974,7 +974,7 @@ around its center of mass, ordered as Ixx,Iyy,Izz,Ixy,Iyz,Ixz.
 Omega() returns components of the angular velocity of the group of
 atoms around its center of mass.
 
-.. versionchanged:: TBD
+.. versionchanged:: 2Sep2026
 
 The inertia() and angmom() functions now include the contributions of
 :doc:`finite-size particles <Howto_spherical>`; previously all atoms
@@ -1166,17 +1166,21 @@ actually instances of a command style which LAMMPS defines, as opposed
 to built-in commands.  For all of these styles except *command*,
 appending of active suffixes is also tried before reporting failure.
 
+.. versionchanged:: TBD
+
 The *feature* category checks the availability of the following
-compile-time enabled features: GZIP support, PNG support, JPEG support,
-FFMPEG support, and C++ exceptions for error handling. Corresponding
-names are *gzip*, *png*, *jpeg*, *ffmpeg* and *exceptions*\ .
+compile-time enabled features: PNG support, JPEG support, and C++
+exceptions for error handling.  GZIP and FFmpeg support check for the
+availability of a usable ``gzip`` or ``ffmpeg`` executable,
+respectively, on MPI rank 0.  Corresponding names are *gzip*, *png*,
+*jpeg*, *ffmpeg*, and *exceptions*\ .
 
 Example: Only dump in a given format if the compiled binary supports it.
 
 .. code-block:: LAMMPS
 
    if "$(is_available(feature,png))" then "print 'PNG supported'" else "print 'PNG not supported'"
-   if "$(is_available(feature,ffmpeg)" then "dump 3 all movie 25 movie.mp4 type type zoom 1.6 adiam 1.0"
+   if "$(is_available(feature,ffmpeg))" then "dump 3 all movie 25 movie.mp4 type type zoom 1.6 adiam 1.0"
 
 The *is_active(category,feature)* function queries whether a specific
 feature is currently active within LAMMPS.  The features are grouped

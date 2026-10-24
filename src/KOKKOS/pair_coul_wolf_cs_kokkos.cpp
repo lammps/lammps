@@ -29,13 +29,14 @@
 #include "neighbor.h"
 
 #include <cmath>
+#include <type_traits>
 
 using namespace LAMMPS_NS;
 
-// a minimal separation so that r = 0 core/shell pairs stay finite until the
-// special-bond factor removes them, taken verbatim from the CPU style
+// minimal separation for r = 0 core/shell pairs; 1.0e-20 cancels in single
+// precision, so use 1.0e-4 there, applied as a floor
 
-static constexpr double EPSILON = 1.0e-20;
+static constexpr double EPSILON = std::is_same_v<KK_FLOAT, float> ? 1.0e-4 : 1.0e-20;
 using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
@@ -48,7 +49,7 @@ PairCoulWolfCSKokkos<DeviceType>::PairCoulWolfCSKokkos(LAMMPS *lmp) : PairCoulWo
   kokkosable = 1;
   atomKK = (AtomKokkos *) atom;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
-  datamask_read = X_MASK | F_MASK | TYPE_MASK | Q_MASK | ENERGY_MASK | VIRIAL_MASK;
+  datamask_read = X_MASK | F_MASK | Q_MASK | ENERGY_MASK | VIRIAL_MASK;
   datamask_modify = F_MASK | ENERGY_MASK | VIRIAL_MASK;
 }
 
@@ -262,10 +263,11 @@ void PairCoulWolfCSKokkos<DeviceType>::operator()(TagPairCoulWolfCSKernelA<NEIGH
 
     if (rsq_in < cut_coulsq_kk) {
 
-      // r = 0 must stay finite here, exactly as in the CPU style; the
-      // special-bond factor removes the pair
+      // EPSILON keeps r = 0 finite, see above
 
-      const KK_FLOAT rsq = rsq_in + static_cast<KK_FLOAT>(EPSILON);
+      const KK_FLOAT rsq = std::is_same_v<KK_FLOAT, float> ?
+        ((rsq_in > static_cast<KK_FLOAT>(EPSILON)) ? rsq_in : static_cast<KK_FLOAT>(EPSILON)) :
+        rsq_in + static_cast<KK_FLOAT>(EPSILON);
       const KK_FLOAT r = Kokkos::sqrt(rsq);
       const KK_FLOAT prefactor = qqrd2e*qtmp*q[j]/r;
       const KK_FLOAT erfcc = Kokkos::erfc(alf_kk*r);

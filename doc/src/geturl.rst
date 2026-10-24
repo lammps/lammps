@@ -40,7 +40,7 @@ the `libcurl library <https://curl.se/libcurl/>`_ which supports a
 large variety of protocols including "http", "https", "ftp", "scp",
 "sftp", "file".  The transfer will only be performed on MPI rank 0.
 
-.. versionchanged:: TBD
+.. versionchanged:: 2Sep2026
 
 The *output* keyword can be used to set the filename.  By default, the string
 after the last '/' is used or 'index.html'.

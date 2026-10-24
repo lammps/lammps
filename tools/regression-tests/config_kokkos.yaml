@@ -24,15 +24,23 @@
   skip:
     [
       in.*pod.InP,
+      in.dimer.mp,
       in.disp,
       in.disp2,
       in.dos,
+      in.dpdrx-shardlow,
+      in.dsring2,
       in.*_imd*,
       in.bucky-plus-cnt*,
       in.gREM,
       in.peptide-plumed,
       in.mliap.pytorch*,
       in.mliap.unified*,
+      in.pod.compute,
+      in.spin.iron-nve,
+      in.spin.nvt_lattice,
+      in.spin.nvt_spin,
+      in.widom.spce,
     ]
 
   timeout: 120

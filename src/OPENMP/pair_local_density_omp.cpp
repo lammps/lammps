@@ -144,7 +144,11 @@ void PairLocalDensityOMP::compute(int eflag, int vflag)
 
     // reverse comm: master thread only
 #if defined(_OPENMP)
+#if _OPENMP >= 202011
+#pragma omp masked
+#else
 #pragma omp master
+#endif
 #endif
     { if (newton_pair) comm->reverse_comm(this); }
 
@@ -198,7 +202,11 @@ void PairLocalDensityOMP::compute(int eflag, int vflag)
 
     // forward comm: master thread only
 #if defined(_OPENMP)
+#if _OPENMP >= 202011
+#pragma omp masked
+#else
 #pragma omp master
+#endif
 #endif
     { comm->forward_comm(this); }
 

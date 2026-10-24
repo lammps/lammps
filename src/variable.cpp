@@ -43,6 +43,8 @@
 #include <cctype>
 #include <cmath>
 #include <cstring>
+#include <memory>
+#include <vector>
 #include <exception>
 #include <functional>
 #include <limits>
@@ -1284,10 +1286,12 @@ double Variable::compute_equal(int ivar)
 
 double Variable::compute_equal(const std::string &str)
 {
-  char *ptr = utils::strdup(str);
-  double val = evaluate(ptr,nullptr,-1);
+  // evaluate() takes a writable string and raises errors on a bad formula,
+  // which would step over a delete[] of a buffer held in a raw pointer
+  std::vector<char> buf(str.begin(), str.end());
+  buf.push_back('\0');
+  double val = evaluate(buf.data(),nullptr,-1);
   if (fabs(val) < std::numeric_limits<double>::min()) val = 0.0;
-  delete[] ptr;
   return val;
 }
 
@@ -1638,7 +1642,12 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
       int istop = i-1;
 
       int n = istop - istart + 1;
-      auto *word = new char[n+1];
+      // the keyword handling below raises errors from many places, and an
+      // error unwinds out of evaluate(), so let the holder own the buffer
+      // rather than the delete[] at the end of this branch, which is only
+      // reached when nothing went wrong
+      std::unique_ptr<char[]> word_holder(new char[n+1]);
+      char *word = word_holder.get();
       strncpy(word,&str[istart],n);
       word[n] = '\0';
 
@@ -2565,7 +2574,6 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
         }
       }
 
-      delete[] word;
 
     // ----------------
     // math operator, including end-of-string
@@ -5593,6 +5601,7 @@ double Variable::evaluate_boolean(char *str)
 
   int i = 0;
   int expect = ARG;
+  auto errmsg = fmt::format("Invalid boolean syntax in '{}' of if command", str);
 
   while (true) {
     onechar = str[i];
@@ -5607,7 +5616,7 @@ double Variable::evaluate_boolean(char *str)
 
     else if (onechar == '(') {
       if (expect == OP)
-        error->all(FLERR,"Invalid Boolean syntax in if command");
+        error->all(FLERR, Error::NOLASTLINE, errmsg);
       expect = OP;
 
       char *contents = nullptr;
@@ -5628,7 +5637,7 @@ double Variable::evaluate_boolean(char *str)
 
     } else if (isdigit(onechar) || onechar == '.' || onechar == '-') {
       if (expect == OP)
-        error->all(FLERR,"Invalid Boolean syntax in if command");
+        error->all(FLERR, Error::NOLASTLINE, errmsg);
       expect = OP;
 
       // set I to end of number, including scientific notation
@@ -5654,7 +5663,7 @@ double Variable::evaluate_boolean(char *str)
 
     } else if (isalpha(onechar)) {
       if (expect == OP)
-        error->all(FLERR,"Invalid Boolean syntax in if command");
+        error->all(FLERR, Error::NOLASTLINE, errmsg);
       expect = OP;
 
       // set I to end of string
@@ -5678,7 +5687,7 @@ double Variable::evaluate_boolean(char *str)
     } else if (strchr("<>=!&|\0",onechar)) {
       if (onechar == '=') {
         if (str[i+1] != '=')
-          error->all(FLERR,"Invalid Boolean syntax in if command");
+          error->all(FLERR, Error::NOLASTLINE, errmsg);
         op = EQ;
         i++;
       } else if (onechar == '!') {
@@ -5700,13 +5709,13 @@ double Variable::evaluate_boolean(char *str)
         }
       } else if (onechar == '&') {
         if (str[i+1] != '&')
-          error->all(FLERR,"Invalid Boolean syntax in if command");
+          error->all(FLERR, Error::NOLASTLINE, errmsg);
         op = AND;
         i++;
       } else if (onechar == '|') {
         if (str[i+1] == '|') op = OR;
         else if (str[i+1] == '^') op = XOR;
-        else error->all(FLERR,"Invalid Boolean syntax in if command");
+        else error->all(FLERR, Error::NOLASTLINE, errmsg);
         i++;
       } else op = DONE;
 
@@ -5718,7 +5727,7 @@ double Variable::evaluate_boolean(char *str)
       }
 
       if (expect == ARG)
-        error->all(FLERR,"Invalid Boolean syntax in if command");
+        error->all(FLERR, Error::NOLASTLINE, errmsg);
       expect = ARG;
 
       // evaluate stack as deep as possible while respecting precedence
@@ -5740,13 +5749,15 @@ double Variable::evaluate_boolean(char *str)
 
         if (opprevious == NOT) {
           if (flag2)
-            error->all(FLERR,"If command boolean not cannot operate on string");
+            error->all(FLERR, Error::NOLASTLINE,
+                       "If command boolean not in '{}' cannot operate on string", str);
           if (value2 == 0.0) argstack[nargstack].value = 1.0;
           else argstack[nargstack].value = 0.0;
 
         } else if (opprevious == EQ) {
           if (flag1 != flag2)
-            error->all(FLERR,"If command boolean is comparing string to number");
+            error->all(FLERR, Error::NOLASTLINE,
+                       "If command boolean in '{}' is comparing string to number", str);
           if (flag2 == 0) {
             if (value1 == value2) argstack[nargstack].value = 1.0;
             else argstack[nargstack].value = 0.0;
@@ -5758,7 +5769,8 @@ double Variable::evaluate_boolean(char *str)
           }
         } else if (opprevious == NE) {
           if (flag1 != flag2)
-            error->all(FLERR,"If command boolean is comparing string to number");
+            error->all(FLERR, Error::NOLASTLINE,
+                       "If command boolean in '{}' is comparing string to number", str);
           if (flag2 == 0) {
             if (value1 != value2) argstack[nargstack].value = 1.0;
             else argstack[nargstack].value = 0.0;
@@ -5771,38 +5783,45 @@ double Variable::evaluate_boolean(char *str)
 
         } else if (opprevious == LT) {
           if (flag1 || flag2)
-            error->all(FLERR,"If command boolean can only operate on numbers");
+            error->all(FLERR, Error::NOLASTLINE,
+                       "If command boolean in '{}' can only operate on numbers", str);
           if (value1 < value2) argstack[nargstack].value = 1.0;
           else argstack[nargstack].value = 0.0;
         } else if (opprevious == LE) {
           if (flag1 || flag2)
-            error->all(FLERR,"If command boolean can only operate on numbers");
+            error->all(FLERR, Error::NOLASTLINE,
+                       "If command boolean in '{}' can only operate on numbers", str);
           if (value1 <= value2) argstack[nargstack].value = 1.0;
           else argstack[nargstack].value = 0.0;
         } else if (opprevious == GT) {
           if (flag1 || flag2)
-            error->all(FLERR,"If command boolean can only operate on numbers");
+            error->all(FLERR, Error::NOLASTLINE,
+                       "If command boolean in '{}' can only operate on numbers", str);
           if (value1 > value2) argstack[nargstack].value = 1.0;
           else argstack[nargstack].value = 0.0;
         } else if (opprevious == GE) {
           if (flag1 || flag2)
-            error->all(FLERR,"If command boolean can only operate on numbers");
+            error->all(FLERR, Error::NOLASTLINE,
+                       "If command boolean in '{}' can only operate on numbers", str);
           if (value1 >= value2) argstack[nargstack].value = 1.0;
           else argstack[nargstack].value = 0.0;
 
         } else if (opprevious == AND) {
           if (flag1 || flag2)
-            error->all(FLERR,"If command boolean can only operate on numbers");
+            error->all(FLERR, Error::NOLASTLINE,
+                       "If command boolean in '{}' can only operate on numbers", str);
           if (value1 != 0.0 && value2 != 0.0) argstack[nargstack].value = 1.0;
           else argstack[nargstack].value = 0.0;
         } else if (opprevious == OR) {
           if (flag1 || flag2)
-            error->all(FLERR,"If command boolean can only operate on numbers");
+            error->all(FLERR, Error::NOLASTLINE,
+                       "If command boolean in '{}' can only operate on numbers", str);
           if (value1 != 0.0 || value2 != 0.0) argstack[nargstack].value = 1.0;
           else argstack[nargstack].value = 0.0;
         } else if (opprevious == XOR) {
           if (flag1 || flag2)
-            error->all(FLERR,"If command boolean can only operate on numbers");
+            error->all(FLERR, Error::NOLASTLINE,
+                       "If command boolean in '{}' can only operate on numbers", str);
           if ((value1 == 0.0 && value2 != 0.0) ||
               (value1 != 0.0 && value2 == 0.0))
             argstack[nargstack].value = 1.0;
@@ -5820,17 +5839,17 @@ double Variable::evaluate_boolean(char *str)
 
       opstack[nopstack++] = op;
 
-    } else error->all(FLERR,"Invalid Boolean syntax in if command");
+    } else error->all(FLERR, Error::NOLASTLINE, errmsg);
   }
 
-  if (nopstack) error->all(FLERR,"Invalid Boolean syntax in if command");
-  if (nargstack != 1) error->all(FLERR,"Invalid Boolean syntax in if command");
+  if (nopstack) error->all(FLERR, Error::NOLASTLINE, errmsg);
+  if (nargstack != 1) error->all(FLERR, Error::NOLASTLINE, errmsg);
 
-  // if flag == 1, Boolean expression was a single string with no operator
+  // if flag == 1, boolean expression was a single string with no operator
   // error b/c invalid, only single number with no operator is allowed
 
   if (argstack[0].flag == 1)
-    error->all(FLERR,"If command boolean cannot be single string");
+    error->all(FLERR, Error::NOLASTLINE, "If command boolean in '{}' cannot be single string", str);
 
   return argstack[0].value;
 }

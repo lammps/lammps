@@ -22,6 +22,7 @@
 #include "atom_masks.h"
 #include "atom_vec.h"
 #include "domain_kokkos.h"
+#include "bond.h"
 #include "error.h"
 #include "fix.h"
 #include "force.h"
@@ -66,6 +67,8 @@ NeighBondKokkos<DeviceType>::NeighBondKokkos(LAMMPS *lmp) : Pointers(lmp)
   maxangle = 0;
   maxdihedral = 0;
   maximproper = 0;
+
+  copymode = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -73,6 +76,12 @@ NeighBondKokkos<DeviceType>::NeighBondKokkos(LAMMPS *lmp) : Pointers(lmp)
 template<class DeviceType>
 NeighBondKokkos<DeviceType>::~NeighBondKokkos()
 {
+  // Kokkos hands the loop bodies below a copy of this class as the functor and
+  // destroys that copy when the loop is done.  The topology lists belong to
+  // Neighbor, not to the copy, so only the original may release them.
+
+  if (copymode) return;
+
   memoryKK->destroy_kokkos(k_bondlist,neighbor->bondlist);
   memoryKK->destroy_kokkos(k_anglelist,neighbor->anglelist);
   memoryKK->destroy_kokkos(k_dihedrallist,neighbor->dihedrallist);
@@ -118,17 +127,23 @@ void NeighBondKokkos<DeviceType>::init_topology_kk() {
   // bonds,etc can only be broken for atom->molecular = Atom::MOLECULAR, not Atom::TEMPLATE
   // SHAKE sets bonds and angles negative
   // gcmc sets all bonds, angles, etc negative
-  // bond_quartic sets bonds to 0
+  // a bond style that turns bonds off sets partial_flag
   // delete_bonds sets all interactions negative
 
   int i,m;
   int bond_off = 0;
   int angle_off = 0;
+  // keep this list the same as the one in Neighbor::init_topology(): a fix
+  // that turns bonds off by making their type negative has to be named here,
+  // because it does so after this decision is taken and the scan below cannot
+  // see it yet.  Without the name the all variant is chosen, and that one
+  // copies the type into the list without looking at its sign.
+
   for (const auto &ifix : modify->get_fix_list())
     if (utils::strmatch(ifix->style,"^shake") || utils::strmatch(ifix->style,"^rattle") ||
         utils::strmatch(ifix->style,"^ilves"))
       bond_off = angle_off = 1;
-  if (force->bond && force->bond_match("quartic")) bond_off = 1;
+  if (force->bond && force->bond->partial_flag) bond_off = 1;
 
   if (atom->avec->bonds_allow && atom->molecular == Atom::MOLECULAR) {
     for (i = 0; i < atom->nlocal; i++) {
@@ -225,6 +240,17 @@ void NeighBondKokkos<DeviceType>::build_topology_kk()
   if (force->angle) (this->*angle_build_kk)();
   if (force->dihedral) (this->*dihedral_build_kk)();
   if (force->improper) (this->*improper_build_kk)();
+
+  // the topology lists are built on the device, but they are also exposed
+  // through the legacy neighbor->bondlist/anglelist/... host pointers that
+  // non-KOKKOS styles and computes (e.g. compute stress/cartesian) read
+  // directly.  sync the host side so those consumers do not see a stale list;
+  // the device views the KOKKOS bond/angle/... styles use stay valid, as this
+  // leaves both sides of each dual view in sync
+  if (force->bond) k_bondlist.sync_host();
+  if (force->angle) k_anglelist.sync_host();
+  if (force->dihedral) k_dihedrallist.sync_host();
+  if (force->improper) k_improperlist.sync_host();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -261,7 +287,9 @@ void NeighBondKokkos<DeviceType>::bond_all()
 
     Kokkos::deep_copy(d_scalars,0);
 
+    copymode = 1;
     Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagNeighBondBondAll>(0,nlocal),*this,nmissing);
+    copymode = 0;
 
     Kokkos::deep_copy(h_scalars,d_scalars);
 
@@ -274,6 +302,9 @@ void NeighBondKokkos<DeviceType>::bond_all()
     }
   } while (h_fail_flag());
 
+  // claim here: "lost/bond ignore" returns before the end
+  k_bondlist.modify<DeviceType>();
+
   if (nmissing && lostbond == Thermo::ERROR)
     error->one(FLERR, Error::NOLASTLINE, "Bond atoms missing at step {}" + utils::errorurl(5),
                update->ntimestep);
@@ -285,8 +316,6 @@ void NeighBondKokkos<DeviceType>::bond_all()
   MPI_Allreduce(&nmissing,&all,1,MPI_INT,MPI_SUM,world);
   if (all && me == 0)
     error->warning(FLERR,"Bond atoms missing at step {}" + utils::errorurl(5), update->ntimestep);
-
-  k_bondlist.modify<DeviceType>();
 }
 
 template<class DeviceType>
@@ -347,7 +376,9 @@ void NeighBondKokkos<DeviceType>::bond_partial()
 
     Kokkos::deep_copy(d_scalars,0);
 
+    copymode = 1;
     Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagNeighBondBondPartial>(0,nlocal),*this,nmissing);
+    copymode = 0;
 
     Kokkos::deep_copy(h_scalars,d_scalars);
 
@@ -360,6 +391,9 @@ void NeighBondKokkos<DeviceType>::bond_partial()
     }
   } while (h_fail_flag());
 
+  // claim here: "lost/bond ignore" returns before the end
+  k_bondlist.modify<DeviceType>();
+
   if (nmissing && lostbond == Thermo::ERROR)
     error->one(FLERR, Error::NOLASTLINE, "Bond atoms missing at step {}" + utils::errorurl(5), update->ntimestep);
 
@@ -370,8 +404,6 @@ void NeighBondKokkos<DeviceType>::bond_partial()
   MPI_Allreduce(&nmissing,&all,1,MPI_INT,MPI_SUM,world);
   if (all && me == 0)
     error->warning(FLERR, "Bond atoms missing at step {}" + utils::errorurl(5), update->ntimestep);
-
-  k_bondlist.modify<DeviceType>();
 }
 
 template<class DeviceType>
@@ -409,7 +441,9 @@ void NeighBondKokkos<DeviceType>::bond_check()
   atomKK->sync(execution_space, X_MASK);
   k_bondlist.sync<DeviceType>();
 
+  copymode = 1;
   Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagNeighBondBondCheck>(0,neighbor->nbondlist),*this,flag);
+  copymode = 0;
 
   int flag_all;
   MPI_Allreduce(&flag,&flag_all,1,MPI_INT,MPI_SUM,world);
@@ -459,7 +493,9 @@ void NeighBondKokkos<DeviceType>::angle_all()
 
     Kokkos::deep_copy(d_scalars,0);
 
+    copymode = 1;
     Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagNeighBondAngleAll>(0,nlocal),*this,nmissing);
+    copymode = 0;
 
     Kokkos::deep_copy(h_scalars,d_scalars);
 
@@ -472,6 +508,9 @@ void NeighBondKokkos<DeviceType>::angle_all()
     }
   } while (h_fail_flag());
 
+  // claim here: "lost/bond ignore" returns before the end
+  k_anglelist.modify<DeviceType>();
+
   if (nmissing && lostbond == Thermo::ERROR)
     error->one(FLERR, Error::NOLASTLINE, "Angle atoms missing at step {}" + utils::errorurl(5), update->ntimestep);
 
@@ -482,8 +521,6 @@ void NeighBondKokkos<DeviceType>::angle_all()
   MPI_Allreduce(&nmissing,&all,1,MPI_INT,MPI_SUM,world);
   if (all && (me == 0))
     error->warning(FLERR, "Angle atoms missing at step {}" + utils::errorurl(5), update->ntimestep);
-
-  k_anglelist.modify<DeviceType>();
 }
 
 template<class DeviceType>
@@ -551,7 +588,9 @@ void NeighBondKokkos<DeviceType>::angle_partial()
 
     Kokkos::deep_copy(d_scalars,0);
 
+    copymode = 1;
     Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagNeighBondAnglePartial>(0,nlocal),*this,nmissing);
+    copymode = 0;
 
     Kokkos::deep_copy(h_scalars,d_scalars);
 
@@ -564,6 +603,9 @@ void NeighBondKokkos<DeviceType>::angle_partial()
     }
   } while (h_fail_flag());
 
+  // claim here: "lost/bond ignore" returns before the end
+  k_anglelist.modify<DeviceType>();
+
   if (nmissing && lostbond == Thermo::ERROR)
     error->one(FLERR, Error::NOLASTLINE, "Angle atoms missing at step {}" + utils::errorurl(5), update->ntimestep);
 
@@ -574,8 +616,6 @@ void NeighBondKokkos<DeviceType>::angle_partial()
   MPI_Allreduce(&nmissing,&all,1,MPI_INT,MPI_SUM,world);
   if (all && (me == 0))
     error->warning(FLERR, "Angle atoms missing at step {}" + utils::errorurl(5), update->ntimestep);
-
-  k_anglelist.modify<DeviceType>();
 }
 
 template<class DeviceType>
@@ -621,7 +661,9 @@ void NeighBondKokkos<DeviceType>::angle_check()
   atomKK->sync(execution_space, X_MASK);
   k_anglelist.sync<DeviceType>();
 
+  copymode = 1;
   Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagNeighBondAngleCheck>(0,neighbor->nanglelist),*this,flag);
+  copymode = 0;
 
   int flag_all;
   MPI_Allreduce(&flag,&flag_all,1,MPI_INT,MPI_SUM,world);
@@ -683,7 +725,9 @@ void NeighBondKokkos<DeviceType>::dihedral_all()
 
     Kokkos::deep_copy(d_scalars,0);
 
+    copymode = 1;
     Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagNeighBondDihedralAll>(0,nlocal),*this,nmissing);
+    copymode = 0;
 
     Kokkos::deep_copy(h_scalars,d_scalars);
 
@@ -696,6 +740,9 @@ void NeighBondKokkos<DeviceType>::dihedral_all()
     }
   } while (h_fail_flag());
 
+  // claim here: "lost/bond ignore" returns before the end
+  k_dihedrallist.modify<DeviceType>();
+
   if (nmissing && lostbond == Thermo::ERROR)
     error->one(FLERR, Error::NOLASTLINE, "Dihedral atoms missing at step {}" + utils::errorurl(5), update->ntimestep);
 
@@ -706,8 +753,6 @@ void NeighBondKokkos<DeviceType>::dihedral_all()
   MPI_Allreduce(&nmissing,&all,1,MPI_INT,MPI_SUM,world);
   if (all && (me == 0))
     error->warning(FLERR, "Dihedral atoms missing at step {}" + utils::errorurl(5), update->ntimestep);
-
-  k_dihedrallist.modify<DeviceType>();
 }
 
 template<class DeviceType>
@@ -780,7 +825,9 @@ void NeighBondKokkos<DeviceType>::dihedral_partial()
 
     Kokkos::deep_copy(d_scalars,0);
 
+    copymode = 1;
     Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagNeighBondDihedralPartial>(0,nlocal),*this,nmissing);
+    copymode = 0;
 
     Kokkos::deep_copy(h_scalars,d_scalars);
 
@@ -793,6 +840,9 @@ void NeighBondKokkos<DeviceType>::dihedral_partial()
     }
   } while (h_fail_flag());
 
+  // claim here: "lost/bond ignore" returns before the end
+  k_dihedrallist.modify<DeviceType>();
+
   if (nmissing && lostbond == Thermo::ERROR)
     error->one(FLERR, Error::NOLASTLINE, "Dihedral atoms missing at step {}" + utils::errorurl(5), update->ntimestep);
 
@@ -803,8 +853,6 @@ void NeighBondKokkos<DeviceType>::dihedral_partial()
   MPI_Allreduce(&nmissing,&all,1,MPI_INT,MPI_SUM,world);
   if (all && (me == 0))
     error->warning(FLERR, "Dihedral atoms missing at step {}" + utils::errorurl(5), update->ntimestep);
-
-  k_dihedrallist.modify<DeviceType>();
 }
 
 template<class DeviceType>
@@ -855,7 +903,9 @@ void NeighBondKokkos<DeviceType>::dihedral_check(int nlist, typename AT::t_int_2
   atomKK->sync(execution_space, X_MASK);
   k_dihedrallist.sync<DeviceType>();
 
+  copymode = 1;
   Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagNeighBondDihedralCheck>(0,nlist),*this,flag);
+  copymode = 0;
 
   int flag_all;
   MPI_Allreduce(&flag,&flag_all,1,MPI_INT,MPI_SUM,world);
@@ -934,7 +984,9 @@ void NeighBondKokkos<DeviceType>::improper_all()
 
     Kokkos::deep_copy(d_scalars,0);
 
+    copymode = 1;
     Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagNeighBondImproperAll>(0,nlocal),*this,nmissing);
+    copymode = 0;
 
     Kokkos::deep_copy(h_scalars,d_scalars);
 
@@ -947,6 +999,9 @@ void NeighBondKokkos<DeviceType>::improper_all()
     }
   } while (h_fail_flag());
 
+  // claim here: "lost/bond ignore" returns before the end
+  k_improperlist.modify<DeviceType>();
+
   if (nmissing && lostbond == Thermo::ERROR)
     error->one(FLERR, Error::NOLASTLINE, "Improper atoms missing at step {}" + utils::errorurl(5), update->ntimestep);
 
@@ -957,8 +1012,6 @@ void NeighBondKokkos<DeviceType>::improper_all()
   MPI_Allreduce(&nmissing,&all,1,MPI_INT,MPI_SUM,world);
   if (all && (me == 0))
     error->warning(FLERR, "Improper atoms missing at step {}" + utils::errorurl(5), update->ntimestep);
-
-  k_improperlist.modify<DeviceType>();
 }
 
 template<class DeviceType>
@@ -1031,7 +1084,9 @@ void NeighBondKokkos<DeviceType>::improper_partial()
 
     Kokkos::deep_copy(d_scalars,0);
 
+    copymode = 1;
     Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagNeighBondImproperPartial>(0,nlocal),*this,nmissing);
+    copymode = 0;
 
     Kokkos::deep_copy(h_scalars,d_scalars);
 
@@ -1044,6 +1099,9 @@ void NeighBondKokkos<DeviceType>::improper_partial()
     }
   } while (h_fail_flag());
 
+  // claim here: "lost/bond ignore" returns before the end
+  k_improperlist.modify<DeviceType>();
+
   if (nmissing && lostbond == Thermo::ERROR)
     error->one(FLERR, Error::NOLASTLINE, "Improper atoms missing at step {}" + utils::errorurl(5), update->ntimestep);
 
@@ -1054,8 +1112,6 @@ void NeighBondKokkos<DeviceType>::improper_partial()
   MPI_Allreduce(&nmissing,&all,1,MPI_INT,MPI_SUM,world);
   if (all && (me == 0))
     error->warning(FLERR, "Improper atoms missing at step {}" + utils::errorurl(5), update->ntimestep);
-
-  k_improperlist.modify<DeviceType>();
 }
 
 template<class DeviceType>

@@ -189,9 +189,23 @@ class AtomKokkos : public Atom {
   void init() override;
   void update_property_atom();
   void allocate_type_arrays() override;
+
+  void sync_host_arrays(uint64_t mask) override { sync(Host, mask); }
+  void modified_host_arrays(uint64_t mask) override { modified(Host, mask); }
+
+  // the per-type masses are written through the plain host array, which leaves
+  // the device copy behind with nothing to say so.  Claim the write here, at
+  // the one place all four spellings of the mass command go through, rather
+  // than in each of the styles that read the masses on the device.
+
+  void set_mass(const char *, int, const char *, int, int, int *) override;
+  void set_mass(const char *, int, int, double) override;
+  void set_mass(const char *, int, int, char **) override;
+  void set_mass(double *) override;
   void *extract(const char *) override;
   void sync(const ExecutionSpace space, uint64_t mask);
   void modified(const ExecutionSpace space, uint64_t mask);
+  void sync_mass(const ExecutionSpace space, uint64_t mask);
   void sync_pinned(const ExecutionSpace space, uint64_t mask, int async_flag = 0);
   void sort() override;
   int add_custom(const char *, int, int, int border = 0) override;
@@ -201,9 +215,28 @@ class AtomKokkos : public Atom {
   void map_set_device();
   void map_set_host();
 
+  class AtomVec *new_avec(const std::string &, int, int &) override;
+
+  // arrays sync() and modified() skip while host and device forces overlap
+
+  uint64_t datamask_exclude = 0;
+
+  // sets datamask_exclude; restores it at release() or in the destructor
+
+  class ExcludeMask {
+    AtomKokkos *atomKK;
+    uint64_t prev;
+   public:
+    ExcludeMask(AtomKokkos *a, uint64_t mask) : atomKK(a), prev(a->datamask_exclude)
+      { atomKK->datamask_exclude = mask; }
+    ~ExcludeMask() { release(); }
+    void release() { atomKK->datamask_exclude = prev; }
+    ExcludeMask(const ExcludeMask &) = delete;
+    ExcludeMask &operator=(const ExcludeMask &) = delete;
+  };
+
  private:
   void sort_device();
-  class AtomVec *new_avec(const std::string &, int, int &) override;
 };
 
 template<class ViewType, class IndexView>

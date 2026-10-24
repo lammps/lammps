@@ -49,7 +49,6 @@ FixNHSphereKokkos<DeviceType>::FixNHSphereKokkos(LAMMPS *lmp, int narg, char **a
     }
     iarg++;
   }
-  fprintf(stderr, "flags dipole %d  dlm %d\n", this->dipole_flag, this->dlm_flag);
 
 }
 
@@ -58,8 +57,9 @@ FixNHSphereKokkos<DeviceType>::FixNHSphereKokkos(LAMMPS *lmp, int narg, char **a
 template <class DeviceType>
 void FixNHSphereKokkos<DeviceType>::init()
 {
-  // check that all group particles are finite-size
+  // check that all group particles are finite-size, on the host copies
 
+  this->atomKK->sync(Host, RADIUS_MASK | MASK_MASK);
   double *radius = this->atom->radius;
   int *mask = this->atom->mask;
   int nlocal = this->atom->nlocal;

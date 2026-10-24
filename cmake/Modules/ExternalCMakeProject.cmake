@@ -37,7 +37,7 @@ function(ExternalCMakeProject target url hash basedir cmakedir cmakefile)
     # newer than the updated headers and are not recompiled, which leads to failed
     # links or subtly inconsistent binaries.
     file(ARCHIVE_EXTRACT INPUT ${CMAKE_BINARY_DIR}/_deps/${archive}
-      DESTINATION ${CMAKE_BINARY_DIR}/_deps/src TOUCH)
+        DESTINATION ${CMAKE_BINARY_DIR}/_deps/src TOUCH)
     file(GLOB TARGET_SOURCE "${CMAKE_BINARY_DIR}/_deps/src/${basedir}*")
     list(LENGTH TARGET_SOURCE _num)
     if(_num GREATER 1)

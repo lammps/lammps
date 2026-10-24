@@ -1,7 +1,10 @@
 .. index:: pair_style coul/tt
+.. index:: pair_style coul/tt/omp
 
 pair_style coul/tt command
 ==========================
+
+Accelerator Variants: *coul/tt/omp*
 
 Syntax
 """"""
@@ -71,7 +74,7 @@ The :math:`b_{ij}` and :math:`c_{ij}` are equal  to :math:`b_{ji}` and
 :math:`c_{ji}` in the case of core-core interactions.
 
 For pair_style *coul/tt*, the following coefficients must be defined for
-each pair of atoms types via the :doc:`pair_coeff <pair_coeff>` command
+each pair of atom types via the :doc:`pair_coeff <pair_coeff>` command
 as in the example above.
 
 * :math:`b_{ij}`
@@ -85,6 +88,8 @@ command are used. In order to specify a cutoff (forth argument), the degree of
 the polynomial (third argument) must also be specified.
 
 ----------
+
+.. include:: accel_styles.rst
 
 Mixing, shift, table, tail correction, restart, rRESPA info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""

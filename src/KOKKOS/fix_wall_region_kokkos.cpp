@@ -28,6 +28,8 @@
 #include "region_block_kokkos.h"
 #include "region_sphere_kokkos.h"
 
+#include <type_traits>
+
 using namespace LAMMPS_NS;
 using namespace MathSpecialKokkos;
 
@@ -43,6 +45,11 @@ FixWallRegionKokkos<DeviceType>::FixWallRegionKokkos(LAMMPS *lmp, int narg, char
   atomKK = (AtomKokkos *) atom;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
   datamask_read = X_MASK | V_MASK | F_MASK | MASK_MASK;
+
+  // the colloid wall reads the per-atom radius in the kernel; the style has
+  // been parsed by the base class constructor at this point
+
+  if (style == COLLOID) datamask_read |= RADIUS_MASK;
   datamask_modify = F_MASK;
 }
 
@@ -78,9 +85,12 @@ void FixWallRegionKokkos<DeviceType>::post_force(int vflag)
 
   // virial setup
 
-  v_init(vflag);
+  // the per-atom virial is accumulated into a dual view, so the plain
+  // base-class vatom array must not be allocated here (alloc = 0)
 
-  // reallocate per-atom arrays if necessary
+  v_init(vflag,0);
+
+  // reallocate the per-atom virial dual view if necessary
 
   if (vflag_atom) {
     memoryKK->destroy_kokkos(k_vatom,vatom);
@@ -96,10 +106,6 @@ void FixWallRegionKokkos<DeviceType>::post_force(int vflag)
 
   region->prematch();
 
-  // virial setup
-
-  v_init(vflag);
-
   // region->match() ensures particle is in region or on surface, else error
   // if returned contact dist r = 0, is on surface, also an error
   // in COLLOID case, r <= radius is an error
@@ -110,8 +116,16 @@ void FixWallRegionKokkos<DeviceType>::post_force(int vflag)
   // eflag is used to track whether wall energies have been communicated
 
   eflag = 0;
-  double result[10];
+
+  // result[0-3] = energy and force on the wall, result[4-9] = global virial,
+  // result[10] != 0 if any particle was on the wrong side of the wall
+
+  double result[11];
+
+  // the functor copies this fix and the region; their copies must not free memory
+
   copymode = 1;
+  region->copymode = 1;
 
   if(auto *regionKK = dynamic_cast<RegBlockKokkos<DeviceType>*>(region)) {
     FixWallRegionKokkosFunctor<DeviceType,class RegBlockKokkos<DeviceType>> functor(this,regionKK);
@@ -121,7 +135,12 @@ void FixWallRegionKokkos<DeviceType>::post_force(int vflag)
     Kokkos::parallel_reduce(nlocal,functor,result);
   }
 
+  region->copymode = 0;
   copymode = 0;
+
+  if (result[10] != 0.0)
+    error->one(FLERR,"Particle outside surface of region used in fix wall/region");
+
   for( int i=0 ; i<4 ; i++ ) ewall[i] = result[i];
 
   if (vflag_global) {
@@ -152,10 +171,17 @@ template<class DeviceType>
 template<class T>
 // NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
-void FixWallRegionKokkos<DeviceType>::wall_particle(T regionKK, const int i, value_type result) const {
+void FixWallRegionKokkos<DeviceType>::wall_particle(const T &regionKK, const int i, value_type result) const {
   if (d_mask(i) & groupbit) {
 
-    if (!regionKK->match_kokkos(static_cast<double>(d_x(i,0)), static_cast<double>(d_x(i,1)), static_cast<double>(d_x(i,2)))) Kokkos::abort("Particle outside surface of region used in fix wall/region");
+    // flag a particle on the wrong side; the host raises the error
+
+    if (!regionKK.match_kokkos(static_cast<double>(d_x(i,0)),
+                               static_cast<double>(d_x(i,1)),
+                               static_cast<double>(d_x(i,2)))) {
+      result[10] = 1.0;
+      return;
+    }
 
     KK_FLOAT rinv, tooclose;
 
@@ -164,18 +190,26 @@ void FixWallRegionKokkos<DeviceType>::wall_particle(T regionKK, const int i, val
     else
       tooclose = 0.0;
 
-    int n = regionKK->surface_kokkos(static_cast<double>(d_x(i,0)), static_cast<double>(d_x(i,1)), static_cast<double>(d_x(i,2)), cutoff);
+    // the contact list lives on the stack, so that concurrently running
+    // threads do not overwrite each other's contacts
+
+    Region::Contact contact[T::MAXCONTACT];
+
+    int n = regionKK.surface_kokkos(static_cast<double>(d_x(i,0)),
+                                    static_cast<double>(d_x(i,1)),
+                                    static_cast<double>(d_x(i,2)), cutoff, contact);
 
     for ( int m = 0; m < n; m++) {
 
-      KK_FLOAT r = static_cast<KK_FLOAT>(regionKK->d_contact[m].r);
-      KK_FLOAT delx = static_cast<KK_FLOAT>(regionKK->d_contact[m].delx);
-      KK_FLOAT dely = static_cast<KK_FLOAT>(regionKK->d_contact[m].dely);
-      KK_FLOAT delz = static_cast<KK_FLOAT>(regionKK->d_contact[m].delz);
+      KK_FLOAT r = static_cast<KK_FLOAT>(contact[m].r);
+      KK_FLOAT delx = static_cast<KK_FLOAT>(contact[m].delx);
+      KK_FLOAT dely = static_cast<KK_FLOAT>(contact[m].dely);
+      KK_FLOAT delz = static_cast<KK_FLOAT>(contact[m].delz);
 
-      if (r <= tooclose)
-        Kokkos::abort("Particle outside surface of region used in fix wall/region");
-      else
+      if (r <= tooclose) {
+        result[10] = 1.0;
+        continue;
+      } else
         rinv = static_cast<KK_FLOAT>(1.0) / r;
 
       KK_FLOAT fwallKK, engKK;

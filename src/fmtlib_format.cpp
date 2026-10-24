@@ -9,7 +9,7 @@
 #if __has_include(<version>)
 #include <version>
 #endif
-#if !defined(__cpp_lib_format) || (__cpp_lib_format < 201907L)
+#if !defined(__cpp_lib_format) || (__cpp_lib_format < 201907L) || (defined(__GNUC__) && !defined(__clang__) && (__GNUC__ < 14))
 
 #include "fmt/format-inl.h"
 

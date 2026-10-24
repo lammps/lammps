@@ -725,6 +725,11 @@ void FixQEqReaxFF::compute_H()
         }
 
         if (flag) {
+          // check before writing past the end of the matrix
+          if (m_fill >= H.m)
+            error->one(FLERR, Error::NOLASTLINE,
+                       "Fix qeq/reaxff H matrix size has been exceeded: m_fill={} H.m={}\n",
+                       m_fill, H.m);
           H.jlist[m_fill] = j;
           H.val[m_fill] = calculate_H(sqrt(r_sqr), shld[type[i]][type[j]]);
           m_fill++;
@@ -735,7 +740,7 @@ void FixQEqReaxFF::compute_H()
   }
 
   if (m_fill >= H.m)
-    error->all(FLERR, Error::NOLASTLINE, "Fix qeq/reaxff H matrix size has been exceeded: m_fill={} H.m={}\n",
+    error->one(FLERR, Error::NOLASTLINE, "Fix qeq/reaxff H matrix size has been exceeded: m_fill={} H.m={}\n",
                m_fill, H.m);
 }
 

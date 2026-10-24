@@ -154,14 +154,6 @@ struct TestViewMappingSubview {
     ASSERT_EQ(Da.stride(2), Db.stride(1));
     ASSERT_EQ(Da.stride(3), Db.stride(2));
 
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
-    KOKKOS_IMPL_DISABLE_DEPRECATED_WARNINGS_PUSH()
-    ASSERT_EQ(Da.stride_1(), Db.stride_0());  // NOLINT
-    ASSERT_EQ(Da.stride_2(), Db.stride_1());  // NOLINT
-    ASSERT_EQ(Da.stride_3(), Db.stride_2());  // NOLINT
-    KOKKOS_IMPL_DISABLE_DEPRECATED_WARNINGS_POP()
-#endif
-
     long error_count = -1;
     Kokkos::parallel_reduce(Kokkos::RangePolicy<ExecSpace>(0, 1), *this,
                             error_count);

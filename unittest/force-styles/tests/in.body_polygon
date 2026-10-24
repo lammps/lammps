@@ -1,0 +1,19 @@
+variable  newton_pair  index  on
+variable  units        index  lj
+variable  input_dir    index  .
+variable  data_file    index  ${input_dir}/data.body_polygon
+variable  pair_style   index  'zero 4.0'
+
+# the body pair styles require newton on
+
+units            ${units}
+dimension        2
+atom_style       body rounded/polygon 1 6
+atom_modify      map array
+newton           on
+comm_modify      vel yes
+neigh_modify     delay 0 every 1 check no
+timestep         0.001
+
+pair_style       ${pair_style}
+read_data        ${data_file}

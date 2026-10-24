@@ -14,7 +14,7 @@ pair_style eam/alloy
 pair_coeff * * AlCu.eam.alloy Cu Al
 
 # Initialize to a high temperature, then cool in npt ensemble
-velocity all create 1000.0 6567345
+velocity all create 1000.0 6567345 loop geom
 fix 1 all npt temp 300.0 300.0 $(500*dt) iso 0.0 0.0 $(100*dt)
 
 variable toteng equal "etotal"

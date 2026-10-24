@@ -29,7 +29,7 @@ FixWallHarmonicOutsideKokkos<DeviceType>::FixWallHarmonicOutsideKokkos(LAMMPS *l
   kokkosable = 1;
   atomKK = (AtomKokkos *) atom;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
-  datamask_read = X_MASK | V_MASK | F_MASK | MASK_MASK;
+  datamask_read = X_MASK | F_MASK | MASK_MASK;
   datamask_modify = F_MASK;
 }
 
@@ -46,14 +46,29 @@ FixWallHarmonicOutsideKokkos<DeviceType>::~FixWallHarmonicOutsideKokkos()
 /* ---------------------------------------------------------------------- */
 
 template <class DeviceType>
-void FixWallHarmonicOutsideKokkos<DeviceType>::post_force(int vflag)
+void FixWallHarmonicOutsideKokkos<DeviceType>::v_setup_peratom(int vflag)
 {
+  // the per-atom virial is accumulated into a dual view, so the plain
+  // base-class vatom array must not be allocated here (alloc = 0)
+
+  v_init(vflag,0);
+
+  // reallocate the per-atom virial dual view if necessary.  This has to happen
+  // here, after v_init() has set vflag_atom and maxvatom for this step, and
+  // not in post_force() before the base class runs, where both are stale.
+
   if (vflag_atom) {
     memoryKK->destroy_kokkos(k_vatom, vatom);
     memoryKK->create_kokkos(k_vatom, vatom, maxvatom, "wall_harmonic_outside:vatom");
     d_vatom = k_vatom.template view<DeviceType>();
   }
+}
 
+/* ---------------------------------------------------------------------- */
+
+template <class DeviceType>
+void FixWallHarmonicOutsideKokkos<DeviceType>::post_force(int vflag)
+{
   FixWallHarmonicOutside::post_force(vflag);
 
   if (vflag_atom) {

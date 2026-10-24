@@ -31,6 +31,8 @@
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
+static constexpr double SMALL = 0.001;
+
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
@@ -90,6 +92,12 @@ void AngleCosineShiftExpKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   k_sint.template sync<DeviceType>();
   k_cost.template sync<DeviceType>();
   k_doExpansion.template sync<DeviceType>();
+
+  // sync and claim here too: the MC fixes call this outside run_style verlet/kk
+
+  atomKK->sync(execution_space,datamask_read);
+  if (eflag || vflag) atomKK->modified(execution_space,datamask_modify);
+  else atomKK->modified(execution_space,F_MASK);
 
   x = atomKK->k_x.template view<DeviceType>();
   f = atomKK->k_f.template view<DeviceType>();
@@ -186,7 +194,7 @@ void AngleCosineShiftExpKokkos<DeviceType>::operator()(TagAngleCosineShiftExpCom
   if (c < static_cast<KK_FLOAT>(-1.0)) c = static_cast<KK_FLOAT>(-1.0);
 
   KK_FLOAT s = Kokkos::sqrt(static_cast<KK_FLOAT>(1.0) - c*c);
-  if (s < static_cast<KK_FLOAT>(1e-12)) s = static_cast<KK_FLOAT>(1e-12);
+  if (s < static_cast<KK_FLOAT>(SMALL)) s = static_cast<KK_FLOAT>(SMALL);
 
   const KK_FLOAT cccpsss = c*d_cost[type] + s*d_sint[type];
   const KK_FLOAT cssmscc = c*d_sint[type] - s*d_cost[type];

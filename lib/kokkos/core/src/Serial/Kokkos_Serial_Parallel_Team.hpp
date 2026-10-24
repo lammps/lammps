@@ -99,7 +99,7 @@ class TeamPolicyInternal<Kokkos::Serial, Properties...>
   }  // Use arbitrary large number, is meant as a vectorizable length
 
   inline static int scratch_size_max(int level) {
-    return (level == 0 ? 1024 * 32 : 20 * 1024 * 1024);
+    return (level == 0 ? 1024 * 32 : 80 * 1024 * 1024);
   }
   /** \brief  Specify league size, request team size */
   TeamPolicyInternal(const execution_space& space, int league_size_request,

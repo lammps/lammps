@@ -125,21 +125,23 @@ void PairSurfGranular::compute(int eflag, int vflag)
   // also grab current line connectivity info from FixSurfaceLocal
 
   if (neighbor->ago == 0) {
-    if (fix_rigid) {
-      int tmp;
-      int *body = (int *) fix_rigid->extract("body", tmp);
-      auto *mass_body = (double *) fix_rigid->extract("masstotal", tmp);
+    if (!fix_rigid.empty()) {
       if (atom->nmax > nmax) {
         memory->destroy(mass_rigid);
         nmax = atom->nmax;
         memory->create(mass_rigid, nmax, "surf/granular:mass_rigid");
       }
       int nlocal = atom->nlocal;
-      for (int i = 0; i < nlocal; i++)
-        if (body[i] >= 0)
-          mass_rigid[i] = mass_body[body[i]];
-        else
-          mass_rigid[i] = 0.0;
+      for (int i = 0; i < nlocal; i++) mass_rigid[i] = 0.0;
+
+      for (const auto &ifix : fix_rigid) {
+        int tmp;
+        int *body = (int *) ifix->extract("body",tmp);
+        auto *mass_body = (double *) ifix->extract("masstotal",tmp);
+
+        for (int i = 0; i < nlocal; i++)
+          if (body[i] >= 0) mass_rigid[i] = mass_body[body[i]];
+      }
       comm->forward_comm(this);
     }
 
@@ -390,6 +392,8 @@ void PairSurfGranular::compute(int eflag, int vflag)
 
       jtype = type[j];
       model = models_list[types_indices[itype][jtype]];
+      model->i = i;
+      model->j = j;
       model->xi = x[i];
       model->radi = radi;
       model->vi = v[i];
@@ -404,7 +408,7 @@ void PairSurfGranular::compute(int eflag, int vflag)
       // if line/tri is not part of rigidbody assume infinite mass
 
       meff = rmass[i];
-      if (fix_rigid) {
+      if (!fix_rigid.empty()) {
         if (mass_rigid[i] > 0.0) meff = mass_rigid[i];
         if (mass_rigid[j] > 0.0) {
           mj = mass_rigid[j];
@@ -520,15 +524,16 @@ void PairSurfGranular::init_style()
     error->all(FLERR, Error::NOLASTLINE,
                "Pair style surf/granular requires ghost atoms store velocity");
 
+  set_heat_flag();
   if (heat_flag) {
     if (!atom->temperature_flag)
       error->all(FLERR, Error::NOLASTLINE,
-                 "Heat conduction in pair style surf/granularular requires atom style with "
+                 "Heat conduction in pair style surf/granular requires atom style with "
                  "temperature property");
     if (!atom->heatflow_flag)
       error->all(
           FLERR, Error::NOLASTLINE,
-          "Heat conduction in pair surf/granularular requires atom style with heatflow property");
+          "Heat conduction in pair style surf/granular requires atom style with heatflow property");
   }
 
   // allocate history and initialize models
@@ -585,6 +590,11 @@ void PairSurfGranular::init_style()
   // if history is stored and first init, create Fix to store history
   // it replaces FixDummy, created in the constructor
   // this is so its order in the fix list is preserved
+
+  if (use_history) {
+    delete[] id_history;
+    id_history = utils::strdup(fmt::format("NEIGH_HISTORY_GRANULAR{}", instance_index()));
+  }
 
   if (use_history && (fix_history == nullptr)) {
     auto fixcmd = fmt::format("{} all NEIGH_HISTORY {} onesided", id_history, size_history);
@@ -654,16 +664,9 @@ void PairSurfGranular::init_style()
 
   // check for FixRigid so can extract rigid body masses
 
-  fix_rigid = nullptr;
-  for (const auto &ifix : modify->get_fix_list()) {
-    if (ifix->rigid_flag) {
-      if (fix_rigid)
-        error->all(FLERR, Error::NOLASTLINE,
-                   "Only one fix rigid command at a time is allowed with pair style surf/granular");
-      else
-        fix_rigid = ifix;
-    }
-  }
+  fix_rigid.clear();
+  for (const auto &ifix : modify->get_fix_list())
+    if (ifix->rigid_flag) fix_rigid.push_back(ifix);
 
   // check for FixPour and FixDeposit so can extract particle radii
 

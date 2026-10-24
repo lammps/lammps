@@ -22,6 +22,8 @@ PairStyle(granular,PairGranular);
 
 #include "pair.h"
 
+#include <vector>
+
 namespace LAMMPS_NS {
 
 namespace Granular_NS {
@@ -49,7 +51,7 @@ class PairGranular : public Pair {
   [[nodiscard]] class FixNeighHistory *get_fix_history() const { return fix_history; }
 
   // granular models
-  class Granular_NS::GranularModel** models_list;
+  class Granular_NS::GranularModel **models_list;
   int **types_indices;
   int nmodels, maxmodels;
 
@@ -68,12 +70,13 @@ class PairGranular : public Pair {
 
   // storage of rigid body masses for use in granular interactions
 
-  class Fix *fix_rigid;    // ptr to rigid body fix, null pointer if none
-  double *mass_rigid;      // rigid mass for owned+ghost atoms
-  int nmax;                // allocated size of mass_rigid
+  std::vector<class Fix *> fix_rigid;    // rigid body fixes
+  double *mass_rigid;                    // rigid mass for owned+ghost atoms
+  int nmax;                              // allocated size of mass_rigid
 
   void allocate();
   void prune_models();
+  void set_heat_flag();
 
   int size_history;
   int heat_flag;

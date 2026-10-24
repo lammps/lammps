@@ -329,14 +329,14 @@ TEST_F(VTKWriterTest, XmlAsciiPolyData)
     EXPECT_THAT(text, HasSubstr(R"(<DataArray type="Int64" Name="offsets")"));
 
     EXPECT_EQ(parse_numbers(payload_after(text, R"(Name="id")")),
-              std::vector<double>({1, 2, 3, 4}));
+              std::vector<double>({1.0, 2.0, 3.0, 4.0}));
     EXPECT_EQ(parse_numbers(payload_after(text, R"(Name="Points")")), COORDS);
 
     // XML offsets are end offsets, one per cell
     EXPECT_EQ(parse_numbers(payload_after(text, R"(Name="offsets")")),
-              std::vector<double>({1, 2, 3, 4}));
+              std::vector<double>({1.0, 2.0, 3.0, 4.0}));
     EXPECT_EQ(parse_numbers(payload_after(text, R"(Name="connectivity")")),
-              std::vector<double>({0, 1, 2, 3}));
+              std::vector<double>({0.0, 1.0, 2.0, 3.0}));
 }
 
 TEST_F(VTKWriterTest, XmlUnstructuredGridHasCellTypes)
@@ -351,14 +351,14 @@ TEST_F(VTKWriterTest, XmlUnstructuredGridHasCellTypes)
     EXPECT_THAT(text, HasSubstr(R"(<Piece NumberOfPoints="4" NumberOfCells="4">)"));
     // VTK_VERTEX is cell type 1
     EXPECT_EQ(parse_numbers(payload_after(text, R"(Name="types")")),
-              std::vector<double>({1, 1, 1, 1}));
+              std::vector<double>({1.0, 1.0, 1.0, 1.0}));
 }
 
 TEST_F(VTKWriterTest, Hexahedron)
 {
     const auto file      = tempfile("vtkwriter_hex.vtu");
-    double corners[8][3] = {{0, 0, 0}, {5, 0, 0}, {6, 4, 0}, {1, 4, 0},
-                            {2, 1, 7}, {7, 1, 7}, {8, 5, 7}, {3, 5, 7}};
+    double corners[8][3] = {{0.0, 0.0, 0.0}, {5.0, 0.0, 0.0}, {6.0, 4.0, 0.0}, {1.0, 4.0, 0.0},
+                            {2.0, 1.0, 7.0}, {7.0, 1.0, 7.0}, {8.0, 5.0, 7.0}, {3.0, 5.0, 7.0}};
     VTKWriter writer(VTKWriter::XML, false);
     writer.set_hexahedron(corners);
     EXPECT_EQ(writer.number_of_points(), 8);
@@ -371,7 +371,7 @@ TEST_F(VTKWriterTest, Hexahedron)
     EXPECT_EQ(parse_numbers(payload_after(text, R"(Name="types")")), std::vector<double>({12}));
     EXPECT_EQ(parse_numbers(payload_after(text, R"(Name="offsets")")), std::vector<double>({8}));
     EXPECT_EQ(parse_numbers(payload_after(text, R"(Name="connectivity")")),
-              std::vector<double>({0, 1, 2, 3, 4, 5, 6, 7}));
+              std::vector<double>({0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0}));
 }
 
 TEST_F(VTKWriterTest, XmlStringArray)
@@ -387,7 +387,7 @@ TEST_F(VTKWriterTest, XmlStringArray)
     EXPECT_THAT(text, HasSubstr(R"(<Array type="String" Name="element" format="ascii">)"));
     // the ASCII form lists character codes with a zero terminating each string
     EXPECT_EQ(parse_numbers(payload_after(text, R"(Name="element")")),
-              std::vector<double>({67, 0, 79, 0, 78, 97, 0, 67, 0}));
+              std::vector<double>({67.0, 0.0, 79.0, 0.0, 78.0, 97.0, 0.0, 67.0, 0.0}));
 }
 
 TEST_F(VTKWriterTest, XmlBinaryPayloads)
@@ -532,7 +532,7 @@ TEST_F(VTKWriterTest, DoublePrecisionRoundTrips)
     // reads back as exactly the same number, unlike the 11 significant
     // digits the VTK library writes
 
-    const std::vector<double> exact = {1.0 / 3.0, 2.0e-101, 3.141592653589793};
+    const std::vector<double> exact  = {1.0 / 3.0, 2.0e-101, 3.141592653589793};
     const std::vector<double> coords = {0.1, 0.2, 0.3};
 
     const auto file = tempfile("vtkwriter_roundtrip.vtp");

@@ -26,7 +26,7 @@ Examples
 Description
 """""""""""
 
-.. versionadded:: TBD
+.. versionadded:: 2Sep2026
 
 Define a computation that calculates the symmetric moment of inertia
 tensor of the group of atoms around its center of mass, including all

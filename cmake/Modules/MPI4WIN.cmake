@@ -1,9 +1,15 @@
 # set-up MS-MPI library for Windows with MinGW compatibility
 message(STATUS "Downloading and configuring MS-MPI 10.1 for Windows cross-compilation")
-set(MPICH2_WIN64_DEVEL_URL "${LAMMPS_THIRDPARTY_URL}/msmpi-win64-devel.tar.gz" CACHE STRING "URL for MS-MPI (win64) tarball")
-set(MPICH2_WIN64_DEVEL_SHA256 "939f5bad74311a84839196ca9140549189ef00785b0ef8e94ad6a180014ccb7f" CACHE STRING "SHA256 checksum of MS-MPI (win64) tarball")
-mark_as_advanced(MPICH2_WIN64_DEVEL_URL)
-mark_as_advanced(MPICH2_WIN64_DEVEL_SHA256)
+
+# set policy to use the time of extraction as timestamps of files unpacked from downloaded
+# archives, so that updating an archive version triggers rebuilding all dependent objects
+if(POLICY CMP0135)
+  cmake_policy(SET CMP0135 NEW)
+endif()
+
+SetDownloadSettings(MPICH2_WIN64_DEVEL "MS-MPI (win64)"
+  "${LAMMPS_THIRDPARTY_URL}/msmpi-win64-devel.tar.gz"
+  "939f5bad74311a84839196ca9140549189ef00785b0ef8e94ad6a180014ccb7f")
 
 include(ExternalProject)
 if(CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64")

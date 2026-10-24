@@ -104,7 +104,7 @@ template <class T> class GrowingAllocator {
      *
      * @param p Unused.
      */
-  void deallocate(value_type *p, std::size_t)
+  void deallocate(value_type *, std::size_t)
   {
     // We don't do anything, we just grow.
   }

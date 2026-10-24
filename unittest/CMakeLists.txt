@@ -67,21 +67,21 @@ endif()
 # the LAMMPS version header in the output for an empty input
 file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/in.empty "")
 add_test(NAME RunLammps
-         COMMAND $<TARGET_FILE:lmp> -log none -echo none -in in.empty)
+         COMMAND ${LAMMPS_TEST_LAUNCHER} $<TARGET_FILE:lmp> -log none -echo none -in in.empty)
 set_tests_properties(RunLammps PROPERTIES
          ENVIRONMENT "TSAN_OPTIONS=ignore_noninstrumented_modules=1;HWLOC_HIDE_ERRORS=2"
          PASS_REGULAR_EXPRESSION "LAMMPS \\([0-9]+ [A-Za-z]+ 2[0-9][0-9][0-9]( - Update [0-9]+)?( - Development.*)?( - Maintenance.*)?\\)")
 
 # check if the compiled executable will print the help message
 add_test(NAME HelpMessage
-         COMMAND $<TARGET_FILE:lmp> -h)
+         COMMAND ${LAMMPS_TEST_LAUNCHER} $<TARGET_FILE:lmp> -h)
 set_tests_properties(HelpMessage PROPERTIES
          ENVIRONMENT "TSAN_OPTIONS=ignore_noninstrumented_modules=1;HWLOC_HIDE_ERRORS=2"
          PASS_REGULAR_EXPRESSION ".*Large-scale Atomic/Molecular Massively Parallel Simulator -.*Usage example:.*")
 
 # check if the compiled executable will error out on an invalid command line flag
 add_test(NAME InvalidFlag
-         COMMAND $<TARGET_FILE:lmp> -xxx)
+         COMMAND ${LAMMPS_TEST_LAUNCHER} $<TARGET_FILE:lmp> -xxx)
 set_tests_properties(InvalidFlag PROPERTIES
          ENVIRONMENT "TSAN_OPTIONS=ignore_noninstrumented_modules=1;HWLOC_HIDE_ERRORS=2"
          PASS_REGULAR_EXPRESSION "ERROR: Invalid command-line argument.*")
@@ -102,7 +102,7 @@ if(BUILD_MPI)
     set(ARGS ${MPI_TEST_COMMAND})
     add_test(NAME ${MPI_TEST_NAME}
              WORKING_DIRECTORY ${MPI_TEST_WORKING_DIRECTORY}
-             COMMAND ${MPIEXEC_EXECUTABLE} ${MPIEXEC_NUMPROC_FLAG} ${MPI_TEST_NUM_PROCS}
+             COMMAND ${LAMMPS_TEST_LAUNCHER} ${MPIEXEC_EXECUTABLE} ${MPIEXEC_NUMPROC_FLAG} ${MPI_TEST_NUM_PROCS}
              ${MPIEXEC_PREFLAGS} ${EXECUTABLE} ${MPIEXEC_POSTFLAGS} ${ARGS})
     set_tests_properties(${MPI_TEST_NAME} PROPERTIES LABELS "mpi" ENVIRONMENT "OMP_PROC_BIND=false")
   endfunction()
@@ -112,6 +112,42 @@ else()
     message(STATUS "Skipping test ${MPI_TEST_NAME} on non-MPI compilation")
   endfunction()
 endif()
+
+# environment setting that makes the LAMMPSTest fixture in unittest/testing/core.h
+# append accelerator flags to the LAMMPS command line arguments, so that the very
+# same test bodies also exercise the KOKKOS versions of styles and commands.
+# a GPU-enabled Kokkos backend aborts when no GPU is requested, so ask for one
+# device there; it also defaults to a full neighbor list, which the KOKKOS
+# package only allows with "newton off", while these generic test decks use the
+# default "newton on" -- so pin a half neighbor list, the same way the force
+# style OutputStyle.kokkos_gpu case does.  CPU-only backends (Serial, OpenMP)
+# use a half list with newton on already and keep running threads-only
+if(Kokkos_ENABLE_CUDA OR Kokkos_ENABLE_HIP OR Kokkos_ENABLE_SYCL OR Kokkos_ENABLE_OPENMPTARGET)
+  set(KOKKOS_TEST_ENVIRONMENT "LAMMPS_ACCELERATOR_ARGS=-k on g 1 t 1 -sf kk -pk kokkos neigh half newton on")
+else()
+  set(KOKKOS_TEST_ENVIRONMENT "LAMMPS_ACCELERATOR_ARGS=-k on t 1 -sf kk")
+endif()
+
+# convenience function for adding a second, KOKKOS enabled run of a test that is
+# based on the LAMMPSTest fixture.  The added test is called <NAME>Kokkos and uses
+# the same command.  Environment settings of the original test are not inherited
+# and thus must be repeated in the optional ENVIRONMENT argument.
+function(add_kokkos_test)
+  if(NOT PKG_KOKKOS)
+    return()
+  endif()
+  cmake_parse_arguments(KKTEST "" "NAME" "COMMAND;ENVIRONMENT" ${ARGN})
+  add_test(NAME ${KKTEST_NAME}Kokkos COMMAND ${KKTEST_COMMAND})
+  set(KKTEST_ENV "${KOKKOS_TEST_ENVIRONMENT}")
+  list(APPEND KKTEST_ENV ${KKTEST_ENVIRONMENT})
+  # the KOKKOS entry runs the same executable as the plain one, so it needs a
+  # working directory of its own: the two would otherwise overwrite each
+  # other's scratch files when ctest runs them in parallel
+  file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${KKTEST_NAME}Kokkos)
+  set_tests_properties(${KKTEST_NAME}Kokkos PROPERTIES LABELS "kokkos"
+                       ENVIRONMENT "${KKTEST_ENV}"
+                       WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${KKTEST_NAME}Kokkos)
+endfunction()
 
 # incorporate categories of specific tests from subdirectories
 

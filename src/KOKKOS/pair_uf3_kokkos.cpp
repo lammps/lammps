@@ -65,12 +65,10 @@ template <class DeviceType> PairUF3Kokkos<DeviceType>::~PairUF3Kokkos()
     memoryKK->destroy_kokkos(k_eatom, eatom); //destory eatom from host, set it to nullptr
                                               //Also set k_eatom to empty View
     memoryKK->destroy_kokkos(k_vatom, vatom);
+    memoryKK->destroy_kokkos(k_cvatom, cvatom);
     memoryKK->destroy_kokkos(k_cutsq,cutsq);
     destroy_3d(k_cut_3b,cut_3b);
     destroy_4d(k_min_cut_3b,min_cut_3b);
-    eatom = NULL;
-    vatom = NULL;
-    cvatom = NULL;
   }
 }
 
@@ -741,7 +739,7 @@ template <class DeviceType> void PairUF3Kokkos<DeviceType>::compute(int eflag_in
 
   if (cvflag_atom) {
     memoryKK->destroy_kokkos(k_cvatom, cvatom);
-    memoryKK->create_kokkos(k_cvatom, cvatom, maxvatom, "pair:vatom");
+    memoryKK->create_kokkos(k_cvatom, cvatom, maxcvatom, "pair:cvatom");
     d_cvatom = k_cvatom.view<DeviceType>();
   }
 
@@ -786,7 +784,7 @@ template <class DeviceType> void PairUF3Kokkos<DeviceType>::compute(int eflag_in
           ((int)d_neighbors_short.extent(0) != ignum)) {
     d_neighbors_short = Kokkos::View<int **, DeviceType>("UF3::neighbors_short", ignum, max_neighs);
   }
-  if (d_numneigh_short.extent(0) != ignum)
+  if ((int)d_numneigh_short.extent(0) != ignum)
     d_numneigh_short = Kokkos::View<int *, DeviceType>("UF3::numneighs_short", ignum);
   Kokkos::parallel_for(
       Kokkos::RangePolicy<DeviceType, TagPairUF3ComputeShortNeigh>(0, ignum), *this);
@@ -883,7 +881,6 @@ PairUF3Kokkos<DeviceType>::operator()(TagPairUF3ComputeFullA<NEIGHFLAG, EVFLAG>,
 {
   // The f array is duplicated for OpenMP, atomic for CUDA, and neither for Serial
 
-  auto v_f = vscatter.access();
   auto a_f = fscatter.access();
   auto a_cvatom = cvscatter.access();
 
@@ -1618,10 +1615,11 @@ double PairUF3Kokkos<DeviceType>::single(int /*i*/, int /*j*/, int itype, int jt
   double value = 0.0;
   double r = sqrt(rsq);
   int interaction_id = map2b(itype, jtype);
-  int start_index = 3;
-  while (r > static_cast<double>(d_n2b_knot(interaction_id, start_index + 1))) start_index++;
 
-  if (r < static_cast<double>(d_cutsq(itype, jtype))) {
+  fforce = 0.0;
+  if (rsq < static_cast<double>(d_cutsq(itype, jtype))) {
+    int start_index = 3;
+    while (r > static_cast<double>(d_n2b_knot(interaction_id, start_index + 1))) start_index++;
     double r_values[4];
     r_values[0] = 1;
     r_values[1] = r;
@@ -1656,6 +1654,7 @@ double PairUF3Kokkos<DeviceType>::single(int /*i*/, int /*j*/, int itype, int jt
     fforce += static_cast<double>(dnconstants_2b(interaction_id, start_index - 3, 6));
     fforce += r_values[1] * static_cast<double>(dnconstants_2b(interaction_id, start_index - 3, 7));
     fforce += r_values[2] * static_cast<double>(dnconstants_2b(interaction_id, start_index - 3, 8));
+    fforce *= factor_lj;
   }
 
   return factor_lj * value;

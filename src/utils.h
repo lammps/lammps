@@ -210,7 +210,8 @@ template <typename TYPE> inline const TYPE &sprintf_arg(const TYPE &arg)
 }
 // NOLINTEND
 
-/*! \overload converts a std::string argument to a C-style string */
+/*! converts a std::string argument to a C-style string
+ * \overload */
 
 inline const char *sprintf_arg(const std::string &arg)
 {
@@ -221,7 +222,7 @@ inline const char *sprintf_arg(const std::string &arg)
 
 \verbatim embed:rst
 
-.. versionadded:: TBD
+.. versionadded:: 2Sep2026
 
 This function formats its arguments according to a printf() style format
 string and returns the result as a ``std::string``, similar to the
@@ -266,7 +267,7 @@ template <typename... Args> std::string sprintf(const std::string &format, Args 
 
 \verbatim embed:rst
 
-.. versionadded:: TBD
+.. versionadded:: 2Sep2026
 
 Conversions are grouped by the kind of value they consume: the d, i, o, u,
 x, X, and c conversions consume integers, the e, E, f, F, g, G, a, and A
@@ -292,7 +293,7 @@ enum class FmtArg {
 
 \verbatim embed:rst
 
-.. versionadded:: TBD
+.. versionadded:: 2Sep2026
 
 LAMMPS accepts printf() style format strings from users in multiple
 places, for example with :doc:`dump_modify format <dump_modify>` or
@@ -344,7 +345,7 @@ std::string check_format(const std::string &format, FmtArg expect);
 
 \verbatim embed:rst
 
-.. versionadded:: TBD
+.. versionadded:: 2Sep2026
 
 The C library derives the size of the value consumed by an integer
 conversion from its length modifier, so ``%d`` and ``%ld`` must be used
@@ -817,7 +818,7 @@ std::string trim_comment(const std::string &line);
  * If there is no '*' character in the string, return the original string.
  * If the number requires more characters than the value of the *pad*
  * argument, do not add zeros; otherwise add as many zeroes as needed to
- * the left to make the the number representation *pad* characters wide.
+ * the left to make the number representation *pad* characters wide.
  *
  * \param name  string with file containing a '*' (or not)
  * \param step  step number to replace the (first) '*'
@@ -876,6 +877,8 @@ inline bool has_utf8(const std::string &line)
 /*! Replace known UTF-8 characters with ASCII equivalents
  *
 \verbatim embed:rst
+
+Characters without a known ASCII equivalent are kept unchanged.
 
 *See also*
    :cpp:func:`utils::has_utf8`

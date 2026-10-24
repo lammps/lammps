@@ -1976,11 +1976,11 @@ double ComputeFrenkel::memory_usage()
   nbytes += nnormal * 3 * sizeof(normal[0][0]);
   nbytes += (nlatsites + nlatghosts) * 3 * sizeof(latsites[0][0]);
   nbytes += (nlatsites + nlatghosts) * sizeof(site_tag[0]);
-  nbytes += nlatbins[0] * nlatbins[1] * nlatbins[2] * nlatbins[3] * sizeof(latbins[0][0][0][0]);
+  nbytes += (double) nlatbins[0] * nlatbins[1] * nlatbins[2] * nlatbins[3] * sizeof(latbins[0][0][0][0]);
   nbytes += (nlatsites + nlatghosts) * (nlist.empty() ? 0 : nlist[0].size()) * sizeof(tagint);
   nbytes += nlatsites * sizeof(tagint);        // clusterID
-  nbytes += 2 * noccupied * sizeof(int);       // cluster_size, cluster_nsites
-  nbytes += 3 * noccupied * sizeof(double);    // cluster_center
+  nbytes += 2.0 * noccupied * sizeof(int);       // cluster_size, cluster_nsites
+  nbytes += 3.0 * noccupied * sizeof(double);    // cluster_center
   nbytes += noccupied * sizeof(tagint);        // occupied_cluster_ID;
   return nbytes;
 }

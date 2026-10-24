@@ -1,4 +1,4 @@
-import sys,os,unittest
+import sys,os,shutil,unittest
 from lammps import lammps
 from lammps.constants import LMP_MAX_GROUP
 
@@ -43,7 +43,7 @@ class PythonCapabilities(unittest.TestCase):
         self.assertEqual(osinfo.find(system),0)
 
     def test_has_gzip_support(self):
-        self.assertEqual(self.lmp.has_gzip_support, self.cmake_cache.get('WITH_GZIP', False))
+        self.assertEqual(self.lmp.has_gzip_support, shutil.which('gzip') is not None)
 
     def test_has_png_support(self):
         self.assertEqual(self.lmp.has_png_support, self.cmake_cache.get('WITH_PNG', False))
@@ -52,7 +52,7 @@ class PythonCapabilities(unittest.TestCase):
         self.assertEqual(self.lmp.has_jpeg_support, self.cmake_cache.get('WITH_JPEG', False))
 
     def test_has_ffmpeg_support(self):
-        self.assertEqual(self.lmp.has_ffmpeg_support, self.cmake_cache.get('WITH_FFMPEG', False))
+        self.assertEqual(self.lmp.has_ffmpeg_support, shutil.which('ffmpeg') is not None)
 
     def test_installed_packages(self):
         installed_packages = self.lmp.installed_packages
@@ -179,7 +179,10 @@ class PythonCapabilities(unittest.TestCase):
                 self.assertIn('openmp',settings['KOKKOS']['api'])
             if 'Kokkos_ENABLE_SERIAL' in self.cmake_cache and self.cmake_cache['Kokkos_ENABLE_SERIAL']:
                 self.assertIn('serial',settings['KOKKOS']['api'])
-            self.assertIn('double',settings['KOKKOS']['precision'])
+            if 'KOKKOS_PREC' in self.cmake_cache:
+                self.assertIn(self.cmake_cache['KOKKOS_PREC'].lower(),settings['KOKKOS']['precision'])
+            else:
+                self.assertIn('double',settings['KOKKOS']['precision'])
 
     def test_gpu_device(self):
 

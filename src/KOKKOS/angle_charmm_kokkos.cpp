@@ -86,6 +86,12 @@ void AngleCharmmKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     //}
   }
 
+  // sync and claim here too: the MC fixes call this outside run_style verlet/kk
+
+  atomKK->sync(execution_space,datamask_read);
+  if (eflag || vflag) atomKK->modified(execution_space,datamask_modify);
+  else atomKK->modified(execution_space,F_MASK);
+
   x = atomKK->k_x.view<DeviceType>();
   f = atomKK->k_f.view<DeviceType>();
   neighborKK->k_anglelist.template sync<DeviceType>();
@@ -311,10 +317,10 @@ void AngleCharmmKokkos<DeviceType>::read_restart(FILE *fp)
   AngleCharmm::read_restart(fp);
 
   int n = atom->nangletypes;
-  DAT::tdual_kkfloat_1d k_k("AngleCharmm::k",n+1);
-  DAT::tdual_kkfloat_1d k_theta0("AngleCharmm::theta0",n+1);
-  DAT::tdual_kkfloat_1d k_k_ub("AngleCharmm::k_ub",n+1);
-  DAT::tdual_kkfloat_1d k_r_ub("AngleCharmm::r_ub",n+1);
+  k_k = DAT::tdual_kkfloat_1d("AngleCharmm::k",n+1);
+  k_theta0 = DAT::tdual_kkfloat_1d("AngleCharmm::theta0",n+1);
+  k_k_ub = DAT::tdual_kkfloat_1d("AngleCharmm::k_ub",n+1);
+  k_r_ub = DAT::tdual_kkfloat_1d("AngleCharmm::r_ub",n+1);
 
   d_k = k_k.template view<DeviceType>();
   d_theta0 = k_theta0.template view<DeviceType>();

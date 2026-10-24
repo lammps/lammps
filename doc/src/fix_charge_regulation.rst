@@ -257,7 +257,8 @@ page for more info.
 
 The :doc:`atom_style <atom_style>`, used must contain the charge
 property and have per atom type masses, for example, the style could be
-*charge* or *full*. Only usable for 3D simulations.  Atoms specified as
+*charge* or *full*. Only usable for 3D simulations with orthogonal
+simulation boxes; triclinic boxes are not supported.  Atoms specified as
 free ions cannot be part of rigid bodies or molecules and cannot have
 bonding interactions.  The scheme is limited to integer charges, any
 atoms with non-integer charges will not be considered by the fix.

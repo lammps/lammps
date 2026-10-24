@@ -54,6 +54,23 @@ PairDPDTstatOMP::~PairDPDTstatOMP()
   }
 }
 
+/* ----------------------------------------------------------------------
+   the base class settings() re-creates the serial random number generator,
+   so the pool of per-thread generators must be re-created on the next call
+------------------------------------------------------------------------- */
+
+void PairDPDTstatOMP::settings(int narg, char **arg)
+{
+  PairDPDTstat::settings(narg, arg);
+
+  if (random_thr) {
+    for (int i = 1; i < nthreads; ++i) delete random_thr[i];
+    delete[] random_thr;
+    random_thr = nullptr;
+  }
+  nthreads = 0;
+}
+
 /* ---------------------------------------------------------------------- */
 
 void PairDPDTstatOMP::compute(int eflag, int vflag)
@@ -98,9 +115,11 @@ void PairDPDTstatOMP::compute(int eflag, int vflag)
 
     // generate a random number generator instance for
     // all threads != 0. make sure we use unique seeds.
-    if ((tid > 0) && (random_thr[tid] == nullptr))
-      random_thr[tid] = new RanMars(Pair::lmp, seed + comm->me
-                                    + comm->nprocs*tid);
+    if ((tid > 0) && (random_thr[tid] == nullptr)) {
+      // wrap around to stay within the valid seed range of RanMars
+      const bigint tseed = (bigint) seed + comm->me + (bigint) comm->nprocs * tid;
+      random_thr[tid] = new RanMars(Pair::lmp, (int) ((tseed - 1) % 900000000 + 1));
+    }
 
     if (evflag) {
       if (eflag) {

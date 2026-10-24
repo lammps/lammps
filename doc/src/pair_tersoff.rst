@@ -94,7 +94,7 @@ See the :doc:`pair_coeff <pair_coeff>` page for alternate ways
 to specify the path for the potential file.
 
 As an example, imagine the SiC.tersoff file has Tersoff values for Si
-and C.  If your LAMMPS simulation has 4 atoms types and you want the
+and C.  If your LAMMPS simulation has 4 atom types and you want the
 first 3 to be Si, and the fourth to be C, you would use the following
 pair_coeff command:
 
@@ -303,8 +303,7 @@ This pair style requires the :doc:`newton <newton>` setting to be "on"
 for pair interactions.
 
 The *shift* keyword is not supported by the *tersoff/gpu*,
-*tersoff/intel*, *tersoff/kk*, *tersoff/table* or *tersoff/table/omp*
-variants.
+*tersoff/intel*, *tersoff/table* or *tersoff/table/omp* variants.
 
 The *tersoff/intel* pair style is only available when compiling LAMMPS
 with the Intel compilers.

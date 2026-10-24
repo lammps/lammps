@@ -32,6 +32,7 @@ class SYCLDeviceUSMSpace {
   using memory_space    = SYCLDeviceUSMSpace;
   using device_type     = Kokkos::Device<execution_space, memory_space>;
   using size_type       = Impl::SYCLInternal::size_type;
+  using index_type      = Impl::SYCLInternal::index_type;
 
   SYCLDeviceUSMSpace();
   explicit SYCLDeviceUSMSpace(sycl::queue queue);
@@ -63,6 +64,7 @@ class SYCLSharedUSMSpace {
   using memory_space    = SYCLSharedUSMSpace;
   using device_type     = Kokkos::Device<execution_space, memory_space>;
   using size_type       = Impl::SYCLInternal::size_type;
+  using index_type      = Impl::SYCLInternal::index_type;
 
   SYCLSharedUSMSpace();
   explicit SYCLSharedUSMSpace(sycl::queue queue);
@@ -104,6 +106,7 @@ class SYCLHostUSMSpace {
   using memory_space    = SYCLHostUSMSpace;
   using device_type     = Kokkos::Device<execution_space, memory_space>;
   using size_type       = Impl::SYCLInternal::size_type;
+  using index_type      = Impl::SYCLInternal::index_type;
 
   SYCLHostUSMSpace();
   explicit SYCLHostUSMSpace(sycl::queue queue);
@@ -168,7 +171,6 @@ template <>
 struct MemorySpaceAccess<Kokkos::HostSpace, Kokkos::SYCLDeviceUSMSpace> {
   enum : bool { assignable = false };
   enum : bool { accessible = false };
-  enum : bool { deepcopy = true };
 };
 
 template <>
@@ -176,7 +178,6 @@ struct MemorySpaceAccess<Kokkos::HostSpace, Kokkos::SYCLSharedUSMSpace> {
   // HostSpace::execution_space != SYCLSharedUSMSpace::execution_space
   enum : bool { assignable = false };
   enum : bool { accessible = true };
-  enum : bool { deepcopy = true };
 };
 
 template <>
@@ -185,14 +186,12 @@ struct MemorySpaceAccess<Kokkos::HostSpace, Kokkos::SYCLHostUSMSpace> {
   // SYCLHostUSMSpace::execution_space
   enum : bool { assignable = true };
   enum : bool { accessible = true };
-  enum : bool { deepcopy = true };
 };
 
 template <>
 struct MemorySpaceAccess<Kokkos::SYCLDeviceUSMSpace, Kokkos::HostSpace> {
   enum : bool { assignable = false };
   enum : bool { accessible = false };
-  enum : bool { deepcopy = true };
 };
 
 template <>
@@ -201,7 +200,6 @@ struct MemorySpaceAccess<Kokkos::SYCLDeviceUSMSpace,
   // SYCLDeviceUSMSpace::execution_space == SYCLSharedUSMSpace::execution_space
   enum : bool { assignable = true };
   enum : bool { accessible = true };
-  enum : bool { deepcopy = true };
 };
 
 template <>
@@ -210,7 +208,6 @@ struct MemorySpaceAccess<Kokkos::SYCLDeviceUSMSpace, Kokkos::SYCLHostUSMSpace> {
   // SYCLHostUSMSpace::execution_space
   enum : bool { assignable = false };
   enum : bool { accessible = true };  // SYCLDeviceUSMSpace::execution_space
-  enum : bool { deepcopy = true };
 };
 
 //----------------------------------------
@@ -221,7 +218,6 @@ template <>
 struct MemorySpaceAccess<Kokkos::SYCLSharedUSMSpace, Kokkos::HostSpace> {
   enum : bool { assignable = false };
   enum : bool { accessible = false };  // SYCL cannot access HostSpace
-  enum : bool { deepcopy = true };
 };
 
 template <>
@@ -234,7 +230,6 @@ struct MemorySpaceAccess<Kokkos::SYCLSharedUSMSpace,
 
   // SYCLSharedUSMSpace::execution_space can access SYCLDeviceUSMSpace
   enum : bool { accessible = true };
-  enum : bool { deepcopy = true };
 };
 
 template <>
@@ -243,28 +238,24 @@ struct MemorySpaceAccess<Kokkos::SYCLSharedUSMSpace, Kokkos::SYCLHostUSMSpace> {
   // SYCLHostUSMSpace::execution_space
   enum : bool { assignable = false };
   enum : bool { accessible = true };  // SYCLSharedUSMSpace::execution_space
-  enum : bool { deepcopy = true };
 };
 
 template <>
 struct MemorySpaceAccess<Kokkos::SYCLHostUSMSpace, Kokkos::HostSpace> {
   enum : bool { assignable = false };  // Cannot access from SYCL
   enum : bool { accessible = true };   // SYCLHostUSMSpace::execution_space
-  enum : bool { deepcopy = true };
 };
 
 template <>
 struct MemorySpaceAccess<Kokkos::SYCLHostUSMSpace, Kokkos::SYCLDeviceUSMSpace> {
   enum : bool { assignable = false };  // Cannot access from Host
   enum : bool { accessible = false };
-  enum : bool { deepcopy = true };
 };
 
 template <>
 struct MemorySpaceAccess<Kokkos::SYCLHostUSMSpace, Kokkos::SYCLSharedUSMSpace> {
   enum : bool { assignable = false };  // different execution_space
   enum : bool { accessible = true };   // same accessibility
-  enum : bool { deepcopy = true };
 };
 
 template <>
@@ -272,7 +263,6 @@ struct MemorySpaceAccess<Kokkos::SYCLDeviceUSMSpace,
                          Kokkos::ScratchMemorySpace<Kokkos::SYCL>> {
   enum : bool { assignable = false };
   enum : bool { accessible = true };
-  enum : bool { deepcopy = false };
 };
 
 }  // namespace Impl

@@ -241,8 +241,11 @@ void DynamicalMatrix::openfile(const char *filename)
 
   if (me == 0) {
     if (compressed) {
-      fp = platform::compressed_write(std::string(filename)+".gz");
-      if (!fp) error->one(FLERR, Error::NOLASTLINE, "Cannot open gzip compressed file");
+      std::string gzfile = std::string(filename) + ".gz";
+      fp = platform::compressed_write(gzfile);
+      if (!fp)
+        error->one(FLERR, Error::NOLASTLINE, "Cannot open compressed file {}: {}", gzfile,
+                   platform::compressed_open_error(gzfile));
     } else if (binaryflag) {
       fp = fopen(filename,"wb");
     } else {

@@ -194,8 +194,7 @@ template <class ExecutionSpace, class T>
 void test_sort_integer_overflow() {
   // array with two extrema in reverse order to expose integer overflow bug in
   // bin calculation
-  T a[2]  = {Kokkos::Experimental::finite_max<T>::value,
-             Kokkos::Experimental::finite_min<T>::value};
+  T a[2]  = {Kokkos::finite_max<T>::value, Kokkos::finite_min<T>::value};
   auto vd = Kokkos::create_mirror_view_and_copy(
       ExecutionSpace(), Kokkos::View<T[2], Kokkos::HostSpace>(a));
   Kokkos::sort(vd);

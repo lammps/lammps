@@ -34,6 +34,7 @@ OPT.
    * :doc:`com/chunk <compute_com_chunk>`
    * :doc:`composition/atom (ko) <compute_composition_atom>`
    * :doc:`contact/atom (o) <compute_contact_atom>`
+   * :doc:`continuum/chunk <compute_continuum_chunk>`
    * :doc:`coord/atom (ko) <compute_coord_atom>`
    * :doc:`count/type <compute_count_type>`
    * :doc:`damage/atom <compute_damage_atom>`
@@ -85,6 +86,7 @@ OPT.
    * :doc:`ke/eff <compute_ke_eff>`
    * :doc:`ke/rigid <compute_ke_rigid>`
    * :doc:`ke/tspin <compute_ke_tspin>`
+   * :doc:`mbar <compute_mbar>`
    * :doc:`mliap <compute_mliap>`
    * :doc:`momentum <compute_momentum>`
    * :doc:`msd <compute_msd>`

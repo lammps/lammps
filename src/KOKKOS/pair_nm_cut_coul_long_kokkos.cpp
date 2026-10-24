@@ -121,8 +121,12 @@ void PairNMCutCoulLongKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   copymode = 1;
 
-  ev = pair_compute<PairNMCutCoulLongKokkos<DeviceType>,void>
-    (this,(NeighListKokkos<DeviceType>*)list);
+  if (ncoultablebits)
+    ev = pair_compute<PairNMCutCoulLongKokkos<DeviceType>,CoulLongTable<1>>
+      (this,(NeighListKokkos<DeviceType>*)list);
+  else
+    ev = pair_compute<PairNMCutCoulLongKokkos<DeviceType>,CoulLongTable<0>>
+      (this,(NeighListKokkos<DeviceType>*)list);
 
   if (eflag) {
     eng_vdwl += static_cast<double>(ev.evdwl);
@@ -192,19 +196,34 @@ compute_fcoul(const KK_FLOAT& rsq, const int& /*i*/, const int& j,
               const int& /*itype*/, const int& /*jtype*/,
               const KK_FLOAT& factor_coul, const KK_FLOAT& qtmp) const
 {
-  const KK_FLOAT r = Kokkos::sqrt(rsq);
-  const KK_FLOAT grij = g_ewald_kk * r;
-  const KK_FLOAT expm2 = Kokkos::exp(-grij*grij);
-  const KK_FLOAT t = static_cast<KK_FLOAT>(1.0) /
-    (static_cast<KK_FLOAT>(1.0) + static_cast<KK_FLOAT>(EWALD_P)*grij);
-  const KK_FLOAT rinv = static_cast<KK_FLOAT>(1.0) / r;
-  const KK_FLOAT erfc = t * (static_cast<KK_FLOAT>(A1)+t*(static_cast<KK_FLOAT>(A2)+
-                        t * (static_cast<KK_FLOAT>(A3)+t*(static_cast<KK_FLOAT>(A4)+
-                        t * static_cast<KK_FLOAT>(A5))))) * expm2;
-  const KK_FLOAT prefactor = qqrd2e * qtmp * q(j) * rinv;
-  KK_FLOAT forcecoul = prefactor * (erfc + static_cast<KK_FLOAT>(EWALD_F)*grij*expm2);
-  if (factor_coul < static_cast<KK_FLOAT>(1.0)) forcecoul -= (static_cast<KK_FLOAT>(1.0)-factor_coul)*prefactor;
-  return forcecoul * rinv * rinv;
+  if (Specialisation::DoTable && rsq > tabinnersq_kk) {
+    union_int_float_t rsq_lookup;
+    rsq_lookup.f = rsq;
+    const int itable = (rsq_lookup.i & ncoulmask) >> ncoulshiftbits;
+    const KK_FLOAT fraction = ((KK_FLOAT)rsq_lookup.f - d_rtable[itable]) * d_drtable[itable];
+    const KK_FLOAT table = d_ftable[itable] + fraction*d_dftable[itable];
+    KK_FLOAT forcecoul = qtmp*q(j) * table;
+    if (factor_coul < static_cast<KK_FLOAT>(1.0)) {
+      const KK_FLOAT table = d_ctable[itable] + fraction*d_dctable[itable];
+      const KK_FLOAT prefactor = qtmp*q(j) * table;
+      forcecoul -= (static_cast<KK_FLOAT>(1.0)-factor_coul)*prefactor;
+    }
+    return forcecoul/rsq;
+  } else {
+    const KK_FLOAT r = Kokkos::sqrt(rsq);
+    const KK_FLOAT grij = g_ewald_kk * r;
+    const KK_FLOAT expm2 = Kokkos::exp(-grij*grij);
+    const KK_FLOAT t = static_cast<KK_FLOAT>(1.0) /
+      (static_cast<KK_FLOAT>(1.0) + static_cast<KK_FLOAT>(EWALD_P)*grij);
+    const KK_FLOAT rinv = static_cast<KK_FLOAT>(1.0) / r;
+    const KK_FLOAT erfc = t * (static_cast<KK_FLOAT>(A1)+t*(static_cast<KK_FLOAT>(A2)+
+                          t * (static_cast<KK_FLOAT>(A3)+t*(static_cast<KK_FLOAT>(A4)+
+                          t * static_cast<KK_FLOAT>(A5))))) * expm2;
+    const KK_FLOAT prefactor = qqrd2e * qtmp * q(j) * rinv;
+    KK_FLOAT forcecoul = prefactor * (erfc + static_cast<KK_FLOAT>(EWALD_F)*grij*expm2);
+    if (factor_coul < static_cast<KK_FLOAT>(1.0)) forcecoul -= (static_cast<KK_FLOAT>(1.0)-factor_coul)*prefactor;
+    return forcecoul * rinv * rinv;
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -245,18 +264,33 @@ compute_ecoul(const KK_FLOAT& rsq, const int& /*i*/, const int& j,
                const int& /*itype*/, const int& /*jtype*/,
                const KK_FLOAT& factor_coul, const KK_FLOAT& qtmp) const
 {
-  const KK_FLOAT r = Kokkos::sqrt(rsq);
-  const KK_FLOAT grij = g_ewald_kk * r;
-  const KK_FLOAT expm2 = Kokkos::exp(-grij*grij);
-  const KK_FLOAT t = static_cast<KK_FLOAT>(1.0) /
-    (static_cast<KK_FLOAT>(1.0) + static_cast<KK_FLOAT>(EWALD_P)*grij);
-  const KK_FLOAT erfc = t * (static_cast<KK_FLOAT>(A1)+t*(static_cast<KK_FLOAT>(A2)+
-                        t * (static_cast<KK_FLOAT>(A3)+t*(static_cast<KK_FLOAT>(A4)+
-                        t * static_cast<KK_FLOAT>(A5))))) * expm2;
-  const KK_FLOAT prefactor = qqrd2e * qtmp * q(j) / r;
-  KK_FLOAT ecoul = prefactor * erfc;
-  if (factor_coul < static_cast<KK_FLOAT>(1.0)) ecoul -= (static_cast<KK_FLOAT>(1.0)-factor_coul)*prefactor;
-  return ecoul;
+  if (Specialisation::DoTable && rsq > tabinnersq_kk) {
+    union_int_float_t rsq_lookup;
+    rsq_lookup.f = rsq;
+    const int itable = (rsq_lookup.i & ncoulmask) >> ncoulshiftbits;
+    const KK_FLOAT fraction = ((KK_FLOAT)rsq_lookup.f - d_rtable[itable]) * d_drtable[itable];
+    const KK_FLOAT table = d_etable[itable] + fraction*d_detable[itable];
+    KK_FLOAT ecoul = qtmp*q(j) * table;
+    if (factor_coul < static_cast<KK_FLOAT>(1.0)) {
+      const KK_FLOAT table = d_ctable[itable] + fraction*d_dctable[itable];
+      const KK_FLOAT prefactor = qtmp*q(j) * table;
+      ecoul -= (static_cast<KK_FLOAT>(1.0)-factor_coul)*prefactor;
+    }
+    return ecoul;
+  } else {
+    const KK_FLOAT r = Kokkos::sqrt(rsq);
+    const KK_FLOAT grij = g_ewald_kk * r;
+    const KK_FLOAT expm2 = Kokkos::exp(-grij*grij);
+    const KK_FLOAT t = static_cast<KK_FLOAT>(1.0) /
+      (static_cast<KK_FLOAT>(1.0) + static_cast<KK_FLOAT>(EWALD_P)*grij);
+    const KK_FLOAT erfc = t * (static_cast<KK_FLOAT>(A1)+t*(static_cast<KK_FLOAT>(A2)+
+                          t * (static_cast<KK_FLOAT>(A3)+t*(static_cast<KK_FLOAT>(A4)+
+                          t * static_cast<KK_FLOAT>(A5))))) * expm2;
+    const KK_FLOAT prefactor = qqrd2e * qtmp * q(j) / r;
+    KK_FLOAT ecoul = prefactor * erfc;
+    if (factor_coul < static_cast<KK_FLOAT>(1.0)) ecoul -= (static_cast<KK_FLOAT>(1.0)-factor_coul)*prefactor;
+    return ecoul;
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -283,6 +317,38 @@ void PairNMCutCoulLongKokkos<DeviceType>::allocate()
   k_params = Kokkos::DualView<params_nm_coul**,Kokkos::LayoutRight,DeviceType>(
     "PairNMCutCoulLong::params",n+1,n+1);
   params = k_params.template view<DeviceType>();
+}
+
+/* ----------------------------------------------------------------------
+   copy the tabulated Coulomb interpolation tables to the device
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+void PairNMCutCoulLongKokkos<DeviceType>::init_tables(double cut_coul, double *cut_respa)
+{
+  Pair::init_tables(cut_coul,cut_respa);
+
+  typedef typename AT::t_kkfloat_1d table_type;
+  typedef HAT::t_kkfloat_1d host_table_type;
+
+  int ntable = 1;
+  for (int i = 0; i < ncoultablebits; i++) ntable *= 2;
+
+  tabinnersq_kk = static_cast<KK_FLOAT>(tabinnersq);
+
+  const double *const h_src[8] = {rtable,drtable,ftable,dftable,
+                                  ctable,dctable,etable,detable};
+  typename AT::t_kkfloat_1d_randomread *const d_dst[8] =
+    {&d_rtable,&d_drtable,&d_ftable,&d_dftable,
+     &d_ctable,&d_dctable,&d_etable,&d_detable};
+
+  for (int n = 0; n < 8; n++) {
+    host_table_type h_table("HostTable",ntable);
+    table_type d_table("DeviceTable",ntable);
+    for (int i = 0; i < ntable; i++) h_table(i) = static_cast<KK_FLOAT>(h_src[n][i]);
+    Kokkos::deep_copy(d_table,h_table);
+    *d_dst[n] = d_table;
+  }
 }
 
 /* ----------------------------------------------------------------------

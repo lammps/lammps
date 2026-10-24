@@ -18,7 +18,9 @@ Here is a list of the inputs and which graphics features they demonstrate
 
 - in.bpm-fracture:          brittle disk (bonded particle model) shattered by a
                             projectile, coloring each bond by the per-bond force
-                            with "dump image ... bond c_ID" and a "bmap" color map
+                            and also coloring atoms by their kinetic energy;
+                            display colorscale labels for both maps
+                            https://www.youtube.com/shorts/RcaNcNJ-xHI
 
 - in.water-arrows:          box of water molecules, uses many kinds of arrows
                             https://www.youtube.com/shorts/4Cm5p0SfgNU

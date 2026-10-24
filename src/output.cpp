@@ -670,7 +670,7 @@ void Output::write_molecule_json(FILE *fp, int json_level, int printflag, int *i
       std::string metadata_val;
 
       Particle myatom;
-      int n2send = 0, n2recv = 0;
+      int n2send = 0;
       for (int i = 0; i < atom->nlocal; i++) {
         if (ivec[i] == thisval) {
           myatom.type = atom->type[i];
@@ -684,6 +684,7 @@ void Output::write_molecule_json(FILE *fp, int json_level, int printflag, int *i
         }
       }
       #if !defined(MPI_STUBS)
+      int n2recv = 0;
       if (comm->me != 0) {
         if (metadata && comm->me == sendr) {
           int len = metadata_val.size();

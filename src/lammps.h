@@ -87,6 +87,7 @@ class LAMMPS {
   static const char *git_branch();
   static const char *git_descriptor();
 
+  /** List of command-line arguments */
   using argv = std::vector<std::string>;
   static std::vector<char *> argv_pointers(argv &args);
 
@@ -102,9 +103,9 @@ class LAMMPS {
  private:
   void help();
   /// Default constructor. Declared private to prohibit its use
-  LAMMPS() {};
+  LAMMPS() = default;
   /// Copy constructor. Declared private to prohibit its use
-  LAMMPS(const LAMMPS &) {};
+  LAMMPS(const LAMMPS &) = default;
 };
 
 }    // namespace LAMMPS_NS

@@ -11,9 +11,12 @@ import kokkos.core_impl;
 
 namespace {
 
+template <typename T>
+concept ExpectedExecTypeIsVoid = std::is_void_v<T>;
+
 template <typename Policy, typename ExpectedExecutionSpace,
           typename ExpectedIndexType, typename ExpectedScheduleType,
-          typename ExpectedWorkTag>
+          typename ExpectedWorkTag, ExpectedExecTypeIsVoid ExpectedExecType>
 constexpr bool compile_time_test() {
   using execution_space = typename Policy::execution_space;
   using index_type      = typename Policy::index_type;
@@ -25,6 +28,20 @@ constexpr bool compile_time_test() {
   static_assert(std::is_same_v<schedule_type, ExpectedScheduleType>);
   static_assert(std::is_same_v<work_tag, ExpectedWorkTag>);
 
+  static_assert(std::is_void_v<typename Policy::traits::team_handle>);
+  static_assert(
+      std::is_same_v<typename Policy::traits::execution_type, execution_space>);
+
+  return true;
+}
+
+template <typename Policy, typename ExpectedExecutionSpace,
+          typename ExpectedIndexType, typename ExpectedScheduleType,
+          typename ExpectedWorkTag, typename ExpectedExecType>
+constexpr bool compile_time_test() {
+  static_assert(
+      std::same_as<typename Policy::execution_type, ExpectedExecType>);
+  static_assert(std::same_as<typename Policy::index_type, ExpectedIndexType>);
   return true;
 }
 
@@ -38,26 +55,38 @@ constexpr bool test_compile_time_parameters() {
 
   using TestExecSpace    = TEST_EXECSPACE;
   using DefaultExecSpace = Kokkos::DefaultExecutionSpace;
-  using TestIndex        = TestExecSpace::size_type;
-  using DefaultIndex     = DefaultExecSpace::size_type;
+  using TestIndex        = TestExecSpace::index_type;
+  using DefaultIndex     = DefaultExecSpace::index_type;
   using LongIndex        = Kokkos::IndexType<long>;
   using StaticSchedule   = Kokkos::Schedule<Kokkos::Static>;
   using DynamicSchedule  = Kokkos::Schedule<Kokkos::Dynamic>;
+  using ExecutionHandle  = Kokkos::TeamPolicy<>::member_type;
 
   // clang-format off
-  compile_time_test<PolicyType<                                                            Args...>, DefaultExecSpace, DefaultIndex, StaticSchedule,  void   >();
-  compile_time_test<PolicyType<TestExecSpace,                                              Args...>, TestExecSpace,    TestIndex,    StaticSchedule,  void   >();
-  compile_time_test<PolicyType<DynamicSchedule,                                            Args...>, DefaultExecSpace, DefaultIndex, DynamicSchedule, void   >();
-  compile_time_test<PolicyType<TestExecSpace,   DynamicSchedule,                           Args...>, TestExecSpace,    TestIndex,    DynamicSchedule, void   >();
-  compile_time_test<PolicyType<DynamicSchedule, LongIndex,                                 Args...>, DefaultExecSpace, long,         DynamicSchedule, void   >();
-  compile_time_test<PolicyType<LongIndex,       DynamicSchedule,                           Args...>, DefaultExecSpace, long,         DynamicSchedule, void   >();
-  compile_time_test<PolicyType<TestExecSpace,   DynamicSchedule, LongIndex,                Args...>, TestExecSpace,    long,         DynamicSchedule, void   >();
-  compile_time_test<PolicyType<LongIndex,       TestExecSpace,   DynamicSchedule,          Args...>, TestExecSpace,    long,         DynamicSchedule, void   >();
-  compile_time_test<PolicyType<DynamicSchedule, LongIndex,       SomeTag,                  Args...>, DefaultExecSpace, long,         DynamicSchedule, SomeTag>();
-  compile_time_test<PolicyType<SomeTag,         DynamicSchedule, LongIndex,                Args...>, DefaultExecSpace, long,         DynamicSchedule, SomeTag>();
-  compile_time_test<PolicyType<TestExecSpace,   DynamicSchedule, LongIndex, SomeTag,       Args...>, TestExecSpace,    long,         DynamicSchedule, SomeTag>();
-  compile_time_test<PolicyType<DynamicSchedule, TestExecSpace,   LongIndex, SomeTag,       Args...>, TestExecSpace,    long,         DynamicSchedule, SomeTag>();
-  compile_time_test<PolicyType<SomeTag,         DynamicSchedule, LongIndex, TestExecSpace, Args...>, TestExecSpace,    long,         DynamicSchedule, SomeTag>();
+  compile_time_test<PolicyType<                                                            Args...>, DefaultExecSpace, DefaultIndex, StaticSchedule,  void   , void>();
+  compile_time_test<PolicyType<TestExecSpace,                                              Args...>, TestExecSpace,    TestIndex,    StaticSchedule,  void   , void>();
+  compile_time_test<PolicyType<DynamicSchedule,                                            Args...>, DefaultExecSpace, DefaultIndex, DynamicSchedule, void   , void>();
+  compile_time_test<PolicyType<TestExecSpace,   DynamicSchedule,                           Args...>, TestExecSpace,    TestIndex,    DynamicSchedule, void   , void>();
+  compile_time_test<PolicyType<DynamicSchedule, LongIndex,                                 Args...>, DefaultExecSpace, long,         DynamicSchedule, void   , void>();
+  compile_time_test<PolicyType<LongIndex,       DynamicSchedule,                           Args...>, DefaultExecSpace, long,         DynamicSchedule, void   , void>();
+  compile_time_test<PolicyType<TestExecSpace,   DynamicSchedule, LongIndex,                Args...>, TestExecSpace,    long,         DynamicSchedule, void   , void>();
+  compile_time_test<PolicyType<LongIndex,       TestExecSpace,   DynamicSchedule,          Args...>, TestExecSpace,    long,         DynamicSchedule, void   , void>();
+  compile_time_test<PolicyType<DynamicSchedule, LongIndex,       SomeTag,                  Args...>, DefaultExecSpace, long,         DynamicSchedule, SomeTag, void>();
+  compile_time_test<PolicyType<SomeTag,         DynamicSchedule, LongIndex,                Args...>, DefaultExecSpace, long,         DynamicSchedule, SomeTag, void>();
+  compile_time_test<PolicyType<TestExecSpace,   DynamicSchedule, LongIndex, SomeTag,       Args...>, TestExecSpace,    long,         DynamicSchedule, SomeTag, void>();
+  compile_time_test<PolicyType<DynamicSchedule, TestExecSpace,   LongIndex, SomeTag,       Args...>, TestExecSpace,    long,         DynamicSchedule, SomeTag, void>();
+  compile_time_test<PolicyType<SomeTag,         DynamicSchedule, LongIndex, TestExecSpace, Args...>, TestExecSpace,    long,         DynamicSchedule, SomeTag, void>();
+  compile_time_test<PolicyType<SomeTag,         DynamicSchedule, LongIndex, TestExecSpace, Args...>, TestExecSpace,    long,         DynamicSchedule, SomeTag, void>();
+
+  compile_time_test<PolicyType<ExecutionHandle,                                            Args...>, TestExecSpace,    DefaultIndex, void,            void,    ExecutionHandle>();
+  compile_time_test<PolicyType<ExecutionHandle,                  SomeTag,                  Args...>, TestExecSpace,    DefaultIndex, void,            SomeTag, ExecutionHandle>();
+  compile_time_test<PolicyType<ExecutionHandle, DynamicSchedule,                           Args...>, TestExecSpace,    DefaultIndex, DynamicSchedule, void,    ExecutionHandle>();
+  compile_time_test<PolicyType<ExecutionHandle, DynamicSchedule, SomeTag,                  Args...>, TestExecSpace,    DefaultIndex, DynamicSchedule, SomeTag, ExecutionHandle>();
+  compile_time_test<PolicyType<ExecutionHandle, DynamicSchedule, SomeTag, LongIndex,       Args...>, TestExecSpace,    long,         DynamicSchedule, SomeTag, ExecutionHandle>();
+  compile_time_test<PolicyType<ExecutionHandle, DynamicSchedule,          LongIndex,       Args...>, TestExecSpace,    long,         DynamicSchedule, SomeTag, ExecutionHandle>();
+  compile_time_test<PolicyType<ExecutionHandle, SomeTag, DynamicSchedule, LongIndex,       Args...>, TestExecSpace,    long,         DynamicSchedule, SomeTag, ExecutionHandle>();
+  compile_time_test<PolicyType<SomeTag, ExecutionHandle, DynamicSchedule, LongIndex,       Args...>, TestExecSpace,    long,         DynamicSchedule, SomeTag, ExecutionHandle>();
+  compile_time_test<PolicyType<SomeTag, DynamicSchedule, ExecutionHandle, LongIndex,       Args...>, TestExecSpace,    long,         DynamicSchedule, SomeTag, ExecutionHandle>();
   // clang-format on
 
   return true;

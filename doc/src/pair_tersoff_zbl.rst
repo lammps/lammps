@@ -105,8 +105,8 @@ See the :doc:`pair_coeff <pair_coeff>` page for alternate ways
 to specify the path for the potential file.
 
 As an example, imagine the SiC.tersoff.zbl file has Tersoff/ZBL values
-for Si and C.  If your LAMMPS simulation has 4 atoms types and you
-want the first 3 to be Si, and the fourth to be C, you would use the
+for Si and C.  If your LAMMPS simulation has 4 atom types and you want
+the first 3 to be Si, and the fourth to be C, you would use the
 following pair_coeff command:
 
 .. code-block:: LAMMPS
@@ -284,8 +284,8 @@ LAMMPS was built with that package.  See the :doc:`Build package
 This pair style requires the :doc:`newton <newton>` setting to be "on"
 for pair interactions.
 
-The *shift* keyword is currently not supported for the *tersoff/gpu* and
-*tersoff/kk* variants of this pair style.
+The *shift* keyword is currently not supported for the *tersoff/gpu*
+variant of this pair style.
 
 The tersoff/zbl potential files provided with LAMMPS (see the potentials
 directory) are parameterized for :doc:`"metal" units <units>`.  Also the

@@ -553,9 +553,9 @@ The cutoff is optional.  If not specified, the global cutoff is used.
 
 The pair style *lj/class2/soft/gapsys* applies the same soft-core
 treatment to the 9-6 potential of :doc:`pair_style lj/class2
-<pair_class2>`as the *lj/cut/soft/gapsys* to the 12-6 Lennard-Jones
-potential :doc:`pair_style lj/cut
-<pair_lj>`.  The distance :math:`r_{inner}` is given by
+<pair_class2>` as the *lj/cut/soft/gapsys* to the 12-6 Lennard-Jones
+potential :doc:`pair_style lj/cut <pair_lj>`.  The distance
+:math:`r_{inner}` is given by
 
 .. math::
 

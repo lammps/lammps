@@ -427,8 +427,8 @@ template <int COMPUTE_YI>
 void SNAIntel::compute_zi_or_yi(const SNA_DVEC* beta)
 {
   if (COMPUTE_YI) {
-    memset(ylist_r,0,idxu_max*nelements*sizeof(SNA_DVEC));
-    memset(ylist_i,0,idxu_max*nelements*sizeof(SNA_DVEC));
+    memset((void *)ylist_r,0,idxu_max*nelements*sizeof(SNA_DVEC));
+    memset((void *)ylist_i,0,idxu_max*nelements*sizeof(SNA_DVEC));
   }
 
   double *zlist_rp = (double *)zlist_r;
@@ -527,8 +527,8 @@ void SNAIntel::compute_zi_or_yi(const SNA_DVEC* beta)
 
 void SNAIntel::compute_yi_from_zi(const SNA_DVEC* beta)
 {
-  memset(ylist_r,0,idxu_max*nelements*sizeof(SNA_DVEC));
-  memset(ylist_i,0,idxu_max*nelements*sizeof(SNA_DVEC));
+  memset((void *)ylist_r,0,idxu_max*nelements*sizeof(SNA_DVEC));
+  memset((void *)ylist_i,0,idxu_max*nelements*sizeof(SNA_DVEC));
 
   double *zlist_rp = (double *)zlist_r;
   double *zlist_ip = (double *)zlist_i;

@@ -100,7 +100,9 @@ Coulomb tables, so the `*_table*` YAML tests of a new long-range style get `gpu`
 - Special bonds: cut Coulomb uses `factor_coul = sp_lj[sbmask(j)+4]`; erfc-based
   (long, DSF, `/cs`) kernels use `factor_coul = (numtyp)1.0 - sp_lj[...]` and subtract
   `factor_coul*prefactor`, matching the CPU `(1.0-factor_coul)*prefactor` term.  Check
-  which convention the template uses before changing the formula.
+  which convention the template uses before changing the formula, and apply the factor
+  to the force as well as to the energy (`lj/cut/coul/msm/gpu` applied it to the energy
+  only until 2026-10; its YAML test had skipped the gpu case since 2021).
 - Constants: `EWALD_F`, `EWALD_P`, `A1`..`A5`, `MY_PIS` come from `lal_preprocessor.h`;
   the `/cs` kernels define their own `CS_EWALD_P`, `B0`..`B5`, `CS_EWALD_F`, `EPSILON`
   and do `rsq += EPSILON` inside the cutoff, with `acctyp` for the erfc terms and
@@ -135,11 +137,14 @@ Coulomb tables, so the `*_table*` YAML tests of a new long-range style get `gpu`
   `if (atom->molecular != Atom::ATOMIC && neighbor->ago == 0) neighbor->build_topology();`
   is REQUIRED: with a GPU pair style, `fix gpu` sets `neighbor->set_overlap_topo(1)`
   and `Neighbor::build()` no longer builds the bond/angle/... lists, so without
-  this line the bonded styles keep using stale local indices after the first
-  reneighboring with atom sorting or migration (`lj/cut/coul/long/soft/gpu` and its
-  clone `lj/charmm/coul/long/soft/gpu` lacked it until 2026-10).  The YAML tests use
+  this line the bonded styles keep using stale local indices and images after the
+  first reneighboring that changes them: atom sorting, migration, or an atom wrapped
+  across a periodic boundary (`lj/cut/coul/long/soft/gpu` and its clone
+  `lj/charmm/coul/long/soft/gpu` lacked it until 2026-10).  The YAML tests use
   `bond_style zero` and do not notice; `mol-pair-*_bonds.yaml` add harmonic bonds and
-  `atom_modify sort 1 0.0` for that reason.
+  shift all atoms so that a bonded atom wraps at the step-2 reneighboring.  Atom sorting
+  is NOT a reliable trigger: with 29 atoms no atom changes its sort bin in the 4-step
+  run, and a sort-based version of these tests passed without the fix.
 - `init_style()`: repeat the `cutsq` loop with `init_one(i,j)` (Pair::init calls
   `init_one` only AFTER `init_style`), compute every derived constant the CPU style
   computes in `init_style`/`init_one` (switching denominators, soft-core factors,

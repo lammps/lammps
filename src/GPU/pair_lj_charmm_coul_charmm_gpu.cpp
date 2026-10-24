@@ -93,7 +93,7 @@ void PairLJCharmmCoulCharmmGPU::compute(int eflag, int vflag)
 void PairLJCharmmCoulCharmmGPU::init_style()
 {
   if (!atom->q_flag)
-    error->all(FLERR, "Pair style lj/charmm/coul/long/gpu requires atom attribute q");
+    error->all(FLERR, "Pair style lj/charmm/coul/charmm/gpu requires atom attribute q");
 
   // Repeated cutsq calculation in init_one() is required for GPU package
 

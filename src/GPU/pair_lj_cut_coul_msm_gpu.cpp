@@ -104,7 +104,7 @@ void PairLJCutCoulMSMGPU::init_style()
 {
   cut_respa = nullptr;
 
-  if (!atom->q_flag) error->all(FLERR, "Pair style lj/cut/coul/cut/gpu requires atom attribute q");
+  if (!atom->q_flag) error->all(FLERR, "Pair style lj/cut/coul/msm/gpu requires atom attribute q");
 
   if (force->kspace->scalar_pressure_flag)
     error->all(FLERR, "Must use 'kspace_modify pressure/scalar no' with GPU MSM Pair styles");

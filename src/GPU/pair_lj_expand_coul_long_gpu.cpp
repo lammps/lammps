@@ -112,7 +112,8 @@ void PairLJExpandCoulLongGPU::init_style()
 {
   cut_respa = nullptr;
 
-  if (!atom->q_flag) error->all(FLERR, "Pair style lj/cut/coul/long/gpu requires atom attribute q");
+  if (!atom->q_flag)
+    error->all(FLERR, "Pair style lj/expand/coul/long/gpu requires atom attribute q");
 
   // Repeat cutsq calculation because done after call to init_style
   double maxcut = -1.0;

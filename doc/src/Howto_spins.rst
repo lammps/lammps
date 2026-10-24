@@ -86,6 +86,8 @@ changes its modulus.
 * :doc:`compute ke/tspin <compute_ke_tspin>` reports the kinetic energy
   of the spin degrees of freedom, which is not part of the
   thermodynamic keyword *ke*.
+* :doc:`compute temp/tspin <compute_temp_tspin>` reports the auxiliary
+  kinetic spin temperature.
 
 A minimal thermostatted example on a fixed lattice is:
 
@@ -100,8 +102,9 @@ A minimal thermostatted example on a fixed lattice is:
    velocity/tspin  all create 300.0 12345
    fix             bath all langevin/tspin 300.0 300.0 0.05 48279
 
+   compute         st all temp/tspin
    compute         ske all ke/tspin
-   thermo_style    custom step pe f_pin c_ske
+   thermo_style    custom step pe f_pin c_ske c_st
 
 The per-atom array *fm* keeps the rad.THz units used by the SPIN package.  A
 TSPIN-compatible interaction must encode the full magnetic force

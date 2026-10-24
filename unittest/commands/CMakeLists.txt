@@ -61,6 +61,12 @@ if(PKG_SPIN)
   target_link_libraries(test_tspin PRIVATE lammps GTest::GMock)
   add_test(NAME TSpin COMMAND test_tspin)
   set_tests_properties(TSpin PROPERTIES LABELS "spin")
+  add_mpi_test(NAME TSpinTemperatureMPI NUM_PROCS 4
+               COMMAND $<TARGET_FILE:test_tspin>
+               --gtest_filter=TSpinTest.TemperatureUsesActiveSpinsAndGroup:TSpinTest.TemperatureCountsZeroModulusAndRecountsMasses)
+  if(TEST TSpinTemperatureMPI)
+    set_property(TEST TSpinTemperatureMPI APPEND PROPERTY LABELS "spin")
+  endif()
 endif()
 
 add_executable(test_kspace_auto_slab test_kspace_auto_slab.cpp)

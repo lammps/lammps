@@ -62,15 +62,8 @@ so the spin-lattice system is thermostatted as a whole.  *nph/tspin*
 controls the pressure only and applies no thermostat at all, to either
 subsystem.
 
-The spin temperature is defined from the kinetic energy stored in the
-spin degrees of freedom,
-
-.. math::
-
-   \frac{3}{2} N k_B T_s = \sum_i \frac{1}{2} m_s \left| \vec{v}^{s}_i \right|^2
-
-where the sum runs over the magnetic atoms of the group and N is their
-number.  The *spinmass* keyword sets the spin mass of every atom in the group as a
+The spin thermostat uses the kinetic temperature defined by
+:doc:`compute temp/tspin <compute_temp_tspin>`.  The *spinmass* keyword sets the spin mass of every atom in the group as a
 multiple of the atomic mass of its type; it can equivalently be set with
 the :doc:`velocity/tspin <velocity_tspin>` command.
 
@@ -126,6 +119,7 @@ Related commands
 :doc:`fix nve/tspin <fix_nve_tspin>`,
 :doc:`fix langevin/tspin <fix_langevin_tspin>`,
 :doc:`compute ke/tspin <compute_ke_tspin>`,
+:doc:`compute temp/tspin <compute_temp_tspin>`,
 :doc:`velocity/tspin <velocity_tspin>`,
 :doc:`fix nvt <fix_nh>`
 

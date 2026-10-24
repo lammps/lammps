@@ -19,6 +19,7 @@
 #include "../testing/core.h"
 
 #include "atom.h"
+#include "compute.h"
 #include "fix.h"
 #include "force.h"
 #include "info.h"
@@ -247,6 +248,115 @@ TEST_F(TSpinTest, NonMagneticAtomsAreSkipped)
             for (int d = 0; d < 3; ++d) ASSERT_DOUBLE_EQ(v_s[i][d], 0.0);
         }
     }
+}
+
+// compare with prescribed velocities, not another temperature implementation
+
+TEST_F(TSpinTest, TemperatureUsesActiveSpinsAndGroup)
+{
+    build(true);
+    BEGIN_HIDE_OUTPUT();
+    command("fix 1 all nve/tspin spinmass 0.0075");
+    command("set group all d2_tspin_vs[1] 1.0");
+    command("set group all d2_tspin_vs[2] 2.0");
+    command("set group all d2_tspin_vs[3] 3.0");
+    command("compute ts all temp/tspin");
+    command("compute tw warm temp/tspin");
+    command("compute tc cold temp/tspin");
+    command("compute ks all ke/tspin");
+    command("variable tlat equal temp");
+    command("variable klat equal ke");
+    command("variable plat equal press");
+    command("thermo_style custom step temp ke press c_ts");
+    command("run 0 post no");
+    END_HIDE_OUTPUT();
+
+    auto *ts = lmp->modify->get_compute_by_id("ts");
+    auto *tw = lmp->modify->get_compute_by_id("tw");
+    auto *tc = lmp->modify->get_compute_by_id("tc");
+    auto *ks = lmp->modify->get_compute_by_id("ks");
+    const double expected = 14.0 * 0.0075 * 55.845 * lmp->force->mvv2e /
+                            (3.0 * lmp->force->boltz);
+    EXPECT_NEAR(ts->compute_scalar(), expected, expected * 1.0e-12);
+    EXPECT_NEAR(tw->compute_scalar(), expected, expected * 1.0e-12);
+    EXPECT_DOUBLE_EQ(tc->compute_scalar(), 0.0);
+    EXPECT_DOUBLE_EQ(ts->dof, 3.0 * (lmp->atom->natoms - 4));
+    EXPECT_NEAR(2.0 * ks->compute_scalar(), ts->dof * lmp->force->boltz * expected, 1.0e-10);
+    EXPECT_EQ(ts->tempflag, 0);
+    EXPECT_EQ(ts->extscalar, 0);
+    EXPECT_EQ(ts->vector_flag, 0);
+
+    // Evaluating the spin diagnostic must not replace the mechanical temperature.
+    EXPECT_DOUBLE_EQ(get_variable_value("tlat"), 0.0);
+    EXPECT_DOUBLE_EQ(get_variable_value("klat"), 0.0);
+    EXPECT_DOUBLE_EQ(get_variable_value("plat"), 0.0);
+
+    BEGIN_HIDE_OUTPUT();
+    command("velocity/tspin warm create 300.0 12345 mom yes");
+    command("run 0 post no");
+    END_HIDE_OUTPUT();
+    EXPECT_NEAR(ts->compute_scalar(), 300.0, 1.0e-10);
+}
+
+TEST_F(TSpinTest, TemperatureCountsZeroModulusAndRecountsMasses)
+{
+    build();
+    BEGIN_HIDE_OUTPUT();
+    command("fix 1 all nve/tspin");
+    command("velocity/tspin all create 0.0 12345 spinmass 0.01");
+    command("set group all d2_tspin_vs[1] 1.0");
+    command("compute ts all temp/tspin");
+    command("run 0 post no");
+    END_HIDE_OUTPUT();
+
+    auto *ts = lmp->modify->get_compute_by_id("ts");
+    const double expected = 0.01 * 55.845 * lmp->force->mvv2e / (3.0 * lmp->force->boltz);
+    EXPECT_NEAR(ts->compute_scalar(), expected, expected * 1.0e-12);
+
+    BEGIN_HIDE_OUTPUT();
+    // set spin/atom requires a strictly positive input modulus; zero is
+    // nevertheless a valid instantaneous state reached by the integrator.
+    for (int i = 0; i < lmp->atom->nlocal; ++i) lmp->atom->sp[i][3] = 0.0;
+    command("run 0 post no");
+    END_HIDE_OUTPUT();
+    EXPECT_NEAR(ts->compute_scalar(), expected, expected * 1.0e-12);
+    EXPECT_DOUBLE_EQ(ts->dof, 3.0 * lmp->atom->natoms);
+
+    BEGIN_HIDE_OUTPUT();
+    command("set atom 1 d_tspin_smass 0.0");
+    command("run 0 post no");
+    END_HIDE_OUTPUT();
+    EXPECT_NEAR(ts->compute_scalar(), expected, expected * 1.0e-12);
+    EXPECT_DOUBLE_EQ(ts->dof, 3.0 * (lmp->atom->natoms - 1));
+
+    BEGIN_HIDE_OUTPUT();
+    command("set group all d_tspin_smass 0.0");
+    command("run 0 post no");
+    END_HIDE_OUTPUT();
+    EXPECT_DOUBLE_EQ(ts->compute_scalar(), 0.0);
+    EXPECT_DOUBLE_EQ(ts->dof, 0.0);
+}
+
+TEST_F(TSpinTest, TemperatureCannotBeUsedForMechanicalPressure)
+{
+    build();
+    BEGIN_HIDE_OUTPUT();
+    command("fix 1 all nve/tspin spinmass 0.0075");
+    command("compute ts all temp/tspin");
+    command("run 0 post no");
+    END_HIDE_OUTPUT();
+
+    TEST_FAILURE(".*does not compute temperature.*", command("compute p all pressure ts"););
+    TEST_FAILURE(".*does not compute temperature.*", command("thermo_modify temp ts"););
+}
+
+TEST_F(TSpinTest, TemperatureRequiresSpinState)
+{
+    build();
+    BEGIN_HIDE_OUTPUT();
+    command("compute ts all temp/tspin");
+    END_HIDE_OUTPUT();
+    TEST_FAILURE(".*needs the internal per-atom state.*", command("run 0 post no"););
 }
 
 // a dynamical spin remains active when its modulus becomes small or passes

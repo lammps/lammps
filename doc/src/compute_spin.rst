@@ -35,6 +35,10 @@ This compute calculates the following 6 magnetic quantities:
 * The sixth one is referred to as the spin temperature, according
   to the work of :ref:`(Nurdin) <Nurdin1>`.
 
+The sixth quantity is a torque-based temperature estimator for
+fixed-modulus spins.  Use :doc:`compute temp/tspin <compute_temp_tspin>`
+for the auxiliary kinetic spin temperature in TSPIN.
+
 The simplest way to output the results of the compute spin calculation
 is to define some of the quantities as variables, and to use the thermo and
 thermo_style commands, for example:

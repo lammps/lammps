@@ -74,6 +74,9 @@ generate its own unique seed and its own stream of random numbers.
 Thus the dynamics of the system will not be identical on two runs on
 different numbers of processors.
 
+Use :doc:`compute temp/tspin <compute_temp_tspin>` to report the
+auxiliary kinetic spin temperature.
+
 ----------
 
 Restart, fix_modify, output, run start/stop, minimize info

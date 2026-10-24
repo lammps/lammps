@@ -43,6 +43,7 @@ Assign spin masses and create a random distribution of spin velocities
 for inertial spin dynamics.  This is the spin analogue of :doc:`velocity
 create <velocity>`; the :doc:`velocity <velocity>` command itself is
 unaffected and still sets the atom velocities.
+The temperature is defined by :doc:`compute temp/tspin <compute_temp_tspin>`.
 
 If the *spinmass* keyword is used, the spin mass of every magnetic or already
 dynamical atom in the group is set to a multiple of the atomic mass of its type,
@@ -85,6 +86,7 @@ Related commands
 :doc:`velocity <velocity>`,
 :doc:`fix nve/tspin <fix_nve_tspin>`,
 :doc:`fix nvt/tspin <fix_nvt_tspin>`,
+:doc:`compute temp/tspin <compute_temp_tspin>`,
 :doc:`set <set>`
 
 Default

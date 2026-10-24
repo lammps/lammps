@@ -36,6 +36,9 @@ group,
 where :math:`m_s` is the spin mass of atom i and :math:`\vec{v}^{s}_i`
 its spin velocity.
 
+Use :doc:`compute temp/tspin <compute_temp_tspin>` to report the
+corresponding auxiliary kinetic spin temperature.
+
 This energy is not included in the thermodynamic keyword *ke*, which
 counts only the translational kinetic energy of the atoms.  Reference
 this compute with a *c_ID* keyword in :doc:`thermo_style custom
@@ -73,6 +76,7 @@ Related commands
 """"""""""""""""
 
 :doc:`compute ke <compute_ke>`,
+:doc:`compute temp/tspin <compute_temp_tspin>`,
 :doc:`compute spin <compute_spin>`,
 :doc:`fix nve/tspin <fix_nve_tspin>`
 

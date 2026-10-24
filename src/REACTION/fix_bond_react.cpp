@@ -585,7 +585,6 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
   nmax = 0;
   partner = finalpartner = nullptr;
   distsq = nullptr;
-  allnattempt = 0;
   my_num_mega = 0;
   local_num_mega = 0;
   ghostly_num_mega = 0;
@@ -853,8 +852,8 @@ void FixBondReact::post_integrate()
     memory->create(distsq,nmax,2,"bond/react:distsq");
   }
 
-  // reset 'rxn_attempt' counts
-  for (auto &rxn : rxns) rxn.attempts.clear();
+  // reset rxn attempts
+  attempts.clear();
   // reset per-bond compute map flag
   topo_matcher->rxn_constraints->atoms2bondflag = 0;
 
@@ -971,14 +970,22 @@ void FixBondReact::post_integrate()
       if (finalpartner[i] == 0) continue;
 
       j = atom->map(finalpartner[i]);
+      ReactionAttempt rxn_attempt;
       if (tag[i] < tag[j]) {
         // to ensure types remain in same order
         if (rxn.iatomtype == type[i]) {
-          rxn.attempts.push_back({tag[i], finalpartner[i]});
+          rxn_attempt.init_ids = {tag[i], finalpartner[i]};
+          rxn_attempt.rxn_ids = {rxn.ID};
+          attempts.push_back(rxn_attempt);
           // add another attempt if initiator atoms are same type
-          if (rxn.iatomtype == rxn.jatomtype) rxn.attempts.push_back({finalpartner[i], tag[i]});
+          if (rxn.iatomtype == rxn.jatomtype) {
+            rxn_attempt.init_ids = {finalpartner[i], tag[i]};
+            attempts.push_back(rxn_attempt);
+          }
         } else {
-          rxn.attempts.push_back({finalpartner[i], tag[i]});
+          rxn_attempt.init_ids = {finalpartner[i], tag[i]};
+          rxn_attempt.rxn_ids = {rxn.ID};
+          attempts.push_back(rxn_attempt);
         }
       }
     }
@@ -986,12 +993,8 @@ void FixBondReact::post_integrate()
 
   // break loop if no even eligible bonding atoms were found (on any proc)
   int some_chance;
-
-  allnattempt = 0;
-  for (auto &rxn : rxns)
-    allnattempt += rxn.attempts.size();
-
-  MPI_Allreduce(&allnattempt,&some_chance,1,MPI_INT,MPI_SUM,world);
+  int nattempts = static_cast<int>(attempts.size());
+  MPI_Allreduce(&nattempts,&some_chance,1,MPI_INT,MPI_SUM,world);
   if (!some_chance) {
     unlimit_bond();
     return;
@@ -1207,26 +1210,25 @@ void FixBondReact::superimpose_algorithm()
   localsendlist = (int *) comm->extract("localsendlist",tmp);
 
   my_mega_glove.resize(max_natoms+cuff); // mega_glove indexing seems inside-out
-  for (auto &vec : my_mega_glove) vec.resize(allnattempt, 0);
+  for (auto &vec : my_mega_glove) vec.resize(attempts.size(), 0);
 
   // time to check if reaction sites match the pre-reaction template
   // rxn_prob accounted for outside of topo_matcher
   // reaction constraints checked inside topo_matcher (for now)
   std::vector<tagint> outglove;
-  for (auto &rxn : rxns) {
-    for (auto &rxn_attempt : rxn.attempts) {
-      auto err_msg = topo_matcher->match_topology(outglove, rxn, rxn_attempt);
-      if (err_msg == "SUCCESS") { // magic string for successful topology match
-        if (rxn.fraction < 1.0 && random[rxn.ID]->uniform() >= rxn.fraction) continue;
-        my_mega_glove[0][my_num_mega] = (double) rxn.ID;
-        if (rxn.rescale_charges_flag) my_mega_glove[1][my_num_mega] = get_totalcharge(rxn, outglove);
-        for (int i = 0; i < rxn.reactant->natoms; i++) {
-          my_mega_glove[i+cuff][my_num_mega] = (double) outglove[i];
-        }
-        my_num_mega++;
-      } else if (!err_msg.empty()) {
-        error->one(FLERR, fmt::format("Fix bond/react: {}", err_msg));
+  for (auto &rxn_attempt : attempts) {
+    Reaction rxn = rxns[rxn_attempt.rxn_ids[0]];
+    auto err_msg = topo_matcher->match_topology(outglove, rxn, rxn_attempt.init_ids);
+    if (err_msg == "SUCCESS") { // magic string for successful topology match
+      if (rxn.fraction < 1.0 && random[rxn.ID]->uniform() >= rxn.fraction) continue;
+      my_mega_glove[0][my_num_mega] = (double) rxn.ID;
+      if (rxn.rescale_charges_flag) my_mega_glove[1][my_num_mega] = get_totalcharge(rxn, outglove);
+      for (int i = 0; i < rxn.reactant->natoms; i++) {
+        my_mega_glove[i+cuff][my_num_mega] = (double) outglove[i];
       }
+      my_num_mega++;
+    } else if (!err_msg.empty()) {
+      error->one(FLERR, fmt::format("Fix bond/react: {}", err_msg));
     }
   }
 

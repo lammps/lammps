@@ -89,7 +89,6 @@ struct Reaction : public ReactionTemplate {
   int stabilize_steps_flag;
   Molecule_Keys molecule_keyword;
   int v_nevery, v_rmin, v_rmax, v_prob;                  // ID of variable, -1 if static
-  std::vector<std::array<tagint, 2>> attempts;           // stores sim atom IDs of initiator atoms
 };
 
 }    // namespace LAMMPS_NS

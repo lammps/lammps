@@ -87,7 +87,6 @@ class FixBondReact : public Fix {
   int max_natoms;                                          // max natoms in a molecule template
   tagint *partner, *finalpartner;
   double **distsq;
-  int allnattempt;
   unsigned shuffle_seed;                                   // user-provided value for the 'shuffle_seed' common keyword
 
   Fix *fix1;                                               // nve/limit used to relax reaction sites
@@ -145,6 +144,12 @@ class FixBondReact : public Fix {
   int insert_atoms_setup(tagint **, int, Reaction &);
   void unlimit_bond();                                     // removes atoms from stabilization, and other post-reaction every-step operations
   void dedup_mega_gloves(Dedup_Modes);                     // dedup global mega_glove
+
+  struct ReactionAttempt {
+    std::array<tagint, 2> init_ids;                        // stores sim atom IDs of initiator atoms
+    std::vector<int> rxn_ids;                              // rxn IDs relevant to this reaction attempt
+  };
+  std::vector<ReactionAttempt> attempts;
 
   // store restart data
   struct Set {

@@ -261,6 +261,7 @@ The individual style names on the :doc:`Commands compute <Commands_compute>` pag
 * :doc:`ke/atom/eff <compute_ke_atom_eff>` - per-atom translational and radial kinetic energy in the electron force field model
 * :doc:`ke/eff <compute_ke_eff>` - kinetic energy of a group of nuclei and electrons in the electron force field model
 * :doc:`ke/rigid <compute_ke_rigid>` - translational kinetic energy of rigid bodies
+* :doc:`ke/tspin <compute_ke_tspin>` - auxiliary kinetic energy of the spin degrees of freedom in inertial spin dynamics
 * :doc:`mbar <compute_mbar>` - reduced potential energies at a series of lambda states for the MBAR free-energy method
 * :doc:`mliap <compute_mliap>` - gradients of energy and forces with respect to model parameters and related quantities for training machine learning interatomic potentials
 * :doc:`momentum <compute_momentum>` - translational momentum
@@ -357,6 +358,7 @@ The individual style names on the :doc:`Commands compute <Commands_compute>` pag
 * :doc:`temp/region/eff <compute_temp_region_eff>` - temperature of a region of nuclei and electrons in the electron force field model
 * :doc:`temp/rotate <compute_temp_rotate>` - temperature of a group of atoms after subtracting out their center-of-mass and angular velocities
 * :doc:`temp/sphere <compute_temp_sphere>` - temperature of spherical particles
+* :doc:`temp/tspin <compute_temp_tspin>` - auxiliary kinetic temperature of the spin degrees of freedom in TSPIN
 * :doc:`temp/uef <compute_temp_uef>` - kinetic energy tensor in the reference frame of an applied flow field
 * :doc:`ti <compute_ti>` - thermodynamic integration free energy values
 * :doc:`torque/chunk <compute_torque_chunk>` - torque applied on each chunk

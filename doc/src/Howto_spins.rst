@@ -50,15 +50,80 @@ and atomic motions.
 The minimization style :doc:`min/spin <min_spin>` can be applied
 to the spins to perform a minimization of the spin configuration.
 
-All the computed magnetic properties can be output by two main
-commands. The first one is :doc:`compute spin <compute_spin>`, that
-enables to evaluate magnetic averaged quantities, such as the total
-magnetization of the system along x, y, or z, the spin temperature, or
-the magnetic energy. The second command
-is :doc:`compute property/atom <compute_property_atom>`.
-It enables to output all the per atom magnetic quantities. Typically,
-the orientation of a given magnetic spin, or the magnetic force
-acting on this spin.
+Inertial spin dynamics (TSPIN)
+------------------------------
+
+.. versionadded:: TBD
+
+TSPIN provides auxiliary inertial dynamics for equilibrium sampling of
+spin-lattice systems with variable spin magnitudes.  Both the direction
+and magnitude evolve under a Newtonian equation of motion.  The spin
+velocities and masses are auxiliary sampling variables; their trajectories
+do not represent physical Landau-Lifshitz precession or relaxation times.
+
+TSPIN uses the existing :doc:`atom_style spin <atom_style>` and requires
+magnetic interactions that provide the full Cartesian spin force, including
+its longitudinal component.  See :doc:`fix nve/tspin <fix_nve_tspin>` for
+the force convention and compatibility requirements.
+
+The following commands support TSPIN simulations:
+
+* :doc:`fix nve/tspin <fix_nve_tspin>` integrates the auxiliary spin
+  and lattice equations of motion.
+* :doc:`fix nvt/tspin, npt/tspin and nph/tspin <fix_nvt_tspin>` provide
+  Nose-Hoover temperature and/or pressure control; *nph/tspin* does
+  not thermostat the spins or lattice.
+* :doc:`fix langevin/tspin <fix_langevin_tspin>` thermostats spin
+  velocities when combined with *nve/tspin*.
+* :doc:`fix spring/tspin <fix_spring_tspin>` provides a longitudinal
+  restoring potential when needed.
+* :doc:`velocity/tspin <velocity_tspin>` initializes auxiliary spin
+  velocities and can assign spin masses.
+* :doc:`compute ke/tspin <compute_ke_tspin>` and
+  :doc:`compute temp/tspin <compute_temp_tspin>` report the auxiliary
+  spin kinetic energy and temperature.
+
+The following fixed-lattice example assumes that the simulation box,
+atoms, masses, and initial spins have been defined.  It demonstrates
+commands using a harmonic modulus potential without spin-spin interactions.
+
+.. code-block:: LAMMPS
+
+   pair_style zero 4.0
+   pair_coeff * *
+   fix 1 all spring/tspin 1.0 2.2
+   fix_modify 1 energy yes
+   fix 2 all nve/tspin lattice frozen
+   velocity/tspin all create 300.0 12345 spinmass 0.0075
+   fix 3 all langevin/tspin 300.0 300.0 0.05 48279
+   compute 1 all temp/tspin
+   compute 2 all ke/tspin
+   thermo_style custom step pe c_1 c_2
+
+Magnetic output
+^^^^^^^^^^^^^^^
+
+:doc:`compute spin <compute_spin>` reports averages of unit spin
+directions, selected magnetic energies, and a torque-based temperature.
+For variable-magnitude spins, these directional averages are not
+modulus-weighted magnetic moments, and this temperature is not the
+TSPIN kinetic temperature.  Use :doc:`compute property/atom
+<compute_property_atom>` to access spin magnitudes and directions.
+
+The usual *ke*, *etotal*, and *econserve* exclude auxiliary spin kinetic
+energy.  See :doc:`compute ke/tspin <compute_ke_tspin>` for energy
+conservation checks and :doc:`compute temp/tspin <compute_temp_tspin>`
+for the kinetic spin temperature.
+
+Do not combine inertial and fixed-modulus spin integrators on the same
+atoms.  With SPIN pair styles, this restriction also applies to disjoint
+groups.  Choose spin masses and timesteps for stable integration and
+converged equilibrium averages.
+
+.. note::
+
+   Do not :doc:`unfix <unfix>` the automatically created *TSPIN_STATE*
+   fix while TSPIN styles are in use.
 
 ----------
 

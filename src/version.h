@@ -1,2 +1,2 @@
 #define LAMMPS_VERSION "30 Sep 2026"
-#define LAMMPS_UPDATE "Maintenance"
+#define LAMMPS_UPDATE "Update 1"

@@ -156,15 +156,18 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`lj/class2 (gko) <pair_class2>`
    * :doc:`lj/class2/coul/cut (ko) <pair_class2>`
    * :doc:`lj/class2/coul/cut/soft (ko) <pair_fep_soft>`
+   * :doc:`lj/class2/coul/cut/soft/gapsys <pair_fep_soft>`
    * :doc:`lj/class2/coul/long (gko) <pair_class2>`
    * :doc:`lj/class2/coul/long/cs (ko) <pair_cs>`
    * :doc:`lj/class2/coul/long/soft (ko) <pair_fep_soft>`
    * :doc:`lj/class2/soft (ko) <pair_fep_soft>`
+   * :doc:`lj/class2/soft/gapsys <pair_fep_soft>`
    * :doc:`lj/cubic (gko) <pair_lj_cubic>`
    * :doc:`lj/cut (gikot) <pair_lj>`
    * :doc:`lj/cut/coul/cut (gko) <pair_lj_cut_coul>`
    * :doc:`lj/cut/coul/cut/dielectric (o) <pair_dielectric>`
    * :doc:`lj/cut/coul/cut/soft (gko) <pair_fep_soft>`
+   * :doc:`lj/cut/coul/cut/soft/gapsys <pair_fep_soft>`
    * :doc:`lj/cut/coul/debye (gko) <pair_lj_cut_coul>`
    * :doc:`lj/cut/coul/debye/dielectric (o) <pair_dielectric>`
    * :doc:`lj/cut/coul/dsf (gko) <pair_lj_cut_coul>`
@@ -260,7 +263,7 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`oxrna2/stk <pair_oxrna2>`
    * :doc:`oxrna2/xstk <pair_oxrna2>`
    * :doc:`oxrna2/coaxstk <pair_oxrna2>`
-   * :doc:`pace (k) <pair_pace>`
+   * :doc:`pace (ko) <pair_pace>`
    * :doc:`pace/extrapolation (k) <pair_pace>`
    * :doc:`pace/apip <pair_pace_apip>`
    * :doc:`pace/fast/apip <pair_pace_apip>`

@@ -415,16 +415,29 @@ void PairLJCutTIP4PLongSoft::compute(int eflag, int vflag)
 
 void PairLJCutTIP4PLongSoft::settings(int narg, char **arg)
 {
-  if (narg < 9 || narg > 10) error->all(FLERR,"Illegal pair_style command");
+  if (narg < 9)
+    utils::missing_cmd_args(FLERR, "pair_style lj/cut/tip4p/long/soft", error);
+  if (narg > 10)
+    error->all(FLERR, 11, "Too many arguments in pair_style lj/cut/tip4p/long/soft command");
 
   typeO_str = arg[0];
   typeH_str = arg[1];
   typeB_str = arg[2];
   typeA_str = arg[3];
   qdist = utils::numeric(FLERR, arg[4], false, lmp);
+
   nlambda = utils::numeric(FLERR, arg[5], false, lmp);
+  if (nlambda <= 0.0)
+    error->all(FLERR, 6, "Pair style lj/cut/tip4p/long/soft requires n > 0, but n = {}", nlambda);
   alphalj = utils::numeric(FLERR, arg[6], false, lmp);
+  if (alphalj < 0.0)
+    error->all(FLERR, 7,
+               "Pair style lj/cut/tip4p/long/soft requires alpha_LJ >= 0, but alpha_LJ = {}",
+               alphalj);
   alphac = utils::numeric(FLERR, arg[7], false, lmp);
+  if (alphac < 0.0)
+    error->all(FLERR, 8,
+               "Pair style lj/cut/tip4p/long/soft requires alpha_C >= 0, but alpha_C = {}", alphac);
 
   cut_lj_global = utils::numeric(FLERR, arg[8], false, lmp);
   if (narg == 9) cut_coul = cut_lj_global;

@@ -514,12 +514,11 @@ extern double cdebye_gpu_bytes();
 
 // pair coul/diel
 extern int coul_diel_gpu_init(const int ntypes, double **host_cutsq, double **host_rme,
-                              double **host_sigmae, double **host_offset, double *special_lj,
-                              double *special_coul, const int inum, const int nall,
-                              const int max_nbors, const int maxspecial, const double cell_size,
-                              int &gpu_mode, FILE *screen, const double host_qqrd2e,
-                              const double host_eps_s, const double host_a_eps,
-                              const double host_b_eps);
+                              double **host_sigmae, double *special_lj, double *special_coul,
+                              const int inum, const int nall, const int max_nbors,
+                              const int maxspecial, const double cell_size, int &gpu_mode,
+                              FILE *screen, const double host_qqrd2e, const double host_eps_s,
+                              const double host_a_eps, const double host_b_eps);
 extern void coul_diel_gpu_clear();
 extern int **coul_diel_gpu_compute_n(const int ago, const int inum_full, const int nall,
                                      double **host_x, int *host_type, double *sublo, double *subhi,

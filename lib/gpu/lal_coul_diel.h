@@ -35,10 +35,10 @@ class CoulDiel : public BaseCharge<numtyp, acctyp> {
     * - -4 if the GPU library was not compiled for GPU
     * - -5 Double precision is not supported on card **/
   int init(const int ntypes, double **host_cutsq, double **host_rme, double **host_sigmae,
-           double **host_offset, double *host_special_lj, double *host_special_coul,
-           const int nlocal, const int nall, const int max_nbors, const int maxspecial,
-           const double cell_size, FILE *screen, const double host_qqrd2e, const double host_eps_s,
-           const double host_a_eps, const double host_b_eps);
+           double *host_special_lj, double *host_special_coul, const int nlocal, const int nall,
+           const int max_nbors, const int maxspecial, const double cell_size, FILE *screen,
+           const double host_qqrd2e, const double host_eps_s, const double host_a_eps,
+           const double host_b_eps);
 
   /// Clear all host and device data
   /** \note This is called at the beginning of the init() routine **/
@@ -52,7 +52,7 @@ class CoulDiel : public BaseCharge<numtyp, acctyp> {
 
   // --------------------------- TYPE DATA --------------------------
 
-  /// cutsq.x = cutsq, cutsq.y = rme, cutsq.z = sigmae, cutsq.w = offset
+  /// cutsq.x = cutsq, cutsq.y = rme, cutsq.z = sigmae
   UCL_D_Vec<numtyp4> cutsq;
   /// Special LJ values [0-3] and Special Coul values [4-7]
   UCL_D_Vec<numtyp> sp_lj;

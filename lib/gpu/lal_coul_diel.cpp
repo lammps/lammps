@@ -42,8 +42,8 @@ int CoulDielT::bytes_per_atom(const int max_nbors) const {
 
 template <class numtyp, class acctyp>
 int CoulDielT::init(const int ntypes, double **host_cutsq, double **host_rme, double **host_sigmae,
-                    double **host_offset, double *host_special_lj, double *host_special_coul,
-                    const int nlocal, const int nall, const int max_nbors, const int maxspecial,
+                    double *host_special_lj, double *host_special_coul, const int nlocal,
+                    const int nall, const int max_nbors, const int maxspecial,
                     const double cell_size, FILE *_screen, const double host_qqrd2e,
                     const double host_eps_s, const double host_a_eps, const double host_b_eps) {
   int success;
@@ -69,8 +69,7 @@ int CoulDielT::init(const int ntypes, double **host_cutsq, double **host_rme, do
     host_write[i]=0.0;
 
   cutsq.alloc(lj_types*lj_types,*(this->ucl_device),UCL_READ_ONLY);
-  this->atom->type_pack4(ntypes, lj_types, cutsq, host_write, host_cutsq, host_rme, host_sigmae,
-                         host_offset);
+  this->atom->type_pack4(ntypes, lj_types, cutsq, host_write, host_cutsq, host_rme, host_sigmae);
 
   sp_lj.alloc(8,*(this->ucl_device),UCL_READ_ONLY);
   for (int i=0; i<4; i++) {

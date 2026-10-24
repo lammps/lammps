@@ -107,7 +107,7 @@ __kernel void k_coul_diel(const __global numtyp4 *restrict x_,
         numtyp force = factor_coul*forcecoul/r;
 
         if (EVFLAG && eflag) {
-          numtyp e = (qqrd2e*qtmp*qj*((eps_s/epsr) - (numtyp)1.0)/r) - cutsq[mtype].w;
+          numtyp e = qqrd2e*qtmp*qj*((eps_s/epsr) - (numtyp)1.0)/r;
           e_coul += factor_coul*e;
         }
 
@@ -210,7 +210,7 @@ __kernel void k_coul_diel_fast(const __global numtyp4 *restrict x_,
         numtyp force = factor_coul*forcecoul/r;
 
         if (EVFLAG && eflag) {
-          numtyp e = (qqrd2e*qtmp*qj*((eps_s/epsr) - (numtyp)1.0)/r) - cutsq[mtype].w;
+          numtyp e = qqrd2e*qtmp*qj*((eps_s/epsr) - (numtyp)1.0)/r;
           e_coul += factor_coul*e;
         }
 

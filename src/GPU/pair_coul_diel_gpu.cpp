@@ -116,7 +116,7 @@ void PairCoulDielGPU::init_style()
   int maxspecial = 0;
   if (atom->molecular != Atom::ATOMIC) maxspecial = atom->maxspecial;
   int mnf = 5e-2 * neighbor->oneatom;
-  int success = coul_diel_gpu_init(atom->ntypes + 1, cutsq, rme, sigmae, offset, force->special_lj,
+  int success = coul_diel_gpu_init(atom->ntypes + 1, cutsq, rme, sigmae, force->special_lj,
                                    force->special_coul, atom->nlocal, atom->nlocal + atom->nghost,
                                    mnf, maxspecial, cell_size, gpu_mode, screen, force->qqrd2e,
                                    eps_s, a_eps, b_eps);

@@ -29,9 +29,9 @@ static CoulDiel<PRECISION,ACC_PRECISION> CDIELMF;
 
 namespace LAMMPS_GPU {
 int coul_diel_gpu_init(const int ntypes, double **host_cutsq, double **host_rme,
-                       double **host_sigmae, double **host_offset, double *special_lj,
-                       double *special_coul, const int inum, const int nall, const int max_nbors,
-                       const int maxspecial, const double cell_size, int &gpu_mode, FILE *screen,
+                       double **host_sigmae, double *special_lj, double *special_coul,
+                       const int inum, const int nall, const int max_nbors, const int maxspecial,
+                       const double cell_size, int &gpu_mode, FILE *screen,
                        const double host_qqrd2e, const double host_eps_s, const double host_a_eps,
                        const double host_b_eps)
 {
@@ -56,9 +56,9 @@ int coul_diel_gpu_init(const int ntypes, double **host_cutsq, double **host_rme,
 
   int init_ok=0;
   if (world_me==0)
-    init_ok=CDIELMF.init(ntypes, host_cutsq, host_rme, host_sigmae, host_offset, special_lj,
-                         special_coul, inum, nall, max_nbors, maxspecial, cell_size, screen,
-                         host_qqrd2e, host_eps_s, host_a_eps, host_b_eps);
+    init_ok=CDIELMF.init(ntypes, host_cutsq, host_rme, host_sigmae, special_lj, special_coul, inum,
+                         nall, max_nbors, maxspecial, cell_size, screen, host_qqrd2e, host_eps_s,
+                         host_a_eps, host_b_eps);
 
   CDIELMF.device->world_barrier();
   if (message)
@@ -73,9 +73,9 @@ int coul_diel_gpu_init(const int ntypes, double **host_cutsq, double **host_rme,
       fflush(screen);
     }
     if (gpu_rank==i && world_me!=0)
-      init_ok=CDIELMF.init(ntypes, host_cutsq, host_rme, host_sigmae, host_offset, special_lj,
-                           special_coul, inum, nall, max_nbors, maxspecial, cell_size, screen,
-                           host_qqrd2e, host_eps_s, host_a_eps, host_b_eps);
+      init_ok=CDIELMF.init(ntypes, host_cutsq, host_rme, host_sigmae, special_lj, special_coul,
+                           inum, nall, max_nbors, maxspecial, cell_size, screen, host_qqrd2e,
+                           host_eps_s, host_a_eps, host_b_eps);
 
     CDIELMF.device->serialize_init();
     if (message)

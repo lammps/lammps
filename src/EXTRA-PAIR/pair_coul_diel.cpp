@@ -32,7 +32,7 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 PairCoulDiel::PairCoulDiel(LAMMPS *lmp) :
-    Pair(lmp), cut(nullptr), sigmae(nullptr), rme(nullptr), offset(nullptr)
+    Pair(lmp), cut(nullptr), sigmae(nullptr), rme(nullptr)
 {}
 
 /* ---------------------------------------------------------------------- */
@@ -45,7 +45,6 @@ PairCoulDiel::~PairCoulDiel()
     memory->destroy(setflag);
     memory->destroy(sigmae);
     memory->destroy(rme);
-    memory->destroy(offset);
     memory->destroy(cutsq);
     memory->destroy(cut);
     allocated = 0;
@@ -122,7 +121,7 @@ void PairCoulDiel::compute(int eflag, int vflag)
         }
 
         if (eflag) {
-          ecoul = (qqrd2e*qtmp*q[j]*((eps_s/epsr) -1.)/r) - offset[itype][jtype];
+          ecoul = qqrd2e*qtmp*q[j]*((eps_s/epsr) -1.)/r;
           ecoul *= factor_coul;
         }
 
@@ -153,7 +152,6 @@ void PairCoulDiel::allocate()
   memory->create(cut,n+1,n+1,"pair:cut");
   memory->create(sigmae,n+1,n+1,"pair:sigmae");
   memory->create(rme,n+1,n+1,"pair:rme");
-  memory->create(offset,n+1,n+1,"pair:offset");
 }
 
 /* ----------------------------------------------------------------------
@@ -235,19 +233,8 @@ double PairCoulDiel::init_one(int i, int j)
     error->all(FLERR,"for pair style coul/diel, parameters need to be set explicitly for all pairs.");
   }
 
-  double *q = atom->q;
-  double qqrd2e = force->qqrd2e;
-
-  if (offset_flag && (cut[i][j] > 0.0)) {
-    double rarg = (cut[i][j]-rme[i][j])/sigmae[i][j];
-    double epsr=a_eps+b_eps*tanh(rarg);
-    offset[i][j] = qqrd2e*q[i]*q[j]*((eps_s/epsr) -1.)/cut[i][j];
-  } else offset[i][j] = 0.0;
-
-
   sigmae[j][i] = sigmae[i][j];
   rme[j][i] = rme[i][j];
-  offset[j][i] = offset[i][j];
   cut[j][i] = cut[i][j];
 
   return cut[i][j];
@@ -348,6 +335,6 @@ double PairCoulDiel::single(int i, int j, int itype, int jtype,
   forcedielec = qqrd2e*q[i]*q[j]*((eps_s*(epsr+r*depsdr)/epsr/epsr) -1.)/rsq;
   fforce = factor_coul*forcedielec/r;
 
-  phidielec = (qqrd2e*q[i]*q[j]*((eps_s/epsr) -1.)/r)- offset[itype][jtype];
+  phidielec = qqrd2e*q[i]*q[j]*((eps_s/epsr) -1.)/r;
   return factor_coul*phidielec;
 }

@@ -60,10 +60,16 @@ action pair_colloid_gpu.cpp pair_colloid.cpp
 action pair_colloid_gpu.h pair_colloid.cpp
 action pair_coul_cut_gpu.cpp
 action pair_coul_cut_gpu.h
+action pair_coul_cut_global_gpu.cpp pair_coul_cut_global.cpp
+action pair_coul_cut_global_gpu.h pair_coul_cut_global.cpp
+action pair_coul_cut_soft_gapsys_gpu.cpp pair_coul_cut_soft_gapsys.cpp
+action pair_coul_cut_soft_gapsys_gpu.h pair_coul_cut_soft_gapsys.cpp
 action pair_coul_cut_soft_gpu.cpp pair_coul_cut_soft.cpp
 action pair_coul_cut_soft_gpu.h pair_coul_cut_soft.cpp
 action pair_coul_debye_gpu.cpp
 action pair_coul_debye_gpu.h
+action pair_coul_diel_gpu.cpp pair_coul_diel.cpp
+action pair_coul_diel_gpu.h pair_coul_diel.cpp
 action pair_coul_dsf_gpu.cpp
 action pair_coul_dsf_gpu.h
 action pair_coul_long_gpu.cpp pair_coul_long.cpp
@@ -88,12 +94,24 @@ action pair_dpd_tstat_gpu.cpp pair_dpd_tstat.cpp
 action pair_dpd_tstat_gpu.h pair_dpd_tstat.h
 action pair_edpd_gpu.cpp pair_edpd.cpp
 action pair_edpd_gpu.h pair_edpd.cpp
+action pair_lj_charmm_coul_charmm_implicit_gpu.cpp pair_lj_charmm_coul_charmm_implicit.cpp
+action pair_lj_charmm_coul_charmm_implicit_gpu.h pair_lj_charmm_coul_charmm_implicit.cpp
 action pair_lj_charmmfsw_coul_charmmfsh_gpu.cpp pair_lj_charmmfsw_coul_charmmfsh.cpp
 action pair_lj_charmmfsw_coul_charmmfsh_gpu.h pair_lj_charmmfsw_coul_charmmfsh.cpp
 action pair_lj_charmmfsw_coul_long_gpu.cpp pair_lj_charmmfsw_coul_long.cpp
 action pair_lj_charmmfsw_coul_long_gpu.h pair_lj_charmmfsw_coul_long.cpp
 action pair_lj_class2_coul_cut_gpu.cpp pair_lj_class2_coul_cut.cpp
 action pair_lj_class2_coul_cut_gpu.h pair_lj_class2_coul_cut.cpp
+action pair_lj_class2_coul_cut_soft_gapsys_gpu.cpp pair_lj_class2_coul_cut_soft_gapsys.cpp
+action pair_lj_class2_coul_cut_soft_gapsys_gpu.h pair_lj_class2_coul_cut_soft_gapsys.cpp
+action pair_lj_class2_coul_cut_soft_gpu.cpp pair_lj_class2_coul_cut_soft.cpp
+action pair_lj_class2_coul_cut_soft_gpu.h pair_lj_class2_coul_cut_soft.cpp
+action pair_lj_class2_coul_long_soft_gpu.cpp pair_lj_class2_coul_long_soft.cpp
+action pair_lj_class2_coul_long_soft_gpu.h pair_lj_class2_coul_long_soft.cpp
+action pair_lj_class2_soft_gapsys_gpu.cpp pair_lj_class2_soft_gapsys.cpp
+action pair_lj_class2_soft_gapsys_gpu.h pair_lj_class2_soft_gapsys.cpp
+action pair_lj_cut_coul_cut_soft_gapsys_gpu.cpp pair_lj_cut_coul_cut_soft_gapsys.cpp
+action pair_lj_cut_coul_cut_soft_gapsys_gpu.h pair_lj_cut_coul_cut_soft_gapsys.cpp
 action pair_lj_cut_coul_cut_soft_gpu.cpp pair_lj_cut_coul_cut_soft.cpp
 action pair_lj_cut_coul_cut_soft_gpu.h pair_lj_cut_coul_cut_soft.cpp
 action pair_lj_cut_coul_long_soft_gpu.cpp pair_lj_cut_coul_long_soft.cpp
@@ -102,6 +120,10 @@ action pair_lj_cut_coul_wolf_gpu.cpp pair_lj_cut_coul_wolf.cpp
 action pair_lj_cut_coul_wolf_gpu.h pair_lj_cut_coul_wolf.cpp
 action pair_lj_cut_dipole_cut_gpu.cpp pair_lj_cut_dipole_cut.cpp
 action pair_lj_cut_dipole_cut_gpu.h pair_lj_cut_dipole_cut.cpp
+action pair_lj_cut_soft_gapsys_gpu.cpp pair_lj_cut_soft_gapsys.cpp
+action pair_lj_cut_soft_gapsys_gpu.h pair_lj_cut_soft_gapsys.cpp
+action pair_lj_gromacs_coul_gromacs_gpu.cpp pair_lj_gromacs_coul_gromacs.cpp
+action pair_lj_gromacs_coul_gromacs_gpu.h pair_lj_gromacs_coul_gromacs.cpp
 action pair_lj_sf_dipole_sf_gpu.cpp pair_lj_sf_dipole_sf.cpp
 action pair_lj_sf_dipole_sf_gpu.h pair_lj_sf_dipole_sf.cpp
 action pair_eam_alloy_gpu.cpp pair_eam.cpp
@@ -176,6 +198,14 @@ action pair_morse_gpu.cpp
 action pair_morse_gpu.h
 action pair_morse_soft_gpu.cpp pair_morse_soft.cpp
 action pair_morse_soft_gpu.h pair_morse_soft.cpp
+action pair_nm_cut_coul_cut_gpu.cpp pair_nm_cut_coul_cut.cpp
+action pair_nm_cut_coul_cut_gpu.h pair_nm_cut_coul_cut.cpp
+action pair_nm_cut_coul_long_gpu.cpp pair_nm_cut_coul_long.cpp
+action pair_nm_cut_coul_long_gpu.h pair_nm_cut_coul_long.cpp
+action pair_nm_cut_gpu.cpp pair_nm_cut.cpp
+action pair_nm_cut_gpu.h pair_nm_cut.cpp
+action pair_nm_cut_split_gpu.cpp pair_nm_cut_split.cpp
+action pair_nm_cut_split_gpu.h pair_nm_cut_split.cpp
 action pair_resquared_gpu.cpp pair_resquared.cpp
 action pair_resquared_gpu.h pair_resquared.cpp
 action pair_soft_gpu.cpp

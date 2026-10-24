@@ -71,11 +71,11 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`coul/ctip (o) <pair_coul>`
    * :doc:`coul/cut (gko) <pair_coul>`
    * :doc:`coul/cut/dielectric (o) <pair_dielectric>`
-   * :doc:`coul/cut/global (ko) <pair_coul>`
+   * :doc:`coul/cut/global (gko) <pair_coul>`
    * :doc:`coul/cut/soft (gko) <pair_fep_soft>`
-   * :doc:`coul/cut/soft/gapsys (o) <pair_fep_soft>`
+   * :doc:`coul/cut/soft/gapsys (go) <pair_fep_soft>`
    * :doc:`coul/debye (gko) <pair_coul>`
-   * :doc:`coul/diel (ko) <pair_coul_diel>`
+   * :doc:`coul/diel (gko) <pair_coul_diel>`
    * :doc:`coul/dsf (gko) <pair_coul>`
    * :doc:`coul/esp (o) <pair_coul>`
    * :doc:`coul/exclude (o) <pair_coul>`
@@ -147,7 +147,7 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`lennard/mdf (ko) <pair_mdf>`
    * :doc:`line/lj (o) <pair_line_lj>`
    * :doc:`lj/charmm/coul/charmm (giko) <pair_charmm>`
-   * :doc:`lj/charmm/coul/charmm/implicit (ko) <pair_charmm>`
+   * :doc:`lj/charmm/coul/charmm/implicit (gko) <pair_charmm>`
    * :doc:`lj/charmm/coul/long (gikot) <pair_charmm>`
    * :doc:`lj/charmm/coul/long/soft (gko) <pair_fep_soft>`
    * :doc:`lj/charmm/coul/msm (o) <pair_charmm>`
@@ -155,19 +155,19 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`lj/charmmfsw/coul/long (gko) <pair_charmm>`
    * :doc:`lj/class2 (gko) <pair_class2>`
    * :doc:`lj/class2/coul/cut (gko) <pair_class2>`
-   * :doc:`lj/class2/coul/cut/soft (o) <pair_fep_soft>`
-   * :doc:`lj/class2/coul/cut/soft/gapsys <pair_fep_soft>`
+   * :doc:`lj/class2/coul/cut/soft (go) <pair_fep_soft>`
+   * :doc:`lj/class2/coul/cut/soft/gapsys (g) <pair_fep_soft>`
    * :doc:`lj/class2/coul/long (gko) <pair_class2>`
    * :doc:`lj/class2/coul/long/cs (gko) <pair_cs>`
-   * :doc:`lj/class2/coul/long/soft (o) <pair_fep_soft>`
+   * :doc:`lj/class2/coul/long/soft (go) <pair_fep_soft>`
    * :doc:`lj/class2/soft (gko) <pair_fep_soft>`
-   * :doc:`lj/class2/soft/gapsys <pair_fep_soft>`
+   * :doc:`lj/class2/soft/gapsys (g) <pair_fep_soft>`
    * :doc:`lj/cubic (gko) <pair_lj_cubic>`
    * :doc:`lj/cut (gikot) <pair_lj>`
    * :doc:`lj/cut/coul/cut (gko) <pair_lj_cut_coul>`
    * :doc:`lj/cut/coul/cut/dielectric (o) <pair_dielectric>`
    * :doc:`lj/cut/coul/cut/soft (gko) <pair_fep_soft>`
-   * :doc:`lj/cut/coul/cut/soft/gapsys <pair_fep_soft>`
+   * :doc:`lj/cut/coul/cut/soft/gapsys (g) <pair_fep_soft>`
    * :doc:`lj/cut/coul/debye (gko) <pair_lj_cut_coul>`
    * :doc:`lj/cut/coul/debye/dielectric (o) <pair_dielectric>`
    * :doc:`lj/cut/coul/dsf (gko) <pair_lj_cut_coul>`
@@ -183,7 +183,7 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`lj/cut/dipole/long (go) <pair_dipole>`
    * :doc:`lj/cut/dipole/sf (go) <pair_dipole>`
    * :doc:`lj/cut/soft (gko) <pair_fep_soft>`
-   * :doc:`lj/cut/soft/gapsys <pair_fep_soft>`
+   * :doc:`lj/cut/soft/gapsys (g) <pair_fep_soft>`
    * :doc:`lj/cut/sphere (ko) <pair_lj_cut_sphere>`
    * :doc:`lj/cut/thole/long (o) <pair_thole>`
    * :doc:`lj/cut/tip4p/cut (ko) <pair_lj_cut_tip4p>`
@@ -193,7 +193,7 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`lj/expand/coul/long (gko) <pair_lj_expand>`
    * :doc:`lj/expand/sphere (ko) <pair_lj_expand_sphere>`
    * :doc:`lj/gromacs (gko) <pair_gromacs>`
-   * :doc:`lj/gromacs/coul/gromacs (ko) <pair_gromacs>`
+   * :doc:`lj/gromacs/coul/gromacs (gko) <pair_gromacs>`
    * :doc:`lj/long/coul/long (iot) <pair_lj_long>`
    * :doc:`lj/long/coul/long/dielectric <pair_dielectric>`
    * :doc:`lj/long/dipole/long <pair_dipole>`
@@ -236,10 +236,10 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`multi/lucy/rx (k) <pair_multi_lucy_rx>`
    * :doc:`nb3b/harmonic (o) <pair_nb3b>`
    * :doc:`nb3b/screened <pair_nb3b>`
-   * :doc:`nm/cut (ko) <pair_nm>`
-   * :doc:`nm/cut/coul/cut (ko) <pair_nm>`
-   * :doc:`nm/cut/coul/long (ko) <pair_nm>`
-   * :doc:`nm/cut/split (ko) <pair_nm>`
+   * :doc:`nm/cut (gko) <pair_nm>`
+   * :doc:`nm/cut/coul/cut (gko) <pair_nm>`
+   * :doc:`nm/cut/coul/long (gko) <pair_nm>`
+   * :doc:`nm/cut/split (gko) <pair_nm>`
    * :doc:`oxdna/coaxstk <pair_oxdna>`
    * :doc:`oxdna/excv <pair_oxdna>`
    * :doc:`oxdna/hbond <pair_oxdna>`

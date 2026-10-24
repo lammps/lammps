@@ -5,7 +5,7 @@ boundary p p f # slab calculation
 include settings.mod # styles, groups, computes and fixes
 kspace_modify slab 3.0
 
-fix conq bot electrode/conq -1.0 1.979 couple top 1.0 etypes on # symm on
+fix conq bot electrode/conq -1.0 eta 1.979 couple top 1.0 etypes on # symm on
 variable dv equal f_conq[2]-f_conq[1] 
 # symm on and off give different electrode potentials, but identical potential difference
 

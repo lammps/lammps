@@ -53,6 +53,8 @@ family), `BaseEllipsoid`, `BaseSPH`, `BaseAmoeba`.
 | CHARMM switching, force switching | `lal_charmm_long`, `lal_charmmfsw_long`, `lal_charmmfsw_fsh` |
 | core/shell `/cs` | `lal_coul_long_cs`, `lal_born_coul_long_cs`, `lal_coul_wolf_cs` |
 | FEP soft core (`lambda` per type pair) | `lal_lj_cut_soft`, `lal_lj_coul_soft`, `lal_lj_coul_long_soft`, `lal_coul_cut_soft` |
+| Gapsys soft core (linear inner region, charge dependent radius) | `lal_lj_cut_soft_gapsys`, `lal_coul_cut_soft_gapsys`, `lal_lj_coul_soft_gapsys` |
+| per-type exponents (`pow`) | `lal_nm_cut`, `lal_nm_cut_coul_long` (`ucl_powr` of `r2inv`) |
 | global parameters only | `lal_coul_slater_cut` (scalar kernel arguments) |
 
 Long-range Coulomb on the GPU is ALWAYS the analytic erfc polynomial: there are no
@@ -130,12 +132,25 @@ Coulomb tables, so the `*_table*` YAML tests of a new long-range style get `gpu`
 - `compute()`: two paths.  `gpu_mode != GPU_FORCE` -> `_compute_n` builds the
   neighbor list on the device (needs sublo/subhi, tag, special); `GPU_FORCE` -> the
   host full list (`list->ilist` ...) goes to `_compute`.  Afterwards
-  `if (atom->molecular != Atom::ATOMIC && neighbor->ago == 0) neighbor->build_topology();`.
+  `if (atom->molecular != Atom::ATOMIC && neighbor->ago == 0) neighbor->build_topology();`
+  is REQUIRED: with a GPU pair style, `fix gpu` sets `neighbor->set_overlap_topo(1)`
+  and `Neighbor::build()` no longer builds the bond/angle/... lists, so without
+  this line the bonded styles keep using stale local indices after the first
+  reneighboring with atom sorting or migration (`lj/cut/coul/long/soft/gpu` and its
+  clone `lj/charmm/coul/long/soft/gpu` lacked it until 2026-10).  The YAML tests use
+  `bond_style zero` and do not notice; `mol-pair-*_bonds.yaml` add harmonic bonds and
+  `atom_modify sort 1 0.0` for that reason.
 - `init_style()`: repeat the `cutsq` loop with `init_one(i,j)` (Pair::init calls
   `init_one` only AFTER `init_style`), compute every derived constant the CPU style
   computes in `init_style`/`init_one` (switching denominators, soft-core factors,
   force-switch constants), call `<prefix>_gpu_init(...)`, `GPU_EXTRA::check_flag()`,
   and request a full neighbor list only in `GPU_FORCE` mode.
+- The wrapper `init_style()` REPLACES the CPU one: copy all of its error checks and
+  set every member that the CPU `single()` uses, with the CPU meaning.  Pass GPU-specific transforms (inverse denominators, squared radii) as
+  arguments or locals instead of overwriting members: `lj/charmm/coul/charmm/gpu`
+  replaced `denom_lj`/`denom_coul` by their inverses and `lj/charmm/coul/long/gpu`
+  never set `denom_lj_inv`, so `single()` (`compute pair/local`, `compute
+  group/group`, ...) was wrong in the switching region until 2026-10.
 - Changed parameters (`fix adapt`, `compute fep`): override `init_one()` to set an
   `update_coeffs` flag and call the parent's `init_one()`; at the start of `compute()`,
   call `<prefix>_gpu_reinit()` with the updated arrays when the flag is set, then clear

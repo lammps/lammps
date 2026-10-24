@@ -148,9 +148,8 @@ void ElectrodeVector::pair_contribution(double *vector)
     bool const i_in_sensor = (mask[i] & groupbit);
     bool const i_in_source = !!(mask[i] & source_grpbit) != invert_source;
     if (!(i_in_sensor || i_in_source)) continue;
-    double const xtmp = x[i][0];
-    double const ytmp = x[i][1];
-    double const ztmp = x[i][2];
+    double xi[3];
+    charge_position(i, xi);
     double const eta_i = etaflag ? atom->dvector[eta_index][i] : eta;
     int itype = type[i];
     int *jlist = firstneigh[i];
@@ -162,12 +161,14 @@ void ElectrodeVector::pair_contribution(double *vector)
       bool const compute_ij = i_in_sensor && j_in_source;
       bool const compute_ji = (newton_pair || j < nlocal) && (j_in_sensor && i_in_source);
       if (!(compute_ij || compute_ji)) continue;
-      double const delx = xtmp - x[j][0];    // neighlists take care of pbc
-      double const dely = ytmp - x[j][1];
-      double const delz = ztmp - x[j][2];
+      double xj[3];
+      charge_position(j, xj);
+      double const delx = xi[0] - xj[0];
+      double const dely = xi[1] - xj[1];
+      double const delz = xi[2] - xj[2];
       double const rsq = delx * delx + dely * dely + delz * delz;
       int jtype = type[j];
-      if (rsq >= cutsq[itype][jtype]) continue;
+      if (rsq >= pair_cutsq(itype, jtype)) continue;
       double const eta_j = etaflag ? atom->dvector[eta_index][j] : eta;
       double etaij;
       if (i_in_sensor && j_in_sensor) {
@@ -226,4 +227,81 @@ void ElectrodeVector::tf_contribution(double *vector)
     bool const i_in_source = !!(mask[i] & source_grpbit) != invert_source;
     if (i_in_sensor && i_in_source) vector[i] += tf_types[type[i]] * q[i];
   }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void ElectrodeVector::get_charge_position(int i, double *xsite)
+{
+  charge_position(i, xsite);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void ElectrodeVector::add_charge_force(int i, const double *fcharge)
+{
+  charge_force(i, fcharge);
+}
+
+/* ---------------------------------------------------------------------- */
+
+double ElectrodeVector::get_pair_cutsq(int itype, int jtype) const
+{
+  return pair_cutsq(itype, jtype);
+}
+
+/* ---------------------------------------------------------------------- */
+
+double ElectrodeVector::get_charge_force_alpha() const
+{
+  return charge_force_alpha();
+}
+
+/* ---------------------------------------------------------------------- */
+
+int ElectrodeVector::get_charge_force_virial(int i, const double *fcharge,
+                                             double *v, int *vlist)
+{
+  return charge_force_virial(i, fcharge, v, vlist);
+}
+
+/* ---------------------------------------------------------------------- */
+void ElectrodeVector::charge_position(int i, double *xsite)
+{
+  xsite[0] = atom->x[i][0];
+  xsite[1] = atom->x[i][1];
+  xsite[2] = atom->x[i][2];
+}
+
+/* ---------------------------------------------------------------------- */
+
+void ElectrodeVector::charge_force(int i, const double *fcharge)
+{
+  atom->f[i][0] += fcharge[0];
+  atom->f[i][1] += fcharge[1];
+  atom->f[i][2] += fcharge[2];
+}
+
+/* ---------------------------------------------------------------------- */
+
+int ElectrodeVector::charge_force_virial(int i, const double *fcharge,
+                                         double *v, int *vlist)
+{
+  vlist[0] = i;
+  const double *xi = atom->x[i];
+
+  v[0] = xi[0] * fcharge[0];
+  v[1] = xi[1] * fcharge[1];
+  v[2] = xi[2] * fcharge[2];
+  v[3] = xi[0] * fcharge[1];
+  v[4] = xi[0] * fcharge[2];
+  v[5] = xi[1] * fcharge[2];
+
+  return 1;
+}
+
+/* ---------------------------------------------------------------------- */
+double ElectrodeVector::pair_cutsq(int itype, int jtype) const
+{
+  return cutsq[itype][jtype];
 }

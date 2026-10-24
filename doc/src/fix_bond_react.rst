@@ -597,8 +597,12 @@ Reaction Constraints
 --------------------
 
 Any number of additional constraints may be specified in the
-Constraints section of the map file. The constraint of type "distance"
-has syntax as follows:
+Constraints section of the map file.
+
+Distance Constraint
+^^^^^^^^^^^^^^^^^^^
+
+The constraint of type "distance" has syntax as follows:
 
 .. parsed-literal::
 
@@ -608,6 +612,9 @@ where "distance" is the required keyword, *ID1* and *ID2* are
 pre-reaction atom IDs (or molecule-fragment IDs, see below), and these
 two atoms must be separated by a distance between *rmin* and *rmax*
 for the reaction to occur.
+
+Angle Constraint
+^^^^^^^^^^^^^^^^
 
 The constraint of type "angle" has the following syntax:
 
@@ -621,6 +628,9 @@ three atoms must form an angle between *amin* and *amax* for the
 reaction to occur (where *ID2* is the central atom). Angles must be
 specified in degrees. This constraint can be used to enforce a certain
 orientation between reacting molecules.
+
+Dihedral Constraint
+^^^^^^^^^^^^^^^^^^^
 
 The constraint of type "dihedral" has the following syntax:
 
@@ -647,6 +657,9 @@ of the ID is the geometric center of all atom positions in the
 fragment. The molecule fragment must have been defined in the
 :doc:`molecule <molecule>` command for the pre-reaction template.
 
+Arrhenius Constraint
+^^^^^^^^^^^^^^^^^^^^
+
 The constraint of type 'arrhenius' imposes an additional reaction
 probability according to the modified Arrhenius equation,
 
@@ -672,6 +685,9 @@ temperature calculations. A uniform random number between 0 and 1 is
 generated using *seed*\ ; if this number is less than the result of the
 Arrhenius equation above, the reaction is permitted to occur.
 
+Root-mean-square-deviation Constraint
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
 The constraint of type 'rmsd' has the following syntax:
 
 .. parsed-literal::
@@ -693,7 +709,11 @@ specific relative position and orientation between reacting molecules.
 
 .. versionchanged:: 22Dec2022
 
-The constraint of type "custom" has the following syntax:
+Custom Constraint
+^^^^^^^^^^^^^^^^^
+
+The 'custom' constraint type allows you to define reaction constraints
+using any valid LAMMPS variable, using the syntax below
 
 .. parsed-literal::
 
@@ -763,6 +783,9 @@ Arrhenius constraint that depends on the bond force of a specific bond:
 By using an inequality and the 'random(x,y,z)' function, the left-hand
 side can be interpreted as the probability of the reaction occurring,
 similar to the 'arrhenius' constraint above.
+
+Combining Multiple Reaction Constraints
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 By default, all constraints must be satisfied for the reaction to
 occur. In other words, constraints are evaluated as a series of

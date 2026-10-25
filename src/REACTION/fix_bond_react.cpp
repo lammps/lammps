@@ -40,6 +40,7 @@ Contributing Author: Jacob Gissinger (jgissing@stevens.edu)
 #include "molecule.h"
 #include "neigh_list.h"
 #include "neighbor.h"
+#include "neigh_request.h"
 #include "output.h"
 #include "pair.h"
 #include "random_mars.h"
@@ -771,8 +772,17 @@ void FixBondReact::init()
       if (force->pair == nullptr || (rxn.closeneigh < 0 && rxn.rmaxsq > force->pair->cutsq[rxn.iatomtype][rxn.jatomtype]))
         error->all(FLERR,"Fix bond/react: Fix bond/react cutoff is longer than pairwise cutoff");
 
-  // need a half neighbor list, built every Nevery steps
-  neighbor->add_request(this, NeighConst::REQ_OCCASIONAL);
+  // only far_partner uses it, so its cutoff need only reach the largest Rmax
+  auto *req = neighbor->add_request(this, NeighConst::REQ_OCCASIONAL);
+  double cutmax = 0.0;
+  bool anyfar = false, varcut = false;
+  for (auto &rxn : rxns) {
+    if (rxn.closeneigh >= 0) continue;
+    anyfar = true;
+    if (rxn.v_rmax > -1) varcut = true;
+    cutmax = MAX(cutmax, sqrt(rxn.rmaxsq));
+  }
+  if (anyfar && !varcut) req->set_cutoff_fixed(cutmax);
 
   lastcheck = -1;
 }
@@ -916,6 +926,18 @@ void FixBondReact::far_partner()
       active_rxns.push_back(&rxn);
   if (active_rxns.empty()) return;
 
+  for (auto *rxn_ptr : active_rxns) {
+    auto &rxn = *rxn_ptr;
+    if (rxn.v_rmin > -1) {
+      double cutoff = input->variable->compute_equal(rxn.v_rmin);
+      rxn.rminsq = cutoff*cutoff;
+    }
+    if (rxn.v_rmax > -1) {
+      double cutoff = input->variable->compute_equal(rxn.v_rmax);
+      rxn.rmaxsq = cutoff*cutoff;
+    }
+  }
+
   int inum,jnum,itype,jtype,possible;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *ilist,*jlist,*numneigh,**firstneigh;
@@ -989,17 +1011,8 @@ void FixBondReact::far_partner()
         domain->minimum_image(FLERR, delx,dely,delz); // ghost location fix
         rsq = delx*delx + dely*dely + delz*delz;
 
-        if (rxn.v_rmin > -1) {
-          double cutoff = input->variable->compute_equal(rxn.v_rmin);
-          rxn.rminsq = cutoff*cutoff;
-        }
-        if (rxn.v_rmax > -1) {
-          double cutoff = input->variable->compute_equal(rxn.v_rmax);
-          rxn.rmaxsq = cutoff*cutoff;
-        }
-        if (rsq >= rxn.rmaxsq || rsq <= rxn.rminsq) {
-          continue;
-        }
+        if (rsq >= rxn.rmaxsq || rsq <= rxn.rminsq) continue;
+
         ReactionAttempt rxn_attempt;
         if (itype == rxn.iatomtype && jtype == rxn.jatomtype) {
           rxn_attempt.init_ids = {tag[i], tag[j]};
@@ -1028,6 +1041,18 @@ void FixBondReact::close_partner()
     if (rxn.closeneigh >= 0 && !(update->ntimestep % rxn.nevery) && !rxn.over_limit)
       active_rxns.push_back(&rxn);
   if (active_rxns.empty()) return;
+
+  for (auto *rxn_ptr : active_rxns) {
+    auto &rxn = *rxn_ptr;
+    if (rxn.v_rmin > -1) {
+      double cutoff = input->variable->compute_equal(rxn.v_rmin);
+      rxn.rminsq = cutoff*cutoff;
+    }
+    if (rxn.v_rmax > -1) {
+      double cutoff = input->variable->compute_equal(rxn.v_rmax);
+      rxn.rmaxsq = cutoff*cutoff;
+    }
+  }
 
   int n,i1,i2,itype,jtype;
   double delx,dely,delz,rsq;
@@ -1077,14 +1102,6 @@ void FixBondReact::close_partner()
         domain->minimum_image(FLERR, delx,dely,delz); // ghost location fix
         rsq = delx*delx + dely*dely + delz*delz;
 
-        if (rxn.v_rmin > -1) {
-          double cutoff = input->variable->compute_equal(rxn.v_rmin);
-          rxn.rminsq = cutoff*cutoff;
-        }
-        if (rxn.v_rmax > -1) {
-          double cutoff = input->variable->compute_equal(rxn.v_rmax);
-          rxn.rmaxsq = cutoff*cutoff;
-        }
         if (rsq >= rxn.rmaxsq || rsq <= rxn.rminsq) continue;
 
         ReactionAttempt rxn_attempt;

@@ -853,7 +853,7 @@ void FixBondReact::post_integrate()
   xspecial = atom->special;
 
   // check if we are over rate_limits limits
-  std::vector<int> rxn_limit_flag(rxns.size(), 1);
+  for (auto &rxn : rxns) rxn.over_limit = false;
   for (auto &rlm : rate_limits) {
     int myrxn_count = rlm.store_rxn_counts[rlm.Nsteps-1];
     int nrxns_delta, my_nrate;
@@ -866,19 +866,19 @@ void FixBondReact::post_integrate()
       } else my_nrate = rlm.Nlimit;
     }
     if (myrxn_count == -1 || nrxns_delta >= my_nrate)
-      for (auto i : rlm.rxnIDs) rxn_limit_flag[i] = 0;
+      for (auto i : rlm.rxnIDs) rxns[i].over_limit = true;
   }
   for (auto &maxlimit : max_rxn_limits) {
     int rxn_count_sum = 0;
     for (auto i : maxlimit.rxnIDs) rxn_count_sum += rxns[i].reaction_count_total;
     if (rxn_count_sum >= maxlimit.max_rxn)
-      for (auto i : maxlimit.rxnIDs) rxn_limit_flag[i] = 0;
+      for (auto i : maxlimit.rxnIDs) rxns[i].over_limit = true;
   }
 
 
   // fork between far and close_partner here
-  far_partner(rxn_limit_flag);
-  close_partner(rxn_limit_flag);
+  far_partner();
+  close_partner();
 
   // break loop if no even eligible bonding atoms were found (on any proc)
   int some_chance;
@@ -908,8 +908,14 @@ void FixBondReact::post_integrate()
   Search non-bonded neighbor lists if bonding atoms are not in special list
 ------------------------------------------------------------------------- */
 
-void FixBondReact::far_partner(std::vector<int> &rxn_limit_flag)
+void FixBondReact::far_partner()
 {
+  std::vector<Reaction *> active_rxns;
+  for (auto &rxn : rxns)
+    if (rxn.closeneigh < 0 && !(update->ntimestep % rxn.nevery) && !rxn.over_limit)
+      active_rxns.push_back(&rxn);
+  if (active_rxns.empty()) return;
+
   int inum,jnum,itype,jtype,possible;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
   int *ilist,*jlist,*numneigh,**firstneigh;
@@ -936,13 +942,11 @@ void FixBondReact::far_partner(std::vector<int> &rxn_limit_flag)
 
   for (int ii = 0; ii < inum; ii++) {
     i = ilist[ii];
+    if (i_limit_tags[i] != 0) continue;
 
-    for (auto &rxn : rxns) {
-      if (rxn.closeneigh >= 0) continue;
-      if ((update->ntimestep % rxn.nevery) ||
-          (rxn_limit_flag[rxn.ID] == 0)) continue;
+    for (auto *rxn_ptr : active_rxns) {
+      auto &rxn = *rxn_ptr;
       if (!(mask[i] & rxn.groupbits)) continue;
-      if (i_limit_tags[i] != 0) continue;
       itype = type[i];
       xtmp = x[i][0];
       ytmp = x[i][1];
@@ -953,13 +957,8 @@ void FixBondReact::far_partner(std::vector<int> &rxn_limit_flag)
       for (int jj = 0; jj < jnum; jj++) {
         j = jlist[jj];
         j &= NEIGHMASK;
-        if (!(mask[j] & rxn.groupbits)) {
-          continue;
-        }
-
-        if (i_limit_tags[j] != 0) {
-          continue;
-        }
+        if (i_limit_tags[j] != 0) continue;
+        if (!(mask[j] & rxn.groupbits)) continue;
 
         if (rxn.molecule_keyword == Molecule_Keys::INTER) {
           if (atom->molecule[i] == atom->molecule[j]) continue;
@@ -1022,8 +1021,14 @@ void FixBondReact::far_partner(std::vector<int> &rxn_limit_flag)
   Slightly simpler to find bonding partner when a close neighbor
 ------------------------------------------------------------------------- */
 
-void FixBondReact::close_partner(std::vector<int> &rxn_limit_flag)
+void FixBondReact::close_partner()
 {
+  std::vector<Reaction *> active_rxns;
+  for (auto &rxn : rxns)
+    if (rxn.closeneigh >= 0 && !(update->ntimestep % rxn.nevery) && !rxn.over_limit)
+      active_rxns.push_back(&rxn);
+  if (active_rxns.empty()) return;
+
   int n,i1,i2,itype,jtype;
   double delx,dely,delz,rsq;
 
@@ -1039,12 +1044,11 @@ void FixBondReact::close_partner(std::vector<int> &rxn_limit_flag)
 
   // loop over special list
   for (int ii = 0; ii < atom->nlocal; ii++) {
+    if (i_limit_tags[ii] != 0) continue;
     itype = type[ii];
 
-    for (auto &rxn : rxns) {
-      if (rxn.closeneigh < 0) continue;
-      if ((update->ntimestep % rxn.nevery) ||
-          (rxn_limit_flag[rxn.ID] == 0)) continue;
+    for (auto *rxn_ptr : active_rxns) {
+      auto &rxn = *rxn_ptr;
       n = 0;
       if (rxn.closeneigh != 0)
         n = nxspecial[ii][rxn.closeneigh-1];
@@ -1054,7 +1058,6 @@ void FixBondReact::close_partner(std::vector<int> &rxn_limit_flag)
         jtype = type[i2];
         if (!(mask[i1] & rxn.groupbits)) continue;
         if (!(mask[i2] & rxn.groupbits)) continue;
-        if (i_limit_tags[i1] != 0) continue;
         if (i_limit_tags[i2] != 0) continue;
 
         bool fwd = (itype == rxn.iatomtype && jtype == rxn.jatomtype);

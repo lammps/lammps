@@ -87,6 +87,7 @@ struct Reaction : public ReactionTemplate {
   int nlocalkeep, nghostlykeep;
   int seed, limit_duration;
   int stabilize_steps_flag;
+  bool over_limit;
   Molecule_Keys molecule_keyword;
   int v_nevery, v_rmin, v_rmax, v_prob;                  // ID of variable, -1 if static
 };

@@ -875,14 +875,10 @@ void FixBondReact::post_integrate()
       for (auto i : maxlimit.rxnIDs) rxn_limit_flag[i] = 0;
   }
 
-  int j;
-  for (auto &rxn : rxns) {
-    if ((update->ntimestep % rxn.nevery) ||
-        (rxn_limit_flag[rxn.ID] == 0)) continue;
-    // fork between far and close_partner here
-    if (rxn.closeneigh < 0) far_partner(rxn);
-    else close_partner(rxn);
-  }
+
+  // fork between far and close_partner here
+  far_partner(rxn_limit_flag);
+  close_partner(rxn_limit_flag);
 
   // break loop if no even eligible bonding atoms were found (on any proc)
   int some_chance;
@@ -912,7 +908,7 @@ void FixBondReact::post_integrate()
   Search non-bonded neighbor lists if bonding atoms are not in special list
 ------------------------------------------------------------------------- */
 
-void FixBondReact::far_partner(Reaction &rxn)
+void FixBondReact::far_partner(std::vector<int> &rxn_limit_flag)
 {
   int inum,jnum,itype,jtype,possible;
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq;
@@ -940,77 +936,83 @@ void FixBondReact::far_partner(Reaction &rxn)
 
   for (int ii = 0; ii < inum; ii++) {
     i = ilist[ii];
-    if (!(mask[i] & rxn.groupbits)) continue;
-    if (i_limit_tags[i] != 0) continue;
-    itype = type[i];
-    xtmp = x[i][0];
-    ytmp = x[i][1];
-    ztmp = x[i][2];
-    jlist = firstneigh[i];
-    jnum = numneigh[i];
 
-    for (int jj = 0; jj < jnum; jj++) {
-      j = jlist[jj];
-      j &= NEIGHMASK;
-      if (!(mask[j] & rxn.groupbits)) {
-        continue;
-      }
+    for (auto &rxn : rxns) {
+      if (rxn.closeneigh >= 0) continue;
+      if ((update->ntimestep % rxn.nevery) ||
+          (rxn_limit_flag[rxn.ID] == 0)) continue;
+      if (!(mask[i] & rxn.groupbits)) continue;
+      if (i_limit_tags[i] != 0) continue;
+      itype = type[i];
+      xtmp = x[i][0];
+      ytmp = x[i][1];
+      ztmp = x[i][2];
+      jlist = firstneigh[i];
+      jnum = numneigh[i];
 
-      if (i_limit_tags[j] != 0) {
-        continue;
-      }
+      for (int jj = 0; jj < jnum; jj++) {
+        j = jlist[jj];
+        j &= NEIGHMASK;
+        if (!(mask[j] & rxn.groupbits)) {
+          continue;
+        }
 
-      if (rxn.molecule_keyword == Molecule_Keys::INTER) {
-        if (atom->molecule[i] == atom->molecule[j]) continue;
-      } else if (rxn.molecule_keyword == Molecule_Keys::INTRA) {
-        if (atom->molecule[i] != atom->molecule[j]) continue;
-      }
+        if (i_limit_tags[j] != 0) {
+          continue;
+        }
 
-      jtype = type[j];
-      possible = 0;
-      if (itype == rxn.iatomtype && jtype == rxn.jatomtype) {
-        possible = 1;
-      } else if (itype == rxn.jatomtype && jtype == rxn.iatomtype) {
-        possible = 1;
-      }
+        if (rxn.molecule_keyword == Molecule_Keys::INTER) {
+          if (atom->molecule[i] == atom->molecule[j]) continue;
+        } else if (rxn.molecule_keyword == Molecule_Keys::INTRA) {
+          if (atom->molecule[i] != atom->molecule[j]) continue;
+        }
 
-      if (possible == 0) continue;
+        jtype = type[j];
+        possible = 0;
+        if (itype == rxn.iatomtype && jtype == rxn.jatomtype) {
+          possible = 1;
+        } else if (itype == rxn.jatomtype && jtype == rxn.iatomtype) {
+          possible = 1;
+        }
 
-      // do not allow bonding atoms within special list
-      for (int k = 0; k < nxspecial[i][2]; k++)
-        if (xspecial[i][k] == tag[j]) possible = 0;
-      if (!possible) continue;
+        if (possible == 0) continue;
 
-      if (!force->newton_pair && j >= atom->nlocal && tag[i] < tag[j]) continue;
+        // do not allow bonding atoms within special list
+        for (int k = 0; k < nxspecial[i][2]; k++)
+          if (xspecial[i][k] == tag[j]) possible = 0;
+        if (!possible) continue;
 
-      delx = xtmp - x[j][0];
-      dely = ytmp - x[j][1];
-      delz = ztmp - x[j][2];
-      domain->minimum_image(FLERR, delx,dely,delz); // ghost location fix
-      rsq = delx*delx + dely*dely + delz*delz;
+        if (!force->newton_pair && j >= atom->nlocal && tag[i] < tag[j]) continue;
 
-      if (rxn.v_rmin > -1) {
-        double cutoff = input->variable->compute_equal(rxn.v_rmin);
-        rxn.rminsq = cutoff*cutoff;
-      }
-      if (rxn.v_rmax > -1) {
-        double cutoff = input->variable->compute_equal(rxn.v_rmax);
-        rxn.rmaxsq = cutoff*cutoff;
-      }
-      if (rsq >= rxn.rmaxsq || rsq <= rxn.rminsq) {
-        continue;
-      }
-      ReactionAttempt rxn_attempt;
-      if (itype == rxn.iatomtype && jtype == rxn.jatomtype) {
-        rxn_attempt.init_ids = {tag[i], tag[j]};
-        rxn_attempt.rxn_ids = {rxn.ID};
-        attempts.push_back(rxn_attempt);
-      }
+        delx = xtmp - x[j][0];
+        dely = ytmp - x[j][1];
+        delz = ztmp - x[j][2];
+        domain->minimum_image(FLERR, delx,dely,delz); // ghost location fix
+        rsq = delx*delx + dely*dely + delz*delz;
 
-      if (itype == rxn.jatomtype && jtype == rxn.iatomtype) {
-        rxn_attempt.init_ids = {tag[j], tag[i]};
-        rxn_attempt.rxn_ids = {rxn.ID};
-        attempts.push_back(rxn_attempt);
+        if (rxn.v_rmin > -1) {
+          double cutoff = input->variable->compute_equal(rxn.v_rmin);
+          rxn.rminsq = cutoff*cutoff;
+        }
+        if (rxn.v_rmax > -1) {
+          double cutoff = input->variable->compute_equal(rxn.v_rmax);
+          rxn.rmaxsq = cutoff*cutoff;
+        }
+        if (rsq >= rxn.rmaxsq || rsq <= rxn.rminsq) {
+          continue;
+        }
+        ReactionAttempt rxn_attempt;
+        if (itype == rxn.iatomtype && jtype == rxn.jatomtype) {
+          rxn_attempt.init_ids = {tag[i], tag[j]};
+          rxn_attempt.rxn_ids = {rxn.ID};
+          attempts.push_back(rxn_attempt);
+        }
+
+        if (itype == rxn.jatomtype && jtype == rxn.iatomtype) {
+          rxn_attempt.init_ids = {tag[j], tag[i]};
+          rxn_attempt.rxn_ids = {rxn.ID};
+          attempts.push_back(rxn_attempt);
+        }
       }
     }
   }
@@ -1020,7 +1022,7 @@ void FixBondReact::far_partner(Reaction &rxn)
   Slightly simpler to find bonding partner when a close neighbor
 ------------------------------------------------------------------------- */
 
-void FixBondReact::close_partner(Reaction &rxn)
+void FixBondReact::close_partner(std::vector<int> &rxn_limit_flag)
 {
   int n,i1,i2,itype,jtype;
   double delx,dely,delz,rsq;
@@ -1038,54 +1040,60 @@ void FixBondReact::close_partner(Reaction &rxn)
   // loop over special list
   for (int ii = 0; ii < atom->nlocal; ii++) {
     itype = type[ii];
-    n = 0;
-    if (rxn.closeneigh != 0)
-      n = nxspecial[ii][rxn.closeneigh-1];
-    for (; n < nxspecial[ii][rxn.closeneigh]; n++) {
-      i1 = ii;
-      i2 = atom->map(xspecial[ii][n]);
-      jtype = type[i2];
-      if (!(mask[i1] & rxn.groupbits)) continue;
-      if (!(mask[i2] & rxn.groupbits)) continue;
-      if (i_limit_tags[i1] != 0) continue;
-      if (i_limit_tags[i2] != 0) continue;
 
-      bool fwd = (itype == rxn.iatomtype && jtype == rxn.jatomtype);
-      bool rev = (itype == rxn.jatomtype && jtype == rxn.iatomtype);
-      if (!fwd && !rev) continue;
-      if (tag[i1] > tag[i2]) continue;
+    for (auto &rxn : rxns) {
+      if (rxn.closeneigh < 0) continue;
+      if ((update->ntimestep % rxn.nevery) ||
+          (rxn_limit_flag[rxn.ID] == 0)) continue;
+      n = 0;
+      if (rxn.closeneigh != 0)
+        n = nxspecial[ii][rxn.closeneigh-1];
+      for (; n < nxspecial[ii][rxn.closeneigh]; n++) {
+        i1 = ii;
+        i2 = atom->map(xspecial[ii][n]);
+        jtype = type[i2];
+        if (!(mask[i1] & rxn.groupbits)) continue;
+        if (!(mask[i2] & rxn.groupbits)) continue;
+        if (i_limit_tags[i1] != 0) continue;
+        if (i_limit_tags[i2] != 0) continue;
 
-      if (rxn.molecule_keyword == Molecule_Keys::INTER) {
-        if (atom->molecule[i1] == atom->molecule[i2]) continue;
-      } else if (rxn.molecule_keyword == Molecule_Keys::INTRA) {
-        if (atom->molecule[i1] != atom->molecule[i2]) continue;
-      }
+        bool fwd = (itype == rxn.iatomtype && jtype == rxn.jatomtype);
+        bool rev = (itype == rxn.jatomtype && jtype == rxn.iatomtype);
+        if (!fwd && !rev) continue;
+        if (tag[i1] > tag[i2]) continue;
 
-      delx = x[i1][0] - x[i2][0];
-      dely = x[i1][1] - x[i2][1];
-      delz = x[i1][2] - x[i2][2];
-      domain->minimum_image(FLERR, delx,dely,delz); // ghost location fix
-      rsq = delx*delx + dely*dely + delz*delz;
+        if (rxn.molecule_keyword == Molecule_Keys::INTER) {
+          if (atom->molecule[i1] == atom->molecule[i2]) continue;
+        } else if (rxn.molecule_keyword == Molecule_Keys::INTRA) {
+          if (atom->molecule[i1] != atom->molecule[i2]) continue;
+        }
 
-      if (rxn.v_rmin > -1) {
-        double cutoff = input->variable->compute_equal(rxn.v_rmin);
-        rxn.rminsq = cutoff*cutoff;
-      }
-      if (rxn.v_rmax > -1) {
-        double cutoff = input->variable->compute_equal(rxn.v_rmax);
-        rxn.rmaxsq = cutoff*cutoff;
-      }
-      if (rsq >= rxn.rmaxsq || rsq <= rxn.rminsq) continue;
+        delx = x[i1][0] - x[i2][0];
+        dely = x[i1][1] - x[i2][1];
+        delz = x[i1][2] - x[i2][2];
+        domain->minimum_image(FLERR, delx,dely,delz); // ghost location fix
+        rsq = delx*delx + dely*dely + delz*delz;
 
-      ReactionAttempt rxn_attempt;
-      rxn_attempt.rxn_ids = {rxn.ID};
-      if (fwd) {
-        rxn_attempt.init_ids = {tag[i1], tag[i2]};
-        attempts.push_back(rxn_attempt);
-      }
-      if (rev) {
-        rxn_attempt.init_ids = {tag[i2], tag[i1]};
-        attempts.push_back(rxn_attempt);
+        if (rxn.v_rmin > -1) {
+          double cutoff = input->variable->compute_equal(rxn.v_rmin);
+          rxn.rminsq = cutoff*cutoff;
+        }
+        if (rxn.v_rmax > -1) {
+          double cutoff = input->variable->compute_equal(rxn.v_rmax);
+          rxn.rmaxsq = cutoff*cutoff;
+        }
+        if (rsq >= rxn.rmaxsq || rsq <= rxn.rminsq) continue;
+
+        ReactionAttempt rxn_attempt;
+        rxn_attempt.rxn_ids = {rxn.ID};
+        if (fwd) {
+          rxn_attempt.init_ids = {tag[i1], tag[i2]};
+          attempts.push_back(rxn_attempt);
+        }
+        if (rev) {
+          rxn_attempt.init_ids = {tag[i2], tag[i1]};
+          attempts.push_back(rxn_attempt);
+        }
       }
     }
   }

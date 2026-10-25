@@ -129,8 +129,8 @@ class FixBondReact : public Fix {
   bool compare_atomtype(int, Reaction &, int);
   double get_totalcharge(Reaction &, std::vector<tagint> &);
 
-  void far_partner(Reaction &);
-  void close_partner(Reaction &);
+  void far_partner(std::vector<int> &);
+  void close_partner(std::vector<int> &);
   void find_landlocked_atoms(Reaction &);
   void glove_ghostcheck();
   void ghost_glovecast();

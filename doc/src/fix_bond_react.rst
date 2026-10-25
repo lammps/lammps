@@ -119,7 +119,7 @@ creation of atoms within the reaction site.
 Fix bond/react does not use quantum mechanical (e.g., :doc:`fix qmmm <fix_qmmm>`) or
 pairwise bond-order potential (e.g., :doc:`Tersoff <pair_tersoff>` or
 :doc:`AIREBO <pair_airebo>`) methods to determine bonding changes a priori.
-Rather, it uses a probabilistic criteria to effect predetermined topology
+Rather, it uses probabilistic criteria to effect predetermined topology
 changes in simulations using standard force fields. Once a reaction site
 has been successfully identified, data structures within LAMMPS that store
 bond topology are updated to reflect the post-reaction molecule template.
@@ -355,31 +355,25 @@ can be functions of the reaction conversion using the following commands:
    fix myrxn all bond/react react myrxn1 all 1 0 v_rmax mol1 mol2 map_file.txt
    variable rmax equal 3+f_myrxn[1]/100 # arbitrary function of reaction count
 
-The following criteria are used if multiple candidate initiator atom
-pairs are identified within the cutoff distance:
+There could be two or more reaction sites that involve the same atom on the
+same time step. If this is the case, only one such reaction is permitted to
+occur. This capability allows, for example, different reaction pathways to
+proceed from identical reaction sites with user-specified reaction rates.
+Note that it can be helpful to select unique atom types for the initiator
+atoms for the sake of computational efficiency, to limit the amount of
+attempts to match the pre-reaction template to a reaction site. The
+following criteria are used if multiple eligible reaction sites are
+identified:
 
-  (1) If the initiator atoms in the pre-reaction template are not 1--2
-      neighbors (i.e., not directly bonded) the closest potential partner is
-      chosen.
-  (2) Otherwise, if the initiator atoms in the pre-reaction template are 1--2
-      neighbors (i.e. directly bonded) the farthest potential partner is
-      chosen.
-  (3) Then, if both an atom :math:`i` and atom :math:`j` have each other as
-      initiator partners, these two atoms are identified as the initiator atom
-      pair of the reaction site.
-
-Note that it can be helpful to select unique atom types for the
-initiator atoms: if an initiator atom pair is identified, as described
-in the previous steps, but it does not correspond to the same pair
-specified in the pre-reaction template, an otherwise eligible reaction
-could be prevented from occurring. Once this unique initiator atom
-pair is identified for each reaction, there could be two or more
-reactions that involve the same atom on the same time step. If this is
-the case, only one such reaction is permitted to occur. This reaction
-is chosen randomly from all potential reactions involving the
-overlapping atom. This capability allows, for example, different
-reaction pathways to proceed from identical reaction sites with
-user-specified probabilities.
+  (1) If different reactions are involved in the overlapping reaction sites,
+      the reactions are chosen randomly.
+  (2) If two overlapping sites correspond to the same reaction templates,
+      reactions are given preference based on the distance between
+      initiator atoms. If the initiator atoms in the pre-reaction template
+      are not 1--2 neighbors (i.e., not directly bonded) the closest
+      potential partner is chosen. Otherwise, if the initiator atoms in the
+      pre-reaction template are 1--2 neighbors (i.e. directly bonded) the
+      farthest potential partner is chosen.
 
 Molecule Templates and Map Files
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -417,7 +411,7 @@ edge atoms are considered "too near the edge."
    Small molecules (i.e., ones that have all their atoms contained
    within the reaction templates) never have edge atoms.
 
-Note that some care must be taken when a building a molecule template
+Note that some care must be taken when building a molecule template
 for a given simulation. All atom types in the pre-reaction template
 must be the same as those of a potential reaction site in the
 simulation. A detailed discussion of matching molecule template atom
@@ -785,7 +779,7 @@ side can be interpreted as the probability of the reaction occurring,
 similar to the 'arrhenius' constraint above.
 
 Combining Multiple Reaction Constraints
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 By default, all constraints must be satisfied for the reaction to
 occur. In other words, constraints are evaluated as a series of
@@ -977,7 +971,7 @@ create images like those shown below:
 ----------
 
 Restart, fix_modify, output, run start/stop, minimize info
-"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 Cumulative reaction counts for each reaction are written to :doc:`binary
 restart files <restart>`.  These values are associated with the reaction

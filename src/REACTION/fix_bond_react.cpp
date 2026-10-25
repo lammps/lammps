@@ -116,7 +116,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
   vector_flag = 1;
   global_freq = 1;
   extvector = 0;
-  cuff = 1;
+  cuff = 2;  // mega_glove rows: 0 = rxnID, 1 = initiator distance^2, [2 = total charge], then atom IDs
 
   nxspecial = nullptr;
   xspecial = nullptr;
@@ -442,7 +442,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
 
     if (rxn.rescale_charges_flag == 1) {
         rescale_charges_anyflag = 1;
-        cuff = 2; // index shift for extra values carried around by mega_gloves
+        cuff = 3; // index shift for extra values carried around by mega_gloves
     }
   }
 
@@ -773,6 +773,7 @@ void FixBondReact::init()
         error->all(FLERR,"Fix bond/react: Fix bond/react cutoff is longer than pairwise cutoff");
 
   // only far_partner uses it, so its cutoff need only reach the largest Rmax
+  // plus skin: the occasional list is only rebuilt on reneighboring steps
   auto *req = neighbor->add_request(this, NeighConst::REQ_OCCASIONAL);
   double cutmax = 0.0;
   bool anyfar = false, varcut = false;
@@ -782,7 +783,7 @@ void FixBondReact::init()
     if (rxn.v_rmax > -1) varcut = true;
     cutmax = MAX(cutmax, sqrt(rxn.rmaxsq));
   }
-  if (anyfar && !varcut) req->set_cutoff_fixed(cutmax);
+  if (anyfar && !varcut) req->set_cutoff_fixed(cutmax + neighbor->skin);
 
   lastcheck = -1;
 }
@@ -1014,6 +1015,7 @@ void FixBondReact::far_partner()
         if (rsq >= rxn.rmaxsq || rsq <= rxn.rminsq) continue;
 
         ReactionAttempt rxn_attempt;
+        rxn_attempt.rsq = rsq;
         if (itype == rxn.iatomtype && jtype == rxn.jatomtype) {
           rxn_attempt.init_ids = {tag[i], tag[j]};
           rxn_attempt.rxn_ids = {rxn.ID};
@@ -1106,6 +1108,7 @@ void FixBondReact::close_partner()
 
         ReactionAttempt rxn_attempt;
         rxn_attempt.rxn_ids = {rxn.ID};
+        rxn_attempt.rsq = rsq;
         if (fwd) {
           rxn_attempt.init_ids = {tag[i1], tag[i2]};
           attempts.push_back(rxn_attempt);
@@ -1147,7 +1150,8 @@ void FixBondReact::superimpose_algorithm()
     if (err_msg == "SUCCESS") { // magic string for successful topology match
       if (rxn.fraction < 1.0 && random[rxn.ID]->uniform() >= rxn.fraction) continue;
       my_mega_glove[0][my_num_mega] = (double) rxn.ID;
-      if (rxn.rescale_charges_flag) my_mega_glove[1][my_num_mega] = get_totalcharge(rxn, outglove);
+      my_mega_glove[1][my_num_mega] = rxn_attempt.rsq; // used by dedup to prefer closest (or, for 1-2, farthest) pairs
+      if (rxn.rescale_charges_flag) my_mega_glove[2][my_num_mega] = get_totalcharge(rxn, outglove);
       for (int i = 0; i < rxn.reactant->natoms; i++) {
         my_mega_glove[i+cuff][my_num_mega] = (double) outglove[i];
       }
@@ -1547,12 +1551,34 @@ void FixBondReact::dedup_mega_gloves(Dedup_Modes dedup_mode)
   }
   delete[] temp_rxn;
 
-  for (int i = 0; i < dedup_size; i++) {
+  // within each reaction, visit preferred initiator pairs first (row 1 of mega_glove = distance^2):
+  //   closest pair, except farthest pair when initiators are 1-2 neighbors (bond breaking)
+  // reactions keep their shuffled slots, so there is no preference between different reactions
+  // stable sort, so the shuffle above still breaks ties randomly
+  // survivors keep their shuffled order, which update_everything() relies on
+  std::vector<int> order(dedup_size);
+  {
+    std::vector<std::vector<int>> slots(rxns.size());   // shuffled positions held by each reaction
+    for (int i = 0; i < dedup_size; i++) slots[(int) dedup_glove[0][i]].push_back(i);
+    for (auto &rxn : rxns) {
+      auto &pos = slots[rxn.ID];
+      std::vector<int> pref(pos);
+      const double sign = (rxn.closeneigh == 0) ? -1.0 : 1.0;
+      std::stable_sort(pref.begin(), pref.end(), [&](int a, int b) {
+        return sign * dedup_glove[1][a] < sign * dedup_glove[1][b];
+      });
+      for (std::size_t k = 0; k < pos.size(); k++) order[pos[k]] = pref[k];
+    }
+  }
+
+  for (int oi = 0; oi < dedup_size; oi++) {
+    int i = order[oi];
     if (dedup_mask[i] == 0) {
       int myrxnid1 = dedup_glove[0][i]; // NOLINT
       for (int j = 0; j < rxns[myrxnid1].reactant->natoms; j++) {
         int check1 = dedup_glove[j+cuff][i]; // NOLINT
-        for (int ii = i + 1; ii < dedup_size; ii++) {
+        for (int oii = oi + 1; oii < dedup_size; oii++) {
+          int ii = order[oii];
           if (dedup_mask[ii] == 0) {
             int myrxnid2 = dedup_glove[0][ii]; // NOLINT
             for (int jj = 0; jj < rxns[myrxnid2].reactant->natoms; jj++) {
@@ -1874,7 +1900,7 @@ void FixBondReact::update_everything()
         }
         noccur[rxn.ID]++;
 
-        if (rxn.rescale_charges_flag) sim_total_charges[update_num_mega] = local_mega_glove[1][i];
+        if (rxn.rescale_charges_flag) sim_total_charges[update_num_mega] = local_mega_glove[2][i];
         update_num_mega++;
       }
       MPI_Allreduce(MPI_IN_PLACE, &noccur[0], rxns.size(), MPI_INT, MPI_SUM, world);
@@ -1901,7 +1927,7 @@ void FixBondReact::update_everything()
         noccur[rxn.ID]++;
         rxn.reaction_count_total++;
 
-        if (rxn.rescale_charges_flag) sim_total_charges[update_num_mega] = global_mega_glove[1][i];
+        if (rxn.rescale_charges_flag) sim_total_charges[update_num_mega] = global_mega_glove[2][i];
         update_num_mega++;
       }
     }

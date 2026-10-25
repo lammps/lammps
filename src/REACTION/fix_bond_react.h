@@ -105,7 +105,7 @@ class FixBondReact : public Fix {
   int **nxspecial;                                         // full number of 1-4 neighbors
   tagint **xspecial;                                       // full 1-4 neighbor list
 
-  int cuff;                                                // extra space in mega_gloves: default = 1, w/ rescale_charges_flag = 2
+  int cuff;                                                // extra space in mega_gloves: default = 2, w/ rescale_charges_flag = 3
   std::vector<std::vector<double>> my_mega_glove;          // local + ghostly reaction instances. for all mega_gloves: first row = rxnID.
   std::vector<std::vector<double>> local_mega_glove;       // consolidation of local reaction instances
   std::vector<std::vector<double>> ghostly_mega_glove;     // consolidation of nonlocal reaction instances
@@ -142,6 +142,7 @@ class FixBondReact : public Fix {
   struct ReactionAttempt {
     std::array<tagint, 2> init_ids;                        // stores sim atom IDs of initiator atoms
     std::vector<int> rxn_ids;                              // rxn IDs relevant to this reaction attempt
+    double rsq;                                            // squared initiator separation
   };
   std::vector<ReactionAttempt> attempts;
 

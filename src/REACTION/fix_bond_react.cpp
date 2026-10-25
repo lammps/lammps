@@ -893,6 +893,9 @@ void FixBondReact::post_integrate()
     return;
   }
 
+  commflag = 3;
+  comm->forward_comm(this);
+
   // evaluate custom constraint variable values here and forward_comm
   topo_matcher->rxn_constraints->get_customvars(igroup);
   commflag = 1;
@@ -978,6 +981,8 @@ void FixBondReact::far_partner(Reaction &rxn)
         if (xspecial[i][k] == tag[j]) possible = 0;
       if (!possible) continue;
 
+      if (!force->newton_pair && j >= atom->nlocal && tag[i] < tag[j]) continue;
+
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];
       delz = ztmp - x[j][2];
@@ -1044,7 +1049,11 @@ void FixBondReact::close_partner(Reaction &rxn)
       if (!(mask[i2] & rxn.groupbits)) continue;
       if (i_limit_tags[i1] != 0) continue;
       if (i_limit_tags[i2] != 0) continue;
-      if (itype != rxn.iatomtype || jtype != rxn.jatomtype) continue;
+
+      bool fwd = (itype == rxn.iatomtype && jtype == rxn.jatomtype);
+      bool rev = (itype == rxn.jatomtype && jtype == rxn.iatomtype);
+      if (!fwd && !rev) continue;
+      if (tag[i1] > tag[i2]) continue;
 
       if (rxn.molecule_keyword == Molecule_Keys::INTER) {
         if (atom->molecule[i1] == atom->molecule[i2]) continue;
@@ -1069,9 +1078,15 @@ void FixBondReact::close_partner(Reaction &rxn)
       if (rsq >= rxn.rmaxsq || rsq <= rxn.rminsq) continue;
 
       ReactionAttempt rxn_attempt;
-      rxn_attempt.init_ids = {tag[i1], tag[i2]};
       rxn_attempt.rxn_ids = {rxn.ID};
-      attempts.push_back(rxn_attempt);
+      if (fwd) {
+        rxn_attempt.init_ids = {tag[i1], tag[i2]};
+        attempts.push_back(rxn_attempt);
+      }
+      if (rev) {
+        rxn_attempt.init_ids = {tag[i2], tag[i1]};
+        attempts.push_back(rxn_attempt);
+      }
     }
   }
 }
@@ -1099,7 +1114,7 @@ void FixBondReact::superimpose_algorithm()
   // reaction constraints checked inside topo_matcher (for now)
   std::vector<tagint> outglove;
   for (auto &rxn_attempt : attempts) {
-    Reaction rxn = rxns[rxn_attempt.rxn_ids[0]];
+    Reaction &rxn = rxns[rxn_attempt.rxn_ids[0]];
     auto err_msg = topo_matcher->match_topology(outglove, rxn, rxn_attempt.init_ids);
     if (err_msg == "SUCCESS") { // magic string for successful topology match
       if (rxn.fraction < 1.0 && random[rxn.ID]->uniform() >= rxn.fraction) continue;

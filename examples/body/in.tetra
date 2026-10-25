@@ -2,38 +2,14 @@
 # models of the GRANULAR package
 #
 # 216 tetrahedra with random edge lengths from 1.0 to 2.0, random
-# orientations, and unit mass density share the rounded diameter 0.25.
+# orientations, and unit mass density share the rounded diameter 0.15.
 # The contacts use a Hertzian normal force from the elastic properties of
 # the bodies, a damping proportional to the effective mass, and a
-# tangential spring with the contact history.  The thermostat of fix
-# nvt/body replaces the energy dissipated by the contacts: a single
-# thermostat variable (tchain 1) and a short damping time are used, since
-# with a Nose-Hoover chain the temperature settles below T when energy is
-# removed all the time.
-# The stiffness E keeps the overlaps at T = 1 well below the rounded
-# radius 0.125, so that the cores of the bodies do not penetrate.
-#
-# The dilute lattice of data.tetra (volume fraction of the cores 0.016) is
-# compressed with fix deform to the volume fraction phi of the cores, and
-# then run in NVT at that density.  With unit density, mass(all) is the
-# total volume of the cores, so that v_phinow = mass(all)/vol.  The rounded
-# shell more than doubles the volume of a tetrahedron with an edge of 1.5,
-# so that phi = 0.25 is a dense packing.  The friction coefficient mu = 0.1
-# lets the bodies still rotate at this density; with mu = 0.5, the bodies
-# lock into each other and c_trot drops to nearly zero.  Higher densities,
-# such as phi = 0.35, require compressing gradually from an equilibrated
-# state at phi = 0.25, for example with fix npt/body; a fast compression
-# pushes the cores of the bodies into each other.
-#
-# The bodies start without rotation, so c_trot grows only through the
-# contacts.  Since the contacts dissipate energy and the thermostat scales
-# translation and rotation alike, the translational (c_ttra) and rotational
-# (c_trot) temperatures settle at different values, increasingly so at
-# higher density, while c_tb, over all 6 degrees of freedom, stays near T.
+# tangential spring with the contact history.
 
-variable    steps     index 5000
+variable    steps     index 2000
 variable    steps_compress index 10000
-variable    phi       index 0.25
+variable    phi       index 0.15
 variable    T         index 1.0
 
 units       lj
@@ -78,13 +54,13 @@ thermo_style custom step c_tb c_ttra c_trot pe c_p2 v_phinow
 thermo_modify norm yes
 thermo       500
 
-compute      1 all body/local id 1 2 3
-dump         1 all local 1000 dump.tetra.* index c_1[1] c_1[2] c_1[3] c_1[4]
+#compute      1 all body/local id 1 2 3
+#dump         1 all local 1000 dump.tetra.* index c_1[1] c_1[2] c_1[3] c_1[4]
 
-dump         viz all image 500 image.*.jpg type type size 800 800 zoom 1.24872 &
-                 shiny 0.2 fsaa yes ssao yes 4539 0.6 box yes 0.01 axes no 0.5 0.025 &
-                 view 75 5 body type 0 0
-dump_modify  viz pad 9 backcolor black acolor 1 gray
+#dump         viz all image 500 image.*.jpg type type size 800 800 zoom 1.24872 &
+#                 shiny 0.2 fsaa yes ssao yes 4539 0.6 box yes 0.01 axes no 0.5 0.025 &
+#                 view 75 5 body type 0 0
+#dump_modify  viz pad 9 backcolor black acolor 1 gray
 
 # compress the box to the volume fraction phi of the cores of the bodies,
 # with unit density, mass(all) is the total volume of the cores
@@ -92,7 +68,8 @@ dump_modify  viz pad 9 backcolor black acolor 1 gray
 variable     L equal (mass(all)/${phi})^(1.0/3.0)
 fix          2 all deform 1 x final 0 ${L} y final 0 ${L} z final 0 ${L} remap x
 run          ${steps_compress}
-unfix        2
 
-run          ${steps}
+#unfix        2
+
+#run          ${steps}
 

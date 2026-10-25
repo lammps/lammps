@@ -1,42 +1,18 @@
 LAMMPS (30 Sep 2026 - Development - patch_2Sep2026-616-g788646c5c4)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread.
   using 1 OpenMP thread(s) per MPI task
 # rounded regular tetrahedra of different sizes in NVT with the contact
 # models of the GRANULAR package
 #
 # 216 tetrahedra with random edge lengths from 1.0 to 2.0, random
-# orientations, and unit mass density share the rounded diameter 0.25
-# (data.tetra, written by: python3 gen_tetra.py 6 3.0 12345 > data.tetra).
+# orientations, and unit mass density share the rounded diameter 0.15.
 # The contacts use a Hertzian normal force from the elastic properties of
 # the bodies, a damping proportional to the effective mass, and a
-# tangential spring with the contact history.  The thermostat of fix
-# nvt/body replaces the energy dissipated by the contacts: a single
-# thermostat variable (tchain 1) and a short damping time are used, since
-# with a Nose-Hoover chain the temperature settles below T when energy is
-# removed all the time.
-# The stiffness E keeps the overlaps at T = 1 well below the rounded
-# radius 0.125, so that the cores of the bodies do not penetrate.
-#
-# The dilute lattice of data.tetra (volume fraction of the cores 0.016) is
-# compressed with fix deform to the volume fraction phi of the cores, and
-# then run in NVT at that density.  With unit density, mass(all) is the
-# total volume of the cores, so that v_phinow = mass(all)/vol.  The rounded
-# shell more than doubles the volume of a tetrahedron with an edge of 1.5,
-# so that phi = 0.25 is a dense packing.  The friction coefficient mu = 0.1
-# lets the bodies still rotate at this density; with mu = 0.5, the bodies
-# lock into each other and c_trot drops to nearly zero.  Higher densities,
-# such as phi = 0.35, require compressing gradually from an equilibrated
-# state at phi = 0.25, for example with fix npt/body; a fast compression
-# pushes the cores of the bodies into each other.
-#
-# The bodies start without rotation, so c_trot grows only through the
-# contacts.  Since the contacts dissipate energy and the thermostat scales
-# translation and rotation alike, the translational (c_ttra) and rotational
-# (c_trot) temperatures settle at different values, increasingly so at
-# higher density, while c_tb, over all 6 degrees of freedom, stays near T.
+# tangential spring with the contact history.
 
-variable    steps     index 5000
+variable    steps     index 2000
 variable    steps_compress index 10000
-variable    phi       index 0.25
+variable    phi       index 0.15
 variable    T         index 1.0
 
 units       lj
@@ -54,7 +30,7 @@ Reading data file ...
   reading atoms ...
   216 atoms
   216 bodies
-  read_data CPU = 0.005 seconds
+  read_data CPU = 0.004 seconds
 
 velocity    all create ${T} 4928459 dist gaussian mom yes rot yes
 velocity    all create 1.0 4928459 dist gaussian mom yes rot yes
@@ -99,21 +75,21 @@ thermo_style custom step c_tb c_ttra c_trot pe c_p2 v_phinow
 thermo_modify norm yes
 thermo       500
 
-compute      1 all body/local id 1 2 3
-dump         1 all local 1000 dump.tetra.* index c_1[1] c_1[2] c_1[3] c_1[4]
+#compute      1 all body/local id 1 2 3
+#dump         1 all local 1000 dump.tetra.* index c_1[1] c_1[2] c_1[3] c_1[4]
 
-dump         viz all image 500 image.*.jpg type type size 800 800 zoom 1.24872                  shiny 0.2 fsaa yes ssao yes 4539 0.6 box yes 0.01 axes no 0.5 0.025                  view 75 5 body type 0 0
-dump_modify  viz pad 9 backcolor black acolor 1 gray
+#dump         viz all image 500 image.*.jpg type type size 800 800 zoom 1.24872 #                 shiny 0.2 fsaa yes ssao yes 4539 0.6 box yes 0.01 axes no 0.5 0.025 #                 view 75 5 body type 0 0
+#dump_modify  viz pad 9 backcolor black acolor 1 gray
 
 # compress the box to the volume fraction phi of the cores of the bodies,
 # with unit density, mass(all) is the total volume of the cores
 
 variable     L equal (mass(all)/${phi})^(1.0/3.0)
-variable     L equal (mass(all)/0.25)^(1.0/3.0)
+variable     L equal (mass(all)/0.15)^(1.0/3.0)
 fix          2 all deform 1 x final 0 ${L} y final 0 ${L} z final 0 ${L} remap x
-fix          2 all deform 1 x final 0 7.22031001991094 y final 0 ${L} z final 0 ${L} remap x
-fix          2 all deform 1 x final 0 7.22031001991094 y final 0 7.22031001991094 z final 0 ${L} remap x
-fix          2 all deform 1 x final 0 7.22031001991094 y final 0 7.22031001991094 z final 0 7.22031001991094 remap x
+fix          2 all deform 1 x final 0 8.56062412205458 y final 0 ${L} z final 0 ${L} remap x
+fix          2 all deform 1 x final 0 8.56062412205458 y final 0 8.56062412205458 z final 0 ${L} remap x
+fix          2 all deform 1 x final 0 8.56062412205458 y final 0 8.56062412205458 z final 0 8.56062412205458 remap x
 run          ${steps_compress}
 run          10000
 Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
@@ -129,98 +105,58 @@ Neighbor list info ...
       pair build: half/bin/atomonly/newton
       stencil: half/bin/3d
       bin: standard
-Per MPI rank memory allocation (min/avg/max) = 13.71 | 13.71 | 13.71 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 13.4 | 13.4 | 13.4 Mbytes
    Step          c_tb          c_ttra         c_trot         PotEng          c_p2         v_phinow   
          0   0.49883991     1              0              0              0.036865569    0.016135782  
-       500   0.82561494     1.5710528      0.084017193   -0.019396734    0.070636597    0.017676613  
-      1000   1.7095508      2.8163821      0.6106709     -0.031008719    0.16477282     0.019420038  
-      1500   1.0767178      1.6338271      0.52461648    -0.042337227    0.13615973     0.021400482  
-      2000   0.56279986     0.83636074     0.29185664    -0.052609567    0.076940192    0.02365963   
-      2500   0.65598887     0.96241656     0.35261228    -0.049018272    0.11735139     0.026248286  
-      3000   1.3605046      1.8798506      0.84748645    -0.043661355    0.25093183     0.029228784  
-      3500   1.4446622      1.8264756      1.0695681     -0.051100037    0.268587       0.032678161  
-      4000   0.72246823     0.88611329     0.56218348    -0.076350193    0.16771439     0.036692369  
-      4500   0.59939503     0.7163797      0.48519824    -0.075001837    0.17018101     0.041391917  
-      5000   1.0106429      1.1795778      0.84640857    -0.08663692     0.29387627     0.046929537  
-      5500   1.5097699      1.822176       1.2043859     -0.1008399      0.45409769     0.053500691  
-      6000   1.004034       1.1410672      0.87167085    -0.10806572     0.51887676     0.061358202  
-      6500   0.67049303     0.79819507     0.54590957    -0.1536921      0.38714983     0.070832893  
-      7000   0.79817426     0.95142235     0.6486386     -0.16790806     0.63564494     0.082363162  
-      7500   1.2350269      1.499991       0.97580705    -0.22208947     1.1087394      0.09653812   
-      8000   1.2376569      1.4944444      0.98662585    -0.29491046     1.4203807      0.11416166   
-      8500   0.8633907      1.0073669      0.72343032    -0.41693652     1.6308349      0.13634968   
-      9000   0.84908332     1.084025       0.61809087    -0.48830793     2.9792344      0.16468098   
-      9500   1.1067212      1.3247983      0.89379159    -0.51783099     8.1296069      0.20143774   
-     10000   1.0090884      1.347761       0.67510933    -0.54678375     18.434355      0.25         
-Loop time of 46.0706 on 4 procs for 10000 steps with 216 atoms
+       500   0.82565229     1.5714492      0.083695648   -0.020312329    0.066890253    0.017474636  
+      1000   1.7035595      2.8226436      0.59239891    -0.022340647    0.16873966     0.018965802  
+      1500   1.0894889      1.6643271      0.519718      -0.048182883    0.11506511     0.020631572  
+      2000   0.56505091     0.82771366     0.3050163     -0.052315129    0.054126409    0.022498268  
+      2500   0.65860139     0.93407504     0.38619099    -0.052291082    0.083378876    0.024597122  
+      3000   1.3979438      1.9133256      0.88906402    -0.05694883     0.1805051      0.026965377  
+      3500   1.4380376      1.900319       0.98244486    -0.062409846    0.23009076     0.029647682  
+      4000   0.69284238     0.93004467     0.45886262    -0.067285823    0.10232583     0.032697869  
+      4500   0.57969212     0.7497433      0.41233718    -0.070045038    0.11606238     0.036181232  
+      5000   1.0366856      1.2419936      0.83619941    -0.066189872    0.31151334     0.040177481  
+      5500   1.557199       1.8079158      1.3137251     -0.10239796     0.34409692     0.044784597  
+      6000   0.95705915     1.0831956      0.83537409    -0.10250112     0.27193144     0.050123907  
+      6500   0.64200088     0.73372685     0.55326095    -0.1307772      0.22073864     0.056346842  
+      7000   0.82231488     0.89386243     0.75459204    -0.12904241     0.41126674     0.063644027  
+      7500   1.2606639      1.4452424      1.081949      -0.095503917    0.9550944      0.072257642  
+      8000   1.2423164      1.4285057      1.0619053     -0.12275619     1.1003843      0.08249845   
+      8500   0.85187786     0.96942729     0.73829065    -0.23376174     0.77353352     0.094769577  
+      9000   0.7733685      0.92573943     0.62459462    -0.28618369     0.83990936     0.10960018   
+      9500   1.0481209      1.2387347      0.86238207    -0.30145601     1.8200214      0.12769392   
+     10000   1.1966224      1.464397       0.93441349    -0.37780436     3.0899649      0.15         
+Loop time of 14.4578 on 4 procs for 10000 steps with 216 atoms
 
-Performance: 9376.914 tau/day, 217.058 timesteps/s, 46.885 katom-step/s
-99.0% CPU use with 4 MPI tasks x 1 OpenMP threads
-
-MPI task timing breakdown:
-Section |  min time  |  avg time  |  max time  |%varavg| %total
----------------------------------------------------------------
-Pair    | 18.315     | 18.322     | 18.329     |   0.1 | 39.77
-Neigh   | 0.0094202  | 0.010155   | 0.01059    |   0.4 |  0.02
-Comm    | 0.34128    | 0.34825    | 0.3543     |   0.8 |  0.76
-Output  | 18.787     | 25.083     | 27.219     |  72.6 | 54.45
-Modify  | 0.12742    | 0.13259    | 0.13583    |   0.9 |  0.29
-Other   |            | 2.174      |            |       |  4.72
-
-Nlocal:             54 ave          60 max          50 min
-Histogram: 1 1 0 0 0 1 0 0 0 1
-Nghost:         953.75 ave         978 max         936 min
-Histogram: 1 0 1 0 1 0 0 0 0 1
-Neighs:         3201.5 ave        3884 max        2945 min
-Histogram: 3 0 0 0 0 0 0 0 0 1
-
-Total # of neighbors = 12806
-Ave neighs/atom = 59.287037
-Neighbor list builds = 220
-Dangerous builds = 0
-unfix        2
-
-run          ${steps}
-run          5000
-Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
-Per MPI rank memory allocation (min/avg/max) = 15.81 | 16.02 | 16.54 Mbytes
-   Step          c_tb          c_ttra         c_trot         PotEng          c_p2         v_phinow   
-     10000   1.0090884      1.347761       0.67510933    -0.53322409     18.714719      0.25         
-     10500   1.0048326      1.5968204      0.41751838    -0.88099319     12.443389      0.25         
-     11000   0.97145821     1.5890846      0.35835024    -0.89449741     11.977275      0.25         
-     11500   1.031377       1.724832       0.34271909    -0.94292317     10.373325      0.25         
-     12000   1.0311402      1.7230808      0.34399556    -0.9289506      11.249677      0.25         
-     12500   1.0328075      1.7032893      0.36712938    -0.8509719      14.283772      0.25         
-     13000   0.92161001     1.4980605      0.34944606    -0.88910579     12.320126      0.25         
-     13500   0.99547288     1.6699194      0.32565649    -0.96358393     11.205666      0.25         
-     14000   1.0369394      1.7429188      0.33578291    -0.87243944     13.21247       0.25         
-     14500   0.89948417     1.5065241      0.29662788    -0.95431706     11.5267        0.25         
-     15000   0.9559456      1.6402544      0.27608307    -0.96481259     10.306219      0.25         
-Loop time of 50.692 on 4 procs for 5000 steps with 216 atoms
-
-Performance: 4261.028 tau/day, 98.635 timesteps/s, 21.305 katom-step/s
-99.4% CPU use with 4 MPI tasks x 1 OpenMP threads
+Performance: 29880.012 tau/day, 691.667 timesteps/s, 149.400 katom-step/s
+99.5% CPU use with 4 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 39.438     | 39.442     | 39.446     |   0.0 | 77.81
-Neigh   | 0.0081903  | 0.0086959  | 0.0094358  |   0.6 |  0.02
-Comm    | 0.41118    | 0.41577    | 0.42004    |   0.5 |  0.82
-Output  | 2.0676     | 8.5477     | 10.725     | 128.0 | 16.86
-Modify  | 0.067687   | 0.069534   | 0.071725   |   0.7 |  0.14
-Other   |            | 2.208      |            |       |  4.36
+Pair    | 13.949     | 13.956     | 13.96      |   0.1 | 96.53
+Neigh   | 0.0089943  | 0.0095294  | 0.0099599  |   0.4 |  0.07
+Comm    | 0.31734    | 0.3209     | 0.32616    |   0.6 |  2.22
+Output  | 0.00064173 | 0.00066844 | 0.00073698 |   0.0 |  0.00
+Modify  | 0.12954    | 0.1322     | 0.13334    |   0.4 |  0.91
+Other   |            | 0.03898    |            |       |  0.27
 
-Nlocal:             54 ave          60 max          50 min
-Histogram: 2 0 0 0 0 0 1 0 0 1
-Nghost:          952.5 ave         983 max         925 min
-Histogram: 2 0 0 0 0 0 0 0 1 1
-Neighs:         3271.5 ave        4022 max        2686 min
-Histogram: 1 0 0 1 1 0 0 0 0 1
+Nlocal:             54 ave          57 max          49 min
+Histogram: 1 0 0 0 0 0 1 0 1 1
+Nghost:         702.75 ave         714 max         688 min
+Histogram: 1 0 1 0 0 0 0 0 0 2
+Neighs:        1940.75 ave        2023 max        1752 min
+Histogram: 1 0 0 0 0 0 0 0 2 1
 
-Total # of neighbors = 13086
-Ave neighs/atom = 60.583333
-Neighbor list builds = 78
+Total # of neighbors = 7763
+Ave neighs/atom = 35.939815
+Neighbor list builds = 231
 Dangerous builds = 0
 
-Total wall time: 0:01:38
+#unfix        2
+
+#run          ${steps}
+
+Total wall time: 0:00:14

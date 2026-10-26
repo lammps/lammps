@@ -268,8 +268,6 @@ including ellipsoids, granular superellipsoids, 2d lines, and 3d triangles.
 * :doc:`pair_style line/lj <pair_line_lj>`
 * :doc:`pair_style tri/lj <pair_tri_lj>`
 * :doc:`pair_style granular/superellipsoid <pair_granular_superellipsoid>`
-* `doc/PDF/pair_gayberne_extra.pdf <PDF/pair_gayberne_extra.pdf>`_
-* `doc/PDF/pair_resquared_extra.pdf <PDF/pair_resquared_extra.pdf>`_
 * ``examples/ASPHERE``
 * ``examples/ellipse``
 * https://www.lammps.org/examples/line/

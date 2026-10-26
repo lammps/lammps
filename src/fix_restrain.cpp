@@ -55,7 +55,7 @@ FixRestrain::FixRestrain(LAMMPS *lmp, int narg, char **arg) :
   global_freq = 1;
   extscalar = 1;
   vector_flag = 1;
-  size_vector = 3;
+  size_vector = 4;
   extvector = 1;
   energy_global_flag = 1;
   respa_level_support = 1;
@@ -716,14 +716,14 @@ double FixRestrain::compute_vector(int n)
     MPI_Allreduce(&ebond,&ebond_all,1,MPI_DOUBLE,MPI_SUM,world);
     return ebond_all;
   } else if (n == 1) {
-    MPI_Allreduce(&elbound,&elbound_all,1,MPI_DOUBLE,MPI_SUM,world);
-    return elbound_all;
-  } else if (n == 3) {
     MPI_Allreduce(&eangle,&eangle_all,1,MPI_DOUBLE,MPI_SUM,world);
     return eangle_all;
-  } else if (n == 4) {
+  } else if (n == 2) {
     MPI_Allreduce(&edihed,&edihed_all,1,MPI_DOUBLE,MPI_SUM,world);
     return edihed_all;
+  } else if (n == 3) {
+    MPI_Allreduce(&elbound,&elbound_all,1,MPI_DOUBLE,MPI_SUM,world);
+    return elbound_all;
   } else {
     return 0.0;
   }

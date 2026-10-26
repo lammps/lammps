@@ -240,7 +240,7 @@ outermost level.
    system (the quantity being minimized), you MUST enable the
    :doc:`fix_modify <fix_modify>` *energy* option for this fix.
 
-This fix computes a global scalar and a global vector of length 3,
+This fix computes a global scalar and a global vector of length 4,
 which can be accessed by various :doc:`output commands <Howto_output>`.
 The scalar is the total potential energy for *all* the restraints as
 discussed above. The vector values are the sum of contributions to the
@@ -249,6 +249,13 @@ following individual categories:
   #. bond energy
   #. angle energy
   #. dihedral energy
+  #. lower-bound (*lbound*) energy
+
+.. versionchanged:: TBD
+
+   The vector has four elements.  Before this version it had three, and
+   they held the bond energy, the *lbound* energy, and zero, so the angle
+   and dihedral energies were not accessible.
 
 The scalar and vector values calculated by this fix are "extensive".
 

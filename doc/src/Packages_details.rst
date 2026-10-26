@@ -1530,7 +1530,7 @@ Ontario).
 **Install:**
 
 The LATBOLTZ package requires that LAMMPS is built in :ref:`MPI parallel
-mode <serial>`.
+mode <build_serial>`.
 
 **Supporting info:**
 
@@ -2923,7 +2923,8 @@ Forschungszentrum Juelich.
 
 This package has :ref:`specific installation instructions <scafacos>` on
 the :doc:`Build extras <Build_extras>` page.  The SCAFACOS package
-requires that LAMMPS is built in :ref:`MPI parallel mode <serial>`.
+requires that LAMMPS is built in :ref:`MPI parallel mode
+<build_serial>`.
 
 **Supporting info:**
 

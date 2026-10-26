@@ -93,6 +93,8 @@ Packages howto
    Howto_peri
    Howto_manifold
    Howto_rheo
+   Howto_sph
+   Howto_machdyn
    Howto_spins
    Howto_apip
    Howto_ldd

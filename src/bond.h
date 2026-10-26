@@ -44,6 +44,7 @@ class Bond : protected Pointers {
 
   int single_extra;    // number of extra single values calculated
   double *svector;     // vector of extra single quantities
+  int single_type_only;    // 1 when single() probes a type rather than real atoms
 
   // KOKKOS host/device flag and data masks
 

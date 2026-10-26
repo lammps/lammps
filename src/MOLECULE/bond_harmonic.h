@@ -22,7 +22,11 @@ BondStyle(harmonic,BondHarmonic);
 
 #include "bond.h"
 
+#include <vector>
+
 namespace LAMMPS_NS {
+
+class BondDegradation;
 
 class BondHarmonic : public Bond {
  public:
@@ -42,6 +46,10 @@ class BondHarmonic : public Bond {
   double *k, *r0;
 
   virtual void allocate();
+
+ private:
+  std::vector<const BondDegradation *> get_degradation_sources() const;
+  double degradation_scale(int, int, int, const std::vector<const BondDegradation *> &) const;
 };
 
 }    // namespace LAMMPS_NS

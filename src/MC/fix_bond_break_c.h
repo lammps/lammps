@@ -21,12 +21,16 @@ FixStyle(bond/break/c,FixBondBreakC);
 #define LMP_FIX_BOND_BREAK_C_H
 
 #include "fix.h"
+#include "bond_degradation.h"
 
+#include <array>
+#include <set>
 #include <unordered_map>
+#include <vector>
 
 namespace LAMMPS_NS {
 
-class FixBondBreakC : public Fix {
+class FixBondBreakC : public Fix, public BondDegradation {
   friend class FixSRPREACT;
 
  public:
@@ -44,6 +48,10 @@ class FixBondBreakC : public Fix {
   double compute_vector(int) override;
   int modify_param(int, char **) override;
   double memory_usage() override;
+  void *extract(const char *, int &) override;
+  double bond_scale(tagint, tagint, int) const override;
+  void write_restart(FILE *) override;
+  void restart(char *) override;
 
   int image(int *&, double **&) override;
 
@@ -51,6 +59,9 @@ class FixBondBreakC : public Fix {
   int me, nprocs;
   int btype, seed;
   double maxcutoff, maxcutsq, mincutoff, mincutsq, fraction;
+  // Canonical atom IDs and original bond type; independent of local indices.
+  using BondKey = std::array<tagint, 3>;
+  std::set<BondKey> degraded_bonds;
   int angleflag, dihedralflag, improperflag;
   bigint lastcheck;
 
@@ -79,6 +90,8 @@ class FixBondBreakC : public Fix {
   std::unordered_map<tagint, int> vizatoms;
   int vizsteps;    // number of steps to highlight atoms in reactions
 
+  static BondKey bond_key(tagint, tagint, int);
+  void synchronize_degraded_bonds(const std::vector<tagint> &);
   void check_ghosts();
   void update_topology();
   void break_angles(int, tagint, tagint);

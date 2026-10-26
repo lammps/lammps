@@ -14,12 +14,16 @@
 #include "bond_harmonic.h"
 
 #include "atom.h"
+#include "bond_degradation.h"
 #include "comm.h"
 #include "error.h"
+#include "fix.h"
 #include "force.h"
 #include "memory.h"
+#include "modify.h"
 #include "neighbor.h"
 
+#include <algorithm>
 #include <cmath>
 #include <cstring>
 
@@ -52,6 +56,7 @@ void BondHarmonic::compute(int eflag, int vflag)
 
   ebond = 0.0;
   ev_init(eflag, vflag);
+  const auto degradation_sources = get_degradation_sources();
 
   double **x = atom->x;
   double **f = atom->f;
@@ -72,7 +77,7 @@ void BondHarmonic::compute(int eflag, int vflag)
     rsq = delx * delx + dely * dely + delz * delz;
     r = sqrt(rsq);
     dr = r - r0[type];
-    rk = k[type] * dr;
+    rk = degradation_scale(i1, i2, type, degradation_sources) * k[type] * dr;
 
     // force & energy
 
@@ -189,11 +194,12 @@ void BondHarmonic::write_data(FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-double BondHarmonic::single(int type, double rsq, int /*i*/, int /*j*/, double &fforce)
+double BondHarmonic::single(int type, double rsq, int i, int j, double &fforce)
 {
+  const auto degradation_sources = get_degradation_sources();
   double r = sqrt(rsq);
   double dr = r - r0[type];
-  double rk = k[type] * dr;
+  double rk = degradation_scale(i, j, type, degradation_sources) * k[type] * dr;
   fforce = 0;
   if (r > 0.0) fforce = -2.0 * rk / r;
   return rk * dr;
@@ -201,14 +207,49 @@ double BondHarmonic::single(int type, double rsq, int /*i*/, int /*j*/, double &
 
 /* ---------------------------------------------------------------------- */
 
-void BondHarmonic::born_matrix(int type, double rsq, int /*i*/, int /*j*/, double &du, double &du2)
+void BondHarmonic::born_matrix(int type, double rsq, int i, int j, double &du, double &du2)
 {
+  const auto degradation_sources = get_degradation_sources();
   double r = sqrt(rsq);
   double dr = r - r0[type];
   du2 = 0.0;
   du = 0.0;
-  du2 = 2 * k[type];
+  du2 = 2 * degradation_scale(i, j, type, degradation_sources) * k[type];
   if (r > 0.0) du = du2 * dr;
+}
+
+/* ----------------------------------------------------------------------
+   discover providers at each entry point so adding/replacing/removing a
+   fix cannot leave stale pointers, including between run commands
+------------------------------------------------------------------------- */
+
+std::vector<const BondDegradation *> BondHarmonic::get_degradation_sources() const
+{
+  std::vector<const BondDegradation *> sources;
+  for (int n = 0; n < modify->nfix; n++) {
+    int dim = 0;
+    auto *source = static_cast<BondDegradation *>(
+        modify->fix[n]->extract("bond_degradation", dim));
+    if (source) sources.push_back(source);
+  }
+  return sources;
+}
+
+/* ---------------------------------------------------------------------- */
+
+double BondHarmonic::degradation_scale(
+    int i, int j, int type, const std::vector<const BondDegradation *> &sources) const
+{
+  // bond_write can pass atom types in place of atom indices. Its probes
+  // describe the original type potential, independently of damaged bonds.
+  if (single_type_only || sources.empty() || i == j || i < 0 || j < 0 ||
+      i >= atom->nlocal + atom->nghost || j >= atom->nlocal + atom->nghost)
+    return 1.0;
+
+  double scale = 1.0;
+  for (const auto *source : sources)
+    scale = std::min(scale, source->bond_scale(atom->tag[i], atom->tag[j], type));
+  return scale;
 }
 
 /* ----------------------------------------------------------------------

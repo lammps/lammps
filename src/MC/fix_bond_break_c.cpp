@@ -10,6 +10,68 @@
    the GNU General Public License.
 
    See the README file in the top-level LAMMPS directory.
+
+  UPDATED: 26/10/2026
+  @TIANLE HUANG
+  Email to: n12280020@qut.edu.au
+
+   bond/break/c V1.2 维护说明
+
+   1. 命令与开发者参数
+      命令格式沿用 V1.1，不新增退化参数或模型键类型：
+      fix ID group-ID bond/break/c Nevery btype Rmax Rmin [prob fraction seed]
+      每隔 Nevery 步检查指定 btype，键两端原子均须属于指定 group。
+      要求 Nevery > 0、0 <= Rmin < Rmax；prob 默认 fraction=1.0。
+      DEGRADATION_RATIO 是本文件中的 C++ 开发者接口，默认值 0.1，
+      表示失效后保留 10% 的键作用强度；修改后重新编译即可进行比例测试。
+      有效范围为 0 < DEGRADATION_RATIO <= 1，由 static_assert 检查。
+
+   2. 两种失效路径
+      拉伸 r > Rmax：沿用 fix bond/break 的永久删键流程，删除受影响的
+      angle/dihedral/improper，更新 special 邻居关系并减少系统总键数。
+      压缩 r < Rmin：仅记录逐键损伤，保留原始 atom->bond_type、共享的
+      bond_coeff、键拓扑、多体项及 special 邻居关系；系统总键数不变。
+      r 恰好等于任一阈值时不触发相应失效。
+
+   3. 候选选择与损伤标记
+      拉伸评分为 r^2/Rmax^2，压缩评分为 Rmin^2/r^2；零距离压缩使用
+      最大有限评分。每个原子选择评分最高的伙伴，同分时选择较小原子 ID。
+      双方互选且通过概率判断后才执行失效，每次检查每个原子最多参与一次。
+      degraded_bonds 使用 (较小原子 ID, 较大原子 ID, 原始 bond type)
+      作为唯一标识，不依赖本地原子下标或邻居表顺序，不改变模型的键类型。
+      原模型可包含多种键类；每个 fix 仍仅监控命令指定的 btype。
+      已标记键退出本命令的后续失效筛选，包括后续拉伸筛选；不会自动恢复，
+      也不会重复退化。比例为 1 时仍会记录失效并退出后续筛选。
+
+   4. 与键势计算的连接
+      bond_degradation.h 定义内部查询接口；本 fix 通过
+      extract("bond_degradation", dim) 暴露损伤查询，避免键势依赖 MC 类。
+      普通 bond_harmonic.cpp 按具体键查询比例，以 K_effective=ratio*K[type]
+      计算键力和势能，r0[type] 保持不变；维里随缩放后的键力一致统计。
+      single() 和 born_matrix() 使用相同比例，确保 bond/local 查询及
+      Born 导数一致。bond.cpp/bond.h 的 single_type_only 标志用于使
+      bond_write 导出原始类型势函数，独立于具体键的损伤状态。
+      扩展其他键势时须同时接入实际计算、单键查询和相关导数计算路径。
+
+   5. MPI、生命周期与重启
+      每次仅同步新增损伤记录，各 MPI 进程均保存完整历史；原子 ID 以整数
+      通信，因此原子排序、跨进程迁移和邻居表重建不会丢失损伤标记。
+      连续 run 不清空历史。write_restart/restart 保存并恢复损伤键与计数，
+      读取重启文件后须重新声明相同 ID、style 和 btype 的 fix。
+      重启中的损伤键使用当前编译版本的 DEGRADATION_RATIO。
+      普通 write_data 仅保存现有模型拓扑及类型/系数，不包含内部损伤历史。
+      损伤记录属于该 fix；unfix 会移除其退化作用，已永久删除的拉伸键不恢复。
+
+   6. 统计、支持范围与维护检查
+      f_ID[1] 为最近一次检查的事件数，f_ID[2] 为累计事件数，均同时包含
+      拉伸删键和压缩退化；同一事件只计一次。总键数仅因拉伸删键而减少。
+      压缩退化当前仅支持普通 bond_style harmonic；hybrid 和 harmonic
+      加速版本尚未接入。Rmin=0 且无损伤历史时仍允许原有纯拉伸删除流程。
+      修改后重点检查原类型/系数不变、多键类互不影响、力/能量/维里比例、
+      special 邻居保持、Newton on/off、MPI 迁移及重启恢复。
+      若新增成键、原子 ID 重编号或损伤清除功能，须同步维护损伤键的标识与历史；
+      大规模体系还需关注每个 MPI 进程保存完整损伤集合的内存开销。
+
 ------------------------------------------------------------------------- */
 
 #include "fix_bond_break_c.h"
@@ -29,15 +91,26 @@
 
 #include "fix_bond_history.h"
 
+#include <algorithm>
 #include <cstring>
 #include <limits>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-// bond/break/c v1.1:
+// bond/break/c v1.2:
 // tensile failure permanently deletes topology as in fix bond/break;
-// compression failure negates the bond type and preserves all topology.
+// compression failure records internal per-bond damage, preserving the
+// original bond type, coefficients, and all topology. Plain harmonic uses
+// this record to scale force, energy, virial, and single-bond queries.
+// Syntax is unchanged from v1.1:
+// fix ID group bond/break/c Nevery btype Rmax Rmin [prob fraction seed]
+
+// Developer interface: retained interaction strength after compression
+// failure. Change this constant and rebuild for convergence studies.
+static constexpr double DEGRADATION_RATIO = 0.1;
+static_assert(DEGRADATION_RATIO > 0.0 && DEGRADATION_RATIO <= 1.0,
+              "DEGRADATION_RATIO must be greater than 0 and at most 1");
 
 static constexpr int DELTA = 16;
 
@@ -62,6 +135,7 @@ FixBondBreakC::FixBondBreakC(LAMMPS *lmp, int narg, char **arg) :
   size_vector = 2;
   global_freq = 1;
   extvector = 0;
+  restart_global = 1;
 
   vizsteps = 1000;
 
@@ -175,6 +249,14 @@ int FixBondBreakC::setmask()
 
 void FixBondBreakC::init()
 {
+  // Other styles (including accelerated harmonic variants) do not consume
+  // the internal damage record. Tensile-only use remains unrestricted.
+
+  if (mincutoff > 0.0 || !degraded_bonds.empty()) {
+    if (!force->bond || strcmp(force->bond_style,"harmonic") != 0)
+      error->all(FLERR,"Fix bond/break/c compression degradation requires bond_style harmonic");
+  }
+
   if (utils::strmatch(update->integrate_style,"^respa"))
     nlevels_respa = (dynamic_cast<Respa *>(update->integrate))->nlevels;
 
@@ -249,6 +331,7 @@ void FixBondBreakC::post_integrate()
   int *mask = atom->mask;
   int **bondlist = neighbor->bondlist;
   int nbondlist = neighbor->nbondlist;
+  auto breakfixes = modify->get_fix_by_style("^bond/break/c$");
 
   for (n = 0; n < nbondlist; n++) {
     i1 = bondlist[n][0];
@@ -257,6 +340,18 @@ void FixBondBreakC::post_integrate()
     if (!(mask[i1] & groupbit)) continue;
     if (!(mask[i2] & groupbit)) continue;
     if (type != btype) continue;
+
+    // Like the negative types in v1.1, damaged bonds no longer participate
+    // in failure selection, even if another instance of this fix marked them.
+
+    const auto key = bond_key(tag[i1],tag[i2],type);
+    bool degraded = false;
+    for (auto *ifix : breakfixes)
+      if (static_cast<FixBondBreakC *>(ifix)->degraded_bonds.count(key)) {
+        degraded = true;
+        break;
+      }
+    if (degraded) continue;
 
     delx = x[i1][0] - x[i2][0];
     dely = x[i1][1] - x[i2][1];
@@ -327,6 +422,7 @@ void FixBondBreakC::post_integrate()
 
   nbreak = 0;
   ndelete = 0;
+  std::vector<tagint> newly_degraded;
   for (i = 0; i < nlocal; i++) {
     if (partner[i] == 0) continue;
     j = atom->map(partner[i]);
@@ -356,16 +452,12 @@ void FixBondBreakC::post_integrate()
 
     if (compression_failure) {
 
-      // Compression failure: retain the bond topology but negate its type.
-      // LAMMPS excludes negative bond types from bond force/energy lists.
-      // Keeping the topology also preserves angles, dihedrals, impropers,
-      // and the existing 1-2/1-3/1-4 special-neighbor relationships.
+      // Record once, on the owner of the smaller atom ID. Keep the original
+      // bond type and all topology; harmonic applies the effective stiffness.
 
-      for (m = 0; m < num_bond[i]; m++) {
-        if (bond_atom[i][m] == partner[i] && bond_type[i][m] == btype) {
-          bond_type[i][m] = -bond_type[i][m];
-          break;
-        }
+      if (tag[i] < tag[j]) {
+        const auto key = bond_key(tag[i],tag[j],btype);
+        newly_degraded.insert(newly_degraded.end(),key.begin(),key.end());
       }
 
     } else {
@@ -410,7 +502,7 @@ void FixBondBreakC::post_integrate()
       if (tag[i] < tag[j]) ndelete++;
     }
 
-    // Count both tensile deletion and compression deactivation as one event.
+    // Count both tensile deletion and compression degradation as one event.
 
     if (tag[i] < tag[j]) nbreak++;
 
@@ -427,6 +519,11 @@ void FixBondBreakC::post_integrate()
   MPI_Allreduce(&ndelete,&deletecount,1,MPI_INT,MPI_SUM,world);
   breakcounttotal += breakcount;
   atom->nbonds -= deletecount;
+
+  // Replicate new records before atom migration and force evaluation. All
+  // ranks then recognize damage regardless of which rank owns either atom.
+
+  if (breakcount > deletecount) synchronize_degraded_bonds(newly_degraded);
 
   // trigger reneighboring if any bonds were broken
   // this ensures neigh lists will immediately reflect the topology changes
@@ -920,6 +1017,105 @@ double FixBondBreakC::compute_vector(int n)
   return (double) breakcounttotal;
 }
 
+/* ---------------------------------------------------------------------- */
+
+FixBondBreakC::BondKey FixBondBreakC::bond_key(tagint id1, tagint id2, int type)
+{
+  return {std::min(id1,id2), std::max(id1,id2), type};
+}
+
+/* ---------------------------------------------------------------------- */
+
+void *FixBondBreakC::extract(const char *str, int &dim)
+{
+  if (strcmp(str,"bond_degradation") == 0) {
+    dim = 0;
+    return static_cast<BondDegradation *>(this);
+  }
+  return nullptr;
+}
+
+/* ---------------------------------------------------------------------- */
+
+double FixBondBreakC::bond_scale(tagint id1, tagint id2, int type) const
+{
+  return degraded_bonds.count(bond_key(id1,id2,type)) ? DEGRADATION_RATIO : 1.0;
+}
+
+/* ----------------------------------------------------------------------
+   synchronize only new records; atom IDs are transmitted as integers
+------------------------------------------------------------------------- */
+
+void FixBondBreakC::synchronize_degraded_bonds(const std::vector<tagint> &local)
+{
+  if (local.size() > MAXSMALLINT)
+    error->one(FLERR,"Too many new degraded bonds in fix bond/break/c");
+  int nsend = static_cast<int>(local.size());
+  std::vector<int> counts(nprocs), offsets(nprocs);
+  MPI_Allgather(&nsend,1,MPI_INT,counts.data(),1,MPI_INT,world);
+
+  bigint total = 0;
+  for (int p = 0; p < nprocs; p++) {
+    if (total + counts[p] > MAXSMALLINT)
+      error->all(FLERR,"Too many new degraded bonds in fix bond/break/c");
+    offsets[p] = static_cast<int>(total);
+    total += counts[p];
+  }
+
+  std::vector<tagint> records(total);
+  MPI_Allgatherv(local.data(),nsend,MPI_LMP_TAGINT,records.data(),counts.data(),
+                 offsets.data(),MPI_LMP_TAGINT,world);
+  for (bigint n = 0; n < total; n += 3)
+    degraded_bonds.insert({records[n], records[n+1], records[n+2]});
+}
+
+/* ----------------------------------------------------------------------
+   global fix restart state; ordinary data files intentionally contain
+   only the unchanged model types and coefficients, not damage history
+------------------------------------------------------------------------- */
+
+void FixBondBreakC::write_restart(FILE *fp)
+{
+  if (me != 0) return;
+
+  const size_t nvalues = 5 + 3*degraded_bonds.size();
+  if (nvalues > MAXSMALLINT/sizeof(double))
+    error->one(FLERR,"Too many degraded bonds for fix bond/break/c restart");
+
+  std::vector<double> values(nvalues);
+  values[0] = 1.0;    // internal restart format version
+  values[1] = btype;
+  values[2] = breakcount;
+  values[3] = breakcounttotal;
+  values[4] = static_cast<double>(degraded_bonds.size());
+  size_t n = 5;
+  for (const auto &key : degraded_bonds)
+    for (auto value : key) values[n++] = ubuf(value).d;
+
+  int size = static_cast<int>(nvalues*sizeof(double));
+  fwrite(&size,sizeof(int),1,fp);
+  fwrite(values.data(),sizeof(double),nvalues,fp);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixBondBreakC::restart(char *buf)
+{
+  auto *values = reinterpret_cast<double *>(buf);
+  if (values[0] != 1.0 || values[1] != btype)
+    error->all(FLERR,"Incompatible fix bond/break/c restart state or bond type");
+  breakcount = static_cast<int>(values[2]);
+  breakcounttotal = static_cast<int>(values[3]);
+  const int nrecords = static_cast<int>(values[4]);
+  degraded_bonds.clear();
+  size_t n = 5;
+  for (int k = 0; k < nrecords; k++) {
+    BondKey key;
+    for (auto &value : key) value = static_cast<tagint>(ubuf(values[n++]).i);
+    degraded_bonds.insert(key);
+  }
+}
+
 /* ----------------------------------------------------------------------
    memory usage of local atom-based arrays
 ------------------------------------------------------------------------- */
@@ -929,6 +1125,8 @@ double FixBondBreakC::memory_usage()
   int nmax = atom->nmax;
   double bytes = 2*nmax * sizeof(tagint);
   bytes += (double)nmax * sizeof(double);
+  // Approximate tree-node storage in addition to the keys themselves.
+  bytes += degraded_bonds.size() * (sizeof(BondKey) + 4*sizeof(void *));
   return bytes;
 }
 

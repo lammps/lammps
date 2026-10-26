@@ -56,6 +56,7 @@ Bond::Bond(LAMMPS *_lmp) :
   partial_flag = 0;
 
   single_extra = 0;
+  single_type_only = 0;
 
   maxeatom = maxvatom = 0;
 
@@ -422,11 +423,13 @@ void Bond::write_file(int narg, char **arg)
     fprintf(fp, "\n%s\nN %d EQ %.15g\n\n", arg[5], n, r0);
 
     const double dr = (outer - inner) / static_cast<double>(n - 1);
+    single_type_only = 1;
     for (int i = 0; i < n; i++) {
       r = inner + dr * static_cast<double>(i);
       e = single(btype, r * r, itype, jtype, f);
       fprintf(fp, "%8d %- 22.15g %- 22.15g %- 22.15g\n", i + 1, r, e, f * r);
     }
+    single_type_only = 0;
   }
 }
 

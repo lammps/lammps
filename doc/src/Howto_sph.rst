@@ -1,9 +1,10 @@
 Smoothed particle hydrodynamics (SPH)
 =====================================
 
-**written by Georg C. Ganzenmueller, Martin O. Steinhauser, and Paul
-Van Liedekerke in 2011, converted to reStructuredText and updated for
-current LAMMPS in 2026 by Axel Kohlmeyer**
+*written by Georg C. Ganzenmueller, Martin O. Steinhauser, and Paul Van
+Liedekerke in 2011; converted from* ``SPH_LAMMPS_userguide.pdf`` *to
+reStructuredText and updated for current LAMMPS by Axel Kohlmeyer in
+2026*
 
 ----
 

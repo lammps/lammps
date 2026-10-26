@@ -1,9 +1,9 @@
 Smoothed Mach dynamics (MACHDYN)
 ================================
 
-**written by Georg C. Ganzenmueller in 2015, converted to
-reStructuredText and updated for current LAMMPS in 2026 by Axel
-Kohlmeyer**
+*written by Georg C. Ganzenmueller in 2015; converted from*
+``MACHDYN_LAMMPS_userguide.pdf`` *to reStructuredText and updated for
+current LAMMPS by Axel Kohlmeyer in 2026*
 
 ----
 

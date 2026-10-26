@@ -26,21 +26,16 @@ discussion, note that users can also :doc:`add their own computes and
 fixes to LAMMPS <Modify>` which can generate values that can then be
 output with these commands.
 
+----
+
 The following subsections discuss different LAMMPS commands related
 to output and the kind of data they operate on and produce:
 
-* :ref:`Global/per-atom/local/per-grid data <global>`
-* :ref:`Scalar/vector/array data <scalar>`
-* :ref:`Disambiguation <disambiguation>`
-* :ref:`Thermodynamic output <thermo>`
-* :ref:`Dump file output <dump>`
-* :ref:`Fixes that write output files <fixoutput>`
-* :ref:`Computes that process output quantities <computeoutput>`
-* :ref:`Fixes that process output quantities <fixprocoutput>`
-* :ref:`Computes that generate values to output <compute>`
-* :ref:`Fixes that generate values to output <fix>`
-* :ref:`Variables that generate values to output <variable>`
-* :ref:`Summary table of output options and data flow between commands <table>`
+.. contents::
+   :local:
+   :depth: 1
+
+----
 
 .. _global:
 

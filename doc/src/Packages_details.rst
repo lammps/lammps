@@ -1594,9 +1594,10 @@ MACHDYN package
 **Contents:**
 
 An atom style, fixes, computes, and several pair styles which
-implements smoothed Mach dynamics (SMD) for solids, which is a model
-related to smoothed particle hydrodynamics (SPH) for liquids (see the
-:ref:`SPH package <PKG-SPH>`).
+implement smoothed Mach dynamics (SMD) for solids and fluids, which is a
+model related to smoothed particle hydrodynamics (SPH) for liquids (see
+the :ref:`SPH package <PKG-SPH>`).  See the :doc:`Howto machdyn
+<Howto_machdyn>` page for an overview.
 
 This package solves solids mechanics problems via a state of the art
 stabilized meshless method with hourglass control.  It can specify
@@ -1618,7 +1619,7 @@ This package has :ref:`specific installation instructions <machdyn>` on the :doc
 
 * ``src/MACHDYN``: filenames -> commands
 * ``src/MACHDYN/README``
-* `doc/PDF/MACHDYN_LAMMPS_userguide.pdf <PDF/MACHDYN_LAMMPS_userguide.pdf>`_
+* :doc:`Howto machdyn <Howto_machdyn>`
 * ``examples/PACKAGES/machdyn``
 
 ----------
@@ -2994,15 +2995,15 @@ SPH package
 **Contents:**
 
 An atom style, fixes, computes, and several pair styles which
-implements smoothed particle hydrodynamics (SPH) for liquids.  See the
-related :ref:`MACHDYN package <PKG-MACHDYN>` package for smooth Mach dynamics
+implement smoothed particle hydrodynamics (SPH) for liquids.  See the
+:doc:`Howto sph <Howto_sph>` page for an overview.  See the related
+:ref:`MACHDYN package <PKG-MACHDYN>` package for smooth Mach dynamics
 (SMD) for solids.
 
 This package contains ideal gas, Lennard-Jones equation of states, Tait,
 and full support for complete (i.e. internal-energy dependent) equations
-of state.  It allows for plain or Monaghans XSPH integration of the
-equations of motion.  It has options for density continuity or density
-summation to propagate the density field.  It has :doc:`set <set>`
+of state.  It has options for density continuity or density summation
+to propagate the density field.  It has :doc:`set <set>`
 command options to set the internal energy and density of particles from
 the input script and allows the same quantities to be output with
 thermodynamic output or to dump files via the :doc:`compute
@@ -3015,15 +3016,9 @@ Dynamics, Ernst Mach Institute, Germany).
 
 * ``src/SPH``: filenames -> commands
 * ``src/SPH/README``
-* `doc/PDF/SPH_LAMMPS_userguide.pdf <PDF/SPH_LAMMPS_userguide.pdf>`_
+* :doc:`Howto sph <Howto_sph>`
 * ``examples/PACKAGES/sph``
 * https://www.lammps.org/gallery/sph/
-
-.. note::
-
-   Please note that the SPH PDF guide file has not been updated for
-   many years and thus does not reflect the current *syntax* of the
-   SPH package commands. For that please refer to the LAMMPS manual.
 
 .. note::
 

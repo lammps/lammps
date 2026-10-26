@@ -597,7 +597,7 @@ void PairULSPH::compute(int eflag, int vflag) {
 
                                 // tally atomistic stress tensor
                                 if (evflag) {
-                                        ev_tally_xyz(i, j, nlocal, 0, 0.0, 0.0, sumForces(0), sumForces(1), sumForces(2), dx(0), dx(1), dx(2));
+                                        ev_tally_xyz(i, j, nlocal, 0, 0.0, 0.0, sumForces(0), sumForces(1), sumForces(2), -dx(0), -dx(1), -dx(2));
                                 }
                         }
 

@@ -495,7 +495,7 @@ Viscoelastic Solid (VES) Model
 The linear peridynamic viscoelastic solid (VES) model of pair style
 *peri/ves* extends the LPS model by a viscoelastic response to shear
 deformation.  The model and its time integration were developed by
-:ref:`(Mitchell 2011) <Mitchell2011_2>`, and it was implemented in
+:ref:`(Mitchell) <Mitchell2011_2>`, and it was implemented in
 LAMMPS by R. Rahman and J. T. Foster.  The response to a volume change
 is the same as for the LPS model, while the deviatoric part of the force
 scalar state consists of an elastic and a viscous part:
@@ -528,7 +528,7 @@ In LAMMPS, the deviatoric extension and the back extension of each bond
 are stored at the end of every time step, and the back extension is
 initially zero.  Assuming that the deviatoric extension changes linearly
 during a time step of length :math:`\Delta t`, the evolution equation of
-the back extension is integrated exactly :ref:`(Mitchell 2011)
+the back extension is integrated exactly :ref:`(Mitchell)
 <Mitchell2011_2>`:
 
 .. math::
@@ -551,7 +551,7 @@ Elastic-Plastic Solid (EPS) Model
 
 The elastic-plastic solid (EPS) model of pair style *peri/eps* extends
 the LPS model by plastic deformation, following the ordinary state-based
-plasticity model of :ref:`(Mitchell 2011a) <Mitchell2011a_2>`.  It was
+plasticity model of :ref:`(Mitchell2) <Mitchell2011a_2>`.  It was
 also implemented in LAMMPS by R. Rahman and J. T. Foster.  As for the
 VES model, the response to a volume change is the same as for the LPS
 model.  The deviatoric extension state is split into an elastic and a
@@ -610,7 +610,7 @@ scaled back to the yield surface, while the plastic extension grows:
 In LAMMPS, the plastic extension of each bond is stored at the end of
 every time step, and it is initially zero.  Since the influence function
 used in LAMMPS (see the note in the LPS section above) has units of
-inverse length, while :ref:`(Mitchell 2011a) <Mitchell2011a_2>` assumes
+inverse length, while :ref:`(Mitchell2) <Mitchell2011a_2>` assumes
 a dimensionless influence function, the increment of the plastic
 extension of a bond is multiplied by half of its reference length
 :math:`\left\Vert \boldsymbol{\xi} \right\Vert / 2`.  The sum of the
@@ -1370,12 +1370,12 @@ perturbed using the :doc:`displace_atoms <displace_atoms>` command.
 
 .. _Mitchell2011_2:
 
-**(Mitchell 2011)** Mitchell, A non-local, ordinary-state-based
+**(Mitchell)** Mitchell, A non-local, ordinary-state-based
 viscoelasticity model for peridynamics, Sandia National Lab Report
 SAND2011-8064 (2011).
 
 .. _Mitchell2011a_2:
 
-**(Mitchell 2011a)** Mitchell, A nonlocal, ordinary, state-based
+**(Mitchell2)** Mitchell, A nonlocal, ordinary, state-based
 plasticity model for peridynamics, Sandia National Lab Report
 SAND2011-3166 (2011).

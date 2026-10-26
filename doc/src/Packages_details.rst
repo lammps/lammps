@@ -2457,9 +2457,6 @@ Foster (UTSA).
 
 * ``src/PERI``: filenames -> commands
 * :doc:`Peridynamics Howto <Howto_peri>`
-* `doc/PDF/PDLammps_overview.pdf <PDF/PDLammps_overview.pdf>`_
-* `doc/PDF/PDLammps_EPS.pdf <PDF/PDLammps_EPS.pdf>`_
-* `doc/PDF/PDLammps_VES.pdf <PDF/PDLammps_VES.pdf>`_
 * :doc:`atom_style peri <atom_style>`
 * :doc:`pair_style peri/\* <pair_peri>`
 * :doc:`compute damage/atom <compute_damage_atom>`

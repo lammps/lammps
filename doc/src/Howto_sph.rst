@@ -151,7 +151,7 @@ SPH theory
 This section gives a concise introduction to SPH for fluids.  For more
 detailed information, please see the books by Hoover
 :ref:`(Hoover2006) <howto_sph_hoover>` and by Liu and Liu
-:ref:`(Liu) <howto_sph_liu>`; this Howto follows the presentation in
+:ref:`(Liu and Liu) <howto_sph_liu>`; this Howto follows the presentation in
 the book by Hoover.  SPH solves the equations of continuum mechanics in
 the Lagrangian frame, where the governing partial differential equations
 describe the co-moving evolution of the mass density :math:`\rho`, the
@@ -787,7 +787,7 @@ the Art, World Scientific, Singapore (2006).
 
 .. _howto_sph_liu:
 
-**(Liu)** Liu and Liu, Smoothed Particle Hydrodynamics: A Meshfree
+**(Liu and Liu)** Liu and Liu, Smoothed Particle Hydrodynamics: A Meshfree
 Particle Method, World Scientific, Singapore (2003).
 
 .. _howto_sph_monaghan:

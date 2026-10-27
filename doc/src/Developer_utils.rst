@@ -514,8 +514,6 @@ A typical code segment would look like this:
 
 ----------
 
-.. _safe-pointer-classes:
-
 Safe pointer classes
 --------------------
 
@@ -631,8 +629,6 @@ entire file is read and its triangles are returned in one call.
    :members:
 
 ----------
-
-.. _file-writer-classes:
 
 File writer classes
 -------------------

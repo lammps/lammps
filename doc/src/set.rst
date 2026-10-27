@@ -567,14 +567,8 @@ calculates particle mass from the provided mass density value.
 
 Keywords *sph/cv*, *sph/e*, and *sph/rho* set the heat capacity,
 energy, and density of smoothed particle hydrodynamics (SPH)
-particles.  See `this PDF guide <PDF/SPH_LAMMPS_userguide.pdf>`_ to
+particles.  See the :doc:`Howto sph <Howto_sph>` page for an introduction to
 using SPH in LAMMPS.
-
-.. note::
-
-   Note that the SPH PDF guide file has not been updated for many
-   years and thus does not reflect the current *syntax* of the SPH
-   package commands. For that, please refer to the LAMMPS manual.
 
 .. versionchanged:: 15Sep2022
 

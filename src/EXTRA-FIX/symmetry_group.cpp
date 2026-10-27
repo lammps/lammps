@@ -22,6 +22,7 @@
 #include <cstdint>
 #include <cstdio>
 #include <stdexcept>
+#include <unordered_map>
 
 using namespace LAMMPS_NS;
 
@@ -93,7 +94,10 @@ bool is_identity(const SymmOp &op)
 
 /* ---------------------------------------------------------------------- */
 
-SymmetryGroup::SymmetryGroup(LAMMPS *lmp) : Pointers(lmp), group_name("unknown") {}
+SymmetryGroup::SymmetryGroup(LAMMPS *lmp) : Pointers(lmp), group_name("unknown")
+{
+  ncell[0] = ncell[1] = ncell[2] = 1;
+}
 
 /* ----------------------------------------------------------------------
    Convert an operator in the coordinate triplet notation of the
@@ -213,6 +217,12 @@ void SymmetryGroup::read(const char *filename)
   populate(data);
   compute_inverses();
   validate_group();
+
+  // the operators of a supercell form a group if those of the unit cell do
+  if ((ncell[0] > 1) || (ncell[1] > 1) || (ncell[2] > 1)) {
+    apply_supercell();
+    compute_inverses();
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -234,7 +244,6 @@ void SymmetryGroup::read(const char *filename)
 
 void SymmetryGroup::populate(const json &data)
 {
-  int ncell[3] = {1, 1, 1};
   try {
     if (!data.is_object()) throw std::invalid_argument("the file must contain a JSON object");
     for (const auto &item : data.items()) {
@@ -306,8 +315,6 @@ void SymmetryGroup::populate(const json &data)
     error->all(FLERR, Error::NOLASTLINE,
                "Fix symmetry: the operators in the symmetry file must include the identity x,y,z");
   std::swap(ops[0], ops[ident]);
-
-  if ((ncell[0] > 1) || (ncell[1] > 1) || (ncell[2] > 1)) apply_supercell(ncell);
 }
 
 /* ----------------------------------------------------------------------
@@ -318,7 +325,7 @@ void SymmetryGroup::populate(const json &data)
    operator is combined with all of them.
 ------------------------------------------------------------------------- */
 
-void SymmetryGroup::apply_supercell(const int ncell[3])
+void SymmetryGroup::apply_supercell()
 {
   std::vector<SymmOp> cellops;
   for (int o = 0; o < static_cast<int>(ops.size()); ++o) {
@@ -378,17 +385,44 @@ void SymmetryGroup::compute_inverses()
 /* ----------------------------------------------------------------------
    The operators must be distinct and form a group: the product of any
    two operators must be in the list, up to a lattice translation.
+   Operators are looked up through a hash of the matrix and the translation
+   rounded to a grid, with a search of the whole list as fallback for
+   translations close to a grid boundary.
 ------------------------------------------------------------------------- */
+
+namespace {
+std::size_t op_hash(const double R[3][3], const double t[3])
+{
+  std::size_t h = 0;
+  for (int i = 0; i < 3; ++i)
+    for (int j = 0; j < 3; ++j) h = h * 31 + static_cast<std::size_t>(std::lround(R[i][j]) + 7);
+  for (int i = 0; i < 3; ++i)
+    h = h * 65599 + static_cast<std::size_t>(std::llround(wrap01(t[i]) * 65536.0) & 0xffff);
+  return h;
+}
+}    // namespace
 
 void SymmetryGroup::validate_group()
 {
   const int N = static_cast<int>(ops.size());
-  for (int a = 0; a < N; ++a)
-    for (int b = a + 1; b < N; ++b)
-      if (R_equal(ops[a].R, ops[b].R) && t_equal_mod1(ops[a].t, ops[b].t))
-        error->all(FLERR, Error::NOLASTLINE,
-                   "Fix symmetry: operators {} and {} in the symmetry file are the same", a + 1,
-                   b + 1);
+  std::unordered_multimap<std::size_t, int> index;
+
+  auto find_op = [&](const double R[3][3], const double t[3]) {
+    auto range = index.equal_range(op_hash(R, t));
+    for (auto it = range.first; it != range.second; ++it)
+      if (R_equal(R, ops[it->second].R) && t_equal_mod1(t, ops[it->second].t)) return it->second;
+    for (int c = 0; c < static_cast<int>(index.size()); ++c)
+      if (R_equal(R, ops[c].R) && t_equal_mod1(t, ops[c].t)) return c;
+    return -1;
+  };
+
+  for (int a = 0; a < N; ++a) {
+    const int b = find_op(ops[a].R, ops[a].t);
+    if (b >= 0)
+      error->all(FLERR, Error::NOLASTLINE,
+                 "Fix symmetry: operators {} and {} in the symmetry file are the same", b + 1, a + 1);
+    index.emplace(op_hash(ops[a].R, ops[a].t), a);
+  }
 
   for (int a = 0; a < N; ++a) {
     for (int b = 0; b < N; ++b) {
@@ -405,14 +439,7 @@ void SymmetryGroup::validate_group()
         for (int k = 0; k < 3; ++k) s += ops[a].R[i][k] * ops[b].t[k];
         tab[i] = s;
       }
-      bool found = false;
-      for (int c = 0; c < N; ++c) {
-        if (R_equal(Rab, ops[c].R) && t_equal_mod1(tab, ops[c].t)) {
-          found = true;
-          break;
-        }
-      }
-      if (!found)
+      if (find_op(Rab, tab) < 0)
         error->all(FLERR, Error::NOLASTLINE,
                    "Fix symmetry: the operators do not form a group: the combination of operators "
                    "{} and {} is missing",

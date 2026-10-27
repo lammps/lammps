@@ -48,9 +48,10 @@ class SymmetryGroup : protected Pointers {
  private:
   std::string group_name;
   std::vector<SymmOp> ops;
+  int ncell[3];    // unit cells in the box from the "supercell" entry
 
   void populate(const json &data);
-  void apply_supercell(const int ncell[3]);
+  void apply_supercell();
   void compute_inverses();
   void validate_group();
 };

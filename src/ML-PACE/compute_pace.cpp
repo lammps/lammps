@@ -289,7 +289,8 @@ void ComputePACE::compute_array()
       Array1D<DOUBLE_TYPE> Bs = acecimpl->ace->projections;
 
       for (int jj = 0; jj < jnum; jj++) {
-        const int j = jlist[jj];
+        int j = jlist[jj];
+        j &= NEIGHMASK;
         //replace mapping of jj to j
         if (!dgradflag) {
           double *pacedi = pace_peratom[i]+typeoffset_local;
@@ -352,7 +353,7 @@ void ComputePACE::compute_array()
         for (int i = 0; i < ntotal; i++) {
           double *pacedi = pace_peratom[i]+typeoffset_local;
           int iglobal = atom->tag[i];
-          int irow = 3*(iglobal-1)+1;
+          int irow = 3*(iglobal-1)+bik_rows;
           pace[irow++][icoeff+typeoffset_global] += pacedi[icoeff];
           pace[irow++][icoeff+typeoffset_global] += pacedi[icoeff+yoffset];
           pace[irow][icoeff+typeoffset_global] += pacedi[icoeff+zoffset];
@@ -365,7 +366,7 @@ void ComputePACE::compute_array()
     // accumulate forces to global array
     for (int i = 0; i < atom->nlocal; i++) {
       int iglobal = atom->tag[i];
-      int irow = 3*(iglobal-1)+1;
+      int irow = 3*(iglobal-1)+bik_rows;
       pace[irow++][lastcol] = atom->f[i][0];
       pace[irow++][lastcol] = atom->f[i][1];
       pace[irow][lastcol] = atom->f[i][2];

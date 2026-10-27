@@ -1,0 +1,166 @@
+LAMMPS (30 Sep 2026 - Development - patch_30Sep2026-523-gdbc38a263e-modified)
+  using 1 OpenMP thread(s) per MPI task
+dimension          2
+units              si
+atom_style         sph
+
+# create simulation box
+region             box block -0.050e-3 1.044e-3 -0.05e-3 1.044e-3 -1.0e-6 1.0e-6 units box
+create_box         3 box
+Created orthogonal box = (-5e-05 -5e-05 -1e-06) to (0.001044 0.001044 1e-06)
+  1 by 1 by 1 MPI processor grid
+
+# create fluid particles
+region             fluid block 0.0001e-3 0.999e-3 0.0001e-3 0.999e-3 EDGE EDGE side in units box
+lattice            sq 0.025e-3
+Lattice spacing in x,y,z = 2.5e-05 2.5e-05 2.5e-05
+create_atoms       1 region fluid
+Created 1521 atoms
+  using lattice units in orthogonal box = (-5e-05 -5e-05 -1e-06) to (0.001044 0.001044 1e-06)
+  create_atoms CPU = 0.000 seconds
+
+# create bottom, left, and right wall
+region             walls block 0.0001e-3 0.999e-3 0.0001e-3 EDGE EDGE EDGE side out units box
+lattice            sq2 0.025e-3
+Lattice spacing in x,y,z = 2.5e-05 2.5e-05 2.5e-05
+create_atoms       2 region walls
+Created 593 atoms
+  using lattice units in orthogonal box = (-5e-05 -5e-05 -1e-06) to (0.001044 0.001044 1e-06)
+  create_atoms CPU = 0.000 seconds
+
+# create a driver strip of particles, which exerts shear forces on the fluid
+region             driver block EDGE EDGE 0.999e-3 EDGE EDGE EDGE side in units box
+create_atoms       3 region driver
+Created 176 atoms
+  using lattice units in orthogonal box = (-5e-05 -5e-05 -1e-06) to (0.001044 0.001044 1e-06)
+  create_atoms CPU = 0.000 seconds
+
+group              fluid type 1
+1521 atoms in group fluid
+group              walls type 2
+593 atoms in group walls
+group              driver type 3
+176 atoms in group driver
+group              integrate_full union fluid driver
+1697 atoms in group integrate_full
+
+mass               3 2.0e-7
+mass               2 2.0e-7
+mass               1 4.0e-7
+set                group all sph/rho 1000.0
+Setting atom values ...
+  2290 settings made for sph/rho
+
+# use Tait's EOS in combination with Morris' laminar viscosity.
+# We set rho_0 = 1000 kg/m^3, c = 0.1 m/s, h = 6.5e-5 m.
+# The dynamic viscosity is set to 1.0e-3 Pa s, corresponding to a kinematic viscosity of 1.0e-6 m^2/s
+pair_style         hybrid sph/taitwater/morris
+pair_coeff         * *    sph/taitwater/morris 1000 0.1 1.0e-3 6.5e-5
+pair_coeff         2 3    none # exclude interaction between walls and shear driver
+
+compute            rho_peratom all sph/rho/atom
+compute            e_peratom all sph/e/atom
+compute            ke_peratom all ke/atom
+compute            esph all reduce sum c_e_peratom
+compute            ke all ke
+variable           etot equal c_ke+c_esph
+
+# assign a constant velocity to shear driver
+velocity           driver set 0.001 0.0 0.0 units box
+fix                freeze_fix driver setforce 0.0 0.0 0.0
+
+# do full time integration for shear driver and fluid, but keep walls stationary
+fix                integrate_fix_full integrate_full sph
+fix                integrate_fix_stationary walls sph/stationary
+
+dump               dump_id all custom 100 dump.lammpstrj id type xs ys zs vx vy c_rho_peratom c_e_peratom
+dump_modify        dump_id first yes
+thermo             100
+thermo_style       custom step c_esph v_etot press
+thermo_modify      norm no
+
+neighbor           3.0e-6 bin
+timestep           5.0e-5
+run                4000
+Generated 0 of 3 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 6.8e-05
+  ghost atom cutoff = 6.8e-05
+  binsize = 3.4e-05, bins = 33 33 1
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair sph/taitwater/morris, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/2d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 4.253 | 4.253 | 4.253 Mbytes
+   Step         c_esph         v_etot         Press     
+         0   0              1.76e-11       1.470544e-05 
+       100   2.3479313e-11  4.5328e-11     4.6140567e-05
+       200   4.3378256e-11  6.697001e-11   0.00012100987
+       300   6.4157338e-11  8.9069634e-11  0.00022710149
+       400   8.5351036e-11  1.1204554e-10  0.00034844503
+       500   1.0728048e-10  1.3536346e-10  0.00047757198
+       600   1.2952955e-10  1.5827965e-10  0.00062174127
+       700   1.5167068e-10  1.8062246e-10  0.00078463038
+       800   1.7356688e-10  2.0269142e-10  0.00096414425
+       900   1.9566136e-10  2.2501758e-10  0.0011560907 
+      1000   2.1841578e-10  2.4788506e-10  0.0013536484 
+      1100   2.4152902e-10  2.7117482e-10  0.0015540248 
+      1200   2.6468199e-10  2.9468825e-10  0.0017618584 
+      1300   2.8798411e-10  3.1825757e-10  0.0019821657 
+      1400   3.1144893e-10  3.4177787e-10  0.0022115754 
+      1500   3.3491798e-10  3.6522853e-10  0.0024431279 
+      1600   3.5822312e-10  3.8847916e-10  0.0026759305 
+      1700   3.8136549e-10  4.1150682e-10  0.0029150105 
+      1800   4.0435126e-10  4.3440211e-10  0.003161501  
+      1900   4.2726664e-10  4.5735486e-10  0.0034055089 
+      2000   4.5026478e-10  4.8046636e-10  0.003630348  
+      2100   4.7320233e-10  5.0346315e-10  0.0038225132 
+      2200   4.9585045e-10  5.2608523e-10  0.0039834711 
+      2300   5.1798683e-10  5.4815365e-10  0.0041248937 
+      2400   5.3954566e-10  5.6964887e-10  0.0042526121 
+      2500   5.6047584e-10  5.9055507e-10  0.004366269  
+      2600   5.8089517e-10  6.1097644e-10  0.0044746608 
+      2700   6.0088359e-10  6.309578e-10   0.004599488  
+      2800   6.2023154e-10  6.5022506e-10  0.0047618838 
+      2900   6.3898628e-10  6.6881492e-10  0.0049490274 
+      3000   6.5763126e-10  6.872667e-10   0.0051285575 
+      3100   6.7661416e-10  7.0606807e-10  0.0052830096 
+      3200   6.9609291e-10  7.2541438e-10  0.0054102604 
+      3300   7.1595767e-10  7.4524873e-10  0.0055096136 
+      3400   7.3604879e-10  7.6542366e-10  0.0055794603 
+      3500   7.5639266e-10  7.8590507e-10  0.0056214415 
+      3600   7.7702844e-10  8.0665598e-10  0.0056442289 
+      3700   7.9802433e-10  8.2771576e-10  0.0056584514 
+      3800   8.1915893e-10  8.4886728e-10  0.0056768656 
+      3900   8.4019688e-10  8.6987769e-10  0.0057147803 
+      4000   8.6094883e-10  8.9056153e-10  0.0057844206 
+Loop time of 1.43725 on 1 procs for 4000 steps with 2290 atoms
+
+99.6% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 1.1974     | 1.1974     | 1.1974     |   0.0 | 83.31
+Neigh   | 0.035449   | 0.035449   | 0.035449   |   0.0 |  2.47
+Comm    | 0.029939   | 0.029939   | 0.029939   |   0.0 |  2.08
+Output  | 0.093463   | 0.093463   | 0.093463   |   0.0 |  6.50
+Modify  | 0.068053   | 0.068053   | 0.068053   |   0.0 |  4.73
+Other   |            | 0.01294    |            |       |  0.90
+
+Nlocal:           2290 ave        2290 max        2290 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:            930 ave         930 max         930 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:          29799 ave       29799 max       29799 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 29799
+Ave neighs/atom = 13.012664
+Neighbor list builds = 133
+Dangerous builds = 0
+Total wall time: 0:00:01

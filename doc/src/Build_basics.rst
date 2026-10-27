@@ -4,15 +4,13 @@ Basic build options
 The following topics are covered on this page, for building with both
 CMake and make:
 
-* :ref:`Serial vs parallel build <serial>`
-* :ref:`Choice of compiler and compile/link options <compile>`
-* :ref:`Build the LAMMPS executable and library <exe>`
-* :ref:`Including and removing debug support <debug>`
-* :ref:`Install LAMMPS after a build <install>`
+.. contents::
+   :local:
+   :depth: 2
 
 ----------
 
-.. _serial:
+.. _build_serial:
 
 Serial vs parallel build
 ------------------------
@@ -159,8 +157,6 @@ flag that enables OpenMP.  For the GNU compilers or Clang, it is
 ``-fopenmp``\ .  For (recent) Intel compilers, it is ``-qopenmp``\ .  If
 you are using a different compiler, please refer to its documentation.
 
-.. _default-none-issues:
-
 OpenMP Compiler compatibility
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -176,8 +172,6 @@ while configuring with CMake.  LAMMPS will auto-detect a suitable setting
 for most GNU, Clang, and Intel compilers.
 
 ----------
-
-.. _compile:
 
 Choice of compiler and compile/link options
 ---------------------------------------------------------
@@ -343,8 +337,7 @@ LAMMPS.
 
 ----------
 
-.. _exe:
-.. _library:
+.. _build_exe:
 
 Build the LAMMPS executable and library
 ---------------------------------------
@@ -454,7 +447,7 @@ installation.
 
 ----------
 
-.. _debug:
+.. _build_debug:
 
 Including or removing debug support
 -----------------------------------
@@ -483,7 +476,7 @@ the debug information from the LAMMPS executable:
 
 ----------
 
-.. _tools:
+.. _build_tools:
 
 Build LAMMPS tools
 ------------------
@@ -522,8 +515,6 @@ using CMake or Make.
          Building LAMMPS-GUI *requires* building LAMMPS with CMake.
 
 ----------
-
-.. _install:
 
 Install LAMMPS after a build
 ------------------------------------------

@@ -522,13 +522,17 @@ void PairSWAngleTable::compute_table(Table *tb,int length)
   // de,df values = delta values of e,f
   // ang,e,f are N in length so de,df arrays can compute difference
 
+  // the spline interpolation also reads entry itable+1 in the last bin, where its
+  // weight is zero up to rounding, so e, f, e2, f2 carry one extra zero entry
+
   memory->create(tb->ang, length, "angle:ang");
-  memory->create(tb->e, length, "angle:e");
+  memory->create(tb->e, length + 1, "angle:e");
   memory->create(tb->de, length, "angle:de");
-  memory->create(tb->f, length, "angle:f");
+  memory->create(tb->f, length + 1, "angle:f");
   memory->create(tb->df, length, "angle:df");
-  memory->create(tb->e2, length, "angle:e2");
-  memory->create(tb->f2, length, "angle:f2");
+  memory->create(tb->e2, length + 1, "angle:e2");
+  memory->create(tb->f2, length + 1, "angle:f2");
+  tb->e[length] = tb->f[length] = tb->e2[length] = tb->f2[length] = 0.0;
 
   double a;
   for (int i = 0; i < length; i++) {

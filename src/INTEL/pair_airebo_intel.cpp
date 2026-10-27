@@ -148,6 +148,8 @@ void aut_frebo(KernelArgsAIREBOT<flt_t,acc_t> * ka, int torsion_flag);
 PairAIREBOIntel::PairAIREBOIntel(LAMMPS *lmp) : PairAIREBO(lmp)
 {
   suffix_flag |= Suffix::INTEL;
+  // parameters are copied to packed arrays in init_style(), fix adapt would not update them
+  reinitflag = 0;
   REBO_cnumneigh = nullptr;
   REBO_num_skin = nullptr;
   REBO_list_data = nullptr;

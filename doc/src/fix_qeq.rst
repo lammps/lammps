@@ -331,9 +331,9 @@ backward compatibility, the default taper width is zero.
 .. versionadded:: TBD
 
 The *qeq/point/xlmd*, *qeq/shielded/xlmd*, and *qeq/slater/xlmd* styles
-use the same charge models as their parent styles, but employ the
-extended-Lagrangian scheme of :ref:`(Nomura) <Nomura2015>` instead of
-iterating the charges to self-consistency on every step.  Auxiliary
+use the same charge models as their parent styles, but employ an
+extended-Lagrangian scheme based on :ref:`(Nomura) <Nomura2015>` instead
+of iterating the charges to self-consistency on every step.  Auxiliary
 per-atom variables, which follow the self-consistent solution through a
 harmonic coupling, are propagated time-reversibly by a Verlet
 integrator alongside the atoms.  On each timestep they provide the
@@ -343,31 +343,42 @@ fixed number of conjugate gradient iterations (keyword *xlcg*, default
 charge equilibration several-fold (typically 5x to 8x) while conserving
 the total energy far better than simply truncating or loosening the
 converged solve, which can heat up the system or become unstable within
-a few hundred steps.
+a few hundred steps.  Unlike the published scheme, which propagates one
+auxiliary variable per atom for the charge, applies a single conjugate
+gradient iteration without preconditioning, and uses no dissipation,
+these styles propagate auxiliary variables for both sets of linear
+equations that are solved to obtain the charges (as in :ref:`(Leven)
+<Leven2019>`), use diagonal preconditioning, and include a dissipation
+term by default.
 
 By default, the auxiliary variables are propagated including a weak
 dissipation term of order 5 following :ref:`(Niklasson) <Niklasson2009>`.
 The order can be changed with the *xldamp* keyword: higher orders damp
 more weakly (and thus perturb the time-reversible dynamics less), lower
 orders damp more strongly (and thus bias the charges more).  A value of
-0 selects the original, fully time-reversible scheme of :ref:`(Nomura)
-<Nomura2015>` without dissipation; in this case the *xlkappa* keyword
-may be used to change the coupling constant :math:`\kappa = \omega^2
-\delta t^2` from its default value of 2.0.  The undamped propagation
+0 selects the fully time-reversible Verlet propagation without
+dissipation as used by :ref:`(Nomura) <Nomura2015>`; in this case the
+*xlkappa* keyword may be used to change the coupling constant
+:math:`\kappa = \omega^2 \delta t^2` from its default value of 2.0.
+The undamped propagation
 slowly accumulates numerical noise in the auxiliary variables, which
 makes long simulations (more than a few thousand steps) unstable, so
 *xldamp* 0 is mainly useful for validation studies.  With the default
 settings the energy conservation was close to that of fully converged
-solves in our tests.  Reducing *xlcg* to 1 reproduces the setting of
-:ref:`(Nomura) <Nomura2015>` and further reduces the cost, but in our
-tests *xlcg* values of 1 and 3 were much less stable than the default.
+solves in our tests.  Reducing *xlcg* to 1 uses the same number of
+iterations as :ref:`(Nomura) <Nomura2015>` and further reduces the cost,
+but in our tests *xlcg* values of 1 and 3 were much less stable than the
+default.
 Values of 4 or 5 were more stable than the default and conserved the
 energy better, at a higher cost per step.
 
 Even with the default settings, the extended-Lagrangian propagation
 occasionally becomes unstable: within a few dozen steps the charges
 deviate strongly from the converged solution, the total energy jumps,
-and the system may heat up rapidly.  In tests with a small (105 atoms)
+and the system may heat up rapidly.  Such instabilities are a known
+property of extended-Lagrangian schemes that use a truncated iterative
+solver :ref:`(Niklasson) <Niklasson2009>`, :ref:`(Leven) <Leven2019>`.
+In tests with a small (105 atoms)
 mixture of pentane and oxygen molecules this happened on average once
 in about 500,000 timesteps, independent of the timestep size; in larger
 systems (210 to 840 atoms) it did not happen in more than 5 million
@@ -497,6 +508,11 @@ Physical Chemistry, 105, 9396-9049 (2001)
 
 **(Nomura)** K. Nomura, P. E. Small, R. K. Kalia, A. Nakano, P. Vashishta,
 Computer Physics Communications, 192, 91-96 (2015).
+
+.. _Leven2019:
+
+**(Leven)** I. Leven, T. Head-Gordon, Physical Chemistry Chemical Physics, 21,
+18652-18659 (2019).
 
 .. _Niklasson2009:
 

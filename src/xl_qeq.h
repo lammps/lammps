@@ -31,8 +31,8 @@ struct XLQEq {
 
   int flag = 0;                 // 1 if the XL propagation is enabled
   int ncg = 2;                  // CG iterations per solve in XL mode: 2 keep the energy
-                                // conservation close to converged solves, 1 reproduces
-                                // the original publication. 1 and 3 were less stable
+                                // conservation close to converged solves, 1 is the count
+                                // of the original publication. 1 and 3 were less stable
   int kdis = -1;                // dissipation order (0 = plain Verlet, -1 = not set)
   int kappa_set = 0;            // 1 if the xlkappa keyword was used
   double kappa = 2.0;           // coupling constant kappa = omega^2 * dt^2

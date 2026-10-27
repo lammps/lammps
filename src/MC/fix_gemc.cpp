@@ -108,7 +108,8 @@ FixGEMC::FixGEMC(LAMMPS *lmp, int narg, char **arg) :
 
   // unique to proc and world
 
-  random_proc = new RanPark(lmp,seed+3*(myworld+1)+7*(me+1));
+  random_proc = new RanPark(lmp,seed);
+  random_proc->reset_rank(seed, universe->me);
 
   // unique to world, sync between procs
 
@@ -539,8 +540,10 @@ void FixGEMC::restart(char *buf)
   int n = 0;
   auto *list = (double *) buf;
 
+  // only the state of proc 0 is stored, derive a unique state for each proc from it
+
   seed = static_cast<int> (list[n++]);
-  random_proc->reset(seed);
+  random_proc->reset_rank(seed, universe->me);
 
   seed = static_cast<int> (list[n++]);
   random_world->reset(seed);

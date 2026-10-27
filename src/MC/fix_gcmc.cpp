@@ -127,6 +127,7 @@ FixGCMC::FixGCMC(LAMMPS *lmp, int narg, char **arg) :
   // random number generator, not the same for all procs
 
   random_unequal = new RanPark(lmp, seed);
+  random_unequal->reset_rank(seed, comm->me);
 
   // error checks on region and its extent being inside simulation box
 
@@ -2840,12 +2841,16 @@ void FixGCMC::restart(char *buf)
     error->all(FLERR,"Must not reset timestep when restarting fix gcmc");
 
   // read stored state of RNG unique to this process
-  // if nprocs changed, use state of proc 0
+  // if nprocs changed, derive a unique state from the state of proc 0
 
   auto nlocalvals = (int) list[n++];
-  if (nlocalvals == comm->nprocs) n += comm->me;
-  seed = static_cast<int>(list[n]);
-  random_unequal->reset(seed);
+  if (nlocalvals == comm->nprocs) {
+    seed = static_cast<int>(list[n + comm->me]);
+    random_unequal->reset(seed);
+  } else {
+    seed = static_cast<int>(list[n]);
+    random_unequal->reset_rank(seed, comm->me);
+  }
 }
 
 void FixGCMC::grow_molecule_arrays(int nmolatoms) {

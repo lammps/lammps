@@ -105,6 +105,7 @@ FixAtomSwap::FixAtomSwap(LAMMPS *lmp, int narg, char **arg) :
   // random number generator, not the same for all procs
 
   random_unequal = new RanPark(lmp, seed);
+  random_unequal->reset_rank(seed, comm->me);
 
   // set up reneighboring
 
@@ -140,6 +141,7 @@ FixAtomSwap::~FixAtomSwap()
   memory->destroy(qtype);
   memory->destroy(mtype);
   memory->destroy(sqrt_mass_ratio);
+  memory->destroy(local_swap_atom_list);
   memory->destroy(local_swap_iatom_list);
   memory->destroy(local_swap_jatom_list);
   delete[] idregion;
@@ -926,8 +928,10 @@ void FixAtomSwap::restart(char *buf)
   seed = static_cast<int>(list[n++]);
   random_equal->reset(seed);
 
+  // only the state of proc 0 is stored, derive a unique state for each proc from it
+
   seed = static_cast<int>(list[n++]);
-  random_unequal->reset(seed);
+  random_unequal->reset_rank(seed, comm->me);
 
   next_reneighbor = (bigint) ubuf(list[n++]).i;
 

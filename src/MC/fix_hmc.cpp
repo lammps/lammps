@@ -114,8 +114,8 @@ FixHMC::FixHMC(LAMMPS *lmp, int narg, char **arg) :
   // random = different RNG on each processor
   // random_equal = same RNG on each processor
 
-  random = new RanPark(lmp, seed + comm->me);
-  for (int i = 0; i < 100; i++) random->uniform();
+  random = new RanPark(lmp, seed);
+  random->reset_rank(seed, comm->me);
   random_equal = new RanPark(lmp, seed);
 
   // register callback

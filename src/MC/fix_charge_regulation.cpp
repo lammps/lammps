@@ -136,6 +136,7 @@ FixChargeRegulation::FixChargeRegulation(LAMMPS *lmp, int narg, char **arg) :
   next_reneighbor = update->ntimestep + 1;
   random_equal = new RanPark(lmp, seed);
   random_unequal = new RanPark(lmp, seed);
+  random_unequal->reset_rank(seed, comm->me);
   nacid_attempts = 0;
   nacid_successes = 0;
   nbase_attempts = 0;
@@ -1318,8 +1319,11 @@ void FixChargeRegulation::restart(char *buf)
   seed = static_cast<int>(list[n++]);
   random_equal->reset(seed);
 
+  // only the state of proc 0 is stored, derive a unique state for each proc from it
+
   seed = static_cast<int>(list[n++]);
-  random_unequal->reset(seed);
+  random_unequal->reset_rank(seed, comm->me);
+
   // NOLINTBEGIN
   nacid_attempts  = list[n++];
   nacid_successes = list[n++];
@@ -1331,7 +1335,7 @@ void FixChargeRegulation::restart(char *buf)
   next_reneighbor = (bigint) ubuf(list[n++]).i;
   bigint ntimestep_restart = (bigint) ubuf(list[n++]).i;
   if (ntimestep_restart != update->ntimestep)
-    error->all(FLERR,"Must not reset timestep when restarting fix gcmc");
+    error->all(FLERR,"Must not reset timestep when restarting fix charge/regulation");
 }
 
 /* ---------------------------------------------------------------------- */

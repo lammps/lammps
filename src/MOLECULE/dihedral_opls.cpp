@@ -66,7 +66,7 @@ void DihedralOPLS::compute(int eflag, int vflag)
   double b2mag, b3mag2, b3mag, ctmp, r12c1, c1mag, r12c2;
   double c2mag, sc1, sc2, s1, s12, c, p, pd, a, a11, a22;
   double a33, a12, a13, a23, sx2, sy2, sz2;
-  double s2, cx, cy, cz, cmag, dx, phi, si, siinv, sin2;
+  double s2, sin2, cos_2phi, sin_2phim, cos_3phi, sin_3phim, cos_4phi, sin_4phim;
 
   edihedral = 0.0;
   ev_init(eflag, vflag);
@@ -152,12 +152,6 @@ void DihedralOPLS::compute(int eflag, int vflag)
     s12 = sc1 * sc2;
     c = (c0 + c1mag * c2mag) * s12;
 
-    cx = vb1y * vb2z - vb1z * vb2y;
-    cy = vb1z * vb2x - vb1x * vb2z;
-    cz = vb1x * vb2y - vb1y * vb2x;
-    cmag = sqrt(cx * cx + cy * cy + cz * cz);
-    dx = (cx * vb3x + cy * vb3y + cz * vb3z) / cmag / b3mag;
-
     // error check
 
     if (c > 1.0 + TOLERANCE || c < (-1.0 - TOLERANCE)) problem(FLERR, i1, i2, i3, i4);
@@ -168,17 +162,21 @@ void DihedralOPLS::compute(int eflag, int vflag)
     // force & energy
     // p = sum (i=1,4) k_i * (1 + (-1)**(i+1)*cos(i*phi) )
     // pd = dp/dc
+    // cos(n*phi) and sin(n*phi)/sin(phi) are polynomials in c = cos(phi),
+    // so no inverse or forward trigonometric functions are needed and the
+    // result does not depend on the sign of phi
 
-    phi = acos(c);
-    if (dx < 0.0) phi *= -1.0;
-    si = sin(phi);
-    if (fabs(si) < SMALLER) si = SMALLER;
-    siinv = 1.0 / si;
+    cos_2phi = 2.0 * c * c - 1.0;
+    sin_2phim = 2.0 * c;
+    cos_3phi = 2.0 * c * cos_2phi - c;
+    sin_3phim = 2.0 * cos_2phi + 1.0;
+    cos_4phi = 2.0 * cos_2phi * cos_2phi - 1.0;
+    sin_4phim = 2.0 * cos_2phi * sin_2phim;
 
-    p = k1[type] * (1.0 + c) + k2[type] * (1.0 - cos(2.0 * phi)) +
-        k3[type] * (1.0 + cos(3.0 * phi)) + k4[type] * (1.0 - cos(4.0 * phi));
-    pd = k1[type] - 2.0 * k2[type] * sin(2.0 * phi) * siinv +
-        3.0 * k3[type] * sin(3.0 * phi) * siinv - 4.0 * k4[type] * sin(4.0 * phi) * siinv;
+    p = k1[type] * (1.0 + c) + k2[type] * (1.0 - cos_2phi) + k3[type] * (1.0 + cos_3phi) +
+        k4[type] * (1.0 - cos_4phi);
+    pd = k1[type] - 2.0 * k2[type] * sin_2phim + 3.0 * k3[type] * sin_3phim -
+        4.0 * k4[type] * sin_4phim;
 
     if (eflag) edihedral = p;
 

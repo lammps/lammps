@@ -32,7 +32,6 @@ using namespace LAMMPS_NS;
 
 static constexpr double TOLERANCE = 0.05;
 static constexpr double SMALL =     0.001;
-static constexpr double SMALLER =   0.00001;
 
 /* ---------------------------------------------------------------------- */
 
@@ -236,12 +235,6 @@ void DihedralOPLSKokkos<DeviceType>::operator()(TagDihedralOPLSCompute<NEWTON_BO
   KK_FLOAT s12 = sc1 * sc2;
   KK_FLOAT c = (c0 + c1mag*c2mag) * s12;
 
-  const KK_FLOAT cx = vb1y*vb2z - vb1z*vb2y;
-  const KK_FLOAT cy = vb1z*vb2x - vb1x*vb2z;
-  const KK_FLOAT cz = vb1x*vb2y - vb1y*vb2x;
-  const KK_FLOAT cmag = sqrt(cx*cx + cy*cy + cz*cz);
-  const KK_FLOAT dx = (cx*vb3x + cy*vb3y + cz*vb3z)/cmag/b3mag;
-
   // error check
 
   if ((c > 1.0 + TOLERANCE || c < (-1.0 - TOLERANCE)) && !d_warning_flag())
@@ -253,17 +246,21 @@ void DihedralOPLSKokkos<DeviceType>::operator()(TagDihedralOPLSCompute<NEWTON_BO
   // force & energy
   // p = sum (i=1,4) k_i * (1 + (-1)**(i+1)*cos(i*phi) )
   // pd = dp/dc
+  // cos(n*phi) and sin(n*phi)/sin(phi) are polynomials in c = cos(phi),
+  // so no inverse or forward trigonometric functions are needed and the
+  // result does not depend on the sign of phi
 
-  KK_FLOAT phi = acos(c);
-  if (dx < 0.0) phi *= -1.0;
-  KK_FLOAT si = sin(phi);
-  if (fabs(si) < SMALLER) si = SMALLER;
-  const KK_FLOAT siinv = 1.0/si;
+  const KK_FLOAT cos_2phi = 2.0*c*c - 1.0;
+  const KK_FLOAT sin_2phim = 2.0*c;
+  const KK_FLOAT cos_3phi = 2.0*c*cos_2phi - c;
+  const KK_FLOAT sin_3phim = 2.0*cos_2phi + 1.0;
+  const KK_FLOAT cos_4phi = 2.0*cos_2phi*cos_2phi - 1.0;
+  const KK_FLOAT sin_4phim = 2.0*cos_2phi*sin_2phim;
 
-  const KK_FLOAT p = d_k1[type]*(1.0 + c) + d_k2[type]*(1.0 - cos(2.0*phi)) +
-    d_k3[type]*(1.0 + cos(3.0*phi)) + d_k4[type]*(1.0 - cos(4.0*phi)) ;
-  const KK_FLOAT pd = d_k1[type] - 2.0*d_k2[type]*sin(2.0*phi)*siinv +
-    3.0*d_k3[type]*sin(3.0*phi)*siinv - 4.0*d_k4[type]*sin(4.0*phi)*siinv;
+  const KK_FLOAT p = d_k1[type]*(1.0 + c) + d_k2[type]*(1.0 - cos_2phi) +
+    d_k3[type]*(1.0 + cos_3phi) + d_k4[type]*(1.0 - cos_4phi);
+  const KK_FLOAT pd = d_k1[type] - 2.0*d_k2[type]*sin_2phim +
+    3.0*d_k3[type]*sin_3phim - 4.0*d_k4[type]*sin_4phim;
 
   KK_FLOAT edihedral = 0.0;
   if (eflag) edihedral = p;

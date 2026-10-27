@@ -55,26 +55,25 @@ struct Op {
 
 void usage()
 {
-  std::cout
-      << "Usage: find-symmetry [options] <data file>\n"
-         "       find-symmetry [options] -g <space group number>\n\n"
-         "Write a symmetry file for the LAMMPS fix symmetry command.\n\n"
-         "With a LAMMPS data file, the space group of the atoms in the simulation box is\n"
-         "determined with spglib and its operators are written in fractional coordinates\n"
-         "of the box.  If the box consists of several unit cells, the operators of one\n"
-         "unit cell are written together with a \"supercell\" entry.\n\n"
-         "With -g, the operators of a space group in its standard setting are written.\n"
-         "Then the simulation box must be the conventional unit cell of that setting.\n\n"
-         "Options:\n"
-         "  -g <number>       space group number from 1 to 230\n"
-         "  -H <number>       Hall number from 1 to 530 to select a different setting\n"
-         "  -s <nx> <ny> <nz> with -g or -H: add a supercell entry\n"
-         "  -t <distance>     tolerance for finding the symmetry in distance units of\n"
-         "                    the data file (default 1.0e-5)\n"
-         "  -n                do not reduce the operators to a unit cell; this can\n"
-         "                    produce a very large number of operators\n"
-         "  -o <file>         write to file instead of the screen\n"
-         "  -h                print this help\n";
+  std::cout << "Usage: find-symmetry [options] <data file>\n"
+               "       find-symmetry [options] -g <space group number>\n\n"
+               "Write a symmetry file for the LAMMPS fix symmetry command.\n\n"
+               "With a LAMMPS data file, the space group of the atoms in the simulation box is\n"
+               "determined with spglib and its operators are written in fractional coordinates\n"
+               "of the box.  If the box consists of several unit cells, the operators of one\n"
+               "unit cell are written together with a \"supercell\" entry.\n\n"
+               "With -g, the operators of a space group in its standard setting are written.\n"
+               "Then the simulation box must be the conventional unit cell of that setting.\n\n"
+               "Options:\n"
+               "  -g <number>       space group number from 1 to 230\n"
+               "  -H <number>       Hall number from 1 to 530 to select a different setting\n"
+               "  -s <nx> <ny> <nz> with -g or -H: add a supercell entry\n"
+               "  -t <distance>     tolerance for finding the symmetry in distance units of\n"
+               "                    the data file (default 1.0e-5)\n"
+               "  -n                do not reduce the operators to a unit cell; this can\n"
+               "                    produce a very large number of operators\n"
+               "  -o <file>         write to file instead of the screen\n"
+               "  -h                print this help\n";
 }
 
 double wrap01(double v)
@@ -161,11 +160,11 @@ struct Structure {
 
 // columns of the atom type and the x coordinate in the Atoms section
 const std::map<std::string, std::pair<int, int>> style_columns = {
-    {"angle", {2, 3}},     {"atomic", {1, 2}}, {"body", {1, 4}},       {"bond", {2, 3}},
-    {"bpm/sphere", {2, 5}}, {"charge", {1, 3}}, {"dielectric", {1, 3}}, {"dipole", {1, 3}},
-    {"dpd", {1, 3}},       {"electron", {1, 5}}, {"ellipsoid", {1, 4}}, {"full", {2, 4}},
-    {"hybrid", {1, 2}},    {"molecular", {2, 3}}, {"peri", {1, 4}},     {"sphere", {1, 4}},
-    {"spin", {1, 2}},      {"template", {1, 5}}};
+    {"angle", {2, 3}},      {"atomic", {1, 2}},    {"body", {1, 4}},       {"bond", {2, 3}},
+    {"bpm/sphere", {2, 5}}, {"charge", {1, 3}},    {"dielectric", {1, 3}}, {"dipole", {1, 3}},
+    {"dpd", {1, 3}},        {"electron", {1, 5}},  {"ellipsoid", {1, 4}},  {"full", {2, 4}},
+    {"hybrid", {1, 2}},     {"molecular", {2, 3}}, {"peri", {1, 4}},       {"sphere", {1, 4}},
+    {"spin", {1, 2}},       {"template", {1, 5}}};
 
 std::vector<std::string> split_words(const std::string &line)
 {
@@ -265,7 +264,8 @@ Structure read_data(const std::string &file)
       type = std::stoi(tword);
     } else {
       auto it = labels.find(tword);
-      if (it == labels.end()) it = labels.emplace(tword, -1 - static_cast<int>(labels.size())).first;
+      if (it == labels.end())
+        it = labels.emplace(tword, -1 - static_cast<int>(labels.size())).first;
       type = it->second;
     }
     const double x = std::stod(words[xcol]) - lo[0];
@@ -337,7 +337,9 @@ bool reduce_to_unitcell(const std::vector<Op> &ops, std::vector<Op> &cellops, in
 double max_deviation(const Structure &st, const std::vector<Op> &ops, double range)
 {
   const int ncell = static_cast<int>(std::max(1.0, std::min(1024.0, std::floor(0.5 / range))));
-  auto cell_of = [ncell](double s) { return std::min(static_cast<int>(s * ncell), ncell - 1); };
+  auto cell_of = [ncell](double s) {
+    return std::min(static_cast<int>(s * ncell), ncell - 1);
+  };
   auto key = [ncell](int a, int b, int c) {
     return (static_cast<long long>(a) * ncell + b) * ncell + c;
   };
@@ -476,7 +478,8 @@ int main(int argc, char **argv)
     }
     std::cerr << "Space group " << name << " with " << ops.size()
               << " operators in the conventional unit cell\n"
-              << "Shape of the simulation box for one unit cell: " << box_shape(type.number) << "\n";
+              << "Shape of the simulation box for one unit cell: " << box_shape(type.number)
+              << "\n";
   } else {
     // operators from the positions in a data file
     if (datafile.empty()) {
@@ -489,9 +492,8 @@ int main(int argc, char **argv)
     for (int i = 0; i < natoms; ++i)
       for (int d = 0; d < 3; ++d) pos[3 * i + d] = st.frac[i][d];
 
-    SpglibDataset *data =
-        spg_get_dataset(st.lattice, reinterpret_cast<double(*)[3]>(pos.data()), st.types.data(),
-                        natoms, symprec);
+    SpglibDataset *data = spg_get_dataset(st.lattice, reinterpret_cast<double (*)[3]>(pos.data()),
+                                          st.types.data(), natoms, symprec);
     if (!data) fail(std::string("spglib failed: ") + spg_get_error_message(spg_get_error_code()));
     for (int k = 0; k < data->n_operations; ++k) {
       Op op;
@@ -501,8 +503,8 @@ int main(int argc, char **argv)
       }
       ops.push_back(op);
     }
-    name = std::string(data->international_symbol) + " (" + std::to_string(data->spacegroup_number) +
-        ")";
+    name = std::string(data->international_symbol) + " (" +
+        std::to_string(data->spacegroup_number) + ")";
     std::cerr << "Space group " << name << " with " << ops.size()
               << " operators in the simulation box\n";
     spg_free_dataset(data);

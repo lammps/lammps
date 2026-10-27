@@ -56,7 +56,7 @@ struct TestOp {
     double t[3];
 };
 
-static const TestOp OP_IDENTITY = {{{1, 0, 0}, {0, 1, 0}, {0, 0, 1}}, {0, 0, 0}};
+static const TestOp OP_IDENTITY  = {{{1, 0, 0}, {0, 1, 0}, {0, 0, 1}}, {0, 0, 0}};
 static const TestOp OP_INVERSION = {{{-1, 0, 0}, {0, -1, 0}, {0, 0, -1}}, {0, 0, 0}};
 
 class FixSymmetryTest : public LAMMPSTest {
@@ -170,8 +170,8 @@ protected:
             const auto &other = b.at(kv.first);
             const double d[3] = {kv.second[0] - other[0], kv.second[1] - other[1],
                                  kv.second[2] - other[2]};
-            double s[3] = {h_inv[0] * d[0] + h_inv[5] * d[1] + h_inv[4] * d[2],
-                           h_inv[1] * d[1] + h_inv[3] * d[2], h_inv[2] * d[2]};
+            double s[3]       = {h_inv[0] * d[0] + h_inv[5] * d[1] + h_inv[4] * d[2],
+                                 h_inv[1] * d[1] + h_inv[3] * d[2], h_inv[2] * d[2]};
             for (double &sval : s)
                 sval -= std::round(sval);
             const double x[3] = {h[0] * s[0] + h[5] * s[1] + h[4] * s[2], h[1] * s[1] + h[3] * s[2],
@@ -185,7 +185,7 @@ protected:
 
 // operators of frequently used groups in coordinate triplet notation
 static const char *JSON_PINV = R"({ "group_name": "P-1", "ops": [ "x,y,z", "-x,-y,-z" ] })";
-static const char *JSON_PM = R"({ "group_name": "Pm", "ops": [ "x,y,z", "x,-y,z" ] })";
+static const char *JSON_PM   = R"({ "group_name": "Pm", "ops": [ "x,y,z", "x,-y,z" ] })";
 
 // --------------------------------------------------------------------------
 //   Operator parser: coordinate triplet notation to matrix and translation
@@ -216,8 +216,8 @@ TEST(SymmetryOperatorParser, CoordinateTriplets)
         }
     }
 
-    const char *bad[] = {"x,y", "x,y,z,x", "x,,z", "x,y,a", "x,y,z+", "x,y,1/0", "x,y,1/2z",
-                         "xy,y,z", "x,y,z*", "x,--y,z", "x,y,1/2/3"};
+    const char *bad[] = {"x,y",      "x,y,z,x", "x,,z",   "x,y,a",   "x,y,z+",   "x,y,1/0",
+                         "x,y,1/2z", "xy,y,z",  "x,y,z*", "x,--y,z", "x,y,1/2/3"};
     for (const auto *str : bad)
         EXPECT_THROW(LAMMPS_NS::SymmetryGroup::parse_xyz(str), std::invalid_argument) << str;
 }
@@ -236,7 +236,9 @@ TEST_F(FixSymmetryTest, P1IsNoOp)
     });
     EXPECT_THAT(output, ContainsRegex("0 atoms in 0 orbits"));
     const auto start = take_snapshot();
-    HIDE_OUTPUT([&] { command("run 20 post no"); });
+    HIDE_OUTPUT([&] {
+        command("run 20 post no");
+    });
     const auto with_fix = take_snapshot();
 
     restore_snapshot(start);
@@ -292,8 +294,10 @@ TEST_F(FixSymmetryTest, EquivalentToPlainNVE)
     });
     const auto start = take_snapshot();
 
-    HIDE_OUTPUT([&] { command("run 300 post no"); });
-    const auto with_fix = take_snapshot();
+    HIDE_OUTPUT([&] {
+        command("run 300 post no");
+    });
+    const auto with_fix        = take_snapshot();
     const double etot_with_fix = get_variable_value("etot");
 
     restore_snapshot(start);
@@ -301,7 +305,7 @@ TEST_F(FixSymmetryTest, EquivalentToPlainNVE)
         command("unfix sym");
         command("run 300 post no");
     });
-    const auto without_fix = take_snapshot();
+    const auto without_fix        = take_snapshot();
     const double etot_without_fix = get_variable_value("etot");
 
     EXPECT_LT(max_position_difference(with_fix, without_fix), 1.0e-10);
@@ -391,7 +395,7 @@ TEST_F(FixSymmetryTest, SpaceGroupsMatchPlainNVE)
                 std::array<double, 3> s;
                 for (int i = 0; i < 3; ++i) {
                     s[i] = op.t[i] + op.R[i][0] * seed[0] + op.R[i][1] * seed[1] +
-                        op.R[i][2] * seed[2];
+                           op.R[i][2] * seed[2];
                     s[i] -= std::floor(s[i]);
                 }
                 bool known = false;
@@ -433,7 +437,9 @@ TEST_F(FixSymmetryTest, SpaceGroupsMatchPlainNVE)
         ASSERT_EQ(lmp->atom->natoms, c.natoms) << c.name;
         const auto start = take_snapshot();
 
-        HIDE_OUTPUT([&] { command("run 300 post no"); });
+        HIDE_OUTPUT([&] {
+            command("run 300 post no");
+        });
         const auto with_fix = take_snapshot();
 
         restore_snapshot(start);
@@ -466,7 +472,9 @@ TEST_F(FixSymmetryTest, SymmetryLostWithoutFix)
         start = std::max(start, orbit_residual({a, a + 4}, {OP_IDENTITY, OP_INVERSION}));
     EXPECT_LT(start, 1.0e-12);
 
-    HIDE_OUTPUT([&] { command("run 20000 post no"); });
+    HIDE_OUTPUT([&] {
+        command("run 20000 post no");
+    });
     double end = 0.0;
     for (tagint a = 1; a <= 4; ++a)
         end = std::max(end, orbit_residual({a, a + 4}, {OP_IDENTITY, OP_INVERSION}));
@@ -482,8 +490,8 @@ TEST_F(FixSymmetryTest, SymmetryLostWithoutFix)
 // --------------------------------------------------------------------------
 TEST_F(FixSymmetryTest, HexagonalThreeFold)
 {
-    std::string sym =
-        write_symfile("p3.json", R"({ "group_name": "P3", "ops": [ "x,y,z", "-y,x-y,z", "-x+y,-x,z" ] })");
+    std::string sym = write_symfile(
+        "p3.json", R"({ "group_name": "P3", "ops": [ "x,y,z", "-y,x-y,z", "-x+y,-x,z" ] })");
     const std::vector<TestOp> ops = {OP_IDENTITY,
                                      {{{0, -1, 0}, {1, -1, 0}, {0, 0, 1}}, {0, 0, 0}},
                                      {{{-1, 1, 0}, {-1, 0, 0}, {0, 0, 1}}, {0, 0, 0}}};
@@ -518,7 +526,9 @@ TEST_F(FixSymmetryTest, HexagonalThreeFold)
     EXPECT_LT(orbit_residual({4, 5, 6}, ops), 1.0e-14);
     const double etot_start = get_variable_value("etot");
 
-    HIDE_OUTPUT([&] { command("run 2000 post no"); });
+    HIDE_OUTPUT([&] {
+        command("run 2000 post no");
+    });
     EXPECT_LT(orbit_residual({1, 2, 3}, ops), 1.0e-12);
     EXPECT_LT(orbit_residual({4, 5, 6}, ops), 1.0e-12);
     EXPECT_NEAR(get_variable_value("etot"), etot_start, 5.0e-4);
@@ -559,7 +569,9 @@ TEST_F(FixSymmetryTest, ScrewAxisNonzeroTranslation)
     });
     const double etot_start = get_variable_value("etot");
 
-    HIDE_OUTPUT([&] { command("run 2000 post no"); });
+    HIDE_OUTPUT([&] {
+        command("run 2000 post no");
+    });
     EXPECT_LT(orbit_residual({1, 2}, ops), 1.0e-12);
     EXPECT_LT(orbit_residual({3, 4}, ops), 1.0e-12);
     EXPECT_NEAR(get_variable_value("etot"), etot_start, 1.0e-3);
@@ -573,13 +585,12 @@ TEST_F(FixSymmetryTest, ScrewAxisNonzeroTranslation)
 // --------------------------------------------------------------------------
 TEST_F(FixSymmetryTest, SupercellScrewAxis)
 {
-    std::string bad =
-        write_symfile("p21_bad.json", R"({ "group_name": "P2_1", "ops": [ "x,y,z", "-x,-y,z+1/4" ] })");
+    std::string bad = write_symfile(
+        "p21_bad.json", R"({ "group_name": "P2_1", "ops": [ "x,y,z", "-x,-y,z+1/4" ] })");
     TEST_FAILURE("the operators do not form a group: the combination of operators 2 and 2 is "
                  "missing",
                  command("atom_modify map array");
-                 command("region box block 0 6 0 6 0 12");
-                 command("create_box 1 box");
+                 command("region box block 0 6 0 6 0 12"); command("create_box 1 box");
                  command(fmt::format("fix sym all symmetry {}", bad)););
     LAMMPS_NS::platform::unlink(bad);
 
@@ -619,7 +630,8 @@ TEST_F(FixSymmetryTest, SupercellScrewAxis)
 // --------------------------------------------------------------------------
 TEST_F(FixSymmetryTest, IntermediateWyckoffOrbit)
 {
-    std::string sym = write_symfile("pmm2.json",
+    std::string sym = write_symfile(
+        "pmm2.json",
         R"({ "group_name": "Pmm2", "ops": [ "x,y,z", "-x,-y,z", "-x,y,z", "x,-y,z" ] })");
 
     HIDE_OUTPUT([&] {
@@ -652,7 +664,9 @@ TEST_F(FixSymmetryTest, IntermediateWyckoffOrbit)
     EXPECT_THAT(output, ContainsRegex("6 atoms in 2 orbits .1 on special positions. with 5 "
                                       "independent coordinates"));
     const double etot_start = get_variable_value("etot");
-    HIDE_OUTPUT([&] { command("run 1000 post no"); });
+    HIDE_OUTPUT([&] {
+        command("run 1000 post no");
+    });
 
     const std::vector<TestOp> ops = {OP_IDENTITY,
                                      {{{-1, 0, 0}, {0, -1, 0}, {0, 0, 1}}, {0, 0, 0}},
@@ -676,7 +690,7 @@ TEST_F(FixSymmetryTest, IntermediateWyckoffOrbit)
 // --------------------------------------------------------------------------
 TEST_F(FixSymmetryTest, WyckoffSiteOnMirrorIsPreserved)
 {
-    const double L = 8.0;
+    const double L  = 8.0;
     std::string sym = write_symfile("pm_wyckoff.json", JSON_PM);
 
     HIDE_OUTPUT([&] {
@@ -707,7 +721,9 @@ TEST_F(FixSymmetryTest, WyckoffSiteOnMirrorIsPreserved)
     EXPECT_NEAR(x3[1], 0.5 * L, 1.0e-14);
     EXPECT_NEAR(x1[1] + x2[1], L, 1.0e-14);
 
-    HIDE_OUTPUT([&] { command("run 50 post no"); });
+    HIDE_OUTPUT([&] {
+        command("run 50 post no");
+    });
 
     get_pos(1, x1);
     get_pos(2, x2);
@@ -790,15 +806,22 @@ TEST_F(FixSymmetryTest, AsymmetricAtomsTriggerErrors)
     std::string sym = write_symfile("pinv_err.json", JSON_PINV);
 
     setup_pinv_system(8.0);
-    HIDE_OUTPUT([&] { command(fmt::format("fix sym all symmetry {}", sym)); });
+    HIDE_OUTPUT([&] {
+        command(fmt::format("fix sym all symmetry {}", sym));
+    });
 
     // atom 6 moved by more than tol
-    HIDE_OUTPUT([&] { command("set atom 6 x 5.1"); });
+    HIDE_OUTPUT([&] {
+        command("set atom 6 x 5.1");
+    });
     TEST_FAILURE("no atom of group all at the image of atom ID 2 under symmetry operator 2",
                  command("run 0 post no"););
 
     // missing image
-    HIDE_OUTPUT([&] { command("set atom 6 x 5.0"); command("delete_atoms group all compress no"); });
+    HIDE_OUTPUT([&] {
+        command("set atom 6 x 5.0");
+        command("delete_atoms group all compress no");
+    });
     HIDE_OUTPUT([&] {
         command("create_atoms 1 single 1.2 1.5 1.8");
         command("create_atoms 1 single 6.8 6.5 6.2");
@@ -808,7 +831,10 @@ TEST_F(FixSymmetryTest, AsymmetricAtomsTriggerErrors)
                  command("run 0 post no"););
 
     // overlapping atoms
-    HIDE_OUTPUT([&] { command("create_atoms 1 single 5.0 6.8 7.1"); command("create_atoms 1 single 5.0 6.8 7.1"); });
+    HIDE_OUTPUT([&] {
+        command("create_atoms 1 single 5.0 6.8 7.1");
+        command("create_atoms 1 single 5.0 6.8 7.1");
+    });
     TEST_FAILURE("more than one atom at the image of atom ID 3 under symmetry operator 2",
                  command("run 0 post no"););
 
@@ -903,7 +929,7 @@ TEST_F(FixSymmetryTest, SymmetryFileErrors)
         {R"({ "ops": [ ] })", "\"ops\" must be a non-empty list"},
         {R"({ "ops": [ "-x,-y,-z" ] })", "must include the identity x,y,z"},
         {R"({ "ops": [ "x,y,z", "-x,-y,-z+1", "-x,-y,-z" ] })", "operators 2 and 3 in the symmetry "
-                                                                 "file are the same"},
+                                                                "file are the same"},
         {R"({ "ops": [ "x,y,z", "-y,x,z" ] })", "the combination of operators 2 and 2 is missing"},
         {R"({ "ops": [ "x,y,z", "x+y,y,z" ] })", "the combination of operators 2 and 2 is missing"},
         {R"({ "ops": [ "x,y,z", "2*x,y,z" ] })", "operator 2 is not a symmetry operator: the "
@@ -925,7 +951,9 @@ TEST_F(FixSymmetryTest, SymmetryFileErrors)
 
     // the old format with explicit orbits triggers a warning
     std::string sym = write_symfile("orbits.json", R"({ "ops": [ "x,y,z" ], "orbits": [ ] })");
-    auto output = CAPTURE_OUTPUT([&] { command(fmt::format("fix sym all symmetry {}", sym)); });
+    auto output     = CAPTURE_OUTPUT([&] {
+        command(fmt::format("fix sym all symmetry {}", sym));
+    });
     EXPECT_THAT(output, ContainsRegex("ignoring unknown entry \"orbits\" in symmetry file"));
     LAMMPS_NS::platform::unlink(sym);
 }
@@ -1013,7 +1041,9 @@ TEST_F(FixSymmetryTest, MinimizeKeepsSymmetry)
         command("run 0 post no");
     });
     const double pe_start = get_variable_value("pe");
-    HIDE_OUTPUT([&] { command("minimize 0.0 1.0e-8 1000 10000"); });
+    HIDE_OUTPUT([&] {
+        command("minimize 0.0 1.0e-8 1000 10000");
+    });
     EXPECT_LT(get_variable_value("pe"), pe_start - 0.1);
     for (tagint a = 1; a <= 4; ++a)
         EXPECT_LT(orbit_residual({a, a + 4}, {OP_IDENTITY, OP_INVERSION}), 1.0e-12);
@@ -1028,7 +1058,8 @@ TEST_F(FixSymmetryTest, MinimizeKeepsSymmetry)
 TEST_F(FixSymmetryTest, FourFoldAxisWithBoxChange)
 {
     std::string sym = write_symfile(
-        "p4_box.json", R"({ "group_name": "P4", "ops": [ "x,y,z", "-y,x,z", "-x,-y,z", "y,-x,z" ] })");
+        "p4_box.json",
+        R"({ "group_name": "P4", "ops": [ "x,y,z", "-y,x,z", "-x,-y,z", "y,-x,z" ] })");
     const std::vector<TestOp> ops = {OP_IDENTITY,
                                      {{{0, -1, 0}, {1, 0, 0}, {0, 0, 1}}, {0, 0, 0}},
                                      {{{-1, 0, 0}, {0, -1, 0}, {0, 0, 1}}, {0, 0, 0}},
@@ -1081,9 +1112,9 @@ TEST_F(FixSymmetryTest, FourFoldAxisWithBoxChange)
 // --------------------------------------------------------------------------
 TEST_F(FixSymmetryTest, TwoDimensions)
 {
-    std::string sym = write_symfile("p2_2d.json", R"({ "group_name": "p2", "ops": [ "x,y,z", "-x,-y,z" ] })");
-    const std::vector<TestOp> ops = {OP_IDENTITY,
-                                     {{{-1, 0, 0}, {0, -1, 0}, {0, 0, 1}}, {0, 0, 0}}};
+    std::string sym =
+        write_symfile("p2_2d.json", R"({ "group_name": "p2", "ops": [ "x,y,z", "-x,-y,z" ] })");
+    const std::vector<TestOp> ops = {OP_IDENTITY, {{{-1, 0, 0}, {0, -1, 0}, {0, 0, 1}}, {0, 0, 0}}};
 
     HIDE_OUTPUT([&] {
         command("units lj");
@@ -1111,7 +1142,9 @@ TEST_F(FixSymmetryTest, TwoDimensions)
     // 2 general orbits with 2 free coordinates each, no translation
     EXPECT_NEAR(get_variable_value("dof"), 4.0, 1.0e-10);
 
-    HIDE_OUTPUT([&] { command("run 1000 post no"); });
+    HIDE_OUTPUT([&] {
+        command("run 1000 post no");
+    });
     EXPECT_LT(orbit_residual({1, 3}, ops), 1.0e-12);
     EXPECT_LT(orbit_residual({2, 4}, ops), 1.0e-12);
     LAMMPS_NS::platform::unlink(sym);

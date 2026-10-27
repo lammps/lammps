@@ -124,8 +124,8 @@ inline void apply_op(double out[3], const SymmOp &op, const double s[3])
 
 FixSymmetry::FixSymmetry(LAMMPS *lmp, int narg, char **arg) :
     Fix(lmp, narg, arg), grp(nullptr), tol(1.0e-6), symfile(nullptr), n_orbits(0), n_special(0),
-    n_trans(0),
-    atom2member(nullptr), nmax_cache(0), shift_valid(false), buf_local(nullptr), buf_global(nullptr)
+    n_trans(0), atom2member(nullptr), nmax_cache(0), shift_valid(false), buf_local(nullptr),
+    buf_global(nullptr)
 {
   if (narg < 4) utils::missing_cmd_args(FLERR, "fix symmetry", error);
 
@@ -734,8 +734,8 @@ void FixSymmetry::detect_orbits()
   std::vector<int> counts(nprocs), displs(nprocs, 0);
   MPI_Allgather(&nmine, 1, MPI_INT, counts.data(), 1, MPI_INT, world);
   for (int p = 1; p < nprocs; ++p) displs[p] = displs[p - 1] + counts[p - 1];
-  MPI_Allgatherv(mytags.data(), nmine, MPI_LMP_TAGINT, alltags.data(), counts.data(),
-                 displs.data(), MPI_LMP_TAGINT, world);
+  MPI_Allgatherv(mytags.data(), nmine, MPI_LMP_TAGINT, alltags.data(), counts.data(), displs.data(),
+                 MPI_LMP_TAGINT, world);
   for (int p = 0; p < nprocs; ++p) {
     counts[p] *= NDATA;
     displs[p] *= NDATA;
@@ -749,7 +749,9 @@ void FixSymmetry::detect_orbits()
 
   std::vector<int> order(nall);
   for (int j = 0; j < nall; ++j) order[j] = j;
-  std::sort(order.begin(), order.end(), [&](int a, int b) { return alltags[a] < alltags[b]; });
+  std::sort(order.begin(), order.end(), [&](int a, int b) {
+    return alltags[a] < alltags[b];
+  });
 
   // sort atoms into cells of a grid in fractional coordinates.  A cell is
   // larger than tol, so all atoms within tol of a position are in the same
@@ -819,7 +821,8 @@ void FixSymmetry::detect_orbits()
         error->all(FLERR, Error::NOLASTLINE,
                    "Fix symmetry {}: no atom of group {} at the image of atom ID {} under symmetry "
                    "operator {} (fractional coordinates {:.8g} {:.8g} {:.8g}, tolerance {:.3g})",
-                   id, group->names[igroup], alltags[rep], k + 1, image[0], image[1], image[2], tol);
+                   id, group->names[igroup], alltags[rep], k + 1, image[0], image[1], image[2],
+                   tol);
       if (j == -2)
         error->all(FLERR, Error::NOLASTLINE,
                    "Fix symmetry {}: more than one atom at the image of atom ID {} under symmetry "

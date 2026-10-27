@@ -142,7 +142,8 @@ SymmOp SymmetryGroup::parse_xyz(const std::string &str)
 
       // number: digits with an optional decimal point or fraction
       std::size_t end = pos;
-      while ((end < part.size()) && (isdigit(part[end]) || (part[end] == '.') || (part[end] == '/')))
+      while ((end < part.size()) &&
+             (isdigit(part[end]) || (part[end] == '.') || (part[end] == '/')))
         ++end;
       const std::string num = part.substr(pos, end - pos);
       pos = end;
@@ -270,8 +271,9 @@ void SymmetryGroup::populate(const json &data)
         continue;
       }
       if (!je.is_object() || !je.contains("R") || !je.contains("t"))
-        throw std::invalid_argument(opname + "must be a string like \"-x,-y,z\" or an object "
-                                             "with \"R\" and \"t\" entries");
+        throw std::invalid_argument(opname +
+                                    "must be a string like \"-x,-y,z\" or an object "
+                                    "with \"R\" and \"t\" entries");
       const auto &jR = je.at("R");
       const auto &jt = je.at("t");
       if (!jR.is_array() || jR.size() != 3)
@@ -290,8 +292,9 @@ void SymmetryGroup::populate(const json &data)
       for (int i = 0; i < 3; ++i)
         for (int j = 0; j < 3; ++j)
           if (std::fabs(ops[o].R[i][j] - std::round(ops[o].R[i][j])) > INT_TOL)
-            throw std::invalid_argument(fmt::format(
-                "operator {}: matrix elements must be integers, got {:.10g}", o + 1, ops[o].R[i][j]));
+            throw std::invalid_argument(
+                fmt::format("operator {}: matrix elements must be integers, got {:.10g}", o + 1,
+                            ops[o].R[i][j]));
 
     if (data.contains("supercell")) {
       const auto &jsc = data.at("supercell");
@@ -363,7 +366,7 @@ void SymmetryGroup::compute_inverses()
 {
   for (int o = 0; o < static_cast<int>(ops.size()); ++o) {
     auto &op = ops[o];
-    double(&R)[3][3] = op.R;
+    double (&R)[3][3] = op.R;
     double det = R[0][0] * (R[1][1] * R[2][2] - R[1][2] * R[2][1]) -
         R[0][1] * (R[1][0] * R[2][2] - R[1][2] * R[2][0]) +
         R[0][2] * (R[1][0] * R[2][1] - R[1][1] * R[2][0]);
@@ -423,7 +426,8 @@ void SymmetryGroup::validate_group()
     const int b = find_op(ops[a].R, ops[a].t);
     if (b >= 0)
       error->all(FLERR, Error::NOLASTLINE,
-                 "Fix symmetry: operators {} and {} in the symmetry file are the same", b + 1, a + 1);
+                 "Fix symmetry: operators {} and {} in the symmetry file are the same", b + 1,
+                 a + 1);
     index.emplace(op_hash(ops[a].R, ops[a].t), a);
   }
 

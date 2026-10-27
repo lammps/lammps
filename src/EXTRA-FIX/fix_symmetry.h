@@ -58,16 +58,16 @@ class FixSymmetry : public Fix {
   // the operators that leave it in place (its site symmetry) are listed in
   // "stabilizer" and the orbit has fewer members than the group has operators.
   struct OrbitInfo {
-    int nmembers;              // number of distinct atoms in the orbit
-    int fixed_dim;             // number of free coordinates of the representative
-    bool special;              // true if the representative is on a special position
-    double proj[3][3];         // projector onto the free coordinates (fractional)
+    int nmembers;                   // number of distinct atoms in the orbit
+    int fixed_dim;                  // number of free coordinates of the representative
+    bool special;                   // true if the representative is on a special position
+    double proj[3][3];              // projector onto the free coordinates (fractional)
     std::vector<int> stabilizer;    // non-identity operators keeping the representative
   };
   std::vector<OrbitInfo> orbits;
   int n_orbits;
-  int n_special;    // number of orbits on special positions
-  int n_trans;      // number of translations of the whole system the group allows
+  int n_special;          // number of orbits on special positions
+  int n_trans;            // number of translations of the whole system the group allows
   std::string summary;    // last summary printed to the screen and log file
 
   // atom ID -> global member index; member index -> orbit and canonical operator

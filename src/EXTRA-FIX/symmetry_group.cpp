@@ -16,7 +16,6 @@
 #include "comm.h"
 #include "error.h"
 #include "json.h"
-#include "math_eigen.h"
 
 #include <cmath>
 #include <cstdint>
@@ -53,25 +52,11 @@ double get_t_value(const json &v)
       "SymmetryGroup: translation component must be a number or rational string");
 }
 
-LatticeFamily parse_lattice(const std::string &s)
-{
-  if (s == "triclinic") return LATTICE_TRICLINIC;
-  if (s == "monoclinic") return LATTICE_MONOCLINIC;
-  if (s == "orthorhombic") return LATTICE_ORTHORHOMBIC;
-  if (s == "tetragonal") return LATTICE_TETRAGONAL;
-  if (s == "hexagonal") return LATTICE_HEXAGONAL;
-  if (s == "trigonal") return LATTICE_TRIGONAL;
-  if (s == "cubic") return LATTICE_CUBIC;
-  throw std::runtime_error("SymmetryGroup: unknown lattice family '" + s + "'");
-}
 }    // namespace
 
 /* ---------------------------------------------------------------------- */
 
-SymmetryGroup::SymmetryGroup(LAMMPS *lmp) :
-    Pointers(lmp), group_name("unknown"), lattice_family(LATTICE_TRICLINIC)
-{
-}
+SymmetryGroup::SymmetryGroup(LAMMPS *lmp) : Pointers(lmp), group_name("unknown") {}
 
 /* ----------------------------------------------------------------------
    read + broadcast + parse + validate. Mirrors the molecule.cpp pattern:
@@ -118,7 +103,6 @@ void SymmetryGroup::read(const char *filename)
   populate(data);
   compute_inverses();
   validate_group();
-  compute_wyckoff_projectors();
 }
 
 /* ----------------------------------------------------------------------
@@ -129,9 +113,6 @@ void SymmetryGroup::read(const char *filename)
    Schema:
      {
        "group_name": "<name>",        // optional, default "unknown"
-       "lattice":    "<family>",      // required: triclinic / monoclinic /
-                                      //   orthorhombic / tetragonal /
-                                      //   hexagonal / trigonal / cubic
        "ops": [                       // required: >= 1 entry
          { "R": [[..],[..],[..]],     // 3x3 integer matrix
            "t": [tx,ty,tz] },         // numbers or rational strings "1/2"
@@ -149,7 +130,6 @@ void SymmetryGroup::populate(const json &data)
 {
   try {
     if (data.contains("group_name")) group_name = data.at("group_name").get<std::string>();
-    lattice_family = parse_lattice(data.at("lattice").get<std::string>());
 
     const auto &jops = data.at("ops");
     if (!jops.is_array() || jops.empty())
@@ -188,31 +168,6 @@ void SymmetryGroup::populate(const json &data)
                                  std::to_string(N) + " entries (one per op)");
       orbits[o].image_tag.assign(N, 0);
       for (int k = 0; k < N; ++k) orbits[o].image_tag[k] = jt[k].get<tagint>();
-      orbits[o].asym_tag = orbits[o].image_tag[0];
-
-      // optional site-symmetry: list of op indices (1-based in the file) that
-      // map the asym atom onto itself. For each such op, tags[op-1] must
-      // equal asym_tag -- otherwise the orbit is internally inconsistent.
-      orbits[o].stabilizer.clear();
-      if (jorb[o].contains("site_symmetry")) {
-        const auto &jss = jorb[o].at("site_symmetry");
-        if (!jss.is_array())
-          throw std::runtime_error("orbit " + std::to_string(o + 1) +
-                                   ": 'site_symmetry' must be an array of op indices");
-        for (const auto &je : jss) {
-          int k1 = je.get<int>();
-          if (k1 < 2 || k1 > N)
-            throw std::runtime_error("orbit " + std::to_string(o + 1) + ": site_symmetry op " +
-                                     std::to_string(k1) + " out of range [2," + std::to_string(N) +
-                                     "]");
-          int k = k1 - 1;
-          if (orbits[o].image_tag[k] != orbits[o].asym_tag)
-            throw std::runtime_error("orbit " + std::to_string(o + 1) + ": site_symmetry op " +
-                                     std::to_string(k1) + " requires tags[" + std::to_string(k1) +
-                                     "] == asym tag, but they differ");
-          orbits[o].stabilizer.push_back(k);
-        }
-      }
     }
   } catch (std::exception &e) {
     error->all(FLERR, Error::NOLASTLINE, "Symmetry file schema error: {}", e.what());
@@ -244,64 +199,6 @@ void SymmetryGroup::compute_inverses()
     op.Rinv[2][0] = (R[1][0] * R[2][1] - R[1][1] * R[2][0]) * inv_det;
     op.Rinv[2][1] = (R[0][1] * R[2][0] - R[0][0] * R[2][1]) * inv_det;
     op.Rinv[2][2] = (R[0][0] * R[1][1] - R[0][1] * R[1][0]) * inv_det;
-  }
-}
-
-/* ----------------------------------------------------------------------
-   For each orbit on a special position, precompute the symmetric
-   positive-semidefinite matrix B = sum_{k in stabilizer} (R_k - I)^T (R_k - I)
-   and its Moore-Penrose pseudo-inverse. B depends only on the operator
-   table, so it can be computed once at init -- the per-orbit shift c that
-   depends on the asym atom's initial fractional position is filled in
-   later by FixSymmetry.
-
-   The pseudo-inverse is constructed via the eigendecomposition of B
-   (B = Q Lambda Q^T from MathEigen::jacobi3) by zeroing out eigenvalues
-   below a relative threshold:
-       Binv = sum_i [ lambda_i > tol ? 1/lambda_i : 0 ] * v_i * v_i^T
-   This is the standard SVD pseudo-inverse trick: A^+ = (A^T A)^+ A^T
-   where (A^T A)^+ has truncated singular values.
-------------------------------------------------------------------------- */
-
-void SymmetryGroup::compute_wyckoff_projectors()
-{
-  for (auto &orb : orbits) {
-    for (int i = 0; i < 3; ++i)
-      for (int j = 0; j < 3; ++j) {
-        orb.B[i][j] = 0.0;
-        orb.Binv[i][j] = 0.0;
-      }
-    if (orb.stabilizer.empty()) continue;
-
-    // B = sum_k (R_k - I)^T (R_k - I)
-    for (int k : orb.stabilizer) {
-      const auto &op = ops[k];
-      double M[3][3];
-      for (int i = 0; i < 3; ++i)
-        for (int j = 0; j < 3; ++j) M[i][j] = op.R[i][j] - (i == j ? 1.0 : 0.0);
-      for (int i = 0; i < 3; ++i)
-        for (int j = 0; j < 3; ++j) {
-          double s = 0.0;
-          for (int m = 0; m < 3; ++m) s += M[m][i] * M[m][j];
-          orb.B[i][j] += s;
-        }
-    }
-
-    // pseudo-inverse via 3x3 symmetric eigendecomposition
-    double eval[3], evec[3][3];
-    if (MathEigen::jacobi3(orb.B, eval, evec) != 0)
-      error->all(FLERR, Error::NOLASTLINE,
-                 "SymmetryGroup: Jacobi eigensolver failed on Wyckoff matrix");
-    const double max_eval = std::max({eval[0], eval[1], eval[2]});
-    const double sv_tol = (max_eval > 0.0) ? max_eval * 1.0e-12 : 0.0;
-    for (int i = 0; i < 3; ++i)
-      for (int j = 0; j < 3; ++j) {
-        double sum = 0.0;
-        for (int m = 0; m < 3; ++m) {
-          if (eval[m] > sv_tol) sum += evec[m][i] * evec[m][j] / eval[m];
-        }
-        orb.Binv[i][j] = sum;
-      }
   }
 }
 

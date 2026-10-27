@@ -23,12 +23,10 @@ FixStyle(symmetry,FixSymmetry);
 #include "fix.h"
 
 #include <unordered_map>
-#include <utility>
 #include <vector>
 
 namespace LAMMPS_NS {
 
-class Respa;
 class SymmetryGroup;
 
 class FixSymmetry : public Fix {
@@ -38,33 +36,59 @@ class FixSymmetry : public Fix {
   int setmask() override;
   void init() override;
   void setup(int) override;
+  void post_neighbor() override;
   void post_force(int) override;
   void post_force_respa(int, int, int) override;
-  void end_of_step() override;
 
  private:
   SymmetryGroup *grp;
   double tol;
   char *symfile;
 
-  // tag -> (orbit_id, op_id_within_orbit); op_id == 0 is the asymmetric representative
-  std::unordered_map<tagint, std::pair<int, int>> tag_info;
-
-  // scratch buffers for per-orbit MPI_Allreduce, sized 3 * n_orbits
-  double *fsum_local, *fsum_global;
-  double *vsum_local, *vsum_global;
-  double *xasym_local, *xasym_global;
+  // Symmetry orbits: sets of atoms related by the operators of the group.
+  // All orbit data is identical on all MPI ranks.  The first member of an
+  // orbit is its representative.  Every member is the image of the
+  // representative under its canonical operator (the identity for the
+  // representative).  If the representative sits on a special position,
+  // the operators that leave it in place (its site symmetry) are listed in
+  // "stabilizer" and the orbit has fewer members than the group has operators.
+  struct OrbitInfo {
+    int nmembers;              // number of distinct atoms in the orbit
+    int fixed_dim;             // number of free coordinates of the representative
+    bool special;              // true if the representative is on a special position
+    double proj[3][3];         // projector onto the free coordinates (fractional)
+    std::vector<int> stabilizer;    // non-identity operators keeping the representative
+  };
+  std::vector<OrbitInfo> orbits;
   int n_orbits;
 
-  // Per-orbit Wyckoff constant c = sum_k (R_k - I)^T (t_k - L_k), where the
-  // L_k are the lattice translations selected by the user's initial asym
-  // position. Used to drive the Lagrange-multiplier projection in
-  // end_of_step. Zero (and unused) for orbits with empty stabilizer.
-  std::vector<double> wyckoff_c;
+  // atom ID -> global member index; member index -> orbit and canonical operator
+  std::unordered_map<tagint, int> member_of_tag;
+  std::vector<int> member_orbit;
+  std::vector<int> member_op;
 
-  void validate_box();
-  void build_orbit_map();
-  void wyckoff_project_locals();
+  // per-atom cache of the member index (or -1), rebuilt after reneighboring
+  int *atom2member;
+  int nmax_cache;
+
+  // per-atom lattice translation selecting the periodic copy of an image
+  // atom, valid until the next reneighboring
+  std::vector<double> image_shift;
+  bool shift_valid;
+
+  // Cartesian forms of the operators and their inverses: M = h R h^-1
+  std::vector<double> mcart, mcart_inv;
+  double h_cart[6];
+
+  // communication buffers: 9 doubles per orbit for the sums of forces and
+  // velocities and the position of the representative
+  double *buf_local, *buf_global;
+
+  void build_orbits();
+  void check_orbits();
+  void build_cache();
+  void update_cartesian_ops();
+  void check_metric(const double H[3][3]);
   void warn_conflicting_fixes();
 };
 

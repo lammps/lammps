@@ -253,22 +253,24 @@ TEST_F(FixSymmetryTest, PinvPreservesSymmetryUnderNVE)
 }
 
 // --------------------------------------------------------------------------
-//   Box validator: declared "cubic" lattice with a non-cubic box must error.
+//   Metric check: a four-fold axis along z requires a box with equal edge
+//   lengths along x and y.
 // --------------------------------------------------------------------------
-TEST_F(FixSymmetryTest, BoxMismatchTriggersError)
+TEST_F(FixSymmetryTest, MetricMismatchTriggersError)
 {
-    std::string sym = write_symfile("cubic.json", R"({
-        "group_name": "test",
-        "lattice":    "cubic",
-        "ops":   [ { "R": [[1,0,0],[0,1,0],[0,0,1]], "t": [0,0,0] } ],
-        "orbits": []
+    std::string sym = write_symfile("p4.json", R"({
+        "group_name": "P4",
+        "ops": [ { "R": [[1,0,0],[0,1,0],[0,0,1]], "t": [0,0,0] },
+                 { "R": [[0,-1,0],[1,0,0],[0,0,1]], "t": [0,0,0] },
+                 { "R": [[-1,0,0],[0,-1,0],[0,0,1]], "t": [0,0,0] },
+                 { "R": [[0,1,0],[-1,0,0],[0,0,1]], "t": [0,0,0] } ],
+        "orbits": [ ]
     })");
 
     HIDE_OUTPUT([&] {
         command("units lj");
         command("atom_style atomic");
         command("boundary p p p");
-        command("atom_modify map array");
         command("region box block 0 6 0 8 0 6");
         command("create_box 1 box");
         command("create_atoms 1 single 1 1 1");
@@ -277,9 +279,16 @@ TEST_F(FixSymmetryTest, BoxMismatchTriggersError)
         command("pair_coeff * * 1.0 1.0");
     });
 
-    TEST_FAILURE("cubic lattice requires xprd == yprd == zprd",
+    TEST_FAILURE("symmetry operator 2 is not compatible with the simulation box: a = 6, b = 8",
                  command(fmt::format("fix sym all symmetry {}", sym));
-                 command("run 0"););
+                 command("run 0 post no"););
+
+    // same operators in a square box are accepted
+    HIDE_OUTPUT([&] {
+        command("change_box all y final 0 6");
+        command(fmt::format("fix sym all symmetry {}", sym));
+        command("run 0 post no");
+    });
 
     LAMMPS_NS::platform::unlink(sym);
 }
@@ -307,7 +316,7 @@ TEST_F(FixSymmetryTest, MisplacedImageTriggersError)
 
     setup_pinv_system(8.0);
 
-    TEST_FAILURE("differs from R\\*s_asym",
+    TEST_FAILURE("atom ID 2 is not at the image of atom ID 1 under symmetry operator 2",
                  command(fmt::format("fix sym all symmetry {}", sym));
                  command("run 0"););
 
@@ -334,7 +343,7 @@ TEST_F(FixSymmetryTest, MissingTagTriggersError)
 
     setup_pinv_system(8.0);
 
-    TEST_FAILURE("atom tag 999 .* does not exist",
+    TEST_FAILURE("atom ID 999 of symmetry orbit 1 does not exist",
                  command(fmt::format("fix sym all symmetry {}", sym));
                  command("run 0"););
 
@@ -436,7 +445,7 @@ TEST_F(FixSymmetryTest, WyckoffOffSiteTriggersError)
         command("pair_coeff * * 1.0 1.0");
     });
 
-    TEST_FAILURE("declared on Wyckoff site .* but residual",
+    TEST_FAILURE("atom ID 1 is not on the special position required by symmetry operator 2",
                  command(fmt::format("fix sym all symmetry {}", sym));
                  command("run 0"););
 
@@ -740,11 +749,70 @@ TEST_F(FixSymmetryTest, IntermediateWyckoffOrbit)
         command("mass 1 1.0");
         command("pair_style lj/cut 2.5");
         command("pair_coeff * * 1.0 1.0");
+        command("pair_modify shift yes");
         command("velocity all create 0.7 12345");
         command("fix 1 all nve");
     });
 
-    TEST_FAILURE("atom tag 2 is listed in two orbit positions",
+    HIDE_OUTPUT([&] {
+        command("variable etot equal etotal");
+        command(fmt::format("fix sym all symmetry {}", sym));
+        command("run 0 post no");
+    });
+    const double etot_start = get_variable_value("etot");
+    HIDE_OUTPUT([&] { command("run 1000 post no"); });
+
+    const std::vector<TestOp> ops = {OP_IDENTITY,
+                                     {{{-1, 0, 0}, {0, -1, 0}, {0, 0, 1}}, {0, 0, 0}},
+                                     {{{-1, 0, 0}, {0, 1, 0}, {0, 0, 1}}, {0, 0, 0}},
+                                     {{{1, 0, 0}, {0, -1, 0}, {0, 0, 1}}, {0, 0, 0}}};
+    EXPECT_LT(orbit_residual({3, 4, 5, 6}, ops), 1.0e-12);
+    EXPECT_LT(orbit_residual({1, 2, 2, 1}, ops), 1.0e-12);
+    // atom 1 is free to move in the mirror plane, but not across it
+    double x1[3];
+    get_pos(1, x1);
+    EXPECT_NEAR(x1[1] / 8.0 - std::round(x1[1] / 8.0), 0.0, 1.0e-12);
+    EXPECT_NEAR(get_variable_value("etot"), etot_start, 1.0e-3);
+
+    LAMMPS_NS::platform::unlink(sym);
+}
+
+// --------------------------------------------------------------------------
+//   All atoms of an orbit must have the same type.
+// --------------------------------------------------------------------------
+TEST_F(FixSymmetryTest, MixedTypesInOrbitTriggersError)
+{
+    std::string sym = write_symfile("pinv_types.json", R"({
+        "group_name": "P-1",
+        "ops": [
+            { "R": [[ 1, 0, 0],[ 0, 1, 0],[ 0, 0, 1]], "t": [0,0,0] },
+            { "R": [[-1, 0, 0],[ 0,-1, 0],[ 0, 0,-1]], "t": [0,0,0] }
+        ],
+        "orbits": [
+            { "tags": [1, 5] }, { "tags": [2, 6] },
+            { "tags": [3, 7] }, { "tags": [4, 8] }
+        ]
+    })");
+
+    HIDE_OUTPUT([&] {
+        command("units lj");
+        command("atom_style atomic");
+        command("region box block 0 8 0 8 0 8");
+        command("create_box 2 box");
+        command("create_atoms 1 single 1.2 1.5 1.8");
+        command("create_atoms 1 single 3.0 1.2 0.9");
+        command("create_atoms 1 single 1.5 3.0 1.1");
+        command("create_atoms 1 single 0.9 1.1 3.2");
+        command("create_atoms 1 single 6.8 6.5 6.2");
+        command("create_atoms 1 single 5.0 6.8 7.1");
+        command("create_atoms 2 single 6.5 5.0 6.9");
+        command("create_atoms 1 single 7.1 6.9 4.8");
+        command("mass * 1.0");
+        command("pair_style lj/cut 2.5");
+        command("pair_coeff * * 1.0 1.0");
+    });
+
+    TEST_FAILURE("atoms of symmetry orbit 3 have different atom types 1 and 2",
                  command(fmt::format("fix sym all symmetry {}", sym));
                  command("run 0 post no"););
 

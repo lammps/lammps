@@ -44,7 +44,6 @@
 #include <algorithm>
 #include <cmath>
 #include <cstring>
-#include <exception>
 #include <random>
 #include <vector>
 
@@ -361,12 +360,14 @@ FixReaxFFSpecies::~FixReaxFFSpecies()
     if (fdel) fclose(fdel);
   }
 
-  try {
-    modify->delete_compute(fmt::format("SPECATOM_{}", id));
-    modify->delete_fix(fmt::format("SPECBOND_{}", id));
-    modify->delete_fix(fmt::format("clusterID_{}", id));
-  } catch (std::exception &) {
-  }
+  // the compute and fixes are created in init(), so they do not exist without a run
+
+  const auto id_specatom = fmt::format("SPECATOM_{}", id);
+  if (modify->get_compute_by_id(id_specatom)) modify->delete_compute(id_specatom);
+  const auto id_specbond = fmt::format("SPECBOND_{}", id);
+  if (modify->get_fix_by_id(id_specbond)) modify->delete_fix(id_specbond);
+  const auto id_cluster = fmt::format("clusterID_{}", id);
+  if (modify->get_fix_by_id(id_cluster)) modify->delete_fix(id_cluster);
 }
 
 /* ---------------------------------------------------------------------- */

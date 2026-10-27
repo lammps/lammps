@@ -1,3 +1,16 @@
+/* -*- c++ -*- ----------------------------------------------------------
+   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
+   https://www.lammps.org/, Sandia National Laboratories
+   LAMMPS development team: developers@lammps.org
+
+   Copyright (2003) Sandia Corporation.  Under the terms of Contract
+   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
+   certain rights in this software.  This software is distributed under
+   the GNU General Public License.
+
+   See the README file in the top-level LAMMPS directory.
+------------------------------------------------------------------------- */
+
 #ifdef PAIR_CLASS
 // clang-format off
 PairStyle(pace/omp, PairPACEOMP);
@@ -7,13 +20,13 @@ PairStyle(pace/omp, PairPACEOMP);
 #ifndef LMP_PAIR_PACE_OMP_H
 #define LMP_PAIR_PACE_OMP_H
 
-#include "ace-evaluator/ace_recursive.h"
 #include "pair_pace.h"
 #include "thr_omp.h"
 
 #include <vector>
 
 namespace LAMMPS_NS {
+struct ACEImplThr;
 
 // inherit from PairPACE and ThrOMP
 class PairPACEOMP : public PairPACE, public ThrOMP {
@@ -26,11 +39,9 @@ class PairPACEOMP : public PairPACE, public ThrOMP {
   double memory_usage() override;
 
  private:
+  ACEImplThr *ace_thr;
+
   // ACEImpl contains two separate objects that are not thread-safe by default, allocate copies on each thread
-  // One ACE evaluator per thread
-  std::vector<ACERecursiveEvaluator *> ace_thr;
-  // One basis per thread
-  std::vector<ACECTildeBasisSet *> basis_thr;
   // Helper to create one ACERecursiveEvaluator per thread
   void build_thread_evaluators();
 };

@@ -557,7 +557,10 @@ LAMMPS errors do not kill the calling code, but throw an exception.  In
 the C-library interface, the call stack is unwound and control returns
 to the caller, e.g. to Python or a code that is coupled to LAMMPS. The
 error status can then be queried.  When using C++ directly, the calling
-code has to be set up to *catch* exceptions thrown from within LAMMPS.
+code **must be** set up to **catch** exceptions thrown from within
+LAMMPS.  This is particularly necessary when running in parallel, since
+a ``LAMMPSAbortException`` may only be thrown on a single MPI rank and
+thus can lead to the calculation stalling.
 
 .. note::
 
@@ -565,4 +568,3 @@ code has to be set up to *catch* exceptions thrown from within LAMMPS.
    cleanly recover from an exception since not all parallel ranks may
    throw an exception and thus other MPI ranks may get stuck waiting for
    messages from the ones with errors.
-

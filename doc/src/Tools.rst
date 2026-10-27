@@ -537,7 +537,7 @@ input files that is linked to the :ref:`LAMMPS C-library
 repository at https://github.com/lammps/lammps-gui/ and the online
 documentation is at https://lammps-gui.lammps.org/
 
-It is still possible to compile :ref:`LAMMPS-GUI together with LAMMPS <tools>`.
+It is still possible to compile :ref:`LAMMPS-GUI together with LAMMPS <build_tools>`.
 
 ----------
 

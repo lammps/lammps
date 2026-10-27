@@ -854,7 +854,7 @@ This list was last updated for version 5.2.1 of the Kokkos library.
          -D BUILD_OMP=on
 
       Please note that enabling OpenMP for KOKKOS requires that OpenMP is
-      also :ref:`enabled for the rest of LAMMPS <serial>`.
+      also :ref:`enabled for the rest of LAMMPS <build_serial>`.
 
       For Intel KNLs using OpenMP, set these variables:
 

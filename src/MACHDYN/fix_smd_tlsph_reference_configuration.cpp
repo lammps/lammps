@@ -324,20 +324,13 @@ void FixSMD_TLSPH_ReferenceConfiguration::setup(int /*vflag*/) {
     MPI_Allreduce(&count, &countall, 1, MPI_INT, MPI_SUM, world);
     if (countall < 1) countall = 1;
 
-    if (comm->me == 0) {
-      if (screen) {
-        printf("\n>>========>>========>>========>>========>>========>>========>>========>>========\n");
-        fprintf(screen, "TLSPH neighbors:\n");
-        fprintf(screen, "  max # of neighbors for a single particle = %d\n", maxpartner);
-        fprintf(screen, "  average # of neighbors/particle in group tlsph = %g\n", (double) nall / countall);
-        printf(">>========>>========>>========>>========>>========>>========>>========>>========\n\n");
-      }
-      if (logfile) {
-        fprintf(logfile, "\nTLSPH neighbors:\n");
-        fprintf(logfile, "  max # of neighbors for a single particle = %d\n", maxpartner);
-        fprintf(logfile, "  average # of neighbors/particle in group tlsph = %g\n", (double) nall / countall);
-      }
-    }
+    if (comm->me == 0)
+      utils::logmesg(lmp, "\n>>========>>========>>========>>========>>========>>========>>========>>========\n"
+                     "TLSPH neighbors:\n"
+                     "  max # of neighbors for a single particle = {}\n"
+                     "  average # of neighbors/particle in group tlsph = {:g}\n"
+                     ">>========>>========>>========>>========>>========>>========>>========>>========\n\n",
+                     maxpartner, (double) nall / countall);
   }
 
   updateFlag = 0; // set update flag to zero after the update
@@ -459,24 +452,6 @@ int FixSMD_TLSPH_ReferenceConfiguration::pack_restart(int i, double *buf) {
  ------------------------------------------------------------------------- */
 
 void FixSMD_TLSPH_ReferenceConfiguration::unpack_restart(int /*nlocal*/, int /*nth*/) {
-// ipage = nullptr if being called from granular pair style init()
-
-// skip to Nth set of extra values
-// unpack the Nth first values this way because other fixes pack them
-
-//      double **extra = atom->extra;
-//
-//      int m = 0;
-//      for (int i = 0; i < nth; i++)
-//              m += static_cast<int>(extra[nlocal][m]);
-//      m++;
-//
-//      // allocate new chunks from ipage,dpage for incoming values
-//
-//      npartner[nlocal] = static_cast<int>(extra[nlocal][m++]);
-//      for (int n = 0; n < npartner[nlocal]; n++) {
-//              partner[nlocal][n] = static_cast<tagint>(extra[nlocal][m++]);
-//      }
 }
 
 /* ----------------------------------------------------------------------

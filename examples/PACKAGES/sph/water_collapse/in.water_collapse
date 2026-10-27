@@ -1,3 +1,6 @@
+# the default number of steps is short for testing, use "-var nsteps 50000" to run until t=10
+variable           nsteps index 2000
+
 processors         * 1 1 # manually assign processors to spatial regions
 atom_style         sph
 dimension          2
@@ -9,7 +12,6 @@ read_data          data.initial
 variable           h equal 0.03
 variable           c equal 10.0 # soundspeed for Tait's EOS
 variable           dt equal 0.1*${h}/${c} # upper limit of timestep based on CFL-like criterion
-variable           nrun equal 15.0/${dt} # roughly estimate number of timesteps needed for 7.5 seconds
 
 group              bc    type 2 # assign group name "bc" to boundary particles (type 2)
 group              water type 1 # assign group name "water" to water particles (type 1)
@@ -54,4 +56,4 @@ neighbor           ${skin} bin # set Verlet list skin distance
 #                   color map5 0.988 0.998 0.645 &
 #                   amap 0.0 5.0 cf 0.0 5 min map1 0.25 map2 0.5 map3 0.75 map4 max map5
 
-run                ${nrun}
+run                ${nsteps}

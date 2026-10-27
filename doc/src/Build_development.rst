@@ -151,8 +151,6 @@ for more details.
 
 ----------
 
-.. _compilation:
-
 Monitor compilation flags (CMake only)
 --------------------------------------
 
@@ -172,8 +170,6 @@ Another way of doing this without reconfiguration is adding the
    cmake --build build --verbose
 
 ----------
-
-.. _iwyu_processing:
 
 Report missing and unneeded '#include' statements (CMake only)
 --------------------------------------------------------------
@@ -208,8 +204,6 @@ This may first run some compilation, as the analysis is dependent
 on recording all commands required to do the compilation.
 
 ----------
-
-.. _sanitizer:
 
 Address, Leak, Undefined Behavior, and Thread Sanitizer Support (CMake only)
 ----------------------------------------------------------------------------

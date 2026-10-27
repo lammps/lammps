@@ -1,12 +1,15 @@
-LAMMPS (9 Oct 2020)
+LAMMPS (30 Sep 2026 - Development - patch_30Sep2026-523-gdbc38a263e-modified)
   using 1 OpenMP thread(s) per MPI task
 ####################################################################################################
 #
-# TLSPH example:  elongate a 2d strip of aluminum py pulling its ends apart
+# TLSPH example:  elongate a 2d strip of aluminum by pulling its ends apart
 #
 # unit system: GPa / mm / ms
 #
+# the default number of steps is short for testing, use "-var nsteps 30000" to reach failure
+#
 ####################################################################################################
+variable        nsteps index 2000
 
 ####################################################################################################
 # MATERIAL PARAMETERS
@@ -54,13 +57,14 @@ newton          off
 variable        l0 equal 1.0 # lattice spacing for creating particles
 lattice         sq ${l0}
 lattice         sq 1
-Lattice spacing in x,y,z = 1.0000000 1.0000000 1.0000000
+Lattice spacing in x,y,z = 1 1 1
 region          box block -10 10 -10 10 -0.1 0.1 units box
 create_box      1 box
-Created orthogonal box = (-10.000000 -10.000000 -0.1) to (10.000000 10.000000 0.1)
-  2 by 2 by 1 MPI processor grid
+Created orthogonal box = (-10 -10 -0.1) to (10 10 0.1)
+  1 by 1 by 1 MPI processor grid
 create_atoms    1 box
 Created 400 atoms
+  using lattice units in orthogonal box = (-10.002 -10.002 -0.1) to (10 10 0.1)
   create_atoms CPU = 0.000 seconds
 group           tlsph type 1
 400 atoms in group tlsph
@@ -108,9 +112,14 @@ fix             velbot_fix bot smd/setvel 0 v_vel_down 0
 ####################################################################################################
 # INTERACTION PHYSICS / MATERIAL MODEL
 # We use polynomial EOS for the pressure and the Johnson Cook strength model
-# An integration point fails (cannot support tension anymore) if the plastic strain exceeds 0.5.
+# An integration point fails (cannot support tension anymore) if the plastic strain exceeds 1.2.
 ####################################################################################################
 pair_style      smd/tlsph
+
+>>========>>========>>========>>========>>========>>========>>========>>========>>========>>========>>========>>========
+TLSPH settings
+... will never update reference configuration
+>>========>>========>>========>>========>>========>>========>>========>>========>>========>>========>>========>>========
 pair_coeff      1 1 *COMMON ${rho} ${E} ${nu} ${q1} ${q2} ${hg} ${cp}                 *EOS_POLYNOMIAL ${eosC0} ${eosC1} ${eosC2} ${eosC3} ${eosC4} ${eosC5} ${eosC6}                 *JOHNSON_COOK ${JC_A} ${JC_B}  ${JC_N} ${JC_C} ${JC_epsdot0} ${Troom} ${Tmelt} ${JC_M}                 *FAILURE_MAX_PLASTIC_STRAIN 1.2                 *END
 pair_coeff      1 1 *COMMON 1 ${E} ${nu} ${q1} ${q2} ${hg} ${cp}                 *EOS_POLYNOMIAL ${eosC0} ${eosC1} ${eosC2} ${eosC3} ${eosC4} ${eosC5} ${eosC6}                 *JOHNSON_COOK ${JC_A} ${JC_B}  ${JC_N} ${JC_C} ${JC_epsdot0} ${Troom} ${Tmelt} ${JC_M}                 *FAILURE_MAX_PLASTIC_STRAIN 1.2                 *END
 pair_coeff      1 1 *COMMON 1 70 ${nu} ${q1} ${q2} ${hg} ${cp}                 *EOS_POLYNOMIAL ${eosC0} ${eosC1} ${eosC2} ${eosC3} ${eosC4} ${eosC5} ${eosC6}                 *JOHNSON_COOK ${JC_A} ${JC_B}  ${JC_N} ${JC_C} ${JC_epsdot0} ${Troom} ${Tmelt} ${JC_M}                 *FAILURE_MAX_PLASTIC_STRAIN 1.2                 *END
@@ -135,11 +144,58 @@ pair_coeff      1 1 *COMMON 1 70 0.3 0.56 0 10 1                 *EOS_POLYNOMIAL
 pair_coeff      1 1 *COMMON 1 70 0.3 0.56 0 10 1                 *EOS_POLYNOMIAL 0 74.2 60.5 36.5 1.96 0 0                 *JOHNSON_COOK 0.3241 0.1138  0.42 0 0.001 298.15 500.15 ${JC_M}                 *FAILURE_MAX_PLASTIC_STRAIN 1.2                 *END
 pair_coeff      1 1 *COMMON 1 70 0.3 0.56 0 10 1                 *EOS_POLYNOMIAL 0 74.2 60.5 36.5 1.96 0 0                 *JOHNSON_COOK 0.3241 0.1138  0.42 0 0.001 298.15 500.15 1.34                 *FAILURE_MAX_PLASTIC_STRAIN 1.2                 *END
 
+>>========>>========>>========>>========>>========>>========>>========>>========>>========>>========>>========>>========
+SMD / TLSPH PROPERTIES OF PARTICLE TYPE 1:
+
+material unspecific properties for SMD/TLSPH definition of particle type 1:
+reference density                                            : 1
+Young's modulus                                              : 70
+Poisson ratio                                                : 0.3
+linear viscosity coefficient                                 : 0.56
+quadratic viscosity coefficient                              : 0
+hourglass control coefficient                                : 10
+heat capacity [energy / (mass * temperature)]                : 1
+Lame constant lambda                                         : 40.38461538461538
+shear modulus                                                : 26.923076923076923
+bulk modulus                                                 : 58.33333333333333
+signal velocity                                              : 9.70725343394151
+reading *EOS_POLYNOMIAL
+
+polynomial EOS based on strain rate
+parameter c0                                                 : 0
+parameter c1                                                 : 74.2
+parameter c2                                                 : 60.5
+parameter c3                                                 : 36.5
+parameter c4                                                 : 1.96
+parameter c5                                                 : 0
+parameter c6                                                 : 0
+reading *JOHNSON_COOK
+Johnson Cook material strength model
+A: initial yield stress                                      : 0.3241
+B : proportionality factor for plastic strain dependency     : 0.1138
+a : exponent for plastic strain dependency                   : 0.42
+C : proportionality factor for logarithmic plastic strain rate dependency : 0
+epdot0 : dimensionality factor for plastic strain rate dependency : 0.001
+T0 : reference (room) temperature                            : 298.15
+Tmelt : melting temperature                                  : 500.15
+M : exponent for temperature dependency                      : 1.34
+reading *FAILURE_MAX_PLASTIC_SRTRAIN
+
+maximum plastic strain failure criterion
+failure occurs when plastic strain reaches limit             : 1.2
+found *END keyword
+>>========>>========>>========>>========>>========>>========>>========>>========>>========>>========>>========>>========
+
+
 ####################################################################################################
 # TIME INTEGRATION
 ####################################################################################################
 fix             dtfix tlsph smd/adjust_dt 0.1 # dynamically adjust time increment every step
 fix             integration_fix tlsph smd/integrate_tlsph
+
+>>========>>========>>========>>========>>========>>========>>========>>========
+fix smd/integrate_tlsph is active for group: tlsph
+>>========>>========>>========>>========>>========>>========>>========>>========
 
 ####################################################################################################
 # SPECIFY TRAJECTORY OUTPUT
@@ -168,15 +224,17 @@ variable        time equal f_dtfix
 fix             stress_curve all print 10 "${time} ${strain} ${stress}" file stress_strain.dat screen no
 
 thermo          100
-thermo_style    custom step dt f_dtfix time v_strain
+thermo_style    custom step dt f_dtfix time v_strain press
 
 ####################################################################################################
 # RUN SIMULATION
 ####################################################################################################
 #fix            2 all enforce2d
+run             ${nsteps}
 run             2000
+Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
 Neighbor list info ...
-  update every 10 steps, delay 0 steps, check yes
+  update: every = 10 steps, delay = 0 steps, check = yes
   max neighbors/atom: 2000, page size: 100000
   master list distance cutoff = 4.02
   ghost atom cutoff = 4.02
@@ -184,59 +242,62 @@ Neighbor list info ...
   1 neighbor lists, perpetual/occasional/extra = 1 0 0
   (1) pair smd/tlsph, perpetual
       attributes: half, newton off, size
-      pair build: half/size/bin/newtoff
-      stencil: half/bin/2d/newtoff
+      pair build: half/size/bin/atomonly/newtoff
+      stencil: full/bin/2d
       bin: standard
 
+>>========>>========>>========>>========>>========>>========>>========>>========
 TLSPH neighbors:
   max # of neighbors for a single particle = 12
   average # of neighbors/particle in group tlsph = 11.01
-Per MPI rank memory allocation (min/avg/max) = 30.42 | 30.43 | 30.44 Mbytes
-Step Dt f_dtfix Time v_strain 
-       0        1e-16            0            0            0 
-     100  0.020705726    2.0498925    2.0705726 4.436443e-05 
-     200   0.01898385    4.0324033      3.79677 0.00016515223 
-     300  0.019051906    5.9333066    5.7155717 0.00035049273 
-     400  0.018996472    7.8305099    7.5985889 0.00060670224 
-     500  0.019027435      9.73206    9.5137174  0.000934622 
-     600  0.019051342      11.6361    11.430805  0.001332781 
-     700  0.019065137     13.54205    13.345596 0.0017999344 
-     800  0.019077723    15.449268    15.262178 0.0023347057 
-     900  0.019085073    17.357448    17.176565 0.0029358076 
-    1000  0.019092376    19.266354    19.092376 0.0036019613 
-    1100  0.018942457    21.168409    20.836702 0.0043265389 
-    1200  0.017710951    22.995927    21.253142 0.0050558892 
-    1300  0.018403356     24.84804    23.924363 0.0058616452 
-    1400    0.0186654    26.710384     26.13156 0.0067328424 
-    1500  0.019022154     28.58178    28.533231 0.0076688571 
-    1600  0.018562934    30.467266    29.700694 0.0086745455 
-    1700  0.020657894     32.34779    35.118419 0.0097303803 
-    1800  0.018013596    34.258245    32.424473   0.01087327 
-    1900  0.018883511    36.128876    35.878671  0.012024842 
-    2000  0.018995939    37.998637    37.991879  0.013227222 
-Loop time of 0.443737 on 4 procs for 2000 steps with 400 atoms
+>>========>>========>>========>>========>>========>>========>>========>>========
 
-97.4% CPU use with 4 MPI tasks x 1 OpenMP threads
+Per MPI rank memory allocation (min/avg/max) = 25.23 | 25.23 | 25.23 Mbytes
+   Step           Dt          f_dtfix          Time         v_strain        Press     
+         0   1e-16          0              0              0              0            
+       100   0.020705726    2.0498925      2.0705726      4.436443e-05  -0.0026574138 
+       200   0.01898385     4.0324033      3.79677        0.00016515223 -0.0083762131 
+       300   0.019051906    5.9333066      5.7155717      0.00035049273 -0.018031887  
+       400   0.018996472    7.8305099      7.5985889      0.00060670224 -0.030539308  
+       500   0.019027435    9.73206        9.5137174      0.000934622   -0.047219522  
+       600   0.019051342    11.6361        11.430805      0.001332781   -0.066859349  
+       700   0.019065137    13.54205       13.345596      0.0017999344  -0.090405102  
+       800   0.019077723    15.449268      15.262178      0.0023347057  -0.11690649   
+       900   0.019085073    17.357448      17.176565      0.0029358076  -0.1470659    
+      1000   0.019092376    19.266354      19.092376      0.0036019613  -0.18015795   
+      1100   0.018942457    21.168409      20.836702      0.0043265389  -0.21481446   
+      1200   0.017710951    22.995927      21.253142      0.0050558892  -0.21975195   
+      1300   0.018403356    24.84804       23.924363      0.0058616451  -0.21855194   
+      1400   0.0186654      26.710384      26.13156       0.0067328424  -0.22741437   
+      1500   0.019022154    28.58178       28.533231      0.0076688571  -0.22588916   
+      1600   0.018562934    30.467266      29.700694      0.0086745455  -0.228403     
+      1700   0.020657894    32.34779       35.118419      0.0097303803  -0.23152876   
+      1800   0.018013596    34.258245      32.424473      0.01087327    -0.23122867   
+      1900   0.018883512    36.128876      35.878672      0.012024842   -0.23373464   
+      2000   0.01899594     37.998637      37.99188       0.013227222   -0.23532076   
+Loop time of 1.1127 on 1 procs for 2000 steps with 400 atoms
+
+99.6% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.36926    | 0.37278    | 0.37567    |   0.4 | 84.01
+Pair    | 1.0638     | 1.0638     | 1.0638     |   0.0 | 95.60
 Neigh   | 0          | 0          | 0          |   0.0 |  0.00
-Comm    | 0.013601   | 0.016496   | 0.018179   |   1.4 |  3.72
-Output  | 0.018589   | 0.018805   | 0.019446   |   0.3 |  4.24
-Modify  | 0.0314     | 0.034684   | 0.038016   |   1.3 |  7.82
-Other   |            | 0.0009738  |            |       |  0.22
+Comm    | 5.3024e-05 | 5.3024e-05 | 5.3024e-05 |   0.0 |  0.00
+Output  | 0.033991   | 0.033991   | 0.033991   |   0.0 |  3.05
+Modify  | 0.014307   | 0.014307   | 0.014307   |   0.0 |  1.29
+Other   |            | 0.0005544  |            |       |  0.05
 
-Nlocal:        100.000 ave         100 max         100 min
-Histogram: 4 0 0 0 0 0 0 0 0 0
-Nghost:        110.250 ave         125 max          96 min
-Histogram: 1 0 0 0 2 0 0 0 0 1
-Neighs:        2373.00 ave        2373 max        2373 min
-Histogram: 4 0 0 0 0 0 0 0 0 0
+Nlocal:            400 ave         400 max         400 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:              0 ave           0 max           0 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:           8054 ave        8054 max        8054 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
 
-Total # of neighbors = 9492
-Ave neighs/atom = 23.730000
+Total # of neighbors = 8054
+Ave neighs/atom = 20.135
 Neighbor list builds = 0
 Dangerous builds = 0
-Total wall time: 0:00:00
+Total wall time: 0:00:01

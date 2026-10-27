@@ -77,7 +77,7 @@ void ShockEOS(double rho, double rho0, double e, double e0, double c0, double S,
         double mu = rho / rho0 - 1.0;
         double pH = rho0 * square(c0) * mu * (1.0 + mu) / square(1.0 - (S - 1.0) * mu);
 
-        pFinal = (-pH + rho * Gamma * (e - e0));
+        pFinal = -(pH + rho * Gamma * (e - e0)); // we want the mean stress, not the pressure.
 
         p_rate = (pFinal - pInitial) / dt;
 
@@ -237,7 +237,7 @@ void LinearPlasticStrength(const double G, const double yieldStress, const Matri
                 /*
                  * new deviatoric stress rate
                  */
-                sigma_dev_rate__ = sigmaFinal_dev__ - sigmaInitial_dev;
+                sigma_dev_rate__ = (sigmaFinal_dev__ - sigmaInitial_dev) / dt;
         }
 }
 
@@ -314,7 +314,7 @@ void JohnsonCookStrength(const double G, const double cp, const double espec, co
                 /*
                  * new deviatoric stress rate
                  */
-                sigma_dev_rate__ = sigmaFinal_dev__ - sigmaInitial_dev;
+                sigma_dev_rate__ = (sigmaFinal_dev__ - sigmaInitial_dev) / dt;
         }
 }
 

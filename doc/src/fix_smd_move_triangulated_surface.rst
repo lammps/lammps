@@ -60,8 +60,8 @@ particle to (omega cross Rperp) where omega is its angular velocity
 around the rotation axis and Rperp is a perpendicular vector from the
 rotation axis to the particle.
 
-See `this PDF guide <PDF/MACHDYN_LAMMPS_userguide.pdf>`_ to using Smooth Mach
-Dynamics in LAMMPS.
+See the :doc:`Howto machdyn <Howto_machdyn>` page for an introduction
+to using Smooth Mach Dynamics in LAMMPS.
 
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""

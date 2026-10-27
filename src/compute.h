@@ -178,9 +178,12 @@ class Compute : protected Pointers {
 
   virtual void pair_setup_callback(int, int) {}
   virtual void pair_tally_callback(int, int, int, int, double, double, double, double, double,
-                                   double)
-  {
-  }
+                                   double){}
+  virtual void pair_cv_tally3_callback(int i, int j, int k, double *fi, double *fj, double *fk,
+                                       double Uijk, double pi, double pj, double pk) {}
+  virtual void pair_cv_tally4_callback(int i, int j, int k, int l, double *fi, double *fj,
+                                       double *fk, double *fl, double Uijkl, double pi,
+                                       double pj, double pk, double pl) {}
 
  protected:
   int instance_me;    // which Compute class instantiation I am

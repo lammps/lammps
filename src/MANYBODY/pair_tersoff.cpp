@@ -51,7 +51,7 @@ PairTersoff::PairTersoff(LAMMPS *lmp) : Pair(lmp)
   restartinfo = 0;
   one_coeff = 1;
   manybody_flag = 1;
-  centroidstressflag = CENTROID_NOTAVAIL;
+  centroidstressflag = CENTROID_AVAIL;
   unit_convert_flag = utils::get_supported_conversions(utils::ENERGY);
 
   params = nullptr;
@@ -315,6 +315,9 @@ void PairTersoff::eval()
         f[k][2] += fk[2];
 
         if (VFLAG_EITHER) v_tally3(i,j,k,fj,fk,delr1,delr2);
+/* ************************************  CENTROID ADDITION  *************************************** */
+        if (EVFLAG) cv_tally3(i,j,k,fi,fj,fk,evdwl,0.5,0.5,0); // EFLAG needed for the tally_callbacks
+/* ************************************  CENTROID ADDITION  *************************************** */
       }
       f[j][0] += fjxtmp;
       f[j][1] += fjytmp;

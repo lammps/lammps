@@ -97,6 +97,7 @@ MLIAPData::~MLIAPData()
 
 void MLIAPData::init()
 {
+  memory->destroy(egradient);
   memory->create(egradient, nelements * nparams, "MLIAPData:egradient");
 }
 

@@ -10,6 +10,7 @@
 #include "info.h"
 #include "library.h"
 #include "modify.h"
+#include "output.h"
 #include "platform.h"
 #include "region.h"
 #include "utils.h"
@@ -480,51 +481,103 @@ TEST_F(ModifyTest, GroupFixRunsFirstInPostForce)
     EXPECT_GT(noutside, 0);
 }
 
-TEST_F(ModifyTest, FixAddedWithoutInitIsNotInvoked)
+TEST_F(ModifyTest, RunWithoutSetupAfterChangeIsError)
 {
-    // "run ... pre no" skips the initialization, which is documented as an
-    // error when fixes were changed in between that LAMMPS cannot detect.
-    // a fix added this way is not invoked (it was never initialized) until
-    // the next run that does initialize, as with the lists of fix indices.
+    // "run ... pre no" skips the setup in which Modify takes the snapshot of
+    // the fixes to invoke, so it is an error when fixes, computes, or dumps
+    // were added, deleted, or modified since the last setup
 
+    auto *modify = lmp->modify;
+    auto *output = lmp->output;
     HIDE_OUTPUT([&] {
         command("fix f1 all nve");
         command("run 2 post no");
+    });
+    EXPECT_FALSE(modify->changed_since_init());
+    HIDE_OUTPUT([&] {
         command("fix pa all print 1 \"AAAA\"");
     });
-    auto output = CAPTURE_OUTPUT([&] {
-        command("run 2 pre no post no");
-    });
-    EXPECT_EQ(count(output, "AAAA"), 0);
-    EXPECT_FALSE(lmp->modify->has_fixes(END_OF_STEP));
-    EXPECT_TRUE(lmp->modify->get_fix_mask(lmp->modify->get_fix_by_id("pa")) & END_OF_STEP);
+    EXPECT_TRUE(modify->changed_since_init());
+    TEST_FAILURE(".*Cannot use run with 'pre no'.*", command("run 2 pre no post no"););
 
-    output = CAPTURE_OUTPUT([&] {
+    // after a run with setup the fix is invoked, and a run without setup is
+    // allowed when nothing changed in between
+    auto out = CAPTURE_OUTPUT([&] {
         command("run 2 post no");
     });
-    EXPECT_EQ(count(output, "AAAA"), 3);
-    EXPECT_TRUE(lmp->modify->has_fixes(END_OF_STEP));
+    EXPECT_EQ(count(out, "AAAA"), 3);
+    EXPECT_FALSE(modify->changed_since_init());
+    out = CAPTURE_OUTPUT([&] {
+        command("run 2 pre no post no");
+    });
+    EXPECT_EQ(count(out, "AAAA"), 2);
+    EXPECT_FALSE(modify->changed_since_init());
 
-    // same for a mask changed between runs through fix_modify
-    if (Info::has_package("RIGID")) {
-        HIDE_OUTPUT([&] {
-            command("unfix pa");
-            command("unfix f1");
-            command("fix r all rigid single");
-            command("run 2 post no");
-            command("fix_modify r bodyforces early");
-        });
-        auto *modify = lmp->modify;
-        EXPECT_TRUE(modify->get_fix_mask(modify->get_fix_by_id("r")) & POST_FORCE);
-        HIDE_OUTPUT([&] {
-            command("run 2 pre no post no");
-        });
-        EXPECT_FALSE(modify->has_fixes(POST_FORCE_ANY));
-        HIDE_OUTPUT([&] {
-            command("run 2 post no");
-        });
-        EXPECT_TRUE(modify->has_fixes(POST_FORCE_ANY));
-    }
+    HIDE_OUTPUT([&] {
+        command("fix_modify f1 dynamic/dof yes");
+    });
+    EXPECT_TRUE(modify->changed_since_init());
+    TEST_FAILURE(".*Cannot use run with 'pre no'.*", command("run 2 pre no post no"););
+    HIDE_OUTPUT([&] {
+        command("run 0 post no");
+    });
+    EXPECT_FALSE(modify->changed_since_init());
+
+    HIDE_OUTPUT([&] {
+        command("unfix pa");
+    });
+    EXPECT_TRUE(modify->changed_since_init());
+    TEST_FAILURE(".*Cannot use run with 'pre no'.*", command("run 2 pre no post no"););
+    HIDE_OUTPUT([&] {
+        command("run 0 post no");
+    });
+    EXPECT_FALSE(modify->changed_since_init());
+
+    HIDE_OUTPUT([&] {
+        command("compute ke all ke");
+    });
+    EXPECT_TRUE(modify->changed_since_init());
+    TEST_FAILURE(".*Cannot use run with 'pre no'.*", command("run 2 pre no post no"););
+    HIDE_OUTPUT([&] {
+        command("run 0 post no");
+    });
+    EXPECT_FALSE(modify->changed_since_init());
+    HIDE_OUTPUT([&] {
+        command("uncompute ke");
+    });
+    EXPECT_TRUE(modify->changed_since_init());
+    HIDE_OUTPUT([&] {
+        command("run 0 post no");
+    });
+
+    // same for dumps
+    EXPECT_FALSE(output->changed_since_init());
+    HIDE_OUTPUT([&] {
+        command("dump d1 all atom 100 test_modify_class.dump");
+    });
+    EXPECT_TRUE(output->changed_since_init());
+    EXPECT_FALSE(modify->changed_since_init());
+    TEST_FAILURE(".*Cannot use run with 'pre no'.*", command("run 2 pre no post no"););
+    HIDE_OUTPUT([&] {
+        command("run 0 post no");
+    });
+    EXPECT_FALSE(output->changed_since_init());
+    HIDE_OUTPUT([&] {
+        command("dump_modify d1 scale no");
+    });
+    EXPECT_TRUE(output->changed_since_init());
+    TEST_FAILURE(".*Cannot use run with 'pre no'.*", command("run 2 pre no post no"););
+    HIDE_OUTPUT([&] {
+        command("run 0 post no");
+        command("undump d1");
+    });
+    EXPECT_TRUE(output->changed_since_init());
+    TEST_FAILURE(".*Cannot use run with 'pre no'.*", command("run 2 pre no post no"););
+    HIDE_OUTPUT([&] {
+        command("run 0 post no");
+    });
+    EXPECT_FALSE(output->changed_since_init());
+    platform::unlink("test_modify_class.dump");
 }
 
 TEST_F(ModifyTest, ComputeListAndUncompute)

@@ -1,0 +1,154 @@
+LAMMPS (30 Sep 2026 - Development - patch_30Sep2026-523-gdbc38a263e-modified)
+  using 1 OpenMP thread(s) per MPI task
+# SPH heat conduction
+# heat flow from hot right region to cold left region
+# compare the temperature profile at the end of the simulation,
+# contained in file dump.last, to analytic solution.
+#
+#
+units		si
+atom_style	sph
+newton          on
+boundary        f p p
+
+lattice		sc 0.01
+Lattice spacing in x,y,z = 0.01 0.01 0.01
+region		box block 0 100 0 10 0 10
+create_box	1 box
+Created orthogonal box = (0 0 0) to (1 0.1 0.1)
+  4 by 1 by 1 MPI processor grid
+create_atoms	1 box
+Created 10000 atoms
+  using lattice units in orthogonal box = (0 0 0) to (1 0.1 0.1)
+  create_atoms CPU = 0.001 seconds
+mass            1 1.0e-5
+
+region          left  block EDGE 49.9  EDGE EDGE EDGE EDGE
+region          right block 50 EDGE EDGE EDGE EDGE EDGE
+set             region left  sph/e 1.0 # internal energies
+Setting atom values ...
+  5000 settings made for sph/e
+set             region right sph/e 2.0
+Setting atom values ...
+  5000 settings made for sph/e
+set             group all sph/rho 10.0 # SPH density is also needed for this pair style
+Setting atom values ...
+  10000 settings made for sph/rho
+#               For correct temperature profiles, mesoscopic density and mass * number density must coincide!
+
+pair_style      sph/heatconduction
+#               i j diffusion coeff. cutoff
+pair_coeff      1 1 1.0e-4           2.0e-2
+neighbor	0.2e-2 bin
+neigh_modify	every 20 delay 0 check no
+
+compute         ie_atom all sph/e/atom
+compute         ie all reduce sum c_ie_atom
+
+thermo_style    custom step temp c_ie
+thermo_modify   norm no
+
+fix             integrate_fix all sph/stationary
+
+thermo		10
+timestep        0.25e-1
+
+dump		dump_fix all custom 10 dump.heat id type x y z c_ie_atom
+dump_modify     dump_fix first yes
+run             160
+WARNING: No fixes with time integration, atoms won't move
+For more information see https://docs.lammps.org/err0028 (src/verlet.cpp:60)
+Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 20 steps, delay = 0 steps, check = no
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 0.022
+  ghost atom cutoff = 0.022
+  binsize = 0.011, bins = 91 10 10
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair sph/heatconduction, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 4.017 | 4.038 | 4.053 Mbytes
+   Step          Temp           c_ie     
+         0   0              15000        
+        10   0              15000        
+        20   0              15000        
+        30   0              15000        
+        40   0              15000        
+        50   0              15000        
+        60   0              15000        
+        70   0              15000        
+        80   0              15000        
+        90   0              15000        
+       100   0              15000        
+       110   0              15000        
+       120   0              15000        
+       130   0              15000        
+       140   0              15000        
+       150   0              15000        
+       160   0              15000        
+Loop time of 0.0690527 on 4 procs for 160 steps with 10000 atoms
+
+97.6% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.029661   | 0.030298   | 0.031059   |   0.3 | 43.88
+Neigh   | 0.0036426  | 0.003794   | 0.0038852  |   0.2 |  5.49
+Comm    | 0.0072772  | 0.0091113  | 0.010085   |   1.1 | 13.19
+Output  | 0.02364    | 0.024682   | 0.025682   |   0.5 | 35.74
+Modify  | 0.00063842 | 0.0006445  | 0.00065819 |   0.0 |  0.93
+Other   |            | 0.0005224  |            |       |  0.76
+
+Nlocal:           2500 ave        2500 max        2500 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:        3968.75 ave        4250 max        3575 min
+Histogram: 1 0 0 1 0 0 0 0 0 2
+Neighs:          39725 ave       40000 max       39278 min
+Histogram: 1 0 0 0 1 0 0 0 0 2
+
+Total # of neighbors = 158900
+Ave neighs/atom = 15.89
+Neighbor list builds = 8
+Dangerous builds not checked
+undump          dump_fix
+
+dump		dump_fix all custom 10 dump.last id type x y z c_ie_atom
+dump_modify     dump_fix first yes
+run             0
+WARNING: No fixes with time integration, atoms won't move
+For more information see https://docs.lammps.org/err0028 (src/verlet.cpp:60)
+Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+Per MPI rank memory allocation (min/avg/max) = 4.142 | 4.163 | 4.178 Mbytes
+   Step          Temp           c_ie     
+       160   0              15000        
+Loop time of 1.1995e-06 on 4 procs for 0 steps with 10000 atoms
+
+166.7% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0          | 0          | 0          |   0.0 |  0.00
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0          | 0          | 0          |   0.0 |  0.00
+Output  | 0          | 0          | 0          |   0.0 |  0.00
+Modify  | 0          | 0          | 0          |   0.0 |  0.00
+Other   |            | 1.199e-06  |            |       |100.00
+
+Nlocal:           2500 ave        2500 max        2500 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:        3968.75 ave        4250 max        3575 min
+Histogram: 1 0 0 1 0 0 0 0 0 2
+Neighs:          39725 ave       40000 max       39278 min
+Histogram: 1 0 0 0 1 0 0 0 0 2
+
+Total # of neighbors = 158900
+Ave neighs/atom = 15.89
+Neighbor list builds = 0
+Dangerous builds not checked
+Total wall time: 0:00:00

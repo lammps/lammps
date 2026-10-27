@@ -43,7 +43,7 @@ PairLJCutCoulCutSoftGapsys::PairLJCutCoulCutSoftGapsys(LAMMPS *lmp) :
   writedata = 1;
   allocated = 0;
   centroidstressflag = CENTROID_SAME;
-  cut_lj_global = cut_coul_global = sigmaq = alphaq = 0.0;
+  cut_lj_global = cut_coul_global = sigmaq = alphaq = alphalj = 0.0;
 }
 
 /* ---------------------------------------------------------------------- */

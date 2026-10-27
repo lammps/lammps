@@ -1,0 +1,143 @@
+LAMMPS (30 Sep 2026 - Development - patch_30Sep2026-579-gd154c51e13)
+  using 1 OpenMP thread(s) per MPI task
+# general variables
+variable        temperature equal 700
+variable        size equal 20
+
+# variables for 'fix sgcmc'
+variable        nsteps_mc     equal 100
+variable        swap_fraction equal 0.2
+variable        temperature_mc equal ${temperature}
+variable        temperature_mc equal 700
+variable        deltamu equal -0.70
+variable        target_concentration equal 0.02
+variable        kappa equal 1e3
+
+# general settings
+units           metal
+atom_style      atomic
+
+# set up structure
+boundary        p p p
+lattice         bcc 2.88
+Lattice spacing in x,y,z = 2.88 2.88 2.88
+region          box block 0 ${size}  0 ${size}  0 ${size}
+region          box block 0 20  0 ${size}  0 ${size}
+region          box block 0 20  0 20  0 ${size}
+region          box block 0 20  0 20  0 20
+create_box      2 box
+Created orthogonal box = (0 0 0) to (57.6 57.6 57.6)
+  1 by 1 by 1 MPI processor grid
+create_atoms    1 box
+Created 16000 atoms
+  using lattice units in orthogonal box = (0 0 0) to (57.6 57.6 57.6)
+  create_atoms CPU = 0.001 seconds
+reset_timestep  0
+timestep        0.0025
+
+# set up interaction
+pair_style      eam/fs
+pair_coeff      * * FeCu.pasianot.eamfs Fe Cu
+
+# initialize velocities
+variable        double_temp equal ${temperature}*2
+variable        double_temp equal 700*2
+velocity        all create ${double_temp} 428459 dist gaussian loop geom
+velocity        all create 1400 428459 dist gaussian loop geom
+
+# what and how to run
+fix             integrate all npt                 temp ${temperature} ${temperature} 1.7                 aniso 0.0 0.0 1.5
+fix             integrate all npt                 temp 700 ${temperature} 1.7                 aniso 0.0 0.0 1.5
+fix             integrate all npt                 temp 700 700 1.7                 aniso 0.0 0.0 1.5
+fix             mc all sgcmc ${nsteps_mc} ${swap_fraction} ${temperature_mc} ${deltamu}                 randseed 324234                 variance ${kappa} ${target_concentration}
+fix             mc all sgcmc 100 ${swap_fraction} ${temperature_mc} ${deltamu}                 randseed 324234                 variance ${kappa} ${target_concentration}
+fix             mc all sgcmc 100 0.2 ${temperature_mc} ${deltamu}                 randseed 324234                 variance ${kappa} ${target_concentration}
+fix             mc all sgcmc 100 0.2 700 ${deltamu}                 randseed 324234                 variance ${kappa} ${target_concentration}
+fix             mc all sgcmc 100 0.2 700 -0.7                 randseed 324234                 variance ${kappa} ${target_concentration}
+fix             mc all sgcmc 100 0.2 700 -0.7                 randseed 324234                 variance 1000 ${target_concentration}
+fix             mc all sgcmc 100 0.2 700 -0.7                 randseed 324234                 variance 1000 0.02
+  SGC - Number of MD timesteps: 100
+  SGC - Fraction of swap atoms: 0.2
+  SGC - Temperature: 700
+  SGC - Chemical potential of species 2: -0.7
+  SGC - Random number seed: 324234
+  SGC - Kappa: 1000
+  SGC - Target concentration of species 1: 0.98
+  SGC - Target concentration of species 2: 0.02
+
+# set up output
+thermo          100
+thermo_style    custom step temp atoms pe press                 lx ly lz f_mc[1] f_mc[2] f_mc[3] f_mc[4]
+#dump            1 all custom 200 mc.*.dump id type x y z
+
+run             2000
+  SGC - Interaction radius: 5.50679
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 7.50679
+  ghost atom cutoff = 7.50679
+  binsize = 3.753395, bins = 16 16 16
+  2 neighbor lists, perpetual/occasional/extra = 2 0 0
+  (1) pair eam/fs, perpetual, half/full from (2)
+      attributes: half, newton on
+      pair build: halffull/newton
+      stencil: none
+      bin: none
+  (2) fix sgcmc, perpetual
+      attributes: full, newton on
+      pair build: full/bin/atomonly
+      stencil: full/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 25.06 | 25.06 | 25.06 Mbytes
+   Step          Temp         Atoms        PotEng         Press            Lx             Ly             Lz          f_mc[1]        f_mc[2]        f_mc[3]        f_mc[4]    
+         0   1400               16000  -65889.786     -28854.541      57.6           57.6           57.6           0              0              1              0            
+       100   736.87978          16000  -64519.448      5266.7151      57.314566      57.32595       57.321073      10             3190           0.999375       0.000625     
+       200   683.24982          16000  -64397.511     -1130.2825      57.416803      57.422987      57.410692      17             3183           0.9983125      0.0016875    
+       300   682.33661          16000  -64375.504     -1402.3718      57.421557      57.420617      57.416223      18             3182           0.9971875      0.0028125    
+       400   693.12697          16000  -64375.538      1777.22        57.379637      57.375832      57.377218      24             3176           0.9956875      0.0043125    
+       500   693.92328          16000  -64348.67      -1886.2508      57.43027       57.429108      57.434258      19             3181           0.9945         0.0055       
+       600   693.54157          16000  -64324.799      621.9837       57.400985      57.404006      57.405915      23             3177           0.9930625      0.0069375    
+       700   693.60846          16000  -64298.821      224.81119      57.411592      57.410045      57.406377      17             3183           0.992          0.008        
+       800   688.54231          16000  -64269.01      -935.95601      57.421699      57.433991      57.426384      20             3180           0.99075        0.00925      
+       900   691.91587          16000  -64253.676      728.4681       57.398423      57.40739       57.41644       35             3165           0.9885625      0.0114375    
+      1000   698.94872          16000  -64233.097     -843.94234      57.428142      57.430998      57.428721      41             3159           0.986          0.014        
+      1100   691.43576          16000  -64177.413      34.065219      57.425026      57.432905      57.418075      30             3170           0.984125       0.015875     
+      1200   693.82959          16000  -64151.233      499.36202      57.415836      57.425238      57.419698      44             3156           0.981375       0.018625     
+      1300   693.34043          16000  -64108.655     -782.6619       57.433215      57.438395      57.44858       34             3166           0.98           0.02         
+      1400   700.80926          16000  -64101.754      746.42275      57.419788      57.419951      57.418522      26             3174           0.98           0.02         
+      1500   689.07314          16000  -64073.936     -431.43031      57.449788      57.443286      57.429296      17             3183           0.9799375      0.0200625    
+      1600   690.35505          16000  -64072.479      281.59464      57.430299      57.437703      57.441463      15             3185           0.98           0.02         
+      1700   699.56171          16000  -64089.586      1109.4162      57.404703      57.42098       57.434271      22             3178           0.98           0.02         
+      1800   696.4092           16000  -64080.931     -1583.5348      57.467071      57.45184       57.448817      22             3178           0.98           0.02         
+      1900   698.64651          16000  -64082.711      1696.0251      57.433506      57.410787      57.396525      14             3186           0.98           0.02         
+      2000   699.21026          16000  -64081.671     -716.62415      57.42216       57.462883      57.448995      20             3180           0.98           0.02         
+Loop time of 40.1227 on 1 procs for 2000 steps with 16000 atoms
+
+Performance: 10.767 ns/day, 2.229 hours/ns, 49.847 timesteps/s, 797.554 katom-step/s
+99.5% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 38.901     | 38.901     | 38.901     |   0.0 | 96.96
+Neigh   | 0.13764    | 0.13764    | 0.13764    |   0.0 |  0.34
+Comm    | 0.10892    | 0.10892    | 0.10892    |   0.0 |  0.27
+Output  | 0.0013345  | 0.0013345  | 0.0013345  |   0.0 |  0.00
+Modify  | 0.88004    | 0.88004    | 0.88004    |   0.0 |  2.19
+Other   |            | 0.09343    |            |       |  0.23
+
+Nlocal:          16000 ave       16000 max       16000 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:          17194 ave       17194 max       17194 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    1.24365e+06 ave 1.24365e+06 max 1.24365e+06 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+FullNghs:  2.48731e+06 ave 2.48731e+06 max 2.48731e+06 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 2487306
+Ave neighs/atom = 155.45663
+Neighbor list builds = 3
+Dangerous builds = 0
+Total wall time: 0:00:40

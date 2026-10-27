@@ -258,7 +258,7 @@ void AtomVec::grow(int n)
   }
 
   for (int iextra = 0; iextra < atom->nextra_grow; iextra++)
-    modify->fix[atom->extra_grow[iextra]]->grow_arrays(nmax);
+    modify->get_fix_by_index(atom->extra_grow[iextra])->grow_arrays(nmax);
 
   grow_pointers();
 }
@@ -347,7 +347,7 @@ void AtomVec::copy(int i, int j, int delflag)
 
   if (atom->nextra_grow)
     for (int iextra = 0; iextra < atom->nextra_grow; iextra++)
-      modify->fix[atom->extra_grow[iextra]]->copy_arrays(i, j, delflag);
+      modify->get_fix_by_index(atom->extra_grow[iextra])->copy_arrays(i, j, delflag);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -887,7 +887,7 @@ int AtomVec::pack_border(int n, int *list, double *buf, int pbc_flag, int *pbc)
 
   if (atom->nextra_border)
     for (int iextra = 0; iextra < atom->nextra_border; iextra++)
-      m += modify->fix[atom->extra_border[iextra]]->pack_border(n, list, &buf[m]);
+      m += modify->get_fix_by_index(atom->extra_border[iextra])->pack_border(n, list, &buf[m]);
 
   return m;
 }
@@ -1017,7 +1017,7 @@ int AtomVec::pack_border_vel(int n, int *list, double *buf, int pbc_flag, int *p
 
   if (atom->nextra_border)
     for (int iextra = 0; iextra < atom->nextra_border; iextra++)
-      m += modify->fix[atom->extra_border[iextra]]->pack_border(n, list, &buf[m]);
+      m += modify->get_fix_by_index(atom->extra_border[iextra])->pack_border(n, list, &buf[m]);
 
   return m;
 }
@@ -1082,7 +1082,7 @@ void AtomVec::unpack_border(int n, int first, double *buf)
 
   if (atom->nextra_border)
     for (int iextra = 0; iextra < atom->nextra_border; iextra++)
-      m += modify->fix[atom->extra_border[iextra]]->unpack_border(n, first, &buf[m]);
+      m += modify->get_fix_by_index(atom->extra_border[iextra])->unpack_border(n, first, &buf[m]);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1148,7 +1148,7 @@ void AtomVec::unpack_border_vel(int n, int first, double *buf)
 
   if (atom->nextra_border)
     for (int iextra = 0; iextra < atom->nextra_border; iextra++)
-      m += modify->fix[atom->extra_border[iextra]]->unpack_border(n, first, &buf[m]);
+      m += modify->get_fix_by_index(atom->extra_border[iextra])->unpack_border(n, first, &buf[m]);
 }
 
 /* ----------------------------------------------------------------------
@@ -1239,7 +1239,7 @@ int AtomVec::pack_exchange(int i, double *buf)
 
   if (atom->nextra_grow)
     for (int iextra = 0; iextra < atom->nextra_grow; iextra++)
-      m += modify->fix[atom->extra_grow[iextra]]->pack_exchange(i, &buf[m]);
+      m += modify->get_fix_by_index(atom->extra_grow[iextra])->pack_exchange(i, &buf[m]);
 
   buf[0] = m;
   return m;
@@ -1331,7 +1331,7 @@ int AtomVec::unpack_exchange(double *buf)
 
   if (atom->nextra_grow)
     for (int iextra = 0; iextra < atom->nextra_grow; iextra++)
-      m += modify->fix[atom->extra_grow[iextra]]->unpack_exchange(nlocal, &buf[m]);
+      m += modify->get_fix_by_index(atom->extra_grow[iextra])->unpack_exchange(nlocal, &buf[m]);
 
   atom->nlocal++;
   return m;
@@ -1380,7 +1380,7 @@ int AtomVec::size_restart()
 
   if (atom->nextra_restart)
     for (int iextra = 0; iextra < atom->nextra_restart; iextra++)
-      for (i = 0; i < nlocal; i++) n += modify->fix[atom->extra_restart[iextra]]->size_restart(i);
+      for (i = 0; i < nlocal; i++) n += modify->get_fix_by_index(atom->extra_restart[iextra])->size_restart(i);
 
   return n;
 }
@@ -1479,7 +1479,7 @@ int AtomVec::pack_restart(int i, double *buf)
   // invoke fixes which store peratom restart info
 
   for (int iextra = 0; iextra < atom->nextra_restart; iextra++)
-    m += modify->fix[atom->extra_restart[iextra]]->pack_restart(i, &buf[m]);
+    m += modify->get_fix_by_index(atom->extra_restart[iextra])->pack_restart(i, &buf[m]);
 
   buf[0] = m;
   return m;

@@ -357,7 +357,7 @@ void AtomKokkos::sort()
   if (!sort_legacy) {
     int flag = 1;
     for (int iextra = 0; iextra < atom->nextra_grow; iextra++) {
-      auto fix_iextra = modify->fix[atom->extra_grow[iextra]];
+      auto fix_iextra = modify->get_fix_by_index(atom->extra_grow[iextra]);
       if (!fix_iextra->sort_device) {
         flag = 0;
         if (comm->me == 0)
@@ -401,7 +401,7 @@ void AtomKokkos::sort()
     // the arrays that Atom owns.
 
     for (int iextra = 0; iextra < atom->nextra_grow; iextra++) {
-      auto fix_iextra = modify->fix[atom->extra_grow[iextra]];
+      auto fix_iextra = modify->get_fix_by_index(atom->extra_grow[iextra]);
       if (!fix_iextra->kokkosable) continue;
       KokkosBase *kkbase = dynamic_cast<KokkosBase *>(fix_iextra);
       if (kkbase) kkbase->sync_host_for_sort();
@@ -413,7 +413,7 @@ void AtomKokkos::sort()
     lmp->kokkos->auto_sync = prev_auto_sync;
 
     for (int iextra = 0; iextra < atom->nextra_grow; iextra++) {
-      auto fix_iextra = modify->fix[atom->extra_grow[iextra]];
+      auto fix_iextra = modify->get_fix_by_index(atom->extra_grow[iextra]);
       if (!fix_iextra->kokkosable) continue;
       KokkosBase *kkbase = dynamic_cast<KokkosBase *>(fix_iextra);
       if (kkbase) kkbase->modified_host_for_sort();
@@ -460,7 +460,7 @@ void AtomKokkos::sort_device()
 
   if (atom->nextra_grow) {
     for (int iextra = 0; iextra < atom->nextra_grow; iextra++) {
-      auto fix_iextra = modify->fix[atom->extra_grow[iextra]];
+      auto fix_iextra = modify->get_fix_by_index(atom->extra_grow[iextra]);
       KokkosBase *kkbase = dynamic_cast<KokkosBase*>(fix_iextra);
 
       kkbase->sort_kokkos(Sorter);

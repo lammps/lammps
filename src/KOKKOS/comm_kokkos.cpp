@@ -1022,7 +1022,7 @@ void CommKokkos::exchange()
 
       int flag = 1;
       for (int iextra = 0; iextra < atom->nextra_grow; iextra++) {
-        auto fix_iextra = modify->fix[atom->extra_grow[iextra]];
+        auto fix_iextra = modify->get_fix_by_index(atom->extra_grow[iextra]);
         if (!fix_iextra->exchange_comm_device) {
           flag = 0;
           if (comm->me == 0)
@@ -1390,7 +1390,7 @@ void CommKokkos::exchange_device()
 
       if (atom->nextra_grow) {
         for (int iextra = 0; iextra < atom->nextra_grow; iextra++) {
-          auto fix_iextra = modify->fix[atom->extra_grow[iextra]];
+          auto fix_iextra = modify->get_fix_by_index(atom->extra_grow[iextra]);
           KokkosBase *kkbase = dynamic_cast<KokkosBase*>(fix_iextra);
           int nextrasend = 0;
           nsend = count;

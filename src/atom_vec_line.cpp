@@ -167,7 +167,7 @@ void AtomVecLine::clear_bonus()
 
   if (atom->nextra_grow)
     for (int iextra = 0; iextra < atom->nextra_grow; iextra++)
-      modify->fix[atom->extra_grow[iextra]]->clear_bonus();
+      modify->get_fix_by_index(atom->extra_grow[iextra])->clear_bonus();
 }
 
 /* ---------------------------------------------------------------------- */

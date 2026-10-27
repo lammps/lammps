@@ -33,17 +33,6 @@ class Modify : protected Pointers {
   int nfix_restart_global;     // stored fix global info from restart file
   int nfix_restart_peratom;    // stored fix peratom info from restart file
 
-  // TEMPORARY: read-only views of the fix and compute lists for callers that
-  // still access them directly.  Refreshed after every change to the lists.
-  // Use get_fix_list(), get_fix_by_index(), get_fix_mask() etc. instead.
-
-  int nfix;
-  Fix **fix;     // list of fixes
-  int *fmask;    // bit mask for when each fix is applied
-
-  int ncompute;
-  Compute **compute;    // list of computes
-
   Modify(class LAMMPS *);
   ~Modify() override;
   virtual void init();
@@ -104,9 +93,6 @@ class Modify : protected Pointers {
   void delete_fix(const std::string &);
   void delete_fix(Fix *);
 
-  // deprecated API
-  [[nodiscard]] int find_fix(const std::string &) const;
-  // new API
   [[nodiscard]] Fix *get_fix_by_id(const std::string &) const;
   [[nodiscard]] Fix *get_fix_by_index(int idx) const
   {
@@ -124,15 +110,16 @@ class Modify : protected Pointers {
 
   [[nodiscard]] bool has_fixes(int mask) const { return (stagemask & mask) != 0; }
 
+  // true if fixes or computes were added, deleted, or modified since the last init()
+
+  [[nodiscard]] bool changed_since_init() const { return nchanges != nchanges_at_init; }
+
   Compute *add_compute(int, char **, int trysuffix = 1);
   Compute *add_compute(const std::string &, int trysuffix = 1);
   void modify_compute(int, char **);
   void delete_compute(const std::string &);
   void delete_compute(Compute *);
 
-  // deprecated API
-  [[nodiscard]] int find_compute(const std::string &) const;
-  // new API
   [[nodiscard]] Compute *get_compute_by_id(const std::string &) const;
   [[nodiscard]] Compute *get_compute_by_index(int idx) const
   {
@@ -175,6 +162,11 @@ class Modify : protected Pointers {
   std::vector<int> callmask;
   int stagemask;
 
+  // count of changes to the lists (add, delete, replace, fix_modify, compute_modify)
+  // and its value at the last init(), for changed_since_init()
+
+  int nchanges, nchanges_at_init;
+
   // invoke func(fix) for all fixes whose mask at init() has bit set, in list
   // order. the loop re-reads the list size and keeps no state in the class, so
   // func() may add or delete fixes and may itself call another stage (nested
@@ -185,7 +177,6 @@ class Modify : protected Pointers {
     for (std::size_t i = 0; i < fixes.size(); ++i)
       if (callmask[i] & bit) func(fixes[i]);
   }
-  void refresh_views();
   void erase_fix_slot(std::size_t);
 
   char **id_restart_global;       // stored fix global info

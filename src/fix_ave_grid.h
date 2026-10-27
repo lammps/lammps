@@ -69,6 +69,8 @@ class FixAveGrid : public Fix {
   int *which, *argindex, *iarg_orig;
   char **ids;
   int *value2index, *value2grid, *value2data;
+  class Compute **value2compute;
+  class Fix **value2fix;
 
   class Grid2d *grid2d;
   class Grid3d *grid3d;

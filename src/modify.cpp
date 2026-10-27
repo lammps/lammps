@@ -64,12 +64,7 @@ CreatorRegistry<Modify::ComputeCreator> &Modify::compute_styles()
 Modify::Modify(LAMMPS *lmp) : Pointers(lmp)
 {
   stagemask = 0;
-
-  nfix = 0;
-  fix = nullptr;
-  fmask = nullptr;
-  ncompute = 0;
-  compute = nullptr;
+  nchanges = nchanges_at_init = 0;
 
   restart_pbc_any = 0;
   nfix_restart_global = 0;
@@ -101,19 +96,6 @@ Modify::~Modify()
   while (!computes.empty()) delete_compute(computes[0]);
 
   restart_deallocate(0);
-}
-
-/* ----------------------------------------------------------------------
-   refresh the temporary raw views of the lists after they were changed
-------------------------------------------------------------------------- */
-
-void Modify::refresh_views()
-{
-  nfix = (int) fixes.size();
-  fix = fixes.data();
-  fmask = fixmask.data();
-  ncompute = (int) computes.size();
-  compute = computes.data();
 }
 
 /* ----------------------------------------------------------------------
@@ -177,6 +159,7 @@ void Modify::init()
     if (fixes[i]->energy_peratom_flag && fixes[i]->thermo_energy) callmask[i] |= ENERGY_ATOM;
     stagemask |= callmask[i];
   }
+  nchanges_at_init = nchanges;
 
   // error if any fix or compute is using a dynamic group when not allowed
 
@@ -851,7 +834,6 @@ Fix *Modify::add_fix(int narg, char **arg, int trysuffix)
     delete oldfix;
     fixes[ifix] = nullptr;
     fixmask[ifix] = callmask[ifix] = 0;
-    refresh_views();
   }
 
   // if the constructor of the replacement fix fails with an exception
@@ -931,7 +913,7 @@ Fix *Modify::add_fix(int narg, char **arg, int trysuffix)
     callmask.push_back(0);
   }
   guard.armed = false;
-  refresh_views();
+  nchanges++;
 
   if (newfix->kokkosable && (!lmp->kokkos || !lmp->kokkos->kokkos_exists))
     error->all(FLERR, Error::NOLASTLINE, "Cannot use KOKKOS styles without enabling KOKKOS");
@@ -975,8 +957,6 @@ Fix *Modify::add_fix(int narg, char **arg, int trysuffix)
                        "  fix style: {}, fix ID: {}\n",
                        newfix->style, newfix->id);
     }
-
-  refresh_views();
 
   // return pointer to fix
 
@@ -1057,6 +1037,7 @@ void Modify::modify_fix(int narg, char **arg)
   auto *ifix = get_fix_by_id(arg[0]);
   if (!ifix) error->all(FLERR, Error::NOLASTLINE, "Could not find fix_modify ID {}", arg[0]);
   ifix->modify_params(narg - 1, &arg[1]);
+  nchanges++;
 }
 
 /* ----------------------------------------------------------------------
@@ -1108,20 +1089,7 @@ void Modify::erase_fix_slot(std::size_t index)
   fixmask.erase(fixmask.begin() + index);
   callmask.erase(callmask.begin() + index);
   atom->update_callback((int) index);
-  refresh_views();
-}
-
-/* ----------------------------------------------------------------------
-   find a fix by ID
-   return index of fix or -1 if not found
-------------------------------------------------------------------------- */
-
-int Modify::find_fix(const std::string &id) const
-{
-  if (id.empty()) return -1;
-  for (std::size_t ifix = 0; ifix < fixes.size(); ifix++)
-    if (fixes[ifix] && (id == fixes[ifix]->id)) return (int) ifix;
-  return -1;
+  nchanges++;
 }
 
 /* ----------------------------------------------------------------------
@@ -1333,7 +1301,7 @@ Compute *Modify::add_compute(int narg, char **arg, int trysuffix)
   // append to list of computes
 
   computes.push_back(newcompute);
-  refresh_views();
+  nchanges++;
 
   if (newcompute->kokkosable && (!lmp->kokkos || !lmp->kokkos->kokkos_exists))
     error->all(FLERR, Error::NOLASTLINE, "Cannot use KOKKOS styles without enabling KOKKOS");
@@ -1345,7 +1313,6 @@ Compute *Modify::add_compute(int narg, char **arg, int trysuffix)
   //   add_compute() from post_constructor() will see it
 
   newcompute->post_constructor();
-  refresh_views();
 
   return newcompute;
 }
@@ -1377,6 +1344,7 @@ void Modify::modify_compute(int narg, char **arg)
   if (!icompute)
     error->all(FLERR, Error::NOLASTLINE, "Could not find compute_modify ID {}", arg[0]);
   icompute->modify_params(narg - 1, &arg[1]);
+  nchanges++;
 }
 
 /* ----------------------------------------------------------------------
@@ -1414,20 +1382,7 @@ void Modify::delete_compute(Compute *icompute)
     if (index == computes.size()) return;
   }
   computes.erase(computes.begin() + index);
-  refresh_views();
-}
-
-/* ----------------------------------------------------------------------
-   find a compute by ID
-   return index of compute or -1 if not found
-------------------------------------------------------------------------- */
-
-int Modify::find_compute(const std::string &id) const
-{
-  if (id.empty()) return -1;
-  for (std::size_t icompute = 0; icompute < computes.size(); icompute++)
-    if (computes[icompute] && (id == computes[icompute]->id)) return (int) icompute;
-  return -1;
+  nchanges++;
 }
 
 /* ----------------------------------------------------------------------

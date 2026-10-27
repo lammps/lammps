@@ -2627,8 +2627,10 @@ void Atom::add_callback(int flag)
   // if don't find null pointer:
   //   i is set to nfix = new one currently being added at end of list
 
-  for (ifix = 0; ifix < modify->nfix; ifix++)
-    if (modify->fix[ifix] == nullptr) break;
+  const auto &fixes = modify->get_fix_list();
+  const int nfix = (int) fixes.size();
+  for (ifix = 0; ifix < nfix; ifix++)
+    if (fixes[ifix] == nullptr) break;
 
   // add callback to lists and sort, reallocating if necessary
   // sorting is required in cases where fixes were replaced as it ensures atom
@@ -2671,14 +2673,18 @@ void Atom::delete_callback(const char *id, int flag)
 {
   if (id == nullptr) return;
 
-  int ifix = modify->find_fix(id);
+  const auto &fixes = modify->get_fix_list();
+  const int nfix = (int) fixes.size();
+  int ifix;
+  for (ifix = 0; ifix < nfix; ifix++)
+    if (fixes[ifix] && (strcmp(id, fixes[ifix]->id) == 0)) break;
 
   // a fix whose constructor fails is not in Modify's list yet,
   // so look it up by the slot that add_callback() recorded
 
-  if (ifix < 0)
-    for (ifix = 0; ifix < modify->nfix; ifix++)
-      if (modify->fix[ifix] == nullptr) break;
+  if (ifix == nfix)
+    for (ifix = 0; ifix < nfix; ifix++)
+      if (fixes[ifix] == nullptr) break;
 
   // compact the list of callbacks
 

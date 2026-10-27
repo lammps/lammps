@@ -116,7 +116,7 @@ void AtomVecEllipsoidKokkos::grow(int n)
 
   if (atom->nextra_grow)
     for (int iextra = 0; iextra < atom->nextra_grow; iextra++)
-      modify->fix[atom->extra_grow[iextra]]->grow_arrays(nmax);
+      modify->get_fix_by_index(atom->extra_grow[iextra])->grow_arrays(nmax);
 
   grow_pointers();
   atomKK->sync(Host,ALL_MASK);

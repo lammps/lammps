@@ -988,11 +988,14 @@ Bibliography
 **(Lesniewski2)**
    Lesniewski, DeLyser, W. G. Noid "Progress toward a better BOCS: systematic coarse-graining with local density potentials" In Prep 2026
 
+**(Leven)**
+   I. Leven, T. Head-Gordon, Physical Chemistry Chemical Physics, 21, 18652-18659 (2019).
+
 **(Leven1)**
-   I.\  Leven, I. Azuri, L. Kronik and O. Hod, J. Chem. Phys. 140, 104106 (2014).
+   I. Leven, I. Azuri, L. Kronik and O. Hod, J. Chem. Phys. 140, 104106 (2014).
 
 **(Leven2)**
-   I.\  Leven et al, J. Chem.Theory Comput. 12, 2896-905 (2016).
+   I. Leven et al, J. Chem.Theory Comput. 12, 2896-905 (2016).
 
 **(Li2013_POF)**
    Li, Hu, Wang, Ma, Zhou, Phys Fluids, 25: 072103 (2013). DOI:10.1063/1.4812366.

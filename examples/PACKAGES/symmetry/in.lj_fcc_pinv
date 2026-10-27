@@ -1,47 +1,40 @@
-# Adapted from examples/melt/in.melt -- 256-atom LJ FCC crystal constrained
-# to P-1 (inversion through the cell origin) by fix symmetry. Demonstrates
-# the fix on a representative crystalline system, including 124 general
-# inversion pairs and 8 Wyckoff atoms sitting on inversion centers.
+# fix symmetry example: LJ FCC crystal with inversion symmetry (space
+# group P-1) at constant temperature
 #
-# The companion files data.fcc_pinv and fcc_pinv.json are produced by the
-# helper script generate_fcc_pinv.py. Re-run it to scale the system to
-# different (nx, ny, nz) or lattice parameter.
+# The orbits of symmetry related atoms are found from the positions:
+# with inversion through the origin of the box, 8 of the 256 atoms are
+# on inversion centers (at multiples of half the box length) and cannot
+# move.  The remaining 248 atoms form 124 pairs.  The temperature is
+# computed from the 3*124 = 372 independent degrees of freedom, so the
+# thermostat works as usual.
 
 units           lj
 atom_style      atomic
-atom_modify     map array
 
-read_data       data.fcc_pinv
+lattice         fcc 0.8442
+region          box block 0 4 0 4 0 4
+create_box      1 box
+create_atoms    1 box
+mass            1 1.0
 
 pair_style      lj/cut 2.5
-pair_coeff      1 1 1.0 1.0 2.5
-
+pair_coeff      * * 1.0 1.0
+pair_modify     shift yes
 neighbor        0.3 bin
-neigh_modify    every 20 delay 0 check no
 
+# fix symmetry must come after all fixes that change forces
+fix             1 all nvt temp 1.5 1.5 0.5
+fix             sym all symmetry p-1.json
+
+# make random velocities symmetric, then rescale
 velocity        all create 1.5 87287 loop geom
+run             0 post no
+velocity        all scale 1.5
 
-fix             1 all nve
-fix             sym all symmetry fcc_pinv.json
+# symmetry indicator: vanishes for inversion symmetric configurations
+variable        odd atom sin(2*PI*(x-xlo)/lx)+sin(2*PI*(y-ylo)/ly)+sin(2*PI*(z-zlo)/lz)
+compute         odd all reduce sum v_odd
 
-thermo          50
-thermo_style    custom step temp pe etotal press
-
-# Sanity check via two representative orbits: a general pair (tags 2 and
-# 62 are inversion-related per fcc_pinv.json) and a Wyckoff atom (tag 1
-# at the cell origin, fixed by the inversion).
-#
-# For each component k, (x_asym + x_image) / L must be an integer at every
-# step -- the integer captures the periodic image the user placed the pair
-# in initially. Drift away from an integer would indicate symmetry breaking.
-variable        modx  equal (x[2]+x[62])/lx-round((x[2]+x[62])/lx)
-variable        mody  equal (y[2]+y[62])/ly-round((y[2]+y[62])/ly)
-variable        modz  equal (z[2]+z[62])/lz-round((z[2]+z[62])/lz)
-variable        wy1x  equal x[1]
-variable        wy1y  equal y[1]
-variable        wy1z  equal z[1]
-
-print           "pre-run  pair residual=(${modx},${mody},${modz})  Wyckoff atom 1=(${wy1x},${wy1y},${wy1z})"
-run             250
-print           "post-run pair residual=(${modx},${mody},${modz})  Wyckoff atom 1=(${wy1x},${wy1y},${wy1z})"
-print           "(residuals must be ~1e-12; Wyckoff atom 1 must stay at (0,0,0))"
+thermo_style    custom step temp pe etotal press c_odd
+thermo          100
+run             1000

@@ -1,0 +1,5 @@
+{
+  "_comment": "space group Pmm2: mirror planes perpendicular to x and y and a two-fold axis along z",
+  "group_name": "Pmm2",
+  "ops": [ "x,y,z", "-x,-y,z", "-x,y,z", "x,-y,z" ]
+}

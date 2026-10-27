@@ -27,8 +27,8 @@ Define a computation that outputs the rate of the logarithmic strain
 tensor for particles interacting via the updated Lagrangian SPH pair
 style.
 
-See `this PDF guide <PDF/MACHDYN_LAMMPS_userguide.pdf>`_ to using Smooth
-Mach Dynamics in LAMMPS.
+See the :doc:`Howto machdyn <Howto_machdyn>` page for an introduction
+to using Smooth Mach Dynamics in LAMMPS.
 
 Output info
 """""""""""

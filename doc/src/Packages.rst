@@ -290,7 +290,7 @@ whether an extra library is needed to build and use the package:
      - int
    * - :ref:`MACHDYN <PKG-MACHDYN>`
      - smoothed Mach dynamics
-     - `SMD User Guide <PDF/MACHDYN_LAMMPS_userguide.pdf>`_
+     - :doc:`Howto machdyn <Howto_machdyn>`
      - ``PACKAGES/machdyn``
      - ext
    * - :ref:`MANIFOLD <PKG-MANIFOLD>`
@@ -505,7 +505,7 @@ whether an extra library is needed to build and use the package:
      - no
    * - :ref:`SPH <PKG-SPH>`
      - smoothed particle hydrodynamics
-     - `SPH User Guide <PDF/SPH_LAMMPS_userguide.pdf>`_
+     - :doc:`Howto sph <Howto_sph>`
      - ``PACKAGES/sph``
      - no
    * - :ref:`SPIN <PKG-SPIN>`

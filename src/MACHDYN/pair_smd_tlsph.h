@@ -190,7 +190,6 @@ class PairTlsph : public Pair {
       failure_max_pairwise_strain = false;
       integration_point_wise = false;
       failure_energy_release_rate = false;
-      //printf("constructed failure type\n");
     }
   };
   failure_types *failureModel;

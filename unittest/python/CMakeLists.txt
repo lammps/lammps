@@ -74,6 +74,7 @@ if(Python_EXECUTABLE)
   else()
     set(PYTHON_TEST_RUNNER ${Python_EXECUTABLE} -u)
   endif()
+  list(PREPEND PYTHON_TEST_RUNNER ${LAMMPS_TEST_LAUNCHER})
 
   add_test(NAME PythonOpen
            COMMAND ${PYTHON_TEST_RUNNER} ${CMAKE_CURRENT_SOURCE_DIR}/python-open.py -v

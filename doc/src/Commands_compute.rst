@@ -95,6 +95,7 @@ OPT.
    * :doc:`omega/chunk <compute_omega_chunk>`
    * :doc:`orientorder/atom (ko) <compute_orientorder_atom>`
    * :doc:`pace <compute_pace>`
+   * :doc:`pace/atom <compute_pace>`
    * :doc:`pair <compute_pair>`
    * :doc:`pair/local <compute_pair_local>`
    * :doc:`pe <compute_pe>`

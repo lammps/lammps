@@ -2614,6 +2614,7 @@ momenta
 mon
 Monaghan
 Monaghans
+monoclinic
 monodisperse
 monodispersity
 monolayer
@@ -3301,6 +3302,7 @@ pmb
 pmcmoves
 pme
 pmf
+Pmm
 Pmolrotate
 Pmoltrans
 pN
@@ -4111,6 +4113,7 @@ symd
 symmetrization
 symmetrize
 symmetrized
+symmetrizes
 symmetrizing
 Synechococcus
 sys

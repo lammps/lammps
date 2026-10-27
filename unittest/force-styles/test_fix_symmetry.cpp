@@ -159,17 +159,25 @@ protected:
         }
     }
 
-    // largest minimum image distance component between two snapshots
+    // largest minimum image distance component between two snapshots,
+    // also for triclinic boxes
     double max_position_difference(const Snapshot &a, const Snapshot &b)
     {
-        const double prd[3] = {lmp->domain->xprd, lmp->domain->yprd, lmp->domain->zprd};
-        double maxdiff = 0.0;
+        const double *h     = lmp->domain->h;
+        const double *h_inv = lmp->domain->h_inv;
+        double maxdiff      = 0.0;
         for (const auto &kv : a) {
             const auto &other = b.at(kv.first);
-            for (int k = 0; k < 3; ++k) {
-                double d = (kv.second[k] - other[k]) / prd[k];
-                maxdiff = std::max(maxdiff, std::fabs(d - std::round(d)) * prd[k]);
-            }
+            const double d[3] = {kv.second[0] - other[0], kv.second[1] - other[1],
+                                 kv.second[2] - other[2]};
+            double s[3] = {h_inv[0] * d[0] + h_inv[5] * d[1] + h_inv[4] * d[2],
+                           h_inv[1] * d[1] + h_inv[3] * d[2], h_inv[2] * d[2]};
+            for (double &sval : s)
+                sval -= std::round(sval);
+            const double x[3] = {h[0] * s[0] + h[5] * s[1] + h[4] * s[2], h[1] * s[1] + h[3] * s[2],
+                                 h[2] * s[2]};
+            for (double xval : x)
+                maxdiff = std::max(maxdiff, std::fabs(xval));
         }
         return maxdiff;
     }
@@ -300,6 +308,143 @@ TEST_F(FixSymmetryTest, EquivalentToPlainNVE)
     EXPECT_NEAR(etot_with_fix, etot_without_fix, 1.0e-10 * std::fabs(etot_without_fix));
 
     LAMMPS_NS::platform::unlink(sym);
+}
+
+// --------------------------------------------------------------------------
+//   Same validation as EquivalentToPlainNVE for two space groups with more
+//   complex operators: P2_1/c (screw axis and glide plane in a monoclinic
+//   box) and R-3c in hexagonal axes (36 operators with centering
+//   translations and an atom on a two-fold axis).  The symmetric
+//   configurations are generated from one atom per orbit.
+// --------------------------------------------------------------------------
+TEST_F(FixSymmetryTest, SpaceGroupsMatchPlainNVE)
+{
+    // hexagonal box with exact 120 degree angle and equal lengths a and b
+    constexpr double HEX_A = 4.8108856437;
+    struct Case {
+        const char *name;
+        std::string box;
+        std::vector<std::string> ops;
+        std::vector<std::array<double, 3>> seeds;
+        int natoms;
+    };
+    const std::vector<Case> cases = {
+        {"P2_1/c",
+         "0 2.6764193065 0 3.2117031678 0 2.3267002771 0.0 -0.6234374603 0.0",
+         {"x,y,z", "-x,-y,-z", "-x,y+1/2,-z+1/2", "x,-y+1/2,z+1/2"},
+         {{0.734059, 0.65845, 0.302988}, {0.684233, 0.103326, 0.277517}},
+         8},
+        {"R-3c",
+         fmt::format("0 {:.17g} 0 {:.17g} 0 6.7352399012 {:.17g} 0.0 0.0", HEX_A,
+                     HEX_A * sqrt(3.0) / 2.0, -0.5 * HEX_A),
+         {"x,y,z",
+          "-x,-y,-z",
+          "-y,x-y,z",
+          "y,-x+y,-z",
+          "-x+y,-x,z",
+          "x-y,x,-z",
+          "y,x,-z+1/2",
+          "-y,-x,z+1/2",
+          "x-y,-y,-z+1/2",
+          "-x+y,y,z+1/2",
+          "-x,-x+y,-z+1/2",
+          "x,x-y,z+1/2",
+          "x+2/3,y+1/3,z+1/3",
+          "-x+2/3,-y+1/3,-z+1/3",
+          "-y+2/3,x-y+1/3,z+1/3",
+          "y+2/3,-x+y+1/3,-z+1/3",
+          "-x+y+2/3,-x+1/3,z+1/3",
+          "x-y+2/3,x+1/3,-z+1/3",
+          "y+2/3,x+1/3,-z+5/6",
+          "-y+2/3,-x+1/3,z+5/6",
+          "x-y+2/3,-y+1/3,-z+5/6",
+          "-x+y+2/3,y+1/3,z+5/6",
+          "-x+2/3,-x+y+1/3,-z+5/6",
+          "x+2/3,x-y+1/3,z+5/6",
+          "x+1/3,y+2/3,z+2/3",
+          "-x+1/3,-y+2/3,-z+2/3",
+          "-y+1/3,x-y+2/3,z+2/3",
+          "y+1/3,-x+y+2/3,-z+2/3",
+          "-x+y+1/3,-x+2/3,z+2/3",
+          "x-y+1/3,x+2/3,-z+2/3",
+          "y+1/3,x+2/3,-z+1/6",
+          "-y+1/3,-x+2/3,z+1/6",
+          "x-y+1/3,-y+2/3,-z+1/6",
+          "-x+y+1/3,y+2/3,z+1/6",
+          "-x+1/3,-x+y+2/3,-z+1/6",
+          "x+1/3,x-y+2/3,z+1/6"},
+         {{0.2, 0.0, 0.25}, {0.562162, 0.807609, 0.591241}},
+         54}};
+
+    for (const auto &c : cases) {
+        std::string json = "{ \"ops\": [";
+        for (std::size_t k = 0; k < c.ops.size(); ++k)
+            json += fmt::format("{}\"{}\"", (k > 0) ? ", " : " ", c.ops[k]);
+        json += " ] }";
+        std::string sym = write_symfile("spacegroup.json", json);
+
+        // all distinct images of the seeds in fractional coordinates
+        std::vector<std::array<double, 3>> frac;
+        for (const auto &seed : c.seeds) {
+            for (const auto &str : c.ops) {
+                auto op = LAMMPS_NS::SymmetryGroup::parse_xyz(str);
+                std::array<double, 3> s;
+                for (int i = 0; i < 3; ++i) {
+                    s[i] = op.t[i] + op.R[i][0] * seed[0] + op.R[i][1] * seed[1] +
+                        op.R[i][2] * seed[2];
+                    s[i] -= std::floor(s[i]);
+                }
+                bool known = false;
+                for (const auto &other : frac) {
+                    bool same = true;
+                    for (int i = 0; i < 3; ++i) {
+                        const double d = s[i] - other[i];
+                        if (std::fabs(d - std::round(d)) > 1.0e-8) same = false;
+                    }
+                    if (same) known = true;
+                }
+                if (!known) frac.push_back(s);
+            }
+        }
+        ASSERT_EQ(static_cast<int>(frac.size()), c.natoms) << c.name;
+
+        HIDE_OUTPUT([&] {
+            command("clear");
+            command("units lj");
+            command("atom_modify map array");
+            command(fmt::format("region box prism {}", c.box));
+            command("create_box 1 box");
+            for (auto s : frac) {
+                double x[3];
+                lmp->domain->lamda2x(s.data(), x);
+                command(fmt::format("create_atoms 1 single {:.17g} {:.17g} {:.17g} units box "
+                                    "remap yes",
+                                    x[0], x[1], x[2]));
+            }
+            command("mass 1 1.0");
+            command("pair_style lj/cut 2.5");
+            command("pair_coeff * * 1.0 1.0");
+            command("pair_modify shift yes");
+            command("velocity all create 0.5 4711 loop geom");
+            command("fix 1 all nve");
+            command(fmt::format("fix sym all symmetry {}", sym));
+            command("run 0 post no");
+        });
+        ASSERT_EQ(lmp->atom->natoms, c.natoms) << c.name;
+        const auto start = take_snapshot();
+
+        HIDE_OUTPUT([&] { command("run 300 post no"); });
+        const auto with_fix = take_snapshot();
+
+        restore_snapshot(start);
+        HIDE_OUTPUT([&] {
+            command("unfix sym");
+            command("run 300 post no");
+        });
+        EXPECT_LT(max_position_difference(with_fix, take_snapshot()), 1.0e-10) << c.name;
+
+        LAMMPS_NS::platform::unlink(sym);
+    }
 }
 
 // --------------------------------------------------------------------------

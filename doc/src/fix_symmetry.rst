@@ -11,22 +11,23 @@ Syntax
    fix ID group-ID symmetry file keyword value ...
 
 * ID, group-ID are documented in :doc:`fix <fix>` command
-* file = path to a symmetry-data file describing the space group and orbit map
+* symmetry = style name of this fix command
+* file = name of a JSON file with the symmetry operators of a space group
 * zero or more keyword/value pairs may be appended
 * keyword = *tol*
 
   .. parsed-literal::
 
        *tol* value = epsilon
-         epsilon = fractional-coordinate tolerance
+         epsilon = tolerance for symmetric positions in fractional coordinates
 
 Examples
 """"""""
 
 .. code-block:: LAMMPS
 
-   fix sym all symmetry symgroup.pm.json
-   fix sym all symmetry symgroup.fm-3m.json tol 1.0e-8
+   fix sym all symmetry p-1.json
+   fix sym crystal symmetry fm-3m.json tol 1.0e-5
 
 Example input scripts available: examples/PACKAGES/symmetry
 
@@ -35,121 +36,79 @@ Description
 
 .. versionadded:: TBD
 
-This fix constrains a molecular dynamics simulation to obey a chosen
-crystallographic space-group symmetry at every timestep. The algorithm
-follows :ref:`(Cox) <Cox2022>`, and the LAMMPS implementation is derived
-from the `symd <https://github.com/whitead/symd>`_ reference
+This fix keeps the atoms in its group exactly symmetric under the
+operations of a crystallographic space group during molecular dynamics
+and energy minimization.  For example, with the inversion through the
+origin of the simulation box as the only symmetry operation (space group
+P-1), every atom has a partner at the inverted position, and this fix
+keeps each pair at inverted positions with opposite velocities and
+forces for the entire simulation.  The method follows :ref:`(Cox)
+<Cox2022>` and the `symd <https://github.com/whitead/symd>`_ reference
 implementation.
 
-Atoms are organized into *orbits*. Each orbit has one *asymmetric
-representative* and one image atom per non-identity operator of the
-declared space group. Per step the fix:
+Why use this fix
+""""""""""""""""
 
-* averages the forces and velocities of the atoms in each orbit (mapped
-  back to the asymmetric unit through the operator inverses) and
-  redistributes the symmetrized values to every image, and
-* re-folds the image positions from the asymmetric representative using
-  the affine operators to cancel numerical drift.
+If the forces in a system are symmetric, the exact equations of motion
+preserve the symmetry.  Ordinary MD does not: round-off errors break the
+symmetry slightly, these deviations grow exponentially, and after some
+time the symmetry is lost completely.  The example input
+``examples/PACKAGES/symmetry/in.lj_pinv`` shows this for 8 LJ atoms: after
+the fix is removed, a displacement of 1.0e-4 grows to a clear violation
+of the symmetry within a few thousand steps.  With this fix, the
+symmetry is an input setting that holds exactly, and motion that would
+break it is not possible.  This is different from a restraint, which
+only adds a force that pulls the system towards a symmetric arrangement.
 
-The user is responsible for setting up the data file so that the full
-unit cell is already present and consistent with the symmetry at the
-start of the run; the fix verifies this at init within *tol*.
+Typical uses are:
 
-Purpose and typical use
-"""""""""""""""""""""""
+* Crystal structure prediction :ref:`(Cox) <Cox2022>`: since there are
+  only 230 space groups, the same composition can be equilibrated or
+  relaxed under each candidate space group.  Comparing the energies of
+  the resulting structures, and testing which of them remain stable in a
+  subsequent unconstrained simulation, identifies stable and metastable
+  structures.
+* Relaxation of a crystal structure while keeping its symmetry, e.g.
+  with :doc:`minimize <minimize>` and :doc:`fix box/relax
+  <fix_box_relax>`.
+* Equilibration of a structure that would otherwise collapse or
+  transform into a lower symmetry structure, e.g. to prepare a
+  metastable phase or to study a high-symmetry phase that is only stable
+  at different conditions.
 
-Ordinary molecular dynamics almost never preserves an exact
-crystallographic symmetry: thermal fluctuations and round-off break it
-within a few steps, and the trajectory drifts to whatever nearby
-lower-symmetry arrangement the forces prefer. This fix instead makes the
-space group an *input setting* and keeps every configuration exactly
-symmetric throughout the run.  It is the dynamical counterpart of the
-symmetry-constrained structure searches common in crystallography, and
-differs from a harmonic *symmetry restraint* (which merely biases the
-system to stay near symmetric) in that no symmetry-breaking motion is
-possible at all.
+A practical workflow is to build a symmetric structure, relax or
+equilibrate it with this fix, and then remove the fix to continue with
+ordinary MD and test whether the structure is stable or breaks the
+symmetry.
 
-The method used by the fix was introduced for crystal-structure
-prediction and enumeration in :ref:`(Cox) <Cox2022>`.  Because there is
-a finite number of space groups, one can run the same system under each
-candidate group and relax it to obtain the symmetric structure
-compatible with that group; comparing the resulting energies (and
-testing which structures survive a subsequent *unconstrained* run)
-identifies stable and metastable polymorphs.  Other suggested uses are
-modeling highly symmetric biological assemblies and, more generally, any
-study in which a particular symmetry is to be imposed by construction,
-for instance to prevent a metastable structure from collapsing during
-equilibration.  Symmetric MD is a special case of *objective molecular
-dynamics*.
+Terminology
+"""""""""""
 
-A practical workflow is: build the fully symmetric unit cell, run under
-the fix to relax/equilibrate it on the symmetric manifold, then remove
-the fix and continue in ordinary MD to test whether the structure is
-(meta)stable or breaks symmetry.
+* A *symmetry operator* maps the fractional coordinates :math:`s` of a
+  position in the simulation box to :math:`s' = R\,s + t` with an integer
+  matrix :math:`R` and a translation :math:`t`, e.g. a rotation about an
+  axis, a reflection at a mirror plane, or an inversion through a point.
+* A *space group* is a set of symmetry operators that is closed: the
+  combination of any two operators is also part of the set, up to a
+  translation by a box vector.  It always includes the identity.
+* An *orbit* is a set of atoms that are images of each other under the
+  operators.  An atom and its images form one orbit.  The atoms in the
+  fix group must consist of complete orbits, i.e. the image of every atom
+  in the group under every operator must be an atom of the group.
+* An atom on a *special position* sits on a symmetry element, e.g. on a
+  mirror plane or an inversion center, and is its own image under one or
+  more operators (its *site symmetry*).  Its orbit then has fewer atoms
+  than the space group has operators, and the atom can only move in the
+  directions that the site symmetry allows, e.g. within the mirror plane.
 
-Parallel efficiency and system size
-"""""""""""""""""""""""""""""""""""
+The fix does not create atoms.  The atoms in the fix group make up the
+symmetric system: they must be placed at symmetric positions before the
+run, e.g. with :doc:`create_atoms <create_atoms>` using a lattice or with
+:doc:`read_data <read_data>`.  The fix finds the orbits from the
+positions when a run or minimization starts.
 
-Unlike the `symd <https://github.com/whitead/symd>`_ reference engine,
-which integrates only the asymmetric unit and treats the images as
-non-integrated ghost particles, this fix keeps the *entire unit cell* as
-ordinary, fully integrated LAMMPS atoms and re-imposes the symmetry
-every step by symmetrizing their forces, velocities, and positions.  The
-constraint that results is the same, but the bookkeeping fits LAMMPS's
-domain decomposition without special-casing the images in the neighbor
-lists, force kernels, or communication.
-
-The fix works unchanged in serial and in parallel and adds very little
-overhead.  Its per-step work is a local pass over the declared atoms
-plus three fixed-size ``MPI_Allreduce`` calls (the per-orbit force sum,
-the velocity sum, and the asymmetric-unit positions).  The fix
-introduces no pairwise or long-range communication of its own and never
-migrates atoms between ranks. An orbit whose representative and images
-are spread across different subdomains is handled correctly: each rank
-contributes the atoms it owns to the per-orbit sums and reads back the
-global result.
-
-Consequently the fix is not restricted to tiny systems -- it runs at
-essentially the cost of unconstrained MD for the same atom count, and the
-dominant expense remains the normal force evaluation.  The characteristic
-setups are nonetheless modest in size (one asymmetric unit tiled by the
-group order :math:`|G|`, so from a few up to some tens of atoms per unit
-cell in the reference study), but nothing in the implementation caps the
-system size.
-
-.. note::
-
-   Because all image atoms are integrated as normal atoms, they
-   contribute to the kinetic energy and therefore to the temperature
-   reported by :doc:`compute temp <compute_temp>` and used by
-   thermostats. The images move as rigid symmetry copies of their
-   asymmetric representative, so the number of *independent* degrees of
-   freedom is smaller than :math:`3N` -- it is :math:`D\,(n-1)` for a
-   general-position orbit set (with :math:`n` the asymmetric-unit size
-   and :math:`D` the dimensionality), reduced further by any
-   Wyckoff-site constraints :ref:`(Cox) <Cox2022>`.  This fix does not
-   subtract those redundant and constrained degrees of freedom from the
-   count LAMMPS uses for temperature, so a thermostat controls the
-   temperature of the full tiled cell rather than of the independent
-   coordinates; since this number does not change during a run, it can
-   be adjusted using :doc:`compute_modify extra/dof <compute_modify>`.
-   The provided examples avoid this issue and use :doc:`fix nve
-   <fix_nve>`.
-
-Special positions (Wyckoff sites)
-"""""""""""""""""""""""""""""""""
-
-Atoms sitting on a special position (a mirror plane, axis, or inversion
-center) are invariant under one or more non-identity operators of the
-space group.  To declare such an atom, set its orbit's *tags* slot at
-every stabilizer-op index equal to the asymmetric tag and list those op
-indices in a per-orbit *site_symmetry* array (see the file-format
-section).  Per step the fix then applies a Lagrange-multiplier
-projection that drives the asym atom's fractional position and velocity
-back onto the constraint subspace defined by its stabilizer.  The
-pseudo-inverse used for the projection is pre-computed at init from a
-Jacobi eigen- decomposition of :math:`B = \sum_k (R_k - I)^T (R_k - I)`
-over the stabilizer ops.
+How it works
+""""""""""""
 
 .. |sym_inv| image:: JPG/fix-symmetry-orbit-inversion.png
    :width: 24%
@@ -162,130 +121,182 @@ over the stabilizer ops.
 
 |sym_inv|  |sym_mir|  |sym_r3|  |sym_r4|
 
-The figures above show how *fix symmetry* treats orbits for four example
-operators.  In each panel the asymmetric representative A (amber) and
-its images (B, C, D, blue) are related by the operator - an inversion
-center, a mirror plane, a 3-fold rotation axis, or a 4-fold rotation
-axis.  In each timestep the fix maps the images' forces and velocities
-back onto A through the operator, inverses, averages them, and
-redistributes the symmetric result, so each image carries the operator
-applied to A's force and velocity (arrows); image positions are
-re-folded from A the same way. An orbit contains one image per
-non-identity operator, so its size is the group order (2, 2, 3, and 4
-here).
+The figures show orbits for four operators: an inversion center, a
+mirror plane, a three-fold, and a four-fold rotation axis.  In each
+orbit, the atom A (amber) is the representative and B, C, D (blue) are
+its images.  For each orbit, the fix maps the forces of all atoms back
+to the representative with the inverse operators, averages them, and
+assigns the images of the average to all atoms of the orbit (arrows).
+With the Cartesian forms :math:`M_k` of the operators (rotations or
+reflections when the box fits the space group), the force on the
+representative of an orbit with :math:`n` atoms is
 
-----------
+.. math::
 
-Symmetry-data file format
-"""""""""""""""""""""""""
+   \mathbf{F}_\mathrm{rep} = P\,\frac{1}{n}\sum_{m=1}^{n} M_{k(m)}^{-1}\,\mathbf{f}_m
 
-The file is in JSON format with the top-level schema:
+where :math:`k(m)` is an operator that maps the representative onto atom
+:math:`m` and :math:`P` projects onto the directions in which an atom on
+a special position can move (the identity on a general position).  The
+force on atom :math:`m` becomes :math:`M_{k(m)}\,\mathbf{F}_\mathrm{rep}`.
+The same is done for the velocities.  The positions of all atoms are
+reset to the images of the position of their representative, and a
+representative on a special position is moved back exactly onto it.
+
+The symmetric positions form a linear subspace of all coordinates, and
+the averaged force is the exact projection of the forces onto this
+subspace.  The resulting dynamics is that of the independent coordinates
+under the original potential, integrated with the same velocity Verlet
+algorithm.  Starting from a symmetric configuration, the trajectory is
+therefore the same as without the fix, only without the growing
+deviations from symmetry.  The unit tests for this fix confirm this to
+round-off for several space groups.  Total energy is conserved as in
+ordinary MD.
+
+Symmetry file
+"""""""""""""
+
+The symmetry file is in JSON format and lists the operators of the space
+group, e.g. for the space group Pmm2 with mirror planes perpendicular to
+x and y and a two-fold rotation axis along z:
 
 .. code-block:: json
 
    {
-     "group_name": "Pm",
-     "lattice":    "monoclinic",
-
-     "ops": [
-       { "R": [[1, 0, 0], [0,  1, 0], [0, 0, 1]],
-         "t": [0, 0, 0] },
-       { "R": [[1, 0, 0], [0, -1, 0], [0, 0, 1]],
-         "t": ["0", "0", "0"] }
-     ],
-
-     "orbits": [
-       { "tags": [1, 2] },
-       { "tags": [3, 4] },
-       { "tags": [5, 5], "site_symmetry": [2] }
-     ]
+     "group_name": "Pmm2",
+     "ops": [ "x,y,z", "-x,-y,z", "-x,y,z", "x,-y,z" ]
    }
 
-* ``lattice`` must be one of ``triclinic``, ``monoclinic``,
-  ``orthorhombic``, ``tetragonal``, ``hexagonal``, ``trigonal``,
-  ``cubic``.
-* Operators act on fractional coordinates: :math:`s' = R \cdot s + t`.
-  ``R`` is an integer-valued lattice operator with :math:`|\det R| = 1`.
-  ``t`` components accept either JSON numbers (``0.5``) or rational
-  strings (``"1/2"``).
-* The first entry in ``ops`` must be the identity. The full operator list
-  must be closed under composition modulo lattice translations; the fix
-  verifies this at init.
-* Each orbit's ``tags`` array is parallel to ``ops``: ``tags[0]`` is the
-  asymmetric representative and ``tags[k]`` for :math:`k \ge 1` is the
-  atom tag related to it by ``ops[k]``. For atoms on Wyckoff special
-  positions, set ``tags[k]`` equal to ``tags[0]`` for every op ``k`` in
-  the stabilizer and list those op indices (1-based, excluding 1) in an
-  optional ``site_symmetry`` array on the same orbit. The fix verifies
-  at init that each declared Wyckoff atom actually sits on its constraint
-  manifold to within *tol*.
-* Any JSON key not listed above (for example fields starting with
-  ``_comment``) is silently ignored, so the file can carry documentation
-  inline.
+* The operators act on fractional coordinates of the simulation box.
+  They are written in the coordinate triplet notation of the
+  International Tables for Crystallography and of CIF files, e.g.
+  ``"-x+1/2,y,-z"`` or ``"-y,x-y,z+1/3"``.  Alternatively, an operator
+  can be given as integer matrix and translation, e.g. ``{ "R":
+  [[-1,0,0],[0,1,0],[0,0,-1]], "t": ["1/2", 0, 0] }``.
+* The operators must include the identity ``"x,y,z"`` and form a group,
+  which the fix checks.
+* The optional *group_name* is only used in the output of the fix.
+* The optional *supercell* entry, e.g. ``"supercell": [2, 2, 1]``, is for
+  a simulation box that consists of several unit cells.  The operators
+  are then given for the unit cell and the fix converts them to
+  fractional coordinates of the box and adds the translations between
+  the unit cells.  The orbits then include the equivalent atoms of all
+  unit cells.  This is required for operators with translations, like
+  screw axes and glide planes, when the box contains several unit cells,
+  since these operators combine into translations by a unit cell.
+* Entries with names starting with an underscore, e.g. ``"_comment"``,
+  are ignored and can be used for comments.
 
-LAMMPS provides a `JSON schema file <https://json-schema.org/>`_ for
-symmetry files in the :ref:`tools/json folder <json>`.  Using the schema
-file the files can be validated to be conforming to the syntax
-requirement and conventions without running LAMMPS.  Please note that
-the format requirement for JSON files in general are very strict and the
-JSON reader in LAMMPS does not accept JSON files with extensions like
-comments.  Validating a particular JSON format symmetry file against
-this schema ensures that both, the JSON syntax requirement *and* the
-LAMMPS conventions.  LAMMPS should be able to read and parse any JSON
-file that passes the schema check.  This is a formal check only and thus
-it **cannot** check whether the file contents are consistent or
-physically meaningful.
+The :ref:`find-symmetry tool <findsym>` writes symmetry files with the
+operators of a space group given by its number, or with the operators of
+the space group of the atoms in a LAMMPS data file.  A `JSON schema file
+<https://json-schema.org/>`_ for symmetry files is in the :ref:`tools/json
+folder <json>`.  It can be used to check the format of a symmetry file,
+but not whether its contents are consistent.
 
-----------
+The `symd <https://github.com/whitead/symd>`_ reference implementation
+lists the operators of all space groups in the same notation in the
+*genpos* entries of its files ``python/symd/data/3dgroups.json`` and
+``2dgroups.json``, so these can be used directly in the *ops* list.
 
-Adapting JSON files from the symd reference engine
-""""""""""""""""""""""""""""""""""""""""""""""""""
+Setting up a simulation
+"""""""""""""""""""""""
 
-The JSON format used here is **not** the format used by the `symd
-<https://github.com/whitead/symd>`_ reference engine.  symd's
-space-group tables (``python/symd/data/{2,3}dgroups.json``) describe
-each group in abstract crystallographic terms.  To use a symd entry in a
-fix symmetry file you have to convert it in three steps:
+* **Positions.**  The atoms must be at symmetric positions within the
+  tolerance *tol* in fractional coordinates of the box.  When a run
+  starts, the fix looks for the image of each atom under each operator
+  and stops with an error if there is none, if the image has a
+  different atom type or mass, or if there is more than one atom within
+  the tolerance.  Remaining deviations are removed in the first step.
+  A larger *tol* may be needed for structures from other software with
+  fewer significant digits.
+* **Velocities.**  Random velocities from the :doc:`velocity <velocity>`
+  command are not symmetric.  A ``run 0`` with the fix makes them
+  symmetric, which removes a part of the kinetic energy.  The
+  temperature can then be restored with ``velocity all scale``:
 
-1. **Lattice family** -- lowercase the symd ``lattice`` string. symd uses
-   ``"Triclinic"``; this fix wants ``"triclinic"``.
+  .. code-block:: LAMMPS
 
-2. **Operators** -- expand each ``genpos`` string into an explicit
-   :math:`(R, t)` block. The expression ``"x,y,z"`` means the identity
-   :math:`R = I, t = 0`. The expression ``"-x+1/2, y, -z"`` means
+     fix sym all symmetry p-1.json
+     velocity all create 1.5 87287 loop geom
+     run 0 post no
+     velocity all scale 1.5
 
-   .. code-block:: json
+* **Temperature.**  The fix removes the degrees of freedom eliminated
+  by the symmetry from the temperature computed by :doc:`compute temp
+  <compute_temp>` and similar computes: each orbit keeps as many degrees
+  of freedom as its representative has free coordinates.  For an orbit
+  of :math:`n` atoms this removes :math:`3n - f` of them, where :math:`f`
+  is 3 on a general position and less on a special position (2 on a
+  mirror plane, 1 on a rotation axis, 0 on an inversion center), if the
+  representative is in the group of the compute.  When the group of the
+  compute contains exactly the atoms of this fix, the degrees of freedom
+  of the motion of the whole system that the space group allows are
+  also accounted for.  Thus thermostats and the reported temperature
+  work as usual.
+* **Order of fixes.**  This fix must be defined after all fixes that add
+  or change forces, e.g. :doc:`fix langevin <fix_langevin>` or :doc:`fix
+  addforce <fix_addforce>`, since forces applied after it are not
+  symmetrized.  The fix prints a warning otherwise.
+* **Box shape.**  The operators must fit the simulation box: e.g. a
+  four-fold rotation axis along z requires equal lengths of the box
+  along x and y, and operators like ``"-y,x-y,z"`` for hexagonal or
+  trigonal groups require a triclinic box with equal lengths a and b at
+  an angle of 120 degrees (xy = -a/2).  This is checked when a run
+  starts and whenever the box changes.  Such box dimensions should be
+  given with full precision, e.g. computed with ``sqrt(3.0)`` in an
+  equal-style :doc:`variable <variable>`, since with rounded values the
+  operators are only approximate symmetries and the total energy is no
+  longer exactly conserved.  With :doc:`fix npt <fix_nh>` or
+  :doc:`fix box/relax <fix_box_relax>`, choose a coupling that keeps the
+  box compatible (e.g. *iso* for cubic groups).  Since the stress of a
+  symmetric configuration is symmetric, a box that fits the space group
+  stays compatible also with *aniso* coupling.
+* **Minimization.**  During :doc:`energy minimization <minimize>` the
+  fix symmetrizes the forces, so the minimizer moves the atoms along
+  symmetric directions.
+* **Atoms outside the fix group** are not affected by the fix.  Their
+  forces on the atoms in the group are symmetrized as well, so they act
+  as an external field that is averaged over the symmetry operators.
 
-      { "R": [[-1, 0, 0], [0, 1, 0], [0, 0, -1]],
-        "t": ["1/2", 0, 0] }
+Special positions
+"""""""""""""""""
 
-   In general each comma-separated component is an affine combination of
-   ``x``, ``y``, ``z`` (coefficients +/- 1 or 0, giving one row of
-   :math:`R`) plus an optional rational constant (one component of
-   :math:`t`).  Rational strings (``"1/2"``) are preferred over decimal
-   approximations to preserve exactness through the parser.  The first
-   ``genpos`` entry is required to be the identity by both formats.
+Atoms on special positions need no special setup: the fix identifies
+them from the positions as atoms that are their own image under some
+operators, within *tol*.  They only move in the directions allowed by
+their site symmetry: an atom on a mirror plane moves within the plane,
+an atom on a rotation axis moves along the axis, and an atom on an
+inversion center does not move at all.  The examples
+``examples/PACKAGES/symmetry/in.lj_pm_wyckoff`` and
+``in.lj_pmm2_wyckoff`` show atoms on mirror planes.
 
-3. **Orbits and Wyckoff sites** -- symd auto-generates image atoms from
-   an *asymmetric unit*; this fix does not. You have to place the full
-   unit cell yourself (in the LAMMPS data file or via ``create_atoms``)
-   and then list every orbit explicitly:
+Note that a space group with many operators may leave few free
+coordinates.  E.g. with the full space group Fm-3m of an FCC crystal and
+the translations between all unit cells in the box, all atoms are in one
+orbit with no free coordinates, so only the box can change (example
+``in.lj_fcc_relax``).
 
-   * For each general-position asymmetric atom with tag ``T``, build a
-     ``tags`` array of length equal to the number of operators, with
-     ``tags[k]`` set to the tag of the atom you placed at
-     :math:`R_k \cdot s_T + t_k`. The fix verifies this layout at init.
+System size and parallel performance
+""""""""""""""""""""""""""""""""""""
 
-   * For each atom you place on a symd ``specpos`` site, also declare
-     the ``site_symmetry`` array on its orbit. The stabilizer ops are
-     those :math:`R_k` for which :math:`R_k \cdot s + t_k \equiv s`
-     (modulo lattice translations) at the special-position coordinates.
-     For Wyckoff site "h" in the example above (``1/2,1/2,1/2`` under
-     P-1), op 2 (inversion) fixes the site, so the orbit reads
-     ``{ "tags": [T, T], "site_symmetry": [2] }``.
+Unlike the symd reference implementation, which integrates only one
+representative of each orbit and creates the images as non-integrated
+copies, this fix keeps all atoms as ordinary LAMMPS atoms that are
+distributed across processes as usual.  The forces are computed as for
+any other system, so all pair styles and other force contributions can
+be used.
 
-A few Python conversion scripts for generating symmetry files are available
-alongside the example in the ``examples/PACKAGES/symmetry/`` folder.
+The cost of the fix per step is a pass over the local atoms and one
+collective sum of 9 numbers per orbit across all MPI processes.  For a
+256 atom LJ crystal with the inversion as only operator, the fix adds
+about 6% to the time of a step on one process and 12% on four
+processes; for more expensive potentials the relative cost is smaller.
+Since the collective sum grows with the number of orbits, the fix is
+best suited for systems with up to a few thousand orbits.  When a run
+starts, all processes collect the positions of all atoms in the fix
+group to find the orbits, which requires memory and time proportional
+to the number of atoms in the group on each process.
 
 ----------
 
@@ -293,51 +304,50 @@ Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 No information about this fix is written to :doc:`binary restart files
-<restart>`. None of the :doc:`fix_modify <fix_modify>` options are
-relevant to this fix. No global or per-atom quantities are stored by
-this fix for access by various :doc:`output commands <Howto_output>`.
+<restart>`.  The orbits are found from the positions again when a
+simulation is continued from a restart file.  None of the
+:doc:`fix_modify <fix_modify>` options are relevant to this fix.  No
+global or per-atom quantities are stored by this fix for access by
+various :doc:`output commands <Howto_output>`.  The fix prints a summary
+of the orbits and the number of independent coordinates when a run
+starts.
 
-This fix can be used with :doc:`run_style respa <run_style>`. Force
-symmetrization is applied at every RESPA level so each per-level force
-contribution is individually symmetric; position re-folding and Wyckoff
-projection still run once per outer step in *end_of_step*.
+This fix can be used with :doc:`run_style respa <run_style>`.  The
+forces are symmetrized on each level, so each contribution is
+symmetric.
 
-This fix is not invoked during :doc:`energy minimization <minimize>`.
+This fix is invoked during :doc:`energy minimization <minimize>` and
+symmetrizes the forces.
 
 ----------
 
 Restrictions
 """"""""""""
 
-This fix is part of the EXTRA-FIX package. It is only enabled if LAMMPS
-was built with that package. See the :doc:`Build package
+This fix is part of the EXTRA-FIX package.  It is only enabled if LAMMPS
+was built with that package.  See the :doc:`Build package
 <Build_package>` page for more info.
 
-The full unit cell (asymmetric atom plus all images) must already be
-present in the system at the start of the run; the fix does not create
-atoms.
+The potential must be compatible with the symmetry, i.e. the energy must
+not change when the operators are applied to all atoms.  This is the
+case for interactions that depend only on the distances and angles
+between atoms of the same types, but not, e.g., with an external field
+or a wall that breaks the symmetry, or with atoms of the same type that
+interact differently.
 
-The simulation box must be compatible with the declared lattice family.
-When using :doc:`fix npt <fix_nh>` or :doc:`fix box/relax
-<fix_box_relax>` the user must select a coupling (e.g. *iso*, *aniso*,
-*tri*) that preserves the Bravais lattice type; the fix does not project
-box deformation onto the symmetric subspace.
+For 2d systems, the operators must leave the z coordinate unchanged.
 
 .. warning::
 
-   Do not apply fix symmetry to atoms that are at the same time
-   controlled by another fix which enforces its own rigid-body
-   constraints or fixed bond and angle geometries, such as :doc:`fix
-   rigid and its variants <fix_rigid>`, :doc:`fix shake <fix_shake>`,
-   :doc:`fix rattle <fix_shake>`, or :doc:`fix ilves <fix_ilves>`.  Fix
-   symmetry and each of those constraint algorithms independently
-   overwrite the forces, velocities, and/or positions of the affected
-   atoms every step with no coordination between them, so they interfere
-   and neither the rigid geometry nor the imposed symmetry is reliably
-   maintained.  There is no automatic check for this overlap.  Combining
-   such fixes with fix symmetry is only safe when they act on disjoint
-   sets of atoms; atoms not listed in the symmetry file are left
-   untouched by fix symmetry.
+   Do not apply fix symmetry to atoms that are also controlled by
+   another fix that enforces rigid bodies or fixed bond lengths and
+   angles, such as :doc:`fix rigid and its variants <fix_rigid>`,
+   :doc:`fix shake <fix_shake>`, :doc:`fix rattle <fix_shake>`, or
+   :doc:`fix ilves <fix_ilves>`.  Both fixes change the forces,
+   velocities, and positions of the same atoms independently, so neither
+   the rigid geometry nor the symmetry is maintained.  Fix symmetry
+   prints a warning if it finds such atoms.  Combining these fixes is
+   only possible when they act on different atoms.
 
 ----------
 
@@ -352,7 +362,7 @@ Related commands
 Default
 """""""
 
-tol = 1.0e-6.
+tol = 1.0e-6
 
 ----------
 

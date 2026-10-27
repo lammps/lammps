@@ -518,7 +518,7 @@ void FixSymmetry::symmetrize(bool full)
 
 /* ----------------------------------------------------------------------
    Degrees of freedom removed by the symmetry constraints from the atoms in
-   group igroup.  An orbit of n atoms has as many degrees of freedom as its
+   group tgroup.  An orbit of n atoms has as many degrees of freedom as its
    representative has free coordinates, so dimension*n - free are removed
    if the representative is in the group.  When the group consists of
    exactly the orbit atoms, the motion of the center of mass is restricted
@@ -527,10 +527,10 @@ void FixSymmetry::symmetrize(bool full)
    of the center of mass the temperature compute removes are added back.
 ------------------------------------------------------------------------- */
 
-bigint FixSymmetry::dof(int igroup)
+bigint FixSymmetry::dof(int tgroup)
 {
   if (n_orbits == 0) return 0;
-  const int gbit = group->bitmask[igroup];
+  const int gbit = group->bitmask[tgroup];
   const int dim = domain->dimension;
   const int *mask = atom->mask;
   const tagint *tag = atom->tag;

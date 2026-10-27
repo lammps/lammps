@@ -1,5 +1,5 @@
-LAMMPS (21 Nov 2023)
-OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (src/comm.cpp:98)
+LAMMPS (30 Sep 2026 - Development - patch_4Jul2026-2618-gf305cb663b)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread.
   using 1 OpenMP thread(s) per MPI task
 #info all out log
 units  metal
@@ -23,13 +23,37 @@ mass  3 15.999
 pair_style     zero 5.7
 pair_coeff     * *
 
+        # global array: per-atom descriptors (bikflag = 1),
+        # descriptor gradients and virial
+
 compute     pace all pace coupling_coefficients.yace 1 0
 
+        # per-atom array of the same descriptors, written with dump custom
+
+compute     pace_atom all pace/atom coupling_coefficients.yace
+dump        1 all custom 1 dump.pace_atom id type c_pace_atom[*]
+
+        # atom 1 has type 3, so its first descriptor is column
+        # 2*91+1 = 183 of the global array and column 1 of its per-atom row
+
+variable    b1 equal C_pace_atom[1][1]
+
+        # the 6 virial rows (xx, yy, zz, yz, xz, xy) follow the 161 descriptor
+        # rows and the 3*161 gradient rows, i.e. rows 645 to 650
+
+variable    vxx equal c_pace[645][183]
+variable    vyy equal c_pace[646][183]
+variable    vzz equal c_pace[647][183]
+variable    vyz equal c_pace[648][183]
+variable    vxz equal c_pace[649][183]
+variable    vxy equal c_pace[650][183]
+
 thermo 1
-thermo_style  custom step temp c_pace[1][183]
+thermo_style  custom step temp c_pace[1][183] v_b1 v_vxx v_vyy v_vzz v_vyz v_vxz v_vxy
 
 run 0
-WARNING: No fixes with time integration, atoms won't move (src/verlet.cpp:60)
+WARNING: No fixes with time integration, atoms won't move
+For more information see https://docs.lammps.org/err0028 (src/verlet.cpp:60)
 Generated 0 of 3 mixed pair_coeff terms from geometric mixing rule
 Neighbor list info ...
   update: every = 1 steps, delay = 0 steps, check = yes
@@ -37,7 +61,7 @@ Neighbor list info ...
   master list distance cutoff = 7.7
   ghost atom cutoff = 7.7
   binsize = 3.85, bins = 4 4 4
-  2 neighbor lists, perpetual/occasional/extra = 1 1 0
+  3 neighbor lists, perpetual/occasional/extra = 1 2 0
   (1) pair zero, perpetual
       attributes: half, newton on
       pair build: half/bin/atomonly/newton
@@ -48,12 +72,17 @@ Neighbor list info ...
       pair build: full/bin/atomonly
       stencil: full/bin/3d
       bin: standard
-Per MPI rank memory allocation (min/avg/max) = 6.97 | 6.97 | 6.971 Mbytes
-   Step          Temp      c_pace[1][183]
-         0   0              8.6885642    
-Loop time of 1.979e-06 on 4 procs for 0 steps with 161 atoms
+  (3) compute pace/atom, occasional
+      attributes: full, newton on
+      pair build: full/bin/atomonly
+      stencil: full/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 7.601 | 7.602 | 7.602 Mbytes
+   Step          Temp      c_pace[1][183]      v_b1          v_vxx          v_vyy          v_vzz          v_vyz          v_vxz          v_vxy     
+         0   0              8.6885642      8.6885642      413.78549      409.92613      411.631       -3.9865815      0.8449923      3.5728477    
+Loop time of 2.4565e-06 on 4 procs for 0 steps with 161 atoms
 
-164.2% CPU use with 4 MPI tasks x 1 OpenMP threads
+111.9% CPU use with 4 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
@@ -63,7 +92,7 @@ Neigh   | 0          | 0          | 0          |   0.0 |  0.00
 Comm    | 0          | 0          | 0          |   0.0 |  0.00
 Output  | 0          | 0          | 0          |   0.0 |  0.00
 Modify  | 0          | 0          | 0          |   0.0 |  0.00
-Other   |            | 1.979e-06  |            |       |100.00
+Other   |            | 2.457e-06  |            |       |100.00
 
 Nlocal:          40.25 ave          44 max          35 min
 Histogram: 1 0 0 0 1 0 0 0 1 1

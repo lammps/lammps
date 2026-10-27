@@ -240,6 +240,7 @@ void SymmetryGroup::read(const char *filename)
        ],
        "supercell": [nx, ny, nz]        // optional, default [1, 1, 1]
      }
+   Entries with names starting with an underscore are ignored as comments.
 ------------------------------------------------------------------------- */
 
 void SymmetryGroup::populate(const json &data)
@@ -248,7 +249,9 @@ void SymmetryGroup::populate(const json &data)
     if (!data.is_object()) throw std::invalid_argument("the file must contain a JSON object");
     for (const auto &item : data.items()) {
       const auto &key = item.key();
-      if ((key != "group_name") && (key != "ops") && (key != "supercell") && (comm->me == 0))
+      // entries starting with an underscore are comments
+      if ((key != "group_name") && (key != "ops") && (key != "supercell") && (key[0] != '_') &&
+          (comm->me == 0))
         error->warning(FLERR, "Fix symmetry: ignoring unknown entry \"{}\" in symmetry file", key);
     }
 

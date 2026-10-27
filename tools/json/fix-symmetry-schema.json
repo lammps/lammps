@@ -6,6 +6,11 @@
     "type": "object",
     "required": ["ops"],
     "additionalProperties": false,
+    "patternProperties": {
+        "^_": {
+            "description": "Entries with names starting with an underscore are comments and ignored."
+        }
+    },
     "properties": {
         "group_name": {
             "type": "string",

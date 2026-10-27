@@ -37,28 +37,30 @@ Description
 .. versionadded:: TBD
 
 This fix keeps the atoms in its group exactly symmetric under the
-operations of a crystallographic space group during molecular dynamics
-and energy minimization.  For example, with the inversion through the
-origin of the simulation box as the only symmetry operation (space group
-P-1), every atom has a partner at the inverted position, and this fix
-keeps each pair at inverted positions with opposite velocities and
-forces for the entire simulation.  The method follows :ref:`(Cox)
-<Cox2022>` and the `symd <https://github.com/whitead/symd>`_ reference
-implementation.
+operations of a crystallographic space group :ref:`(Wyckoff)
+<Wyckoff1922>` during molecular dynamics and energy minimization.  For
+example, with the inversion through the origin of the simulation box as
+the only symmetry operation (space group P-1), every atom has a partner
+at the inverted position, and this fix keeps each pair at inverted
+positions with opposite velocities and forces for the entire simulation.
+The method follows :ref:`(Cox) <Cox2022>` and the `symd
+<https://github.com/whitead/symd>`_ reference implementation.
 
-Why use this fix
-""""""""""""""""
+Purpose and typical use
+"""""""""""""""""""""""
 
 If the forces in a system are symmetric, the exact equations of motion
-preserve the symmetry.  Ordinary MD does not: round-off errors break the
-symmetry slightly, these deviations grow exponentially, and after some
-time the symmetry is lost completely.  The example input
-``examples/PACKAGES/symmetry/in.lj_pinv`` shows this for 8 LJ atoms: after
-the fix is removed, a displacement of 1.0e-4 grows to a clear violation
-of the symmetry within a few thousand steps.  With this fix, the
-symmetry is an input setting that holds exactly, and motion that would
-break it is not possible.  This is different from a restraint, which
-only adds a force that pulls the system towards a symmetric arrangement.
+would preserve the symmetry.  Ordinary MD simulations, however, do not
+typically achieve this because round-off errors can break the symmetry
+slightly, and these deviations grow exponentially, so that after some
+time the symmetry is lost.  The example input
+``examples/PACKAGES/symmetry/in.lj_pinv`` shows this for 8 LJ atoms:
+after the fix is removed, a displacement of 1.0e-4 grows to a clear
+violation of the symmetry within a few thousand steps.  With this fix
+included, the symmetry becomes an input parameter that holds exactly,
+and any motion that would break, it is not possible.  This is different
+from a restraint, which only adds a force that pulls the system towards
+a symmetric arrangement.
 
 Typical uses are:
 
@@ -79,7 +81,11 @@ Typical uses are:
 A practical workflow is to build a symmetric structure, relax or
 equilibrate it with this fix, and then remove the fix to continue with
 ordinary MD and test whether the structure is stable or breaks the
-symmetry.
+symmetry.  This is particularly helpful in combination with force fields
+that have no explicit bonded interactions, e.g. manybody potentials,
+ReaxFF, or machine learning interaction potentials (MLIAP), where the
+(local) structure could be temporarily preserved by increasing the force
+constants.
 
 Terminology
 """""""""""
@@ -121,15 +127,15 @@ How it works
 
 |sym_inv|  |sym_mir|  |sym_r3|  |sym_r4|
 
-The figures show orbits for four operators: an inversion center, a
-mirror plane, a three-fold, and a four-fold rotation axis.  In each
-orbit, the atom A (amber) is the representative and B, C, D (blue) are
-its images.  For each orbit, the fix maps the forces of all atoms back
-to the representative with the inverse operators, averages them, and
-assigns the images of the average to all atoms of the orbit (arrows).
-With the Cartesian forms :math:`M_k` of the operators (rotations or
-reflections when the box fits the space group), the force on the
-representative of an orbit with :math:`n` atoms is
+The figures show orbits for four operators: a) an inversion center, b) a
+mirror plane, c) a three-fold, and d) a four-fold rotation axis.  In
+each orbit, the atom A (amber) is the representative and B, C, D (blue)
+are its images.  For each orbit, the fix maps the forces of all atoms
+back to the representative with the inverse operators, averages them,
+and assigns the images of the average to all atoms of the orbit
+(arrows).  With the Cartesian forms :math:`M_k` of the operators
+(rotations or reflections when the box fits the space group), the force
+on the representative of an orbit with :math:`n` atoms is
 
 .. math::
 
@@ -169,9 +175,11 @@ x and y and a two-fold rotation axis along z:
 
 * The operators act on fractional coordinates of the simulation box.
   They are written in the coordinate triplet notation of the
-  International Tables for Crystallography and of CIF files, e.g.
-  ``"-x+1/2,y,-z"`` or ``"-y,x-y,z+1/3"``.  Alternatively, an operator
-  can be given as integer matrix and translation, e.g. ``{ "R":
+  International Tables for Crystallography :ref:`(ITA) <ITA2016>` and of
+  `CIF files
+  <https://cif-dictionaries.iucr.org/cifdic/dichtm.php?dic=cif_core&show=_space_group_symop.operation_xyz>`_,
+  e.g.  ``"-x+1/2,y,-z"`` or ``"-y,x-y,z+1/3"``.  Alternatively, an
+  operator can be given as integer matrix and translation, e.g. ``{ "R":
   [[-1,0,0],[0,1,0],[0,0,-1]], "t": ["1/2", 0, 0] }``.
 * The operators must include the identity ``"x,y,z"`` and form a group,
   which the fix checks.
@@ -194,7 +202,7 @@ the space group of the atoms in a LAMMPS data file.  A `JSON schema file
 folder <json>`.  It can be used to check the format of a symmetry file,
 but not whether its contents are consistent.
 
-The `symd <https://github.com/whitead/symd>`_ reference implementation
+The `symd reference implementation <https://github.com/whitead/symd>`_
 lists the operators of all space groups in the same notation in the
 *genpos* entries of its files ``python/symd/data/3dgroups.json`` and
 ``2dgroups.json``, so these can be used directly in the *ops* list.
@@ -234,10 +242,10 @@ Setting up a simulation
   of the motion of the whole system that the space group allows are
   also accounted for.  Thus thermostats and the reported temperature
   work as usual.
-* **Order of fixes.**  This fix must be defined after all fixes that add
-  or change forces, e.g. :doc:`fix langevin <fix_langevin>` or :doc:`fix
-  addforce <fix_addforce>`, since forces applied after it are not
-  symmetrized.  The fix prints a warning otherwise.
+* **Order of fixes.** This fix must be defined *after* all fixes that
+  add or change forces, e.g. :doc:`fix langevin <fix_langevin>` or
+  :doc:`fix addforce <fix_addforce>`, since forces applied after it are
+  not symmetrized.  The fix prints a warning otherwise.
 * **Box shape.**  The operators must fit the simulation box: e.g. a
   four-fold rotation axis along z requires equal lengths of the box
   along x and y, and operators like ``"-y,x-y,z"`` for hexagonal or
@@ -280,7 +288,8 @@ orbit with no free coordinates, so only the box can change (example
 System size and parallel performance
 """"""""""""""""""""""""""""""""""""
 
-Unlike the symd reference implementation, which integrates only one
+Unlike the `symd reference implementation
+<https://github.com/whitead/symd>`_, which integrates only one
 representative of each orbit and creates the images as non-integrated
 copies, this fix keeps all atoms as ordinary LAMMPS atoms that are
 distributed across processes as usual.  The forces are computed as for
@@ -290,13 +299,15 @@ be used.
 The cost of the fix per step is a pass over the local atoms and one
 collective sum of 9 numbers per orbit across all MPI processes.  For a
 256 atom LJ crystal with the inversion as only operator, the fix adds
-about 6% to the time of a step on one process and 12% on four
-processes; for more expensive potentials the relative cost is smaller.
-Since the collective sum grows with the number of orbits, the fix is
-best suited for systems with up to a few thousand orbits.  When a run
-starts, all processes collect the positions of all atoms in the fix
-group to find the orbits, which requires memory and time proportional
-to the number of atoms in the group on each process.
+about 5% to the time of a step on one process and 10% on four processes;
+for more expensive potentials the relative cost is smaller.  Since the
+collective sum grows with the number of orbits, the fix is best suited
+for systems with up to a few thousand orbits.  When a run starts, all
+processes collect the positions of all atoms in the fix group to find
+the orbits, which requires memory and time proportional to the number of
+atoms in the group on each process.  To equilibrate a large system, it
+is suggested to start with a smaller subset and then use the
+:doc:`replicate command <replicate>` to reach the final system size.
 
 ----------
 
@@ -366,6 +377,17 @@ tol = 1.0e-6
 
 ----------
 
+.. _Wyckoff1922:
+
+**(Wyckoff)** R. W. G. Wyckoff, The Analytical Expression of the Results of the
+Theory of Space-Groups, Carnegie Institution of Washington, Publication 318 (1922).
+
 .. _Cox2022:
 
 **(Cox)** Cox and White, J. Chem. Theor. Comput., 18, 4077 (2022).
+
+.. _ITA2016:
+
+**(ITA)** M. I. Aroyo (ed.), International Tables for Crystallography, Vol. A,
+Space-Group Symmetry, 6th ed., Wiley (2016), DOI 10.1107/97809553602060000114.
+

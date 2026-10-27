@@ -14,7 +14,7 @@ atom_modify map array
 region		reg block 0 50 0 50 0 50 units box
 create_box	4 reg
 Created orthogonal box = (0 0 0) to (50 50 50)
-  1 by 2 by 2 MPI processor grid
+  1 by 1 by 1 MPI processor grid
 
 variable cut_inner  equal 0.5
 variable k_n        equal 100
@@ -116,39 +116,39 @@ Neighbor list info ...
       pair build: half/bin/atomonly/newton
       stencil: half/bin/3d
       bin: standard
-Per MPI rank memory allocation (min/avg/max) = 0.4529 | 0.4529 | 0.4529 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 0.4772 | 0.4772 | 0.4772 Mbytes
    Step        Atoms        KinEng         PotEng         TotEng         Press     
          0           0  -0              0              0              0            
       1000         134  -0             -0.029547996   -0.029547996   -5.7857161e-06
       2000         134  -0             -0.034358962   -0.034358962   -3.9824678e-06
       3000         134  -0             -0.03436592    -0.03436592    -3.6832488e-06
       4000         134  -0             -0.034931447   -0.034931447   -1.0516117e-05
-      5000         268  -0             -0.052234071   -0.052234071   -0.00012919299
-      6000         268  -0             -0.10643796    -0.10643796     0.00021216323
-Loop time of 0.29482 on 4 procs for 6000 steps with 268 atoms
+      5000         268  -0             -0.052228476   -0.052228476   -0.00012815704
+      6000         268  -0             -0.10338998    -0.10338998     0.00022137267
+Loop time of 0.517408 on 1 procs for 6000 steps with 268 atoms
 
-Performance: 1758360.135 tau/day, 20351.390 timesteps/s, 5.454 Matom-step/s
-99.4% CPU use with 4 MPI tasks x 1 OpenMP threads
+Performance: 1001916.901 tau/day, 11596.260 timesteps/s, 3.108 Matom-step/s
+99.1% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.16283    | 0.16411    | 0.16612    |   0.3 | 55.66
-Neigh   | 0.0015484  | 0.0017682  | 0.0019636  |   0.4 |  0.60
-Comm    | 0.051858   | 0.053518   | 0.055689   |   0.7 | 18.15
-Output  | 8.8418e-05 | 9.832e-05  | 0.0001158  |   0.0 |  0.03
-Modify  | 0.034676   | 0.039653   | 0.046657   |   2.2 | 13.45
-Other   |            | 0.03567    |            |       | 12.10
+Pair    | 0.364      | 0.364      | 0.364      |   0.0 | 70.35
+Neigh   | 0.0053371  | 0.0053371  | 0.0053371  |   0.0 |  1.03
+Comm    | 0.0061571  | 0.0061571  | 0.0061571  |   0.0 |  1.19
+Output  | 5.9926e-05 | 5.9926e-05 | 5.9926e-05 |   0.0 |  0.01
+Modify  | 0.13552    | 0.13552    | 0.13552    |   0.0 | 26.19
+Other   |            | 0.006334   |            |       |  1.22
 
-Nlocal:             67 ave          90 max          43 min
-Histogram: 1 1 0 0 0 0 0 0 1 1
-Nghost:             49 ave          69 max          31 min
-Histogram: 1 1 0 0 0 0 0 1 0 1
-Neighs:          38.25 ave          58 max          17 min
-Histogram: 1 0 1 0 0 0 0 0 1 1
+Nlocal:            268 ave         268 max         268 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:             19 ave          19 max          19 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:            152 ave         152 max         152 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
 
-Total # of neighbors = 153
-Ave neighs/atom = 0.57089552
+Total # of neighbors = 152
+Ave neighs/atom = 0.56716418
 Neighbor list builds = 167
 Dangerous builds = 0
 

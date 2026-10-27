@@ -49,6 +49,11 @@ class FixWallBodyPolyhedron : public Fix {
 
 
  protected:
+  FixWallBodyPolyhedron(class LAMMPS *, int, char **, int);
+  int parse_wall(int narg, char **arg, int iarg);
+  int parse_wiggle(int narg, char **arg, int iarg);
+  void setup_wall();
+
   int wallstyle, wiggle, axis;
   double kn, c_n, c_t;
   int history;            // 1 if the tangential deformation at the wall is stored
@@ -102,8 +107,12 @@ class FixWallBodyPolyhedron : public Fix {
   double wall_force(int i, const double *xp, const double *n, double sd, const double *vwall,
                     double **x, double **v, double **angmom, double **f, double **torque,
                     double *pc, double *vt);
-  void tangential_spring(const double *n, const double *vt, double fne, double *xi,
-                         double *ft);
+  // force of the wall at a vertex, and friction force of the wall on body i,
+  // which can be overridden for other contact models
+  virtual double vertex_force(int i, double R, double vnnr, const double *n, const double *vn,
+                              const double *vt, double *fw);
+  virtual void tangential_spring(int i, const double *n, const double *vt, double fne, double *xi,
+                                 double *ft);
   void sum_torque(double *xm, double *x, double fx, double fy, double fz, double *torque);
   void total_velocity(const double *p, double *xcm, double *vcm, double *angmom, double *inertia,
                       double *quat, double *vi);

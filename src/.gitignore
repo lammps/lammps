@@ -1229,6 +1229,8 @@
 /fix_wall_body_polygon.h
 /fix_wall_body_polyhedron.cpp
 /fix_wall_body_polyhedron.h
+/fix_wall_body_polyhedron_granular.cpp
+/fix_wall_body_polyhedron_granular.h
 /fix_wall_colloid.cpp
 /fix_wall_colloid.h
 /fix_wall_ees.cpp
@@ -1327,6 +1329,9 @@
 /pair_body_rounded_polygon.h
 /pair_body_rounded_polyhedron.cpp
 /pair_body_rounded_polyhedron.h
+/pair_body_rounded_polyhedron_granular.cpp
+/pair_body_rounded_polyhedron_granular.h
+/pair_body_rounded_polyhedron_omp_impl.h
 /pair_bop.cpp
 /pair_bop.h
 /pair_born_coul_long.cpp

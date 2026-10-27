@@ -1,0 +1,162 @@
+LAMMPS (30 Sep 2026 - Development - patch_2Sep2026-616-g788646c5c4)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread.
+  using 1 OpenMP thread(s) per MPI task
+# rounded regular tetrahedra of different sizes in NVT with the contact
+# models of the GRANULAR package
+#
+# 216 tetrahedra with random edge lengths from 1.0 to 2.0, random
+# orientations, and unit mass density share the rounded diameter 0.15.
+# The contacts use a Hertzian normal force from the elastic properties of
+# the bodies, a damping proportional to the effective mass, and a
+# tangential spring with the contact history.
+
+variable    steps     index 2000
+variable    steps_compress index 10000
+variable    phi       index 0.15
+variable    T         index 1.0
+
+units       lj
+dimension   3
+boundary    p p p
+comm_modify vel yes
+
+atom_style  body rounded/polyhedron 1 8
+atom_modify map array
+
+read_data   data.tetra
+Reading data file ...
+  orthogonal box = (0 0 0) to (18 18 18)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  216 atoms
+  216 bodies
+  read_data CPU = 0.006 seconds
+
+velocity    all create ${T} 4928459 dist gaussian mom yes rot yes
+velocity    all create 1.0 4928459 dist gaussian mom yes rot yes
+
+variable cut_inner  equal 0.5
+variable A_ua       equal 1
+variable k_na       equal 1
+variable E          equal 1e5
+variable damp       equal 5
+variable nu         equal 0.3
+variable k_t        equal 1e3
+variable xt         equal 0.25
+variable mu         equal 0.1
+
+pair_style body/rounded/polyhedron/granular ${A_ua} ${cut_inner}
+pair_style body/rounded/polyhedron/granular 1 ${cut_inner}
+pair_style body/rounded/polyhedron/granular 1 0.5
+pair_coeff * * hertz/material ${E} ${damp} ${nu} damping mass_velocity            tangential linear_history ${k_t} ${xt} ${mu} cohesion ${k_na}
+pair_coeff * * hertz/material 100000 ${damp} ${nu} damping mass_velocity            tangential linear_history ${k_t} ${xt} ${mu} cohesion ${k_na}
+pair_coeff * * hertz/material 100000 5 ${nu} damping mass_velocity            tangential linear_history ${k_t} ${xt} ${mu} cohesion ${k_na}
+pair_coeff * * hertz/material 100000 5 0.3 damping mass_velocity            tangential linear_history ${k_t} ${xt} ${mu} cohesion ${k_na}
+pair_coeff * * hertz/material 100000 5 0.3 damping mass_velocity            tangential linear_history 1000 ${xt} ${mu} cohesion ${k_na}
+pair_coeff * * hertz/material 100000 5 0.3 damping mass_velocity            tangential linear_history 1000 0.25 ${mu} cohesion ${k_na}
+pair_coeff * * hertz/material 100000 5 0.3 damping mass_velocity            tangential linear_history 1000 0.25 0.1 cohesion ${k_na}
+pair_coeff * * hertz/material 100000 5 0.3 damping mass_velocity            tangential linear_history 1000 0.25 0.1 cohesion 1
+
+neighbor     0.5 bin
+neigh_modify every 1 delay 0 check yes
+
+timestep     0.0005
+
+fix          1 all nvt/body temp ${T} ${T} 0.02 tchain 1
+fix          1 all nvt/body temp 1.0 ${T} 0.02 tchain 1
+fix          1 all nvt/body temp 1.0 1.0 0.02 tchain 1
+
+compute      tb all temp/body
+compute      p2 all pressure tb
+compute      ttra all temp
+compute      trot all temp/body dof rotate
+variable     phinow equal mass(all)/vol
+thermo_style custom step c_tb c_ttra c_trot pe c_p2 v_phinow
+thermo_modify norm yes
+thermo       500
+
+#compute      1 all body/local id 1 2 3
+#dump         1 all local 1000 dump.tetra.* index c_1[1] c_1[2] c_1[3] c_1[4]
+
+#dump         viz all image 500 image.*.jpg type type size 800 800 zoom 1.24872 #                 shiny 0.2 fsaa yes ssao yes 4539 0.6 box yes 0.01 axes no 0.5 0.025 #                 view 75 5 body type 0 0
+#dump_modify  viz pad 9 backcolor black acolor 1 gray
+
+# compress the box to the volume fraction phi of the cores of the bodies,
+# with unit density, mass(all) is the total volume of the cores
+
+variable     L equal (mass(all)/${phi})^(1.0/3.0)
+variable     L equal (mass(all)/0.15)^(1.0/3.0)
+fix          2 all deform 1 x final 0 ${L} y final 0 ${L} z final 0 ${L} remap x
+fix          2 all deform 1 x final 0 8.56062412205458 y final 0 ${L} z final 0 ${L} remap x
+fix          2 all deform 1 x final 0 8.56062412205458 y final 0 8.56062412205458 z final 0 ${L} remap x
+fix          2 all deform 1 x final 0 8.56062412205458 y final 0 8.56062412205458 z final 0 8.56062412205458 remap x
+run          ${steps_compress}
+run          10000
+Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 3.6986208
+  ghost atom cutoff = 3.6986208
+  binsize = 1.8493104, bins = 10 10 10
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair body/rounded/polyhedron/granular, perpetual
+      attributes: half, newton on, history
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 13.58 | 13.58 | 13.58 Mbytes
+   Step          c_tb          c_ttra         c_trot         PotEng          c_p2         v_phinow   
+         0   0.49883991     1              0              0              0.036865569    0.016135782  
+       500   0.82565229     1.5714492      0.083695648   -0.020312329    0.066890253    0.017474636  
+      1000   1.7035595      2.8226436      0.59239891    -0.022340647    0.16873966     0.018965802  
+      1500   1.0894889      1.6643271      0.519718      -0.048182883    0.11506511     0.020631572  
+      2000   0.56505091     0.82771366     0.3050163     -0.052315129    0.054126409    0.022498268  
+      2500   0.65860139     0.93407504     0.38619099    -0.052291082    0.083378876    0.024597122  
+      3000   1.3979438      1.9133256      0.88906402    -0.05694883     0.1805051      0.026965377  
+      3500   1.4380376      1.900319       0.98244484    -0.062409846    0.23009081     0.029647682  
+      4000   0.69284238     0.93004455     0.45886274    -0.067285744    0.10232595     0.032697869  
+      4500   0.5796749      0.74974099     0.41230498    -0.0700502      0.11606966     0.036181232  
+      5000   1.036708       1.2418162      0.83642175    -0.06630672     0.31226169     0.040177481  
+      5500   1.5503172      1.7988205      1.3090246     -0.082473014    0.39428811     0.044784597  
+      6000   0.9558712      1.079243       0.8369453     -0.10524335     0.2521834      0.050123907  
+      6500   0.64667821     0.76793617     0.52842806    -0.1276466      0.16697543     0.056346842  
+      7000   0.83368517     1.0064473      0.66480061    -0.13435428     0.36785474     0.063644027  
+      7500   1.3295783      1.6313291      1.0340116     -0.13335588     0.74014685     0.072257642  
+      8000   1.2367456      1.6029405      0.87630296    -0.20260174     0.70509603     0.08249845   
+      8500   0.82182292     1.0079082      0.63956009    -0.24039198     0.72894633     0.094769577  
+      9000   0.77002356     0.91386114     0.62976749    -0.2913794      0.73983226     0.10960018   
+      9500   1.0528668      1.2528942      0.85773633    -0.29908621     1.7925232      0.12769392   
+     10000   1.1971544      1.5225842      0.87729274    -0.35012313     3.4899998      0.15         
+Loop time of 43.5524 on 1 procs for 10000 steps with 216 atoms
+
+Performance: 9919.075 tau/day, 229.608 timesteps/s, 49.595 katom-step/s
+100.0% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 42.964     | 42.964     | 42.964     |   0.0 | 98.65
+Neigh   | 0.032875   | 0.032875   | 0.032875   |   0.0 |  0.08
+Comm    | 0.20601    | 0.20601    | 0.20601    |   0.0 |  0.47
+Output  | 0.00076401 | 0.00076401 | 0.00076401 |   0.0 |  0.00
+Modify  | 0.32601    | 0.32601    | 0.32601    |   0.0 |  0.75
+Other   |            | 0.02281    |            |       |  0.05
+
+Nlocal:            216 ave         216 max         216 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:           1168 ave        1168 max        1168 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:           7775 ave        7775 max        7775 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 7775
+Ave neighs/atom = 35.99537
+Neighbor list builds = 231
+Dangerous builds = 0
+
+#unfix        2
+
+#run          ${steps}
+
+Total wall time: 0:00:43

@@ -55,7 +55,7 @@ fix                integrate_fix_stationary walls sph/stationary
 dump               dump_id all custom 100 dump.lammpstrj id type xs ys zs vx vy c_rho_peratom c_e_peratom
 dump_modify        dump_id first yes
 thermo             100
-thermo_style       custom step c_esph v_etot
+thermo_style       custom step c_esph v_etot press
 thermo_modify      norm no
 
 neighbor           3.0e-6 bin

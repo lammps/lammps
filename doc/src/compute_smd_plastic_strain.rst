@@ -27,8 +27,8 @@ Define a computation that outputs the equivalent plastic strain per
 particle.  This command is only meaningful if a material model with
 plasticity is defined.
 
-See `this PDF guide <PDF/MACHDYN_LAMMPS_userguide.pdf>`_ to use Smooth
-Mach Dynamics in LAMMPS.
+See the :doc:`Howto machdyn <Howto_machdyn>` page for an introduction
+to using Smooth Mach Dynamics in LAMMPS.
 
 **Output Info:**
 

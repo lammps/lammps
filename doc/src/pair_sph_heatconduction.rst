@@ -28,14 +28,8 @@ Description
 The sph/heatconduction style computes heat transport between SPH particles.
 The transport model is the diffusion equation for the internal energy.
 
-See `this PDF guide <PDF/SPH_LAMMPS_userguide.pdf>`_ to using SPH in
-LAMMPS.
-
-.. note::
-
-   Please note that the SPH PDF guide file has not been updated for
-   many years and thus does not reflect the current *syntax* of the
-   SPH package commands. For that please refer to the LAMMPS manual.
+See the :doc:`Howto sph <Howto_sph>` page for an introduction to
+using SPH in LAMMPS.
 
 The following coefficients must be defined for each pair of atoms
 types via the :doc:`pair_coeff <pair_coeff>` command as in the examples

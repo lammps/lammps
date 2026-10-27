@@ -29,10 +29,6 @@ class Fix;
 
 class Modify : protected Pointers {
  public:
-  int restart_pbc_any;         // 1 if any fix sets restart_pbc
-  int nfix_restart_global;     // stored fix global info from restart file
-  int nfix_restart_peratom;    // stored fix peratom info from restart file
-
   Modify(class LAMMPS *);
   ~Modify() override;
   virtual void init();
@@ -142,9 +138,23 @@ class Modify : protected Pointers {
   int read_restart(FILE *);
   void restart_deallocate(int);
 
+  // true if any fix requires that atoms are remapped into the periodic box
+  // when writing a restart file, as of the last init()
+
+  [[nodiscard]] bool has_restart_pbc() const { return restart_pbc_any != 0; }
+
+  // number of fixes with per-atom data read from a restart file that is
+  // waiting for the fixes to be re-defined (reset by the next init())
+
+  [[nodiscard]] int get_nfix_restart_peratom() const { return nfix_restart_peratom; }
+
   double memory_usage();
 
  protected:
+  int restart_pbc_any;         // 1 if any fix sets restart_pbc
+  int nfix_restart_global;     // stored fix global info from restart file
+  int nfix_restart_peratom;    // stored fix peratom info from restart file
+
   // lists of fixes and computes in the order they were defined.
   // fixmask[i] is the mask of stages at which fixes[i] is invoked, as set by
   // Fix::setmask() and changed by set_fix_mask()/clear_fix_mask(), plus the

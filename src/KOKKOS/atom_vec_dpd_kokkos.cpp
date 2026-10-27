@@ -22,7 +22,6 @@
 #include "fix.h"
 #include "kokkos.h"
 #include "memory_kokkos.h"
-#include "modify.h"
 
 using namespace LAMMPS_NS;
 
@@ -82,9 +81,7 @@ void AtomVecDPDKokkos::grow(int n)
   memoryKK->grow_kokkos(atomKK->k_uCGnew,atomKK->uCGnew,nmax,"atom:uCGnew");
   memoryKK->grow_kokkos(atomKK->k_duChem,atomKK->duChem,nmax,"atom:duChem");
 
-  if (atom->nextra_grow)
-    for (int iextra = 0; iextra < atom->nextra_grow; iextra++)
-      modify->get_fix_by_index(atom->extra_grow[iextra])->grow_arrays(nmax);
+  for (auto *ifix : atom->extra_grow) ifix->grow_arrays(nmax);
 
   grow_pointers();
   atomKK->sync(Host,ALL_MASK);

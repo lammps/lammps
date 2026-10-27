@@ -34,7 +34,6 @@
 #include "kokkos.h"
 #include "kokkos_base.h"
 #include "memory_kokkos.h"
-#include "modify.h"
 #include "output.h"
 #include "pair.h"
 
@@ -1016,13 +1015,12 @@ void CommKokkos::reverse_comm(Dump *dump, int size)
 void CommKokkos::exchange()
 {
   if (!exchange_comm_legacy) {
-    if (atom->nextra_grow) {
+    if (!atom->extra_grow.empty()) {
 
       // check if all fixes with atom-based arrays support exchange on device
 
       int flag = 1;
-      for (int iextra = 0; iextra < atom->nextra_grow; iextra++) {
-        auto fix_iextra = modify->get_fix_by_index(atom->extra_grow[iextra]);
+      for (auto *fix_iextra : atom->extra_grow) {
         if (!fix_iextra->exchange_comm_device) {
           flag = 0;
           if (comm->me == 0)
@@ -1375,7 +1373,7 @@ void CommKokkos::exchange_device()
         k_buf_recv.modify<DeviceType>();
 
         if (nrecv) {
-          if (atom->nextra_grow || atomKK->avecKK->size_exchange_bonus) {
+          if (!atom->extra_grow.empty() || atomKK->avecKK->size_exchange_bonus) {
             if ((int) k_indices.extent(0) < nrecv/data_size)
               MemoryKokkos::realloc_kokkos(k_indices,"comm:indices",nrecv/data_size);
           } else if (k_indices.view_host().data())
@@ -1388,9 +1386,8 @@ void CommKokkos::exchange_device()
         }
       }
 
-      if (atom->nextra_grow) {
-        for (int iextra = 0; iextra < atom->nextra_grow; iextra++) {
-          auto fix_iextra = modify->get_fix_by_index(atom->extra_grow[iextra]);
+      if (!atom->extra_grow.empty()) {
+        for (auto *fix_iextra : atom->extra_grow) {
           KokkosBase *kkbase = dynamic_cast<KokkosBase*>(fix_iextra);
           int nextrasend = 0;
           nsend = count;
@@ -1486,7 +1483,7 @@ void CommKokkos::borders()
 {
   if (!exchange_comm_legacy) {
 
-    if (atom->nextra_border || mode != Comm::SINGLE || bordergroup) {
+    if (!atom->extra_border.empty() || mode != Comm::SINGLE || bordergroup) {
 
       if (comm->me == 0) {
         error->warning(FLERR,"Required border comm not yet implemented in Kokkos communication, "

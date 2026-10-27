@@ -3,6 +3,7 @@
 #include "lammps.h"
 
 #include "atom.h"
+#include "atom_vec.h"
 #include "compute.h"
 #include "domain.h"
 #include "fix.h"
@@ -390,6 +391,141 @@ TEST_F(ModifyTest, ReplaceFixKeepsSlot)
         command("run 0 post no");
     });
     EXPECT_DOUBLE_EQ(lmp->atom->f[0][0], 0.0);
+}
+
+TEST_F(ModifyTest, CallbackListsFollowFixOrder)
+{
+    // fixes with per-atom arrays register callbacks with the Atom class in
+    // their constructor, i.e. before Modify has stored them in its list.
+    // the callback lists must be in the order of that list, since per-atom
+    // data is packed and unpacked by walking them, also after a fix was
+    // re-defined or deleted.
+
+    auto *atom   = lmp->atom;
+    auto *modify = lmp->modify;
+    HIDE_OUTPUT([&] {
+        command("fix a all property/atom i_a ghost yes");
+        command("fix b all nve");
+        command("fix c all property/atom d_c");
+    });
+    Fix *fa = modify->get_fix_by_id("a");
+    Fix *fc = modify->get_fix_by_id("c");
+    ASSERT_NE(fa, nullptr);
+    ASSERT_NE(fc, nullptr);
+    EXPECT_EQ(atom->extra_grow, (std::vector<Fix *>{fa, fc}));
+    EXPECT_EQ(atom->extra_restart, (std::vector<Fix *>{fa, fc}));
+    EXPECT_EQ(atom->extra_border, (std::vector<Fix *>{fa}));
+
+    // re-defining a fix keeps its position in both lists
+
+    HIDE_OUTPUT([&] {
+        command("fix a all property/atom i_a2 ghost yes");
+    });
+    fa = modify->get_fix_by_id("a");
+    ASSERT_NE(fa, nullptr);
+    EXPECT_EQ(fix_id(0), "a");
+    EXPECT_EQ(atom->extra_grow, (std::vector<Fix *>{fa, fc}));
+    EXPECT_EQ(atom->extra_restart, (std::vector<Fix *>{fa, fc}));
+    EXPECT_EQ(atom->extra_border, (std::vector<Fix *>{fa}));
+
+    // deleting a fix removes its callbacks without renumbering
+
+    HIDE_OUTPUT([&] {
+        command("unfix a");
+    });
+    EXPECT_EQ(atom->extra_grow, (std::vector<Fix *>{fc}));
+    EXPECT_EQ(atom->extra_restart, (std::vector<Fix *>{fc}));
+    EXPECT_TRUE(atom->extra_border.empty());
+
+    HIDE_OUTPUT([&] {
+        command("unfix c");
+        command("run 0 post no");
+    });
+    EXPECT_TRUE(atom->extra_grow.empty());
+    EXPECT_TRUE(atom->extra_restart.empty());
+    EXPECT_TRUE(atom->extra_border.empty());
+}
+
+TEST_F(ModifyTest, CallbackListsAfterReplaceFix)
+{
+    if (!Info::has_package("GRANULAR")) GTEST_SKIP();
+
+    // the NEIGH_HISTORY fix that replaces the placeholder of pair style
+    // granular registers callbacks from its constructor. it must be sorted
+    // into the position of the placeholder, between the two other fixes.
+
+    HIDE_OUTPUT([&] {
+        command("clear");
+        command("units lj");
+        command("atom_style sphere");
+        command("lattice fcc 0.8442");
+        command("region box block 0 2 0 2 0 2");
+        command("create_box 1 box");
+        command("create_atoms 1 box");
+        command("velocity all create 1.0 12345 loop geom");
+        command("comm_modify vel yes");
+        command("fix f1 all property/atom i_f1");
+        command("pair_style granular");
+        command("pair_coeff * * hooke 1000.0 50.0 tangential linear_history 500.0 1.0 0.4 "
+                "damping mass_velocity");
+        command("fix f2 all property/atom d_f2");
+        command("run 0 post no");
+    });
+    auto *atom   = lmp->atom;
+    auto *modify = lmp->modify;
+    ASSERT_EQ(lammps_id_count(lmp, "fix"), 3);
+    Fix *f1 = modify->get_fix_by_index(0);
+    Fix *fh = modify->get_fix_by_index(1);
+    Fix *f2 = modify->get_fix_by_index(2);
+    EXPECT_EQ(std::string(f1->id), "f1");
+    EXPECT_EQ(std::string(fh->style), "NEIGH_HISTORY");
+    EXPECT_EQ(std::string(f2->id), "f2");
+    EXPECT_EQ(atom->extra_grow, (std::vector<Fix *>{f1, fh, f2}));
+    EXPECT_EQ(atom->extra_restart, (std::vector<Fix *>{f1, fh, f2}));
+
+    // the history fix is deleted with the pair style
+
+    HIDE_OUTPUT([&] {
+        command("pair_style lj/cut 2.5");
+        command("pair_coeff * * 1.0 1.0 2.5");
+        command("run 0 post no");
+    });
+    EXPECT_EQ(atom->extra_grow, (std::vector<Fix *>{f1, f2}));
+    EXPECT_EQ(atom->extra_restart, (std::vector<Fix *>{f1, f2}));
+}
+
+TEST_F(ModifyTest, FailedFixConstructorRemovesCallbacks)
+{
+#if defined(LAMMPS_SKIP_DEATH_TESTS)
+    GTEST_SKIP() << "the failing command is not executed without death tests";
+#endif
+    if (!Info::has_package("RIGID")) GTEST_SKIP();
+
+    auto *atom   = lmp->atom;
+    auto *modify = lmp->modify;
+    HIDE_OUTPUT([&] {
+        command("fix a all property/atom i_a");
+    });
+    Fix *fa = modify->get_fix_by_id("a");
+    ASSERT_EQ(atom->extra_grow, (std::vector<Fix *>{fa}));
+
+    // fix rigid registers its callbacks before it parses the body style, so
+    // its constructor fails after the registration. the destructor of the
+    // Fix base class must remove the callbacks of the half-built fix again.
+
+    TEST_FAILURE(".*Unknown fix rigid mode.*", command("fix r all rigid bogus"););
+    EXPECT_EQ(modify->get_fix_by_id("r"), nullptr);
+    EXPECT_EQ(atom->extra_grow, (std::vector<Fix *>{fa}));
+    EXPECT_EQ(atom->extra_restart, (std::vector<Fix *>{fa}));
+
+    // growing the per-atom arrays must not reach the deleted fix
+
+    const int nmax = atom->nmax;
+    atom->avec->grow(0);
+    EXPECT_GT(atom->nmax, nmax);
+    HIDE_OUTPUT([&] {
+        command("run 0 post no");
+    });
 }
 
 TEST_F(ModifyTest, DynamicMaskChange)

@@ -23,7 +23,6 @@
 #include "kokkos.h"
 #include "math_const.h"
 #include "memory_kokkos.h"
-#include "modify.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -78,9 +77,7 @@ void AtomVecSphereKokkos::grow(int n)
   memoryKK->grow_kokkos(atomKK->k_omega,atomKK->omega,nmax,"atom:omega");
   memoryKK->grow_kokkos(atomKK->k_torque,atomKK->torque,nmax,"atom:torque");
 
-  if (atom->nextra_grow)
-    for (int iextra = 0; iextra < atom->nextra_grow; iextra++)
-      modify->get_fix_by_index(atom->extra_grow[iextra])->grow_arrays(nmax);
+  for (auto *ifix : atom->extra_grow) ifix->grow_arrays(nmax);
 
   grow_pointers();
   atomKK->sync(Host,ALL_MASK);

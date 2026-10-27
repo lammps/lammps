@@ -158,7 +158,7 @@ FixQEqReaxFF::FixQEqReaxFF(LAMMPS *lmp, int narg, char **arg) :
   H.n = H.m = 0;
   H.firstnbr = H.numnbrs = H.jlist = nullptr;
   H.val = nullptr;
-  atom->add_callback(Atom::GROW);
+  atom->add_callback(this, Atom::GROW);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -171,7 +171,7 @@ FixQEqReaxFF::~FixQEqReaxFF()
 
   // unregister callbacks to this fix from Atom class
 
-  atom->delete_callback(id,Atom::GROW);
+  atom->delete_callback(this, Atom::GROW);
 
   memory->destroy(s_hist);
   memory->destroy(t_hist);

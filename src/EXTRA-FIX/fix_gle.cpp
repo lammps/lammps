@@ -267,8 +267,8 @@ FixGLE::FixGLE(LAMMPS *lmp, int narg, char **arg) :
   init_gles();
 
   // add callbacks to enable restarts
-  atom->add_callback(Atom::GROW);
-  atom->add_callback(Atom::RESTART);
+  atom->add_callback(this, Atom::GROW);
+  atom->add_callback(this, Atom::RESTART);
 
   energy = 0.0;
 }

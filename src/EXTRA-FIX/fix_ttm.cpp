@@ -152,8 +152,8 @@ FixTTM::FixTTM(LAMMPS *lmp, int narg, char **arg) :
 
     // set 2 callbacks
 
-    atom->add_callback(Atom::GROW);
-    atom->add_callback(Atom::RESTART);
+    atom->add_callback(this, Atom::GROW);
+    atom->add_callback(this, Atom::RESTART);
   }
 
   // determines which class deallocate_grid() is called from

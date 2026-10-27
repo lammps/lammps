@@ -771,7 +771,10 @@ looping over it), ``Modify::get_fix_by_id()`` and
 fix is invoked, and delete fixes and computes by ID or by pointer.
 Code that needs a position in the list, e.g. to check the order of
 fixes, can loop over the list with an index, but must not store that
-index, since it changes when fixes are deleted.
+index, since it changes when fixes are deleted.  The remaining public
+data members of the Modify class are now protected, too: use
+``Modify::has_restart_pbc()`` instead of ``restart_pbc_any`` and
+``Modify::get_nfix_restart_peratom()`` instead of ``nfix_restart_peratom``.
 
 Old:
 
@@ -801,5 +804,49 @@ New:
    [...]
 
    modify->delete_fix(myfix);
+
+This change is **required** or else the code will not compile.
+
+Register callbacks for per-atom arrays with a pointer to the fix
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. versionchanged:: TBD
+
+A fix that manages per-atom arrays registers callbacks with the Atom
+class, so that its arrays are grown, copied, communicated, and stored
+in restart files together with the arrays of the atom style.  The Atom
+class used to record the position of the fix in the list of fixes,
+which it had to guess when the fix constructor registered the callback
+and to update whenever a fix was deleted.  The callback lists are now
+lists of pointers to the fixes.  Thus ``Atom::add_callback()`` and
+``Atom::delete_callback()`` take a pointer to the fix as their first
+argument (``this`` when called from the constructor and destructor of
+the fix) instead of no argument or the fix ID, respectively.  The
+counters ``nextra_grow``, ``nextra_restart``, and ``nextra_border``
+and their ``_max`` variants have been removed, and the lists
+``extra_grow``, ``extra_restart``, and ``extra_border`` are now
+``std::vector`` containers with the fixes in the order of the list of
+fixes of the Modify class.  A fix whose callbacks are still registered
+when it is deleted (e.g. because its constructor failed) is removed
+from the lists by the destructor of the Fix base class.
+
+Old:
+
+.. code-block:: c++
+
+   atom->add_callback(Atom::GROW);
+   atom->delete_callback(id, Atom::GROW);
+
+   for (int iextra = 0; iextra < atom->nextra_grow; iextra++)
+     modify->fix[atom->extra_grow[iextra]]->grow_arrays(nmax);
+
+New:
+
+.. code-block:: c++
+
+   atom->add_callback(this, Atom::GROW);
+   atom->delete_callback(this, Atom::GROW);
+
+   for (auto *ifix : atom->extra_grow) ifix->grow_arrays(nmax);
 
 This change is **required** or else the code will not compile.

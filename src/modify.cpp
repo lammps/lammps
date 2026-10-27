@@ -81,14 +81,9 @@ Modify::Modify(LAMMPS *lmp) : Pointers(lmp)
 Modify::~Modify()
 {
   // delete all fixes
-  // do it via delete_fix() so callbacks in Atom are also updated correctly
+  // do it via delete_fix() for clean deletion of fixes that have created other fixes
 
-  while (!fixes.empty()) {
-    if (fixes[0])
-      delete_fix(fixes[0]);
-    else
-      erase_fix_slot(0);
-  }
+  while (!fixes.empty()) delete_fix(fixes[0]);
 
   // delete all computes
   // do it via delete_compute() for clean deletion of computes that have created other computes
@@ -797,20 +792,17 @@ Fix *Modify::add_fix(int narg, char **arg, int trysuffix)
   if (igroup == -1) error->all(FLERR, 1, "Could not find fix group ID {}", arg[1]);
 
   // if fix ID exists:
-  //   create the new fix in the same slot of the list, so its position
-  //     relative to the other fixes (= order of invocation) is kept
   //   error if new style does not match old style
   //   warn if new group != old group
-  //   delete old fix, but do not call atom->update_callback(),
-  //     since the new fix takes the same slot and no other fix moves
-  //   leave a null pointer in the slot while the new fix is constructed,
-  //     e.g. Atom::add_callback() called by the new fix scans the list for it
+  //   delete old fix and remove it from the list, then insert the new fix
+  //     at the same position, so its position relative to the other fixes
+  //     (= order of invocation) is kept
   // if fix ID does not exist:
   //   append the new fix to the list after it has been constructed
 
   std::size_t ifix = 0;
   for (; ifix < fixes.size(); ifix++)
-    if (fixes[ifix] && (strcmp(arg[0], fixes[ifix]->id) == 0)) break;
+    if (strcmp(arg[0], fixes[ifix]->id) == 0) break;
   const bool replace = (ifix < fixes.size());
 
   if (replace) {
@@ -831,23 +823,9 @@ Fix *Modify::add_fix(int narg, char **arg, int trysuffix)
 
     if (oldfix->igroup != igroup && comm->me == 0)
       error->warning(FLERR, "Replacing a fix, but new group != old group");
-    delete oldfix;
-    fixes[ifix] = nullptr;
-    fixmask[ifix] = callmask[ifix] = 0;
+    delete_fix(oldfix);
+    if (ifix > fixes.size()) ifix = fixes.size();
   }
-
-  // if the constructor of the replacement fix fails with an exception
-  // (library interface), remove the empty slot so that the list stays valid
-
-  struct SlotGuard {
-    Modify *modify;
-    std::size_t index;
-    bool armed;
-    ~SlotGuard()
-    {
-      if (armed) modify->erase_fix_slot(index);
-    }
-  } guard{this, ifix, replace};
 
   // create the Fix
   // try first with suffix appended
@@ -904,16 +882,20 @@ Fix *Modify::add_fix(int narg, char **arg, int trysuffix)
   if (strcmp(newfix->style, "GROUP") == 0) mask |= POST_FORCE_GROUP;
 
   if (replace) {
-    fixes[ifix] = newfix;
-    fixmask[ifix] = mask;
-    callmask[ifix] = 0;
+    fixes.insert(fixes.begin() + ifix, newfix);
+    fixmask.insert(fixmask.begin() + ifix, mask);
+    callmask.insert(callmask.begin() + ifix, 0);
   } else {
     fixes.push_back(newfix);
     fixmask.push_back(mask);
     callmask.push_back(0);
   }
-  guard.armed = false;
   nchanges++;
+
+  // now that the fix has its position in the list, order the lists of
+  //   callbacks for per-atom arrays that the fix constructor has registered
+
+  atom->sort_callbacks();
 
   if (newfix->kokkosable && (!lmp->kokkos || !lmp->kokkos->kokkos_exists))
     error->all(FLERR, Error::NOLASTLINE, "Cannot use KOKKOS styles without enabling KOKKOS");
@@ -1065,18 +1047,12 @@ void Modify::delete_fix(Fix *ifix)
   while ((index < fixes.size()) && (fixes[index] != ifix)) index++;
   if (index == fixes.size()) return;
 
-  // delete instance while it is still in the list: its destructor looks up
-  //   its own position to remove its callbacks in Atom and may delete other
-  //   fixes, so the list position is looked up again by pointer value afterwards
+  // remove the fix from the list before deleting it, so that it cannot be
+  //   found anymore by code that its destructor executes (e.g. deleting
+  //   other fixes, or syncing per-atom data in the KOKKOS package)
 
-  delete ifix;
-
-  if ((index >= fixes.size()) || (fixes[index] != ifix)) {
-    index = 0;
-    while ((index < fixes.size()) && (fixes[index] != ifix)) index++;
-    if (index == fixes.size()) return;
-  }
   erase_fix_slot(index);
+  delete ifix;
 }
 
 /* ----------------------------------------------------------------------
@@ -1088,7 +1064,6 @@ void Modify::erase_fix_slot(std::size_t index)
   fixes.erase(fixes.begin() + index);
   fixmask.erase(fixmask.begin() + index);
   callmask.erase(callmask.begin() + index);
-  atom->update_callback((int) index);
   nchanges++;
 }
 
@@ -1101,7 +1076,7 @@ Fix *Modify::get_fix_by_id(const std::string &id) const
 {
   if (id.empty()) return nullptr;
   for (const auto &ifix : fixes)
-    if (ifix && (id == ifix->id)) return ifix;
+    if (id == ifix->id) return ifix;
   return nullptr;
 }
 
@@ -1115,9 +1090,8 @@ std::vector<Fix *> Modify::get_fix_by_style(const std::string &style) const
   std::vector<Fix *> matches;
   if (style.empty()) return matches;
 
-  for (const auto &ifix : fixes) {
-    if (ifix && utils::strmatch(ifix->style, style)) matches.push_back(ifix);
-  }
+  for (const auto &ifix : fixes)
+    if (utils::strmatch(ifix->style, style)) matches.push_back(ifix);
   return matches;
 }
 

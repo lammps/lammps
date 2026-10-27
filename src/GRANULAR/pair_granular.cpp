@@ -56,6 +56,7 @@ PairGranular::PairGranular(LAMMPS *lmp) : Pair(lmp)
   svector = new double[single_extra];
 
   neighprev = 0;
+  history_single = nullptr;
   freeze_group_bit = 0;
   nmax = 0;
   mass_rigid = nullptr;
@@ -102,6 +103,7 @@ id_dummy = utils::strdup(std::string("NEIGH_HISTORY_GRANULAR_DUMMY") + std::to_s
 PairGranular::~PairGranular()
 {
   delete[] svector;
+  delete[] history_single;
 
   if (!fix_history) modify->delete_fix(id_dummy);
   else modify->delete_fix(id_history);
@@ -486,6 +488,10 @@ void PairGranular::init_style()
     size_history = MAX(size_history, 1);
   }
 
+  delete[] history_single;
+  history_single = nullptr;
+  if (use_history) history_single = new double[size_history];
+
   for (int n = 0; n < nmodels; n++) {
     model = models_list[n];
     int next_index = 0;
@@ -781,6 +787,12 @@ double PairGranular::single(int i, int j, int itype, int jtype,
     }
     history = &allhistory[size_history * neighprev];
     model->touch = fix_history->firstflag[i][neighprev];
+
+    // some sub-models rescale the history when the force reaches its limit,
+    // so work on a copy to leave the stored history of the contact unchanged
+
+    for (int k = 0; k < size_history; k++) history_single[k] = history[k];
+    history = history_single;
   }
 
   int touchflag = model->check_contact();

@@ -17,6 +17,8 @@
 #include "lammps.h"
 #include "platform.h"
 
+#include "../../src/EXTRA-FIX/symmetry_group.h"
+
 #include "../testing/core.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
@@ -26,6 +28,7 @@
 #include <cstdio>
 #include <fstream>
 #include <map>
+#include <stdexcept>
 #include <string>
 #include <vector>
 
@@ -172,344 +175,90 @@ protected:
     }
 };
 
+// operators of frequently used groups in coordinate triplet notation
+static const char *JSON_PINV = R"({ "group_name": "P-1", "ops": [ "x,y,z", "-x,-y,-z" ] })";
+static const char *JSON_PM = R"({ "group_name": "Pm", "ops": [ "x,y,z", "x,-y,z" ] })";
+
 // --------------------------------------------------------------------------
-//   P1 (identity-only, no orbits) must not move atoms or change energy
+//   Operator parser: coordinate triplet notation to matrix and translation
+// --------------------------------------------------------------------------
+TEST(SymmetryOperatorParser, CoordinateTriplets)
+{
+    struct Case {
+        const char *str;
+        double R[3][3];
+        double t[3];
+    };
+    const Case cases[] = {
+        {"x,y,z", {{1, 0, 0}, {0, 1, 0}, {0, 0, 1}}, {0, 0, 0}},
+        {"-x,-y,-z", {{-1, 0, 0}, {0, -1, 0}, {0, 0, -1}}, {0, 0, 0}},
+        {"-x+1/2, y, -z", {{-1, 0, 0}, {0, 1, 0}, {0, 0, -1}}, {0.5, 0, 0}},
+        {"y,-x,z+1/4", {{0, 1, 0}, {-1, 0, 0}, {0, 0, 1}}, {0, 0, 0.25}},
+        {"-y,x-y,z+1/3", {{0, -1, 0}, {1, -1, 0}, {0, 0, 1}}, {0, 0, 1.0 / 3.0}},
+        {"1/2+X,1/2-Y,Z", {{1, 0, 0}, {0, -1, 0}, {0, 0, 1}}, {0.5, 0.5, 0}},
+        {"x-y,x,z-0.5", {{1, -1, 0}, {1, 0, 0}, {0, 0, 1}}, {0, 0, -0.5}},
+        {"2*x-y,y,z", {{2, -1, 0}, {0, 1, 0}, {0, 0, 1}}, {0, 0, 0}},
+    };
+    for (const auto &c : cases) {
+        auto op = LAMMPS_NS::SymmetryGroup::parse_xyz(c.str);
+        for (int i = 0; i < 3; ++i) {
+            for (int j = 0; j < 3; ++j)
+                EXPECT_DOUBLE_EQ(op.R[i][j], c.R[i][j]) << c.str << " R[" << i << "][" << j << "]";
+            EXPECT_DOUBLE_EQ(op.t[i], c.t[i]) << c.str << " t[" << i << "]";
+        }
+    }
+
+    const char *bad[] = {"x,y", "x,y,z,x", "x,,z", "x,y,a", "x,y,z+", "x,y,1/0", "x,y,1/2z",
+                         "xy,y,z", "x,y,z*", "x,--y,z", "x,y,1/2/3"};
+    for (const auto *str : bad)
+        EXPECT_THROW(LAMMPS_NS::SymmetryGroup::parse_xyz(str), std::invalid_argument) << str;
+}
+
+// --------------------------------------------------------------------------
+//   P1 (identity only) does not constrain anything
 // --------------------------------------------------------------------------
 TEST_F(FixSymmetryTest, P1IsNoOp)
 {
-    std::string p1 = write_symfile("p1.json", R"({
-        "group_name": "P1",
-        "lattice":    "triclinic",
-        "ops":   [ { "R": [[1,0,0],[0,1,0],[0,0,1]], "t": [0,0,0] } ],
-        "orbits": []
-    })");
+    std::string p1 = write_symfile("p1.json", R"({ "group_name": "P1", "ops": [ "x,y,z" ] })");
 
-    HIDE_OUTPUT([&] {
-        command("atom_modify map array");
-        command("lattice fcc 0.5");
-        command("region box block 0 4 0 4 0 4");
-        command("create_box 1 box");
-        command("create_atoms 1 box");
-        command("mass 1 1.0");
-        command("pair_style lj/cut 2.5");
-        command("pair_coeff * * 1.0 1.0");
-        command("velocity all create 1.0 12345 mom yes rot yes");
-        command("fix 1 all nve");
+    setup_pinv_system(8.0);
+    auto output = CAPTURE_OUTPUT([&] {
         command(fmt::format("fix sym all symmetry {}", p1));
-        command("run 20");
+        command("run 0 post no");
     });
+    EXPECT_THAT(output, ContainsRegex("0 atoms in 0 orbits"));
+    const auto start = take_snapshot();
+    HIDE_OUTPUT([&] { command("run 20 post no"); });
+    const auto with_fix = take_snapshot();
 
-    // System ran; total atom count preserved is the loosest sanity check.
-    EXPECT_GT(lmp->atom->natoms, 0);
+    restore_snapshot(start);
+    HIDE_OUTPUT([&] {
+        command("unfix sym");
+        command("run 20 post no");
+    });
+    EXPECT_EQ(max_position_difference(with_fix, take_snapshot()), 0.0);
 
     LAMMPS_NS::platform::unlink(p1);
 }
 
 // --------------------------------------------------------------------------
-//   P-1 inversion: atom_asym + atom_image must equal (L, L, L) exactly
-//   throughout the run (modulo the periodic-image wrap captured by my
-//   end_of_step's round() trick).
+//   P-1 inversion: the sum of the positions of each atom and its image
+//   is a lattice vector throughout the run
 // --------------------------------------------------------------------------
 TEST_F(FixSymmetryTest, PinvPreservesSymmetryUnderNVE)
 {
-    const double L = 8.0;
-    std::string sym = write_symfile("pinv.json", R"({
-        "group_name": "P-1",
-        "lattice":    "triclinic",
-        "ops": [
-            { "R": [[ 1, 0, 0],[ 0, 1, 0],[ 0, 0, 1]], "t": [0,0,0] },
-            { "R": [[-1, 0, 0],[ 0,-1, 0],[ 0, 0,-1]], "t": [0,0,0] }
-        ],
-        "orbits": [
-            { "tags": [1, 5] }, { "tags": [2, 6] },
-            { "tags": [3, 7] }, { "tags": [4, 8] }
-        ]
-    })");
-
-    setup_pinv_system(L);
-    HIDE_OUTPUT([&] {
-        command(fmt::format("fix sym all symmetry {}", sym));
-        command("run 50");
-    });
-
-    // Each (asym, image) pair must sum to (L, L, L) modulo L (because the
-    // image may have wrapped through a periodic boundary). The "mod L" is
-    // captured by checking the residual mod 1 of (x_a + x_i) / L.
-    for (tagint a = 1; a <= 4; ++a) {
-        const tagint b = a + 4;
-        double xa[3], xb[3];
-        get_pos(a, xa);
-        get_pos(b, xb);
-        for (int k = 0; k < 3; ++k) {
-            double sum_over_L = (xa[k] + xb[k]) / L;
-            double residual = sum_over_L - std::round(sum_over_L);
-            EXPECT_NEAR(residual, 0.0, 1.0e-12)
-                << "orbit " << a << " component " << k
-                << ": x_asym = " << xa[k] << ", x_image = " << xb[k]
-                << ", sum/L = " << sum_over_L;
-        }
-    }
-
-    LAMMPS_NS::platform::unlink(sym);
-}
-
-// --------------------------------------------------------------------------
-//   Metric check: a four-fold axis along z requires a box with equal edge
-//   lengths along x and y.
-// --------------------------------------------------------------------------
-TEST_F(FixSymmetryTest, MetricMismatchTriggersError)
-{
-    std::string sym = write_symfile("p4.json", R"({
-        "group_name": "P4",
-        "ops": [ { "R": [[1,0,0],[0,1,0],[0,0,1]], "t": [0,0,0] },
-                 { "R": [[0,-1,0],[1,0,0],[0,0,1]], "t": [0,0,0] },
-                 { "R": [[-1,0,0],[0,-1,0],[0,0,1]], "t": [0,0,0] },
-                 { "R": [[0,1,0],[-1,0,0],[0,0,1]], "t": [0,0,0] } ],
-        "orbits": [ ]
-    })");
-
-    HIDE_OUTPUT([&] {
-        command("units lj");
-        command("atom_style atomic");
-        command("boundary p p p");
-        command("region box block 0 6 0 8 0 6");
-        command("create_box 1 box");
-        command("create_atoms 1 single 1 1 1");
-        command("mass 1 1.0");
-        command("pair_style lj/cut 2.5");
-        command("pair_coeff * * 1.0 1.0");
-    });
-
-    TEST_FAILURE("symmetry operator 2 is not compatible with the simulation box: a = 6, b = 8",
-                 command(fmt::format("fix sym all symmetry {}", sym));
-                 command("run 0 post no"););
-
-    // same operators in a square box are accepted
-    HIDE_OUTPUT([&] {
-        command("change_box all y final 0 6");
-        command(fmt::format("fix sym all symmetry {}", sym));
-        command("run 0 post no");
-    });
-
-    LAMMPS_NS::platform::unlink(sym);
-}
-
-// --------------------------------------------------------------------------
-//   Orbit consistency check (pass 3 in build_orbit_map): if the user's
-//   atoms don't sit at R*s_asym + t, init must fail with a helpful message.
-// --------------------------------------------------------------------------
-TEST_F(FixSymmetryTest, MisplacedImageTriggersError)
-{
-    // The orbits below claim tag 1 and tag 2 are inversion partners, but
-    // tag 2 is not actually placed at -tag1.
-    std::string sym = write_symfile("pinv_bad.json", R"({
-        "group_name": "P-1",
-        "lattice":    "triclinic",
-        "ops": [
-            { "R": [[ 1, 0, 0],[ 0, 1, 0],[ 0, 0, 1]], "t": [0,0,0] },
-            { "R": [[-1, 0, 0],[ 0,-1, 0],[ 0, 0,-1]], "t": [0,0,0] }
-        ],
-        "orbits": [
-            { "tags": [1, 2] }, { "tags": [3, 4] },
-            { "tags": [5, 6] }, { "tags": [7, 8] }
-        ]
-    })");
+    std::string sym = write_symfile("pinv.json", JSON_PINV);
 
     setup_pinv_system(8.0);
-
-    TEST_FAILURE("atom ID 2 is not at the image of atom ID 1 under symmetry operator 2",
-                 command(fmt::format("fix sym all symmetry {}", sym));
-                 command("run 0"););
-
-    LAMMPS_NS::platform::unlink(sym);
-}
-
-// --------------------------------------------------------------------------
-//   Existence check (pass 2): a tag listed in the symfile that doesn't
-//   exist in the system must produce a clean error.
-// --------------------------------------------------------------------------
-TEST_F(FixSymmetryTest, MissingTagTriggersError)
-{
-    std::string sym = write_symfile("missing.json", R"({
-        "group_name": "P-1",
-        "lattice":    "triclinic",
-        "ops": [
-            { "R": [[ 1, 0, 0],[ 0, 1, 0],[ 0, 0, 1]], "t": [0,0,0] },
-            { "R": [[-1, 0, 0],[ 0,-1, 0],[ 0, 0,-1]], "t": [0,0,0] }
-        ],
-        "orbits": [
-            { "tags": [1, 999] }
-        ]
-    })");
-
-    setup_pinv_system(8.0);
-
-    TEST_FAILURE("atom ID 999 of symmetry orbit 1 does not exist",
-                 command(fmt::format("fix sym all symmetry {}", sym));
-                 command("run 0"););
-
-    LAMMPS_NS::platform::unlink(sym);
-}
-
-// --------------------------------------------------------------------------
-//   Wyckoff special-position projection: an atom on a mirror plane must
-//   stay on the mirror plane throughout the run, to ~FP precision.
-// --------------------------------------------------------------------------
-TEST_F(FixSymmetryTest, WyckoffSiteOnMirrorIsPreserved)
-{
-    const double L = 8.0;
-    // Pm group: ops 1=(x,y,z) identity, 2=(x,-y,z) mirror about y=0.
-    // Orbit 1 is a general pair (tags 1,2 related by mirror).
-    // Orbit 2 is a single atom (tag 3) sitting on the mirror at y=L/2,
-    // declared via "site_symmetry": [2] (op 2 fixes the asym).
-    std::string sym = write_symfile("pm_wyckoff.json", R"({
-        "group_name": "Pm",
-        "lattice":    "triclinic",
-        "ops": [
-            { "R": [[1, 0, 0], [0,  1, 0], [0, 0, 1]], "t": [0, 0, 0] },
-            { "R": [[1, 0, 0], [0, -1, 0], [0, 0, 1]], "t": [0, 0, 0] }
-        ],
-        "orbits": [
-            { "tags": [1, 2] },
-            { "tags": [3, 3], "site_symmetry": [2] }
-        ]
-    })");
-
-    HIDE_OUTPUT([&] {
-        command("units lj");
-        command("atom_style atomic");
-        command("boundary p p p");
-        command("atom_modify map array");
-        command(fmt::format("region box block 0 {} 0 {} 0 {}", L, L, L));
-        command("create_box 1 box");
-        // Tag 1: general position. Tag 2 = mirror of tag 1 in y.
-        command("create_atoms 1 single 1.2 2.5 3.0");
-        command(fmt::format("create_atoms 1 single 1.2 {} 3.0", L - 2.5));
-        // Tag 3: Wyckoff on mirror at y = L/2.
-        command(fmt::format("create_atoms 1 single 1.5 {} 2.0", 0.5 * L));
-        command("mass 1 1.0");
-        command("pair_style lj/cut 2.5");
-        command("pair_coeff * * 1.0 1.0");
-        command("velocity all create 0.7 12345 mom yes rot yes");
-        command("fix 1 all nve");
+    auto output = CAPTURE_OUTPUT([&] {
         command(fmt::format("fix sym all symmetry {}", sym));
-        command("run 50");
+        command("run 50 post no");
     });
+    EXPECT_THAT(output, ContainsRegex("Fix symmetry sym: group P-1 with 2 operators, 8 atoms in 4 "
+                                      "orbits .0 on special positions. with 12 independent"));
 
-    // Tag 3 must still be on the y=L/2 mirror.
-    double x3[3];
-    get_pos(3, x3);
-    EXPECT_NEAR(x3[1], 0.5 * L, 1.0e-12)
-        << "Wyckoff atom drifted off the y=L/2 mirror plane";
-
-    // Tags 1 and 2 must still be y-mirror images: y1 + y2 == L.
-    double x1[3], x2[3];
-    get_pos(1, x1);
-    get_pos(2, x2);
-    EXPECT_NEAR(x1[1] + x2[1], L, 1.0e-12);
-    EXPECT_NEAR(x1[0], x2[0], 1.0e-12);    // mirror leaves x unchanged
-    EXPECT_NEAR(x1[2], x2[2], 1.0e-12);    // mirror leaves z unchanged
-
-    LAMMPS_NS::platform::unlink(sym);
-}
-
-// --------------------------------------------------------------------------
-//   Wyckoff structural check: atom declared on a Wyckoff site but placed
-//   off the constraint manifold must produce a clean init error.
-// --------------------------------------------------------------------------
-TEST_F(FixSymmetryTest, WyckoffOffSiteTriggersError)
-{
-    const double L = 8.0;
-    std::string sym = write_symfile("pm_wyckoff_bad.json", R"({
-        "group_name": "Pm",
-        "lattice":    "triclinic",
-        "ops": [
-            { "R": [[1, 0, 0], [0,  1, 0], [0, 0, 1]], "t": [0, 0, 0] },
-            { "R": [[1, 0, 0], [0, -1, 0], [0, 0, 1]], "t": [0, 0, 0] }
-        ],
-        "orbits": [
-            { "tags": [1, 1], "site_symmetry": [2] }
-        ]
-    })");
-
-    HIDE_OUTPUT([&] {
-        command("units lj");
-        command("atom_style atomic");
-        command("boundary p p p");
-        command("atom_modify map array");
-        command(fmt::format("region box block 0 {} 0 {} 0 {}", L, L, L));
-        command("create_box 1 box");
-        // Atom at y != L/2 -- NOT on the mirror.
-        command("create_atoms 1 single 1.5 2.0 2.0");
-        command("mass 1 1.0");
-        command("pair_style lj/cut 2.5");
-        command("pair_coeff * * 1.0 1.0");
-    });
-
-    TEST_FAILURE("atom ID 1 is not on the special position required by symmetry operator 2",
-                 command(fmt::format("fix sym all symmetry {}", sym));
-                 command("run 0"););
-
-    LAMMPS_NS::platform::unlink(sym);
-}
-
-// --------------------------------------------------------------------------
-//   RESPA support: with run_style respa, per-level force symmetrization
-//   keeps the orbit invariants holding to FP precision throughout the run.
-// --------------------------------------------------------------------------
-TEST_F(FixSymmetryTest, RespaPreservesSymmetry)
-{
-    const double L = 8.0;
-    std::string sym = write_symfile("pinv_respa.json", R"({
-        "group_name": "P-1", "lattice": "triclinic",
-        "ops": [
-            { "R": [[ 1, 0, 0],[ 0, 1, 0],[ 0, 0, 1]], "t": [0,0,0] },
-            { "R": [[-1, 0, 0],[ 0,-1, 0],[ 0, 0,-1]], "t": [0,0,0] }
-        ],
-        "orbits": [
-            { "tags": [1, 5] }, { "tags": [2, 6] },
-            { "tags": [3, 7] }, { "tags": [4, 8] }
-        ]
-    })");
-
-    setup_pinv_system(L);
-    HIDE_OUTPUT([&] {
-        // 2-level RESPA: bond on inner, pair on outer (no bonds in this
-        // system but the integrator pattern still exercises per-level
-        // force evaluation and the post_force_respa hook).
-        command("run_style respa 2 2 bond 1 pair 2");
-        command(fmt::format("fix sym all symmetry {}", sym));
-        command("run 25");
-    });
-
-    for (tagint a = 1; a <= 4; ++a) {
-        const tagint b = a + 4;
-        double xa[3], xb[3];
-        get_pos(a, xa);
-        get_pos(b, xb);
-        for (int k = 0; k < 3; ++k) {
-            double s = (xa[k] + xb[k]) / L;
-            double residual = s - std::round(s);
-            EXPECT_NEAR(residual, 0.0, 1.0e-12)
-                << "orbit " << a << " component " << k << " under RESPA";
-        }
-    }
-
-    LAMMPS_NS::platform::unlink(sym);
-}
-
-// --------------------------------------------------------------------------
-//   JSON parser: malformed file => clean error, no segfault.
-// --------------------------------------------------------------------------
-TEST_F(FixSymmetryTest, MalformedJsonTriggersError)
-{
-    std::string sym = write_symfile("broken.json", "{ not valid json");
-
-    setup_pinv_system(8.0);
-
-    TEST_FAILURE("Error parsing symmetry file",
-                 command(fmt::format("fix sym all symmetry {}", sym));
-                 command("run 0"););
+    for (tagint a = 1; a <= 4; ++a)
+        EXPECT_LT(orbit_residual({a, a + 4}, {OP_IDENTITY, OP_INVERSION}), 1.0e-12);
 
     LAMMPS_NS::platform::unlink(sym);
 }
@@ -524,18 +273,7 @@ TEST_F(FixSymmetryTest, MalformedJsonTriggersError)
 // --------------------------------------------------------------------------
 TEST_F(FixSymmetryTest, EquivalentToPlainNVE)
 {
-    std::string sym = write_symfile("pinv_equiv.json", R"({
-        "group_name": "P-1",
-        "lattice":    "triclinic",
-        "ops": [
-            { "R": [[ 1, 0, 0],[ 0, 1, 0],[ 0, 0, 1]], "t": [0,0,0] },
-            { "R": [[-1, 0, 0],[ 0,-1, 0],[ 0, 0,-1]], "t": [0,0,0] }
-        ],
-        "orbits": [
-            { "tags": [1, 5] }, { "tags": [2, 6] },
-            { "tags": [3, 7] }, { "tags": [4, 8] }
-        ]
-    })");
+    std::string sym = write_symfile("pinv_equiv.json", JSON_PINV);
 
     setup_pinv_system(8.0);
     HIDE_OUTPUT([&] {
@@ -570,18 +308,7 @@ TEST_F(FixSymmetryTest, EquivalentToPlainNVE)
 // --------------------------------------------------------------------------
 TEST_F(FixSymmetryTest, SymmetryLostWithoutFix)
 {
-    std::string sym = write_symfile("pinv_decay.json", R"({
-        "group_name": "P-1",
-        "lattice":    "triclinic",
-        "ops": [
-            { "R": [[ 1, 0, 0],[ 0, 1, 0],[ 0, 0, 1]], "t": [0,0,0] },
-            { "R": [[-1, 0, 0],[ 0,-1, 0],[ 0, 0,-1]], "t": [0,0,0] }
-        ],
-        "orbits": [
-            { "tags": [1, 5] }, { "tags": [2, 6] },
-            { "tags": [3, 7] }, { "tags": [4, 8] }
-        ]
-    })");
+    std::string sym = write_symfile("pinv_decay.json", JSON_PINV);
 
     setup_pinv_system(8.0);
     HIDE_OUTPUT([&] {
@@ -610,16 +337,8 @@ TEST_F(FixSymmetryTest, SymmetryLostWithoutFix)
 // --------------------------------------------------------------------------
 TEST_F(FixSymmetryTest, HexagonalThreeFold)
 {
-    std::string sym = write_symfile("p3.json", R"({
-        "group_name": "P3",
-        "lattice":    "hexagonal",
-        "ops": [
-            { "R": [[ 1, 0, 0],[ 0, 1, 0],[ 0, 0, 1]], "t": [0,0,0] },
-            { "R": [[ 0,-1, 0],[ 1,-1, 0],[ 0, 0, 1]], "t": [0,0,0] },
-            { "R": [[-1, 1, 0],[-1, 0, 0],[ 0, 0, 1]], "t": [0,0,0] }
-        ],
-        "orbits": [ { "tags": [1, 2, 3] }, { "tags": [4, 5, 6] } ]
-    })");
+    std::string sym =
+        write_symfile("p3.json", R"({ "group_name": "P3", "ops": [ "x,y,z", "-y,x-y,z", "-x+y,-x,z" ] })");
     const std::vector<TestOp> ops = {OP_IDENTITY,
                                      {{{0, -1, 0}, {1, -1, 0}, {0, 0, 1}}, {0, 0, 0}},
                                      {{{-1, 1, 0}, {-1, 0, 0}, {0, 0, 1}}, {0, 0, 0}}};
@@ -649,9 +368,9 @@ TEST_F(FixSymmetryTest, HexagonalThreeFold)
         command(fmt::format("fix sym all symmetry {}", sym));
         command("run 0 post no");
     });
-    // the input coordinates are rounded to 12 digits
-    EXPECT_LT(orbit_residual({1, 2, 3}, ops), 1.0e-11);
-    EXPECT_LT(orbit_residual({4, 5, 6}, ops), 1.0e-11);
+    // the input coordinates are rounded to 12 digits, the fix corrects that
+    EXPECT_LT(orbit_residual({1, 2, 3}, ops), 1.0e-14);
+    EXPECT_LT(orbit_residual({4, 5, 6}, ops), 1.0e-14);
     const double etot_start = get_variable_value("etot");
 
     HIDE_OUTPUT([&] { command("run 2000 post no"); });
@@ -667,15 +386,8 @@ TEST_F(FixSymmetryTest, HexagonalThreeFold)
 // --------------------------------------------------------------------------
 TEST_F(FixSymmetryTest, ScrewAxisNonzeroTranslation)
 {
-    std::string sym = write_symfile("p21.json", R"({
-        "group_name": "P2_1",
-        "lattice":    "orthorhombic",
-        "ops": [
-            { "R": [[ 1, 0, 0],[ 0, 1, 0],[ 0, 0, 1]], "t": [0,0,0] },
-            { "R": [[-1, 0, 0],[ 0,-1, 0],[ 0, 0, 1]], "t": [0,0,"1/2"] }
-        ],
-        "orbits": [ { "tags": [1, 2] }, { "tags": [3, 4] } ]
-    })");
+    std::string sym =
+        write_symfile("p21.json", R"({ "group_name": "P2_1", "ops": [ "x,y,z", "-x,-y,z+1/2" ] })");
     const std::vector<TestOp> ops = {OP_IDENTITY,
                                      {{{-1, 0, 0}, {0, -1, 0}, {0, 0, 1}}, {0, 0, 0.5}}};
 
@@ -711,26 +423,59 @@ TEST_F(FixSymmetryTest, ScrewAxisNonzeroTranslation)
 }
 
 // --------------------------------------------------------------------------
+//   Screw axis in a box of two unit cells along z: the translation by one
+//   unit cell must be part of the group, which the supercell entry adds.
+// --------------------------------------------------------------------------
+TEST_F(FixSymmetryTest, SupercellScrewAxis)
+{
+    std::string bad =
+        write_symfile("p21_bad.json", R"({ "group_name": "P2_1", "ops": [ "x,y,z", "-x,-y,z+1/4" ] })");
+    TEST_FAILURE("the operators do not form a group: the combination of operators 2 and 2 is "
+                 "missing",
+                 command("atom_modify map array");
+                 command("region box block 0 6 0 6 0 12");
+                 command("create_box 1 box");
+                 command(fmt::format("fix sym all symmetry {}", bad)););
+    LAMMPS_NS::platform::unlink(bad);
+
+    std::string sym = write_symfile(
+        "p21_super.json",
+        R"({ "group_name": "P2_1", "ops": [ "x,y,z", "-x,-y,z+1/2" ], "supercell": [1, 1, 2] })");
+    const std::vector<TestOp> ops = {OP_IDENTITY,
+                                     {{{1, 0, 0}, {0, 1, 0}, {0, 0, 1}}, {0, 0, 0.5}},
+                                     {{{-1, 0, 0}, {0, -1, 0}, {0, 0, 1}}, {0, 0, 0.25}},
+                                     {{{-1, 0, 0}, {0, -1, 0}, {0, 0, 1}}, {0, 0, 0.75}}};
+
+    HIDE_OUTPUT([&] {
+        command("create_atoms 1 single 1.0 1.5 1.0");
+        command("create_atoms 1 single 5.0 4.5 4.0");
+        command("create_atoms 1 single 1.0 1.5 7.0");
+        command("create_atoms 1 single 5.0 4.5 10.0");
+        command("mass 1 1.0");
+        command("pair_style lj/cut 2.5");
+        command("pair_coeff * * 1.0 1.0");
+        command("velocity all create 0.5 4711 mom yes");
+        command("fix 1 all nve");
+    });
+    auto output = CAPTURE_OUTPUT([&] {
+        command(fmt::format("fix sym all symmetry {}", sym));
+        command("run 1000 post no");
+    });
+    EXPECT_THAT(output, ContainsRegex("with 4 operators, 4 atoms in 1 orbits"));
+    EXPECT_LT(orbit_residual({1, 3, 2, 4}, ops), 1.0e-12);
+
+    LAMMPS_NS::platform::unlink(sym);
+}
+
+// --------------------------------------------------------------------------
 //   Special position with an orbit of intermediate size: in Pmm2 an atom on
 //   the y = 0 mirror plane has one image (from the two-fold axis and the
 //   x mirror), so the orbit has 2 members for 4 operators.
 // --------------------------------------------------------------------------
 TEST_F(FixSymmetryTest, IntermediateWyckoffOrbit)
 {
-    std::string sym = write_symfile("pmm2.json", R"({
-        "group_name": "Pmm2",
-        "lattice":    "orthorhombic",
-        "ops": [
-            { "R": [[ 1, 0, 0],[ 0, 1, 0],[ 0, 0, 1]], "t": [0,0,0] },
-            { "R": [[-1, 0, 0],[ 0,-1, 0],[ 0, 0, 1]], "t": [0,0,0] },
-            { "R": [[-1, 0, 0],[ 0, 1, 0],[ 0, 0, 1]], "t": [0,0,0] },
-            { "R": [[ 1, 0, 0],[ 0,-1, 0],[ 0, 0, 1]], "t": [0,0,0] }
-        ],
-        "orbits": [
-            { "tags": [3, 4, 5, 6] },
-            { "tags": [1, 2, 2, 1], "site_symmetry": [4] }
-        ]
-    })");
+    std::string sym = write_symfile("pmm2.json",
+        R"({ "group_name": "Pmm2", "ops": [ "x,y,z", "-x,-y,z", "-x,y,z", "x,-y,z" ] })");
 
     HIDE_OUTPUT([&] {
         command("units lj");
@@ -753,13 +498,14 @@ TEST_F(FixSymmetryTest, IntermediateWyckoffOrbit)
         command("pair_modify shift yes");
         command("velocity all create 0.7 12345");
         command("fix 1 all nve");
-    });
-
-    HIDE_OUTPUT([&] {
         command("variable etot equal etotal");
+    });
+    auto output = CAPTURE_OUTPUT([&] {
         command(fmt::format("fix sym all symmetry {}", sym));
         command("run 0 post no");
     });
+    EXPECT_THAT(output, ContainsRegex("6 atoms in 2 orbits .1 on special positions. with 5 "
+                                      "independent coordinates"));
     const double etot_start = get_variable_value("etot");
     HIDE_OUTPUT([&] { command("run 1000 post no"); });
 
@@ -779,21 +525,157 @@ TEST_F(FixSymmetryTest, IntermediateWyckoffOrbit)
 }
 
 // --------------------------------------------------------------------------
+//   Special position: an atom on a mirror plane must stay on the mirror
+//   plane throughout the run, and an atom that is placed within tol of the
+//   mirror is moved onto it.
+// --------------------------------------------------------------------------
+TEST_F(FixSymmetryTest, WyckoffSiteOnMirrorIsPreserved)
+{
+    const double L = 8.0;
+    std::string sym = write_symfile("pm_wyckoff.json", JSON_PM);
+
+    HIDE_OUTPUT([&] {
+        command("units lj");
+        command("atom_style atomic");
+        command("boundary p p p");
+        command("atom_modify map array");
+        command(fmt::format("region box block 0 {} 0 {} 0 {}", L, L, L));
+        command("create_box 1 box");
+        // atom 2 is the mirror image of atom 1 but off by less than tol
+        command("create_atoms 1 single 1.2 2.5 3.0");
+        command(fmt::format("create_atoms 1 single 1.2 {} 3.0", L - 2.5 + 2.0e-6));
+        // atom 3 is on the mirror plane at y = L/2 but off by less than tol
+        command(fmt::format("create_atoms 1 single 1.5 {} 2.0", 0.5 * L + 2.0e-6));
+        command("mass 1 1.0");
+        command("pair_style lj/cut 2.5");
+        command("pair_coeff * * 1.0 1.0");
+        command("velocity all create 0.7 12345 mom yes rot yes");
+        command("fix 1 all nve");
+        command(fmt::format("fix sym all symmetry {}", sym));
+        command("run 0 post no");
+    });
+
+    double x1[3], x2[3], x3[3];
+    get_pos(1, x1);
+    get_pos(2, x2);
+    get_pos(3, x3);
+    EXPECT_NEAR(x3[1], 0.5 * L, 1.0e-14);
+    EXPECT_NEAR(x1[1] + x2[1], L, 1.0e-14);
+
+    HIDE_OUTPUT([&] { command("run 50 post no"); });
+
+    get_pos(1, x1);
+    get_pos(2, x2);
+    get_pos(3, x3);
+    EXPECT_NEAR(x3[1], 0.5 * L, 1.0e-12) << "atom on the y=L/2 mirror plane moved off it";
+    EXPECT_NEAR(x1[1] + x2[1], L, 1.0e-12);
+    EXPECT_NEAR(x1[0], x2[0], 1.0e-12);
+    EXPECT_NEAR(x1[2], x2[2], 1.0e-12);
+
+    LAMMPS_NS::platform::unlink(sym);
+}
+
+// --------------------------------------------------------------------------
+//   Orbits found from positions in an FCC lattice: with P-1 the 8 atoms
+//   on inversion centers (corners, face and edge centers of the box at
+//   multiples of half the box length) are on special positions
+// --------------------------------------------------------------------------
+TEST_F(FixSymmetryTest, OrbitsOfFccLattice)
+{
+    std::string sym = write_symfile("pinv_fcc.json", JSON_PINV);
+
+    auto output = CAPTURE_OUTPUT([&] {
+        command("units lj");
+        command("lattice fcc 0.8442");
+        command("region box block 0 4 0 4 0 4");
+        command("create_box 1 box");
+        command("create_atoms 1 box");
+        command("mass 1 1.0");
+        command("pair_style lj/cut 2.5");
+        command("pair_coeff * * 1.0 1.0");
+        command(fmt::format("fix sym all symmetry {}", sym));
+        command("run 0 post no");
+    });
+    EXPECT_THAT(output, ContainsRegex("256 atoms in 132 orbits .8 on special positions. with 372 "
+                                      "independent coordinates"));
+
+    LAMMPS_NS::platform::unlink(sym);
+}
+
+// --------------------------------------------------------------------------
+//   Only atoms in the fix group are constrained, but the images of all
+//   group atoms must be in the group
+// --------------------------------------------------------------------------
+TEST_F(FixSymmetryTest, GroupSelectsAtoms)
+{
+    std::string sym = write_symfile("pinv_group.json", JSON_PINV);
+
+    setup_pinv_system(8.0);
+    HIDE_OUTPUT([&] {
+        command("create_atoms 1 single 4.6 2.5 6.0");
+        command("group sym id 1:8");
+        command("velocity all create 0.7 12345 mom yes rot yes");
+    });
+    auto output = CAPTURE_OUTPUT([&] {
+        command(fmt::format("fix sym sym symmetry {}", sym));
+        command("run 200 post no");
+    });
+    EXPECT_THAT(output, ContainsRegex("8 atoms in 4 orbits"));
+    // atom 9 moves freely and breaks the symmetry of the forces, so the
+    // orbit atoms stay symmetric only because of the fix
+    for (tagint a = 1; a <= 4; ++a)
+        EXPECT_LT(orbit_residual({a, a + 4}, {OP_IDENTITY, OP_INVERSION}), 1.0e-12);
+
+    HIDE_OUTPUT([&] {
+        command("unfix sym");
+        command("group part id 1:7");
+        command(fmt::format("fix sym part symmetry {}", sym));
+    });
+    TEST_FAILURE("no atom of group part at the image of atom ID 4 under symmetry operator 2",
+                 command("run 0 post no"););
+
+    LAMMPS_NS::platform::unlink(sym);
+}
+
+// --------------------------------------------------------------------------
+//   Errors for atoms that are not symmetric
+// --------------------------------------------------------------------------
+TEST_F(FixSymmetryTest, AsymmetricAtomsTriggerErrors)
+{
+    std::string sym = write_symfile("pinv_err.json", JSON_PINV);
+
+    setup_pinv_system(8.0);
+    HIDE_OUTPUT([&] { command(fmt::format("fix sym all symmetry {}", sym)); });
+
+    // atom 6 moved by more than tol
+    HIDE_OUTPUT([&] { command("set atom 6 x 5.1"); });
+    TEST_FAILURE("no atom of group all at the image of atom ID 2 under symmetry operator 2",
+                 command("run 0 post no"););
+
+    // missing image
+    HIDE_OUTPUT([&] { command("set atom 6 x 5.0"); command("delete_atoms group all compress no"); });
+    HIDE_OUTPUT([&] {
+        command("create_atoms 1 single 1.2 1.5 1.8");
+        command("create_atoms 1 single 6.8 6.5 6.2");
+        command("create_atoms 1 single 3.0 1.2 0.9");
+    });
+    TEST_FAILURE("no atom of group all at the image of atom ID 3 under symmetry operator 2",
+                 command("run 0 post no"););
+
+    // overlapping atoms
+    HIDE_OUTPUT([&] { command("create_atoms 1 single 5.0 6.8 7.1"); command("create_atoms 1 single 5.0 6.8 7.1"); });
+    TEST_FAILURE("more than one atom at the image of atom ID 3 under symmetry operator 2",
+                 command("run 0 post no"););
+
+    LAMMPS_NS::platform::unlink(sym);
+}
+
+// --------------------------------------------------------------------------
 //   All atoms of an orbit must have the same type.
 // --------------------------------------------------------------------------
 TEST_F(FixSymmetryTest, MixedTypesInOrbitTriggersError)
 {
-    std::string sym = write_symfile("pinv_types.json", R"({
-        "group_name": "P-1",
-        "ops": [
-            { "R": [[ 1, 0, 0],[ 0, 1, 0],[ 0, 0, 1]], "t": [0,0,0] },
-            { "R": [[-1, 0, 0],[ 0,-1, 0],[ 0, 0,-1]], "t": [0,0,0] }
-        ],
-        "orbits": [
-            { "tags": [1, 5] }, { "tags": [2, 6] },
-            { "tags": [3, 7] }, { "tags": [4, 8] }
-        ]
-    })");
+    std::string sym = write_symfile("pinv_types.json", JSON_PINV);
 
     HIDE_OUTPUT([&] {
         command("units lj");
@@ -813,9 +695,116 @@ TEST_F(FixSymmetryTest, MixedTypesInOrbitTriggersError)
         command("pair_coeff * * 1.0 1.0");
     });
 
-    TEST_FAILURE("atoms of symmetry orbit 3 have different atom types 1 and 2",
+    TEST_FAILURE("atom ID 7 at the image of atom ID 3 under symmetry operator 2 has a different "
+                 "atom type: 2 instead of 1",
                  command(fmt::format("fix sym all symmetry {}", sym));
                  command("run 0 post no"););
+
+    LAMMPS_NS::platform::unlink(sym);
+}
+
+// --------------------------------------------------------------------------
+//   Metric check: a four-fold axis along z requires a box with equal edge
+//   lengths along x and y.
+// --------------------------------------------------------------------------
+TEST_F(FixSymmetryTest, MetricMismatchTriggersError)
+{
+    std::string sym = write_symfile(
+        "p4.json", R"({ "group_name": "P4", "ops": [ "x,y,z", "-y,x,z", "-x,-y,z", "y,-x,z" ] })");
+
+    HIDE_OUTPUT([&] {
+        command("units lj");
+        command("atom_style atomic");
+        command("boundary p p p");
+        command("region box block 0 6 0 8 0 6");
+        command("create_box 1 box");
+        command("create_atoms 1 single 0 0 1");
+        command("mass 1 1.0");
+        command("pair_style lj/cut 2.5");
+        command("pair_coeff * * 1.0 1.0");
+    });
+
+    TEST_FAILURE("symmetry operator 2 is not compatible with the simulation box: a = 6, b = 8",
+                 command(fmt::format("fix sym all symmetry {}", sym));
+                 command("run 0 post no"););
+
+    // same operators in a square box are accepted
+    HIDE_OUTPUT([&] {
+        command("change_box all y final 0 6");
+        command(fmt::format("fix sym all symmetry {}", sym));
+        command("run 0 post no");
+    });
+
+    LAMMPS_NS::platform::unlink(sym);
+}
+
+// --------------------------------------------------------------------------
+//   Errors and warnings for the content of the symmetry file
+// --------------------------------------------------------------------------
+TEST_F(FixSymmetryTest, SymmetryFileErrors)
+{
+    HIDE_OUTPUT([&] {
+        command("region box block 0 8 0 8 0 8");
+        command("create_box 1 box");
+    });
+
+    struct Case {
+        const char *json;
+        const char *error;
+    };
+    const Case cases[] = {
+        {"{ not valid json", "Error parsing symmetry file"},
+        {R"({ "group_name": "P1" })", "the \"ops\" entry is missing"},
+        {R"({ "ops": [ ] })", "\"ops\" must be a non-empty list"},
+        {R"({ "ops": [ "-x,-y,-z" ] })", "must include the identity x,y,z"},
+        {R"({ "ops": [ "x,y,z", "-x,-y,-z+1", "-x,-y,-z" ] })", "operators 2 and 3 in the symmetry "
+                                                                 "file are the same"},
+        {R"({ "ops": [ "x,y,z", "-y,x,z" ] })", "the combination of operators 2 and 2 is missing"},
+        {R"({ "ops": [ "x,y,z", "x+y,y,z" ] })", "the combination of operators 2 and 2 is missing"},
+        {R"({ "ops": [ "x,y,z", "2*x,y,z" ] })", "operator 2 is not a symmetry operator: the "
+                                                 "determinant of its matrix is 2"},
+        {R"({ "ops": [ "x,y,z", "-x,-y" ] })", "operator '-x,-y' must have 3 comma separated"},
+        {R"({ "ops": [ "x,y,z", { "R": [[-1,0,0],[0,-1,0],[0,0,-1]] } ] })",
+         "operator 2: must be a string like"},
+        {R"({ "ops": [ "x,y,z", { "R": [[-1,0,0],[0,-1.5,0],[0,0,-1]], "t": [0,0,0] } ] })",
+         "operator 2: matrix elements must be integers, got -1.5"},
+        {R"({ "ops": [ "x,y,z", "-y,x-y,z", "-x+y,-x,z" ], "supercell": [2, 1, 1] })",
+         "operator 2 is not compatible with a supercell of 2 x 1 x 1 unit cells"},
+        {R"({ "ops": [ "x,y,z" ], "supercell": [0, 1, 1] })", "must be a list of 3 positive"},
+    };
+    for (const auto &c : cases) {
+        std::string sym = write_symfile("error.json", c.json);
+        TEST_FAILURE(c.error, command(fmt::format("fix sym all symmetry {}", sym)););
+        LAMMPS_NS::platform::unlink(sym);
+    }
+
+    // the old format with explicit orbits triggers a warning
+    std::string sym = write_symfile("orbits.json", R"({ "ops": [ "x,y,z" ], "orbits": [ ] })");
+    auto output = CAPTURE_OUTPUT([&] { command(fmt::format("fix sym all symmetry {}", sym)); });
+    EXPECT_THAT(output, ContainsRegex("ignoring unknown entry \"orbits\" in symmetry file"));
+    LAMMPS_NS::platform::unlink(sym);
+}
+
+// --------------------------------------------------------------------------
+//   RESPA support: with run_style respa, per-level force symmetrization
+//   keeps the orbit invariants holding to FP precision throughout the run.
+// --------------------------------------------------------------------------
+TEST_F(FixSymmetryTest, RespaPreservesSymmetry)
+{
+    std::string sym = write_symfile("pinv_respa.json", JSON_PINV);
+
+    setup_pinv_system(8.0);
+    HIDE_OUTPUT([&] {
+        // 2-level RESPA: bond on inner, pair on outer (no bonds in this
+        // system but the integrator pattern still exercises per-level
+        // force evaluation and the post_force_respa hook).
+        command("run_style respa 2 2 bond 1 pair 2");
+        command(fmt::format("fix sym all symmetry {}", sym));
+        command("run 25 post no");
+    });
+
+    for (tagint a = 1; a <= 4; ++a)
+        EXPECT_LT(orbit_residual({a, a + 4}, {OP_IDENTITY, OP_INVERSION}), 1.0e-12);
 
     LAMMPS_NS::platform::unlink(sym);
 }
@@ -828,17 +817,7 @@ TEST_F(FixSymmetryTest, MixedTypesInOrbitTriggersError)
 TEST_F(FixSymmetryTest, TemperatureUsesIndependentDof)
 {
     // P-1: 4 general orbits with 3 free coordinates each, no translation
-    std::string sym = write_symfile("pinv_dof.json", R"({
-        "group_name": "P-1",
-        "ops": [
-            { "R": [[ 1, 0, 0],[ 0, 1, 0],[ 0, 0, 1]], "t": [0,0,0] },
-            { "R": [[-1, 0, 0],[ 0,-1, 0],[ 0, 0,-1]], "t": [0,0,0] }
-        ],
-        "orbits": [
-            { "tags": [1, 5] }, { "tags": [2, 6] },
-            { "tags": [3, 7] }, { "tags": [4, 8] }
-        ]
-    })");
+    std::string sym = write_symfile("pinv_dof.json", JSON_PINV);
 
     setup_pinv_system(8.0);
     HIDE_OUTPUT([&] {
@@ -852,14 +831,7 @@ TEST_F(FixSymmetryTest, TemperatureUsesIndependentDof)
 
     // Pm: one general orbit (3), one atom on the mirror (2), minus the two
     // translations parallel to the mirror plane
-    sym = write_symfile("pm_dof.json", R"({
-        "group_name": "Pm",
-        "ops": [
-            { "R": [[1, 0, 0], [0,  1, 0], [0, 0, 1]], "t": [0, 0, 0] },
-            { "R": [[1, 0, 0], [0, -1, 0], [0, 0, 1]], "t": [0, 0, 0] }
-        ],
-        "orbits": [ { "tags": [1, 2] }, { "tags": [3, 3] } ]
-    })");
+    sym = write_symfile("pm_dof.json", JSON_PM);
     HIDE_OUTPUT([&] {
         command("clear");
         command("region box block 0 8 0 8 0 8");
@@ -886,17 +858,7 @@ TEST_F(FixSymmetryTest, TemperatureUsesIndependentDof)
 // --------------------------------------------------------------------------
 TEST_F(FixSymmetryTest, MinimizeKeepsSymmetry)
 {
-    std::string sym = write_symfile("pinv_min.json", R"({
-        "group_name": "P-1",
-        "ops": [
-            { "R": [[ 1, 0, 0],[ 0, 1, 0],[ 0, 0, 1]], "t": [0,0,0] },
-            { "R": [[-1, 0, 0],[ 0,-1, 0],[ 0, 0,-1]], "t": [0,0,0] }
-        ],
-        "orbits": [
-            { "tags": [1, 5] }, { "tags": [2, 6] },
-            { "tags": [3, 7] }, { "tags": [4, 8] }
-        ]
-    })");
+    std::string sym = write_symfile("pinv_min.json", JSON_PINV);
 
     setup_pinv_system(8.0);
     HIDE_OUTPUT([&] {
@@ -920,14 +882,8 @@ TEST_F(FixSymmetryTest, MinimizeKeepsSymmetry)
 // --------------------------------------------------------------------------
 TEST_F(FixSymmetryTest, FourFoldAxisWithBoxChange)
 {
-    std::string sym = write_symfile("p4_box.json", R"({
-        "group_name": "P4",
-        "ops": [ { "R": [[1,0,0],[0,1,0],[0,0,1]], "t": [0,0,0] },
-                 { "R": [[0,-1,0],[1,0,0],[0,0,1]], "t": [0,0,0] },
-                 { "R": [[-1,0,0],[0,-1,0],[0,0,1]], "t": [0,0,0] },
-                 { "R": [[0,1,0],[-1,0,0],[0,0,1]], "t": [0,0,0] } ],
-        "orbits": [ { "tags": [1,2,3,4] }, { "tags": [5,6,7,8] } ]
-    })");
+    std::string sym = write_symfile(
+        "p4_box.json", R"({ "group_name": "P4", "ops": [ "x,y,z", "-y,x,z", "-x,-y,z", "y,-x,z" ] })");
     const std::vector<TestOp> ops = {OP_IDENTITY,
                                      {{{0, -1, 0}, {1, 0, 0}, {0, 0, 1}}, {0, 0, 0}},
                                      {{{-1, 0, 0}, {0, -1, 0}, {0, 0, 1}}, {0, 0, 0}},
@@ -963,10 +919,9 @@ TEST_F(FixSymmetryTest, FourFoldAxisWithBoxChange)
     HIDE_OUTPUT([&] {
         command("unfix relax");
         command("velocity all create 0.3 4711");
-        command("fix sym all symmetry p4_box.json");
         command("run 0 post no");
         command("fix 1 all npt temp 0.3 0.3 0.2 aniso 0.0 0.0 2.0");
-        command("fix sym all symmetry p4_box.json");
+        command(fmt::format("fix sym all symmetry {}", sym));
         command("run 500 post no");
     });
     EXPECT_LT(orbit_residual({1, 2, 3, 4}, ops), 1.0e-12);
@@ -981,12 +936,7 @@ TEST_F(FixSymmetryTest, FourFoldAxisWithBoxChange)
 // --------------------------------------------------------------------------
 TEST_F(FixSymmetryTest, TwoDimensions)
 {
-    std::string sym = write_symfile("p2_2d.json", R"({
-        "group_name": "p2",
-        "ops": [ { "R": [[1,0,0],[0,1,0],[0,0,1]], "t": [0,0,0] },
-                 { "R": [[-1,0,0],[0,-1,0],[0,0,1]], "t": [0,0,0] } ],
-        "orbits": [ { "tags": [1,3] }, { "tags": [2,4] } ]
-    })");
+    std::string sym = write_symfile("p2_2d.json", R"({ "group_name": "p2", "ops": [ "x,y,z", "-x,-y,z" ] })");
     const std::vector<TestOp> ops = {OP_IDENTITY,
                                      {{{-1, 0, 0}, {0, -1, 0}, {0, 0, 1}}, {0, 0, 0}}};
 
@@ -1021,11 +971,7 @@ TEST_F(FixSymmetryTest, TwoDimensions)
     EXPECT_LT(orbit_residual({2, 4}, ops), 1.0e-12);
     LAMMPS_NS::platform::unlink(sym);
 
-    sym = write_symfile("p2_z.json", R"({
-        "ops": [ { "R": [[1,0,0],[0,1,0],[0,0,1]], "t": [0,0,0] },
-                 { "R": [[-1,0,0],[0,-1,0],[0,0,-1]], "t": [0,0,0] } ],
-        "orbits": [ ]
-    })");
+    sym = write_symfile("p2_z.json", JSON_PINV);
     TEST_FAILURE("symmetry operator 2 changes the z coordinate",
                  command(fmt::format("fix sym2 all symmetry {}", sym)););
     LAMMPS_NS::platform::unlink(sym);
@@ -1036,16 +982,7 @@ TEST_F(FixSymmetryTest, TwoDimensions)
 // --------------------------------------------------------------------------
 TEST_F(FixSymmetryTest, WarnAboutFixOrder)
 {
-    std::string sym = write_symfile("pinv_order.json", R"({
-        "ops": [
-            { "R": [[ 1, 0, 0],[ 0, 1, 0],[ 0, 0, 1]], "t": [0,0,0] },
-            { "R": [[-1, 0, 0],[ 0,-1, 0],[ 0, 0,-1]], "t": [0,0,0] }
-        ],
-        "orbits": [
-            { "tags": [1, 5] }, { "tags": [2, 6] },
-            { "tags": [3, 7] }, { "tags": [4, 8] }
-        ]
-    })");
+    std::string sym = write_symfile("pinv_order.json", JSON_PINV);
 
     setup_pinv_system(8.0);
     auto output = CAPTURE_OUTPUT([&] {
@@ -1055,8 +992,6 @@ TEST_F(FixSymmetryTest, WarnAboutFixOrder)
     });
     EXPECT_THAT(output, ContainsRegex("Fix kick .style addforce. may change forces after fix "
                                       "symmetry sym"));
-    EXPECT_THAT(output, ContainsRegex("Fix symmetry sym: group unknown with 2 operators, 8 atoms "
-                                      "in 4 orbits .0 on special positions. with 12 independent"));
 
     output = CAPTURE_OUTPUT([&] {
         command("unfix sym");

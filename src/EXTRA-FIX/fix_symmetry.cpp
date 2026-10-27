@@ -34,6 +34,7 @@
 #include <algorithm>
 #include <climits>
 #include <cmath>
+#include <cstdint>
 #include <cstring>
 
 using namespace LAMMPS_NS;
@@ -206,8 +207,7 @@ void FixSymmetry::init()
   mcart.clear();
   update_cartesian_ops();
 
-  build_orbits();
-  check_orbits();
+  detect_orbits();
 
   memory->destroy(buf_local);
   memory->destroy(buf_global);
@@ -671,59 +671,205 @@ void FixSymmetry::check_metric(const double H[3][3])
 }
 
 /* ----------------------------------------------------------------------
-   Set up the orbit data from the orbit list in the symmetry file.  Each
-   orbit lists one atom ID per operator: the image of the first atom (the
-   representative) under that operator.  An atom on a special position is
-   its own image under the operators of its site symmetry, so its ID and
-   the IDs of its images are repeated.
+   Find the symmetry orbits of the atoms in the fix group.
+
+   All ranks gather the fractional positions, types, and masses of all
+   group atoms and do the same deterministic search, so the result is
+   identical everywhere without further communication.  Atoms are visited
+   in the order of their IDs.  Each atom not yet in an orbit becomes the
+   representative of a new orbit, and the atom at its image under each
+   operator is looked up with a grid of cells with a size of a few tol.
+   The image must be an atom of the fix group of the same type and mass
+   within tol in fractional coordinates.  An atom on a special position is
+   its own image under the operators of its site symmetry, so its orbit has
+   fewer members than the group has operators.
 ------------------------------------------------------------------------- */
 
-void FixSymmetry::build_orbits()
+void FixSymmetry::detect_orbits()
 {
+  const int nlocal = atom->nlocal;
+  const int *mask = atom->mask;
+  const tagint *tag = atom->tag;
+  const int *type = atom->type;
+  double **x = atom->x;
   const int nops = grp->n_ops();
-  n_orbits = grp->n_orbits();
-  orbits.assign(n_orbits, OrbitInfo());
-  n_special = 0;
+
+  orbits.clear();
+  n_orbits = n_special = 0;
   member_of_tag.clear();
   member_orbit.clear();
   member_op.clear();
 
-  for (int o = 0; o < n_orbits; ++o) {
-    const auto &tags = grp->orbit(o).image_tag;
-    auto &orb = orbits[o];
+  // a group with only the identity does not constrain anything
+
+  if (nops == 1) return;
+
+  // gather IDs, fractional positions, types, and masses of all group atoms
+
+  constexpr int NDATA = 5;
+  int nmine = 0;
+  for (int i = 0; i < nlocal; ++i)
+    if (mask[i] & groupbit) ++nmine;
+
+  const bigint nall_big = group->count(igroup);
+  if (nall_big > MAXSMALLINT / NDATA)
+    error->all(FLERR, Error::NOLASTLINE, "Fix symmetry {}: too many atoms in fix group", id);
+  const int nall = static_cast<int>(nall_big);
+
+  std::vector<tagint> mytags, alltags(nall);
+  std::vector<double> mydata, alldata(NDATA * nall);
+  mytags.reserve(nmine);
+  mydata.reserve(NDATA * nmine);
+  for (int i = 0; i < nlocal; ++i) {
+    if (!(mask[i] & groupbit)) continue;
+    double s[3];
+    domain->x2lamda(x[i], s);
+    mytags.push_back(tag[i]);
+    for (double sval : s) mydata.push_back(sval - std::floor(sval));
+    mydata.push_back(type[i]);
+    mydata.push_back(atom->rmass ? atom->rmass[i] : atom->mass[type[i]]);
+  }
+
+  const int nprocs = comm->nprocs;
+  std::vector<int> counts(nprocs), displs(nprocs, 0);
+  MPI_Allgather(&nmine, 1, MPI_INT, counts.data(), 1, MPI_INT, world);
+  for (int p = 1; p < nprocs; ++p) displs[p] = displs[p - 1] + counts[p - 1];
+  MPI_Allgatherv(mytags.data(), nmine, MPI_LMP_TAGINT, alltags.data(), counts.data(),
+                 displs.data(), MPI_LMP_TAGINT, world);
+  for (int p = 0; p < nprocs; ++p) {
+    counts[p] *= NDATA;
+    displs[p] *= NDATA;
+  }
+  MPI_Allgatherv(mydata.data(), NDATA * nmine, MPI_DOUBLE, alldata.data(), counts.data(),
+                 displs.data(), MPI_DOUBLE, world);
+  mytags.clear();
+  mydata.clear();
+
+  // order of atom IDs
+
+  std::vector<int> order(nall);
+  for (int j = 0; j < nall; ++j) order[j] = j;
+  std::sort(order.begin(), order.end(), [&](int a, int b) { return alltags[a] < alltags[b]; });
+
+  // sort atoms into cells of a grid in fractional coordinates.  A cell is
+  // larger than tol, so all atoms within tol of a position are in the same
+  // or a neighboring cell.
+
+  const int ncell = static_cast<int>(std::max(1.0, std::min(1048576.0, std::floor(0.25 / tol))));
+  auto cell_of = [ncell](double sval) {
+    return std::min(static_cast<int>(sval * ncell), ncell - 1);
+  };
+  auto cell_key = [ncell](int a, int b, int c) {
+    return (static_cast<int64_t>(a) * ncell + b) * ncell + c;
+  };
+  std::unordered_map<int64_t, std::vector<int>> cells;
+  for (int j = 0; j < nall; ++j) {
+    const double *sj = &alldata[NDATA * j];
+    cells[cell_key(cell_of(sj[0]), cell_of(sj[1]), cell_of(sj[2]))].push_back(j);
+  }
+
+  // neighbor cell offsets, without duplicates for grids with fewer than 3 cells
+  std::vector<int> offsets = {0};
+  if (ncell > 1) offsets.push_back(1);
+  if (ncell > 2) offsets.push_back(-1);
+
+  // index of the atom within tol of fractional position s, -1 if none, -2 if more than one
+  auto find_atom = [&](const double *s) {
+    int found = -1;
+    const int c[3] = {cell_of(s[0]), cell_of(s[1]), cell_of(s[2])};
+    for (int da : offsets)
+      for (int db : offsets)
+        for (int dc : offsets) {
+          auto it = cells.find(cell_key((c[0] + da + ncell) % ncell, (c[1] + db + ncell) % ncell,
+                                        (c[2] + dc + ncell) % ncell));
+          if (it == cells.end()) continue;
+          for (int j : it->second) {
+            const double *sj = &alldata[NDATA * j];
+            bool close = true;
+            for (int d = 0; d < 3; ++d) {
+              const double delta = sj[d] - s[d];
+              if (std::fabs(delta - std::round(delta)) > tol) close = false;
+            }
+            if (close) found = (found == -1) ? j : -2;
+          }
+        }
+    return found;
+  };
+
+  // build the orbits
+
+  std::vector<int> orbit_of(nall, -1);
+  std::vector<tagint> rep_tag;
+  for (int rep : order) {
+    if (orbit_of[rep] >= 0) continue;
+    const int o = n_orbits++;
+    rep_tag.push_back(alltags[rep]);
+    orbits.emplace_back();
+    auto &orb = orbits.back();
+    const double *srep = &alldata[NDATA * rep];
     const int first = static_cast<int>(member_orbit.size());
     std::vector<int> count;
 
     for (int k = 0; k < nops; ++k) {
-      const tagint t = tags[k];
-      auto it = member_of_tag.find(t);
-      if (it == member_of_tag.end()) {
-        member_of_tag[t] = static_cast<int>(member_orbit.size());
+      double image[3];
+      apply_op(image, grp->op(k), srep);
+      for (double &sval : image) sval -= std::floor(sval);
+      const int j = find_atom(image);
+      if (j == -1)
+        error->all(FLERR, Error::NOLASTLINE,
+                   "Fix symmetry {}: no atom of group {} at the image of atom ID {} under symmetry "
+                   "operator {} (fractional coordinates {:.8g} {:.8g} {:.8g}, tolerance {:.3g})",
+                   id, group->names[igroup], alltags[rep], k + 1, image[0], image[1], image[2], tol);
+      if (j == -2)
+        error->all(FLERR, Error::NOLASTLINE,
+                   "Fix symmetry {}: more than one atom at the image of atom ID {} under symmetry "
+                   "operator {} within tolerance {:.3g}",
+                   id, alltags[rep], k + 1, tol);
+
+      const double *sj = &alldata[NDATA * j];
+      if (sj[3] != srep[3])
+        error->all(FLERR, Error::NOLASTLINE,
+                   "Fix symmetry {}: atom ID {} at the image of atom ID {} under symmetry operator "
+                   "{} has a different atom type: {} instead of {}",
+                   id, alltags[j], alltags[rep], k + 1, static_cast<int>(sj[3]),
+                   static_cast<int>(srep[3]));
+      if (std::fabs(sj[4] - srep[4]) > 1.0e-10 * std::fabs(srep[4]))
+        error->all(FLERR, Error::NOLASTLINE,
+                   "Fix symmetry {}: atom ID {} at the image of atom ID {} under symmetry operator "
+                   "{} has a different mass: {} instead of {}",
+                   id, alltags[j], alltags[rep], k + 1, sj[4], srep[4]);
+
+      if (orbit_of[j] < 0) {
+        orbit_of[j] = o;
+        member_of_tag[alltags[j]] = static_cast<int>(member_orbit.size());
         member_orbit.push_back(o);
         member_op.push_back(k);
         count.push_back(1);
+      } else if (orbit_of[j] == o) {
+        ++count[member_of_tag[alltags[j]] - first];
       } else {
-        if (member_orbit[it->second] != o)
-          error->all(FLERR, Error::NOLASTLINE,
-                     "Fix symmetry: atom ID {} is listed in symmetry orbits {} and {}", t,
-                     member_orbit[it->second] + 1, o + 1);
-        ++count[it->second - first];
+        error->all(FLERR, Error::NOLASTLINE,
+                   "Fix symmetry {}: atom ID {} at the image of atom ID {} under symmetry operator "
+                   "{} was already found as an image of atom ID {}; the positions are not "
+                   "symmetric within tolerance {:.3g}",
+                   id, alltags[j], alltags[rep], k + 1, rep_tag[orbit_of[j]], tol);
       }
-      if ((k > 0) && (t == tags[0])) orb.stabilizer.push_back(k);
+      if ((k > 0) && (j == rep)) orb.stabilizer.push_back(k);
     }
 
     // every atom of an orbit is the image of the representative under the
     // same number of operators: the size of the site symmetry group
     const int nstab = static_cast<int>(orb.stabilizer.size()) + 1;
-    for (int m = 0; m < static_cast<int>(count.size()); ++m)
-      if (count[m] != nstab)
+    for (int c : count)
+      if (c != nstab)
         error->all(FLERR, Error::NOLASTLINE,
-                   "Fix symmetry: symmetry orbit {} lists atom ID {} {} time(s) but its first "
-                   "atom ID {} {} time(s); both must be the same",
-                   o + 1, tags[member_op[first + m]], count[m], tags[0], nstab);
+                   "Fix symmetry {}: the images of atom ID {} are not symmetric within tolerance "
+                   "{:.3g}",
+                   id, alltags[rep], tol);
 
     orb.nmembers = static_cast<int>(count.size());
     orb.special = (nstab > 1);
+    if (orb.special) ++n_special;
 
     // projector onto the coordinates left free by the site symmetry: the
     // average of the site symmetry operators.  Its trace is the number of
@@ -738,115 +884,5 @@ void FixSymmetry::build_orbits()
     double trace = orb.proj[0][0] + orb.proj[1][1];
     if (domain->dimension == 3) trace += orb.proj[2][2];
     orb.fixed_dim = static_cast<int>(std::lround(trace));
-    if (orb.special) ++n_special;
-  }
-}
-
-/* ----------------------------------------------------------------------
-   Verify that the orbits are consistent with the atoms in the system:
-     - every atom listed in an orbit exists
-     - every atom sits at the image of its representative under each
-       operator that lists it, within tol in fractional coordinates
-     - all atoms of an orbit have the same type and mass
-------------------------------------------------------------------------- */
-
-void FixSymmetry::check_orbits()
-{
-  const int nlocal = atom->nlocal;
-  const tagint *tag = atom->tag;
-  const int *type = atom->type;
-  double **x = atom->x;
-  const int nmembers = static_cast<int>(member_orbit.size());
-
-  // existence: count the owners of each listed atom
-
-  std::vector<int> seen(nmembers, 0), seen_all(nmembers, 0);
-  for (int i = 0; i < nlocal; ++i) {
-    auto it = member_of_tag.find(tag[i]);
-    if (it != member_of_tag.end()) seen[it->second] = 1;
-  }
-  if (nmembers > 0)
-    MPI_Allreduce(seen.data(), seen_all.data(), nmembers, MPI_INT, MPI_SUM, world);
-  for (const auto &kv : member_of_tag)
-    if (seen_all[kv.second] != 1)
-      error->all(FLERR, Error::NOLASTLINE,
-                 "Fix symmetry: atom ID {} of symmetry orbit {} does not exist", kv.first,
-                 member_orbit[kv.second] + 1);
-
-  // positions: compare with the images of the representatives
-
-  std::vector<double> srep(3 * n_orbits, 0.0), srep_all(3 * n_orbits, 0.0);
-  for (int i = 0; i < nlocal; ++i) {
-    auto it = member_of_tag.find(tag[i]);
-    if ((it == member_of_tag.end()) || (member_op[it->second] != 0)) continue;
-    domain->x2lamda(x[i], &srep[3 * member_orbit[it->second]]);
-  }
-  if (n_orbits > 0)
-    MPI_Allreduce(srep.data(), srep_all.data(), 3 * n_orbits, MPI_DOUBLE, MPI_SUM, world);
-
-  const int nops = grp->n_ops();
-  for (int i = 0; i < nlocal; ++i) {
-    auto it = member_of_tag.find(tag[i]);
-    if (it == member_of_tag.end()) continue;
-    const int o = member_orbit[it->second];
-    const auto &tags = grp->orbit(o).image_tag;
-    double s[3], image[3];
-    domain->x2lamda(x[i], s);
-    for (int k = 1; k < nops; ++k) {
-      if (tags[k] != tag[i]) continue;
-      apply_op(image, grp->op(k), &srep_all[3 * o]);
-      double dev = 0.0;
-      for (int d = 0; d < 3; ++d) {
-        const double delta = s[d] - image[d];
-        dev = std::max(dev, std::fabs(delta - std::round(delta)));
-      }
-      if (dev > tol) {
-        if (tags[k] == tags[0])
-          error->one(FLERR, Error::NOLASTLINE,
-                     "Fix symmetry: atom ID {} is not on the special position required by "
-                     "symmetry operator {}: deviation {:.3g} in fractional coordinates, "
-                     "tolerance {:.3g}",
-                     tag[i], k + 1, dev, tol);
-        else
-          error->one(FLERR, Error::NOLASTLINE,
-                     "Fix symmetry: atom ID {} is not at the image of atom ID {} under symmetry "
-                     "operator {}: deviation {:.3g} in fractional coordinates, tolerance {:.3g}",
-                     tag[i], tags[0], k + 1, dev, tol);
-      }
-    }
-  }
-
-  // types and masses: compare minimum and maximum per orbit
-
-  std::vector<int> tlo(n_orbits, INT_MAX), thi(n_orbits, INT_MIN);
-  std::vector<double> mlo(n_orbits, 1.0e300), mhi(n_orbits, -1.0e300);
-  for (int i = 0; i < nlocal; ++i) {
-    auto it = member_of_tag.find(tag[i]);
-    if (it == member_of_tag.end()) continue;
-    const int o = member_orbit[it->second];
-    tlo[o] = std::min(tlo[o], type[i]);
-    thi[o] = std::max(thi[o], type[i]);
-    if (atom->rmass) {
-      mlo[o] = std::min(mlo[o], atom->rmass[i]);
-      mhi[o] = std::max(mhi[o], atom->rmass[i]);
-    }
-  }
-  if (n_orbits > 0) {
-    MPI_Allreduce(MPI_IN_PLACE, tlo.data(), n_orbits, MPI_INT, MPI_MIN, world);
-    MPI_Allreduce(MPI_IN_PLACE, thi.data(), n_orbits, MPI_INT, MPI_MAX, world);
-    if (atom->rmass) {
-      MPI_Allreduce(MPI_IN_PLACE, mlo.data(), n_orbits, MPI_DOUBLE, MPI_MIN, world);
-      MPI_Allreduce(MPI_IN_PLACE, mhi.data(), n_orbits, MPI_DOUBLE, MPI_MAX, world);
-    }
-  }
-  for (int o = 0; o < n_orbits; ++o) {
-    if (tlo[o] != thi[o])
-      error->all(FLERR, Error::NOLASTLINE,
-                 "Fix symmetry: atoms of symmetry orbit {} have different atom types {} and {}",
-                 o + 1, tlo[o], thi[o]);
-    if (atom->rmass && (mhi[o] - mlo[o] > 1.0e-10 * mhi[o]))
-      error->all(FLERR, Error::NOLASTLINE,
-                 "Fix symmetry: atoms of symmetry orbit {} have different masses {} and {}", o + 1,
-                 mlo[o], mhi[o]);
   }
 }

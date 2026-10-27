@@ -17,42 +17,40 @@
 #include "json_fwd.h"
 #include "pointers.h"
 
+#include <string>
+#include <vector>
+
 namespace LAMMPS_NS {
 
-// One affine operator in fractional coordinates: s' = R*s + t.
+// One affine operator in fractional coordinates of the simulation box: s' = R*s + t.
 struct SymmOp {
   double R[3][3];
   double t[3];
   double Rinv[3][3];
 };
 
-// One orbit as listed in the symmetry file: one atom ID per operator, the
-// image of the first atom under that operator.  For an atom on a special
-// position, the IDs repeat.
-struct Orbit {
-  std::vector<tagint> image_tag;    // length n_ops
-};
-
+// The operators of a space group, read from a JSON format symmetry file.
+// The identity is always the first operator.
 class SymmetryGroup : protected Pointers {
  public:
   SymmetryGroup(class LAMMPS *);
-  ~SymmetryGroup() override = default;
 
   void read(const char *filename);
 
   [[nodiscard]] int n_ops() const { return ops.size(); }
-  [[nodiscard]] int n_orbits() const { return orbits.size(); }
   [[nodiscard]] const std::string &name() const { return group_name; }
-
   [[nodiscard]] const SymmOp &op(int i) const { return ops[i]; }
-  [[nodiscard]] const Orbit &orbit(int i) const { return orbits[i]; }
+
+  // convert an operator in coordinate triplet notation, e.g. "-y,x-y,z+1/3",
+  // throws std::invalid_argument for malformed input
+  static SymmOp parse_xyz(const std::string &);
 
  private:
   std::string group_name;
   std::vector<SymmOp> ops;
-  std::vector<Orbit> orbits;
 
   void populate(const json &data);
+  void apply_supercell(const int ncell[3]);
   void compute_inverses();
   void validate_group();
 };

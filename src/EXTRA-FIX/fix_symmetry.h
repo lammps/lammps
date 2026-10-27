@@ -93,8 +93,7 @@ class FixSymmetry : public Fix {
   double *buf_local, *buf_global;
 
   void symmetrize(bool);
-  void build_orbits();
-  void check_orbits();
+  void detect_orbits();
   void build_cache();
   void update_cartesian_ops();
   void check_metric(const double H[3][3]);

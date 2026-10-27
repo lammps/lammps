@@ -27,7 +27,7 @@ def _has_symmetry():
 HAS_SYMMETRY = _has_symmetry()
 
 
-@unittest.skipUnless(HAS_SYMMETRY, "SYMMETRY package not built into this LAMMPS")
+@unittest.skipUnless(HAS_SYMMETRY, "EXTRA-FIX package not built into this LAMMPS")
 class FixSymmetryPython(unittest.TestCase):
 
     L = 8.0
@@ -108,18 +108,7 @@ class FixSymmetryPython(unittest.TestCase):
     def test_pinv_preserves_inversion_symmetry(self):
         """After 50 NVE steps, asym + image == L (mod L, componentwise)."""
         symfile = self._write_json(
-            r"""{
-                "group_name": "P-1",
-                "lattice":    "triclinic",
-                "ops": [
-                    { "R": [[ 1, 0, 0],[ 0, 1, 0],[ 0, 0, 1]], "t": [0,0,0] },
-                    { "R": [[-1, 0, 0],[ 0,-1, 0],[ 0, 0,-1]], "t": [0,0,0] }
-                ],
-                "orbits": [
-                    { "tags": [1, 5] }, { "tags": [2, 6] },
-                    { "tags": [3, 7] }, { "tags": [4, 8] }
-                ]
-            }"""
+            r"""{ "group_name": "P-1", "ops": [ "x,y,z", "-x,-y,-z" ] }"""
         )
         self._tmpfiles.append(symfile)
 
@@ -150,17 +139,7 @@ class FixSymmetryPython(unittest.TestCase):
     def test_force_is_exactly_antisymmetric(self):
         """In post_force the forces on orbit partners must be exactly opposite."""
         symfile = self._write_json(
-            r"""{
-                "group_name": "P-1", "lattice": "triclinic",
-                "ops": [
-                    { "R": [[ 1, 0, 0],[ 0, 1, 0],[ 0, 0, 1]], "t": [0,0,0] },
-                    { "R": [[-1, 0, 0],[ 0,-1, 0],[ 0, 0,-1]], "t": [0,0,0] }
-                ],
-                "orbits": [
-                    { "tags": [1, 5] }, { "tags": [2, 6] },
-                    { "tags": [3, 7] }, { "tags": [4, 8] }
-                ]
-            }"""
+            r"""{ "group_name": "P-1", "ops": [ "x,y,z", "-x,-y,-z" ] }"""
         )
         self._tmpfiles.append(symfile)
 
@@ -180,20 +159,10 @@ class FixSymmetryPython(unittest.TestCase):
                 )
 
     def test_wyckoff_atom_stays_on_mirror(self):
-        """An atom declared on a y-mirror Wyckoff site must stay at y=L/2."""
+        """An atom on the y-mirror plane must stay at y=L/2."""
         L = 8.0
         symfile = self._write_json(
-            r"""{
-                "group_name": "Pm", "lattice": "triclinic",
-                "ops": [
-                    { "R": [[1, 0, 0], [0,  1, 0], [0, 0, 1]], "t": [0, 0, 0] },
-                    { "R": [[1, 0, 0], [0, -1, 0], [0, 0, 1]], "t": [0, 0, 0] }
-                ],
-                "orbits": [
-                    { "tags": [1, 2] },
-                    { "tags": [3, 3], "site_symmetry": [2] }
-                ]
-            }"""
+            r"""{ "group_name": "Pm", "ops": [ "x,y,z", "x,-y,z" ] }"""
         )
         self._tmpfiles.append(symfile)
 
@@ -224,17 +193,7 @@ class FixSymmetryPython(unittest.TestCase):
     def test_equivalent_to_plain_nve(self):
         """From a symmetric start the constrained run must match plain NVE."""
         symfile = self._write_json(
-            r"""{
-                "group_name": "P-1", "lattice": "triclinic",
-                "ops": [
-                    { "R": [[ 1, 0, 0],[ 0, 1, 0],[ 0, 0, 1]], "t": [0,0,0] },
-                    { "R": [[-1, 0, 0],[ 0,-1, 0],[ 0, 0,-1]], "t": [0,0,0] }
-                ],
-                "orbits": [
-                    { "tags": [1, 5] }, { "tags": [2, 6] },
-                    { "tags": [3, 7] }, { "tags": [4, 8] }
-                ]
-            }"""
+            r"""{ "group_name": "P-1", "ops": [ "x,y,z", "-x,-y,-z" ] }"""
         )
         self._tmpfiles.append(symfile)
         restart = symfile + ".restart"
@@ -272,11 +231,7 @@ class FixSymmetryPython(unittest.TestCase):
     def test_p1_does_not_move_atoms(self):
         """Identity-only group must leave all positions exactly fixed."""
         symfile = self._write_json(
-            r"""{
-                "group_name": "P1", "lattice": "triclinic",
-                "ops":   [ { "R": [[1,0,0],[0,1,0],[0,0,1]], "t": [0,0,0] } ],
-                "orbits": []
-            }"""
+            r"""{ "group_name": "P1", "ops": [ "x,y,z" ] }"""
         )
         self._tmpfiles.append(symfile)
 

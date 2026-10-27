@@ -14,7 +14,7 @@ The following files are currently available.
 - `dump-molecules-schema.json`  Schema file for the 'dump' format in the 'molecules' style.
 - `color-schema.json` Schema file for the colors and lights file used by 'dump image/movie' and in LAMMPS-GUI
 - `force-style-test-schema.json` Schema file for the force-style regression test reference files in `unittest/force-styles/`
-- `fix-symmetry-schema.json` Schema file for the symmetry-data files consumed by 'fix symmetry'. Validates the lattice family, the list of affine operators, and the orbit / Wyckoff site declarations.
+- `fix-symmetry-schema.json` Schema file for the symmetry files read by 'fix symmetry'. Validates the list of symmetry operators and the optional supercell entry.
 
 These files provide a concise description of the hierarchy and supported fields
 in JSON file formats.  Thus they provide a detailed documentation and can also

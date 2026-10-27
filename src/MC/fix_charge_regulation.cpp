@@ -136,6 +136,7 @@ FixChargeRegulation::FixChargeRegulation(LAMMPS *lmp, int narg, char **arg) :
   next_reneighbor = update->ntimestep + 1;
   random_equal = new RanPark(lmp, seed);
   random_unequal = new RanPark(lmp, seed);
+  random_unequal->reset_rank(seed, comm->me);
   nacid_attempts = 0;
   nacid_successes = 0;
   nbase_attempts = 0;
@@ -1286,10 +1287,12 @@ double FixChargeRegulation::compute_vector(int n) {
 
 void FixChargeRegulation::write_restart(FILE *fp)
 {
+  int nglobalvals = 10;
+  int nlocalvals = comm->nprocs;
+  int ntotalvals = nglobalvals + nlocalvals;
+  std::vector<double> list(ntotalvals);
   int n = 0;
-  double list[10];
   list[n++] = random_equal->state();
-  list[n++] = random_unequal->state();
   list[n++] = nacid_attempts;
   list[n++] = nacid_successes;
   list[n++] = nbase_attempts;
@@ -1298,11 +1301,15 @@ void FixChargeRegulation::write_restart(FILE *fp)
   list[n++] = nsalt_successes;
   list[n++] = ubuf(next_reneighbor).d;
   list[n++] = ubuf(update->ntimestep).d;
+  list[n++] = nlocalvals;
+
+  double state = random_unequal->state();
+  MPI_Gather(&state, 1, MPI_DOUBLE, &list[n], 1, MPI_DOUBLE, 0, world);
 
   if (comm->me == 0) {
-    int size = (int) sizeof(list);
-    fwrite(&size,sizeof(int),1,fp);
-    fwrite(list,sizeof(list),1,fp);
+    int size = ntotalvals * sizeof(double);
+    fwrite(&size, sizeof(int), 1, fp);
+    fwrite(list.data(), sizeof(double), ntotalvals, fp);
   }
 }
 
@@ -1318,8 +1325,6 @@ void FixChargeRegulation::restart(char *buf)
   seed = static_cast<int>(list[n++]);
   random_equal->reset(seed);
 
-  seed = static_cast<int>(list[n++]);
-  random_unequal->reset(seed);
   // NOLINTBEGIN
   nacid_attempts  = list[n++];
   nacid_successes = list[n++];
@@ -1331,7 +1336,19 @@ void FixChargeRegulation::restart(char *buf)
   next_reneighbor = (bigint) ubuf(list[n++]).i;
   bigint ntimestep_restart = (bigint) ubuf(list[n++]).i;
   if (ntimestep_restart != update->ntimestep)
-    error->all(FLERR,"Must not reset timestep when restarting fix gcmc");
+    error->all(FLERR,"Must not reset timestep when restarting fix charge/regulation");
+
+  // read stored state of RNG unique to this process
+  // if nprocs changed, derive a unique state from the state of proc 0
+
+  auto nlocalvals = (int) list[n++];
+  if (nlocalvals == comm->nprocs) {
+    seed = static_cast<int>(list[n + comm->me]);
+    random_unequal->reset(seed);
+  } else {
+    seed = static_cast<int>(list[n]);
+    random_unequal->reset_rank(seed, comm->me);
+  }
 }
 
 /* ---------------------------------------------------------------------- */

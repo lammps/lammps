@@ -1,4 +1,5 @@
-LAMMPS (4 Jul 2026 - Development - patch_4Jul2026-848-gd03be1b44b)
+LAMMPS (30 Sep 2026 - Development - patch_30Sep2026-584-g503edac323-modified)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread.
   using 1 OpenMP thread(s) per MPI task
 # Charge regulation lammps for simple weak electrolyte
 
@@ -11,7 +12,7 @@ Reading data file ...
   1 by 1 by 1 MPI processor grid
   reading atoms ...
   219 atoms
-  read_data CPU = 0.003 seconds
+  read_data CPU = 0.001 seconds
 
 #real units
 variable        sigma equal 7.2               # particle diameter 0.72 nm
@@ -70,23 +71,6 @@ thermo_style custom step pe c_dtemp f_chareg[1] f_chareg[2] f_chareg[3] f_chareg
 timestep        ${timestep}
 timestep        10
 run             2000
-
-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
-
-Your simulation uses code contributions which should be cited:
-
-- fix charge/regulation: https://doi.org/10.1063/5.0066432
-
-@Article{Curk22,
- author = {T. Curk and J. Yuan and E. Luijten},
- title = {Accelerated Simulation Method for Charge Regulation Effects},
- journal = {Journal of Chemical Physics},
- year = 2022,
- volume = 156
-}
-
-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
-
 PPPM initialization ...
   using 12-bit tables for long-range coulomb
   G vector (1/distance) = 0.019408615
@@ -98,7 +82,7 @@ PPPM initialization ...
   3d grid and FFT values/proc = 2197 512
 Generated 0 of 3 mixed pair_coeff terms from geometric mixing rule
 0 atoms in group FixChargeRegulation:exclusion_group:chareg
-WARNING: Neighbor exclusions used with KSpace solver may give inconsistent Coulombic energies (src/neighbor.cpp:664)
+WARNING: Neighbor exclusions used with KSpace solver may give inconsistent Coulombic energies (src/neighbor.cpp:668)
 Neighbor list info ...
   update: every = 1 steps, delay = 0 steps, check = yes
   max neighbors/atom: 2000, page size: 100000
@@ -114,51 +98,51 @@ Neighbor list info ...
 Per MPI rank memory allocation (min/avg/max) = 3.708 | 3.708 | 3.708 Mbytes
    Step         PotEng        c_dtemp      f_chareg[1]    f_chareg[2]    f_chareg[3]    f_chareg[4]    f_chareg[5]    f_chareg[6]    f_chareg[7]    f_chareg[8]  
          0  -6.4798431      298            0              0              1              99             0              0              109            10           
-       100  -7.3261028      300.50779      100            78             14             86             0              0              95             9            
-       200  -8.9571783      317.92662      200            161            22             78             0              0              90             12           
-       300  -8.3378753      327.32373      300            244            18             82             0              0              89             7            
-       400  -8.068084       324.73267      400            317            16             84             0              0              92             8            
-       500  -8.7174114      297.32767      500            398            13             87             0              0              97             10           
-       600  -7.2178433      320.53976      600            481            16             84             0              0              94             10           
-       700  -8.7188935      275.71044      700            560            16             84             0              0              95             11           
-       800  -7.3705821      313.53627      800            643            21             79             0              0              84             5            
-       900  -8.7391282      282.7758       900            721            23             77             0              0              86             9            
-      1000  -8.2396085      297.77824      1000           804            25             75             0              0              83             8            
-      1100  -7.7964164      280.96002      1100           882            23             77             0              0              87             10           
-      1200  -9.3337395      304.86215      1200           963            21             79             0              0              90             11           
-      1300  -8.5131418      317.86131      1300           1038           22             78             0              0              87             9            
-      1400  -7.6025989      280.83842      1400           1118           17             83             0              0              93             10           
-      1500  -6.9711594      315.59255      1500           1197           21             79             0              0              88             9            
-      1600  -8.0546654      296.66767      1600           1280           21             79             0              0              91             12           
-      1700  -5.6450099      315.93228      1700           1356           25             75             0              0              87             12           
-      1800  -5.1115768      306.26619      1800           1442           19             81             0              0              87             6            
-      1900  -3.8576536      297.05623      1900           1517           23             77             0              0              86             9            
-      2000  -6.5922315      315.34332      2000           1594           26             74             0              0              81             7            
-Loop time of 0.407287 on 1 procs for 2000 steps with 188 atoms
+       100  -7.3427731      284.67159      100            78             14             86             0              0              95             9            
+       200  -8.818197       304.17414      200            161            22             78             0              0              90             12           
+       300  -7.9758345      316.80452      300            243            19             81             0              0              88             7            
+       400  -7.6607643      332.34206      400            317            18             82             0              0              90             8            
+       500  -7.9394701      323.53488      500            404            13             87             0              0              97             10           
+       600  -7.4561547      292.29404      600            488            15             85             0              0              93             8            
+       700  -7.293513       295.01516      700            571            17             83             0              0              94             11           
+       800  -5.4005374      297.65962      800            650            24             76             0              0              81             5            
+       900  -5.824967       299.2597       900            725            25             75             0              0              84             9            
+      1000  -6.098619       293.51694      1000           802            28             72             0              0              81             9            
+      1100  -5.8895391      331.08803      1100           884            26             74             0              0              83             9            
+      1200  -7.3529259      295.55195      1200           964            24             76             0              0              87             11           
+      1300  -7.1086792      301.82536      1300           1049           22             78             0              0              86             8            
+      1400  -5.5667334      279.34149      1400           1132           16             84             0              0              95             11           
+      1500  -3.747212       287.20085      1500           1212           23             77             0              0              87             10           
+      1600  -7.8600336      305.50455      1600           1294           21             79             0              0              91             12           
+      1700  -4.0788623      298.52232      1700           1378           25             75             0              0              85             10           
+      1800  -5.0768495      284.59682      1800           1461           21             79             0              0              84             5            
+      1900  -5.2189351      306.35107      1900           1540           19             81             0              0              89             8            
+      2000  -5.4661988      298.83744      2000           1613           25             75             0              0              82             7            
+Loop time of 0.426165 on 1 procs for 2000 steps with 189 atoms
 
-Performance: 4242.705 ns/day, 0.006 hours/ns, 4910.538 timesteps/s, 923.181 katom-step/s
-99.5% CPU use with 1 MPI tasks x 1 OpenMP threads
+Performance: 4054.767 ns/day, 0.006 hours/ns, 4693.018 timesteps/s, 886.980 katom-step/s
+99.6% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.019532   | 0.019532   | 0.019532   |   0.0 |  4.80
-Kspace  | 0.092162   | 0.092162   | 0.092162   |   0.0 | 22.63
-Neigh   | 0.0049848  | 0.0049848  | 0.0049848  |   0.0 |  1.22
-Comm    | 0.0024654  | 0.0024654  | 0.0024654  |   0.0 |  0.61
-Output  | 0.00025835 | 0.00025835 | 0.00025835 |   0.0 |  0.06
-Modify  | 0.28695    | 0.28695    | 0.28695    |   0.0 | 70.45
-Other   |            | 0.0009344  |            |       |  0.23
+Pair    | 0.019721   | 0.019721   | 0.019721   |   0.0 |  4.63
+Kspace  | 0.095831   | 0.095831   | 0.095831   |   0.0 | 22.49
+Neigh   | 0.005297   | 0.005297   | 0.005297   |   0.0 |  1.24
+Comm    | 0.0024267  | 0.0024267  | 0.0024267  |   0.0 |  0.57
+Output  | 0.0001435  | 0.0001435  | 0.0001435  |   0.0 |  0.03
+Modify  | 0.30178    | 0.30178    | 0.30178    |   0.0 | 70.81
+Other   |            | 0.0009638  |            |       |  0.23
 
-Nlocal:            188 ave         188 max         188 min
+Nlocal:            189 ave         189 max         189 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
-Nghost:            481 ave         481 max         481 min
+Nghost:            449 ave         449 max         449 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
-Neighs:           1529 ave        1529 max        1529 min
+Neighs:           1575 ave        1575 max        1575 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
 
-Total # of neighbors = 1529
-Ave neighs/atom = 8.1329787
+Total # of neighbors = 1575
+Ave neighs/atom = 8.3333333
 Neighbor list builds = 2080
 Dangerous builds = 0
 Total wall time: 0:00:00

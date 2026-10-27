@@ -113,7 +113,6 @@ void VerletSplitRK::init()
   if (errflag)
     error->all(FLERR,"Verlet/split/rk cannot (yet) be used with kspace style {}", force->kspace_style);
 
-
   // invoke parent Verlet init
 
   Verlet::init();
@@ -311,14 +310,6 @@ void VerletSplitRK::run(int n)
 
   // flags for timestepping iterations
 
-  int n_post_integrate = modify->n_post_integrate;
-  int n_pre_exchange = modify->n_pre_exchange;
-  int n_pre_neighbor = modify->n_pre_neighbor;
-  int n_pre_force = modify->n_pre_force;
-  int n_pre_reverse = modify->n_pre_reverse;
-  int n_post_force = modify->n_post_force_any;
-  int n_end_of_step = modify->n_end_of_step;
-
   if (atom->sortfreq > 0) sortflag = 1;
   else sortflag = 0;
 
@@ -332,7 +323,7 @@ void VerletSplitRK::run(int n)
     if (rproc) {
       timer->stamp();
       modify->initial_integrate(vflag);
-      if (n_post_integrate) modify->post_integrate();
+      if (modify->has_fixes(FixConst::POST_INTEGRATE)) modify->post_integrate();
       timer->stamp(Timer::MODIFY);
 
       /*Atom-specific information is maintained on R-processes,
@@ -345,7 +336,7 @@ void VerletSplitRK::run(int n)
         comm->forward_comm();
         timer->stamp(Timer::COMM);
       } else {
-        if (n_pre_exchange) modify->pre_exchange();
+        if (modify->has_fixes(FixConst::PRE_EXCHANGE)) modify->pre_exchange();
         if (triclinic) domain->x2lamda(atom->nlocal);
         domain->pbc();
         if (domain->box_change) {
@@ -359,7 +350,7 @@ void VerletSplitRK::run(int n)
         comm->borders();
         if (triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
         timer->stamp(Timer::COMM);
-        if (n_pre_neighbor) modify->pre_neighbor();
+        if (modify->has_fixes(FixConst::PRE_NEIGHBOR)) modify->pre_neighbor();
         neighbor->build(1);
         timer->stamp(Timer::NEIGH);
       }
@@ -377,9 +368,8 @@ void VerletSplitRK::run(int n)
     if (rproc) {
       timer->stamp();
       force_clear(); //Only needs to be called by R-processes
-      if (n_pre_force) modify->pre_force(vflag);
+      if (modify->has_fixes(FixConst::PRE_FORCE)) modify->pre_force(vflag);
       timer->stamp(Timer::MODIFY);
-
 
       timer->stamp();
       if (force->pair) {
@@ -409,7 +399,7 @@ void VerletSplitRK::run(int n)
     if(rproc) {
       /*pre_reverse and reverse_comm only need to be addressed for R-processes
         after kspace forces have been accumulated.*/
-      if (n_pre_reverse) {
+      if (modify->has_fixes(FixConst::PRE_REVERSE)) {
         modify->pre_reverse(eflag,vflag);
         timer->stamp(Timer::MODIFY);
       }
@@ -420,9 +410,9 @@ void VerletSplitRK::run(int n)
       // force modifications, final time integration, diagnostics
       // all output
       timer->stamp();
-      if (n_post_force) modify->post_force(vflag);
+      if (modify->has_fixes(FixConst::POST_FORCE_ANY)) modify->post_force(vflag);
       modify->final_integrate();
-      if (n_end_of_step) modify->end_of_step();
+      if (modify->has_fixes(FixConst::END_OF_STEP)) modify->end_of_step();
       timer->stamp(Timer::MODIFY);
 
       if (ntimestep == output->next) {
@@ -433,5 +423,4 @@ void VerletSplitRK::run(int n)
     } //rproc
   } //for i
 }
-
 

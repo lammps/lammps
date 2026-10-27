@@ -90,7 +90,7 @@ void ModifyKokkos::setup(int vflag)
   // fix group setup() is special case since populates a dynamic group
   //   needs to be done before temperature compute setup
 
-  for_each_fix_kk(GROUP_FIX, [vflag](Fix *ifix) {
+  for_each_fix_kk(POST_FORCE_GROUP, [vflag](Fix *ifix) {
     ifix->setup(vflag);
   });
 
@@ -284,11 +284,11 @@ void ModifyKokkos::pre_reverse(int eflag, int vflag)
 
 void ModifyKokkos::post_force(int vflag)
 {
-  if (n_post_force_group)
-    for_each_fix_kk(GROUP_FIX, [vflag](Fix *ifix) {
+  if (stagemask & POST_FORCE_GROUP)
+    for_each_fix_kk(POST_FORCE_GROUP, [vflag](Fix *ifix) {
       ifix->post_force(vflag);
     });
-  if (n_post_force)
+  if (stagemask & POST_FORCE)
     for_each_fix_kk(POST_FORCE, [vflag](Fix *ifix) {
       ifix->post_force(vflag);
     });
@@ -340,11 +340,9 @@ void ModifyKokkos::end_of_step()
 double ModifyKokkos::energy_couple()
 {
   double energy = 0.0;
-  for (std::size_t i = 0; i < fixes.size(); i++)
-    if (fixes[i]->ecouple_flag)
-      sync_call(fixes[i], [&energy](Fix *ifix) {
-        energy += ifix->compute_scalar();
-      });
+  for_each_fix_kk(ENERGY_COUPLE, [&energy](Fix *ifix) {
+    energy += ifix->compute_scalar();
+  });
   return energy;
 }
 
@@ -357,11 +355,9 @@ double ModifyKokkos::energy_couple()
 double ModifyKokkos::energy_global()
 {
   double energy = 0.0;
-  for (std::size_t i = 0; i < fixes.size(); i++)
-    if (fixes[i]->energy_global_flag && fixes[i]->thermo_energy)
-      sync_call(fixes[i], [&energy](Fix *ifix) {
-        energy += ifix->compute_scalar();
-      });
+  for_each_fix_kk(ENERGY_GLOBAL, [&energy](Fix *ifix) {
+    energy += ifix->compute_scalar();
+  });
   return energy;
 }
 
@@ -430,11 +426,11 @@ void ModifyKokkos::pre_force_respa(int vflag, int ilevel, int iloop)
 
 void ModifyKokkos::post_force_respa(int vflag, int ilevel, int iloop)
 {
-  if (n_post_force_group)
-    for_each_fix_kk(GROUP_FIX, [=](Fix *ifix) {
+  if (stagemask & POST_FORCE_GROUP)
+    for_each_fix_kk(POST_FORCE_GROUP, [=](Fix *ifix) {
       ifix->post_force_respa(vflag, ilevel, iloop);
     });
-  if (n_post_force_respa)
+  if (stagemask & POST_FORCE_RESPA)
     for_each_fix_kk(POST_FORCE_RESPA, [=](Fix *ifix) {
       ifix->post_force_respa(vflag, ilevel, iloop);
     });

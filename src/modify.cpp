@@ -35,6 +35,11 @@ using namespace FixConst;
 
 static constexpr double BIG = 1.0e20;
 
+// mask bits that are set by Modify and cannot be set through Fix::setmask()
+// or set_fix_mask(), nor are visible through get_fix_mask()
+
+static constexpr int INTERNAL_MASK = POST_FORCE_GROUP | ENERGY_COUPLE | ENERGY_GLOBAL | ENERGY_ATOM;
+
 /* ----------------------------------------------------------------------
    process-global registries of fix and compute style factory functions.
    Shared by all LAMMPS instances and persistent across the "clear" command.
@@ -58,16 +63,7 @@ CreatorRegistry<Modify::ComputeCreator> &Modify::compute_styles()
 
 Modify::Modify(LAMMPS *lmp) : Pointers(lmp)
 {
-  n_initial_integrate = n_post_integrate = 0;
-  n_pre_exchange = n_pre_neighbor = n_post_neighbor = 0;
-  n_pre_force = n_pre_reverse = n_post_force_any = 0;
-  n_final_integrate = n_end_of_step = 0;
-  n_energy_couple = n_energy_global = n_energy_atom = 0;
-  n_initial_integrate_respa = n_post_integrate_respa = 0;
-  n_pre_force_respa = n_post_force_respa_any = n_final_integrate_respa = 0;
-  n_min_pre_exchange = n_min_pre_neighbor = n_min_post_neighbor = 0;
-  n_min_pre_force = n_min_pre_reverse = n_min_post_force = n_min_energy = 0;
-  n_post_force = n_post_force_group = n_post_force_respa = 0;
+  stagemask = 0;
 
   nfix = 0;
   fix = nullptr;
@@ -121,18 +117,6 @@ void Modify::refresh_views()
 }
 
 /* ----------------------------------------------------------------------
-   count fixes whose mask has any of the bits in mask set
-------------------------------------------------------------------------- */
-
-int Modify::count_fix_mask(int mask) const
-{
-  int n = 0;
-  for (const auto &m : callmask)
-    if (m & mask) n++;
-  return n;
-}
-
-/* ----------------------------------------------------------------------
    initialize all fixes and computes
 ------------------------------------------------------------------------- */
 
@@ -179,51 +163,19 @@ void Modify::init()
     if (ifix->restart_pbc) restart_pbc_any = 1;
 
   // take the snapshot of the fix masks used to invoke fixes until the next
-  //   init() and count fixes to call at each stage of run
+  //   init(), add the bits for the energy contributions selected by fix flags,
+  //   and collect the union of all masks for has_fixes()
   // needs to happen after init() of computes and fixes
   //   b/c a compute::init() can delete a fix, e.g. compute chunk/atom
   //   and a fix::init() can add fixes, e.g. fix reaxff/species
 
   callmask = fixmask;
-
-  n_initial_integrate = count_fix_mask(INITIAL_INTEGRATE);
-  n_post_integrate = count_fix_mask(POST_INTEGRATE);
-  n_pre_exchange = count_fix_mask(PRE_EXCHANGE);
-  n_pre_neighbor = count_fix_mask(PRE_NEIGHBOR);
-  n_post_neighbor = count_fix_mask(POST_NEIGHBOR);
-  n_pre_force = count_fix_mask(PRE_FORCE);
-  n_pre_reverse = count_fix_mask(PRE_REVERSE);
-  n_post_force = count_fix_mask(POST_FORCE);
-  n_post_force_group = count_fix_mask(GROUP_FIX);
-  n_final_integrate = count_fix_mask(FINAL_INTEGRATE);
-  n_end_of_step = count_fix_mask(END_OF_STEP);
-
-  n_initial_integrate_respa = count_fix_mask(INITIAL_INTEGRATE_RESPA);
-  n_post_integrate_respa = count_fix_mask(POST_INTEGRATE_RESPA);
-  n_post_force_respa = count_fix_mask(POST_FORCE_RESPA);
-  n_pre_force_respa = count_fix_mask(PRE_FORCE_RESPA);
-  n_final_integrate_respa = count_fix_mask(FINAL_INTEGRATE_RESPA);
-
-  n_min_pre_exchange = count_fix_mask(MIN_PRE_EXCHANGE);
-  n_min_pre_neighbor = count_fix_mask(MIN_PRE_NEIGHBOR);
-  n_min_post_neighbor = count_fix_mask(MIN_POST_NEIGHBOR);
-  n_min_pre_force = count_fix_mask(MIN_PRE_FORCE);
-  n_min_pre_reverse = count_fix_mask(MIN_PRE_REVERSE);
-  n_min_post_force = count_fix_mask(MIN_POST_FORCE);
-  n_min_energy = count_fix_mask(MIN_ENERGY);
-
-  // two post_force_any counters used by integrators add in post_force_group
-
-  n_post_force_any = n_post_force + n_post_force_group;
-  n_post_force_respa_any = n_post_force_respa + n_post_force_group;
-
-  // count fixes that contribute to the energy sums (selected by flags, not mask)
-
-  n_energy_couple = n_energy_global = n_energy_atom = 0;
-  for (const auto &ifix : fixes) {
-    if (ifix->ecouple_flag) n_energy_couple++;
-    if (ifix->energy_global_flag && ifix->thermo_energy) n_energy_global++;
-    if (ifix->energy_peratom_flag && ifix->thermo_energy) n_energy_atom++;
+  stagemask = 0;
+  for (std::size_t i = 0; i < fixes.size(); i++) {
+    if (fixes[i]->ecouple_flag) callmask[i] |= ENERGY_COUPLE;
+    if (fixes[i]->energy_global_flag && fixes[i]->thermo_energy) callmask[i] |= ENERGY_GLOBAL;
+    if (fixes[i]->energy_peratom_flag && fixes[i]->thermo_energy) callmask[i] |= ENERGY_ATOM;
+    stagemask |= callmask[i];
   }
 
   // error if any fix or compute is using a dynamic group when not allowed
@@ -278,7 +230,7 @@ void Modify::setup(int vflag)
   // fix group setup() is special case since populates a dynamic group
   //   needs to be done before temperature compute setup
 
-  for_each_fix(GROUP_FIX, [vflag](Fix *ifix) {
+  for_each_fix(POST_FORCE_GROUP, [vflag](Fix *ifix) {
     ifix->setup(vflag);
   });
 
@@ -459,16 +411,16 @@ void Modify::pre_reverse(int eflag, int vflag)
 /* ----------------------------------------------------------------------
    post_force call, only for relevant fixes
    first call any instances of fix GROUP if they exist
-     they are not in n_post_force count
+     they do not have the POST_FORCE bit set
 ------------------------------------------------------------------------- */
 
 void Modify::post_force(int vflag)
 {
-  if (n_post_force_group)
-    for_each_fix(GROUP_FIX, [vflag](Fix *ifix) {
+  if (stagemask & POST_FORCE_GROUP)
+    for_each_fix(POST_FORCE_GROUP, [vflag](Fix *ifix) {
       ifix->post_force(vflag);
     });
-  if (n_post_force)
+  if (stagemask & POST_FORCE)
     for_each_fix(POST_FORCE, [vflag](Fix *ifix) {
       ifix->post_force(vflag);
     });
@@ -507,8 +459,9 @@ void Modify::end_of_step()
 double Modify::energy_couple()
 {
   double energy = 0.0;
-  for (std::size_t i = 0; i < fixes.size(); i++)
-    if (fixes[i]->ecouple_flag) energy += fixes[i]->compute_scalar();
+  for_each_fix(ENERGY_COUPLE, [&energy](Fix *ifix) {
+    energy += ifix->compute_scalar();
+  });
   return energy;
 }
 
@@ -521,9 +474,9 @@ double Modify::energy_couple()
 double Modify::energy_global()
 {
   double energy = 0.0;
-  for (std::size_t i = 0; i < fixes.size(); i++)
-    if (fixes[i]->energy_global_flag && fixes[i]->thermo_energy)
-      energy += fixes[i]->compute_scalar();
+  for_each_fix(ENERGY_GLOBAL, [&energy](Fix *ifix) {
+    energy += ifix->compute_scalar();
+  });
   return energy;
 }
 
@@ -534,12 +487,11 @@ double Modify::energy_global()
 
 void Modify::energy_atom(int nlocal, double *energy)
 {
-  for (const auto &ifix : fixes) {
-    if (!ifix->energy_peratom_flag || !ifix->thermo_energy) continue;
+  for_each_fix(ENERGY_ATOM, [=](Fix *ifix) {
     const double *eatom = ifix->eatom;
-    if (!eatom) continue;
+    if (!eatom) return;
     for (int j = 0; j < nlocal; j++) energy[j] += eatom[j];
-  }
+  });
 }
 
 /* ----------------------------------------------------------------------
@@ -620,11 +572,11 @@ void Modify::pre_force_respa(int vflag, int ilevel, int iloop)
 
 void Modify::post_force_respa(int vflag, int ilevel, int iloop)
 {
-  if (n_post_force_group)
-    for_each_fix(GROUP_FIX, [=](Fix *ifix) {
+  if (stagemask & POST_FORCE_GROUP)
+    for_each_fix(POST_FORCE_GROUP, [=](Fix *ifix) {
       ifix->post_force_respa(vflag, ilevel, iloop);
     });
-  if (n_post_force_respa)
+  if (stagemask & POST_FORCE_RESPA)
     for_each_fix(POST_FORCE_RESPA, [=](Fix *ifix) {
       ifix->post_force_respa(vflag, ilevel, iloop);
     });
@@ -966,8 +918,8 @@ Fix *Modify::add_fix(int narg, char **arg, int trysuffix)
   //   through set_fix_mask() or clear_fix_mask() are kept
   // the new fix is not invoked before the next init() (callmask = 0)
 
-  int mask = newfix->setmask();
-  if (strcmp(newfix->style, "GROUP") == 0) mask |= GROUP_FIX;
+  int mask = newfix->setmask() & ~INTERNAL_MASK;
+  if (strcmp(newfix->style, "GROUP") == 0) mask |= POST_FORCE_GROUP;
 
   if (replace) {
     fixes[ifix] = newfix;
@@ -1209,7 +1161,7 @@ std::vector<Fix *> Modify::get_fix_by_style(const std::string &style) const
 int Modify::get_fix_mask(Fix *ifix) const
 {
   for (std::size_t i = 0; i < fixes.size(); ++i) {
-    if (fixes[i] == ifix) return fixmask[i] & PUBLIC_MASK;
+    if (fixes[i] == ifix) return fixmask[i] & ~INTERNAL_MASK;
   }
   return 0;
 }
@@ -1217,14 +1169,14 @@ int Modify::get_fix_mask(Fix *ifix) const
 void Modify::set_fix_mask(Fix *ifix, int flags)
 {
   for (std::size_t i = 0; i < fixes.size(); ++i) {
-    if (fixes[i] == ifix) fixmask[i] |= (flags & PUBLIC_MASK);
+    if (fixes[i] == ifix) fixmask[i] |= (flags & ~INTERNAL_MASK);
   }
 }
 
 void Modify::clear_fix_mask(Fix *ifix, int flags)
 {
   for (std::size_t i = 0; i < fixes.size(); ++i) {
-    if (fixes[i] == ifix) fixmask[i] &= ~(flags & PUBLIC_MASK);
+    if (fixes[i] == ifix) fixmask[i] &= ~(flags & ~INTERNAL_MASK);
   }
 }
 

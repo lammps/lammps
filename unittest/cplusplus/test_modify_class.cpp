@@ -146,12 +146,15 @@ TEST_F(ModifyTest, FixListOrderAndIndex)
     HIDE_OUTPUT([&] {
         command("run 0 post no");
     });
-    EXPECT_EQ(modify->n_initial_integrate, 1);
-    EXPECT_EQ(modify->n_final_integrate, 1);
-    EXPECT_EQ(modify->n_post_force_any, 2);
-    EXPECT_EQ(modify->n_end_of_step, 1);
-    EXPECT_EQ(modify->n_pre_force, 0);
-    EXPECT_EQ(modify->n_energy_global, 0);
+    EXPECT_TRUE(modify->has_fixes(INITIAL_INTEGRATE));
+    EXPECT_TRUE(modify->has_fixes(FINAL_INTEGRATE));
+    EXPECT_TRUE(modify->has_fixes(POST_FORCE_ANY));
+    EXPECT_TRUE(modify->has_fixes(END_OF_STEP));
+    EXPECT_FALSE(modify->has_fixes(PRE_FORCE));
+    EXPECT_FALSE(modify->has_fixes(ENERGY_GLOBAL));
+    EXPECT_TRUE(modify->has_fixes(PRE_FORCE | POST_FORCE));
+    EXPECT_FALSE(modify->has_fixes(PRE_FORCE | PRE_REVERSE | POST_FORCE_GROUP));
+    EXPECT_FALSE(modify->has_fixes(0));
 }
 
 TEST_F(ModifyTest, PostForceInvocationOrder)
@@ -234,8 +237,8 @@ TEST_F(ModifyTest, UnfixCompactsAndKeepsOrder)
         command("run 0 post no");
     });
     auto *modify = lmp->modify;
-    EXPECT_EQ(modify->n_end_of_step, 1);
-    EXPECT_EQ(modify->n_post_force_any, 2);
+    EXPECT_TRUE(modify->has_fixes(END_OF_STEP));
+    EXPECT_TRUE(modify->has_fixes(POST_FORCE_ANY));
 
     HIDE_OUTPUT([&] {
         command("unfix pr");
@@ -253,8 +256,8 @@ TEST_F(ModifyTest, UnfixCompactsAndKeepsOrder)
         command("run 0 post no");
     });
     EXPECT_DOUBLE_EQ(lmp->atom->f[0][0], 1.0);
-    EXPECT_EQ(modify->n_end_of_step, 0);
-    EXPECT_EQ(modify->n_post_force_any, 2);
+    EXPECT_FALSE(modify->has_fixes(END_OF_STEP));
+    EXPECT_TRUE(modify->has_fixes(POST_FORCE_ANY));
 
     // remove first and last fix
     HIDE_OUTPUT([&] {
@@ -400,25 +403,25 @@ TEST_F(ModifyTest, DynamicMaskChange)
     auto *rigid  = modify->get_fix_by_id("r");
     ASSERT_NE(rigid, nullptr);
     EXPECT_FALSE(modify->get_fix_mask(rigid) & POST_FORCE);
-    EXPECT_EQ(modify->n_post_force_any, 0);
+    EXPECT_FALSE(modify->has_fixes(POST_FORCE_ANY));
 
     // fix_modify changes the mask, counters follow at the next init()
     HIDE_OUTPUT([&] {
         command("fix_modify r bodyforces early");
     });
     EXPECT_TRUE(modify->get_fix_mask(rigid) & POST_FORCE);
-    EXPECT_EQ(modify->n_post_force_any, 0);
+    EXPECT_FALSE(modify->has_fixes(POST_FORCE_ANY));
     HIDE_OUTPUT([&] {
         command("run 0 post no");
     });
-    EXPECT_EQ(modify->n_post_force_any, 1);
+    EXPECT_TRUE(modify->has_fixes(POST_FORCE_ANY));
 
     HIDE_OUTPUT([&] {
         command("fix_modify r bodyforces late");
         command("run 0 post no");
     });
     EXPECT_FALSE(modify->get_fix_mask(rigid) & POST_FORCE);
-    EXPECT_EQ(modify->n_post_force_any, 0);
+    EXPECT_FALSE(modify->has_fixes(POST_FORCE_ANY));
 
     // set_fix_mask()/clear_fix_mask() only touch the requested bits
     EXPECT_TRUE(modify->get_fix_mask(rigid) & INITIAL_INTEGRATE);
@@ -450,7 +453,7 @@ TEST_F(ModifyTest, GroupFixRunsFirstInPostForce)
     EXPECT_EQ(fix_id(1), "sf");
     EXPECT_EQ(std::string(modify->get_fix_by_index(2)->style), "GROUP");
     // fix GROUP is counted in n_post_force_any, although its mask is empty
-    EXPECT_EQ(modify->n_post_force_any, 2);
+    EXPECT_TRUE(modify->has_fixes(POST_FORCE_ANY));
 
     auto *region = lmp->domain->get_region_by_id("r");
     ASSERT_NE(region, nullptr);
@@ -493,14 +496,14 @@ TEST_F(ModifyTest, FixAddedWithoutInitIsNotInvoked)
         command("run 2 pre no post no");
     });
     EXPECT_EQ(count(output, "AAAA"), 0);
-    EXPECT_EQ(lmp->modify->n_end_of_step, 0);
+    EXPECT_FALSE(lmp->modify->has_fixes(END_OF_STEP));
     EXPECT_TRUE(lmp->modify->get_fix_mask(lmp->modify->get_fix_by_id("pa")) & END_OF_STEP);
 
     output = CAPTURE_OUTPUT([&] {
         command("run 2 post no");
     });
     EXPECT_EQ(count(output, "AAAA"), 3);
-    EXPECT_EQ(lmp->modify->n_end_of_step, 1);
+    EXPECT_TRUE(lmp->modify->has_fixes(END_OF_STEP));
 
     // same for a mask changed between runs through fix_modify
     if (Info::has_package("RIGID")) {
@@ -516,11 +519,11 @@ TEST_F(ModifyTest, FixAddedWithoutInitIsNotInvoked)
         HIDE_OUTPUT([&] {
             command("run 2 pre no post no");
         });
-        EXPECT_EQ(modify->n_post_force_any, 0);
+        EXPECT_FALSE(modify->has_fixes(POST_FORCE_ANY));
         HIDE_OUTPUT([&] {
             command("run 2 post no");
         });
-        EXPECT_EQ(modify->n_post_force_any, 1);
+        EXPECT_TRUE(modify->has_fixes(POST_FORCE_ANY));
     }
 }
 
@@ -590,7 +593,7 @@ TEST_F(ModifyTest, DeleteBetweenRuns)
         command("run 2 post no");
     });
     EXPECT_EQ(count(output, "AAAA"), 0);
-    EXPECT_EQ(lmp->modify->n_end_of_step, 0);
+    EXPECT_FALSE(lmp->modify->has_fixes(END_OF_STEP));
 
     // fix_modify energy yes adds the fix energy to the potential energy
     HIDE_OUTPUT([&] {
@@ -599,13 +602,13 @@ TEST_F(ModifyTest, DeleteBetweenRuns)
     });
     auto *modify = lmp->modify;
     auto *pe     = modify->get_compute_by_id("thermo_pe");
-    EXPECT_EQ(modify->n_energy_global, 0);
+    EXPECT_FALSE(modify->has_fixes(ENERGY_GLOBAL));
     const double pe_without = pe->compute_scalar();
     HIDE_OUTPUT([&] {
         command("fix_modify sp energy yes");
         command("run 0 post no");
     });
-    EXPECT_EQ(modify->n_energy_global, 1);
+    EXPECT_TRUE(modify->has_fixes(ENERGY_GLOBAL));
     const double spring = modify->get_fix_by_id("sp")->compute_scalar();
     EXPECT_GT(spring, 0.0);
     EXPECT_NEAR(pe->compute_scalar() - pe_without, spring, 1.0e-10);

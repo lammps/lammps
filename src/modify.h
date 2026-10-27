@@ -29,19 +29,6 @@ class Fix;
 
 class Modify : protected Pointers {
  public:
-  // number of fixes invoked at each stage of a timestep or minimization
-  // computed in init(), used by integrators to skip stages that have no fixes
-
-  int n_initial_integrate, n_post_integrate, n_pre_exchange;
-  int n_pre_neighbor, n_post_neighbor;
-  int n_pre_force, n_pre_reverse, n_post_force_any;
-  int n_final_integrate, n_end_of_step;
-  int n_energy_couple, n_energy_global, n_energy_atom;
-  int n_initial_integrate_respa, n_post_integrate_respa;
-  int n_pre_force_respa, n_post_force_respa_any, n_final_integrate_respa;
-  int n_min_pre_exchange, n_min_pre_neighbor, n_min_post_neighbor;
-  int n_min_pre_force, n_min_pre_reverse, n_min_post_force, n_min_energy;
-
   int restart_pbc_any;         // 1 if any fix sets restart_pbc
   int nfix_restart_global;     // stored fix global info from restart file
   int nfix_restart_peratom;    // stored fix peratom info from restart file
@@ -118,7 +105,7 @@ class Modify : protected Pointers {
   void delete_fix(Fix *);
 
   // deprecated API
-  int find_fix(const std::string &) const;
+  [[nodiscard]] int find_fix(const std::string &) const;
   // new API
   [[nodiscard]] Fix *get_fix_by_id(const std::string &) const;
   [[nodiscard]] Fix *get_fix_by_index(int idx) const
@@ -128,9 +115,14 @@ class Modify : protected Pointers {
   [[nodiscard]] std::vector<Fix *> get_fix_by_style(const std::string &) const;
   // the list must not be changed (fix added or deleted) while iterating over it
   [[nodiscard]] const std::vector<Fix *> &get_fix_list() const { return fixes; }
-  int get_fix_mask(Fix *) const;
+  [[nodiscard]] int get_fix_mask(Fix *) const;
   void set_fix_mask(Fix *, int);
   void clear_fix_mask(Fix *, int);
+
+  // true if any fix is invoked at any of the stages in mask (bits from FixConst),
+  // as of the last init(). used by integrators to skip stages without fixes
+
+  [[nodiscard]] bool has_fixes(int mask) const { return (stagemask & mask) != 0; }
 
   Compute *add_compute(int, char **, int trysuffix = 1);
   Compute *add_compute(const std::string &, int trysuffix = 1);
@@ -139,7 +131,7 @@ class Modify : protected Pointers {
   void delete_compute(Compute *);
 
   // deprecated API
-  int find_compute(const std::string &) const;
+  [[nodiscard]] int find_compute(const std::string &) const;
   // new API
   [[nodiscard]] Compute *get_compute_by_id(const std::string &) const;
   [[nodiscard]] Compute *get_compute_by_index(int idx) const
@@ -175,20 +167,13 @@ class Modify : protected Pointers {
   std::vector<int> fixmask;
   std::vector<Compute *> computes;
 
-  // copy of fixmask taken by init(): fixes are invoked according to this
-  // snapshot, so a fix added or a mask changed after init() takes effect at
-  // the next init() only, as with the lists of fix indices used before
+  // copy of fixmask taken by init() with the bits for the energy contributions
+  // added: fixes are invoked according to this snapshot, so a fix added or a
+  // mask changed after init() takes effect at the next init() only, as with
+  // the lists of fix indices used before. stagemask is the union of callmask
 
   std::vector<int> callmask;
-
-  // internal mask bits managed by Modify, not visible through get_fix_mask()
-
-  static constexpr int GROUP_FIX = 1 << 24;    // fix GROUP: runs first in post_force()
-  static constexpr int PUBLIC_MASK = ~GROUP_FIX;
-
-  // internal fix counts
-
-  int n_post_force, n_post_force_group, n_post_force_respa;
+  int stagemask;
 
   // invoke func(fix) for all fixes whose mask at init() has bit set, in list
   // order. the loop re-reads the list size and keeps no state in the class, so
@@ -200,7 +185,6 @@ class Modify : protected Pointers {
     for (std::size_t i = 0; i < fixes.size(); ++i)
       if (callmask[i] & bit) func(fixes[i]);
   }
-  int count_fix_mask(int) const;
   void refresh_views();
   void erase_fix_slot(std::size_t);
 

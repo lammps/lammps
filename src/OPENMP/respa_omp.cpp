@@ -25,6 +25,7 @@
 #include "dihedral.h"
 #include "domain.h"
 #include "error.h"
+#include "fix.h"
 #include "force.h"
 #include "improper.h"
 #include "kspace.h"
@@ -277,7 +278,7 @@ void RespaOMP::recurse(int ilevel)
 
     timer->stamp();
     modify->initial_integrate_respa(vflag,ilevel,iloop);
-    if (modify->n_post_integrate_respa)
+    if (modify->has_fixes(FixConst::POST_INTEGRATE_RESPA))
       modify->post_integrate_respa(ilevel,iloop);
     timer->stamp(Timer::MODIFY);
 
@@ -288,7 +289,7 @@ void RespaOMP::recurse(int ilevel)
     if (ilevel == nlevels-1) {
       int nflag = neighbor->decide();
       if (nflag) {
-        if (modify->n_pre_exchange) {
+        if (modify->has_fixes(FixConst::PRE_EXCHANGE)) {
           timer->stamp();
           modify->pre_exchange();
           timer->stamp(Timer::MODIFY);
@@ -307,13 +308,13 @@ void RespaOMP::recurse(int ilevel)
         comm->borders();
         if (triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
         timer->stamp(Timer::COMM);
-        if (modify->n_pre_neighbor) {
+        if (modify->has_fixes(FixConst::PRE_NEIGHBOR)) {
           modify->pre_neighbor();
           timer->stamp(Timer::MODIFY);
         }
         neighbor->build(1);
         timer->stamp(Timer::NEIGH);
-        if (modify->n_post_neighbor) {
+        if (modify->has_fixes(FixConst::POST_NEIGHBOR)) {
           modify->post_neighbor();
           timer->stamp(Timer::MODIFY);
         }
@@ -343,7 +344,7 @@ void RespaOMP::recurse(int ilevel)
     // when potentials are invoked at same level
 
     force_clear();
-    if (modify->n_pre_force_respa) {
+    if (modify->has_fixes(FixConst::PRE_FORCE_RESPA)) {
       timer->stamp();
       modify->pre_force_respa(vflag,ilevel,iloop);
       timer->stamp(Timer::MODIFY);
@@ -410,7 +411,7 @@ void RespaOMP::recurse(int ilevel)
       fix->did_reduce();
     }
 
-    if (modify->n_pre_reverse) {
+    if (modify->has_fixes(FixConst::PRE_REVERSE)) {
       modify->pre_reverse(eflag,vflag);
       timer->stamp(Timer::MODIFY);
     }
@@ -419,7 +420,7 @@ void RespaOMP::recurse(int ilevel)
       timer->stamp(Timer::COMM);
     }
     timer->stamp();
-    if (modify->n_post_force_respa_any)
+    if (modify->has_fixes(FixConst::POST_FORCE_RESPA_ANY))
       modify->post_force_respa(vflag,ilevel,iloop);
     modify->final_integrate_respa(ilevel,iloop);
     timer->stamp(Timer::MODIFY);

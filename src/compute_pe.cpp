@@ -20,6 +20,7 @@
 #include "dihedral.h"
 #include "domain.h"
 #include "error.h"
+#include "fix.h"
 #include "force.h"
 #include "improper.h"
 #include "kspace.h"
@@ -106,7 +107,7 @@ double ComputePE::compute_scalar()
     scalar += force->pair->etail / volume;
   }
 
-  if (fixflag && modify->n_energy_global) scalar += modify->energy_global();
+  if (fixflag && modify->has_fixes(FixConst::ENERGY_GLOBAL)) scalar += modify->energy_global();
 
   return scalar;
 }

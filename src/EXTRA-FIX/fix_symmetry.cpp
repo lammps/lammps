@@ -23,6 +23,7 @@
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
+#include "group.h"
 #include "math_const.h"
 #include "memory.h"
 #include "modify.h"
@@ -121,7 +122,8 @@ inline void apply_op(double out[3], const SymmOp &op, const double s[3])
 /* ---------------------------------------------------------------------- */
 
 FixSymmetry::FixSymmetry(LAMMPS *lmp, int narg, char **arg) :
-    Fix(lmp, narg, arg), grp(nullptr), tol(1.0e-6), symfile(nullptr), n_orbits(0),
+    Fix(lmp, narg, arg), grp(nullptr), tol(1.0e-6), symfile(nullptr), n_orbits(0), n_special(0),
+    n_trans(0),
     atom2member(nullptr), nmax_cache(0), shift_valid(false), buf_local(nullptr), buf_global(nullptr)
 {
   if (narg < 4) utils::missing_cmd_args(FLERR, "fix symmetry", error);
@@ -140,8 +142,32 @@ FixSymmetry::FixSymmetry(LAMMPS *lmp, int narg, char **arg) :
     }
   }
 
+  dof_flag = 1;
+
   grp = new SymmetryGroup(lmp);
   grp->read(symfile);
+
+  // in 2d systems the operators must leave the z coordinate unchanged
+  if (domain->dimension == 2) {
+    for (int k = 1; k < grp->n_ops(); ++k) {
+      const auto &op = grp->op(k);
+      if ((op.R[0][2] != 0.0) || (op.R[1][2] != 0.0) || (op.R[2][0] != 0.0) ||
+          (op.R[2][1] != 0.0) || (op.R[2][2] != 1.0) ||
+          (std::fabs(op.t[2] - std::round(op.t[2])) > tol))
+        error->all(FLERR, Error::NOLASTLINE,
+                   "Fix symmetry: symmetry operator {} changes the z coordinate, which is not "
+                   "possible for a 2d system",
+                   k + 1);
+    }
+  }
+
+  // number of independent translations of the whole system: the dimension
+  // of the space of vectors left unchanged by all operators
+  double trace = 0.0;
+  const int dim = domain->dimension;
+  for (int k = 0; k < grp->n_ops(); ++k)
+    for (int d = 0; d < dim; ++d) trace += grp->op(k).R[d][d];
+  n_trans = static_cast<int>(std::lround(trace / grp->n_ops()));
 
   for (double &hval : h_cart) hval = 0.0;
 
@@ -167,6 +193,8 @@ int FixSymmetry::setmask()
   mask |= POST_NEIGHBOR;
   mask |= POST_FORCE;
   mask |= POST_FORCE_RESPA;
+  mask |= MIN_POST_NEIGHBOR;
+  mask |= MIN_POST_FORCE;
   return mask;
 }
 
@@ -187,6 +215,49 @@ void FixSymmetry::init()
   memory->create(buf_global, 9 * n_orbits + 1, "symmetry:buf_global");
 
   warn_conflicting_fixes();
+  check_fix_order();
+  print_summary();
+}
+
+/* ----------------------------------------------------------------------
+   Forces added by fixes that are applied after this fix are not
+   symmetrized and will break the symmetry.
+------------------------------------------------------------------------- */
+
+void FixSymmetry::check_fix_order()
+{
+  bool after = false;
+  for (auto *ifix : modify->get_fix_list()) {
+    if (ifix == this) {
+      after = true;
+    } else if (after && (modify->get_fix_mask(ifix) & (POST_FORCE | POST_FORCE_RESPA))) {
+      if (comm->me == 0)
+        error->warning(FLERR,
+                       "Fix {} (style {}) may change forces after fix symmetry {}; fix symmetry "
+                       "must be defined after all fixes that add or change forces",
+                       ifix->id, ifix->style, id);
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
+   Print a summary of the orbits when it is new or has changed
+------------------------------------------------------------------------- */
+
+void FixSymmetry::print_summary()
+{
+  bigint nconstrained = 0, nfree = 0;
+  for (const auto &orb : orbits) {
+    nconstrained += orb.nmembers;
+    nfree += orb.fixed_dim;
+  }
+  auto mesg = fmt::format("Fix symmetry {}: group {} with {} operators, {} atoms in {} orbits "
+                          "({} on special positions) with {} independent coordinates\n",
+                          id, grp->name(), grp->n_ops(), nconstrained, n_orbits, n_special, nfree);
+  if (mesg != summary) {
+    summary = mesg;
+    if (comm->me == 0) utils::logmesg(lmp, summary);
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -309,6 +380,41 @@ void FixSymmetry::post_force_respa(int vflag, int /*ilevel*/, int /*iloop*/)
 
 void FixSymmetry::post_force(int /*vflag*/)
 {
+  symmetrize(true);
+}
+
+/* ----------------------------------------------------------------------
+   Minimization: only the forces are symmetrized.  Positions are owned by
+   the minimizer and move along the symmetric forces.
+------------------------------------------------------------------------- */
+
+void FixSymmetry::min_setup(int /*vflag*/)
+{
+  build_cache();
+  update_cartesian_ops();
+  symmetrize(false);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixSymmetry::min_post_neighbor()
+{
+  build_cache();
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixSymmetry::min_post_force(int /*vflag*/)
+{
+  symmetrize(false);
+}
+
+/* ----------------------------------------------------------------------
+   Symmetrize the forces and, if full is true, the velocities and positions
+------------------------------------------------------------------------- */
+
+void FixSymmetry::symmetrize(bool full)
+{
   if (n_orbits == 0) return;
   update_cartesian_ops();
 
@@ -337,6 +443,7 @@ void FixSymmetry::post_force(int /*vflag*/)
     sum[0] += r[0];
     sum[1] += r[1];
     sum[2] += r[2];
+    if (!full) continue;
     matvec(r, minv, v[i]);
     sum[3] += r[0];
     sum[4] += r[1];
@@ -392,6 +499,7 @@ void FixSymmetry::post_force(int /*vflag*/)
 
     const double *mk = &mcart[9 * k];
     matvec(f[i], mk, frep);
+    if (!full) continue;
     matvec(v[i], mk, vrep);
 
     if (k != 0) {
@@ -405,7 +513,48 @@ void FixSymmetry::post_force(int /*vflag*/)
       frac2x(x[i], image, h, boxlo);
     }
   }
-  shift_valid = true;
+  if (full) shift_valid = true;
+}
+
+/* ----------------------------------------------------------------------
+   Degrees of freedom removed by the symmetry constraints from the atoms in
+   group igroup.  An orbit of n atoms has as many degrees of freedom as its
+   representative has free coordinates, so dimension*n - free are removed
+   if the representative is in the group.  When the group consists of
+   exactly the orbit atoms, the motion of the center of mass is restricted
+   to the translations allowed by the operators (none if the group
+   contains an inversion), so the dimension - n_trans degrees of freedom
+   of the center of mass the temperature compute removes are added back.
+------------------------------------------------------------------------- */
+
+bigint FixSymmetry::dof(int igroup)
+{
+  if (n_orbits == 0) return 0;
+  const int gbit = group->bitmask[igroup];
+  const int dim = domain->dimension;
+  const int *mask = atom->mask;
+  const tagint *tag = atom->tag;
+  const int nlocal = atom->nlocal;
+
+  bigint counts[3] = {0, 0, 0}, counts_all[3] = {0, 0, 0};
+  for (int i = 0; i < nlocal; ++i) {
+    auto it = member_of_tag.find(tag[i]);
+    if (mask[i] & gbit) {
+      if (it == member_of_tag.end()) {
+        ++counts[1];    // atom in group but not constrained
+      } else if (member_op[it->second] == 0) {
+        const auto &orb = orbits[member_orbit[it->second]];
+        counts[0] += dim * orb.nmembers - orb.fixed_dim;
+      }
+    } else if (it != member_of_tag.end()) {
+      ++counts[2];    // constrained atom not in group
+    }
+  }
+  MPI_Allreduce(counts, counts_all, 3, MPI_LMP_BIGINT, MPI_SUM, world);
+
+  bigint nremoved = counts_all[0];
+  if ((counts_all[1] == 0) && (counts_all[2] == 0)) nremoved -= dim - n_trans;
+  return nremoved;
 }
 
 /* ----------------------------------------------------------------------
@@ -534,6 +683,7 @@ void FixSymmetry::build_orbits()
   const int nops = grp->n_ops();
   n_orbits = grp->n_orbits();
   orbits.assign(n_orbits, OrbitInfo());
+  n_special = 0;
   member_of_tag.clear();
   member_orbit.clear();
   member_op.clear();
@@ -585,7 +735,10 @@ void FixSymmetry::build_orbits()
         for (int j = 0; j < 3; ++j) orb.proj[i][j] += grp->op(k).R[i][j];
     for (int i = 0; i < 3; ++i)
       for (int j = 0; j < 3; ++j) orb.proj[i][j] /= static_cast<double>(nstab);
-    orb.fixed_dim = static_cast<int>(std::lround(orb.proj[0][0] + orb.proj[1][1] + orb.proj[2][2]));
+    double trace = orb.proj[0][0] + orb.proj[1][1];
+    if (domain->dimension == 3) trace += orb.proj[2][2];
+    orb.fixed_dim = static_cast<int>(std::lround(trace));
+    if (orb.special) ++n_special;
   }
 }
 

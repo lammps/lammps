@@ -22,6 +22,7 @@ FixStyle(symmetry,FixSymmetry);
 
 #include "fix.h"
 
+#include <string>
 #include <unordered_map>
 #include <vector>
 
@@ -39,6 +40,10 @@ class FixSymmetry : public Fix {
   void post_neighbor() override;
   void post_force(int) override;
   void post_force_respa(int, int, int) override;
+  void min_setup(int) override;
+  void min_post_neighbor() override;
+  void min_post_force(int) override;
+  bigint dof(int) override;
 
  private:
   SymmetryGroup *grp;
@@ -61,6 +66,9 @@ class FixSymmetry : public Fix {
   };
   std::vector<OrbitInfo> orbits;
   int n_orbits;
+  int n_special;    // number of orbits on special positions
+  int n_trans;      // number of translations of the whole system the group allows
+  std::string summary;    // last summary printed to the screen and log file
 
   // atom ID -> global member index; member index -> orbit and canonical operator
   std::unordered_map<tagint, int> member_of_tag;
@@ -84,11 +92,14 @@ class FixSymmetry : public Fix {
   // velocities and the position of the representative
   double *buf_local, *buf_global;
 
+  void symmetrize(bool);
   void build_orbits();
   void check_orbits();
   void build_cache();
   void update_cartesian_ops();
   void check_metric(const double H[3][3]);
+  void check_fix_order();
+  void print_summary();
   void warn_conflicting_fixes();
 };
 

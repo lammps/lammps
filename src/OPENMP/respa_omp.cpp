@@ -77,9 +77,8 @@ void RespaOMP::setup(int flag)
         mesg += fmt::format(" {}:{}", ilevel + 1, step[ilevel]);
 
       mesg += "\n  r-RESPA fixes :";
-      for (int l = 0; l < modify->n_post_force_respa_any; ++l) {
-        Fix *f = modify->get_fix_by_index(modify->list_post_force_respa[l]);
-        if (f->respa_level >= 0)
+      for (const auto &f : modify->get_fix_list()) {
+        if ((modify->get_fix_mask(f) & FixConst::POST_FORCE_RESPA) && (f->respa_level >= 0))
           mesg += fmt::format(" {}:{}[{}]", MIN(f->respa_level + 1, nlevels), f->style, f->id);
       }
       mesg += "\n";

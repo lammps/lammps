@@ -235,9 +235,14 @@ void FixHyperGlobal::pre_reverse(int /* eflag */, int /* vflag */)
   // emax = maximum abs value of strain of any bond I own
   // imax,jmax = local indices of my 2 atoms in that bond
   // rmax,r0max = current and relaxed lengths of that bond
+  // start with a negative strain, so a bond is selected even when all strains are
+  //   exactly zero (e.g. when the quench did not move any atom) and a proc without
+  //   bonds can only own the max strain bond, if no proc has a bond (imax < 0)
 
   double **x = atom->x;
-  double emax = 0.0;
+  double emax = -1.0;
+  imax = jmax = -1;
+  rmax = r0max = 0.0;
 
   for (m = 0; m < nblocal; m++) {
     i = blist[m].i;
@@ -280,7 +285,7 @@ void FixHyperGlobal::pre_reverse(int /* eflag */, int /* vflag */)
     return;
   }
 
-  // I own the bond with max absolute value of strain
+  // I own the bond with max absolute value of strain, or no proc has a bond
   // compute bias force on atoms imax,jmax if strain < q, else zero
   // Ebias = current strain = (r-r0) / r0
   // Vbias = bias potential = Vmax (1 - Ebias^2/q^2)
@@ -295,7 +300,7 @@ void FixHyperGlobal::pre_reverse(int /* eflag */, int /* vflag */)
   vbias = fbias = 0.0;
   dt_boost = 1.0;
 
-  if (emax < qfactor) {
+  if ((imax >= 0) && (emax < qfactor)) {
     ebias = (rmax-r0max) / r0max;
     vbias = vmax * (1.0 - ebias*ebias*invqfactorsq);
     fbias = 2.0 * vmax * ebias * invqfactorsq;
@@ -322,9 +327,11 @@ void FixHyperGlobal::pre_reverse(int /* eflag */, int /* vflag */)
 
   outvec[0] = vbias;
   outvec[1] = dt_boost;
-  outvec[2] = emax;
-  outvec[3] = atom->tag[imax];
-  outvec[4] = atom->tag[jmax];
+  if (imax >= 0) {
+    outvec[2] = emax;
+    outvec[3] = atom->tag[imax];
+    outvec[4] = atom->tag[jmax];
+  }
 
   t_hyper += dt_boost*dt;
   MPI_Bcast(&t_hyper,1,MPI_DOUBLE,owner,world);

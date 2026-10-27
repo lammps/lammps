@@ -39,6 +39,7 @@ PairLJClass2SoftGapsys::PairLJClass2SoftGapsys(LAMMPS *lmp) :
   writedata = 1;
   allocated = 0;
   centroidstressflag = CENTROID_SAME;
+  cut_global = alphalj = 0.0;
 }
 
 /* ---------------------------------------------------------------------- */

@@ -3482,13 +3482,17 @@ void FixShake::reset_dt()
 }
 
 /* ----------------------------------------------------------------------
-   extract Molecule ptr
+   extract Molecule ptr or the per-atom cluster flag of owned atoms
 ------------------------------------------------------------------------- */
 
 void *FixShake::extract(const char *str, int &dim)
 {
   dim = 0;
   if (strcmp(str,"onemol") == 0) return onemols;
+  if (strcmp(str,"shake_flag") == 0) {
+    dim = 1;
+    return shake_flag;
+  }
   return nullptr;
 }
 

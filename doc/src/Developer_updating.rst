@@ -755,21 +755,23 @@ Access fixes and computes through the Modify accessor functions
 
 The lists of fixes and computes in the Modify class are now stored in
 ``std::vector`` containers and fixes are invoked by testing their mask
-rather than through lists of indices.  Code outside of the Modify class
-must not access these lists directly or keep indices into them.  The
-public members ``fix``, ``nfix``, ``fmask``, ``compute``, and
-``ncompute`` remain for now as read-only views of the lists, but they
-will be removed.  Use ``Modify::get_fix_list()`` and
-``Modify::get_compute_list()`` to loop over all fixes or computes (they
-now return a reference to the list instead of a copy, so no fix or
-compute may be added or deleted while looping over it),
-``Modify::get_fix_by_id()`` and ``Modify::get_compute_by_id()`` instead
-of ``Modify::find_fix()`` and ``Modify::find_compute()``, and
+rather than through lists of indices.  The public members ``fix``,
+``nfix``, ``fmask``, ``compute``, and ``ncompute`` that gave direct
+access to the lists have been removed, as have the functions
+``Modify::find_fix()`` and ``Modify::find_compute()`` that returned an
+index into them and the overloads ``Modify::delete_fix(int)`` and
+``Modify::delete_compute(int)`` that took such an index.  Use
+``Modify::get_fix_list()`` and ``Modify::get_compute_list()`` to loop
+over all fixes or computes (they now return a reference to the list
+instead of a copy, so no fix or compute may be added or deleted while
+looping over it), ``Modify::get_fix_by_id()`` and
+``Modify::get_compute_by_id()`` to look up an instance by its ID,
 ``Modify::get_fix_mask()``, ``Modify::set_fix_mask()``, and
 ``Modify::clear_fix_mask()`` to query or change the stages at which a
-fix is invoked.  The overloads ``Modify::delete_fix(int)`` and
-``Modify::delete_compute(int)`` that take an index have been removed;
-fixes and computes are deleted by ID or by pointer.
+fix is invoked, and delete fixes and computes by ID or by pointer.
+Code that needs a position in the list, e.g. to check the order of
+fixes, can loop over the list with an index, but must not store that
+index, since it changes when fixes are deleted.
 
 Old:
 
@@ -800,6 +802,4 @@ New:
 
    modify->delete_fix(myfix);
 
-The change for ``delete_fix()`` and ``delete_compute()`` is **required**
-or else the code will not compile.  The other changes are recommended,
-since the direct access to the lists will be removed in a future version.
+This change is **required** or else the code will not compile.

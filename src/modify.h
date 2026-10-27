@@ -18,9 +18,7 @@
 
 #include "creator_registry.h"
 
-#include <cstddef>
 #include <map>
-#include <vector>
 
 namespace LAMMPS_NS {
 

@@ -221,6 +221,54 @@ class FixSymmetryPython(unittest.TestCase):
         self.assertAlmostEqual(pos[1][0], pos[2][0], delta=1.0e-12)
         self.assertAlmostEqual(pos[1][2], pos[2][2], delta=1.0e-12)
 
+    def test_equivalent_to_plain_nve(self):
+        """From a symmetric start the constrained run must match plain NVE."""
+        symfile = self._write_json(
+            r"""{
+                "group_name": "P-1", "lattice": "triclinic",
+                "ops": [
+                    { "R": [[ 1, 0, 0],[ 0, 1, 0],[ 0, 0, 1]], "t": [0,0,0] },
+                    { "R": [[-1, 0, 0],[ 0,-1, 0],[ 0, 0,-1]], "t": [0,0,0] }
+                ],
+                "orbits": [
+                    { "tags": [1, 5] }, { "tags": [2, 6] },
+                    { "tags": [3, 7] }, { "tags": [4, 8] }
+                ]
+            }"""
+        )
+        self._tmpfiles.append(symfile)
+        restart = symfile + ".restart"
+        self._tmpfiles.append(restart)
+
+        self._set_up_pinv_system()
+        self.lmp.command(f"fix sym all symmetry {symfile}")
+        # run 0 symmetrizes the random initial velocities
+        self.lmp.command("run 0 post no")
+        self.lmp.command(f"write_restart {restart}")
+
+        def state():
+            # equal-style evaluation works on any number of MPI ranks
+            pos = [[self.lmp.eval(f"{c}[{i}]") for c in "xyz"] for i in range(1, 9)]
+            return pos, self.lmp.get_thermo("etotal")
+
+        self.lmp.command("run 300 post no")
+        pos_fix, etot_fix = state()
+
+        self.lmp.command("clear")
+        self.lmp.command(f"read_restart {restart}")
+        self.lmp.command("fix 1 all nve")
+        self.lmp.command("run 300 post no")
+        pos_nve, etot_nve = state()
+
+        for i in range(8):
+            for k in range(3):
+                d = (pos_fix[i][k] - pos_nve[i][k]) / self.L
+                self.assertAlmostEqual(
+                    d - round(d), 0.0, delta=1.0e-12,
+                    msg=f"atom {i+1} component {k}: {pos_fix[i][k]} vs {pos_nve[i][k]}",
+                )
+        self.assertAlmostEqual(etot_fix, etot_nve, delta=1.0e-10 * abs(etot_nve))
+
     def test_p1_does_not_move_atoms(self):
         """Identity-only group must leave all positions exactly fixed."""
         symfile = self._write_json(

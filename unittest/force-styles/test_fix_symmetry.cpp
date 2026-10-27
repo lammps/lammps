@@ -12,6 +12,8 @@
 ------------------------------------------------------------------------- */
 
 #include "atom.h"
+#include "domain.h"
+#include "input.h"
 #include "lammps.h"
 #include "platform.h"
 
@@ -19,9 +21,13 @@
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
+#include <array>
+#include <cmath>
 #include <cstdio>
 #include <fstream>
+#include <map>
 #include <string>
+#include <vector>
 
 bool verbose = false;
 
@@ -38,6 +44,16 @@ static std::string write_symfile(const std::string &name, const std::string &con
     out.close();
     return path;
 }
+
+// a space group operator s' = R s + t in fractional coordinates, as used by
+// the test helpers below to check the orbit relations independently of the fix
+struct TestOp {
+    double R[3][3];
+    double t[3];
+};
+
+static const TestOp OP_IDENTITY = {{{1, 0, 0}, {0, 1, 0}, {0, 0, 1}}, {0, 0, 0}};
+static const TestOp OP_INVERSION = {{{-1, 0, 0}, {0, -1, 0}, {0, 0, -1}}, {0, 0, 0}};
 
 class FixSymmetryTest : public LAMMPSTest {
 protected:
@@ -90,6 +106,68 @@ protected:
         xyz[0] = lmp->atom->x[li][0];
         xyz[1] = lmp->atom->x[li][1];
         xyz[2] = lmp->atom->x[li][2];
+    }
+
+    // largest deviation (in fractional coordinates, modulo lattice translations)
+    // of the atoms tags[k] from the image R_k s + t_k of atom tags[0]
+    double orbit_residual(const std::vector<tagint> &tags, const std::vector<TestOp> &ops)
+    {
+        double x0[3], s0[3];
+        get_pos(tags[0], x0);
+        lmp->domain->x2lamda(x0, s0);
+        double maxres = 0.0;
+        for (std::size_t k = 1; k < tags.size(); ++k) {
+            double xk[3], sk[3];
+            get_pos(tags[k], xk);
+            lmp->domain->x2lamda(xk, sk);
+            for (int i = 0; i < 3; ++i) {
+                double d = sk[i] - ops[k].t[i];
+                for (int j = 0; j < 3; ++j)
+                    d -= ops[k].R[i][j] * s0[j];
+                maxres = std::max(maxres, std::fabs(d - std::round(d)));
+            }
+        }
+        return maxres;
+    }
+
+    // per-atom positions and velocities keyed by atom ID
+    using Snapshot = std::map<tagint, std::array<double, 6>>;
+
+    Snapshot take_snapshot()
+    {
+        Snapshot snap;
+        const auto *atom = lmp->atom;
+        for (int i = 0; i < atom->nlocal; ++i)
+            snap[atom->tag[i]] = {atom->x[i][0], atom->x[i][1], atom->x[i][2],
+                                  atom->v[i][0], atom->v[i][1], atom->v[i][2]};
+        return snap;
+    }
+
+    void restore_snapshot(const Snapshot &snap)
+    {
+        auto *atom = lmp->atom;
+        for (int i = 0; i < atom->nlocal; ++i) {
+            const auto &d = snap.at(atom->tag[i]);
+            for (int k = 0; k < 3; ++k) {
+                atom->x[i][k] = d[k];
+                atom->v[i][k] = d[k + 3];
+            }
+        }
+    }
+
+    // largest minimum image distance component between two snapshots
+    double max_position_difference(const Snapshot &a, const Snapshot &b)
+    {
+        const double prd[3] = {lmp->domain->xprd, lmp->domain->yprd, lmp->domain->zprd};
+        double maxdiff = 0.0;
+        for (const auto &kv : a) {
+            const auto &other = b.at(kv.first);
+            for (int k = 0; k < 3; ++k) {
+                double d = (kv.second[k] - other[k]) / prd[k];
+                maxdiff = std::max(maxdiff, std::fabs(d - std::round(d)) * prd[k]);
+            }
+        }
+        return maxdiff;
     }
 };
 
@@ -422,6 +500,253 @@ TEST_F(FixSymmetryTest, MalformedJsonTriggersError)
     TEST_FAILURE("Error parsing symmetry file",
                  command(fmt::format("fix sym all symmetry {}", sym));
                  command("run 0"););
+
+    LAMMPS_NS::platform::unlink(sym);
+}
+
+// --------------------------------------------------------------------------
+//   Validation independent of the implementation: starting from a symmetric
+//   configuration with symmetric velocities, the exact dynamics stays
+//   symmetric, so the constrained trajectory must match plain NVE (without
+//   the fix) to round-off over a short run. Any error in the projection
+//   (wrong normalization, missing contribution, wrong image refold) would
+//   show up as a difference far above round-off within a few steps.
+// --------------------------------------------------------------------------
+TEST_F(FixSymmetryTest, EquivalentToPlainNVE)
+{
+    std::string sym = write_symfile("pinv_equiv.json", R"({
+        "group_name": "P-1",
+        "lattice":    "triclinic",
+        "ops": [
+            { "R": [[ 1, 0, 0],[ 0, 1, 0],[ 0, 0, 1]], "t": [0,0,0] },
+            { "R": [[-1, 0, 0],[ 0,-1, 0],[ 0, 0,-1]], "t": [0,0,0] }
+        ],
+        "orbits": [
+            { "tags": [1, 5] }, { "tags": [2, 6] },
+            { "tags": [3, 7] }, { "tags": [4, 8] }
+        ]
+    })");
+
+    setup_pinv_system(8.0);
+    HIDE_OUTPUT([&] {
+        command("variable etot equal etotal");
+        command(fmt::format("fix sym all symmetry {}", sym));
+        // run 0 symmetrizes the random initial velocities
+        command("run 0 post no");
+    });
+    const auto start = take_snapshot();
+
+    HIDE_OUTPUT([&] { command("run 300 post no"); });
+    const auto with_fix = take_snapshot();
+    const double etot_with_fix = get_variable_value("etot");
+
+    restore_snapshot(start);
+    HIDE_OUTPUT([&] {
+        command("unfix sym");
+        command("run 300 post no");
+    });
+    const auto without_fix = take_snapshot();
+    const double etot_without_fix = get_variable_value("etot");
+
+    EXPECT_LT(max_position_difference(with_fix, without_fix), 1.0e-10);
+    EXPECT_NEAR(etot_with_fix, etot_without_fix, 1.0e-10 * std::fabs(etot_without_fix));
+
+    LAMMPS_NS::platform::unlink(sym);
+}
+
+// --------------------------------------------------------------------------
+//   Without the fix, round-off breaks the symmetry and it is lost after a
+//   few thousand steps. This documents why the fix is needed at all.
+// --------------------------------------------------------------------------
+TEST_F(FixSymmetryTest, SymmetryLostWithoutFix)
+{
+    std::string sym = write_symfile("pinv_decay.json", R"({
+        "group_name": "P-1",
+        "lattice":    "triclinic",
+        "ops": [
+            { "R": [[ 1, 0, 0],[ 0, 1, 0],[ 0, 0, 1]], "t": [0,0,0] },
+            { "R": [[-1, 0, 0],[ 0,-1, 0],[ 0, 0,-1]], "t": [0,0,0] }
+        ],
+        "orbits": [
+            { "tags": [1, 5] }, { "tags": [2, 6] },
+            { "tags": [3, 7] }, { "tags": [4, 8] }
+        ]
+    })");
+
+    setup_pinv_system(8.0);
+    HIDE_OUTPUT([&] {
+        command(fmt::format("fix sym all symmetry {}", sym));
+        command("run 0 post no");
+        command("unfix sym");
+    });
+    double start = 0.0;
+    for (tagint a = 1; a <= 4; ++a)
+        start = std::max(start, orbit_residual({a, a + 4}, {OP_IDENTITY, OP_INVERSION}));
+    EXPECT_LT(start, 1.0e-12);
+
+    HIDE_OUTPUT([&] { command("run 20000 post no"); });
+    double end = 0.0;
+    for (tagint a = 1; a <= 4; ++a)
+        end = std::max(end, orbit_residual({a, a + 4}, {OP_IDENTITY, OP_INVERSION}));
+    EXPECT_GT(end, 1.0e-6);
+
+    LAMMPS_NS::platform::unlink(sym);
+}
+
+// --------------------------------------------------------------------------
+//   Three-fold axis in a hexagonal (prism) box: the operators have
+//   off-diagonal integer matrices in fractional coordinates, so this checks
+//   the fractional <-> Cartesian conversions of forces and velocities.
+// --------------------------------------------------------------------------
+TEST_F(FixSymmetryTest, HexagonalThreeFold)
+{
+    std::string sym = write_symfile("p3.json", R"({
+        "group_name": "P3",
+        "lattice":    "hexagonal",
+        "ops": [
+            { "R": [[ 1, 0, 0],[ 0, 1, 0],[ 0, 0, 1]], "t": [0,0,0] },
+            { "R": [[ 0,-1, 0],[ 1,-1, 0],[ 0, 0, 1]], "t": [0,0,0] },
+            { "R": [[-1, 1, 0],[-1, 0, 0],[ 0, 0, 1]], "t": [0,0,0] }
+        ],
+        "orbits": [ { "tags": [1, 2, 3] }, { "tags": [4, 5, 6] } ]
+    })");
+    const std::vector<TestOp> ops = {OP_IDENTITY,
+                                     {{{0, -1, 0}, {1, -1, 0}, {0, 0, 1}}, {0, 0, 0}},
+                                     {{{-1, 1, 0}, {-1, 0, 0}, {0, 0, 1}}, {0, 0, 0}}};
+
+    HIDE_OUTPUT([&] {
+        command("units lj");
+        command("atom_style atomic");
+        command("boundary p p p");
+        command("atom_modify map array");
+        command("region box prism 0 4.0 0 3.4641016151377544 0 4.0 -2.0 0 0");
+        command("create_box 1 box");
+        // fractional (0.3,0.1,0.5) and (0.2,0.55,0.05) plus their C3 images
+        command("create_atoms 1 single 1.0 0.346410161514 2.0 units box");
+        command("create_atoms 1 single 3.2 0.692820323028 2.0 units box");
+        command("create_atoms 1 single 1.8 2.424871130596 2.0 units box");
+        command("create_atoms 1 single -0.5 1.905255888326 0.2 units box");
+        command("create_atoms 1 single 0.6 2.078460969083 0.2 units box");
+        command("create_atoms 1 single -0.1 2.944486372867 0.2 units box");
+        command("mass 1 1.0");
+        command("pair_style lj/cut 2.5");
+        command("pair_coeff * * 1.0 1.0");
+        command("pair_modify shift yes");
+        command("velocity all create 0.3 4711 mom yes");
+        command("timestep 0.002");
+        command("variable etot equal etotal");
+        command("fix 1 all nve");
+        command(fmt::format("fix sym all symmetry {}", sym));
+        command("run 0 post no");
+    });
+    // the input coordinates are rounded to 12 digits
+    EXPECT_LT(orbit_residual({1, 2, 3}, ops), 1.0e-11);
+    EXPECT_LT(orbit_residual({4, 5, 6}, ops), 1.0e-11);
+    const double etot_start = get_variable_value("etot");
+
+    HIDE_OUTPUT([&] { command("run 2000 post no"); });
+    EXPECT_LT(orbit_residual({1, 2, 3}, ops), 1.0e-12);
+    EXPECT_LT(orbit_residual({4, 5, 6}, ops), 1.0e-12);
+    EXPECT_NEAR(get_variable_value("etot"), etot_start, 5.0e-4);
+
+    LAMMPS_NS::platform::unlink(sym);
+}
+
+// --------------------------------------------------------------------------
+//   Two-fold screw axis along z: an operator with a nonzero translation.
+// --------------------------------------------------------------------------
+TEST_F(FixSymmetryTest, ScrewAxisNonzeroTranslation)
+{
+    std::string sym = write_symfile("p21.json", R"({
+        "group_name": "P2_1",
+        "lattice":    "orthorhombic",
+        "ops": [
+            { "R": [[ 1, 0, 0],[ 0, 1, 0],[ 0, 0, 1]], "t": [0,0,0] },
+            { "R": [[-1, 0, 0],[ 0,-1, 0],[ 0, 0, 1]], "t": [0,0,"1/2"] }
+        ],
+        "orbits": [ { "tags": [1, 2] }, { "tags": [3, 4] } ]
+    })");
+    const std::vector<TestOp> ops = {OP_IDENTITY,
+                                     {{{-1, 0, 0}, {0, -1, 0}, {0, 0, 1}}, {0, 0, 0.5}}};
+
+    HIDE_OUTPUT([&] {
+        command("units lj");
+        command("atom_style atomic");
+        command("boundary p p p");
+        command("atom_modify map array");
+        command("region box block 0 6 0 6 0 6");
+        command("create_box 1 box");
+        command("create_atoms 1 single 1.0 1.5 1.0");
+        command("create_atoms 1 single 5.0 4.5 4.0");
+        command("create_atoms 1 single 2.5 4.0 2.2");
+        command("create_atoms 1 single 3.5 2.0 5.2");
+        command("mass 1 1.0");
+        command("pair_style lj/cut 2.5");
+        command("pair_coeff * * 1.0 1.0");
+        command("pair_modify shift yes");
+        command("velocity all create 0.5 4711 mom yes");
+        command("variable etot equal etotal");
+        command("fix 1 all nve");
+        command(fmt::format("fix sym all symmetry {}", sym));
+        command("run 0 post no");
+    });
+    const double etot_start = get_variable_value("etot");
+
+    HIDE_OUTPUT([&] { command("run 2000 post no"); });
+    EXPECT_LT(orbit_residual({1, 2}, ops), 1.0e-12);
+    EXPECT_LT(orbit_residual({3, 4}, ops), 1.0e-12);
+    EXPECT_NEAR(get_variable_value("etot"), etot_start, 1.0e-3);
+
+    LAMMPS_NS::platform::unlink(sym);
+}
+
+// --------------------------------------------------------------------------
+//   Special position with an orbit of intermediate size: in Pmm2 an atom on
+//   the y = 0 mirror plane has one image (from the two-fold axis and the
+//   x mirror), so the orbit has 2 members for 4 operators.
+// --------------------------------------------------------------------------
+TEST_F(FixSymmetryTest, IntermediateWyckoffOrbit)
+{
+    std::string sym = write_symfile("pmm2.json", R"({
+        "group_name": "Pmm2",
+        "lattice":    "orthorhombic",
+        "ops": [
+            { "R": [[ 1, 0, 0],[ 0, 1, 0],[ 0, 0, 1]], "t": [0,0,0] },
+            { "R": [[-1, 0, 0],[ 0,-1, 0],[ 0, 0, 1]], "t": [0,0,0] },
+            { "R": [[-1, 0, 0],[ 0, 1, 0],[ 0, 0, 1]], "t": [0,0,0] },
+            { "R": [[ 1, 0, 0],[ 0,-1, 0],[ 0, 0, 1]], "t": [0,0,0] }
+        ],
+        "orbits": [
+            { "tags": [3, 4, 5, 6] },
+            { "tags": [1, 2, 2, 1], "site_symmetry": [4] }
+        ]
+    })");
+
+    HIDE_OUTPUT([&] {
+        command("units lj");
+        command("atom_style atomic");
+        command("boundary p p p");
+        command("atom_modify map array");
+        command("region box block 0 8 0 8 0 8");
+        command("create_box 1 box");
+        // orbit of size 2 on the y = 0 mirror plane
+        command("create_atoms 1 single 1.2 0.0 2.4");
+        command("create_atoms 1 single 6.8 0.0 2.4");
+        // general position orbit of size 4
+        command("create_atoms 1 single 1.0 1.5 3.0");
+        command("create_atoms 1 single 7.0 6.5 3.0");
+        command("create_atoms 1 single 7.0 1.5 3.0");
+        command("create_atoms 1 single 1.0 6.5 3.0");
+        command("mass 1 1.0");
+        command("pair_style lj/cut 2.5");
+        command("pair_coeff * * 1.0 1.0");
+        command("velocity all create 0.7 12345");
+        command("fix 1 all nve");
+    });
+
+    TEST_FAILURE("atom tag 2 is listed in two orbit positions",
+                 command(fmt::format("fix sym all symmetry {}", sym));
+                 command("run 0 post no"););
 
     LAMMPS_NS::platform::unlink(sym);
 }

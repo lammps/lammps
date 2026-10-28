@@ -1,4 +1,5 @@
-LAMMPS (27 Jun 2024 - Development - patch_27Jun2024-930-g7036930360)
+LAMMPS (30 Sep 2026 - Development - patch_30Sep2026-629-g3e9c7f533d)
+  using 1 OpenMP thread(s) per MPI task
 # pour two types of particles (cohesive and non-cohesive) on flat wall
 
 variable        name string pour_two_types
@@ -44,7 +45,7 @@ region          boxreg block 0 20 0 20 0 ${boxz}
 region          boxreg block 0 20 0 20 0 30
 create_box      2 boxreg
 Created orthogonal box = (0 0 0) to (20 20 30)
-  2 by 2 by 1 MPI processor grid
+  1 by 1 by 1 MPI processor grid
 change_box      all boundary p p f
 Changing box ...
 
@@ -84,6 +85,7 @@ fix             3 all wall/gran granular hertz/material 1e5 1e3 0.3 tangential m
 
 thermo_style    custom step atoms ke
 thermo_modify   lost warn
+compute_modify  thermo_temp dynamic/dof yes
 thermo          100
 
 timestep        0.001
@@ -102,92 +104,92 @@ Neighbor list info ...
   binsize = 0.60175662, bins = 34 34 50
   1 neighbor lists, perpetual/occasional/extra = 1 0 0
   (1) pair granular, perpetual
-      attributes: half, newton on, size, history
-      pair build: half/size/bin/atomonly/newton
+      attributes: half, newton on, history
+      pair build: half/bin/atomonly/newton
       stencil: half/bin/3d
       bin: standard
-Per MPI rank memory allocation (min/avg/max) = 15.03 | 15.03 | 15.03 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 15.24 | 15.24 | 15.24 Mbytes
    Step        Atoms        KinEng    
          0           0  -0            
-WARNING: Fewer insertions than requested (../fix_pour.cpp:688)
-WARNING: Fewer insertions than requested (../fix_pour.cpp:688)
-       100         926  -0            
-       200         926  -0            
-       300         926  -0            
-       400         926  -0            
-       500         926  -0            
-       600         926  -0            
-       700         926  -0            
-       800         926  -0            
-       900         926  -0            
-      1000         926  -0            
-      1100         926  -0            
-      1200         926  -0            
-      1300         926  -0            
-      1400         926  -0            
-      1500         926  -0            
-      1600         926  -0            
-      1700         926  -0            
-WARNING: Fewer insertions than requested (../fix_pour.cpp:688)
-WARNING: Fewer insertions than requested (../fix_pour.cpp:688)
-      1800        1882  -0            
-      1900        1882  -0            
-      2000        1882  -0            
-      2100        1882  -0            
-      2200        1882  -0            
-      2300        1882  -0            
-      2400        1882  -0            
-      2500        1882  -0            
-      2600        1882  -0            
-      2700        1882  -0            
-      2800        1882  -0            
-      2900        1882  -0            
-      3000        1882  -0            
-      3100        1882  -0            
-      3200        1882  -0            
-      3300        1882  -0            
-      3400        1882  -0            
-WARNING: Fewer insertions than requested (../fix_pour.cpp:688)
-      3500        2849  -0            
-      3600        2849  -0            
-      3700        2849  -0            
-      3800        2849  -0            
-      3900        2849  -0            
-      4000        2849  -0            
-      4100        2849  -0            
-      4200        2849  -0            
-      4300        2849  -0            
-      4400        2849  -0            
-      4500        2849  -0            
-      4600        2849  -0            
-      4700        2849  -0            
-      4800        2849  -0            
-      4900        2849  -0            
-      5000        2849  -0            
-Loop time of 2.29763 on 4 procs for 5000 steps with 2849 atoms
+WARNING: Fewer insertions than requested (491 vs 562) on step 1 (src/GRANULAR/fix_pour.cpp:704)
+WARNING: Fewer insertions than requested (435 vs 562) on step 1 (src/GRANULAR/fix_pour.cpp:704)
+       100         926   15.818667    
+       200         926   18.408141    
+       300         926   21.239767    
+       400         926   24.313542    
+       500         926   27.629468    
+       600         926   31.187545    
+       700         926   34.983956    
+       800         926   34.510883    
+       900         926   32.811505    
+      1000         926   31.034599    
+      1100         926   29.603783    
+      1200         926   27.603159    
+      1300         926   26.038574    
+      1400         926   24.78469     
+      1500         926   22.566422    
+      1600         926   21.067409    
+      1700         926   19.082649    
+WARNING: Fewer insertions than requested (488 vs 562) on step 1733 (src/GRANULAR/fix_pour.cpp:704)
+WARNING: Fewer insertions than requested (468 vs 562) on step 1733 (src/GRANULAR/fix_pour.cpp:704)
+      1800        1882   15.568875    
+      1900        1882   15.78575     
+      2000        1882   16.396966    
+      2100        1882   16.883946    
+      2200        1882   17.127089    
+      2300        1882   17.261296    
+      2400        1882   17.064961    
+      2500        1882   16.832238    
+      2600        1882   16.921682    
+      2700        1882   16.667825    
+      2800        1882   16.138383    
+      2900        1882   15.554966    
+      3000        1882   15.582395    
+      3100        1882   15.010209    
+      3200        1882   14.68561     
+      3300        1882   13.831082    
+      3400        1882   12.343109    
+WARNING: Fewer insertions than requested (446 vs 562) on step 3465 (src/GRANULAR/fix_pour.cpp:704)
+      3500        2849   11.887443    
+      3600        2849   11.737894    
+      3700        2849   11.618047    
+      3800        2849   11.430166    
+      3900        2849   11.269602    
+      4000        2849   11.229581    
+      4100        2849   11.372594    
+      4200        2849   11.266279    
+      4300        2849   10.876755    
+      4400        2849   10.420477    
+      4500        2849   10.298168    
+      4600        2849   10.181853    
+      4700        2849   9.5770017    
+      4800        2849   8.9608838    
+      4900        2849   8.3080853    
+      5000        2849   8.0464598    
+Loop time of 5.23398 on 1 procs for 5000 steps with 2849 atoms
 
-Performance: 188019.846 tau/day, 2176.156 timesteps/s, 6.200 Matom-step/s
-99.3% CPU use with 4 MPI tasks x no OpenMP threads
+Performance: 82537.605 tau/day, 955.296 timesteps/s, 2.722 Matom-step/s
+99.4% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.38295    | 0.832      | 1.3838     |  49.2 | 36.21
-Neigh   | 0.13581    | 0.1818     | 0.24052    |  10.9 |  7.91
-Comm    | 0.21418    | 0.83972    | 1.3498     |  56.1 | 36.55
-Output  | 0.00049029 | 0.00061201 | 0.00074711 |   0.0 |  0.03
-Modify  | 0.37843    | 0.41232    | 0.44468    |   4.0 | 17.95
-Other   |            | 0.03117    |            |       |  1.36
+Pair    | 3.4555     | 3.4555     | 3.4555     |   0.0 | 66.02
+Neigh   | 0.65762    | 0.65762    | 0.65762    |   0.0 | 12.56
+Comm    | 0.029297   | 0.029297   | 0.029297   |   0.0 |  0.56
+Output  | 0.00095962 | 0.00095962 | 0.00095962 |   0.0 |  0.02
+Modify  | 1.0558     | 1.0558     | 1.0558     |   0.0 | 20.17
+Other   |            | 0.03474    |            |       |  0.66
 
-Nlocal:         712.25 ave         891 max         538 min
-Histogram: 2 0 0 0 0 0 0 0 0 2
-Nghost:         420.25 ave         451 max         381 min
-Histogram: 1 0 0 1 0 0 0 0 0 2
-Neighs:        3050.75 ave        4663 max        1564 min
-Histogram: 2 0 0 0 0 0 0 0 0 2
+Nlocal:           2849 ave        2849 max        2849 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:            332 ave         332 max         332 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:          27128 ave       27128 max       27128 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
 
-Total # of neighbors = 12203
-Ave neighs/atom = 4.2832573
-Neighbor list builds = 1282
+Total # of neighbors = 27128
+Ave neighs/atom = 9.5219375
+Neighbor list builds = 1281
 Dangerous builds = 0
-Total wall time: 0:00:02
+Total wall time: 0:00:05

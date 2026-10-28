@@ -136,7 +136,8 @@ SymmOp SymmetryGroup::parse_xyz(const std::string &str)
         if (part[pos] == '-') sign = -1.0;
         ++pos;
       } else if (!first) {
-        throw std::invalid_argument("operator '" + str + "': missing + or - in '" + part + "'");
+        throw std::invalid_argument(
+            fmt::format("operator '{}': missing + or - in '{}'", str, part));
       }
       first = false;
 
@@ -153,19 +154,19 @@ SymmOp SymmetryGroup::parse_xyz(const std::string &str)
         double coeff = 1.0;
         if (!num.empty()) {
           if (num.find_first_not_of("0123456789") != std::string::npos)
-            throw std::invalid_argument("operator '" + str + "': factor '" + num +
-                                        "' must be an integer");
+            throw std::invalid_argument(
+                fmt::format("operator '{}': factor '{}' must be an integer", str, num));
           coeff = std::stod(num);
         }
         op.R[i][part[pos] - 'x'] += sign * coeff;
         ++pos;
       } else {
         if (num.empty() || (part[pos - 1] == '*'))
-          throw std::invalid_argument("operator '" + str + "': cannot parse '" + part + "'");
+          throw std::invalid_argument(fmt::format("operator '{}': cannot parse '{}'", str, part));
         try {
           op.t[i] += sign * parse_number(num);
         } catch (std::invalid_argument &e) {
-          throw std::invalid_argument("operator '" + str + "': " + e.what());
+          throw std::invalid_argument(fmt::format("operator '{}': {}", str, e.what()));
         }
       }
     }

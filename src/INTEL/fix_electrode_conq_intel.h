@@ -26,6 +26,7 @@ FixStyle(electrode/conq/intel, FixElectrodeConqIntel)
 #ifndef LMP_FIX_ELECTRODE_CONQ_INTEL_H
 #define LMP_FIX_ELECTRODE_CONQ_INTEL_H
 
+#include "electrode_vector_intel.h"
 #include "fix_electrode_conq.h"
 #include "pppm_electrode_intel.h"
 
@@ -34,8 +35,12 @@ namespace LAMMPS_NS {
 class FixElectrodeConqIntel : public FixElectrodeConq {
  public:
   FixElectrodeConqIntel(class LAMMPS *lmp, int narg, char **arg) :
-      FixElectrodeConq(lmp, narg, arg), _intel_kspace(nullptr)
+    FixElectrodeConq(lmp, narg, arg), _intel_kspace(nullptr)
   {
+    elyt_vector = new ElectrodeVectorIntel(lmp, 0, arg, igroup, igroup, eta, true);
+    if (need_elec_vector) {
+      elec_vector = new ElectrodeVectorIntel(lmp, 0, arg, igroup, igroup, eta, false);
+    }
   }
   inline void init() final override
   {

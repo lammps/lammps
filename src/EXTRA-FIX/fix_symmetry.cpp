@@ -601,6 +601,7 @@ void FixSymmetry::build_cache()
 void FixSymmetry::update_cartesian_ops()
 {
   const double *h = domain->h;
+  // NOLINTNEXTLINE
   if (!mcart.empty() && (memcmp(h, h_cart, sizeof(h_cart)) == 0)) return;
   memcpy(h_cart, h, sizeof(h_cart));
 

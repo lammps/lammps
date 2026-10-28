@@ -1,34 +1,13 @@
-LAMMPS (21 Nov 2023 - Development - e94d89ee3c-modified)
-OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (src/comm.cpp:98)
+LAMMPS (30 Sep 2026 - Development - patch_30Sep2026-625-gd9bb072d5f)
   using 1 OpenMP thread(s) per MPI task
-#info all out log
-units  metal
-atom_style  atomic
-boundary    p p p
-atom_modify    map hash
-read_data  ace_compute_struct.data
 Reading data file ...
   orthogonal box = (0 0 0) to (12 12 12)
   1 by 1 by 1 MPI processor grid
   reading atoms ...
   161 atoms
-  read_data CPU = 0.010 seconds
-mass  1 1.00
-mass  2 14.00
-mass  3 15.999
-
-pair_style     zero 5.7
-pair_coeff     * *
-
-
-compute     ace all mliap descriptor ace H_N_O_ccs.yace model linear gradgradflag 1
-fix         ace all ave/time 1 1 1 c_ace[*] file desc_out.dat  mode vector
-
-thermo 1
-thermo_style    custom         pe            pxy     c_ace[1][1] c_ace[1][2]
-thermo_modify   norm no
-run 0
-WARNING: No fixes with time integration, atoms won't move (src/verlet.cpp:60)
+  read_data CPU = 0.001 seconds
+WARNING: No fixes with time integration, atoms won't move
+For more information see https://docs.lammps.org/err0028 (src/verlet.cpp:60)
 Generated 0 of 3 mixed pair_coeff terms from geometric mixing rule
 Neighbor list info ...
   update: every = 1 steps, delay = 0 steps, check = yes
@@ -47,12 +26,12 @@ Neighbor list info ...
       pair build: full/bin/atomonly
       stencil: full/bin/3d
       bin: standard
-Per MPI rank memory allocation (min/avg/max) = 128.7 | 128.7 | 128.7 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 110.6 | 110.6 | 110.6 Mbytes
     PotEng          Pxy        c_ace[1][1]    c_ace[1][2]  
  0              0              110            633.5226     
-Loop time of 1.931e-06 on 1 procs for 0 steps with 161 atoms
+Loop time of 1.663e-06 on 1 procs for 0 steps with 161 atoms
 
-155.4% CPU use with 1 MPI tasks x 1 OpenMP threads
+240.5% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
@@ -62,7 +41,7 @@ Neigh   | 0          | 0          | 0          |   0.0 |  0.00
 Comm    | 0          | 0          | 0          |   0.0 |  0.00
 Output  | 0          | 0          | 0          |   0.0 |  0.00
 Modify  | 0          | 0          | 0          |   0.0 |  0.00
-Other   |            | 1.931e-06  |            |       |100.00
+Other   |            | 1.663e-06  |            |       |100.00
 
 Nlocal:            161 ave         161 max         161 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -77,7 +56,4 @@ Total # of neighbors = 28460
 Ave neighs/atom = 176.77019
 Neighbor list builds = 0
 Dangerous builds = 0
-
-uncompute   ace
-unfix       ace
 Total wall time: 0:00:00

@@ -255,7 +255,7 @@ void FixSymmetry::print_summary()
                           "({} on special positions) with {} independent coordinates\n",
                           id, grp->name(), grp->n_ops(), nconstrained, n_orbits, n_special, nfree);
   if (mesg != summary) {
-    summary = mesg;
+    summary = std::move(mesg);
     if (comm->me == 0) utils::logmesg(lmp, summary);
   }
 }
@@ -544,7 +544,7 @@ bigint FixSymmetry::dof(int tgroup)
         ++counts[1];    // atom in group but not constrained
       } else if (member_op[it->second] == 0) {
         const auto &orb = orbits[member_orbit[it->second]];
-        counts[0] += dim * orb.nmembers - orb.fixed_dim;
+        counts[0] += static_cast<bigint>(dim) * orb.nmembers - orb.fixed_dim;
       }
     } else if (it != member_of_tag.end()) {
       ++counts[2];    // constrained atom not in group

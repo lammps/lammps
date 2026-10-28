@@ -354,7 +354,7 @@ void SymmetryGroup::apply_supercell()
           cellops.push_back(op);
         }
   }
-  ops = cellops;
+  ops = std::move(cellops);
 }
 
 /* ----------------------------------------------------------------------

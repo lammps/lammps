@@ -28,6 +28,7 @@
 //  12. MKL_Optimized - MKL library optimizations (conditional)
 //  13. KISS_NonPowerOf2 - KISS FFT with various non-power-of-2 sizes (conditional)
 //  14. HeFFTe_Distributed - HeFFTe distributed FFT (conditional)
+//  15. FFTW3_OverlappingPlans - FFTW3 plans with overlapping lifetimes (conditional)
 
 #include "KSPACE/fft3d_wrap.h"
 #include "info.h"
@@ -45,6 +46,10 @@
 #include <mpi.h>
 #include <random>
 #include <vector>
+
+#if defined(_OPENMP)
+#include <omp.h>
+#endif
 
 using namespace LAMMPS_NS;
 using namespace FFTTestHelpers;
@@ -1150,6 +1155,85 @@ TEST_F(FFT3DTest, HeFFTe_Distributed)
                         << "\n  Tolerance: " << ROUNDTRIP_TOLERANCE
                         << "\n  Note: Running in serial mode";
     EXPECT_LT(validator.get_error_stats().max(), ROUNDTRIP_TOLERANCE);
+}
+
+// ============================================================================
+// Test 15: FFTW3 Plans with Overlapping Lifetimes
+// ============================================================================
+// With threaded FFTW, destroying one plan must not invalidate the others:
+// fftw_cleanup_threads() may only be called after the last plan is gone.
+// Also checks that FFTW works again after that final cleanup.
+
+TEST_F(FFT3DTest, FFTW3_OverlappingPlans)
+{
+#ifndef FFT_FFTW3
+    GTEST_SKIP() << "Test requires FFTW3, built with: " << LMP_FFT_LIB;
+#endif
+
+#ifndef FFT_FFTW_THREADS
+    GTEST_SKIP() << "Test requires FFTW3 with threading enabled (FFT_FFTW_THREADS)";
+#endif
+
+    const int n     = 27;
+    const int nsize = n * n * n;
+
+    auto make_fft = [&]() {
+        int nbuf = 0;
+        BEGIN_HIDE_OUTPUT();
+        // a serial plan on every MPI rank
+        auto *plan = new FFT3d(lmp, MPI_COMM_SELF, n, n, n, 0, n - 1, 0, n - 1, 0, n - 1, 0, n - 1,
+                               0, n - 1, 0, n - 1, 0, 0, &nbuf, 0, 0);
+        END_HIDE_OUTPUT();
+        return plan;
+    };
+
+    auto round_trip = [&](FFT3d *plan) {
+        std::vector<FFT_SCALAR> data(2 * nsize), work(2 * nsize);
+        FFTTestData::RandomComplexGenerator generator(4242);
+        generator.generate(data.data(), n, n, n);
+        std::vector<FFT_SCALAR> original(data);
+
+        BEGIN_HIDE_OUTPUT();
+        plan->compute(data.data(), work.data(), FFT3d::FORWARD);
+        plan->compute(work.data(), data.data(), FFT3d::BACKWARD);
+        END_HIDE_OUTPUT();
+        for (auto &value : data)
+            value /= static_cast<FFT_SCALAR>(nsize);
+
+        FFTValidation::RoundTripValidator validator(original.data(), data.data(), n, n, n,
+                                                    ROUNDTRIP_TOLERANCE, verbose);
+        EXPECT_TRUE(validator.validate()) << "Max error: " << validator.get_error_stats().max();
+    };
+
+#if defined(_OPENMP)
+    const int saved_threads = omp_get_max_threads();
+    for (int nthreads : {1, 4}) {
+        omp_set_num_threads(nthreads);
+#else
+    for (int nthreads : {1}) {
+#endif
+        SCOPED_TRACE("OpenMP threads: " + std::to_string(nthreads));
+
+        // five plans alive at the same time, the last one replaced by a new
+        // plan, as pair style amoeba/gpu does with one of its five grids
+        std::vector<FFT3d *> plans;
+        for (int i = 0; i < 5; i++)
+            plans.push_back(make_fft());
+        delete plans.back();
+        plans.back() = make_fft();
+        for (auto *plan : plans)
+            round_trip(plan);
+        for (auto *plan : plans)
+            delete plan;
+
+        // a new plan after the last one was destroyed
+        FFT3d *last = make_fft();
+        round_trip(last);
+        delete last;
+    }
+#if defined(_OPENMP)
+    omp_set_num_threads(saved_threads);
+#endif
 }
 
 int main(int argc, char **argv)

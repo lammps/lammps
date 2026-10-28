@@ -844,7 +844,7 @@ void FFT3dKokkos<DeviceType>::fft_3d_destroy_plan_kokkos(struct fft_plan_3d_kokk
 
   // we used to call fftw_cleanup_threads() here, but the data it cleans up is global,
   // so when multiple FFT3d instances exist we will have a use-after-free error and
-  // an occasional segmentation fault. Better to keep this. Because it is global data,
+  // an occasional segmentation fault. Better to not clean up. Because it is global data,
   // there is no memory leak from repeatedly creating and deleting FFT3d instances.
 
 #elif defined (FFT_KOKKOS_KISS)

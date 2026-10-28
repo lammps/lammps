@@ -1160,9 +1160,8 @@ TEST_F(FFT3DTest, HeFFTe_Distributed)
 // ============================================================================
 // Test 15: FFTW3 Plans with Overlapping Lifetimes
 // ============================================================================
-// With threaded FFTW, destroying one plan must not invalidate the others:
-// fftw_cleanup_threads() may only be called after the last plan is gone.
-// Also checks that FFTW works again after that final cleanup.
+// With threaded FFTW, destroying one plan must not invalidate the others.
+// Also checks that FFTW works again after all others were destroyed.
 
 TEST_F(FFT3DTest, FFTW3_OverlappingPlans)
 {

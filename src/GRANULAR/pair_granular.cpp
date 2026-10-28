@@ -219,6 +219,24 @@ void PairGranular::compute(int eflag, int vflag)
       jtype = type[j];
       model = models_list[types_indices[itype][jtype]];
 
+      // quick rejection of pairs that are not in contact unless the
+      // contact model has interactions beyond contact (e.g. JKR)
+
+      if (!model->beyond_contact) {
+        const double delx = x[i][0] - x[j][0];
+        const double dely = x[i][1] - x[j][1];
+        const double delz = x[i][2] - x[j][2];
+        const double radsum = radius[i] + radius[j];
+        if (delx * delx + dely * dely + delz * delz >= radsum * radsum) {
+          if (use_history) {
+            touch[jj] = 0;
+            history = &allhistory[size_history * jj];
+            for (k = 0; k < size_history; k++) history[k] = 0.0;
+          }
+          continue;
+        }
+      }
+
       // Reset model and copy initial geometric data
       model->xi = x[i];
       model->xj = x[j];

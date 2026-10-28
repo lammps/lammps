@@ -28,6 +28,22 @@ struct TagNeighborCheckDistance{};
 template<class DeviceType>
 struct TagNeighborXhold{};
 
+// writes stamp to moved if any atom moved more than sqrt(deltasq) since the last build
+template<class DeviceType>
+struct NeighborCheckDistanceFlag {
+  Kokkos::View<int,LMPPinnedHostType> moved;    // pinned host memory, written by the device
+  typename ArrayTypes<DeviceType>::t_kkfloat_1d_3_lr x, xhold;
+  double deltasq;
+  int stamp;
+  KOKKOS_INLINE_FUNCTION
+  void operator()(const int i) const {
+    const double delx = static_cast<double>(x(i,0) - xhold(i,0));
+    const double dely = static_cast<double>(x(i,1) - xhold(i,1));
+    const double delz = static_cast<double>(x(i,2) - xhold(i,2));
+    if (delx*delx + dely*dely + delz*delz > deltasq) moved() = stamp;
+  }
+};
+
 class NeighborKokkos : public Neighbor {
  public:
   typedef int value_type;
@@ -77,6 +93,11 @@ class NeighborKokkos : public Neighbor {
   DAT::ttransform_kkfloat_1d_3_lr xhold;
 
   double deltasq;
+
+  // flag of check_distance(): atoms that moved too far write the stamp of
+  // the current call, so the flag needs no reset between calls
+  Kokkos::View<int,LMPPinnedHostType> h_moved;
+  int moved_stamp;
 
   void init_cutneighsq_kokkos(int) override;
   void init_cutneighghostsq_kokkos(int) override;

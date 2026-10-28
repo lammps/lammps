@@ -1,7 +1,7 @@
 #! /bin/bash
 
 REL_TOL_NVE=1e-8
-REL_TOL_NVT=5e-3
+REL_TOL_NVT=0.005 # "bc -l" does not take scientific notation, unlike awk, so use decimal notation
 UNITS=lj
 
 LMPDIR=/Users/xwb17127/Work/code/lammps
@@ -1160,6 +1160,11 @@ if [ $# -eq 1 ] && [ $1 = run ]; then
   cp $BUILDDIR/lmp_mpi .
   cp ../in.dsring2 .
   cp ../data.dsring2 .
+  if [ $UNITS = lj ]; then
+    cp ../oxdna3_lj.cgdna .
+  elif [ $UNITS = real ]; then
+    cp ../oxdna3_real.cgdna .
+  fi
 
   ### 8 MPI-tasks ###
   mpirun -np 8 ./lmp_mpi -in in.dsring2 > /dev/null
@@ -1455,7 +1460,7 @@ elif [ $# -eq 1 ] && [ $1 = clean ]; then
   rm -rf $EXDIR/test.log
 
   echo '# Deleting build directory'
-  rm -rf $LMPDIR/build
+  rm -rf $BUILDDIR
 
   echo '# Done'
   

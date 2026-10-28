@@ -4,24 +4,42 @@
 .. index:: pair_style oxdna3/xstk
 .. index:: pair_style oxdna3/coaxstk
 .. index:: pair_style oxdna3/dh
+.. index:: pair_style oxdna3/excv/kk
+.. index:: pair_style oxdna3/stk/kk
+.. index:: pair_style oxdna3/hbond/kk
+.. index:: pair_style oxdna3/xstk/kk
+.. index:: pair_style oxdna3/coaxstk/kk
+.. index:: pair_style oxdna3/dh/kk
 
 pair_style oxdna3/excv command
 ==============================
 
+Accelerator Variants: *oxdna3/excv/kk*
+
 pair_style oxdna3/stk command
 =============================
+
+Accelerator Variants: *oxdna3/stk/kk*
 
 pair_style oxdna3/hbond command
 ===============================
 
+Accelerator Variants: *oxdna3/hbond/kk*
+
 pair_style oxdna3/xstk command
 ==============================
+
+Accelerator Variants: *oxdna3/xstk/kk*
 
 pair_style oxdna3/coaxstk command
 =================================
 
+Accelerator Variants: *oxdna3/coaxstk/kk*
+
 pair_style oxdna3/dh command
 ============================
+
+Accelerator Variants: *oxdna3/dh/kk*
 
 Syntax
 """"""
@@ -157,6 +175,10 @@ strands, DNA duplexes or arrays of DNA duplexes can be found in
 
 ----------
 
+.. include:: accel_styles.rst
+
+----------
+
 Unique base pairing
 """"""""""""""""""""""
 
@@ -231,17 +253,28 @@ Restrictions
 """"""""""""
 
 These pair styles can only be used if LAMMPS was built with the
-CG-DNA package and the MOLECULE and ASPHERE package.  See the
+:ref:`CG-DNA <PKG-CG-DNA>` package and the :ref:`MOLECULE <PKG-MOLECULE>`
+and :ref:`ASPHERE <PKG-ASPHERE>` package. For KOKKOS acceleration also
+the :ref:`KOKKOS <PKG-KOKKOS>` package has to be included. See the
 :doc:`Build package <Build_package>` page for more info.
+
+Pair styles *oxdna3/excv/kk*, *oxdna3/stk/kk*, *oxdna3/hbond/kk*,
+*oxdna3/xstk/kk*, *oxdna3/coaxstk/kk*, and *oxdna3/dh/kk* currently
+only support :doc:`units lj <units>`.
+
+These oxDNA3 pair styles require exactly 4 atom types, one for each
+of the nucleotides A, C, G, and T, since the sequence-dependent
+parameters in the potential file are ordered by these 4 types.  All 4
+types must be defined even if a simulation does not use all of them.
 
 Related commands
 """"""""""""""""
 
-:doc:`bond_style oxdna3/fene <bond_oxdna>`,
+:doc:`bond_style oxdna3/fene <bond_oxdna>`,:doc:`pair_coeff <pair_coeff>`,
 :doc:`bond_style oxdna/fene <bond_oxdna>`, :doc:`pair_style oxdna/excv <pair_oxdna>`,
 :doc:`bond_style oxdna2/fene <bond_oxdna>`, :doc:`pair_style oxdna2/excv <pair_oxdna2>`,
 :doc:`bond_style oxrna2/fene <bond_oxdna>`, :doc:`pair_style oxrna2/excv <pair_oxrna2>`,
-:doc:`pair_coeff <pair_coeff>`, :doc:`atom_style oxdna <atom_style>`,
+:doc:`atom_style oxdna <atom_style>`,
 :doc:`fix nve/dotc/langevin <fix_nve_dotc_langevin>`
 
 Default

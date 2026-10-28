@@ -3,21 +3,36 @@
 .. index:: pair_style oxdna/hbond
 .. index:: pair_style oxdna/xstk
 .. index:: pair_style oxdna/coaxstk
+.. index:: pair_style oxdna/excv/kk
+.. index:: pair_style oxdna/stk/kk
+.. index:: pair_style oxdna/hbond/kk
+.. index:: pair_style oxdna/xstk/kk
+.. index:: pair_style oxdna/coaxstk/kk
 
 pair_style oxdna/excv command
 =============================
 
+Accelerator Variants: *oxdna/excv/kk*
+
 pair_style oxdna/stk command
 ============================
+
+Accelerator Variants: *oxdna/stk/kk*
 
 pair_style oxdna/hbond command
 ==============================
 
+Accelerator Variants: *oxdna/hbond/kk*
+
 pair_style oxdna/xstk command
 =============================
 
+Accelerator Variants: *oxdna/xstk/kk*
+
 pair_style oxdna/coaxstk command
 ================================
+
+Accelerator Variants: *oxdna/coaxstk/kk*
 
 Syntax
 """"""
@@ -158,6 +173,10 @@ in ``examples/PACKAGES/cgdna/util/``.
 
 ----------
 
+.. include:: accel_styles.rst
+
+----------
+
 Potential file reading
 """"""""""""""""""""""
 
@@ -287,14 +306,21 @@ Restrictions
 """"""""""""
 
 These pair styles can only be used if LAMMPS was built with the
-CG-DNA package and the MOLECULE and ASPHERE package.  See the
+:ref:`CG-DNA <PKG-CG-DNA>` package and the :ref:`MOLECULE <PKG-MOLECULE>`
+and :ref:`ASPHERE <PKG-ASPHERE>` package. For KOKKOS acceleration also
+the :ref:`KOKKOS <PKG-KOKKOS>` package has to be included. See the
 :doc:`Build package <Build_package>` page for more info.
+
+Pair styles *oxdna/excv/kk*, *oxdna/stk/kk*, *oxdna/hbond/kk*,
+*oxdna/xstk/kk*, and *oxdna/coaxstk/kk* currently only support
+:doc:`units lj <units>`.
 
 Related commands
 """"""""""""""""
 
 :doc:`bond_style oxdna/fene <bond_oxdna>`, :doc:`pair_coeff <pair_coeff>`,
 :doc:`bond_style oxdna2/fene <bond_oxdna>`, :doc:`pair_style oxdna2/excv <pair_oxdna2>`,
+:doc:`bond_style oxdna3/fene <bond_oxdna>`, :doc:`pair_style oxdna3/excv <pair_oxdna3>`,
 :doc:`bond_style oxrna2/fene <bond_oxdna>`, :doc:`pair_style oxrna2/excv <pair_oxrna2>`,
 :doc:`atom_style oxdna <atom_style>`, :doc:`fix nve/dotc/langevin <fix_nve_dotc_langevin>`
 

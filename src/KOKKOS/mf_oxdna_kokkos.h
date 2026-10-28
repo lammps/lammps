@@ -1,0 +1,427 @@
+/* -*- c++ -*- ----------------------------------------------------------
+   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
+   https://www.lammps.org/, Sandia National Laboratories
+   LAMMPS development team: developers@lammps.org
+
+   Copyright (2003) Sandia Corporation.  Under the terms of Contract
+   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
+   certain rights in this software.  This software is distributed under
+   the GNU General Public License.
+
+   See the README file in the top-level LAMMPS directory.
+------------------------------------------------------------------------- */
+
+#ifndef MF_OXDNA_KOKKOS_H
+#define MF_OXDNA_KOKKOS_H
+
+#include "kokkos_type.h"
+
+namespace MFOxdnaKokkos {
+
+// Launch bounds (max threads per block, min blocks per SM) of the oxDNA
+// device kernels, tunable at compile time for performance studies, e.g.
+// -DOXDNA_KK_PAIR_MAXT=128 -DOXDNA_KK_PAIR_MINB=4.  A value of 0 leaves the
+// choice to Kokkos (no launch bounds).
+//   ATOM: per-atom neighbor-loop kernels (excv, dh)
+//   PAIR: screened-pair kernels (hbond, xstk, oxdna3/xstk, coaxstk)
+//   BOND: per-bond kernels (stk, fene)
+
+#if defined(KOKKOS_ENABLE_HIP)
+#define OXDNA_KK_ATOM_MAXT_DEFAULT 128
+#define OXDNA_KK_ATOM_MINB_DEFAULT 1
+#elif defined(KOKKOS_ENABLE_CUDA)
+#define OXDNA_KK_ATOM_MAXT_DEFAULT 64
+#define OXDNA_KK_ATOM_MINB_DEFAULT 1
+#else
+#define OXDNA_KK_ATOM_MAXT_DEFAULT 0
+#define OXDNA_KK_ATOM_MINB_DEFAULT 0
+#endif
+
+#ifndef OXDNA_KK_ATOM_MAXT
+#define OXDNA_KK_ATOM_MAXT OXDNA_KK_ATOM_MAXT_DEFAULT
+#endif
+#ifndef OXDNA_KK_ATOM_MINB
+#define OXDNA_KK_ATOM_MINB OXDNA_KK_ATOM_MINB_DEFAULT
+#endif
+#ifndef OXDNA_KK_PAIR_MAXT
+#define OXDNA_KK_PAIR_MAXT 0
+#endif
+#ifndef OXDNA_KK_PAIR_MINB
+#define OXDNA_KK_PAIR_MINB 0
+#endif
+#ifndef OXDNA_KK_BOND_MAXT
+#define OXDNA_KK_BOND_MAXT 0
+#endif
+#ifndef OXDNA_KK_BOND_MINB
+#define OXDNA_KK_BOND_MINB 0
+#endif
+
+// Thread mapping of the screened-pair kernels (hbond, oxdna3/xstk, coaxstk):
+// 0 = one thread per screened pair (default), 1 = one thread per atom that
+// loops over the screened pairs of that atom and accumulates its force and
+// torque in registers (atomic updates only for the partner atoms).
+#ifndef OXDNA_KK_SCREENED_PER_ATOM
+#define OXDNA_KK_SCREENED_PER_ATOM 0
+#endif
+
+// Two-phase evaluation of the screened-pair kernels of hbond and oxdna3/xstk:
+// 0 = one kernel (default), 1 = a first kernel collects the pairs that pass
+// the radial cutoff test into a compact list and a second kernel evaluates
+// the angular terms only for those pairs, so that the threads of a warp
+// follow the same code path.
+#ifndef OXDNA_KK_TWO_PHASE
+#define OXDNA_KK_TWO_PHASE 0
+#endif
+#if OXDNA_KK_TWO_PHASE && OXDNA_KK_SCREENED_PER_ATOM
+#error "OXDNA_KK_TWO_PHASE and OXDNA_KK_SCREENED_PER_ATOM cannot be combined"
+#endif
+
+// Fused kernel of pair oxdna3/hbond and oxdna3/xstk on the screened-pair
+// path (GPUs): 1 = one kernel evaluates both styles for each screened pair
+// and updates the force and torque of the first atom once (default),
+// 0 = separate kernels.  The fused kernel is not used with the two options
+// above or when per-atom energies or virials are requested.
+#ifndef OXDNA_KK_FUSE_HBXSTK
+#define OXDNA_KK_FUSE_HBXSTK 1
+#endif
+// Compacted evaluation of the fused kernel: 1 = a first kernel collects the
+// screened pairs that pass the radial test of hbond or oxdna3/xstk, and the
+// fused kernel evaluates only those (default), 0 = all screened pairs.
+#ifndef OXDNA_KK_FUSED_COMPACT
+#define OXDNA_KK_FUSED_COMPACT 1
+#endif
+#define OXDNA_KK_FUSE_HBXSTK_ACTIVE \
+  (OXDNA_KK_FUSE_HBXSTK && !OXDNA_KK_TWO_PHASE && !OXDNA_KK_SCREENED_PER_ATOM)
+
+template<class DeviceType, class Tag>
+using OxdnaRangePolicy =
+  Kokkos::RangePolicy<DeviceType, Tag, Kokkos::LaunchBounds<OXDNA_KK_ATOM_MAXT, OXDNA_KK_ATOM_MINB>>;
+template<class DeviceType, class Tag>
+using OxdnaPairRangePolicy =
+  Kokkos::RangePolicy<DeviceType, Tag, Kokkos::LaunchBounds<OXDNA_KK_PAIR_MAXT, OXDNA_KK_PAIR_MINB>>;
+template<class DeviceType, class Tag>
+using OxdnaBondRangePolicy =
+  Kokkos::RangePolicy<DeviceType, Tag, Kokkos::LaunchBounds<OXDNA_KK_BOND_MAXT, OXDNA_KK_BOND_MINB>>;
+
+// Kernels launched with the light-weight hint: on HIP a functor larger than
+// 512 bytes is otherwise copied to constant memory before each launch, with a
+// host-blocking event synchronization.  With the hint it is passed as a kernel
+// argument (up to 4 kB).  Only for kernels that keep the functor in registers
+// that way: for the large excv and fused hbond+xstk kernels the compiler then
+// copies the whole functor to the stack, which costs more than the copy
+template<class DeviceType, class Tag, int MAXT, int MINB>
+using OxdnaLightPolicy =
+  Kokkos::RangePolicy<DeviceType, Tag, Kokkos::LaunchBounds<MAXT, MINB>,
+                      Kokkos::Experimental::WorkItemProperty::HintLightWeight_t>;
+
+/* ----------------------------------------------------------------------
+   f1 modulation factor
+   ---------------------------------------------------------------------- */
+KOKKOS_INLINE_FUNCTION
+static KK_FLOAT F1_KK(KK_FLOAT r, KK_FLOAT eps, KK_FLOAT a, KK_FLOAT cut_0,
+                     KK_FLOAT cut_lc, KK_FLOAT cut_hc, KK_FLOAT cut_lo,
+                     KK_FLOAT cut_hi, KK_FLOAT b_lo,
+                     KK_FLOAT b_hi, KK_FLOAT shift)
+{
+  if (r > cut_hc) {
+    return 0.0;
+  } else if (r > cut_hi) {
+    return eps * b_hi * (r - cut_hc) * (r - cut_hc);
+  } else if (r > cut_lo) {
+    KK_FLOAT tmp = 1 - Kokkos::exp(-(r - cut_0) * a);
+    return eps * tmp * tmp - shift;
+  } else if (r > cut_lc) {
+    return eps * b_lo * (r - cut_lc) * (r - cut_lc);
+  } else {
+    return 0.0;
+  }
+}
+
+KOKKOS_INLINE_FUNCTION
+static KK_FLOAT F1_KK(KK_FLOAT r, KK_FLOAT eps, KK_FLOAT a, KK_FLOAT cut_0,
+                     KK_FLOAT cut_lc, KK_FLOAT cut_hc, KK_FLOAT cut_lo,
+                     KK_FLOAT cut_hi, KK_FLOAT b_lo,
+                     KK_FLOAT b_hi, KK_FLOAT shift, KK_FLOAT &df1)
+{
+  if (r > cut_hc) {
+    df1 = 0.0;
+    return 0.0;
+  } else if (r > cut_hi) {
+    df1 = 2 * eps * b_hi * (1 - cut_hc / r);
+    return eps * b_hi * (r - cut_hc) * (r - cut_hc);
+  } else if (r > cut_lo) {
+    KK_FLOAT tmp = Kokkos::exp(-(r - cut_0) * a);
+    df1 = 2 * eps * (1 - tmp) * tmp * a / r;
+    tmp = 1 - tmp;
+    return eps * tmp * tmp - shift;
+  } else if (r > cut_lc) {
+    df1 = 2 * eps * b_lo * (1 - cut_lc / r);
+    return eps * b_lo * (r - cut_lc) * (r - cut_lc);
+  } else {
+    df1 = 0.0;
+    return 0.0;
+  }
+}
+
+/* ----------------------------------------------------------------------
+   derivative of f1 modulation factor
+   ---------------------------------------------------------------------- */
+KOKKOS_INLINE_FUNCTION
+static KK_FLOAT DF1_KK(KK_FLOAT r, KK_FLOAT eps, KK_FLOAT a, KK_FLOAT cut_0,
+                      KK_FLOAT cut_lc, KK_FLOAT cut_hc, KK_FLOAT cut_lo,
+                      KK_FLOAT cut_hi, KK_FLOAT b_lo, KK_FLOAT b_hi)
+{
+  if (r > cut_hc) {
+    return 0.0;
+  } else if (r > cut_hi) {
+    return 2 * eps * b_hi * (1 - cut_hc / r);
+  } else if (r > cut_lo) {
+    KK_FLOAT tmp = Kokkos::exp(-(r - cut_0) * a);
+    return 2 * eps * (1 - tmp) * tmp * a / r;
+  } else if (r > cut_lc) {
+    return 2 * eps * b_lo * (1 - cut_lc / r);
+  } else {
+    return 0.0;
+  }
+}
+
+/* ----------------------------------------------------------------------
+   f2 modulation factor
+   ---------------------------------------------------------------------- */
+KOKKOS_INLINE_FUNCTION
+static KK_FLOAT F2_KK(KK_FLOAT r, KK_FLOAT k, KK_FLOAT cut_0, KK_FLOAT cut_lc,
+                     KK_FLOAT cut_hc, KK_FLOAT cut_lo, KK_FLOAT cut_hi,
+                     KK_FLOAT b_lo, KK_FLOAT b_hi, KK_FLOAT cut_c)
+{
+  if (r < cut_lc || r > cut_hc) {
+    return 0;
+  } else if (r < cut_lo) {
+    return k * b_lo * (cut_lc - r) * (cut_lc - r);
+  } else if (r < cut_hi) {
+    return k * static_cast<KK_FLOAT>(0.5) * ((r - cut_0) * (r - cut_0) - (cut_0 - cut_c) * (cut_0 - cut_c));
+  } else {
+    return k * b_hi * (cut_hc - r) * (cut_hc - r);
+  }
+}
+
+KOKKOS_INLINE_FUNCTION
+static KK_FLOAT F2_KK(KK_FLOAT r, KK_FLOAT k, KK_FLOAT cut_0, KK_FLOAT cut_lc,
+                     KK_FLOAT cut_hc, KK_FLOAT cut_lo, KK_FLOAT cut_hi,
+                     KK_FLOAT b_lo, KK_FLOAT b_hi, KK_FLOAT cut_c, KK_FLOAT &df2)
+{
+  if (r < cut_lc || r > cut_hc) {
+    df2 = 0.0;
+    return 0.0;
+  } else if (r < cut_lo) {
+    df2 = 2 * k * b_lo * (r - cut_lc);
+    return k * b_lo * (cut_lc - r) * (cut_lc - r);
+  } else if (r < cut_hi) {
+    df2 = k * (r - cut_0);
+    return k * static_cast<KK_FLOAT>(0.5) * Kokkos::fma((r - cut_0), (r - cut_0), -(cut_0 - cut_c) * (cut_0 - cut_c));
+  } else {
+    df2 = 2 * k * b_hi * (r - cut_hc);
+    return k * b_hi * (cut_hc - r) * (cut_hc - r);
+  }
+}
+
+/* ----------------------------------------------------------------------
+   derivative of f2 modulation factor
+   ---------------------------------------------------------------------- */
+KOKKOS_INLINE_FUNCTION
+static KK_FLOAT DF2_KK(KK_FLOAT r, KK_FLOAT k, KK_FLOAT cut_0, KK_FLOAT cut_lc,
+                      KK_FLOAT cut_hc, KK_FLOAT cut_lo, KK_FLOAT cut_hi,
+                      KK_FLOAT b_lo, KK_FLOAT b_hi)
+{
+  if (r < cut_lc || r > cut_hc) {
+    return 0;
+  } else if (r < cut_lo) {
+    return 2 * k * b_lo * (r - cut_lc);
+  } else if (r < cut_hi) {
+    return k * (r - cut_0);
+  } else {
+    return 2 * k * b_hi * (r - cut_hc);
+  }
+}
+
+/* ----------------------------------------------------------------------
+   f3 modulation factor
+   ---------------------------------------------------------------------- */
+KOKKOS_INLINE_FUNCTION
+static KK_FLOAT F3_KK(KK_FLOAT rsq, KK_FLOAT cutsq_ast, KK_FLOAT cut_c,
+                     KK_FLOAT lj1, KK_FLOAT lj2, KK_FLOAT eps, KK_FLOAT b,
+                     KK_ACC_FLOAT &fpair)
+{
+  KK_FLOAT evdwl = 0.0;
+
+  if (rsq < cutsq_ast) {
+    KK_FLOAT r2inv = static_cast<KK_FLOAT>(1.0) / rsq;
+    KK_FLOAT r6inv = r2inv * r2inv * r2inv;
+    fpair = static_cast<KK_ACC_FLOAT>(r2inv * r6inv * (12 * lj1 * r6inv - 6 * lj2));
+    evdwl = r6inv * (lj1 * r6inv - lj2);
+  } else {
+    KK_FLOAT r = Kokkos::sqrt(rsq);
+    KK_FLOAT rinv = static_cast<KK_FLOAT>(1.0) / r;
+    fpair = static_cast<KK_ACC_FLOAT>(2 * eps * b * (cut_c * rinv - 1));
+    evdwl = eps * b * (cut_c - r) * (cut_c - r);
+  }
+  return evdwl;
+}
+
+/* ----------------------------------------------------------------------
+   f4 modulation factor
+   ---------------------------------------------------------------------- */
+KOKKOS_INLINE_FUNCTION
+static KK_FLOAT F4_KK(KK_FLOAT theta, KK_FLOAT a, KK_FLOAT theta_0,
+                     KK_FLOAT dtheta_ast, KK_FLOAT b, KK_FLOAT dtheta_c)
+{
+  KK_FLOAT dtheta = theta - theta_0;
+
+  if (Kokkos::fabs(dtheta) > dtheta_c) {
+    return 0.0;
+  } else if (dtheta > dtheta_ast) {
+    return b * (dtheta - dtheta_c) * (dtheta - dtheta_c);
+  } else if (dtheta > -dtheta_ast) {
+    return 1 - a * dtheta * dtheta;
+  } else {
+    return b * (dtheta + dtheta_c) * (dtheta + dtheta_c);
+  }
+}
+
+KOKKOS_INLINE_FUNCTION
+static KK_FLOAT F4_KK(KK_FLOAT theta, KK_FLOAT a, KK_FLOAT theta_0,
+                     KK_FLOAT dtheta_ast, KK_FLOAT b, KK_FLOAT dtheta_c, KK_FLOAT &df4)
+{
+  KK_FLOAT dtheta = theta - theta_0;
+
+  if (Kokkos::fabs(dtheta) > dtheta_c) {
+    df4 = 0.0;
+    return 0.0;
+  } else if (dtheta > dtheta_ast) {
+    df4 = 2 * b * (dtheta - dtheta_c);
+    return b * (dtheta - dtheta_c) * (dtheta - dtheta_c);
+  } else if (dtheta > -dtheta_ast) {
+    df4 = -2 * a * dtheta;
+    return 1 - a * dtheta * dtheta;
+  } else {
+    df4 = 2 * b * (dtheta + dtheta_c);
+    return b * (dtheta + dtheta_c) * (dtheta + dtheta_c);
+  }
+}
+
+/* ----------------------------------------------------------------------
+   derivative of f4 modulation factor
+
+   NOTE: We handle the sin(theta) factor from the partial derivative
+   of d(cos(theta))/dtheta externally. The reason for this is
+   because the sign of DF4 depends on the sign of theta in the
+   function call. It is also more efficient to store sin(theta).
+   ---------------------------------------------------------------------- */
+KOKKOS_INLINE_FUNCTION
+static KK_FLOAT DF4_KK(KK_FLOAT theta, KK_FLOAT a, KK_FLOAT theta_0,
+                      KK_FLOAT dtheta_ast, KK_FLOAT b, KK_FLOAT dtheta_c)
+{
+  KK_FLOAT dtheta = theta - theta_0;
+
+  if (Kokkos::fabs(dtheta) > dtheta_c) {
+    return 0.0;
+  } else if (dtheta > dtheta_ast) {
+    return 2 * b * (dtheta - dtheta_c);
+  } else if (dtheta > -dtheta_ast) {
+    return -2 * a * dtheta;
+  } else {
+    return 2 * b * (dtheta + dtheta_c);
+  }
+}
+
+/* ----------------------------------------------------------------------
+   f5 modulation factor
+   ---------------------------------------------------------------------- */
+KOKKOS_INLINE_FUNCTION
+static KK_FLOAT F5_KK(KK_FLOAT x, KK_FLOAT a, KK_FLOAT x_ast,
+                     KK_FLOAT b, KK_FLOAT x_c)
+{
+  if (x >= 0) {
+    return 1.0;
+  } else if (x > x_ast) {
+    return 1 - a * x * x;
+  } else if (x > x_c) {
+    return b * (x - x_c) * (x - x_c);
+  } else {
+    return 0.0;
+  }
+}
+
+/* ----------------------------------------------------------------------
+   derivative of f5 modulation factor
+   ---------------------------------------------------------------------- */
+KOKKOS_INLINE_FUNCTION
+static KK_FLOAT DF5_KK(KK_FLOAT x, KK_FLOAT a, KK_FLOAT x_ast,
+                      KK_FLOAT b, KK_FLOAT x_c)
+{
+  if (x >= 0) {
+    return 0.0;
+  } else if (x > x_ast) {
+    return -2 * a * x;
+  } else if (x > x_c) {
+    return 2 * b * (x - x_c);
+  } else {
+    return 0.0;
+  }
+}
+
+/* ----------------------------------------------------------------------
+   f6 modulation factor
+   ---------------------------------------------------------------------- */
+KOKKOS_INLINE_FUNCTION
+static KK_FLOAT F6_KK(KK_FLOAT theta, KK_FLOAT a, KK_FLOAT b)
+{
+  if (theta < b) {
+    return 0.0;
+  } else {
+    return static_cast<KK_FLOAT>(0.5) * a * (theta - b) * (theta - b);
+  }
+}
+
+KOKKOS_INLINE_FUNCTION
+static KK_FLOAT F6_KK(KK_FLOAT theta, KK_FLOAT a, KK_FLOAT b, KK_FLOAT &df6)
+{
+  if (theta < b) {
+    df6 = 0.0;
+    return 0.0;
+  } else {
+    df6 = a * (theta - b);
+    return static_cast<KK_FLOAT>(0.5) * a * (theta - b) * (theta - b);
+  }
+}
+
+/* ----------------------------------------------------------------------
+   derivative of f6 modulation factor
+   ---------------------------------------------------------------------- */
+KOKKOS_INLINE_FUNCTION
+static KK_FLOAT DF6_KK(KK_FLOAT theta, KK_FLOAT a, KK_FLOAT b)
+{
+  if (theta < b) {
+    return 0.0;
+  } else {
+    return a * (theta - b);
+  }
+}
+
+/* ----------------------------------------------------------------------
+   length of the cross product of two vectors; for two unit vectors this is
+   the sine of the angle between them, which together with atan2() stays
+   accurate near 0 and pi, unlike acos() of the dot product
+------------------------------------------------------------------------- */
+
+KOKKOS_INLINE_FUNCTION
+KK_FLOAT cross_norm(const KK_FLOAT (&u)[3], const KK_FLOAT (&v)[3])
+{
+  const KK_FLOAT c0 = u[1] * v[2] - u[2] * v[1];
+  const KK_FLOAT c1 = u[2] * v[0] - u[0] * v[2];
+  const KK_FLOAT c2 = u[0] * v[1] - u[1] * v[0];
+  return Kokkos::sqrt(c0 * c0 + c1 * c1 + c2 * c2);
+}
+
+}    // namespace MFOxdnaKokkos
+
+#endif

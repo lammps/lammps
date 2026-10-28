@@ -538,7 +538,7 @@ void Replicate::replicate_by_proc(int nx, int ny, int nz,
               atom->tag[i] += atom_offset;
               atom->image[i] = image;
 
-              // CG-DNA package: the per-atom 3'/5' partner IDs of oxDNA must be offset too
+              // CG-DNA PACKAGE - oxDNA 3'/5' partner tags are stored per-atom and must be offset too
               if (atom->id3p && atom->id3p[i] >= 0) atom->id3p[i] += atom_offset;
               if (atom->id5p && atom->id5p[i] >= 0) atom->id5p[i] += atom_offset;
 
@@ -887,7 +887,7 @@ void Replicate::replicate_by_bbox(int nx, int ny, int nz,
               atom->tag[i] += atom_offset;
               atom->image[i] = image;
 
-              // CG-DNA package: the per-atom 3'/5' partner IDs of oxDNA must be offset too
+              // CG-DNA PACKAGE - oxDNA 3'/5' partner tags are stored per-atom and must be offset too
               if (atom->id3p && atom->id3p[i] >= 0) {
                 if (bond_flag) newtag(atom0tag,atom->id3p[i]);
                 else atom->id3p[i] += atom_offset;

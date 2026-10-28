@@ -16,7 +16,7 @@ atom_style hybrid bond ellipsoid oxdna
 atom_modify sort 0 1.0
 
 # Pair interactions require lists of neighbours to be calculated
-neighbor 2.0 bin
+neighbor 1.0 bin
 neigh_modify every 1 delay 0 check yes
 
 read_data data.duplex3

@@ -78,14 +78,13 @@ PairOxdna2Coaxstk::PairOxdna2Coaxstk(LAMMPS *lmp) :
 
   single_enable = 0;
   writedata = 0;
-  trim_flag = 0;
 }
 
 /* ---------------------------------------------------------------------- */
 
 PairOxdna2Coaxstk::~PairOxdna2Coaxstk()
 {
-  if (allocated) {
+  if (allocated && !copymode) {
 
     memory->destroy(setflag);
     memory->destroy(cutsq);
@@ -936,7 +935,13 @@ double PairOxdna2Coaxstk::init_one(int i, int j)
   cutsq_cxst_hc[j][i] = cutsq_cxst_hc[i][j];
 
   // set the master list distance cutoff
-  return cut_cxst_hc[i][j];
+  // the cutoffs are distances between interaction sites, but the neighbor
+  // lists hold pairs by the distance of the nucleotide centers of mass, so
+  // add the distances of the sites from the centers of mass
+  const double stk = site_offset([this](double *e1, double *e2, double *e3, double *r) {
+    compute_stacking_site(e1, e2, e3, r);
+  });
+  return cut_cxst_hc[i][j] + 2.0 * stk;
 
 }
 

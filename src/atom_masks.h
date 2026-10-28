@@ -84,4 +84,8 @@
 
 #define MASS_MASK      0x0000040000000000
 
+// CG-DNA
+
+#define CG_DNA_MASK    0x0000080000000000
+
 #endif

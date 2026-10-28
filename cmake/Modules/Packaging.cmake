@@ -213,6 +213,7 @@ if(BUILD_LAMMPS_GUI)
         COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_BINARY_DIR}/binary2txt ${APP_CONTENTS}/bin/
         COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_BINARY_DIR}/stl_bin2txt ${APP_CONTENTS}/bin/
         COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_BINARY_DIR}/phana ${APP_CONTENTS}/bin/
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_BINARY_DIR}/find-symmetry ${APP_CONTENTS}/bin/
         COMMAND ${CMAKE_COMMAND} -E create_symlink ../MacOS/lammps-gui ${APP_CONTENTS}/bin/lammps-gui
         COMMAND ${CMAKE_COMMAND} -E make_directory ${APP_CONTENTS}/Resources
         COMMAND ${CMAKE_COMMAND} -E copy_if_different ${LAMMPS_PACKAGING_DIR}/README.macos ${APP_CONTENTS}/Resources/README.txt

@@ -276,8 +276,9 @@ sources when they are enabled or built.
      - release archive from the server of the PyYAML project
      - SHA-256 checksum
    * - Tools (``-D BUILD_TOOLS=on``)
-     - ``spglib`` for the :ref:`phana tool <phonon>` (always downloaded
-       unless ``-D USE_SPGLIB=off`` is used)
+     - ``spglib`` for the :ref:`phana <phonon>` and :ref:`find-symmetry
+       <findsym>` tools (always downloaded unless ``-D USE_SPGLIB=off``
+       is used)
      - archive of a tagged version from GitHub
      - SHA-256 checksum
    * - :ref:`LAMMPS-GUI <lammps_gui>` (``-D BUILD_LAMMPS_GUI=on``)

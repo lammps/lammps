@@ -43,8 +43,8 @@ This fix inquires the minimum stable time increment across all
 particles contained in the group for which this fix is defined. An
 additional safety factor *s_fact* is applied to the time increment.
 
-See `this PDF guide <PDF/MACHDYN_LAMMPS_userguide.pdf>`_ to use Smooth Mach
-Dynamics in LAMMPS.
+See the :doc:`Howto machdyn <Howto_machdyn>` page for an introduction
+to using Smooth Mach Dynamics in LAMMPS.
 
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""

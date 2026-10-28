@@ -156,17 +156,18 @@ box length :math:`L` evolves according to the equation
 
    \frac{d L(t)}{dt} = L(t) k (P - P_t)
 
-where :math:`k` is a proportional gain constant, :math:`P_t` is the target
-pressure, and :math:`P` is the current pressure along that dimension. This
-approach is similar to the method used to control the pressure by
-:doc:`fix press/berendsen <fix_press_berendsen>`. The target pressure
-accepts either a constant numeric value or a LAMMPS :ref:`variable <variable>`.
-Notably, this variable can be a function of time or other components of
-the pressure tensor. By default, :math:`k` has units of 1/(time * pressure)
-although this will change if the *normalize/pressure* option is set as
-:ref:`discussed below <deform_normalize>`. There is no proven method
-to choosing an appropriate value of :math:`k` as it will depend on the
-specific details of a simulation. Testing different values is recommended.
+where :math:`k` is a proportional gain constant, :math:`P_t` is the
+target pressure, and :math:`P` is the current pressure along that
+dimension. This approach is similar to the method used to control the
+pressure by :doc:`fix press/berendsen <fix_press_berendsen>`. The target
+pressure accepts either a constant numeric value or a LAMMPS
+:ref:`variable <variable_output>`.  Notably, this variable can be a
+function of time or other components of the pressure tensor. By default,
+:math:`k` has units of 1/(time * pressure) although this will change if
+the *normalize/pressure* option is set as :ref:`discussed below
+<deform_normalize>`. There is no proven method to choosing an
+appropriate value of :math:`k` as it will depend on the specific details
+of a simulation. Testing different values is recommended.
 
 By default, there is no limit on the resulting strain rate in any dimension.
 A maximum limit can be applied using the :ref:`max/rate <deform_max_rate>`
@@ -207,18 +208,17 @@ tilt factor T evolves according to the equation
    \frac{d T(t)}{dt} = L(t) k (P - P_t)
 
 where :math:`k` is a proportional gain constant, :math:`P_t` is the
-target pressure, :math:`P` is the current pressure, and :math:`L` is
-the perpendicular box length. The target pressure accepts either a
-constant numeric value or a LAMMPS :ref:`variable
-<variable>`. Notably, this variable can be a function of time or other
-components of the pressure tensor. By default, :math:`k` has units of
-1/(time * pressure) although this will change if the
-*normalize/pessure* option is set as :ref:`discussed below
-<deform_normalize>`.  There is no proven method to choosing an
-appropriate value of :math:`k` as it will depend on the specific
-details of a simulation and testing different values is
-recommended. One can also apply a maximum limit to the magnitude of
-the applied strain using the :ref:`max/rate <deform_max_rate>` option.
+target pressure, :math:`P` is the current pressure, and :math:`L` is the
+perpendicular box length. The target pressure accepts either a constant
+numeric value or a LAMMPS :ref:`variable <variable_output>`. Notably,
+this variable can be a function of time or other components of the
+pressure tensor. By default, :math:`k` has units of 1/(time * pressure)
+although this will change if the *normalize/pessure* option is set as
+:ref:`discussed below <deform_normalize>`.  There is no proven method to
+choosing an appropriate value of :math:`k` as it will depend on the
+specific details of a simulation and testing different values is
+recommended. One can also apply a maximum limit to the magnitude of the
+applied strain using the :ref:`max/rate <deform_max_rate>` option.
 
 ----------
 

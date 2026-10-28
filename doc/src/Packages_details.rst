@@ -268,8 +268,6 @@ including ellipsoids, granular superellipsoids, 2d lines, and 3d triangles.
 * :doc:`pair_style line/lj <pair_line_lj>`
 * :doc:`pair_style tri/lj <pair_tri_lj>`
 * :doc:`pair_style granular/superellipsoid <pair_granular_superellipsoid>`
-* `doc/PDF/pair_gayberne_extra.pdf <PDF/pair_gayberne_extra.pdf>`_
-* `doc/PDF/pair_resquared_extra.pdf <PDF/pair_resquared_extra.pdf>`_
 * ``examples/ASPHERE``
 * ``examples/ellipse``
 * https://www.lammps.org/examples/line/
@@ -1139,6 +1137,9 @@ package in ``tools/fep``; see its ``README`` file.
 * :doc:`pair_style \*/soft <pair_fep_soft>`
 * :doc:`pair_style coul/cut/soft/gapsys <pair_fep_soft>`
 * :doc:`pair_style lj/cut/soft/gapsys <pair_fep_soft>`
+* :doc:`pair_style lj/cut/coul/cut/soft/gapsys <pair_fep_soft>`
+* :doc:`pair_style lj/class2/soft/gapsys <pair_fep_soft>`
+* :doc:`pair_style lj/class2/coul/cut/soft/gapsys <pair_fep_soft>`
 * ``examples/PACKAGES/fep``
 * tools/fep/README
 * tools/fep
@@ -1547,7 +1548,7 @@ Ontario).
 **Install:**
 
 The LATBOLTZ package requires that LAMMPS is built in :ref:`MPI parallel
-mode <serial>`.
+mode <build_serial>`.
 
 **Supporting info:**
 
@@ -1609,9 +1610,10 @@ MACHDYN package
 **Contents:**
 
 An atom style, fixes, computes, and several pair styles which
-implements smoothed Mach dynamics (SMD) for solids, which is a model
-related to smoothed particle hydrodynamics (SPH) for liquids (see the
-:ref:`SPH package <PKG-SPH>`).
+implement smoothed Mach dynamics (SMD) for solids and fluids, which is a
+model related to smoothed particle hydrodynamics (SPH) for liquids (see
+the :ref:`SPH package <PKG-SPH>`).  See the :doc:`Howto machdyn
+<Howto_machdyn>` page for an overview.
 
 This package solves solids mechanics problems via a state of the art
 stabilized meshless method with hourglass control.  It can specify
@@ -1633,7 +1635,7 @@ This package has :ref:`specific installation instructions <machdyn>` on the :doc
 
 * ``src/MACHDYN``: filenames -> commands
 * ``src/MACHDYN/README``
-* `doc/PDF/MACHDYN_LAMMPS_userguide.pdf <PDF/MACHDYN_LAMMPS_userguide.pdf>`_
+* :doc:`Howto machdyn <Howto_machdyn>`
 * ``examples/PACKAGES/machdyn``
 
 ----------
@@ -2471,9 +2473,6 @@ Foster (UTSA).
 
 * ``src/PERI``: filenames -> commands
 * :doc:`Peridynamics Howto <Howto_peri>`
-* `doc/PDF/PDLammps_overview.pdf <PDF/PDLammps_overview.pdf>`_
-* `doc/PDF/PDLammps_EPS.pdf <PDF/PDLammps_EPS.pdf>`_
-* `doc/PDF/PDLammps_VES.pdf <PDF/PDLammps_VES.pdf>`_
 * :doc:`atom_style peri <atom_style>`
 * :doc:`pair_style peri/\* <pair_peri>`
 * :doc:`compute damage/atom <compute_damage_atom>`
@@ -2942,7 +2941,8 @@ Forschungszentrum Juelich.
 
 This package has :ref:`specific installation instructions <scafacos>` on
 the :doc:`Build extras <Build_extras>` page.  The SCAFACOS package
-requires that LAMMPS is built in :ref:`MPI parallel mode <serial>`.
+requires that LAMMPS is built in :ref:`MPI parallel mode
+<build_serial>`.
 
 **Supporting info:**
 
@@ -3009,15 +3009,15 @@ SPH package
 **Contents:**
 
 An atom style, fixes, computes, and several pair styles which
-implements smoothed particle hydrodynamics (SPH) for liquids.  See the
-related :ref:`MACHDYN package <PKG-MACHDYN>` package for smooth Mach dynamics
+implement smoothed particle hydrodynamics (SPH) for liquids.  See the
+:doc:`Howto sph <Howto_sph>` page for an overview.  See the related
+:ref:`MACHDYN package <PKG-MACHDYN>` package for smooth Mach dynamics
 (SMD) for solids.
 
 This package contains ideal gas, Lennard-Jones equation of states, Tait,
 and full support for complete (i.e. internal-energy dependent) equations
-of state.  It allows for plain or Monaghans XSPH integration of the
-equations of motion.  It has options for density continuity or density
-summation to propagate the density field.  It has :doc:`set <set>`
+of state.  It has options for density continuity or density summation
+to propagate the density field.  It has :doc:`set <set>`
 command options to set the internal energy and density of particles from
 the input script and allows the same quantities to be output with
 thermodynamic output or to dump files via the :doc:`compute
@@ -3030,15 +3030,9 @@ Dynamics, Ernst Mach Institute, Germany).
 
 * ``src/SPH``: filenames -> commands
 * ``src/SPH/README``
-* `doc/PDF/SPH_LAMMPS_userguide.pdf <PDF/SPH_LAMMPS_userguide.pdf>`_
+* :doc:`Howto sph <Howto_sph>`
 * ``examples/PACKAGES/sph``
 * https://www.lammps.org/gallery/sph/
-
-.. note::
-
-   Please note that the SPH PDF guide file has not been updated for
-   many years and thus does not reflect the current *syntax* of the
-   SPH package commands. For that please refer to the LAMMPS manual.
 
 .. note::
 

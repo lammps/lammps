@@ -1,0 +1,313 @@
+LAMMPS (30 Sep 2026 - Development - patch_30Sep2026-523-gdbc38a263e-modified)
+  using 1 OpenMP thread(s) per MPI task
+
+####################################################################################################
+#
+# TLSPH example: Two rubber rings impact each other.
+#
+# unit system: GPa / mm / ms
+#
+# the default number of steps is short for testing, use "-var nsteps 5000" for the full example
+#
+####################################################################################################
+variable        nsteps index 2000
+
+####################################################################################################
+# MATERIAL PARAMETERS
+####################################################################################################
+variable        rho equal 1 # initial mass density
+variable        E equal 1.0 # Young's modulus
+variable        nu equal 0.3 # Poisson ratio
+variable        sigma_yield equal 0.051 # plastic yield stress
+variable        contact_stiffness equal 0.2 # contact stress for contact force between rings
+variable        q1 equal 0.06 # standard artificial viscosity linear coefficient
+variable        q2 equal 0.0  # standard artificial viscosity quadratic coefficient
+variable        hg equal 10.0 # hourglass control coefficient
+variable        cp equal 1.0 # heat capacity of material -- not used here
+
+####################################################################################################
+# INITIALIZE LAMMPS
+####################################################################################################
+dimension       3
+units           si
+boundary        m m m # simulation box boundaries
+atom_style      smd
+atom_modify     map array
+comm_modify     vel yes
+neigh_modify    every 10 delay 0 check yes # re-build neighbor list every 10 steps
+newton          off
+
+####################################################################################################
+# READ GEOMETRY
+####################################################################################################
+read_data       washer_hex_adjusted.data # read geometry of one rubber ring from file
+Reading data file ...
+  orthogonal box = (-12 -12 -0.5) to (12.2 12.2 5.55)
+  2 by 2 by 1 MPI processor grid
+  reading atoms ...
+  480 atoms
+  reading velocities ...
+  480 velocities
+  read_data CPU = 0.002 seconds
+replicate       2 1 1
+Replication is creating a 2x1x1 = 2 times larger system...
+WARNING: Replicating in a non-periodic dimension (src/replicate.cpp:109)
+  orthogonal box = (-12 -12 -0.5) to (36.4 12.2 5.55)
+  4 by 1 by 1 MPI processor grid
+  960 atoms
+  replicate CPU = 0.002 seconds
+region          right block 12.2 EDGE EDGE EDGE EDGE EDGE units box
+group           right region right
+480 atoms in group right
+group           left subtract all right
+480 atoms in group left
+set             group left type 1
+Setting atom values ...
+  480 settings made for type
+set             group right type 2
+Setting atom values ...
+  480 settings made for type
+group           tlsph union left right
+960 atoms in group tlsph
+
+group none empty
+0 atoms in group none
+change_box none x delta -20.0 20.0 y delta -5.0 5.0 z delta -2 2
+Changing box ...
+  orthogonal box = (-32 -12 -0.5) to (56.4 12.2 5.55)
+  orthogonal box = (-32 -17 -0.5) to (56.4 17.2 5.55)
+  orthogonal box = (-32 -17 -2.5) to (56.4 17.2 7.55)
+
+####################################################################################################
+# DISCRETIZATION PARAMETERS
+####################################################################################################
+variable        l0 equal 0.3 # we need to set a length scale for the neighbor list skin
+variable        skin equal 4.0*${l0} # Verlet list range
+variable        skin equal 4.0*0.3 
+neighbor        ${skin} bin
+neighbor        1.2 bin
+set             group all smd/contact/radius 1.0
+Setting atom values ...
+  960 settings made for smd/contact/radius
+
+
+####################################################################################################
+# DEFINE INITIAL VELOCITY BOUNDARY CONDITIONS
+####################################################################################################
+variable        vel equal 100.0 # initial velocity
+velocity        left set  ${vel} 0 0 sum no units box
+velocity        left set  100 0 0 sum no units box
+velocity        right set -${vel} 0 0 sum no units box
+velocity        right set -100 0 0 sum no units box
+
+####################################################################################################
+# INTERACTION PHYSICS / MATERIAL MODEL
+# One rubber ring is linear elastic, the other rubber ring is elastic-ideal plastic.
+# Contact forces between both rubber rings are used to realize physical contact.
+####################################################################################################
+pair_style      hybrid/overlay smd/tlsph smd/hertz 1.0 # activate Total-Lagrangian SPH
+
+>>========>>========>>========>>========>>========>>========>>========>>========>>========>>========>>========>>========
+TLSPH settings
+... will never update reference configuration
+>>========>>========>>========>>========>>========>>========>>========>>========>>========>>========>>========>>========
+
+>>========>>========>>========>>========>>========>>========>>========>>========
+SMD/HERTZ CONTACT SETTINGS:
+... effective contact radius is scaled by 1
+>>========>>========>>========>>========>>========>>========>>========>>========
+pair_coeff      1 1 smd/tlsph *COMMON ${rho} ${E} ${nu} ${q1} ${q2} ${hg} ${cp}                 *STRENGTH_LINEAR                 *EOS_LINEAR                 *END
+pair_coeff      1 1 smd/tlsph *COMMON 1 ${E} ${nu} ${q1} ${q2} ${hg} ${cp}                 *STRENGTH_LINEAR                 *EOS_LINEAR                 *END
+pair_coeff      1 1 smd/tlsph *COMMON 1 1 ${nu} ${q1} ${q2} ${hg} ${cp}                 *STRENGTH_LINEAR                 *EOS_LINEAR                 *END
+pair_coeff      1 1 smd/tlsph *COMMON 1 1 0.3 ${q1} ${q2} ${hg} ${cp}                 *STRENGTH_LINEAR                 *EOS_LINEAR                 *END
+pair_coeff      1 1 smd/tlsph *COMMON 1 1 0.3 0.06 ${q2} ${hg} ${cp}                 *STRENGTH_LINEAR                 *EOS_LINEAR                 *END
+pair_coeff      1 1 smd/tlsph *COMMON 1 1 0.3 0.06 0 ${hg} ${cp}                 *STRENGTH_LINEAR                 *EOS_LINEAR                 *END
+pair_coeff      1 1 smd/tlsph *COMMON 1 1 0.3 0.06 0 10 ${cp}                 *STRENGTH_LINEAR                 *EOS_LINEAR                 *END
+pair_coeff      1 1 smd/tlsph *COMMON 1 1 0.3 0.06 0 10 1                 *STRENGTH_LINEAR                 *EOS_LINEAR                 *END
+
+>>========>>========>>========>>========>>========>>========>>========>>========>>========>>========>>========>>========
+SMD / TLSPH PROPERTIES OF PARTICLE TYPE 1:
+
+material unspecific properties for SMD/TLSPH definition of particle type 1:
+reference density                                            : 1
+Young's modulus                                              : 1
+Poisson ratio                                                : 0.3
+linear viscosity coefficient                                 : 0.06
+quadratic viscosity coefficient                              : 0
+hourglass control coefficient                                : 10
+heat capacity [energy / (mass * temperature)]                : 1
+Lame constant lambda                                         : 0.5769230769230769
+shear modulus                                                : 0.3846153846153846
+bulk modulus                                                 : 0.8333333333333333
+signal velocity                                              : 1.1602387022306426
+reading *STRENGTH_LINEAR
+Linear Elasticity strength based on strain rate
+reading *EOS_LINEAR
+
+linear EOS based on strain rate
+bulk modulus                                                 : 0.8333333333333333
+found *END keyword
+>>========>>========>>========>>========>>========>>========>>========>>========>>========>>========>>========>>========
+
+pair_coeff      2 2 smd/tlsph *COMMON ${rho} ${E} ${nu} ${q1} ${q2} ${hg} ${cp}                 *STRENGTH_LINEAR_PLASTIC ${sigma_yield} 0.0                 *EOS_LINEAR                 *END
+pair_coeff      2 2 smd/tlsph *COMMON 1 ${E} ${nu} ${q1} ${q2} ${hg} ${cp}                 *STRENGTH_LINEAR_PLASTIC ${sigma_yield} 0.0                 *EOS_LINEAR                 *END
+pair_coeff      2 2 smd/tlsph *COMMON 1 1 ${nu} ${q1} ${q2} ${hg} ${cp}                 *STRENGTH_LINEAR_PLASTIC ${sigma_yield} 0.0                 *EOS_LINEAR                 *END
+pair_coeff      2 2 smd/tlsph *COMMON 1 1 0.3 ${q1} ${q2} ${hg} ${cp}                 *STRENGTH_LINEAR_PLASTIC ${sigma_yield} 0.0                 *EOS_LINEAR                 *END
+pair_coeff      2 2 smd/tlsph *COMMON 1 1 0.3 0.06 ${q2} ${hg} ${cp}                 *STRENGTH_LINEAR_PLASTIC ${sigma_yield} 0.0                 *EOS_LINEAR                 *END
+pair_coeff      2 2 smd/tlsph *COMMON 1 1 0.3 0.06 0 ${hg} ${cp}                 *STRENGTH_LINEAR_PLASTIC ${sigma_yield} 0.0                 *EOS_LINEAR                 *END
+pair_coeff      2 2 smd/tlsph *COMMON 1 1 0.3 0.06 0 10 ${cp}                 *STRENGTH_LINEAR_PLASTIC ${sigma_yield} 0.0                 *EOS_LINEAR                 *END
+pair_coeff      2 2 smd/tlsph *COMMON 1 1 0.3 0.06 0 10 1                 *STRENGTH_LINEAR_PLASTIC ${sigma_yield} 0.0                 *EOS_LINEAR                 *END
+pair_coeff      2 2 smd/tlsph *COMMON 1 1 0.3 0.06 0 10 1                 *STRENGTH_LINEAR_PLASTIC 0.051 0.0                 *EOS_LINEAR                 *END
+
+>>========>>========>>========>>========>>========>>========>>========>>========>>========>>========>>========>>========
+SMD / TLSPH PROPERTIES OF PARTICLE TYPE 2:
+
+material unspecific properties for SMD/TLSPH definition of particle type 2:
+reference density                                            : 1
+Young's modulus                                              : 1
+Poisson ratio                                                : 0.3
+linear viscosity coefficient                                 : 0.06
+quadratic viscosity coefficient                              : 0
+hourglass control coefficient                                : 10
+heat capacity [energy / (mass * temperature)]                : 1
+Lame constant lambda                                         : 0.5769230769230769
+shear modulus                                                : 0.3846153846153846
+bulk modulus                                                 : 0.8333333333333333
+signal velocity                                              : 1.1602387022306426
+reading *STRENGTH_LINEAR_PLASTIC
+Linear elastic / perfectly plastic strength based on strain rateYoung's modulus                                              : 1
+Poisson ratio                                                : 0.3
+shear modulus                                                : 0.3846153846153846
+constant yield stress                                        : 0.051
+constant hardening parameter                                 : 0
+reading *EOS_LINEAR
+
+linear EOS based on strain rate
+bulk modulus                                                 : 0.8333333333333333
+found *END keyword
+>>========>>========>>========>>========>>========>>========>>========>>========>>========>>========>>========>>========
+
+pair_coeff      1 1 smd/hertz ${contact_stiffness}
+pair_coeff      1 1 smd/hertz 0.2
+pair_coeff      2 2 smd/hertz ${contact_stiffness}
+pair_coeff      2 2 smd/hertz 0.2
+pair_coeff      1 2 smd/hertz ${contact_stiffness}
+pair_coeff      1 2 smd/hertz 0.2
+
+####################################################################################################
+# TIME INTEGRATION
+####################################################################################################
+fix             dtfix tlsph smd/adjust_dt 0.1 # dynamically adjust time increment every step
+fix             integration_fix tlsph smd/integrate_tlsph
+
+>>========>>========>>========>>========>>========>>========>>========>>========
+fix smd/integrate_tlsph is active for group: tlsph
+>>========>>========>>========>>========>>========>>========>>========>>========
+
+####################################################################################################
+# SPECIFY TRAJECTORY OUTPUT
+####################################################################################################
+variable        dumpFreq equal 30
+compute         S all smd/tlsph/stress # Cauchy stress tensor
+compute         nn all smd/tlsph/num/neighs # number of neighbors for each particle
+compute         cr all smd/contact/radius
+compute         p all smd/plastic/strain
+compute         eint all smd/internal/energy
+compute         alleint all reduce sum c_eint
+variable        etot equal c_alleint+ke+pe
+
+#dump            dump_id all custom ${dumpFreq} dump.LAMMPS id type x y z vx vy vz #                c_S[1] c_S[2] c_S[3] c_S[4] c_S[5] c_S[6] c_S[7] c_nn c_cr proc c_p radius
+#dump_modify     dump_id first yes
+
+#fix             iso all graphics/isosurface ${dumpFreq} 1.5 0.7 property none quality high
+#dump            viz all image ${dumpFreq} rubber_rings-*.ppm element type size 800 400 #                zoom 4.0 shiny 0.2 fsaa yes view 0 90 box no 0.01 center s 0.467762 0.43547 0.353422 #                fix iso type 1 2
+#dump_modify     viz pad 6 backcolor black backcolor2 white ftrans iso 0.75 adiam * 0.8 element Fe Fe
+
+####################################################################################################
+# STATUS OUTPUT
+####################################################################################################
+thermo          100
+thermo_style    custom step dt f_dtfix ke pe c_alleint v_etot
+
+####################################################################################################
+# PERFORM INITIAL LOAD BALANCING AND RUN SIMULATION
+####################################################################################################
+run             ${nsteps}
+run             2000
+cutoff for pair smd/hertz = 3.83346
+cutoff for pair smd/hertz = 3.83346
+cutoff for pair smd/hertz = 3.83346
+Generated 0 of 1 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 10 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 5.03346
+  ghost atom cutoff = 5.03346
+  binsize = 2.51673, bins = 36 14 4
+  2 neighbor lists, perpetual/occasional/extra = 2 0 0
+  (1) pair smd/tlsph, perpetual, skip from (2)
+      attributes: half, newton off, size
+      pair build: skip/half/size
+      stencil: none
+      bin: none
+  (2) pair smd/hertz, perpetual
+      attributes: half, newton off, size
+      pair build: half/size/bin/atomonly/newtoff
+      stencil: full/bin/3d
+      bin: standard
+
+>>========>>========>>========>>========>>========>>========>>========>>========
+TLSPH neighbors:
+  max # of neighbors for a single particle = 25
+  average # of neighbors/particle in group tlsph = 19.5
+>>========>>========>>========>>========>>========>>========>>========>>========
+
+Per MPI rank memory allocation (min/avg/max) = 29.05 | 29.12 | 29.2 Mbytes
+   Step           Dt          f_dtfix         KinEng         PotEng       c_alleint        v_etot    
+         0   1e-16          0              23.410848      0.060572575    0              23.471421    
+       100   0.00015431677  0.019600577    23.335167      0.13181997     0.0045894172   23.471576    
+       200   0.00014943325  0.034631582    18.31672       2.5346698      2.6516723      23.503062    
+       300   0.00011688075  0.046672428    14.405122      1.1304844      7.9639095      23.499516    
+       400   0.00010451736  0.056510478    12.030073      1.2011563      10.260434      23.491663    
+       500   9.520486e-05   0.06518895     10.454072      1.236493       11.799134      23.489699    
+       600   2.1008331e-05  0.075844259    7.9771623      1.2641506      14.258958      23.500271    
+       700   0.00011755647  0.08726077     4.5530231      1.0624549      17.879872      23.49535     
+       800   9.016358e-05   0.097965509    4.0182541      0.93427178     18.519658      23.472183    
+       900   8.641693e-05   0.10746916     3.7051271      1.4629978      18.311714      23.479839    
+      1000   0.00015264867  0.11889127     4.7902058      1.4613019      17.217604      23.469112    
+      1100   6.0452197e-05  0.13144414     3.9212114      2.6851578      16.874548      23.480917    
+      1200   2.4971664e-05  0.13964876     5.5839267      1.7043482      16.1828        23.471075    
+      1300   0.00015190302  0.15056978     7.0902183      0.90900178     15.484168      23.483388    
+      1400   0.00015226146  0.16475882     6.3879175      0.5348716      16.55479       23.477579    
+      1500   9.234887e-05   0.17778319     6.6533968      0.41220402     16.419336      23.484937    
+      1600   0.00010511514  0.19049311     6.7602319      0.37631182     16.339993      23.476537    
+      1700   9.3900098e-05  0.20413481     6.2079246      0.34985811     16.925254      23.483037    
+      1800   0.00015279781  0.21636864     6.8409147      0.3522996      16.279899      23.473113    
+      1900   7.9445311e-05  0.23007374     6.4813323      0.3481498      16.662901      23.492383    
+      2000   0.0001529139   0.23987454     6.1713126      0.32799373     16.982146      23.481453    
+Loop time of 2.53888 on 4 procs for 2000 steps with 960 atoms
+
+98.4% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.279      | 1.4684     | 2.5047     |  81.8 | 57.84
+Neigh   | 4.2624e-05 | 0.0055964  | 0.012089   |   7.5 |  0.22
+Comm    | 0.0023088  | 0.0069384  | 0.012126   |   5.0 |  0.27
+Output  | 0.00034401 | 0.00037936 | 0.00042211 |   0.0 |  0.01
+Modify  | 0.00845    | 1.0565     | 2.256      |  97.4 | 41.61
+Other   |            | 0.001123   |            |       |  0.04
+
+Nlocal:            240 ave         480 max           0 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Nghost:             39 ave          84 max           2 min
+Histogram: 2 0 0 0 0 0 0 1 0 1
+Neighs:        6106.75 ave       12343 max           0 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+
+Total # of neighbors = 24427
+Ave neighs/atom = 25.444792
+Neighbor list builds = 34
+Dangerous builds = 0
+Total wall time: 0:00:02

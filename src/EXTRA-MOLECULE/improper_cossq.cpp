@@ -112,11 +112,17 @@ void ImproperCossq::compute(int eflag, int vflag)
       problem(FLERR, i1, i2, i3, i4);
 
     /* Apply corrections to round-off errors. */
-    if (cosphi > 1.0)  cosphi -= SMALL;
-    if (cosphi < -1.0) cosphi += SMALL;
+    if (cosphi > 1.0) cosphi = 1.0;
+    if (cosphi < -1.0) cosphi = -1.0;
 
     /* Calculate the angle: */
     double torangle = acos(cosphi);
+
+    /* sin(phi - chi)/sin(phi) = cos(chi) - cos(phi)*sin(chi)/sin(phi), needed
+       for the derivative of the energy with respect to cos(phi) */
+    double sinphi = sqrt(1.0 - cosphi * cosphi);
+    if (sinphi < SMALL) sinphi = SMALL;
+    double sinratio = cos(chi[type]) - cosphi * sin(chi[type]) / sinphi;
     cosphi = cos(torangle - chi[type]);
 
     if (eflag) eimproper = 0.5 * k[type] * cosphi * cosphi;
@@ -129,7 +135,7 @@ void ImproperCossq::compute(int eflag, int vflag)
     */
 
     /* Work out forces. */
-    angfac = - k[type] * cosphi;
+    angfac = - k[type] * cosphi * sinratio;
 
     cjiji = rjisq;
     clklk = rlksq;

@@ -7,7 +7,7 @@ narrow down the origin of the issue.  This will help the LAMMPS
 developers (or yourself) to understand the reason for the crash and
 apply a fix (either to the input script or the source code).
 This requires that your LAMMPS executable includes the required
-:ref:`debug information <debug>`. Otherwise it is not possible to
+:ref:`debug information <build_debug>`. Otherwise it is not possible to
 look up the names of functions or variables.
 
 The following patch will introduce a bug into the code for pair style

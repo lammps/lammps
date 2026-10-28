@@ -1,0 +1,152 @@
+LAMMPS (30 Sep 2026 - Development - patch_30Sep2026-557-g6b420a463c-modified)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread.
+  using 1 OpenMP thread(s) per MPI task
+# fix symmetry example: 6 LJ atoms with two mirror planes (space group Pmm2)
+#
+# The group has 4 operators: identity, two-fold axis along z, and the
+# mirror planes perpendicular to x and y.  Atoms 3 to 6 are on general
+# positions and related by all 4 operators.  Atoms 1 and 2 are on the
+# mirror plane y = 0, so each is its own image under the y mirror and
+# they are images of each other under the x mirror and the two-fold
+# axis: an orbit of 2 atoms for 4 operators.  Atoms 1 and 2 stay on the
+# plane y = 0 and move as mirror images in x.
+
+units           lj
+atom_style      atomic
+boundary        p p p
+atom_modify     map array
+
+region          box block 0 8 0 8 0 8
+create_box      1 box
+Created orthogonal box = (0 0 0) to (8 8 8)
+  1 by 2 by 2 MPI processor grid
+
+# atoms on the mirror plane y = 0
+create_atoms    1 single 1.2 0.0 2.4
+Created 1 atoms
+  using lattice units in orthogonal box = (0 0 0) to (8 8 8)
+  create_atoms CPU = 0.000 seconds
+create_atoms    1 single 6.8 0.0 2.4
+Created 1 atoms
+  using lattice units in orthogonal box = (0 0 0) to (8 8 8)
+  create_atoms CPU = 0.000 seconds
+# atoms on general positions
+create_atoms    1 single 1.0 1.5 3.0
+Created 1 atoms
+  using lattice units in orthogonal box = (0 0 0) to (8 8 8)
+  create_atoms CPU = 0.000 seconds
+create_atoms    1 single 7.0 6.5 3.0
+Created 1 atoms
+  using lattice units in orthogonal box = (0 0 0) to (8 8 8)
+  create_atoms CPU = 0.000 seconds
+create_atoms    1 single 7.0 1.5 3.0
+Created 1 atoms
+  using lattice units in orthogonal box = (0 0 0) to (8 8 8)
+  create_atoms CPU = 0.000 seconds
+create_atoms    1 single 1.0 6.5 3.0
+Created 1 atoms
+  using lattice units in orthogonal box = (0 0 0) to (8 8 8)
+  create_atoms CPU = 0.000 seconds
+
+mass            1 1.0
+pair_style      lj/cut 2.5
+pair_coeff      * * 1.0 1.0
+pair_modify     shift yes
+
+fix             1 all nve
+fix             sym all symmetry pmm2.json
+
+velocity        all create 0.7 12345
+run             0 post no
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+
+- fix symmetry: https://doi.org/10.1021/acs.jctc.2c00401
+
+@Article{WhiteCoxSymmetricMD,
+author = {Cox, Sam and White, Andrew D.},
+title = {Symmetric Molecular Dynamics},
+journal = {Journal of Chemical Theory and Computation},
+volume = {18},
+number = {7},
+pages = {4077-4081},
+year = {2022},
+doi = {10.1021/acs.jctc.2c00401},
+note ={PMID: 35699649},
+url = {https://doi.org/10.1021/acs.jctc.2c00401},
+}
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+Fix symmetry sym: group Pmm2 with 4 operators, 6 atoms in 2 orbits (1 on special positions) with 5 independent coordinates
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 2.8
+  ghost atom cutoff = 2.8
+  binsize = 1.4, bins = 6 6 6
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cut, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 2.689 | 2.876 | 3.064 Mbytes
+   Step          Temp          E_pair         E_mol          TotEng         Press     
+         0   0.15918617    -0.14053668     0             -0.087474624   -0.003136919  
+Loop time of 1.413e-06 on 4 procs for 0 steps with 6 atoms
+
+velocity        all scale 0.7
+
+variable        y1 equal y[1]
+variable        y2 equal y[2]
+variable        sumx equal x[1]+x[2]
+
+thermo_style    custom step temp pe etotal press v_y1 v_y2 v_sumx
+thermo_modify   format float %14.8g
+thermo          100
+run             1000
+Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+Per MPI rank memory allocation (min/avg/max) = 2.689 | 2.876 | 3.064 Mbytes
+   Step          Temp          PotEng         TotEng         Press           v_y1           v_y2          v_sumx    
+         0             0.7    -0.14053668    0.092796653  -0.0017285496              0              0              8
+       100        0.472412   -0.064676435    0.092794233 -0.00068799119              0              0              8
+       200       0.7265609    -0.14938483    0.092802141  -0.0014848088              0              0              8
+       300      0.78872779    -0.17011369    0.092795576  -0.0013000297              0              0              8
+       400      0.38658685   -0.036076465    0.092785819  6.6062814e-05              0              0              8
+       500      0.38435478   -0.035352164    0.092766096 -6.3067899e-05              0              0              8
+       600       1.1169736    -0.27956595    0.092758585  -0.0016159234              0              0              8
+       700      0.52444244     -0.0820289    0.092785245  -0.0007102755              0              0              8
+       800      0.41820856   -0.046621041    0.092781812 -0.00021435313              0              0              8
+       900       1.0484817    -0.25673115    0.092762757   -0.001153325              0              0              8
+      1000      0.59344168    -0.10504624    0.092767651  -0.0010525547              0              0              8
+Loop time of 0.00429161 on 4 procs for 1000 steps with 6 atoms
+
+Performance: 100661452.932 tau/day, 233012.623 timesteps/s, 1.398 Matom-step/s
+97.3% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 2.8831e-05 | 5.7228e-05 | 9.7806e-05 |   0.0 |  1.33
+Neigh   | 9.888e-06  | 1.5987e-05 | 2.5578e-05 |   0.0 |  0.37
+Comm    | 0.0015639  | 0.0023392  | 0.0029432  |   1.3 | 54.51
+Output  | 7.0624e-05 | 7.1421e-05 | 7.2689e-05 |   0.0 |  1.66
+Modify  | 0.00067136 | 0.0013062  | 0.0020984  |   1.8 | 30.44
+Other   |            | 0.0005015  |            |       | 11.69
+
+Nlocal:            1.5 ave           4 max           0 min
+Histogram: 2 0 0 0 0 1 0 0 0 1
+Nghost:           16.5 ave          20 max          12 min
+Histogram: 1 0 1 0 0 0 0 0 0 2
+Neighs:           1.75 ave           4 max           0 min
+Histogram: 2 0 0 0 0 0 0 1 0 1
+
+Total # of neighbors = 7
+Ave neighs/atom = 1.1666667
+Neighbor list builds = 24
+Dangerous builds = 0
+Total wall time: 0:00:00

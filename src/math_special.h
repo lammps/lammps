@@ -131,7 +131,7 @@ namespace LAMMPS_NS::MathSpecial {
     return x * x * x;
   }
 
-  /* Fast inline version of pow(-1.0, n)
+  /*! Fast inline version of pow(-1.0, n)
    *
    *  \param   n argument (integer)
    *  \return  -1 if n is odd, 1.0 if n is even */
@@ -141,7 +141,7 @@ namespace LAMMPS_NS::MathSpecial {
     return (n & 1) ? -1.0 : 1.0;
   }
 
-  /* Fast inline version of pow(x,n) for integer n
+  /*! Fast inline version of pow(x,n) for integer n
    *
    * This is a version of pow(x,n) optimized for n being integer.
    * Speedups of up to 10x faster than pow(x,y) have been measured.
@@ -164,7 +164,7 @@ namespace LAMMPS_NS::MathSpecial {
     return (n > 0) ? yy : 1.0 / yy;
   }
 
-  /* Version of pow(x,n) for an exponent that is only known at run time
+  /*! Version of pow(x,n) for an exponent that is only known at run time
    *
    * Dispatches to powint() when the exponent happens to have an integer
    * value, and to std::pow() otherwise.  Useful where a force field
@@ -185,7 +185,7 @@ namespace LAMMPS_NS::MathSpecial {
     return std::pow(x, n);
   }
 
-  /* Fast inline version of (sin(x)/x)^n as used by PPPM kspace styles
+  /*! Fast inline version of (sin(x)/x)^n as used by PPPM kspace styles
    *
    * This is an optimized function to compute (sin(x)/x)^n as frequently used by PPPM.
    *

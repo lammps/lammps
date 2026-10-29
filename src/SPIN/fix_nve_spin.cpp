@@ -422,6 +422,15 @@ void FixNVESpin::pre_neighbor()
   double **x = atom->x;
   int nlocal = atom->nlocal;
 
+  // redo the sectoring, since the sub-domains may have changed
+  //   since the last call (changing box, load balancing)
+
+  if (sector_flag) {
+    sectoring();
+    memory->grow(stack_head,nsectors,"nve/spin:stack_head");
+    memory->grow(stack_foot,nsectors,"nve/spin:stack_foot");
+  }
+
   if (nlocal_max < nlocal) {                    // grow linked lists if necessary
     nlocal_max = nlocal;
     memory->grow(backward_stacks,nlocal_max,"nve/spin:backward_stacks");

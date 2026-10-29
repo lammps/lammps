@@ -97,9 +97,10 @@ void FixLangevinSpin::init()
 
   int flag_force = 0;
   int flag_lang = 0;
-  for (int i = 0; i < modify->nfix; i++) {
-     if (strcmp("precession/spin",modify->fix[i]->style)==0) flag_force = MAX(flag_force,i);
-     if (strcmp("langevin/spin",modify->fix[i]->style)==0) flag_lang = i;
+  const auto &fixes = modify->get_fix_list();
+  for (int i = 0; i < (int) fixes.size(); i++) {
+     if (strcmp("precession/spin",fixes[i]->style)==0) flag_force = MAX(flag_force,i);
+     if (strcmp("langevin/spin",fixes[i]->style)==0) flag_lang = i;
   }
   if (flag_force >= flag_lang) error->all(FLERR,"Fix langevin/spin has to come after all other spin fixes");
 

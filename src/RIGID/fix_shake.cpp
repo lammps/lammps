@@ -88,7 +88,7 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
   // register with Atom class
 
   FixShake::grow_arrays(atom->nmax);
-  atom->add_callback(Atom::GROW);
+  atom->add_callback(this, Atom::GROW);
 
   // set comm size needed by this fix
 
@@ -293,7 +293,7 @@ FixShake::~FixShake()
 
   // unregister callbacks to this fix from Atom class
 
-  if (modify->get_fix_by_id(id)) atom->delete_callback(id,Atom::GROW);
+  if (modify->get_fix_by_id(id)) atom->delete_callback(this, Atom::GROW);
 
   // set bond_type and angle_type back to positive for SHAKE clusters
   // must set for all SHAKE bonds and angles stored by each atom

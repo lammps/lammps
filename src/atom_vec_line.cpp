@@ -19,7 +19,6 @@
 #include "fix.h"
 #include "math_const.h"
 #include "memory.h"
-#include "modify.h"
 
 #include <cmath>
 #include <cstring>
@@ -165,9 +164,7 @@ void AtomVecLine::clear_bonus()
 {
   nghost_bonus = 0;
 
-  if (atom->nextra_grow)
-    for (int iextra = 0; iextra < atom->nextra_grow; iextra++)
-      modify->fix[atom->extra_grow[iextra]]->clear_bonus();
+  for (auto *ifix : atom->extra_grow) ifix->clear_bonus();
 }
 
 /* ---------------------------------------------------------------------- */

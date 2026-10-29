@@ -428,8 +428,6 @@ struct FixQEqReaxFFKokkosNeighborFunctor {
      neighflag(qeqreax.neighflag == FULL ? FULL : HALF), cutsq(qeqreax.cutsq)
   {}
 
-  void update_after_allocation(const FixQEqReaxFFKokkos<DeviceType> &qeqreax);
-
   // Function to calculate H based on r and shld
   // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION

@@ -48,12 +48,12 @@ PairSW::PairSW(LAMMPS *lmp) : Pair(lmp)
   unit_convert_flag = utils::get_supported_conversions(utils::ENERGY);
   skip_threebody_flag = false;
   sw_mod_flag = 0;
+  delta1 = delta2 = 0.0;
   params_mapped = 0;
 
   params = nullptr;
 
   maxshort = 10;
-  neighshort = nullptr;
   shortleg = nullptr;
 }
 
@@ -71,7 +71,6 @@ PairSW::~PairSW()
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);
-    memory->destroy(neighshort);
     memory->destroy(shortleg);
   }
 }
@@ -81,7 +80,7 @@ PairSW::~PairSW()
 void PairSW::compute(int eflag, int vflag)
 {
   int i,j,k,ii,jj,kk,inum,jnum,jnumm1;
-  int itype,jtype,ktype,ijparam,ikparam,ijkparam;
+  int itype,jtype,ktype,ijparam,ijkparam;
   tagint itag,jtag;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
   double rsq;
@@ -97,7 +96,7 @@ void PairSW::compute(int eflag, int vflag)
   int *type = atom->type;
   int nlocal = atom->nlocal;
   int newton_pair = force->newton_pair;
-  const bool legcache = (!skip_threebody_flag) && (!sw_mod_flag);
+  const bool swmod = sw_mod_flag;
 
   inum = list->inum;
   ilist = list->ilist;
@@ -138,7 +137,7 @@ void PairSW::compute(int eflag, int vflag)
         continue;
       } else if (!skip_threebody_flag) {
         fill_shortleg(&params[ijparam],rsq,x[j][0] - xtmp,x[j][1] - ytmp,x[j][2] - ztmp,
-                      j,jtype,legcache,shortleg[numshort++]);
+                      j,jtype,shortleg[numshort++]);
         if (numshort >= maxshort) {
           maxshort += maxshort/2;
           memory->grow(shortleg,maxshort,"pair:shortleg");
@@ -181,7 +180,6 @@ void PairSW::compute(int eflag, int vflag)
       ShortLeg &s1 = shortleg[jj];
       j = s1.j;
       jtype = s1.jtype;
-      ijparam = elem3param[itype][jtype][jtype];
 
       double fjxtmp,fjytmp,fjztmp;
       fjxtmp = fjytmp = fjztmp = 0.0;
@@ -192,13 +190,10 @@ void PairSW::compute(int eflag, int vflag)
         ktype = s2.jtype;
         ijkparam = elem3param[itype][jtype][ktype];
 
-        if (legcache) {
-          threebody_cached(&params[ijkparam],s1,s2,fj,fk,eflag,evdwl);
-        } else {
-          ikparam = elem3param[itype][ktype][ktype];
-          threebody(&params[ijparam],&params[ikparam],&params[ijkparam],
-                    s1.rsq,s2.rsq,s1.del,s2.del,fj,fk,eflag,evdwl);
-        }
+        if (swmod)
+          threebody_cached<1>(&params[ijkparam],s1,s2,fj,fk,eflag,evdwl);
+        else
+          threebody_cached<0>(&params[ijkparam],s1,s2,fj,fk,eflag,evdwl);
 
         fxtmp -= fj[0] + fk[0];
         fytmp -= fj[1] + fk[1];
@@ -233,7 +228,6 @@ void PairSW::allocate()
 
   memory->create(setflag, np1, np1, "pair:setflag");
   memory->create(cutsq, np1, np1, "pair:cutsq");
-  memory->create(neighshort, maxshort, "pair:neighshort");
   memory->create(shortleg, maxshort, "pair:shortleg");
   map = new int[np1];
 }
@@ -558,17 +552,4 @@ void PairSW::twobody(Param *param, double rsq, double &fforce,
   fforce = (param->c1*rp - param->c2*rq +
             (param->c3*rp -param->c4*rq) * rainvsq) * expsrainv * rinvsq;
   if (eflag) eng = (param->c5*rp - param->c6*rq) * expsrainv;
-}
-
-/* ---------------------------------------------------------------------- */
-
-void PairSW::threebody(Param *paramij, Param *paramik, Param *paramijk,
-                       double rsq1, double rsq2,
-                       double *delr1, double *delr2,
-                       double *fj, double *fk, int eflag, double &eng)
-{
-  ShortLeg s1, s2;
-  fill_shortleg(paramij, rsq1, delr1[0], delr1[1], delr1[2], 0, 0, true, s1);
-  fill_shortleg(paramik, rsq2, delr2[0], delr2[1], delr2[2], 0, 0, true, s2);
-  threebody_cached(paramijk, s1, s2, fj, fk, eflag, eng);
 }

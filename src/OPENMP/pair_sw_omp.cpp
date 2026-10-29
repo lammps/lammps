@@ -72,7 +72,7 @@ void PairSWOMP::eval(int iifrom, int iito, ThrData * const thr)
 {
   int i,j,k,ii,jj,kk,jnum,jnumm1,maxshort_thr;
   tagint itag,jtag;
-  int itype,jtype,ktype,ijparam,ikparam,ijkparam;
+  int itype,jtype,ktype,ijparam,ijkparam;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
   double rsq;
   double fj[3],fk[3];
@@ -86,7 +86,7 @@ void PairSWOMP::eval(int iifrom, int iito, ThrData * const thr)
   const tagint * _noalias const tag = atom->tag;
   const int * _noalias const type = atom->type;
   const int nlocal = atom->nlocal;
-  const bool legcache = (!skip_threebody_flag) && (!sw_mod_flag);
+  const bool swmod = sw_mod_flag;
 
   ilist = list->ilist;
   numneigh = list->numneigh;
@@ -129,7 +129,7 @@ void PairSWOMP::eval(int iifrom, int iito, ThrData * const thr)
         continue;
       } else if (!skip_threebody_flag) {
         fill_shortleg(&params[ijparam],rsq,x[j].x - xtmp,x[j].y - ytmp,x[j].z - ztmp,
-                      j,jtype,legcache,shortleg_thr[numshort++]);
+                      j,jtype,shortleg_thr[numshort++]);
         if (numshort >= maxshort_thr) {
           maxshort_thr += maxshort_thr/2;
           memory->grow(shortleg_thr,maxshort_thr,"pair:shortleg_thr");
@@ -170,7 +170,6 @@ void PairSWOMP::eval(int iifrom, int iito, ThrData * const thr)
       ShortLeg &s1 = shortleg_thr[jj];
       j = s1.j;
       jtype = s1.jtype;
-      ijparam = elem3param[itype][jtype][jtype];
 
       double fjxtmp,fjytmp,fjztmp;
       fjxtmp = fjytmp = fjztmp = 0.0;
@@ -181,13 +180,10 @@ void PairSWOMP::eval(int iifrom, int iito, ThrData * const thr)
         ktype = s2.jtype;
         ijkparam = elem3param[itype][jtype][ktype];
 
-        if (legcache) {
-          threebody_cached(&params[ijkparam],s1,s2,fj,fk,EFLAG,evdwl);
-        } else {
-          ikparam = elem3param[itype][ktype][ktype];
-          threebody(&params[ijparam],&params[ikparam],&params[ijkparam],
-                    s1.rsq,s2.rsq,s1.del,s2.del,fj,fk,EFLAG,evdwl);
-        }
+        if (swmod)
+          threebody_cached<1>(&params[ijkparam],s1,s2,fj,fk,EFLAG,evdwl);
+        else
+          threebody_cached<0>(&params[ijkparam],s1,s2,fj,fk,EFLAG,evdwl);
 
         fxtmp -= fj[0] + fk[0];
         fytmp -= fj[1] + fk[1];

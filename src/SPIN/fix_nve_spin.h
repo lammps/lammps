@@ -53,6 +53,7 @@ class FixNVESpin : public Fix {
  protected:
   int sector_flag;    // sector_flag = 0  if serial algorithm
                       // sector_flag = 1  if parallel algorithm
+  int danger_flag;    // 1 if the warning about dangerous neighbor builds was printed
 
   double dtv, dtf, dts;    // velocity, force, and spin timesteps
 

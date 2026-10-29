@@ -93,6 +93,7 @@ FixNVESpin::FixNVESpin(LAMMPS *lmp, int narg, char **arg) :
   // define sector_flag
 
   sector_flag = (comm->nprocs > 1) ? 1 : 0;
+  danger_flag = 0;
 
   // defining lattice_flag
 
@@ -269,6 +270,19 @@ void FixNVESpin::init()
 
   if (sector_flag) sectoring();
 
+  // the sectoring algorithm requires that atoms move less than half the
+  //   neighbor skin between reneighborings, which is only guaranteed if
+  //   the distance check is done on every step
+
+  danger_flag = 0;
+  if (sector_flag && lattice_flag && (comm->me == 0) &&
+      ((neighbor->every > 1) || (neighbor->delay > 0)))
+    error->warning(FLERR, "Fix nve/spin with multiple processors and a moving lattice may "
+                   "give inaccurate results if atoms move more than half the neighbor skin "
+                   "distance between neighbor list builds. This is possible with the "
+                   "current settings (neigh_modify every {} delay {}). To avoid this, use "
+                   "'neigh_modify every 1 delay 0 check yes'", neighbor->every, neighbor->delay);
+
   // init. size of stacking lists (sectoring)
 
   nlocal_max = atom->nlocal;
@@ -439,6 +453,18 @@ void FixNVESpin::pre_neighbor()
     sectoring();
     memory->grow(stack_head,nsectors,"nve/spin:stack_head");
     memory->grow(stack_foot,nsectors,"nve/spin:stack_foot");
+
+    // warn once per run if atoms have moved more than half the skin
+    //   between two neighbor list builds (counted by Neighbor)
+
+    if (!danger_flag && (neighbor->ndanger > 0)) {
+      danger_flag = 1;
+      if (comm->me == 0)
+        error->warning(FLERR, "Fix nve/spin: atoms moved more than half the neighbor skin "
+                       "distance between neighbor list builds, so spins on different "
+                       "processors may have been updated in the wrong order. "
+                       "Use 'neigh_modify every 1 delay 0 check yes'");
+    }
   }
 
   if (nlocal_max < nlocal) {                    // grow linked lists if necessary

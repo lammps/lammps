@@ -91,6 +91,20 @@ the atom_modify command. Typically, by adding the command:
 before you create the simulation box. Note that the keyword "hash"
 instead of "array" is also valid.
 
+When running on multiple processors with a moving lattice, the sectoring
+algorithm relies on atoms moving less than half the neighbor skin
+distance between two neighbor list builds.  This is only guaranteed
+with the settings
+
+.. code-block:: LAMMPS
+
+   neigh_modify every 1 delay 0 check yes
+
+With other settings (e.g. *every* > 1 or *delay* > 0), a warning is
+printed, and another one if atoms did move too far during the run
+(i.e. if there are "dangerous builds"), since then spins of atoms on
+different processors may have been updated in the wrong order.
+
 Related commands
 """"""""""""""""
 

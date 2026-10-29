@@ -81,6 +81,8 @@ FixNVESpin::FixNVESpin(LAMMPS *lmp, int narg, char **arg) :
 
   // test nprec
   nprecspin = nlangspin = nsetspin = 0;
+  nsectors = 0;
+  secdim[0] = secdim[1] = secdim[2] = 0;
 
   // checking if map array or hash is defined
 
@@ -574,18 +576,30 @@ void FixNVESpin::sectoring()
     }
   }
 
-  // split a direction in two sectors only if each is at least as wide as cutoff + skin
+  // split a direction in two sectors only if it is divided between several procs
+  // in the other directions, the neighbors of a proc are periodic images of its
+  //   own atoms, which are kept up to date via sametag in AdvanceSingleSpin()
+  // with a tiled decomposition, split all directions
 
-  int sec[3];
-  for (int d = 0; d < 3; d++) sec[d] = (rs[d] >= 2.0 * rcut[d]) ? 2 : 1;
+  const char *dimname[3] = {"x", "y", "z"};
+  nsectors = 1;
+  for (int d = 0; d < 3; d++) {
+    secdim[d] = 0;
+    if (d < domain->dimension)
+      secdim[d] = (comm->layout == Comm::LAYOUT_TILED) || (comm->procgrid[d] > 1);
+    if (secdim[d]) nsectors *= 2;
 
-  nsectors = sec[0]*sec[1]*sec[2];
+    // each sector must be at least as wide as cutoff + skin
 
-  if (sector_flag && (nsectors != 8))
-    error->all(FLERR, Error::NOLASTLINE,
-               "Illegal sectoring operation resulting in {} sectors instead of 8", nsectors);
+    if (secdim[d] && (rs[d] < 2.0 * rcut[d]))
+      error->all(FLERR, Error::NOLASTLINE,
+                 "Processor sub-domain of fix nve/spin is {:.8} wide in {} direction, but "
+                 "must be at least {:.8} = 2 x (largest magnetic cutoff + neighbor skin). "
+                 "Use fewer processors in this direction (see the processors command)",
+                 rs[d] * rv / rcut[d], dimname[d], 2.0 * rv);
 
-  for (int d = 0; d < 3; d++) rsec[d] = rs[d] / sec[d];
+    rsec[d] = secdim[d] ? 0.5 * rs[d] : rs[d];
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -604,12 +618,17 @@ int FixNVESpin::coords2sector(double *x)
     sublo = domain->sublo_lamda;
   }
 
-  int seci[3];
-  seci[0] = xs[0] > (sublo[0] + rsec[0]);
-  seci[1] = xs[1] > (sublo[1] + rsec[1]);
-  seci[2] = xs[2] > (sublo[2] + rsec[2]);
+  // one bit per split direction, in x,y,z order
 
-  return (seci[0] + 2*seci[1] + 4*seci[2]);
+  int nseci = 0;
+  int bit = 1;
+  for (int d = 0; d < 3; d++) {
+    if (!secdim[d]) continue;
+    if (xs[d] > (sublo[d] + rsec[d])) nseci += bit;
+    bit *= 2;
+  }
+
+  return nseci;
 }
 
 /* ----------------------------------------------------------------------
@@ -659,17 +678,17 @@ void FixNVESpin::AdvanceSingleSpin(int i)
   // sp[i][1] *= scale;
   // sp[i][2] *= scale;
 
-  // comm. sp[i] to atoms with same tag (for serial algo)
+  // comm. sp[i] to atoms with same tag (periodic images on this proc)
+  // needed for the serial algo, and for the sectoring algo in directions
+  //   that are not split into sectors
 
-  if (!sector_flag) {
-    if (sametag[i] >= 0) {
-      j = sametag[i];
-      while (j >= 0) {
-        sp[j][0] = sp[i][0];
-        sp[j][1] = sp[i][1];
-        sp[j][2] = sp[i][2];
-        j = sametag[j];
-      }
+  if (sametag[i] >= 0) {
+    j = sametag[i];
+    while (j >= 0) {
+      sp[j][0] = sp[i][0];
+      sp[j][1] = sp[i][1];
+      sp[j][2] = sp[i][2];
+      j = sametag[j];
     }
   }
 

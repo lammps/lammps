@@ -87,6 +87,7 @@ class FixNVESpin : public Fix {
   // sectoring variables
 
   int nsectors;
+  int secdim[3];    // 1 if a direction is split into two sectors
   double *rsec;
 
   // stacking variables for sectoring algorithm

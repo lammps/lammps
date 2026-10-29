@@ -51,13 +51,26 @@ according to the implementation reported in :ref:`(Omelyan) <Omelyan1>`.
 A sectoring method enables this scheme for parallel calculations.
 The implementation of this sectoring algorithm is reported
 in :ref:`(Tranchida) <Tranchida1>`.
-Each processor sub-domain is divided into 2x2x2 sectors, so that spins
-in sectors with the same index on different processors do not interact
-and can be updated at the same time.  This requires the sub-domain of
-each processor to be at least twice as wide as the largest magnetic pair
-cutoff plus the :doc:`neighbor skin distance <neighbor>` in all three
-directions.  The skin is needed because atoms can move by up to half
-the skin distance between two neighbor list builds.
+Each processor sub-domain is cut in two halves (sectors) along every
+direction in which the simulation box is divided between several
+processors (see the :doc:`processors <processors>` command), giving 2,
+4, or 8 sectors.  Spins in sectors with the same index on different
+processors do not interact and are updated at the same time.  This
+requires the sub-domain of each processor to be at least twice as wide
+as the largest magnetic pair cutoff plus the :doc:`neighbor skin
+distance <neighbor>` in each of these directions.  The skin is needed
+because atoms can move by up to half the skin distance between two
+neighbor list builds.  There is no size requirement in directions that
+are not divided between processors, so that, e.g., thin films can be run
+in parallel with a processor grid like "processors \* \* 1".  With
+:doc:`comm_style tiled <comm_style>`, all directions are cut in two.
+
+.. versionchanged:: TBD
+
+   Sectors are only created in directions divided between processors
+   (before, 2x2x2 sectors were always required), the size requirement
+   includes the neighbor skin, and it is checked again whenever the
+   sub-domains change.
 
 ----------
 

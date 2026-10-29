@@ -43,6 +43,8 @@ class FixNVESpin : public Fix {
 
   void setup_pre_neighbor() override;
   void pre_neighbor() override;
+  int pack_forward_comm(int, int *, double *, int, int *) override;
+  void unpack_forward_comm(int, int, double *) override;
   double memory_usage() override;
 
   int lattice_flag;    // lattice_flag = 0 if spins only

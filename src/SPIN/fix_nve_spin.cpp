@@ -74,6 +74,7 @@ FixNVESpin::FixNVESpin(LAMMPS *lmp, int narg, char **arg) :
   if (narg < 4) error->all(FLERR,"Illegal fix/nve/spin command");
 
   time_integrate = 1;
+  comm_forward = 3;
   lattice_flag = 1;
   nlocal_max = 0;
   npairs = 0;
@@ -308,10 +309,14 @@ void FixNVESpin::initial_integrate(int /*vflag*/)
   }
 
   // update half s for all atoms
+  // communicate ghost positions (and spins) once, since other fixes may have
+  //   changed positions or box since the last comm (e.g. fix deform remap x),
+  //   then only ghost spins
 
   if (sector_flag) {                            // sectoring seq. update
     for (int j = 0; j < nsectors; j++) {        // advance quarter s for nlocal
-      comm->forward_comm();
+      if (j == 0) comm->forward_comm();
+      else comm->forward_comm(this);
       int i = stack_foot[j];
       while (i >= 0) {
         const int next = forward_stacks[i];
@@ -323,7 +328,7 @@ void FixNVESpin::initial_integrate(int /*vflag*/)
       }
     }
     for (int j = nsectors-1; j >= 0; j--) {     // advance quarter s for nlocal
-      comm->forward_comm();
+      comm->forward_comm(this);
       int i = stack_head[j];
       while (i >= 0) {
         const int next = backward_stacks[i];
@@ -363,10 +368,13 @@ void FixNVESpin::initial_integrate(int /*vflag*/)
   }
 
   // update half s for all particles
+  // ghost positions have changed: communicate them (and spins) once,
+  //   then only ghost spins
 
   if (sector_flag) {                            // sectoring seq. update
     for (int j = 0; j < nsectors; j++) {        // advance quarter s for nlocal
-      comm->forward_comm();
+      if (j == 0) comm->forward_comm();
+      else comm->forward_comm(this);
       int i = stack_foot[j];
       while (i >= 0) {
         const int next = forward_stacks[i];
@@ -378,7 +386,7 @@ void FixNVESpin::initial_integrate(int /*vflag*/)
       }
     }
     for (int j = nsectors-1; j >= 0; j--) {     // advance quarter s for nlocal
-      comm->forward_comm();
+      comm->forward_comm(this);
       int i = stack_head[j];
       while (i >= 0) {
         const int next = backward_stacks[i];
@@ -723,6 +731,38 @@ void FixNVESpin::final_integrate()
     }
   }
 
+}
+
+/* ----------------------------------------------------------------------
+   pack/unpack only the spin direction of ghost atoms (sectoring algo)
+---------------------------------------------------------------------- */
+
+int FixNVESpin::pack_forward_comm(int n, int *list, double *buf,
+                                  int /*pbc_flag*/, int * /*pbc*/)
+{
+  double **sp = atom->sp;
+  int m = 0;
+  for (int i = 0; i < n; i++) {
+    const int j = list[i];
+    buf[m++] = sp[j][0];
+    buf[m++] = sp[j][1];
+    buf[m++] = sp[j][2];
+  }
+  return m;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixNVESpin::unpack_forward_comm(int n, int first, double *buf)
+{
+  double **sp = atom->sp;
+  int m = 0;
+  const int last = first + n;
+  for (int i = first; i < last; i++) {
+    sp[i][0] = buf[m++];
+    sp[i][1] = buf[m++];
+    sp[i][2] = buf[m++];
+  }
 }
 
 /* ---------------------------------------------------------------------- */

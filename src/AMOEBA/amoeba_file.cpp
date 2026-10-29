@@ -27,7 +27,7 @@ using namespace LAMMPS_NS;
 
 enum { UNKNOWN, FFIELD, LITERATURE, ATOMTYPE, VDWL, VDWLPAIR, BSTRETCH, SBEND, ABEND,
   PAULI, DISPERSION, UB, OUTPLANE, TORSION, PITORSION, ATOMMULT, QPENETRATION, DIPPOLAR,
-  QTRANSFER, END_OF_FILE };
+  QTRANSFER, QFLUX, END_OF_FILE };
 enum { ALLINGER, BUFFERED_14_7 };
 enum { ARITHMETIC, GEOMETRIC, CUBIC_MEAN, R_MIN, SIGMA, DIAMETER, HARMONIC, HHG, W_H };
 enum { MUTUAL, OPT, TCG, DIRECT };
@@ -143,6 +143,8 @@ void PairAmoeba::read_prmfile(char *filename)
             section = DIPPOLAR;
           else if (utils::strmatch(trimmed, R"(^##\s*Charge Transfer)"))
             section = QTRANSFER;
+          else if (utils::strmatch(trimmed, R"(^##\s*Charge Flux)"))
+            section = QFLUX;
           else {
             section = UNKNOWN;
             utils::logmesg(lmp, "Skipping section: {}\n", trimmed.substr(2, trimmed.size() - 4));
@@ -305,6 +307,12 @@ void PairAmoeba::read_prmfile(char *filename)
         case QTRANSFER:
           file_charge_transfer(words, nline - 1);
           break;
+        case QFLUX:
+          // charge flux changes the monopoles with the geometry; ignoring it
+          // would silently give a different force field
+          error->all(FLERR, "{} PRM file line {}: charge flux ({}) is not supported",
+                     utils::uppercase(mystyle), nline - 1, words[0]);
+          break;
         case UNKNOWN:
         case END_OF_FILE:
         default:
@@ -319,6 +327,21 @@ void PairAmoeba::read_prmfile(char *filename)
 
   if (forcefield_flag == 0 || atomtype_flag == 0)
     error->all(FLERR, "Pair {} potential file {} incomplete", mystyle, filename);
+
+  // Tinker 8.9 (2021) lowered the overlap prefactor of the Pauli repulsion
+  // 64-fold and multiplied the repulsion sizes in its PRM files by 8; all
+  // older sizes are below 5.1, all newer ones above 9.4
+
+  if (!amoeba && (me == 0)) {
+    double sizmax = 0.0;
+    for (int i = 1; i <= n_amtype; i++) sizmax = MAX(sizmax, sizpr[i]);
+    if ((sizmax > 0.0) && (sizmax < 7.0))
+      error->warning(FLERR,
+                     "{} PRM file {} has Pauli repulsion sizes of at most {}: it probably "
+                     "uses the convention of Tinker before version 8.9, whose sizes must "
+                     "be multiplied by 8",
+                     utils::uppercase(mystyle), filename, sizmax);
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -662,6 +685,14 @@ void PairAmoeba::read_keyfile(char *filename)
 
 void PairAmoeba::file_ffield(const std::vector<std::string> &words, int nline)
 {
+  // the direct field is scaled like the polar field: always the case for HIPPO
+
+  if (words[0] == "d-equals-p") {
+    if (amoeba)
+      error->all(FLERR, "AMOEBA PRM file keyword d-equals-p on line {} is not supported", nline);
+    return;
+  }
+
   if (words.size() < 2)
     error->all(FLERR, "Keyword {} without argument(s) in {} PRM file", words[0], mystyle);
 

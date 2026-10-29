@@ -224,6 +224,17 @@ files parameterized for Tinker units.  Their numeric parameters are
 converted by LAMMPS to its real units :doc:`units <units>`.  Thus you
 can only use these pair styles with real units.
 
+.. versionchanged:: TBD
+
+The HIPPO Pauli repulsion follows the convention of Tinker version 8.9
+(2021) and later, whose PRM files have repulsion sizes 8 times larger
+than those of older Tinker versions.  LAMMPS prints a warning when the
+sizes in a PRM file look like the older convention; multiply them by 8
+to use such a file.  Charge flux (the *bndcflux* and *angcflux*
+entries of a "Charge Flux Parameters" section, used for example by the
+HIPPO-WATER-2021 model) is not supported, and LAMMPS stops with an
+error when a PRM file contains it.
+
 These potentials do not yet calculate per-atom energy or virial
 contributions.
 

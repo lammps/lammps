@@ -448,6 +448,10 @@ void PairAmoeba::damprep(double r, double r2, double rr1, double rr3,
   double dampi,dampk;
   double pre,term,tmp;
 
+  // overlap prefactors as in Tinker 8.9 and later, which lowered them
+  // 64-fold (128 -> 2, 8192 -> 128) and multiplied the Pauli repulsion sizes
+  // in its PRM files by 8
+
   // compute tolerance value for damping exponents
 
   eps = 0.001;
@@ -469,7 +473,7 @@ void PairAmoeba::damprep(double r, double r2, double rr1, double rr3,
     dmpi24 = dmpi23 * dmpi2;
     dmpi25 = dmpi24 * dmpi2;
     dmpi26 = dmpi25 * dmpi2;
-    pre = 128.0;
+    pre = 2.0;
     s = (r + dmpi2*r2 + dmpi22*r3/3.0) * expi;
 
     ds = (dmpi22*r3 + dmpi23*r4) * expi / 3.0;
@@ -503,7 +507,7 @@ void PairAmoeba::damprep(double r, double r2, double rr1, double rr3,
     dmpk24 = dmpk23 * dmpk2;
     dmpk25 = dmpk24 * dmpk2;
     term = dmpi22 - dmpk22;
-    pre = 8192.0 * dmpi23 * dmpk23 / (term*term*term*term);
+    pre = 128.0 * dmpi23 * dmpk23 / (term*term*term*term);
     tmp = 4.0 * dmpi2 * dmpk2 / term;
     s = (dampi-tmp)*expk + (dampk+tmp)*expi;
 

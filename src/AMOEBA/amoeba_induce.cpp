@@ -464,7 +464,7 @@ void PairAmoeba::ulspred()
     for (k = 0; k < nualt; k++) {
       b_ualt[k] = 0.0;
       bp_ualt[k] = 0.0;
-      for (m = k; m < nualt; m++) {
+      for (m = 0; m < nualt; m++) {
         c_ualt[k][m] = 0.0;
         cp_ualt[k][m] = 0.0;
       }
@@ -483,6 +483,11 @@ void PairAmoeba::ulspred()
         }
       }
     }
+
+    // sum the normal equations over all procs, so that all procs use the same coefficients
+
+    MPI_Allreduce(MPI_IN_PLACE,&c_ualt[0][0],maxualt*maxualt,MPI_DOUBLE,MPI_SUM,world);
+    MPI_Allreduce(MPI_IN_PLACE,&cp_ualt[0][0],maxualt*maxualt,MPI_DOUBLE,MPI_SUM,world);
 
     i = 0;
     for (k = 1; k < nualt; k++) {
@@ -1147,19 +1152,21 @@ void PairAmoeba::udirect1(double **field)
   auto ***gridpost = (FFT_SCALAR ***) i_kspace->post_convolution();
 
   // get potential
+  // use fphidir,cphidir and not fphi,cphi which hold the scaled potential
+  //   from multipole_kspace() that polar_kspace() re-uses when aewald = aeewald
 
-  fphi_mpole(gridpost,fphi);
+  fphi_mpole(gridpost,fphidir);
 
   // convert the field from fractional to Cartesian
 
-  fphi_to_cphi(fphi,cphi);
+  fphi_to_cphi(fphidir,cphidir);
 
   // increment the field at each multipole site
 
   for (i = 0; i < nlocal; i++) {
-    field[i][0] -= cphi[i][1];
-    field[i][1] -= cphi[i][2];
-    field[i][2] -= cphi[i][3];
+    field[i][0] -= cphidir[i][1];
+    field[i][1] -= cphidir[i][2];
+    field[i][2] -= cphidir[i][3];
   }
 }
 

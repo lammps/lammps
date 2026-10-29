@@ -22,6 +22,7 @@
 #include "comm.h"
 #include "error.h"
 #include "math_const.h"
+#include "math_special.h"
 #include "memory.h"
 #include "potential_file_reader.h"
 #include "update.h"
@@ -31,6 +32,7 @@
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
+using MathSpecial::square;
 
 static constexpr int DELTA = 4;
 
@@ -189,7 +191,7 @@ void PairGWZBL::repulsive(Param *param, double rsq, double &fforce,
 
   // ZBL repulsive portion
 
-  double esq = pow(global_e,2.0);
+  double esq = square(global_e);
   double a_ij = (0.8854*global_a_0) /
     (pow(param->Z_i,0.23) + pow(param->Z_j,0.23));
   double premult = (param->Z_i * param->Z_j * esq)/(4.0*MY_PI*global_epsilon_0);
@@ -249,5 +251,5 @@ double PairGWZBL::F_fermi(double r, Param *param)
 double PairGWZBL::F_fermi_d(double r, Param *param)
 {
   return param->ZBLexpscale*exp(-param->ZBLexpscale*(r-param->ZBLcut)) /
-    pow(1.0 + exp(-param->ZBLexpscale*(r-param->ZBLcut)),2.0);
+    square(1.0 + exp(-param->ZBLexpscale*(r-param->ZBLcut)));
 }

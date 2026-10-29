@@ -419,7 +419,7 @@ void PairTersoffZBLKokkos<DeviceType>::tersoff_zbl_compute(const int &ii, EV_FLO
 
     // ZBL repulsive portion
 
-    const KK_FLOAT esq = Kokkos::pow(global_e,static_cast<KK_FLOAT>(2.0));
+    const KK_FLOAT esq = MathSpecialKokkos::square(global_e);
     const KK_FLOAT a_ij = (static_cast<KK_FLOAT>(0.8854)*global_a_0) /
             static_cast<KK_FLOAT>(pow(d_params(iparam_ij).Z_i,0.23) + pow(d_params(iparam_ij).Z_j,0.23));
     const KK_FLOAT premult = (static_cast<KK_FLOAT>(d_params(iparam_ij).Z_i) * static_cast<KK_FLOAT>(d_params(iparam_ij).Z_j) * esq)/
@@ -1048,8 +1048,8 @@ KK_FLOAT PairTersoffZBLKokkos<DeviceType>::fermi_d_k(const Param& param, const K
   const KK_FLOAT ZBLcut_kk = static_cast<KK_FLOAT>(param.ZBLcut);
   return ZBLexpscale_kk * Kokkos::exp(-ZBLexpscale_kk *
          (r - ZBLcut_kk)) /
-         Kokkos::pow(static_cast<KK_FLOAT>(1.0) + Kokkos::exp(-ZBLexpscale_kk *
-         (r - ZBLcut_kk)),static_cast<KK_FLOAT>(2.0));
+         MathSpecialKokkos::square(static_cast<KK_FLOAT>(1.0) + Kokkos::exp(-ZBLexpscale_kk *
+         (r - ZBLcut_kk)));
 }
 
 /* ---------------------------------------------------------------------- */

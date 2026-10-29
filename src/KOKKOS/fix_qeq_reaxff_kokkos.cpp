@@ -219,22 +219,26 @@ void FixQEqReaxFFKokkos<DeviceType>::pre_force(int /*vflag*/)
   allocate_array();
 
   if (!matrix_free) {
-    // create the functor that handles the H matrix
-    FixQEqReaxFFKokkosNeighborFunctor<DeviceType> neighbor_functor(*this);
 
     // get max number of neighbor
 
     if (!allocated_flag || last_allocate < neighbor->lastcall
         || nlocal_last_allocate != nlocal) {
       // determine the total space for the H matrix
+      // limit scope of functor to allow deallocation of views
       m_cap_big = 0;
-      Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType,TagQEqNeighborNumNeigh>(0,nn), neighbor_functor, m_cap_big);
+      {
+        FixQEqReaxFFKokkosNeighborFunctor<DeviceType> neighbor_functor(*this);
+        Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType,TagQEqNeighborNumNeigh>(0,nn), neighbor_functor, m_cap_big);
+      }
 
       allocate_matrix();
-      neighbor_functor.update_after_allocation(*this);
       last_allocate = update->ntimestep;
       nlocal_last_allocate = nlocal;
     }
+
+    // create the functor that handles the H matrix
+    FixQEqReaxFFKokkosNeighborFunctor<DeviceType> neighbor_functor(*this);
 
     // compute_H
 
@@ -1473,17 +1477,6 @@ void FixQEqReaxFFKokkos<DeviceType>::get_chi_field()
   FixQEqReaxFF::get_chi_field();
   k_chi_field.modify_host();
   k_chi_field.sync_device();
-}
-
-/* ---------------------------------------------------------------------- */
-
-template<class DeviceType>
-void FixQEqReaxFFKokkosNeighborFunctor<DeviceType>::update_after_allocation(const FixQEqReaxFFKokkos<DeviceType> &qeqreax)
-{
-  d_firstnbr = qeqreax.d_firstnbr;
-  d_numnbrs = qeqreax.d_numnbrs;
-  d_jlist = qeqreax.d_jlist;
-  d_val = qeqreax.d_val;
 }
 
 /* ---------------------------------------------------------------------- */

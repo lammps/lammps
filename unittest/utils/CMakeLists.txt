@@ -121,6 +121,13 @@ if(PKG_KSPACE)
   list(FILTER LAMMPS_FFT_DEFINITIONS INCLUDE REGEX "^-?D?FFT_")
   target_compile_definitions(test_fft3d PRIVATE ${LAMMPS_FFT_DEFINITIONS})
 
+  # fft3d.h includes the FFTW header, but the lammps target links FFTW privately,
+  # so its include path is not inherited (fails when FFTW is not in a default
+  # include path, e.g. with Homebrew on macOS)
+  if((FFT STREQUAL "FFTW3") AND TARGET ${FFTW}::${FFTW})
+    target_link_libraries(test_fft3d PRIVATE ${FFTW}::${FFTW})
+  endif()
+
   # OpenMP lets the tests set the number of threads used by threaded FFTs
   if(BUILD_OMP AND TARGET OpenMP::OpenMP_CXX)
     target_link_libraries(test_fft3d PRIVATE OpenMP::OpenMP_CXX)

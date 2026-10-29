@@ -547,6 +547,14 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
     universe->ulogfile = nullptr;
   }
 
+  // make universe screen and logfile output unbuffered for debugging crashes
+  // must be done before anything is written to them
+
+  if (nonbufflag) {
+    if (universe->uscreen) setbuf(universe->uscreen, nullptr);
+    if (universe->ulogfile) setbuf(universe->ulogfile, nullptr);
+  }
+
   // make universe and single world the same, since no partition switch
   // world inherits settings from universe
   // set world screen, logfile, communicator, infile
@@ -636,11 +644,9 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
       }
     }
 
-    // make all screen and logfile output unbuffered for debugging crashes
+    // make world screen and logfile output unbuffered for debugging crashes
 
     if (nonbufflag) {
-      if (universe->uscreen) setbuf(universe->uscreen, nullptr);
-      if (universe->ulogfile) setbuf(universe->ulogfile, nullptr);
       if (screen) setbuf(screen, nullptr);
       if (logfile) setbuf(logfile, nullptr);
     }

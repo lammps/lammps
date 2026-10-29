@@ -266,6 +266,28 @@ double PairTersoffMOD::ters_bij(double zeta, Param *param)
 
 /* ---------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------
+   bond order and its derivative together: outside the asymptotic ranges
+   the derivative reuses the powers of the bond order, x^(a-1) = x^a / x
+------------------------------------------------------------------------- */
+
+void PairTersoffMOD::ters_bij_and_d(double zeta, Param *param, double &bij, double &bij_d)
+{
+  const double tmp = param->beta * zeta;
+  if ((tmp > param->ca1) || (tmp < param->ca4)) {
+    bij = ters_bij(zeta,param);
+    bij_d = ters_bij_d(zeta,param);
+    return;
+  }
+
+  const double tmp_n = powauto(tmp,param->powern);
+  const double onetmp_n = 1.0 + tmp_n;
+  bij = pow(onetmp_n, -1.0/(2.0*param->powern_del));
+  bij_d = -0.5*(param->powern/param->powern_del) * bij / onetmp_n * tmp_n / zeta;
+}
+
+/* ---------------------------------------------------------------------- */
+
 double PairTersoffMOD::ters_bij_d(double zeta, Param *param)
 {
   double tmp = param->beta * zeta;

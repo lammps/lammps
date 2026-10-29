@@ -123,6 +123,10 @@ class PairTersoffMODCKokkos : public PairTersoffMODC {
 
 // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
+  void ters_bij_k_and_ters_dbij(const Param& param, const KK_FLOAT &bo, KK_FLOAT &bij, KK_FLOAT &dbij) const;
+
+// NOLINTNEXTLINE
+  KOKKOS_INLINE_FUNCTION
   KK_FLOAT bondorder(const Param& param,
               const KK_FLOAT &rij, const KK_FLOAT &dx1, const KK_FLOAT &dy1, const KK_FLOAT &dz1,
               const KK_FLOAT &rik, const KK_FLOAT &dx2, const KK_FLOAT &dy2, const KK_FLOAT &dz2) const;

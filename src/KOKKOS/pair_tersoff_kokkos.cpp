@@ -892,8 +892,10 @@ void PairTersoffKokkos<DeviceType>::ters_bij_k_and_ters_dbij(const ParamKokkos& 
   }
 
   const KK_FLOAT tmp_n = MathSpecialKokkos::powauto(tmp,param.powern);
-  bij = Kokkos::pow(static_cast<KK_FLOAT>(1.0) + tmp_n, static_cast<KK_FLOAT>(-0.5)/(prm_ijk_pn));
-  prefactor =  static_cast<KK_FLOAT>(-0.5) * Kokkos::pow(static_cast<KK_FLOAT>(1.0)+tmp_n, static_cast<KK_FLOAT>(-1.0)-(static_cast<KK_FLOAT>(0.5)/(prm_ijk_pn)))*tmp_n / bo;
+  const KK_FLOAT onetmp_n = static_cast<KK_FLOAT>(1.0) + tmp_n;
+  bij = Kokkos::pow(onetmp_n, static_cast<KK_FLOAT>(-0.5)/(prm_ijk_pn));
+  // x^(a-1) = x^a / x
+  prefactor =  static_cast<KK_FLOAT>(-0.5) * bij / onetmp_n * tmp_n / bo;
 }
 
 /* ---------------------------------------------------------------------- */

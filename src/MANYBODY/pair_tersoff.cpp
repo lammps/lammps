@@ -622,14 +622,14 @@ void PairTersoff::force_zeta(Param *param, double rsq, double zeta_ij,
                              double &fforce, double &prefactor,
                              int eflag, double &eng)
 {
-  double r,fa,fa_d,bij;
+  double r,fa,fa_d,bij,bij_d;
 
   r = sqrt(rsq);
   fa = ters_fa(r,param);
   fa_d = ters_fa_d(r,param);
-  bij = ters_bij(zeta_ij,param);
+  ters_bij_and_d(zeta_ij,param,bij,bij_d);
   fforce = 0.5*bij*fa_d;
-  prefactor = -0.5*fa * ters_bij_d(zeta_ij,param);
+  prefactor = -0.5*fa * bij_d;
   if (eflag) eng = 0.5*bij*fa;
 }
 
@@ -715,6 +715,28 @@ double PairTersoff::ters_bij(double zeta, Param *param)
   if (tmp < param->c3)
     return 1.0 - powauto(tmp,param->powern)/(2.0*param->powern);
   return pow(1.0 + powauto(tmp,param->powern), -1.0/(2.0*param->powern));
+}
+
+/* ---------------------------------------------------------------------- */
+
+/* ----------------------------------------------------------------------
+   bond order and its derivative together: outside the asymptotic ranges
+   the derivative reuses the powers of the bond order, x^(a-1) = x^a / x
+------------------------------------------------------------------------- */
+
+void PairTersoff::ters_bij_and_d(double zeta, Param *param, double &bij, double &bij_d)
+{
+  const double tmp = param->beta * zeta;
+  if ((tmp > param->c2) || (tmp < param->c3)) {
+    bij = ters_bij(zeta,param);
+    bij_d = ters_bij_d(zeta,param);
+    return;
+  }
+
+  const double tmp_n = powauto(tmp,param->powern);
+  const double onetmp_n = 1.0 + tmp_n;
+  bij = pow(onetmp_n, -1.0/(2.0*param->powern));
+  bij_d = -0.5 * bij / onetmp_n * tmp_n / zeta;
 }
 
 /* ---------------------------------------------------------------------- */

@@ -472,9 +472,10 @@ void PairTersoffMODKokkos<DeviceType>::tersoff_mod_compute(const int &ii, EV_FLO
 
     const KK_FLOAT fa = ters_fa_k(d_params(iparam_ij),rij);
     const KK_FLOAT dfa = ters_dfa(d_params(iparam_ij),rij);
-    const KK_FLOAT bij = ters_bij_k(d_params(iparam_ij),bo_ij);
+    KK_FLOAT bij, dbij;
+    ters_bij_k_and_ters_dbij(d_params(iparam_ij),bo_ij,bij,dbij);
     const KK_FLOAT fatt = -static_cast<KK_FLOAT>(0.5)*bij * dfa / rij_orig;
-    const KK_FLOAT prefactor = static_cast<KK_FLOAT>(0.5)*fa * ters_dbij(d_params(iparam_ij),bo_ij);
+    const KK_FLOAT prefactor = static_cast<KK_FLOAT>(0.5)*fa * dbij;
 
     f_x += static_cast<KK_ACC_FLOAT>(delx1*fatt);
     f_y += static_cast<KK_ACC_FLOAT>(dely1*fatt);
@@ -763,6 +764,31 @@ KK_FLOAT PairTersoffMODKokkos<DeviceType>::ters_dbij(const Param& param, const K
   const KK_FLOAT tmp_n = MathSpecialKokkos::powauto(tmp,powern_kk);
   return -static_cast<KK_FLOAT>(0.5) *(powern_kk/powern_del_kk)*
           Kokkos::pow(static_cast<KK_FLOAT>(1.0)+tmp_n, -static_cast<KK_FLOAT>(1.0)-(static_cast<KK_FLOAT>(1.0)/(static_cast<KK_FLOAT>(2.0)*powern_del_kk)))*tmp_n / bo;
+}
+
+/* ----------------------------------------------------------------------
+   bond order and its derivative together: outside the asymptotic ranges
+   the derivative reuses the powers of the bond order, x^(a-1) = x^a / x
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+// NOLINTNEXTLINE
+KOKKOS_INLINE_FUNCTION
+void PairTersoffMODKokkos<DeviceType>::ters_bij_k_and_ters_dbij(const Param& param, const KK_FLOAT &bo, KK_FLOAT &bij, KK_FLOAT &dbij) const
+{
+  const KK_FLOAT tmp = static_cast<KK_FLOAT>(param.beta) * bo;
+  if ((tmp > static_cast<KK_FLOAT>(param.ca1)) || (tmp < static_cast<KK_FLOAT>(param.ca4))) {
+    bij = ters_bij_k(param,bo);
+    dbij = ters_dbij(param,bo);
+    return;
+  }
+
+  const KK_FLOAT powern_kk = static_cast<KK_FLOAT>(param.powern);
+  const KK_FLOAT powern_del_kk = static_cast<KK_FLOAT>(param.powern_del);
+  const KK_FLOAT tmp_n = MathSpecialKokkos::powauto(tmp,powern_kk);
+  const KK_FLOAT onetmp_n = static_cast<KK_FLOAT>(1.0) + tmp_n;
+  bij = Kokkos::pow(onetmp_n, -static_cast<KK_FLOAT>(1.0)/(static_cast<KK_FLOAT>(2.0)*powern_del_kk));
+  dbij = -static_cast<KK_FLOAT>(0.5)*(powern_kk/powern_del_kk) * bij / onetmp_n * tmp_n / bo;
 }
 
 /* ---------------------------------------------------------------------- */

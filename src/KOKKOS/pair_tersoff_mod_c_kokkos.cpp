@@ -25,6 +25,7 @@
 #include "force.h"
 #include "kokkos.h"
 #include "math_const.h"
+#include "math_special_kokkos.h"
 #include "memory_kokkos.h"
 #include "neigh_list_kokkos.h"
 #include "neigh_request.h"
@@ -745,7 +746,7 @@ KK_FLOAT PairTersoffMODCKokkos<DeviceType>::ters_bij_k(const Param& param, const
     return Kokkos::pow(tmp, -powern_kk/(static_cast<KK_FLOAT>(2.0)*powern_del_kk));
   if (tmp < static_cast<KK_FLOAT>(param.ca4))
     return 1.0;
-  return Kokkos::pow(static_cast<KK_FLOAT>(1.0) + Kokkos::pow(tmp,powern_kk), -static_cast<KK_FLOAT>(1.0)/(static_cast<KK_FLOAT>(2.0)*powern_del_kk));
+  return Kokkos::pow(static_cast<KK_FLOAT>(1.0) + MathSpecialKokkos::powauto(tmp,powern_kk), -static_cast<KK_FLOAT>(1.0)/(static_cast<KK_FLOAT>(2.0)*powern_del_kk));
 }
 
 /* ---------------------------------------------------------------------- */
@@ -764,7 +765,7 @@ KK_FLOAT PairTersoffMODCKokkos<DeviceType>::ters_dbij(const Param& param, const 
   if (tmp < static_cast<KK_FLOAT>(param.ca4))
     return 0.0;
 
-  const KK_FLOAT tmp_n = Kokkos::pow(tmp,powern_kk);
+  const KK_FLOAT tmp_n = MathSpecialKokkos::powauto(tmp,powern_kk);
   return -static_cast<KK_FLOAT>(0.5) *(powern_kk/powern_del_kk)*
           Kokkos::pow(static_cast<KK_FLOAT>(1.0)+tmp_n, -static_cast<KK_FLOAT>(1.0)-(static_cast<KK_FLOAT>(1.0)/(static_cast<KK_FLOAT>(2.0)*powern_del_kk)))*tmp_n / bo;
 }

@@ -710,11 +710,11 @@ double PairTersoff::ters_bij(double zeta, Param *param)
   double tmp = param->beta * zeta;
   if (tmp > param->c1) return 1.0/sqrt(tmp);
   if (tmp > param->c2)
-    return (1.0 - pow(tmp,-param->powern) / (2.0*param->powern))/sqrt(tmp);
+    return (1.0 - powauto(tmp,-param->powern) / (2.0*param->powern))/sqrt(tmp);
   if (tmp < param->c4) return 1.0;
   if (tmp < param->c3)
-    return 1.0 - pow(tmp,param->powern)/(2.0*param->powern);
-  return pow(1.0 + pow(tmp,param->powern), -1.0/(2.0*param->powern));
+    return 1.0 - powauto(tmp,param->powern)/(2.0*param->powern);
+  return pow(1.0 + powauto(tmp,param->powern), -1.0/(2.0*param->powern));
 }
 
 /* ---------------------------------------------------------------------- */
@@ -728,12 +728,12 @@ double PairTersoff::ters_bij_d(double zeta, Param *param)
                           // error in negligible 2nd term fixed 9/30/2015
                           // (1.0 - 0.5*(1.0 +  1.0/(2.0*param->powern)) *
                           (1.0 - (1.0 +  1.0/(2.0*param->powern)) *
-                           pow(tmp,-param->powern)));
+                           powauto(tmp,-param->powern)));
   if (tmp < param->c4) return 0.0;
   if (tmp < param->c3)
-    return -0.5*param->beta * pow(tmp,param->powern-1.0);
+    return -0.5*param->beta * powauto(tmp,param->powern-1.0);
 
-  double tmp_n = pow(tmp,param->powern);
+  double tmp_n = powauto(tmp,param->powern);
   return -0.5 * pow(1.0+tmp_n, -1.0-(1.0/(2.0*param->powern)))*tmp_n / zeta;
 }
 

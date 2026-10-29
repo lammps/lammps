@@ -24,6 +24,7 @@
 #include "error.h"
 #include "force.h"
 #include "info.h"
+#include "math_special.h"
 #include "memory.h"
 #include "neigh_list.h"
 #include "neighbor.h"
@@ -33,6 +34,7 @@
 #include <cstring>
 
 using namespace LAMMPS_NS;
+using MathSpecial::powauto;
 
 static constexpr int DELTA = 4;
 
@@ -547,8 +549,8 @@ void PairSW::twobody(Param *param, double rsq, double &fforce,
 
   r = sqrt(rsq);
   rinvsq = 1.0/rsq;
-  rp = pow(r,-param->powerp);
-  rq = pow(r,-param->powerq);
+  rp = powauto(r,-param->powerp);
+  rq = powauto(r,-param->powerq);
   rainv = 1.0 / (r - param->cut);
   rainvsq = rainv*rainv*r;
   expsrainv = exp(param->sigma * rainv);

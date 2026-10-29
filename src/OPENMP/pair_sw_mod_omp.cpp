@@ -27,6 +27,7 @@ using namespace MathConst;
 
 PairSWMODOMP::PairSWMODOMP(LAMMPS *lmp) : PairSWOMP(lmp)
 {
+  sw_mod_flag = 1;
   delta1 = 0.25;
   delta2 = 0.35;
 }

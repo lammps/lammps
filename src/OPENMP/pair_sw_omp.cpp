@@ -74,9 +74,10 @@ void PairSWOMP::eval(int iifrom, int iito, ThrData * const thr)
   tagint itag,jtag;
   int itype,jtype,ktype,ijparam,ikparam,ijkparam;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
-  double rsq,rsq1,rsq2;
-  double delr1[3],delr2[3],fj[3],fk[3];
-  int *ilist,*jlist,*numneigh,**firstneigh,*neighshort_thr;
+  double rsq;
+  double fj[3],fk[3];
+  int *ilist,*jlist,*numneigh,**firstneigh;
+  ShortLeg *shortleg_thr;
 
   evdwl = 0.0;
 
@@ -85,12 +86,13 @@ void PairSWOMP::eval(int iifrom, int iito, ThrData * const thr)
   const tagint * _noalias const tag = atom->tag;
   const int * _noalias const type = atom->type;
   const int nlocal = atom->nlocal;
+  const bool legcache = (!skip_threebody_flag) && (!sw_mod_flag);
 
   ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
   maxshort_thr = maxshort;
-  memory->create(neighshort_thr,maxshort_thr,"pair_thr:neighshort_thr");
+  memory->create(shortleg_thr,maxshort_thr,"pair_thr:shortleg_thr");
 
   double fxtmp,fytmp,fztmp;
 
@@ -125,11 +127,12 @@ void PairSWOMP::eval(int iifrom, int iito, ThrData * const thr)
       ijparam = elem3param[itype][jtype][jtype];
       if (rsq >= params[ijparam].cutsq) {
         continue;
-      } else {
-        neighshort_thr[numshort++] = j;
+      } else if (!skip_threebody_flag) {
+        fill_shortleg(&params[ijparam],rsq,x[j].x - xtmp,x[j].y - ytmp,x[j].z - ztmp,
+                      j,jtype,legcache,shortleg_thr[numshort++]);
         if (numshort >= maxshort_thr) {
           maxshort_thr += maxshort_thr/2;
-          memory->grow(neighshort_thr,maxshort_thr,"pair:neighshort_thr");
+          memory->grow(shortleg_thr,maxshort_thr,"pair:shortleg_thr");
         }
       }
 
@@ -164,30 +167,27 @@ void PairSWOMP::eval(int iifrom, int iito, ThrData * const thr)
       jnumm1 = numshort - 1;
     }
     for (jj = 0; jj < jnumm1; jj++) {
-      j = neighshort_thr[jj];
-      jtype = map[type[j]];
+      ShortLeg &s1 = shortleg_thr[jj];
+      j = s1.j;
+      jtype = s1.jtype;
       ijparam = elem3param[itype][jtype][jtype];
-      delr1[0] = x[j].x - xtmp;
-      delr1[1] = x[j].y - ytmp;
-      delr1[2] = x[j].z - ztmp;
-      rsq1 = delr1[0]*delr1[0] + delr1[1]*delr1[1] + delr1[2]*delr1[2];
 
       double fjxtmp,fjytmp,fjztmp;
       fjxtmp = fjytmp = fjztmp = 0.0;
 
       for (kk = jj+1; kk < numshort; kk++) {
-        k = neighshort_thr[kk];
-        ktype = map[type[k]];
-        ikparam = elem3param[itype][ktype][ktype];
+        ShortLeg &s2 = shortleg_thr[kk];
+        k = s2.j;
+        ktype = s2.jtype;
         ijkparam = elem3param[itype][jtype][ktype];
 
-        delr2[0] = x[k].x - xtmp;
-        delr2[1] = x[k].y - ytmp;
-        delr2[2] = x[k].z - ztmp;
-        rsq2 = delr2[0]*delr2[0] + delr2[1]*delr2[1] + delr2[2]*delr2[2];
-
-        threebody(&params[ijparam],&params[ikparam],&params[ijkparam],
-                  rsq1,rsq2,delr1,delr2,fj,fk,EFLAG,evdwl);
+        if (legcache) {
+          threebody_cached(&params[ijkparam],s1,s2,fj,fk,EFLAG,evdwl);
+        } else {
+          ikparam = elem3param[itype][ktype][ktype];
+          threebody(&params[ijparam],&params[ikparam],&params[ijkparam],
+                    s1.rsq,s2.rsq,s1.del,s2.del,fj,fk,EFLAG,evdwl);
+        }
 
         fxtmp -= fj[0] + fk[0];
         fytmp -= fj[1] + fk[1];
@@ -199,7 +199,7 @@ void PairSWOMP::eval(int iifrom, int iito, ThrData * const thr)
         f[k].y += fk[1];
         f[k].z += fk[2];
 
-        if (EVFLAG) ev_tally3_thr(this,i,j,k,evdwl,0.0,fj,fk,delr1,delr2,thr);
+        if (EVFLAG) ev_tally3_thr(this,i,j,k,evdwl,0.0,fj,fk,s1.del,s2.del,thr);
       }
       f[j].x += fjxtmp;
       f[j].y += fjytmp;
@@ -209,7 +209,7 @@ void PairSWOMP::eval(int iifrom, int iito, ThrData * const thr)
     f[i].y += fytmp;
     f[i].z += fztmp;
   }
-  memory->destroy(neighshort_thr);
+  memory->destroy(shortleg_thr);
 }
 
 /* ---------------------------------------------------------------------- */

@@ -428,6 +428,8 @@ void FixACKS2ReaxFFKokkos<DeviceType>::pre_force(int /*vflag*/)
 
   atomKK->modified(execution_space,datamask_modify);
   k_s.modify<DeviceType>();
+
+  d_neighbors = typename AT::t_neighbors_2d();
 }
 
 /* ---------------------------------------------------------------------- */

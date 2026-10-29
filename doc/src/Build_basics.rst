@@ -491,8 +491,8 @@ using CMake or Make.
       .. code-block:: bash
 
          -D BUILD_TOOLS=value         # on or off (default). Build binary2txt,
-                                      # chain.x, micelle2d.x, msi2lmp, phana,
-                                      # stl_bin2txt
+                                      # chain.x, find-symmetry, micelle2d.x,
+                                      # msi2lmp, phana, stl_bin2txt
          -D BUILD_LAMMPS_GUI=value    # on or off (default). Build LAMMPS-GUI
          -D BUILD_WHAM=value          # on (default). Download and build WHAM;
                                       # only available for BUILD_LAMMPS_GUI=on

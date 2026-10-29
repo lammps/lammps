@@ -163,6 +163,7 @@ args
 argv
 Armv
 armv
+Aroyo
 arrhenius
 Artrith
 Arun
@@ -185,6 +186,7 @@ Astron
 asub
 asubrama
 Asumming
+asym
 atan
 atc
 AtC
@@ -431,6 +433,7 @@ br
 Braems
 Branduardi
 Branicio
+Bravais
 brennan
 Bretonnet
 Briels
@@ -2517,6 +2520,7 @@ Metadynamics
 metalfinish
 metallicity
 metamaterials
+metastable
 Methfessel
 methine
 Metin
@@ -2611,6 +2615,7 @@ momenta
 mon
 Monaghan
 Monaghans
+monoclinic
 monodisperse
 monodispersity
 monolayer
@@ -3299,6 +3304,7 @@ pmb
 pmcmoves
 pme
 pmf
+Pmm
 Pmolrotate
 Pmoltrans
 pN
@@ -3328,6 +3334,7 @@ polyhedra
 Polym
 polymorph
 polymorphism
+polymorphs
 Ponder
 Ponte
 popen
@@ -4057,6 +4064,7 @@ subdomains
 Subhash
 subhi
 sublo
+subnormals
 Subramaniyan
 subscripted
 subscripting
@@ -4104,7 +4112,12 @@ Sx
 sy
 Sy
 symplectic
+symd
+symmetrization
 symmetrize
+symmetrized
+symmetrizes
+symmetrizing
 Synechococcus
 sys
 sysdim
@@ -4627,6 +4640,7 @@ wx
 Wx
 wy
 Wy
+Wyckoff
 Wysocki
 wz
 Wz

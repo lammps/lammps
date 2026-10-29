@@ -346,6 +346,9 @@ Bibliography
 **(Cornell)**
    Cornell, Cieplak, Bayly, Gould, Merz, Ferguson, Spellmeyer, Fox, Caldwell, Kollman (1995).  JACS 117, 5179-5197. https://doi.org/10.1021/ja00124a002
 
+**(Cox)**
+   Cox and White, J. Chem. Theor. Comput., 18, 4077 (2022).
+
 **(Cramer)**
    Cramer, Mathematical Methods of Statistics, Princeton University Press (1946).
 
@@ -813,6 +816,9 @@ Bibliography
 
 **(Ismail)**
    Ismail, Tsige, In 't Veld, Grest, Molecular Physics (accepted) (2007).
+
+**(ITA)**
+   M. I. Aroyo (ed.), International Tables for Crystallography, Vol. A, Space-Group Symmetry, 6th ed., Wiley (2016), DOI 10.1107/97809553602060000114.
 
 **(Ivanov)**
    Ivanov, Uzdin, Jonsson. arXiv preprint arXiv:1904.02669, (2019).
@@ -1972,7 +1978,10 @@ Bibliography
    Wolff and Rudd, Comp Phys Comm, 120, 200-32 (1999).
 
 **(Wood)**
-   Wood and Thompson, J Chem Phys, 148, 241721, (2018)
+   Wood and Thompson, J Chem Phys, 148, 241721, (2018).
+
+**(Wyckoff)**
+   R. W. G. Wyckoff, The Analytical Expression of the Results of the Theory of Space-Groups, Carnegie Institution of Washington, Publication 318 (1922).
 
 **(Xie23)**
    Xie, S.R., Rupp, M. & Hennig, R.G. Ultra-fast interpretable machine-learning potentials. npj Comput Mater 9, 162 (2023). https://doi.org/10.1038/s41524-023-01092-7

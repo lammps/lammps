@@ -183,7 +183,7 @@ void ChangeBox::command(int narg, char **arg)
   // error if moving atoms and there is stored per-atom restart state
   // disallowed b/c restart per-atom fix info will not move with atoms
 
-  if (move_atoms && modify->nfix_restart_peratom)
+  if (move_atoms && modify->get_nfix_restart_peratom())
     error->all(FLERR,"Change_box parameter not allowed after "
                "reading restart file with per-atom info");
 

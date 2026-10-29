@@ -119,7 +119,7 @@ FixSMDIntegrateUlsph::FixSMDIntegrateUlsph(LAMMPS *lmp, int narg, char **arg) :
         if (comm->me == 0) utils::logmesg(lmp, ">>========>>========>>========>>========>>========>>========>>========>>========\n\n");
 
         // set comm sizes needed by this fix
-        atom->add_callback(Atom::GROW);
+        atom->add_callback(this, Atom::GROW);
 
         time_integrate = 1;
 }

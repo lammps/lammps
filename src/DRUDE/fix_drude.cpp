@@ -56,9 +56,9 @@ FixDrude::FixDrude(LAMMPS *lmp, int narg, char **arg) :
 
   drudeid = nullptr;
   FixDrude::grow_arrays(atom->nmax);
-  atom->add_callback(Atom::GROW);
-  atom->add_callback(Atom::RESTART);
-  atom->add_callback(Atom::BORDER);
+  atom->add_callback(this, Atom::GROW);
+  atom->add_callback(this, Atom::RESTART);
+  atom->add_callback(this, Atom::BORDER);
 
   // one-time assignment of Drude partners
 
@@ -73,9 +73,9 @@ FixDrude::FixDrude(LAMMPS *lmp, int narg, char **arg) :
 
 FixDrude::~FixDrude()
 {
-  atom->delete_callback(id,Atom::BORDER);
-  atom->delete_callback(id,Atom::RESTART);
-  atom->delete_callback(id,Atom::GROW);
+  atom->delete_callback(this, Atom::BORDER);
+  atom->delete_callback(this, Atom::RESTART);
+  atom->delete_callback(this, Atom::GROW);
   memory->destroy(drudetype);
   memory->destroy(drudeid);
 }

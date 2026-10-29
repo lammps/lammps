@@ -63,6 +63,7 @@ MLIAPData::MLIAPData(LAMMPS *lmp, int gradgradflag_in, int *map_in, class MLIAPM
   nlistatoms_max = 0;
   natomneigh_max = 0;
   nneigh_max = 0;
+  nneigh_atom_max = 0;
   nmax = 0;
   natomgamma_max = 0;
 }
@@ -223,13 +224,14 @@ void MLIAPData::grow_neigharrays()
   // grow neighbor atom arrays if necessary
   natomneigh = list->inum;
   if (list->ghost == 1) natomneigh += list->gnum;
+  bool grow_firstneigh = false;
   if (natomneigh_max < natomneigh) {
     memory->grow(iatoms, natomneigh, "MLIAPData:iatoms");
     memory->grow(ielems, natomneigh, "MLIAPData:ielems");
     memory->grow(itypes, natomneigh, "MLIAPData:itypes");
     memory->grow(numneighs, natomneigh, "MLIAPData:numneighs");
-    memory->grow(lmp_firstneigh, natomneigh, nneigh_max, "MLIAPData:lmp_firstneigh");
     natomneigh_max = natomneigh;
+    grow_firstneigh = true;
   }
 
   // grow neighbor arrays if necessary
@@ -241,6 +243,7 @@ void MLIAPData::grow_neigharrays()
   int *type = atom->type;
 
   int nneigh = 0;
+  int nneigh_atom = 0;
   for (int ii = 0; ii < natomneigh; ii++) {
     const int i = ilist[ii];
 
@@ -266,16 +269,28 @@ void MLIAPData::grow_neigharrays()
       if (rsq < descriptor->cutsq[ielem][jelem]) ninside++;
     }
     nneigh += ninside;
+    nneigh_atom = MAX(nneigh_atom, ninside);
   }
 
   if (nneigh_max < nneigh) {
     memory->grow(pair_i, nneigh, "MLIAPData:pair_i");
     memory->grow(jatoms, nneigh, "MLIAPData:jatoms");
-    memory->grow(lmp_firstneigh, natomneigh, nneigh, "MLIAPData:lmp_firstneigh");
     memory->grow(jelems, nneigh, "MLIAPData:jelems");
     memory->grow(rij, nneigh, 3, "MLIAPData:rij");
     if (gradgradflag == 0) memory->grow(graddesc, nneigh, ndescriptors, 3, "MLIAPData:graddesc");
     nneigh_max = nneigh;
+  }
+
+  // lmp_firstneigh needs a row for each atom with room for the largest number of
+  // neighbors of any atom. it is refilled on every call, so contents need not be kept.
+
+  if (nneigh_atom_max < nneigh_atom) {
+    nneigh_atom_max = nneigh_atom;
+    grow_firstneigh = true;
+  }
+  if (grow_firstneigh) {
+    memory->destroy(lmp_firstneigh);
+    memory->create(lmp_firstneigh, natomneigh_max, nneigh_atom_max, "MLIAPData:lmp_firstneigh");
   }
 }
 
@@ -302,11 +317,11 @@ double MLIAPData::memory_usage()
   bytes += (double) natomneigh_max * sizeof(int);    // itypes
   bytes += (double) natomneigh_max * sizeof(int);    // numneighs
 
-  bytes += (double) nneigh_max * sizeof(int);                     // pair_i
-  bytes += (double) nneigh_max * sizeof(int);                     // jatoms
-  bytes += (double) nneigh_max * sizeof(int);                     // jelems
-  bytes += (double) nneigh_max * natomneigh_max * sizeof(int);    // lmp_firstneigh
-  bytes += (double) nneigh_max * 3 * sizeof(double);              // rij"
+  bytes += (double) nneigh_max * sizeof(int);                          // pair_i
+  bytes += (double) nneigh_max * sizeof(int);                          // jatoms
+  bytes += (double) nneigh_max * sizeof(int);                          // jelems
+  bytes += (double) nneigh_atom_max * natomneigh_max * sizeof(int);    // lmp_firstneigh
+  bytes += (double) nneigh_max * 3 * sizeof(double);                   // rij"
 
   if (gradgradflag == 0)
     bytes += (double) nneigh_max * ndescriptors * 3 * sizeof(double);    // graddesc

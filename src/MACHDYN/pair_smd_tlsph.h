@@ -194,7 +194,6 @@ class PairTlsph : public Pair {
   };
   failure_types *failureModel;
 
-  int ifix_tlsph;
   int update_method;
 
   class FixSMD_TLSPH_ReferenceConfiguration *fix_tlsph_reference_configuration;

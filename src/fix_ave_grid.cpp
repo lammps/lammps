@@ -46,7 +46,8 @@ static constexpr int OFFSET = 16384;
 
 FixAveGrid::FixAveGrid(LAMMPS *lmp, int narg, char **arg) :
     Fix(lmp, narg, arg), id_bias(nullptr), which(nullptr), argindex(nullptr), ids(nullptr),
-    value2index(nullptr), value2grid(nullptr), value2data(nullptr), grid2d(nullptr),
+    value2index(nullptr), value2grid(nullptr), value2data(nullptr), value2compute(nullptr),
+    value2fix(nullptr), grid2d(nullptr),
     grid3d(nullptr), grid_buf1(nullptr), grid_buf2(nullptr), grid_output(nullptr),
     grid_sample(nullptr), grid_nfreq(nullptr), grid_running(nullptr), grid_window(nullptr),
     grid2d_previous(nullptr), grid3d_previous(nullptr), grid_sample_previous(nullptr),
@@ -95,6 +96,8 @@ FixAveGrid::FixAveGrid(LAMMPS *lmp, int narg, char **arg) :
   iarg_orig = new int[nargnew];
   ids = new char *[nargnew];
   value2index = new int[nargnew];
+  value2compute = new Compute *[nargnew];
+  value2fix = new Fix *[nargnew];
   value2grid = new int[nargnew];
   value2data = new int[nargnew];
 
@@ -401,6 +404,8 @@ FixAveGrid::~FixAveGrid()
   delete[] ids;
   delete[] id_bias;
   delete[] value2index;
+  delete[] value2compute;
+  delete[] value2fix;
   delete[] value2grid;
   delete[] value2data;
 
@@ -455,25 +460,25 @@ void FixAveGrid::init()
   // set indices and check validity of all computes,fixes,variables
 
   for (int m = 0; m < nvalues; m++) {
+    value2compute[m] = nullptr;
+    value2fix[m] = nullptr;
+    value2index[m] = -1;
     if (which[m] == ArgInfo::COMPUTE) {
-      int icompute = modify->find_compute(ids[m]);
-      if (icompute < 0)
+      value2compute[m] = modify->get_compute_by_id(ids[m]);
+      if (!value2compute[m])
         error->all(FLERR, Error::NOLASTLINE, "Compute {} for fix ave/grid does not exist", ids[m]);
-      value2index[m] = icompute;
 
     } else if (which[m] == ArgInfo::FIX) {
-      int ifix = modify->find_fix(ids[m]);
-      if (ifix < 0)
+      value2fix[m] = modify->get_fix_by_id(ids[m]);
+      if (!value2fix[m])
         error->all(FLERR, Error::NOLASTLINE, "Fix {} for fix ave/grid does not exist", ids[m]);
-      value2index[m] = ifix;
 
     } else if (which[m] == ArgInfo::VARIABLE) {
       int ivariable = input->variable->find(ids[m]);
       if (ivariable < 0)
         error->all(FLERR, Error::NOLASTLINE, "Variable name for fix ave/grid does not exist");
       value2index[m] = ivariable;
-
-    } else value2index[m] = -1;
+    }
   }
 
   // check that grid sizes for all fields match grid size for this fix
@@ -489,10 +494,10 @@ void FixAveGrid::init()
     for (int m = 0; m < nvalues; m++) {
       if (dimension == 2) {
         if (which[m] == ArgInfo::COMPUTE) {
-          compute = modify->get_compute_by_index(value2index[m]);
+          compute = value2compute[m];
           grid2d = (Grid2d *) compute->get_grid_by_index(value2grid[m]);
         } else if (which[m] == ArgInfo::FIX) {
-          fix = modify->get_fix_by_index(value2index[m]);
+          fix = value2fix[m];
           grid2d = (Grid2d *) fix->get_grid_by_index(value2grid[m]);
         }
         grid2d->get_size(nxtmp,nytmp);
@@ -501,10 +506,10 @@ void FixAveGrid::init()
 
       } else {
         if (which[m] == ArgInfo::COMPUTE) {
-          compute = modify->get_compute_by_index(value2index[m]);
+          compute = value2compute[m];
           grid3d = (Grid3d *) compute->get_grid_by_index(value2grid[m]);
         } else if (which[m] == ArgInfo::FIX) {
-          fix = modify->get_fix_by_index(value2index[m]);
+          fix = value2fix[m];
           grid3d = (Grid3d *) fix->get_grid_by_index(value2grid[m]);
         }
         grid3d->get_size(nxtmp,nytmp,nztmp);
@@ -1032,7 +1037,7 @@ void FixAveGrid::atom2grid()
       double *ovector,**oarray;
 
       if (which[m] == ArgInfo::COMPUTE) {
-        Compute *compute = modify->get_compute_by_index(n);
+        Compute *compute = value2compute[m];
         if (!(compute->invoked_flag & Compute::INVOKED_PERATOM)) {
           compute->compute_peratom();
           compute->invoked_flag |= Compute::INVOKED_PERATOM;
@@ -1041,7 +1046,7 @@ void FixAveGrid::atom2grid()
         else oarray = compute->array_atom;
 
       } else if (which[m] == ArgInfo::FIX) {
-        Fix *fix = modify->get_fix_by_index(n);
+        Fix *fix = value2fix[m];
         if (j == 0) ovector = fix->vector_atom;
         else oarray = fix->array_atom;
       } else if (which[m] == ArgInfo::VARIABLE) {
@@ -1141,12 +1146,12 @@ void FixAveGrid::grid2grid()
     Fix *fix;
 
     if (which[m] == ArgInfo::COMPUTE) {
-      compute = modify->get_compute_by_index(n);
+      compute = value2compute[m];
       if (!(compute->invoked_flag & Compute::INVOKED_PERGRID)) {
         compute->compute_pergrid();
         compute->invoked_flag |= Compute::INVOKED_PERGRID;
       }
-    } else if (which[m] == ArgInfo::FIX) fix = modify->get_fix_by_index(n);
+    } else if (which[m] == ArgInfo::FIX) fix = value2fix[m];
 
     if (dimension == 2) {
       double **ovec2d,***oarray2d;

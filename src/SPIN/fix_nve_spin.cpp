@@ -516,12 +516,23 @@ void FixNVESpin::ComputeInteractionsSpin(int i)
 void FixNVESpin::sectoring()
 {
   // extract larger cutoff from PairSpin styles
+  // use the largest per-type cutoff if available, since this is the distance
+  //   checked in compute_single_pair(), and it may be smaller than the global one
 
   double rv, cutoff;
   rv = cutoff = 0.0;
   int dim = 0;
+  const int ntypes = atom->ntypes;
   for (int i = 0; i < npairspin ; i++) {
     cutoff = *((double *) spin_pairs[i]->extract("cut",dim));
+    auto cut_spin = (double **) spin_pairs[i]->extract("cut_spin",dim);
+    if (cut_spin && (dim == 2)) {
+      cutoff = 0.0;
+      for (int itype = 1; itype <= ntypes; itype++)
+        for (int jtype = itype; jtype <= ntypes; jtype++)
+          if (spin_pairs[i]->setflag[itype][jtype])
+            cutoff = MAX(cutoff,cut_spin[itype][jtype]);
+    }
     rv = MAX(rv,cutoff);
   }
 

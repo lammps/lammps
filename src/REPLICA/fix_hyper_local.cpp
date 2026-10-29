@@ -582,7 +582,7 @@ void FixHyperLocal::pre_reverse(int /* eflag */, int /* vflag */)
     ncount = 0;
 
     for (jj = 0; jj < jnum; jj++) {
-      jold = jlist[jj];
+      jold = NEIGHMASK & jlist[jj];
       j = old2now[jold];
 
       // special case for missing (drifted) J atom

@@ -44,6 +44,7 @@
 #include "kspace.h"
 #include "math_const.h"
 #include "memory.h"
+#include "modify.h"
 #include "msm_dielectric.h"
 #include "pair_coul_cut_dielectric.h"
 #include "pair_coul_long_dielectric.h"
@@ -242,45 +243,20 @@ void FixPolarizeBEMGMRES::init()
 
 void FixPolarizeBEMGMRES::setup(int /*vflag*/)
 {
-  // check if the pair styles in use are compatible
-
-  if (strcmp(force->pair_style, "lj/cut/coul/long/dielectric") == 0)
-    efield_pair = (dynamic_cast<PairLJCutCoulLongDielectric *>(force->pair))->efield;
-  else if (strcmp(force->pair_style, "lj/cut/coul/long/dielectric/omp") == 0)
-    efield_pair = (dynamic_cast<PairLJCutCoulLongDielectric *>(force->pair))->efield;
-  else if (strcmp(force->pair_style, "lj/cut/coul/msm/dielectric") == 0)
-    efield_pair = (dynamic_cast<PairLJCutCoulMSMDielectric *>(force->pair))->efield;
-  else if (strcmp(force->pair_style, "lj/cut/coul/cut/dielectric") == 0)
-    efield_pair = (dynamic_cast<PairLJCutCoulCutDielectric *>(force->pair))->efield;
-  else if (strcmp(force->pair_style, "lj/cut/coul/cut/dielectric/omp") == 0)
-    efield_pair = (dynamic_cast<PairLJCutCoulCutDielectric *>(force->pair))->efield;
-  else if (strcmp(force->pair_style, "lj/cut/coul/debye/dielectric") == 0)
-    efield_pair = (dynamic_cast<PairLJCutCoulDebyeDielectric *>(force->pair))->efield;
-  else if (strcmp(force->pair_style, "lj/cut/coul/debye/dielectric/omp") == 0)
-    efield_pair = (dynamic_cast<PairLJCutCoulDebyeDielectric *>(force->pair))->efield;
-  else if (strcmp(force->pair_style, "coul/long/dielectric") == 0)
-    efield_pair = (dynamic_cast<PairCoulLongDielectric *>(force->pair))->efield;
-  else if (strcmp(force->pair_style, "coul/cut/dielectric") == 0)
-    efield_pair = (dynamic_cast<PairCoulCutDielectric *>(force->pair))->efield;
-  else
-    error->all(FLERR, "Pair style not compatible with fix polarize/bem/gmres");
-
   // check if kspace is used for force computation
 
   if (force->kspace) {
     kspaceflag = 1;
-    if (strcmp(force->kspace_style, "pppm/dielectric") == 0)
-      efield_kspace = (dynamic_cast<PPPMDielectric *>(force->kspace))->efield;
-    else if (strcmp(force->kspace_style, "msm/dielectric") == 0)
-      efield_kspace = (dynamic_cast<MSMDielectric *>(force->kspace))->efield;
-    else
-      error->all(FLERR, "Kspace style not compatible with fix polarize/bem/gmres");
   } else {
     if (kspaceflag == 1) {    // users specified kspace yes but there is no kspace pair style
       error->warning(FLERR, "No Kspace pair style available for fix polarize/bem/gmres");
       kspaceflag = 0;
     }
   }
+
+  // check if the pair and kspace styles in use are compatible
+
+  update_efield();
 
   // NOTE: epsilon0e2q converts (epsilon0 * efield) to the unit of (charge unit / squared distance unit)
   // efield is computed by pair and kspace styles in the unit of energy unit / charge unit / distance unit
@@ -382,6 +358,7 @@ void FixPolarizeBEMGMRES::compute_induced_charges()
   force_clear();
   force->pair->compute(eflag, vflag);
   if (kspaceflag) force->kspace->compute(eflag, vflag);
+  update_efield();
   if (force->newton) comm->reverse_comm();
 
   for (int i = 0; i < num_induced_charges; i++) buffer[i] = 0;
@@ -648,6 +625,7 @@ void FixPolarizeBEMGMRES::apply_operator(double *w, double *Aw, int /*n*/)
   force_clear();
   force->pair->compute(eflag, vflag);
   if (kspaceflag) force->kspace->compute(eflag, vflag);
+  update_efield();
   if (force->newton) comm->reverse_comm();
 
   // now efield is the electrical field due to induced charges only
@@ -717,6 +695,7 @@ void FixPolarizeBEMGMRES::update_residual(double *w, double *r, int /*n*/)
   force_clear();
   force->pair->compute(eflag, vflag);
   if (kspaceflag) force->kspace->compute(eflag, vflag);
+  update_efield();
   if (force->newton) comm->reverse_comm();
 
   // compute the residual according to Eq. (60) in Barros et al.
@@ -750,10 +729,55 @@ void FixPolarizeBEMGMRES::update_residual(double *w, double *r, int /*n*/)
   MPI_Allreduce(buffer, r, num_induced_charges, MPI_DOUBLE, MPI_SUM, world);
 }
 
+/* ----------------------------------------------------------------------
+   get the electric field arrays of the pair and kspace styles.  those styles
+   reallocate them in their compute() function when the number of atoms grows,
+   so this must be called after each call to their compute() functions.
+   the class hierarchy is used, so that accelerated variants are recognized, too.
+------------------------------------------------------------------------- */
+
+void FixPolarizeBEMGMRES::update_efield()
+{
+  if (auto *pair = dynamic_cast<PairLJCutCoulLongDielectric *>(force->pair))
+    efield_pair = pair->efield;
+  else if (auto *pair = dynamic_cast<PairLJCutCoulMSMDielectric *>(force->pair))
+    efield_pair = pair->efield;
+  else if (auto *pair = dynamic_cast<PairLJCutCoulCutDielectric *>(force->pair))
+    efield_pair = pair->efield;
+  else if (auto *pair = dynamic_cast<PairLJCutCoulDebyeDielectric *>(force->pair))
+    efield_pair = pair->efield;
+  else if (auto *pair = dynamic_cast<PairCoulLongDielectric *>(force->pair))
+    efield_pair = pair->efield;
+  else if (auto *pair = dynamic_cast<PairCoulCutDielectric *>(force->pair))
+    efield_pair = pair->efield;
+  else
+    error->all(FLERR, "Pair style not compatible with fix polarize/bem/gmres");
+
+  if (kspaceflag) {
+    if (auto *kspace = dynamic_cast<PPPMDielectric *>(force->kspace))
+      efield_kspace = kspace->efield;
+    else if (auto *kspace = dynamic_cast<MSMDielectric *>(force->kspace))
+      efield_kspace = kspace->efield;
+    else
+      error->all(FLERR, "Kspace style not compatible with fix polarize/bem/gmres");
+  }
+}
+
 /* ---------------------------------------------------------------------- */
 
 void FixPolarizeBEMGMRES::force_clear()
 {
+  // with the OPENMP package, the forces of /omp styles are collected in
+  // per-thread arrays, which are only summed up after all styles are computed.
+  // fix omp clears those arrays, so that the forces computed here are
+  // not added to the forces of the following regular force computation.
+
+  auto *fixomp = modify->get_fix_by_id("package_omp");
+  if (fixomp) {
+    fixomp->pre_force(0);
+    return;
+  }
+
   int nbytes = sizeof(double) * atom->nlocal;
   if (force->newton) nbytes += sizeof(double) * atom->nghost;
 

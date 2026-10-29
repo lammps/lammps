@@ -136,6 +136,7 @@ FixChargeRegulation::FixChargeRegulation(LAMMPS *lmp, int narg, char **arg) :
   next_reneighbor = update->ntimestep + 1;
   random_equal = new RanPark(lmp, seed);
   random_unequal = new RanPark(lmp, seed);
+  random_unequal->reset_rank(seed, comm->me);
   nacid_attempts = 0;
   nacid_successes = 0;
   nbase_attempts = 0;
@@ -255,16 +256,18 @@ void FixChargeRegulation::init() {
     neighbor->modify_params(fmt::format("exclude group {} {}",group_id,group_id));
   }
 
-  // check that no deletable atoms are in atom->firstgroup
-  // deleting such an atom would not leave firstgroup atoms first
+  // check that no free ions are in atom->firstgroup
+  // they can be deleted, and deleting such an atom would not leave firstgroup atoms first
 
   if (atom->firstgroup >= 0) {
     int *mask = atom->mask;
+    int *type = atom->type;
     int firstgroupbit = group->bitmask[atom->firstgroup];
 
     int flag = 0;
     for (int i = 0; i < atom->nlocal; i++)
-      if ((mask[i] == groupbit) && (mask[i] && firstgroupbit)) flag = 1;
+      if (((type[i] == cation_type) || (type[i] == anion_type)) && (mask[i] & firstgroupbit))
+        flag = 1;
 
     int flagall;
     MPI_Allreduce(&flag, &flagall, 1, MPI_INT, MPI_SUM, world);
@@ -1316,8 +1319,11 @@ void FixChargeRegulation::restart(char *buf)
   seed = static_cast<int>(list[n++]);
   random_equal->reset(seed);
 
+  // only the state of proc 0 is stored, derive a unique state for each proc from it
+
   seed = static_cast<int>(list[n++]);
-  random_unequal->reset(seed);
+  random_unequal->reset_rank(seed, comm->me);
+
   // NOLINTBEGIN
   nacid_attempts  = list[n++];
   nacid_successes = list[n++];
@@ -1329,7 +1335,7 @@ void FixChargeRegulation::restart(char *buf)
   next_reneighbor = (bigint) ubuf(list[n++]).i;
   bigint ntimestep_restart = (bigint) ubuf(list[n++]).i;
   if (ntimestep_restart != update->ntimestep)
-    error->all(FLERR,"Must not reset timestep when restarting fix gcmc");
+    error->all(FLERR,"Must not reset timestep when restarting fix charge/regulation");
 }
 
 /* ---------------------------------------------------------------------- */

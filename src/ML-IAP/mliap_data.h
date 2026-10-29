@@ -69,6 +69,7 @@ class MLIAPData : protected Pointers {
   int *ielems;                   // element of each atom
   int *itypes;                   // LAMMPS type of each atom for external evaluators
   int nneigh_max;                // number of ij neighbors allocated
+  int nneigh_atom_max;           // number of neighbors per atom allocated in lmp_firstneigh
   int npairs;                    // number of ij neighbor pairs
   int *pair_i;                   // index of each i atom for each ij pair
   int *jatoms;                   // index of each neighbor

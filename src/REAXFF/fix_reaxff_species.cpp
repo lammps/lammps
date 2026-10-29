@@ -44,7 +44,6 @@
 #include <algorithm>
 #include <cmath>
 #include <cstring>
-#include <exception>
 #include <random>
 
 using namespace LAMMPS_NS;
@@ -86,7 +85,8 @@ FixReaxFFSpecies::FixReaxFFSpecies(LAMMPS *lmp, int narg, char **arg) :
   peratom_freq = 1;
 
   compressed = 0;
-  nvalid = -1;
+  lastanalysis = -1;
+  insetup = 0;
 
   ntypes = atom->ntypes;
   eletype.resize(ntypes);
@@ -357,12 +357,14 @@ FixReaxFFSpecies::~FixReaxFFSpecies()
     if (fdel) fclose(fdel);
   }
 
-  try {
-    modify->delete_compute(fmt::format("SPECATOM_{}", id));
-    modify->delete_fix(fmt::format("SPECBOND_{}", id));
-    modify->delete_fix(fmt::format("clusterID_{}", id));
-  } catch (std::exception &) {
-  }
+  // the compute and fixes are created in init(), so they do not exist without a run
+
+  const auto id_specatom = fmt::format("SPECATOM_{}", id);
+  if (modify->get_compute_by_id(id_specatom)) modify->delete_compute(id_specatom);
+  const auto id_specbond = fmt::format("SPECBOND_{}", id);
+  if (modify->get_fix_by_id(id_specbond)) modify->delete_fix(id_specbond);
+  const auto id_cluster = fmt::format("clusterID_{}", id);
+  if (modify->get_fix_by_id(id_cluster)) modify->delete_fix(id_cluster);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -390,7 +392,9 @@ void FixReaxFFSpecies::setup(int /*vflag*/)
   memory->destroy(Name);
   memory->create(Name, nutypes, "reaxff/species:Name");
 
+  insetup = 1;
   post_integrate();
+  insetup = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -404,6 +408,11 @@ void FixReaxFFSpecies::init()
   if (reaxff == nullptr)
     error->all(FLERR, Error::NOLASTLINE,
                "Cannot use fix reaxff/species without a reaxff pair_style");
+
+  // the KOKKOS version of pair reaxff keeps its neighbor and bond lists on the device
+  if (reaxff->kokkosable && !utils::strmatch(style, "/kk"))
+    error->all(FLERR, Error::NOLASTLINE, "Cannot use fix reaxff/species with "
+               "pair_style reaxff/kk. Use fix reaxff/species/kk instead.");
 
   reaxff->fixspecies_flag = 1;
 
@@ -480,7 +489,19 @@ void FixReaxFFSpecies::Output_ReaxFF_Bonds(bigint ntimestep, FILE * /*fp*/)
   // point to fix_ave_atom
   f_SPECBOND->end_of_step();
 
-  if (ntimestep != nvalid && nvalid != -1) {
+  // the species analysis is done once on timesteps that are a multiple of Nfreq
+  // and only when the average over all Nrepeat bond-order samples is available.
+  // this is not the case, e.g., at the beginning of the first run with Nrepeat > 1
+
+  bool analysis = (ntimestep % nfreq == 0) && (ntimestep != lastanalysis);
+  if (analysis && !f_SPECBOND->average_completed(ntimestep)) {
+    if (comm->me == 0)
+      error->warning(FLERR, "Fix {} has no averaged bond-order data on step {}. "
+                     "Skipping species analysis", style, ntimestep);
+    analysis = false;
+  }
+
+  if (!analysis) {
     // push back delete_Tcount on every step
     if (delete_Nsteps > 0)
       for (int i = delete_Nsteps - 1; i > 0; i--) delete_Tcount[i] = delete_Tcount[i - 1];
@@ -513,14 +534,16 @@ void FixReaxFFSpecies::Output_ReaxFF_Bonds(bigint ntimestep, FILE * /*fp*/)
     if (comm->me == 0) fflush(pos);
   }
 
-  if (delflag != NONE && nvalid != -1) {
+  // molecules are not deleted during the setup of a run
+
+  if (delflag != NONE && !insetup) {
     DeleteSpecies(Nmole, Nspec);
 
     // reset molecule ID to index from 1
     SortMolecule(Nmole);
   }
 
-  nvalid = ntimestep + nfreq;
+  lastanalysis = ntimestep;
 }
 
 /* ---------------------------------------------------------------------- */

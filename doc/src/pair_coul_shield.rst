@@ -76,6 +76,13 @@ Mixing, shift, table, tail correction, restart, rRESPA info
 This pair style does not support parameter mixing. Coefficients must
 be given explicitly for each type of particle pairs.
 
+.. versionchanged:: 30Sep2026-backport
+
+The :doc:`pair_modify <pair_modify>` *shift* option is not relevant
+for this pair style.  The taper function makes the energy go smoothly
+to zero at the cutoff.  Previously, the shift option subtracted an
+incorrect energy offset when the taper function was turned off.
+
 The :doc:`pair_modify <pair_modify>` *table* option is not relevant
 for this pair style.
 

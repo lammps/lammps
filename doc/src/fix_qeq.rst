@@ -258,6 +258,15 @@ parameters and *Nevery*, *cutoff*, and *tolerance* are the same.
 Style *qeq/point* is typically faster, *qeq/dynamic* scales better on
 larger sizes, and *qeq/fire* is faster than *qeq/dynamic*\ .
 
+.. versionchanged:: 30Sep2026-backport
+
+If the fix group does not contain all atoms, only the charges of the
+atoms in the fix group are equilibrated.  The charges of all other atoms
+are not changed, but they still contribute to the electrostatic
+potential at the atoms in the fix group, i.e. they act as fixed external
+charges.  All accelerated variants of these fixes follow the same
+convention.
+
 .. note::
 
    In order to solve the self-consistent equations for electronegativity

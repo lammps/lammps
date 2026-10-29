@@ -431,25 +431,6 @@ void FixNeighborSwap::init()
       for (int ktype = 1; ktype <= atom->ntypes; ktype++)
         if (cutsq[type_list[iswaptype]][ktype] != cutsq[type_list[jswaptype]][ktype])
           unequal_cutoffs = true;
-
-  // check that no swappable atoms are in atom->firstgroup
-  // swapping such an atom might not leave firstgroup atoms first
-
-  if (atom->firstgroup >= 0) {
-    int *mask = atom->mask;
-    int firstgroupbit = group->bitmask[atom->firstgroup];
-
-    int flag = 0;
-    for (int i = 0; i < atom->nlocal; i++)
-      if ((mask[i] == groupbit) && (mask[i] && firstgroupbit)) flag = 1;
-
-    int flagall;
-    MPI_Allreduce(&flag, &flagall, 1, MPI_INT, MPI_SUM, world);
-
-    if (flagall)
-      error->all(FLERR, Error::NOLASTLINE,
-                 "Cannot do neighbor/swap on atoms in atom_modify first group");
-  }
 }
 
 /* ----------------------------------------------------------------------

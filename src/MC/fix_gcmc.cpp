@@ -127,6 +127,7 @@ FixGCMC::FixGCMC(LAMMPS *lmp, int narg, char **arg) :
   // random number generator, not the same for all procs
 
   random_unequal = new RanPark(lmp, seed);
+  random_unequal->reset_rank(seed, comm->me);
 
   // error checks on region and its extent being inside simulation box
 
@@ -580,7 +581,7 @@ void FixGCMC::init()
     int *mask = atom->mask;
     int flag = 0;
     for (int i = 0; i < atom->nlocal; i++)
-      if (mask[i] == groupbit)
+      if (mask[i] & groupbit)
         if (molecule[i] == 0) flag = 1;
     int flagall;
     MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
@@ -663,6 +664,7 @@ void FixGCMC::init()
 
   if (exchmode == EXCHMOL || movemode == MOVEMOL) {
 
+    onemols[imol]->compute_center();
     onemols[imol]->compute_mass();
     onemols[imol]->compute_com();
     gas_mass = onemols[imol]->masstotal;
@@ -671,6 +673,12 @@ void FixGCMC::init()
       onemols[imol]->x[i][1] -= onemols[imol]->com[1];
       onemols[imol]->x[i][2] -= onemols[imol]->com[2];
     }
+
+    // keep the geometric center consistent with the shifted coordinates
+
+    onemols[imol]->center[0] -= onemols[imol]->com[0];
+    onemols[imol]->center[1] -= onemols[imol]->com[1];
+    onemols[imol]->center[2] -= onemols[imol]->com[2];
     onemols[imol]->com[0] = 0;
     onemols[imol]->com[1] = 0;
     onemols[imol]->com[2] = 0;
@@ -689,7 +697,7 @@ void FixGCMC::init()
 
     int flag = 0;
     for (int i = 0; i < atom->nlocal; i++)
-      if ((mask[i] == groupbit) && (mask[i] && firstgroupbit)) flag = 1;
+      if ((mask[i] & groupbit) && (mask[i] & firstgroupbit)) flag = 1;
 
     int flagall;
     MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
@@ -1527,13 +1535,21 @@ void FixGCMC::attempt_molecule_insertion()
 
     // FixRigidSmall::set_molecule stores rigid body attributes
     // FixShake::set_molecule stores shake info for molecule
+    // set_molecule() expects the position of the geometric center of the
+    // inserted molecule, but the molecule was placed by its center of mass
 
-    for (int submol = 0; submol < nmol; ++submol) {
-      if (rigidflag)
-        fixrigid->set_molecule(nlocalprev,maxtag_all,submol,com_coord,vnew,quat);
-      else if (shakeflag)
-        fixshake->set_molecule(nlocalprev,maxtag_all,submol,com_coord,vnew,quat);
-    }
+    double xgeom[3];
+    MathExtra::matvec(rotmat,onemols[imol]->center,xgeom);
+    MathExtra::add3(xgeom,com_coord,xgeom);
+
+    // only the first molecule of the template is inserted, which has
+    // index 0 in the molecule template list of fix rigid/small or fix shake
+
+    if (rigidflag)
+      fixrigid->set_molecule(nlocalprev,maxtag_all,0,xgeom,vnew,quat);
+    else if (shakeflag)
+      fixshake->set_molecule(nlocalprev,maxtag_all,0,xgeom,vnew,quat);
+
     atom->natoms += natoms_per_molecule;
     if (atom->natoms < 0)
       error->all(FLERR,"Too many total atoms");
@@ -2329,13 +2345,21 @@ void FixGCMC::attempt_molecule_insertion_full()
 
   // FixRigidSmall::set_molecule stores rigid body attributes
   // FixShake::set_molecule stores shake info for molecule
+  // set_molecule() expects the position of the geometric center of the
+  // inserted molecule, but the molecule was placed by its center of mass
 
-  for (int submol = 0; submol < nmol; ++submol) {
-    if (rigidflag)
-      fixrigid->set_molecule(nlocalprev,maxtag_all,submol,com_coord,vnew,quat);
-    else if (shakeflag)
-      fixshake->set_molecule(nlocalprev,maxtag_all,submol,com_coord,vnew,quat);
-  }
+  double xgeom[3];
+  MathExtra::matvec(rotmat,onemols[imol]->center,xgeom);
+  MathExtra::add3(xgeom,com_coord,xgeom);
+
+  // only the first molecule of the template is inserted, which has
+  // index 0 in the molecule template list of fix rigid/small or fix shake
+
+  if (rigidflag)
+    fixrigid->set_molecule(nlocalprev,maxtag_all,0,xgeom,vnew,quat);
+  else if (shakeflag)
+    fixshake->set_molecule(nlocalprev,maxtag_all,0,xgeom,vnew,quat);
+
   atom->natoms += natoms_per_molecule;
   if (atom->natoms < 0)
     error->all(FLERR,"Too many total atoms");
@@ -2817,12 +2841,16 @@ void FixGCMC::restart(char *buf)
     error->all(FLERR,"Must not reset timestep when restarting fix gcmc");
 
   // read stored state of RNG unique to this process
-  // if nprocs changed, use state of proc 0
+  // if nprocs changed, derive a unique state from the state of proc 0
 
   auto nlocalvals = (int) list[n++];
-  if (nlocalvals == comm->nprocs) n += comm->me;
-  seed = static_cast<int>(list[n]);
-  random_unequal->reset(seed);
+  if (nlocalvals == comm->nprocs) {
+    seed = static_cast<int>(list[n + comm->me]);
+    random_unequal->reset(seed);
+  } else {
+    seed = static_cast<int>(list[n]);
+    random_unequal->reset_rank(seed, comm->me);
+  }
 }
 
 void FixGCMC::grow_molecule_arrays(int nmolatoms) {

@@ -150,7 +150,7 @@ After everything is done, add the files to the branch and commit them:
 
 .. code-block:: bash
 
-    git add doc/src/Howto_github.txt
+    git add doc/src/Howto_github.rst
     git add doc/src/JPG/tutorial*.png
 
 .. warning::
@@ -412,7 +412,7 @@ we need to pull Axel's change back into our branch, and merge them:
 
 .. code-block:: bash
 
-    git add Howto_github.txt
+    git add Howto_github.rst
     git add JPG/tutorial_reverse_pull_request*.png
     git commit -m "Updated text and images on reverse pull requests"
     git pull
@@ -428,7 +428,7 @@ commit and push again:
 
 .. code-block:: bash
 
-    git add Howto_github.txt
+    git add Howto_github.rst
     git add JPG/tutorial_reverse_pull_request6.png
     git commit -m "Merged Axel's suggestions and updated text"
     git push git@github.com:Pakketeretet2/lammps
@@ -466,6 +466,10 @@ was not yet fully merged into HEAD. This is because git does not yet
 know your branch just got merged into LAMMPS upstream. If you
 first delete and then pull, everything should still be fine.
 You can display all branches that are fully merged by:
+
+.. code-block:: bash
+
+   git branch --merged
 
 Finally, if you delete the branch locally, you might want to push this
 to your remote(s) as well:

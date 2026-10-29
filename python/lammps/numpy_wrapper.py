@@ -36,7 +36,7 @@ class numpy_wrapper:
   original data while protecting against out-of-bounds accesses.
 
   There is no need to explicitly instantiate this class. Each instance
-  of :py:class:`lammps` has a :py:attr:`numpy <lammps.numpy>` property
+  of :py:class:`lammps` has a :py:attr:`numpy <lammps.lammps.numpy>` property
   that returns an instance.
 
   :param lmp: instance of the :py:class:`lammps` class
@@ -60,14 +60,14 @@ class numpy_wrapper:
                    dim=LAMMPS_AUTODETECT):
     """Retrieve per-atom properties from LAMMPS as NumPy arrays
 
-    This is a wrapper around the :py:meth:`lammps.extract_atom()` method.
+    This is a wrapper around the :py:meth:`lammps.extract_atom() <lammps.lammps.extract_atom()>` method.
     It behaves the same as the original method, but returns NumPy arrays
     instead of ``ctypes`` pointers.
 
     .. note::
 
        The returned vectors or arrays of per-atom data are dimensioned
-       according to the return value of :py:meth:`lammps.extract_atom_size()`.
+       according to the return value of :py:meth:`lammps.extract_atom_size() <lammps.lammps.extract_atom_size()>`.
        Except for the "mass" property, the underlying storage will always be
        dimensioned for the range [0:nmax].  The actual usable data may be
        only in the range [0:nlocal] or [0:nlocal][0:dim].  Whether there is
@@ -238,8 +238,8 @@ class numpy_wrapper:
     It behaves the same as the original method, but returns a NumPy array instead
     of a ``ctypes`` list.
 
-    :return: the requested data as a 2d-integer numpy array
-    :rtype: numpy.array(nbonds,3)
+    :return: the requested data as a 2d-integer numpy array with shape (nbonds, 3)
+    :rtype: numpy.array
     """
     nbonds, value = self.lmp.gather_bonds()
     return np.ctypeslib.as_array(value).reshape(nbonds,3)
@@ -255,8 +255,8 @@ class numpy_wrapper:
     It behaves the same as the original method, but returns a NumPy array instead
     of a ``ctypes`` list.
 
-    :return: the requested data as a 2d-integer numpy array
-    :rtype: numpy.array(nangles,4)
+    :return: the requested data as a 2d-integer numpy array with shape (nangles, 4)
+    :rtype: numpy.array
     """
     nangles, value = self.lmp.gather_angles()
     return np.ctypeslib.as_array(value).reshape(nangles,4)
@@ -272,8 +272,8 @@ class numpy_wrapper:
     It behaves the same as the original method, but returns a NumPy array instead
     of a ``ctypes`` list.
 
-    :return: the requested data as a 2d-integer numpy array
-    :rtype: numpy.array(ndihedrals,5)
+    :return: the requested data as a 2d-integer numpy array with shape (ndihedrals, 5)
+    :rtype: numpy.array
     """
     ndihedrals, value = self.lmp.gather_dihedrals()
     return np.ctypeslib.as_array(value).reshape(ndihedrals,5)
@@ -289,8 +289,8 @@ class numpy_wrapper:
     It behaves the same as the original method, but returns a NumPy array instead
     of a ``ctypes`` list.
 
-    :return: the requested data as a 2d-integer numpy array
-    :rtype: numpy.array(nimpropers,5)
+    :return: the requested data as a 2d-integer numpy array with shape (nimpropers, 5)
+    :rtype: numpy.array
     """
     nimpropers, value = self.lmp.gather_impropers()
     return np.ctypeslib.as_array(value).reshape(nimpropers,5)

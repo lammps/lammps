@@ -174,7 +174,7 @@ __kernel void k_lj_coul_msm(const __global numtyp4 *restrict x_,
           numtyp rho = r/cut_coul;
           egamma = (numtyp)1.0 - rho*gamma(rho, order, gcons);
           fgamma = (numtyp)1.0 + (rsq/cut_coulsq)*dgamma(rho, order, dgcons);
-          forcecoul = prefactor * fgamma;
+          forcecoul = prefactor * (fgamma - factor_coul);
         } else
           forcecoul = (numtyp)0.0;
 
@@ -299,7 +299,7 @@ __kernel void k_lj_coul_msm_fast(const __global numtyp4 *restrict x_,
           numtyp rho = r/cut_coul;
           egamma = (numtyp)1.0 - rho*gamma(rho, order, gcons);
           fgamma = (numtyp)1.0 + (rsq/cut_coulsq)*dgamma(rho, order, dgcons);
-          forcecoul = prefactor * fgamma;
+          forcecoul = prefactor * (fgamma - factor_coul);
         } else
           forcecoul = (numtyp)0.0;
 

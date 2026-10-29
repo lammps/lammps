@@ -105,6 +105,7 @@ FixAtomSwap::FixAtomSwap(LAMMPS *lmp, int narg, char **arg) :
   // random number generator, not the same for all procs
 
   random_unequal = new RanPark(lmp, seed);
+  random_unequal->reset_rank(seed, comm->me);
 
   // set up reneighboring
 
@@ -140,6 +141,7 @@ FixAtomSwap::~FixAtomSwap()
   memory->destroy(qtype);
   memory->destroy(mtype);
   memory->destroy(sqrt_mass_ratio);
+  memory->destroy(local_swap_atom_list);
   memory->destroy(local_swap_iatom_list);
   memory->destroy(local_swap_jatom_list);
   delete[] idregion;
@@ -390,23 +392,6 @@ void FixAtomSwap::init()
       for (int ktype = 1; ktype <= atom->ntypes; ktype++)
         if (cutsq[type_list[iswaptype]][ktype] != cutsq[type_list[jswaptype]][ktype])
           unequal_cutoffs = true;
-
-  // check that no swappable atoms are in atom->firstgroup
-  // swapping such an atom might not leave firstgroup atoms first
-
-  if (atom->firstgroup >= 0) {
-    int *mask = atom->mask;
-    int firstgroupbit = group->bitmask[atom->firstgroup];
-
-    int flag = 0;
-    for (int i = 0; i < atom->nlocal; i++)
-      if ((mask[i] == groupbit) && (mask[i] && firstgroupbit)) flag = 1;
-
-    int flagall;
-    MPI_Allreduce(&flag, &flagall, 1, MPI_INT, MPI_SUM, world);
-
-    if (flagall) error->all(FLERR, "Cannot do atom/swap on atoms in atom_modify first group");
-  }
 }
 
 /* ----------------------------------------------------------------------
@@ -943,8 +928,10 @@ void FixAtomSwap::restart(char *buf)
   seed = static_cast<int>(list[n++]);
   random_equal->reset(seed);
 
+  // only the state of proc 0 is stored, derive a unique state for each proc from it
+
   seed = static_cast<int>(list[n++]);
-  random_unequal->reset(seed);
+  random_unequal->reset_rank(seed, comm->me);
 
   next_reneighbor = (bigint) ubuf(list[n++]).i;
 

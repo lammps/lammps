@@ -42,7 +42,7 @@ such as those created by pouring grains using :doc:`fix pour
 
 ----------
 
-Currently, there are three types of bonds included in the BPM package. The
+There are five bond styles included in the BPM package. The
 first bond style, :doc:`bond bpm/spring <bond_bpm_spring>`, only applies
 pairwise, central body forces. Point particles must have :doc:`bond atom
 style <atom_style>` and may be thought of as nodes in a spring
@@ -59,6 +59,11 @@ particles and store bonds, and therefore use a :doc:`bpm/sphere atom
 style <atom_style>`.  This also requires a unique integrator :doc:`fix
 nve/bpm/sphere <fix_nve_bpm_sphere>` which numerically integrates
 orientation similar to :doc:`fix nve/asphere <fix_nve_asphere>`.
+The :doc:`bond bpm/peri <bond_bpm_peri>` style implements the
+peridynamic models of the :doc:`PERI package <pair_peri>` as a bond
+style (see the :doc:`Howto peri <Howto_peri>` page), and the
+:doc:`bond bpm/zero <bond_bpm_zero>` style stores the reference state
+and can break bonds, but computes no bond forces.
 
 In addition to bond styles, a new pair style :doc:`pair bpm/spring
 <pair_bpm_spring>` was added to accompany the bpm/spring bond

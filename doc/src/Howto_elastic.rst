@@ -36,7 +36,9 @@ fluctuations, and the Born matrix, the second derivatives of energy
 w.r.t. strain :ref:`(Ray) <Ray>`.
 The Born matrix calculation has been enabled by
 the :doc:`compute born/matrix <compute_born_matrix>` command,
-which works for any bonded or non-bonded potential in LAMMPS.
+which computes it analytically for many bonded and non-bonded
+potentials in LAMMPS and numerically (with the *numdiff* option) for
+all others.
 The most expensive part of the calculation is the sampling of
 the stress fluctuations. Several examples of this method are
 provided in the ``examples/ELASTIC_T/BORN_MATRIX`` directory

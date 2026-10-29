@@ -84,7 +84,9 @@ FixACKS2ReaxFF::FixACKS2ReaxFF(LAMMPS *lmp, int narg, char **arg) :
   if (lmp->citeme) lmp->citeme->add(cite_fix_acks2_reax);
 
   if (dual_enabled)
-    error->all(FLERR, Error::NOLASTLINE, "Dual keyword only supported with fix qeq/reax/omp");
+    error->all(FLERR, Error::NOLASTLINE, "Dual keyword is not supported by fix {}", style);
+  if (matrix_free && (comm->me == 0))
+    error->warning(FLERR, "Keyword matfree is not supported by fix {} and is ignored", style);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -198,6 +200,7 @@ void FixACKS2ReaxFF::pertype_parameters(char *arg)
   MPI_Bcast(eta,ntypes+1,MPI_DOUBLE,0,world);
   MPI_Bcast(gamma,ntypes+1,MPI_DOUBLE,0,world);
   MPI_Bcast(bcut_acks2,ntypes+1,MPI_DOUBLE,0,world);
+  MPI_Bcast(&bond_softness,1,MPI_DOUBLE,0,world);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -377,12 +380,12 @@ void FixACKS2ReaxFF::init_matvec()
   int ii, i;
 
   for (ii = 0; ii < nn; ++ii) {
-    if (X_diag[ii] == 0.0)
-      Xdia_inv[ii] = 1.0;
-    else
-      Xdia_inv[ii] = 1.0 / X_diag[ii];
-
     i = ilist[ii];
+    if (X_diag[i] == 0.0)
+      Xdia_inv[i] = 1.0;
+    else
+      Xdia_inv[i] = 1.0 / X_diag[i];
+
     if (atom->mask[i] & groupbit) {
 
       /* init pre-conditioner for H and init solution vectors */
@@ -394,6 +397,11 @@ void FixACKS2ReaxFF::init_matvec()
       /* cubic extrapolation for s from previous solutions */
       s[i] = 4*(s_hist[i][0]+s_hist[i][2])-(6*s_hist[i][1]+s_hist[i][3]);
       s[NN+i] = 4*(s_hist_X[i][0]+s_hist_X[i][2])-(6*s_hist_X[i][1]+s_hist_X[i][3]);
+    } else {
+
+      /* atoms outside the group only contribute their fixed charge */
+      s[i] = atom->q[i];
+      s[NN+i] = 0.0;
     }
   }
 
@@ -459,10 +467,16 @@ void FixACKS2ReaxFF::compute_X() // NOLINT
           }
         }
 
-        if (flag) {
+        // the X matrix only couples atoms in the group
+        if (flag && (mask[j] & groupbit)) {
           double bcutoff = bcut[type[i]][type[j]];
           double bcutoff2 = bcutoff*bcutoff;
           if (r_sqr <= bcutoff2) {
+            // check before writing past the end of the matrix
+            if (m_fill >= X.m)
+              error->one(FLERR, Error::NOLASTLINE,
+                         "Fix {} has insufficient ACKS2 X matrix size: m_fill={} X.m={}\n",
+                         style, m_fill, X.m);
             X.jlist[m_fill] = j;
             double X_val = calculate_X(sqrt(r_sqr), bcutoff);
             X.val[m_fill] = X_val;
@@ -478,7 +492,9 @@ void FixACKS2ReaxFF::compute_X() // NOLINT
   }
 
   if (m_fill >= X.m)
-    error->all(FLERR,"Fix acks2/reaxff has insufficient ACKS2 X matrix size: m_fill={} X.m={}\n",m_fill,X.m);
+    error->one(FLERR, Error::NOLASTLINE,
+               "Fix {} has insufficient ACKS2 X matrix size: m_fill={} X.m={}\n",
+               style, m_fill, X.m);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -529,12 +545,14 @@ int FixACKS2ReaxFF::BiCGStab(double *b, double *x)
       vector_copy(p, r, nn);
     }
 
-    // pre-conditioning
+    // pre-conditioning; atoms outside the group have fixed charges
     for (jj = 0; jj < nn; ++jj) {
       j = ilist[jj];
       if (atom->mask[j] & groupbit) {
         d[j] = p[j] * Hdia_inv[j];
         d[NN+j] = p[NN+j] * Xdia_inv[j];
+      } else {
+        d[j] = d[NN+j] = 0.0;
       }
     }
     // last two rows
@@ -564,12 +582,14 @@ int FixACKS2ReaxFF::BiCGStab(double *b, double *x)
       break;
     }
 
-    // pre-conditioning
+    // pre-conditioning; atoms outside the group have fixed charges
     for (jj = 0; jj < nn; ++jj) {
       j = ilist[jj];
       if (atom->mask[j] & groupbit) {
         q_hat[j] = q[j] * Hdia_inv[j];
         q_hat[NN+j] = q[NN+j] * Xdia_inv[j];
+      } else {
+        q_hat[j] = q_hat[NN+j] = 0.0;
       }
     }
     // last two rows
@@ -603,7 +623,7 @@ int FixACKS2ReaxFF::BiCGStab(double *b, double *x)
     if (omega == 0 || rho == 0) {
       error->warning(FLERR,"Fix acks2/reaxff BiCGStab numerical breakdown, omega = {:.8}, rho = {:.8}",
                       omega,rho);
-    } else if (i >= imax) {
+    } else if ((i >= imax) && maxwarn) {
       error->warning(FLERR,"Fix acks2/reaxff BiCGStab convergence failed after {} iterations "
                            "at step {}", i, update->ntimestep);
     }
@@ -624,14 +644,14 @@ void FixACKS2ReaxFF::sparse_matvec_acks2(sparse_matrix *H, sparse_matrix *X, dou
     if (atom->mask[i] & groupbit) {
       b[i] = eta[atom->type[i]] * x[i];
       b[NN + i] = X_diag[i] * x[NN + i];
+    } else {
+      b[i] = b[NN + i] = 0.0;
     }
   }
 
   for (i = atom->nlocal; i < NN; ++i) {
-    if (atom->mask[i] & groupbit) {
-      b[i] = 0;
-      b[NN + i] = 0;
-    }
+    b[i] = 0;
+    b[NN + i] = 0;
   }
   // last two rows
   b[2*NN] = 0;
@@ -639,14 +659,15 @@ void FixACKS2ReaxFF::sparse_matvec_acks2(sparse_matrix *H, sparse_matrix *X, dou
 
   for (ii = 0; ii < nn; ++ii) {
     i = ilist[ii];
-    if (atom->mask[i] & groupbit) {
-      // H Matrix
-      for (itr_j=H->firstnbr[i]; itr_j<H->firstnbr[i]+H->numnbrs[i]; itr_j++) {
-        j = H->jlist[itr_j];
-        b[i] += H->val[itr_j] * x[j];
-        b[j] += H->val[itr_j] * x[i];
-      }
 
+    // H Matrix: the rows of atoms outside the group only contain neighbors in the group
+    for (itr_j=H->firstnbr[i]; itr_j<H->firstnbr[i]+H->numnbrs[i]; itr_j++) {
+      j = H->jlist[itr_j];
+      b[i] += H->val[itr_j] * x[j];
+      b[j] += H->val[itr_j] * x[i];
+    }
+
+    if (atom->mask[i] & groupbit) {
       // X Matrix
       for (itr_j=X->firstnbr[i]; itr_j<X->firstnbr[i]+X->numnbrs[i]; itr_j++) {
         j = X->jlist[itr_j];
@@ -845,6 +866,15 @@ void FixACKS2ReaxFF::more_reverse_comm(double *vec)
 }
 
 /* ----------------------------------------------------------------------
+   number of BiCGStab iterations in the last solve
+------------------------------------------------------------------------- */
+
+double FixACKS2ReaxFF::compute_scalar()
+{
+  return matvecs;
+}
+
+/* ----------------------------------------------------------------------
    memory usage of local atom-based arrays
 ------------------------------------------------------------------------- */
 
@@ -883,6 +913,15 @@ void FixACKS2ReaxFF::copy_arrays(int i, int j, int /*delflag*/)
     s_hist[j][m] = s_hist[i][m];
     s_hist_X[j][m] = s_hist_X[i][m];
   }
+}
+
+/* ----------------------------------------------------------------------
+   initialize history for an atom created during the run
+------------------------------------------------------------------------- */
+
+void FixACKS2ReaxFF::set_arrays(int i)
+{
+  for (int m = 0; m < nprev; m++) s_hist[i][m] = s_hist_X[i][m] = 0.0;
 }
 
 /* ----------------------------------------------------------------------

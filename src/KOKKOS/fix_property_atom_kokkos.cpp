@@ -81,10 +81,7 @@ FixPropertyAtomKokkos::~FixPropertyAtomKokkos()
     }
   }
 
-  // do not rebuild the list from Modify here: Modify::delete_fix() destroys
-  // the fix before unlinking it, so a rescan would put a pointer to this
-  // dying object back into fix_prop_atom[].  Drop this fix from the list
-  // instead.
+  // drop this fix from the list of property/atom fixes in AtomKokkos
 
   int n = 0;
   for (int i = 0; i < atomKK->nprop_atom; i++)

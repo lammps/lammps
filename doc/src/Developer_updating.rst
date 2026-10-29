@@ -13,25 +13,11 @@ LAMMPS :doc:`programming style conventions <Modify_style>`, especially
 if you are considering to submit the updated version for inclusion into
 the LAMMPS distribution.
 
-Available topics in mostly chronological order are:
+Available topics in mostly chronological order:
 
-- `Setting flags in the constructor`_
-- `Rename of pack/unpack_comm() to pack/unpack_forward_comm()`_
-- `Use ev_init() to initialize variables derived from eflag and vflag`_
-- `Use utils::count_words() functions instead of atom->count_words()`_
-- `Use utils::numeric() functions instead of force->numeric()`_
-- `Use utils::open_potential() function to open potential files`_
-- `Use symbolic Atom and AtomVec constants instead of numerical values`_
-- `Simplify customized error messages`_
-- `Use of "override" instead of "virtual"`_
-- `Simplified and more compact neighbor list requests`_
-- `Split of fix STORE into fix STORE/GLOBAL and fix STORE/PERATOM`_
-- `Rename of fix STORE/PERATOM to fix STORE/ATOM and change of arguments`_
-- `Use Output::get_dump_by_id() instead of Output::find_dump()`_
-- `Refactored grid communication using Grid3d/Grid2d classes instead of GridComm`_
-- `FLERR as first argument to minimum image functions in Domain class`_
-- `Use utils::logmesg() instead of error->warning()`_
-- `Explicit interpretation for custom neighbor list cutoffs`_
+.. contents::
+   :local:
+   :depth: 1
 
 ----
 
@@ -686,6 +672,8 @@ This change is **required** or else the code will not compile.
 Explicit interpretation for custom neighbor list cutoffs
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+.. versionchanged:: 30Sep2026
+
 The default neighbor list is built with a cutoff *per pair of atom types*, so
 a request for a custom cutoff is ambiguous on its own: the same number can
 mean "the largest cutoff used by any type pair" or "this cutoff for every type
@@ -714,5 +702,151 @@ New:
 
    auto req = neighbor->add_request(this, NeighConst::REQ_OCCASIONAL);
    if (cutflag) req->set_cutoff_fixed(mycutneigh);
+
+This change is **required** or else the code will not compile.
+
+Use Modify::has_fixes() instead of the Modify::n_* counters
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. versionchanged:: TBD
+
+The Modify class used to have a public integer counter for every stage
+of a timestep or minimization (``n_pre_force``, ``n_post_force_any``,
+``n_end_of_step``, ``n_min_post_force``, and so on) with the number of
+fixes that are invoked at that stage.  Integrators and some commands and
+fixes test these counters to skip the call into the Modify class when no
+fix needs it.  The counters have been replaced by the function
+``Modify::has_fixes()``.  It takes a combination of the stage constants
+from ``FixConst`` (the same constants that a fix returns from its
+``setmask()`` method) and returns whether any fix is invoked at any of
+these stages.  The combined stages that had their own counters are
+available as ``FixConst::POST_FORCE_ANY`` and
+``FixConst::POST_FORCE_RESPA_ANY`` (which include the internal fixes
+maintaining dynamic groups), and the contributions to the global and
+per-atom energy as ``FixConst::ENERGY_GLOBAL`` and
+``FixConst::ENERGY_ATOM``.  As with the counters, the result is only
+valid after the fixes have been initialized for a run or minimization.
+
+Old:
+
+.. code-block:: c++
+
+   int n_pre_force = modify->n_pre_force;
+   int n_post_force_any = modify->n_post_force_any;
+
+   [...]
+
+   if (n_pre_force) modify->pre_force(vflag);
+   if (n_post_force_any) modify->post_force(vflag);
+
+New:
+
+.. code-block:: c++
+
+   if (modify->has_fixes(FixConst::PRE_FORCE)) modify->pre_force(vflag);
+   if (modify->has_fixes(FixConst::POST_FORCE_ANY)) modify->post_force(vflag);
+
+This change is **required** or else the code will not compile.
+
+Access fixes and computes through the Modify accessor functions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. versionchanged:: TBD
+
+The lists of fixes and computes in the Modify class are now stored in
+``std::vector`` containers and fixes are invoked by testing their mask
+rather than through lists of indices.  The public members ``fix``,
+``nfix``, ``fmask``, ``compute``, and ``ncompute`` that gave direct
+access to the lists have been removed, as have the functions
+``Modify::find_fix()`` and ``Modify::find_compute()`` that returned an
+index into them and the overloads ``Modify::delete_fix(int)`` and
+``Modify::delete_compute(int)`` that took such an index.  Use
+``Modify::get_fix_list()`` and ``Modify::get_compute_list()`` to loop
+over all fixes or computes (they now return a reference to the list
+instead of a copy, so no fix or compute may be added or deleted while
+looping over it), ``Modify::get_fix_by_id()`` and
+``Modify::get_compute_by_id()`` to look up an instance by its ID,
+``Modify::get_fix_mask()``, ``Modify::set_fix_mask()``, and
+``Modify::clear_fix_mask()`` to query or change the stages at which a
+fix is invoked, and delete fixes and computes by ID or by pointer.
+Code that needs a position in the list, e.g. to check the order of
+fixes, can loop over the list with an index, but must not store that
+index, since it changes when fixes are deleted.  The remaining public
+data members of the Modify class are now protected, too: use
+``Modify::has_restart_pbc()`` instead of ``restart_pbc_any`` and
+``Modify::get_nfix_restart_peratom()`` instead of ``nfix_restart_peratom``.
+
+Old:
+
+.. code-block:: c++
+
+   for (int i = 0; i < modify->nfix; i++)
+     if (modify->fix[i]->box_change) box_change = 1;
+
+   int ifix = modify->find_fix(id_fix);
+   if (ifix < 0) error->all(FLERR, "Fix ID {} does not exist", id_fix);
+   Fix *myfix = modify->fix[ifix];
+
+   [...]
+
+   modify->delete_fix(ifix);
+
+New:
+
+.. code-block:: c++
+
+   for (const auto &fix : modify->get_fix_list())
+     if (fix->box_change) box_change = 1;
+
+   Fix *myfix = modify->get_fix_by_id(id_fix);
+   if (!myfix) error->all(FLERR, "Fix ID {} does not exist", id_fix);
+
+   [...]
+
+   modify->delete_fix(myfix);
+
+This change is **required** or else the code will not compile.
+
+Register callbacks for per-atom arrays with a pointer to the fix
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. versionchanged:: TBD
+
+A fix that manages per-atom arrays registers callbacks with the Atom
+class, so that its arrays are grown, copied, communicated, and stored
+in restart files together with the arrays of the atom style.  The Atom
+class used to record the position of the fix in the list of fixes,
+which it had to guess when the fix constructor registered the callback
+and to update whenever a fix was deleted.  The callback lists are now
+lists of pointers to the fixes.  Thus ``Atom::add_callback()`` and
+``Atom::delete_callback()`` take a pointer to the fix as their first
+argument (``this`` when called from the constructor and destructor of
+the fix) instead of no argument or the fix ID, respectively.  The
+counters ``nextra_grow``, ``nextra_restart``, and ``nextra_border``
+and their ``_max`` variants have been removed, and the lists
+``extra_grow``, ``extra_restart``, and ``extra_border`` are now
+``std::vector`` containers with the fixes in the order of the list of
+fixes of the Modify class.  A fix whose callbacks are still registered
+when it is deleted (e.g. because its constructor failed) is removed
+from the lists by the destructor of the Fix base class.
+
+Old:
+
+.. code-block:: c++
+
+   atom->add_callback(Atom::GROW);
+   atom->delete_callback(id, Atom::GROW);
+
+   for (int iextra = 0; iextra < atom->nextra_grow; iextra++)
+     modify->fix[atom->extra_grow[iextra]]->grow_arrays(nmax);
+
+New:
+
+.. code-block:: c++
+
+   atom->add_callback(this, Atom::GROW);
+   atom->delete_callback(this, Atom::GROW);
+
+   for (auto *ifix : atom->extra_grow) ifix->grow_arrays(nmax);
 
 This change is **required** or else the code will not compile.

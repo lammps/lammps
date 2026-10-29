@@ -272,8 +272,8 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
   // register with Atom class
 
   FixWallGran::grow_arrays(atom->nmax);
-  atom->add_callback(Atom::GROW);
-  atom->add_callback(Atom::RESTART);
+  atom->add_callback(this, Atom::GROW);
+  atom->add_callback(this, Atom::RESTART);
 
   nmax = 0;
 
@@ -326,8 +326,8 @@ FixWallGran::~FixWallGran()
 
   // unregister callbacks to this fix from Atom class
 
-  atom->delete_callback(id,Atom::GROW);
-  atom->delete_callback(id,Atom::RESTART);
+  atom->delete_callback(this, Atom::GROW);
+  atom->delete_callback(this, Atom::RESTART);
 
   // delete local storage
 

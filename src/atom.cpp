@@ -50,7 +50,6 @@
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
-static constexpr int DELTA = 1;
 static constexpr double EPSILON = 1.0e-6;
 static constexpr double EPS_ZCOORD = 1.0e-12;
 
@@ -269,9 +268,6 @@ Atom::Atom(LAMMPS *_lmp) : Pointers(_lmp), atom_style(nullptr), avec(nullptr)
 
   // callback lists & extra restart info
 
-  nextra_grow = nextra_restart = nextra_border = 0;
-  extra_grow = extra_restart = extra_border = nullptr;
-  nextra_grow_max = nextra_restart_max = nextra_border_max = 0;
   nextra_store = 0;
   extra = nullptr;
 
@@ -363,9 +359,6 @@ Atom::~Atom()
 
   // delete extra arrays
 
-  memory->destroy(extra_grow);
-  memory->destroy(extra_restart);
-  memory->destroy(extra_border);
   memory->destroy(extra);
 
   // delete mapping data structures
@@ -1407,6 +1400,12 @@ void Atom::data_bonds(int n, char *buf, int *count, tagint id_offset,
             avec->data_bonds_post(m, num_bond[m], atom1, atom2, id_offset);
           }
         }
+      } else if (!count && (map(atom1) < 0) && ((m = map(atom2)) >= 0)) {
+
+        // with newton_bond on the bond is only stored with atom1, but the
+        // atom style may also need to process it for atom2 on its own processor
+
+        avec->data_bonds_post(m, num_bond[m], atom1, atom2, id_offset);
       }
     }
     buf = next + 1;
@@ -2611,122 +2610,67 @@ void Atom::setup_sort_bins()
 }
 
 /* ----------------------------------------------------------------------
-   register a callback to a fix so it can manage atom-based arrays
-   happens when fix is created
+   list of fixes with callbacks of one type
    flag = Atom::GROW for grow, Atom::RESTART for restart, Atom::BORDER for border comm
 ------------------------------------------------------------------------- */
 
-void Atom::add_callback(int flag)
+std::vector<Fix *> &Atom::callback_list(int flag)
 {
-  int ifix;
-
-  // find the fix
-  // if find null pointer:
-  //   it's this one, since it is being replaced and has just been deleted
-  //   at this point in re-creation
-  // if don't find null pointer:
-  //   i is set to nfix = new one currently being added at end of list
-
-  for (ifix = 0; ifix < modify->nfix; ifix++)
-    if (modify->fix[ifix] == nullptr) break;
-
-  // add callback to lists and sort, reallocating if necessary
-  // sorting is required in cases where fixes were replaced as it ensures atom
-  // data is read/written/transfered in the same order that fixes are called
-
-  if (flag == GROW) {
-    if (nextra_grow == nextra_grow_max) {
-      nextra_grow_max += DELTA;
-      memory->grow(extra_grow,nextra_grow_max,"atom:extra_grow");
-    }
-    extra_grow[nextra_grow] = ifix;
-    nextra_grow++;
-    std::sort(extra_grow, extra_grow + nextra_grow);
-  } else if (flag == RESTART) {
-    if (nextra_restart == nextra_restart_max) {
-      nextra_restart_max += DELTA;
-      memory->grow(extra_restart,nextra_restart_max,"atom:extra_restart");
-    }
-    extra_restart[nextra_restart] = ifix;
-    nextra_restart++;
-    std::sort(extra_restart, extra_restart + nextra_restart);
-  } else if (flag == BORDER) {
-    if (nextra_border == nextra_border_max) {
-      nextra_border_max += DELTA;
-      memory->grow(extra_border,nextra_border_max,"atom:extra_border");
-    }
-    extra_border[nextra_border] = ifix;
-    nextra_border++;
-    std::sort(extra_border, extra_border + nextra_border);
-  }
+  if (flag == GROW) return extra_grow;
+  if (flag == RESTART) return extra_restart;
+  if (flag == BORDER) return extra_border;
+  error->all(FLERR, Error::NOLASTLINE, "Unknown type {} of fix callback", flag);
 }
 
 /* ----------------------------------------------------------------------
-   unregister a callback to a fix
-   happens when fix is deleted, called by its destructor
-   flag = 0 for grow, 1 for restart
+   register a fix for callbacks so it can manage its atom-based arrays
+   called from the fix constructor, i.e. usually before the Modify class
+   has stored the fix in its list; the lists are brought into the order
+   of that list by sort_callbacks(), which Modify::add_fix() calls
+   flag = Atom::GROW for grow, Atom::RESTART for restart, Atom::BORDER for border comm
 ------------------------------------------------------------------------- */
 
-void Atom::delete_callback(const char *id, int flag)
+void Atom::add_callback(Fix *fix, int flag)
 {
-  if (id == nullptr) return;
-
-  int ifix = modify->find_fix(id);
-
-  // a fix whose constructor fails is not in Modify's list yet,
-  // so look it up by the slot that add_callback() recorded
-
-  if (ifix < 0)
-    for (ifix = 0; ifix < modify->nfix; ifix++)
-      if (modify->fix[ifix] == nullptr) break;
-
-  // compact the list of callbacks
-
-  if (flag == GROW) {
-    int match;
-    for (match = 0; match < nextra_grow; match++)
-      if (extra_grow[match] == ifix) break;
-    if ((nextra_grow == 0) || (match == nextra_grow))
-      error->all(FLERR,"Trying to delete non-existent Atom::grow() callback");
-    for (int i = match; i < nextra_grow-1; i++)
-      extra_grow[i] = extra_grow[i+1];
-    nextra_grow--;
-
-  } else if (flag == RESTART) {
-    int match;
-    for (match = 0; match < nextra_restart; match++)
-      if (extra_restart[match] == ifix) break;
-    if ((nextra_restart == 0) || (match == nextra_restart))
-      error->all(FLERR,"Trying to delete non-existent Atom::restart() callback");
-    for (int i = match; i < nextra_restart-1; i++)
-      extra_restart[i] = extra_restart[i+1];
-    nextra_restart--;
-
-  } else if (flag == BORDER) {
-    int match;
-    for (match = 0; match < nextra_border; match++)
-      if (extra_border[match] == ifix) break;
-    if ((nextra_border == 0) || (match == nextra_border))
-      error->all(FLERR,"Trying to delete non-existent Atom::border() callback");
-    for (int i = match; i < nextra_border-1; i++)
-      extra_border[i] = extra_border[i+1];
-    nextra_border--;
-  }
+  if (!fix) return;
+  auto &list = callback_list(flag);
+  if (std::find(list.begin(), list.end(), fix) == list.end()) list.push_back(fix);
+  sort_callbacks();
 }
 
 /* ----------------------------------------------------------------------
-   decrement ptrs in callback lists to fixes beyond the deleted ifix
-   happens after fix is deleted
+   unregister a fix from callbacks, called from the fix destructor
+   also called from the Fix base class destructor for all three types
+   as a safety net, so a fix that is not registered is silently ignored
 ------------------------------------------------------------------------- */
 
-void Atom::update_callback(int ifix)
+void Atom::delete_callback(Fix *fix, int flag)
 {
-  for (int i = 0; i < nextra_grow; i++)
-    if (extra_grow[i] > ifix) extra_grow[i]--;
-  for (int i = 0; i < nextra_restart; i++)
-    if (extra_restart[i] > ifix) extra_restart[i]--;
-  for (int i = 0; i < nextra_border; i++)
-    if (extra_border[i] > ifix) extra_border[i]--;
+  auto &list = callback_list(flag);
+  auto found = std::find(list.begin(), list.end(), fix);
+  if (found != list.end()) list.erase(found);
+}
+
+/* ----------------------------------------------------------------------
+   order the callback lists by the position of the fixes in the Modify
+   class, so that per-atom data is read/written/transferred in the same
+   order in which the fixes are invoked. a fix that is not (yet) in the
+   list of fixes keeps its place at the end
+------------------------------------------------------------------------- */
+
+void Atom::sort_callbacks()
+{
+  const auto &fixes = modify->get_fix_list();
+  auto position = [&fixes](Fix *fix) {
+    std::size_t i = 0;
+    while ((i < fixes.size()) && (fixes[i] != fix)) ++i;
+    return i;
+  };
+  auto by_position = [&position](Fix *a, Fix *b) { return position(a) < position(b); };
+
+  std::stable_sort(extra_grow.begin(), extra_grow.end(), by_position);
+  std::stable_sort(extra_restart.begin(), extra_restart.end(), by_position);
+  std::stable_sort(extra_border.begin(), extra_border.end(), by_position);
 }
 
 /** \brief Find a custom per-atom property with given name
@@ -3144,6 +3088,12 @@ void *Atom::extract(const char *name)
   if (strcmp(name,"ervel") == 0) return (void *) ervel;
   if (strcmp(name,"erforce") == 0) return (void *) erforce;
 
+  // CG-DNA package
+
+  if (strcmp(name,"id3p") == 0) return (void *) id3p;
+  if (strcmp(name,"id5p") == 0) return (void *) id5p;
+  if (strcmp(name,"qeff") == 0) return (void *) qeff;
+
   // RHEO package
 
   if (strcmp(name,"rheo_status") == 0) return (void *) rheo_status;
@@ -3309,6 +3259,12 @@ int Atom::extract_datatype(const char *name)
   if (strcmp(name,"eradius") == 0) return LAMMPS_DOUBLE;
   if (strcmp(name,"ervel") == 0) return LAMMPS_DOUBLE;
   if (strcmp(name,"erforce") == 0) return LAMMPS_DOUBLE;
+
+  // CG-DNA package
+
+  if (strcmp(name,"id3p") == 0) return LAMMPS_TAGINT;
+  if (strcmp(name,"id5p") == 0) return LAMMPS_TAGINT;
+  if (strcmp(name,"qeff") == 0) return LAMMPS_DOUBLE;
 
   // RHEO package
 

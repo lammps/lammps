@@ -2,7 +2,7 @@
 lammps_version: 4 Feb 2025
 date_generated: Fri Feb 21 16:17:55 2025
 epsilon: 5e-13
-skip_tests: numdiff
+skip_tests:
 prerequisites: ! |
   atom full
   angle cosine/delta

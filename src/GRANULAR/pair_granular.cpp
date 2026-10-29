@@ -56,6 +56,7 @@ PairGranular::PairGranular(LAMMPS *lmp) : Pair(lmp)
   svector = new double[single_extra];
 
   neighprev = 0;
+  history_single = nullptr;
   freeze_group_bit = 0;
   nmax = 0;
   mass_rigid = nullptr;
@@ -102,6 +103,7 @@ id_dummy = utils::strdup(std::string("NEIGH_HISTORY_GRANULAR_DUMMY") + std::to_s
 PairGranular::~PairGranular()
 {
   delete[] svector;
+  delete[] history_single;
 
   if (!fix_history) modify->delete_fix(id_dummy);
   else modify->delete_fix(id_history);
@@ -216,6 +218,24 @@ void PairGranular::compute(int eflag, int vflag)
 
       jtype = type[j];
       model = models_list[types_indices[itype][jtype]];
+
+      // quick rejection of pairs that are not in contact unless the
+      // contact model has interactions beyond contact (e.g. JKR)
+
+      if (!model->beyond_contact) {
+        const double delx = x[i][0] - x[j][0];
+        const double dely = x[i][1] - x[j][1];
+        const double delz = x[i][2] - x[j][2];
+        const double radsum = radius[i] + radius[j];
+        if (delx * delx + dely * dely + delz * delz >= radsum * radsum) {
+          if (use_history) {
+            touch[jj] = 0;
+            history = &allhistory[size_history * jj];
+            for (k = 0; k < size_history; k++) history[k] = 0.0;
+          }
+          continue;
+        }
+      }
 
       // Reset model and copy initial geometric data
       model->xi = x[i];
@@ -485,6 +505,10 @@ void PairGranular::init_style()
     // E.g. JKR + linear_nohistory
     size_history = MAX(size_history, 1);
   }
+
+  delete[] history_single;
+  history_single = nullptr;
+  if (use_history) history_single = new double[size_history];
 
   for (int n = 0; n < nmodels; n++) {
     model = models_list[n];
@@ -781,6 +805,12 @@ double PairGranular::single(int i, int j, int itype, int jtype,
     }
     history = &allhistory[size_history * neighprev];
     model->touch = fix_history->firstflag[i][neighprev];
+
+    // some sub-models rescale the history when the force reaches its limit,
+    // so work on a copy to leave the stored history of the contact unchanged
+
+    for (int k = 0; k < size_history; k++) history_single[k] = history[k];
+    history = history_single;
   }
 
   int touchflag = model->check_contact();
@@ -896,13 +926,24 @@ double PairGranular::memory_usage()
 void PairGranular::transfer_history(double* source, double* target, int itype, int jtype)
 {
   class GranularModel* model = models_list[types_indices[itype][jtype]];
-  if (model->nondefault_history_transfer) {
-    for (int i = 0; i < model->size_history; i++) {
-      target[i] = model->transfer_history_factor[i] * source[i];
-    }
-  } else {
-    for (int i = 0; i < model->size_history; i++) {
-      target[i] = -source[i];
+
+  // by default the partner sees the negative of our values
+
+  for (int i = 0; i < size_history; i++) target[i] = -source[i];
+
+  // sub models that need a different rule overwrite their own slice.  Locate
+  // it through history_index: the slice a sub model occupies is assigned from
+  // the largest size over all models of this pair style, so a model that is
+  // missing a sub model another model has still leaves room for it.  Indexing
+  // by this model's own cumulative sizes instead would address the wrong
+  // values as soon as the models are not all built the same way.
+
+  for (int m = 0; m < NSUBMODELS; m++) {
+    auto *sub = model->sub_models[m];
+    if (!sub->nondefault_history_transfer) continue;
+    for (int k = 0; k < sub->size_history; k++) {
+      const int idx = sub->history_index + k;
+      target[idx] = sub->transfer_history_factor[k] * source[idx];
     }
   }
 }

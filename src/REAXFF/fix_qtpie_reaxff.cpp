@@ -169,7 +169,7 @@ FixQtpieReaxFF::FixQtpieReaxFF(LAMMPS *lmp, int narg, char **arg) :
 
   s_hist = t_hist = nullptr;
   dist_cutoff_sq = 0.0;
-  atom->add_callback(Atom::GROW);
+  atom->add_callback(this, Atom::GROW);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -183,7 +183,7 @@ FixQtpieReaxFF::~FixQtpieReaxFF()
 
   // unregister callbacks to this fix from Atom class
 
-  atom->delete_callback(id,Atom::GROW);
+  atom->delete_callback(this, Atom::GROW);
 
   memory->destroy(s_hist);
   memory->destroy(t_hist);

@@ -35,6 +35,7 @@
 #include "force.h"
 #include "memory.h"
 #include "modify.h"
+#include "neighbor.h"
 #include "pair_hybrid.h"
 #include "pair_spin.h"
 #include "update.h"
@@ -540,6 +541,12 @@ void FixNVESpin::sectoring()
    error->all(FLERR, Error::NOLASTLINE,
               "No suitable cutoff found for sectoring operation: rv = {}", rv);
 
+  // atoms may move up to half the skin distance between reneighborings,
+  //   so the sector width must include the skin to keep spins of
+  //   same-index sectors on neighboring procs out of interaction range
+
+  rv += neighbor->skin;
+
   // extent of the subdomain and cutoff in each direction
   // for triclinic boxes, convert the cutoff to the lamda distance
   //   between parallel faces of the box, same as for the ghost cutoff in Comm
@@ -558,7 +565,7 @@ void FixNVESpin::sectoring()
     }
   }
 
-  // split a direction in two sectors only if each is at least as wide as the cutoff
+  // split a direction in two sectors only if each is at least as wide as cutoff + skin
 
   int sec[3];
   for (int d = 0; d < 3; d++) sec[d] = (rs[d] >= 2.0 * rcut[d]) ? 2 : 1;

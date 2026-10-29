@@ -842,7 +842,7 @@ void FixHyperLocal::pre_reverse(int /* eflag */, int /* vflag */)
       jnum = numneigh[iold];
 
       for (jj = 0; jj < jnum; jj++) {
-        jold = jlist[jj];
+        jold = NEIGHMASK & jlist[jj];
         j = old2now[jold];
         if (j < 0) continue;
         if (biasflag[j] && biasflag[j] != tag[i]) checkbias_count++;

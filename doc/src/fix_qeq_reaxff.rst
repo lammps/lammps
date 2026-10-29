@@ -106,12 +106,12 @@ Auxiliary per-atom variables are propagated time-reversibly alongside
 the atoms and provide the initial guess for the iterative solver, which
 then applies only a small, fixed number of conjugate gradient iterations
 (keyword *xlcg*, default 2) instead of iterating to *tolerance*.  This
-reduces the cost of the charge equilibration several-fold, while the
-energy conservation usually remains close to that of fully converged
-solves.  The *xldamp* and *xlkappa* keywords set the dissipation and the
-coupling of the auxiliary variables in the same way as for fix
-qeq/shielded/xlmd (default: dissipation of order 5).  The *xlguard*
-keyword sets the threshold of a safeguard against occasional
+makes the charge equilibration about 1.5 to 3 times faster (see the
+estimates below), while the energy conservation usually remains close to
+that of fully converged solves.  The *xldamp* and *xlkappa* keywords set
+the dissipation and the coupling of the auxiliary variables in the same
+way as for fix qeq/shielded/xlmd (default: dissipation of order 5).
+The *xlguard* keyword sets the threshold of a safeguard against occasional
 instabilities of the propagation, which is also explained there: when
 the relative residual of a truncated solve exceeds this value (default
 1.0e-3), the solve is completed to *tolerance*, a warning is printed
@@ -135,6 +135,29 @@ regenerated each time it is applied. This trades performance for
 reduced memory requirements because it avoids the overheads of
 storing the matrix. This is only supported for the *qeq/reaxff/kk*
 style, with both full and half qeq neighbor lists supported.
+
+The following estimates for the *xlmd* and *matfree* keywords are from
+the PETN crystal benchmark in the ``bench/POTENTIALS`` folder (input
+``in.reaxc``, replicated to 32480 to 950272 atoms, time step 0.1 fs,
+*tolerance* 1.0e-6, double precision).  With *xlmd yes*, 3 instead of
+8 to 16 conjugate gradient iterations were needed per step.  This
+reduced the time per step by 12 to 17% on 8 CPU cores (with MPI, with
+the OPENMP package, or with the KOKKOS package using OpenMP), by 22 to
+23% on one Nvidia V100 GPU, and by 33 to 38% on four V100 GPUs.  The
+savings were larger on four GPUs, since every iteration requires
+communication between them.  With the *matfree*
+keyword, the GPU memory needed was about a third smaller (the stored
+matrix needs about 8 kB per atom for this system), so that 1.7 times
+more atoms fit on one GPU, but the simulation was 1.3 to 1.7 times
+slower on the GPUs and 2.3 times slower on the CPU cores.  Combined with
+*xlmd yes*, which applies the matrix only a few times per step, the time
+per step was still 14 to 35% shorter than with converged solves and a
+stored matrix on the GPUs, and about the same on the CPU cores.  In NVE
+simulations of 29696 atoms over 2 ps (time step 0.1 fs) and 5 ps (time
+step 0.25 fs), the drift of the total energy with *xlmd yes* was not
+larger than with fully converged charges, and no simulation became
+unstable.  The actual savings depend on the system, the *tolerance*,
+the hardware, and the number of MPI processes or GPUs.
 
 .. versionchanged:: TBD
 

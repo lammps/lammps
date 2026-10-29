@@ -108,7 +108,8 @@ FixGEMC::FixGEMC(LAMMPS *lmp, int narg, char **arg) :
 
   // unique to proc and world
 
-  random_proc = new RanPark(lmp,seed+3*(myworld+1)+7*(me+1));
+  random_proc = new RanPark(lmp,seed);
+  random_proc->reset_rank(seed, universe->me);
 
   // unique to world, sync between procs
 
@@ -507,9 +508,11 @@ double FixGEMC::energy_full()
 
 void FixGEMC::write_restart(FILE *fp)
 {
+  int nglobalvals = 13;
+  int nlocalvals = nprocs;
+  int ntotalvals = nglobalvals + nlocalvals;
+  std::vector<double> list(ntotalvals);
   int n = 0;
-  double list[13];
-  list[n++] = random_proc->state();
   list[n++] = random_world->state();
   list[n++] = random_universe->state();
   list[n++] = ubuf(next_reneighbor).d;
@@ -522,11 +525,15 @@ void FixGEMC::write_restart(FILE *fp)
   list[n++] = nvolume_attempts;
   list[n++] = nvolume_successes;
   list[n++] = ubuf(update->ntimestep).d;
+  list[n++] = nlocalvals;
+
+  double state = random_proc->state();
+  MPI_Gather(&state, 1, MPI_DOUBLE, &list[n], 1, MPI_DOUBLE, 0, world);
 
   if (comm->me == 0) {
-    int size = n * sizeof(double);
+    int size = ntotalvals * sizeof(double);
     fwrite(&size, sizeof(int), 1, fp);
-    fwrite(list, sizeof(double), n, fp);
+    fwrite(list.data(), sizeof(double), ntotalvals, fp);
   }
 }
 
@@ -538,9 +545,6 @@ void FixGEMC::restart(char *buf)
 {
   int n = 0;
   auto *list = (double *) buf;
-
-  seed = static_cast<int> (list[n++]);
-  random_proc->reset(seed);
 
   seed = static_cast<int> (list[n++]);
   random_world->reset(seed);
@@ -562,6 +566,18 @@ void FixGEMC::restart(char *buf)
   bigint ntimestep_restart = (bigint) ubuf(list[n++]).i;
   if (ntimestep_restart != update->ntimestep)
     error->all(FLERR,"Must not reset timestep when restarting fix gemc");
+
+  // read stored state of RNG unique to this process
+  // if nprocs changed, derive a unique state from the state of proc 0
+
+  auto nlocalvals = (int) list[n++];
+  if (nlocalvals == nprocs) {
+    seed = static_cast<int>(list[n + me]);
+    random_proc->reset(seed);
+  } else {
+    seed = static_cast<int>(list[n]);
+    random_proc->reset_rank(seed, universe->me);
+  }
 }
 
 /* ----------------------------------------------------------------------

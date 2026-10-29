@@ -105,6 +105,7 @@ FixAtomSwap::FixAtomSwap(LAMMPS *lmp, int narg, char **arg) :
   // random number generator, not the same for all procs
 
   random_unequal = new RanPark(lmp, seed);
+  random_unequal->reset_rank(seed, comm->me);
 
   // set up reneighboring
 
@@ -140,6 +141,7 @@ FixAtomSwap::~FixAtomSwap()
   memory->destroy(qtype);
   memory->destroy(mtype);
   memory->destroy(sqrt_mass_ratio);
+  memory->destroy(local_swap_atom_list);
   memory->destroy(local_swap_iatom_list);
   memory->destroy(local_swap_jatom_list);
   delete[] idregion;
@@ -898,19 +900,25 @@ double FixAtomSwap::memory_usage()
 
 void FixAtomSwap::write_restart(FILE *fp)
 {
+  int nglobalvals = 6;
+  int nlocalvals = comm->nprocs;
+  int ntotalvals = nglobalvals + nlocalvals;
+  std::vector<double> list(ntotalvals);
   int n = 0;
-  double list[6];
   list[n++] = random_equal->state();
-  list[n++] = random_unequal->state();
   list[n++] = ubuf(next_reneighbor).d;
   list[n++] = nswap_attempts;
   list[n++] = nswap_successes;
   list[n++] = ubuf(update->ntimestep).d;
+  list[n++] = nlocalvals;
+
+  double state = random_unequal->state();
+  MPI_Gather(&state, 1, MPI_DOUBLE, &list[n], 1, MPI_DOUBLE, 0, world);
 
   if (comm->me == 0) {
-    int size = n * sizeof(double);
+    int size = ntotalvals * sizeof(double);
     fwrite(&size, sizeof(int), 1, fp);
-    fwrite(list, sizeof(double), n, fp);
+    fwrite(list.data(), sizeof(double), ntotalvals, fp);
   }
 }
 
@@ -926,9 +934,6 @@ void FixAtomSwap::restart(char *buf)
   seed = static_cast<int>(list[n++]);
   random_equal->reset(seed);
 
-  seed = static_cast<int>(list[n++]);
-  random_unequal->reset(seed);
-
   next_reneighbor = (bigint) ubuf(list[n++]).i;
 
   nswap_attempts = static_cast<int>(list[n++]);
@@ -937,6 +942,18 @@ void FixAtomSwap::restart(char *buf)
   bigint ntimestep_restart = (bigint) ubuf(list[n++]).i;
   if (ntimestep_restart != update->ntimestep)
     error->all(FLERR, "Must not reset timestep when restarting fix atom/swap");
+
+  // read stored state of RNG unique to this process
+  // if nprocs changed, derive a unique state from the state of proc 0
+
+  auto nlocalvals = (int) list[n++];
+  if (nlocalvals == comm->nprocs) {
+    seed = static_cast<int>(list[n + comm->me]);
+    random_unequal->reset(seed);
+  } else {
+    seed = static_cast<int>(list[n]);
+    random_unequal->reset_rank(seed, comm->me);
+  }
 }
 
 /* ----------------------------------------------------------------------

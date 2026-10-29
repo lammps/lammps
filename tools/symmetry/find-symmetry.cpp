@@ -522,7 +522,7 @@ int main(int argc, char **argv)
     std::vector<Op> cellops;
     if (reduce && reduce_to_unitcell(ops, cellops, ncell)) {
       if (ncell[0] * ncell[1] * ncell[2] > 1) {
-        ops = cellops;
+        ops = std::move(cellops);
         std::cerr << "The box consists of " << ncell[0] << " x " << ncell[1] << " x " << ncell[2]
                   << " unit cells with " << ops.size() << " operators each\n";
       }

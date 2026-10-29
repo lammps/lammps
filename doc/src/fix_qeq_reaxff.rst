@@ -145,7 +145,7 @@ This reduced the time per step by about 15% on 8 CPU cores, by about 20%
 on one GPU, and by 35% on four GPUs.  The savings are larger on multiple
 GPUs, since every iteration requires communication between them.  With
 the *matfree* keyword, the GPU memory needed was about a third smaller,
-so that up top 75% more atoms fit on one GPU, but the simulation took
+so that up to 75% more atoms fit on one GPU, but the simulation took
 about 50% longer with GPUs and more than twice as much time on the CPU.
 Combined with *xlmd yes*, which applies the matrix only a few times per
 step, the simulation was still up to 35% faster on GPUs and about as

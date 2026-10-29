@@ -109,7 +109,7 @@ void Replicate::command(int narg, char **arg)
       error->warning(FLERR,"Replicating in a non-periodic dimension");
   }
 
-  if (atom->nextra_grow || atom->nextra_restart || atom->nextra_store)
+  if (!atom->extra_grow.empty() || !atom->extra_restart.empty() || atom->nextra_store)
     error->all(FLERR,"Cannot replicate with fixes that store per-atom quantities");
 
   // record wall time for atom replication

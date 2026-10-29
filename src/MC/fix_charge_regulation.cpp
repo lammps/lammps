@@ -1144,7 +1144,7 @@ double FixChargeRegulation::energy_full() {
   atom->nghost = 0;
   comm->borders();
   if (triclinic) domain->lamda2x(atom->nlocal + atom->nghost);
-  if (modify->n_pre_neighbor) modify->pre_neighbor();
+  if (modify->has_fixes(FixConst::PRE_NEIGHBOR)) modify->pre_neighbor();
   neighbor->build(1);
 
   if (overlap_flag) {
@@ -1174,7 +1174,7 @@ double FixChargeRegulation::energy_full() {
   size_t nbytes = sizeof(double) * (atom->nlocal + atom->nghost);
   if (nbytes) memset(&atom->f[0][0], 0, 3 * nbytes);
 
-  if (modify->n_pre_force) modify->pre_force(vflag);
+  if (modify->has_fixes(FixConst::PRE_FORCE)) modify->pre_force(vflag);
 
   if (force->pair) force->pair->compute(eflag, vflag);
 
@@ -1187,8 +1187,8 @@ double FixChargeRegulation::energy_full() {
 
   if (force->kspace) force->kspace->compute(eflag, vflag);
 
-  if (modify->n_pre_reverse) modify->pre_reverse(eflag,vflag);
-  if (modify->n_post_force_any) modify->post_force(vflag);
+  if (modify->has_fixes(FixConst::PRE_REVERSE)) modify->pre_reverse(eflag,vflag);
+  if (modify->has_fixes(FixConst::POST_FORCE_ANY)) modify->post_force(vflag);
 
   update->eflag_global = update->ntimestep;
   double total_energy = c_pe->compute_scalar();

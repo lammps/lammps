@@ -69,7 +69,7 @@ FixSMD_TLSPH_ReferenceConfiguration::FixSMD_TLSPH_ReferenceConfiguration(LAMMPS 
   energy_per_bond = nullptr;
   degradation_ij = nullptr;
   FixSMD_TLSPH_ReferenceConfiguration::grow_arrays(atom->nmax);
-  atom->add_callback(Atom::GROW);
+  atom->add_callback(this, Atom::GROW);
 
   // initialize npartner to 0 so neighbor list creation is OK the 1st time
   int nlocal = atom->nlocal;
@@ -86,7 +86,7 @@ FixSMD_TLSPH_ReferenceConfiguration::FixSMD_TLSPH_ReferenceConfiguration(LAMMPS 
 FixSMD_TLSPH_ReferenceConfiguration::~FixSMD_TLSPH_ReferenceConfiguration() {
   // unregister this fix so atom class doesn't invoke it any more
 
-  atom->delete_callback(id,Atom::GROW);
+  atom->delete_callback(this, Atom::GROW);
 // delete locally stored arrays
 
   memory->destroy(npartner);

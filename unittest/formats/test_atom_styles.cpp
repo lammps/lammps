@@ -231,13 +231,10 @@ struct AtomState {
     int nivector = 0;
     int ndvector = 0;
 
-    int nextra_grow        = 0;
-    int nextra_restart     = 0;
-    int nextra_border      = 0;
-    int nextra_grow_max    = 0;
-    int nextra_restart_max = 0;
-    int nextra_border_max  = 0;
-    int nextra_store       = 0;
+    int nextra_grow    = 0;
+    int nextra_restart = 0;
+    int nextra_border  = 0;
+    int nextra_store   = 0;
 
     int map_style      = Atom::MAP_NONE;
     int map_user       = 0;
@@ -266,9 +263,6 @@ struct AtomState {
     bool has_nspecial = false;
     bool has_special  = false;
 
-    bool has_extra_grow    = false;
-    bool has_extra_restart = false;
-    bool has_extra_border  = false;
     bool has_extra         = false;
     bool has_sametag       = false;
 };
@@ -457,17 +451,11 @@ void ASSERT_ATOM_STATE_EQ(Atom *atom, const AtomState &expected)
     ASSERT_ARRAY_ALLOCATED(atom->mass, expected.has_mass);
     ASSERT_ARRAY_ALLOCATED(atom->mass_setflag, expected.has_mass_setflag);
 
-    ASSERT_EQ(atom->nextra_grow, expected.nextra_grow);
-    ASSERT_EQ(atom->nextra_restart, expected.nextra_restart);
-    ASSERT_EQ(atom->nextra_border, expected.nextra_border);
-    ASSERT_EQ(atom->nextra_grow_max, expected.nextra_grow_max);
-    ASSERT_EQ(atom->nextra_restart_max, expected.nextra_restart_max);
-    ASSERT_EQ(atom->nextra_border_max, expected.nextra_border_max);
+    ASSERT_EQ((int)atom->extra_grow.size(), expected.nextra_grow);
+    ASSERT_EQ((int)atom->extra_restart.size(), expected.nextra_restart);
+    ASSERT_EQ((int)atom->extra_border.size(), expected.nextra_border);
     ASSERT_EQ(atom->nextra_store, expected.nextra_store);
 
-    ASSERT_ARRAY_ALLOCATED(atom->extra_grow, expected.has_extra_grow);
-    ASSERT_ARRAY_ALLOCATED(atom->extra_restart, expected.has_extra_restart);
-    ASSERT_ARRAY_ALLOCATED(atom->extra_border, expected.has_extra_border);
     ASSERT_ARRAY_ALLOCATED(atom->extra, expected.has_extra);
     ASSERT_ARRAY_ALLOCATED(atom->sametag, expected.has_sametag);
 
@@ -1217,16 +1205,10 @@ TEST_F(AtomStyleTest, ellipsoid)
     ASSERT_EQ(lmp->atom->tag_enable, 1);
     ASSERT_EQ(lmp->atom->molecular, Atom::ATOMIC);
     ASSERT_EQ(lmp->atom->ntypes, 3);
-    ASSERT_EQ(lmp->atom->nextra_grow, 0);
-    ASSERT_EQ(lmp->atom->nextra_restart, 0);
-    ASSERT_EQ(lmp->atom->nextra_border, 0);
-    ASSERT_EQ(lmp->atom->nextra_grow_max, 0);
-    ASSERT_EQ(lmp->atom->nextra_restart_max, 0);
-    ASSERT_EQ(lmp->atom->nextra_border_max, 0);
+    ASSERT_TRUE(lmp->atom->extra_grow.empty());
+    ASSERT_TRUE(lmp->atom->extra_restart.empty());
+    ASSERT_TRUE(lmp->atom->extra_border.empty());
     ASSERT_EQ(lmp->atom->nextra_store, 0);
-    ASSERT_EQ(lmp->atom->extra_grow, nullptr);
-    ASSERT_EQ(lmp->atom->extra_restart, nullptr);
-    ASSERT_EQ(lmp->atom->extra_border, nullptr);
     ASSERT_EQ(lmp->atom->extra, nullptr);
 
     ASSERT_EQ(lmp->atom->mass, nullptr);
@@ -1557,16 +1539,10 @@ TEST_F(AtomStyleTest, superellipsoid)
     ASSERT_EQ(lmp->atom->tag_enable, 1);
     ASSERT_EQ(lmp->atom->molecular, Atom::ATOMIC);
     ASSERT_EQ(lmp->atom->ntypes, 4);
-    ASSERT_EQ(lmp->atom->nextra_grow, 0);
-    ASSERT_EQ(lmp->atom->nextra_restart, 0);
-    ASSERT_EQ(lmp->atom->nextra_border, 0);
-    ASSERT_EQ(lmp->atom->nextra_grow_max, 0);
-    ASSERT_EQ(lmp->atom->nextra_restart_max, 0);
-    ASSERT_EQ(lmp->atom->nextra_border_max, 0);
+    ASSERT_TRUE(lmp->atom->extra_grow.empty());
+    ASSERT_TRUE(lmp->atom->extra_restart.empty());
+    ASSERT_TRUE(lmp->atom->extra_border.empty());
     ASSERT_EQ(lmp->atom->nextra_store, 0);
-    ASSERT_EQ(lmp->atom->extra_grow, nullptr);
-    ASSERT_EQ(lmp->atom->extra_restart, nullptr);
-    ASSERT_EQ(lmp->atom->extra_border, nullptr);
     ASSERT_EQ(lmp->atom->extra, nullptr);
 
     ASSERT_EQ(lmp->atom->mass, nullptr);
@@ -2022,16 +1998,10 @@ TEST_F(AtomStyleTest, tri)
     ASSERT_EQ(lmp->atom->tag_enable, 1);
     ASSERT_EQ(lmp->atom->molecular, Atom::ATOMIC);
     ASSERT_EQ(lmp->atom->ntypes, 3);
-    ASSERT_EQ(lmp->atom->nextra_grow, 0);
-    ASSERT_EQ(lmp->atom->nextra_restart, 0);
-    ASSERT_EQ(lmp->atom->nextra_border, 0);
-    ASSERT_EQ(lmp->atom->nextra_grow_max, 0);
-    ASSERT_EQ(lmp->atom->nextra_restart_max, 0);
-    ASSERT_EQ(lmp->atom->nextra_border_max, 0);
+    ASSERT_TRUE(lmp->atom->extra_grow.empty());
+    ASSERT_TRUE(lmp->atom->extra_restart.empty());
+    ASSERT_TRUE(lmp->atom->extra_border.empty());
     ASSERT_EQ(lmp->atom->nextra_store, 0);
-    ASSERT_EQ(lmp->atom->extra_grow, nullptr);
-    ASSERT_EQ(lmp->atom->extra_restart, nullptr);
-    ASSERT_EQ(lmp->atom->extra_border, nullptr);
     ASSERT_EQ(lmp->atom->extra, nullptr);
 
     ASSERT_EQ(lmp->atom->mass, nullptr);
@@ -2464,16 +2434,10 @@ TEST_F(AtomStyleTest, body_nparticle)
     ASSERT_EQ(lmp->atom->tag_enable, 1);
     ASSERT_EQ(lmp->atom->molecular, Atom::ATOMIC);
     ASSERT_EQ(lmp->atom->ntypes, 3);
-    ASSERT_EQ(lmp->atom->nextra_grow, 0);
-    ASSERT_EQ(lmp->atom->nextra_restart, 0);
-    ASSERT_EQ(lmp->atom->nextra_border, 0);
-    ASSERT_EQ(lmp->atom->nextra_grow_max, 0);
-    ASSERT_EQ(lmp->atom->nextra_restart_max, 0);
-    ASSERT_EQ(lmp->atom->nextra_border_max, 0);
+    ASSERT_TRUE(lmp->atom->extra_grow.empty());
+    ASSERT_TRUE(lmp->atom->extra_restart.empty());
+    ASSERT_TRUE(lmp->atom->extra_border.empty());
     ASSERT_EQ(lmp->atom->nextra_store, 0);
-    ASSERT_EQ(lmp->atom->extra_grow, nullptr);
-    ASSERT_EQ(lmp->atom->extra_restart, nullptr);
-    ASSERT_EQ(lmp->atom->extra_border, nullptr);
     ASSERT_EQ(lmp->atom->extra, nullptr);
 
     ASSERT_EQ(lmp->atom->mass, nullptr);
@@ -3006,16 +2970,10 @@ TEST_F(AtomStyleTest, template)
     ASSERT_EQ(lmp->atom->tag_enable, 1);
     ASSERT_EQ(lmp->atom->molecular, Atom::TEMPLATE);
     ASSERT_EQ(lmp->atom->ntypes, 4);
-    ASSERT_EQ(lmp->atom->nextra_grow, 0);
-    ASSERT_EQ(lmp->atom->nextra_restart, 0);
-    ASSERT_EQ(lmp->atom->nextra_border, 0);
-    ASSERT_EQ(lmp->atom->nextra_grow_max, 0);
-    ASSERT_EQ(lmp->atom->nextra_restart_max, 0);
-    ASSERT_EQ(lmp->atom->nextra_border_max, 0);
+    ASSERT_TRUE(lmp->atom->extra_grow.empty());
+    ASSERT_TRUE(lmp->atom->extra_restart.empty());
+    ASSERT_TRUE(lmp->atom->extra_border.empty());
     ASSERT_EQ(lmp->atom->nextra_store, 0);
-    ASSERT_EQ(lmp->atom->extra_grow, nullptr);
-    ASSERT_EQ(lmp->atom->extra_restart, nullptr);
-    ASSERT_EQ(lmp->atom->extra_border, nullptr);
     ASSERT_EQ(lmp->atom->extra, nullptr);
 
     ASSERT_NE(lmp->atom->mass, nullptr);
@@ -3424,16 +3382,10 @@ TEST_F(AtomStyleTest, template_charge)
     ASSERT_EQ(lmp->atom->molecular, Atom::TEMPLATE);
     ASSERT_EQ(lmp->atom->q_flag, 1);
     ASSERT_EQ(lmp->atom->ntypes, 4);
-    ASSERT_EQ(lmp->atom->nextra_grow, 0);
-    ASSERT_EQ(lmp->atom->nextra_restart, 0);
-    ASSERT_EQ(lmp->atom->nextra_border, 0);
-    ASSERT_EQ(lmp->atom->nextra_grow_max, 0);
-    ASSERT_EQ(lmp->atom->nextra_restart_max, 0);
-    ASSERT_EQ(lmp->atom->nextra_border_max, 0);
+    ASSERT_TRUE(lmp->atom->extra_grow.empty());
+    ASSERT_TRUE(lmp->atom->extra_restart.empty());
+    ASSERT_TRUE(lmp->atom->extra_border.empty());
     ASSERT_EQ(lmp->atom->nextra_store, 0);
-    ASSERT_EQ(lmp->atom->extra_grow, nullptr);
-    ASSERT_EQ(lmp->atom->extra_restart, nullptr);
-    ASSERT_EQ(lmp->atom->extra_border, nullptr);
     ASSERT_EQ(lmp->atom->extra, nullptr);
 
     ASSERT_NE(lmp->atom->mass, nullptr);
@@ -3830,16 +3782,10 @@ TEST_F(AtomStyleTest, bond)
     ASSERT_EQ(lmp->atom->tag_enable, 1);
     ASSERT_EQ(lmp->atom->molecular, Atom::MOLECULAR);
     ASSERT_EQ(lmp->atom->ntypes, 3);
-    ASSERT_EQ(lmp->atom->nextra_grow, 0);
-    ASSERT_EQ(lmp->atom->nextra_restart, 0);
-    ASSERT_EQ(lmp->atom->nextra_border, 0);
-    ASSERT_EQ(lmp->atom->nextra_grow_max, 0);
-    ASSERT_EQ(lmp->atom->nextra_restart_max, 0);
-    ASSERT_EQ(lmp->atom->nextra_border_max, 0);
+    ASSERT_TRUE(lmp->atom->extra_grow.empty());
+    ASSERT_TRUE(lmp->atom->extra_restart.empty());
+    ASSERT_TRUE(lmp->atom->extra_border.empty());
     ASSERT_EQ(lmp->atom->nextra_store, 0);
-    ASSERT_EQ(lmp->atom->extra_grow, nullptr);
-    ASSERT_EQ(lmp->atom->extra_restart, nullptr);
-    ASSERT_EQ(lmp->atom->extra_border, nullptr);
     ASSERT_EQ(lmp->atom->extra, nullptr);
 
     ASSERT_NE(lmp->atom->mass, nullptr);
@@ -4186,16 +4132,10 @@ TEST_F(AtomStyleTest, angle)
     ASSERT_EQ(lmp->atom->tag_enable, 1);
     ASSERT_EQ(lmp->atom->molecular, Atom::MOLECULAR);
     ASSERT_EQ(lmp->atom->ntypes, 3);
-    ASSERT_EQ(lmp->atom->nextra_grow, 0);
-    ASSERT_EQ(lmp->atom->nextra_restart, 0);
-    ASSERT_EQ(lmp->atom->nextra_border, 0);
-    ASSERT_EQ(lmp->atom->nextra_grow_max, 0);
-    ASSERT_EQ(lmp->atom->nextra_restart_max, 0);
-    ASSERT_EQ(lmp->atom->nextra_border_max, 0);
+    ASSERT_TRUE(lmp->atom->extra_grow.empty());
+    ASSERT_TRUE(lmp->atom->extra_restart.empty());
+    ASSERT_TRUE(lmp->atom->extra_border.empty());
     ASSERT_EQ(lmp->atom->nextra_store, 0);
-    ASSERT_EQ(lmp->atom->extra_grow, nullptr);
-    ASSERT_EQ(lmp->atom->extra_restart, nullptr);
-    ASSERT_EQ(lmp->atom->extra_border, nullptr);
     ASSERT_EQ(lmp->atom->extra, nullptr);
 
     ASSERT_NE(lmp->atom->mass, nullptr);
@@ -4569,16 +4509,10 @@ TEST_F(AtomStyleTest, full_ellipsoid)
     ASSERT_EQ(lmp->atom->tag_enable, 1);
     ASSERT_EQ(lmp->atom->molecular, Atom::MOLECULAR);
     ASSERT_EQ(lmp->atom->ntypes, 3);
-    ASSERT_EQ(lmp->atom->nextra_grow, 0);
-    ASSERT_EQ(lmp->atom->nextra_restart, 0);
-    ASSERT_EQ(lmp->atom->nextra_border, 0);
-    ASSERT_EQ(lmp->atom->nextra_grow_max, 0);
-    ASSERT_EQ(lmp->atom->nextra_restart_max, 0);
-    ASSERT_EQ(lmp->atom->nextra_border_max, 0);
+    ASSERT_TRUE(lmp->atom->extra_grow.empty());
+    ASSERT_TRUE(lmp->atom->extra_restart.empty());
+    ASSERT_TRUE(lmp->atom->extra_border.empty());
     ASSERT_EQ(lmp->atom->nextra_store, 0);
-    ASSERT_EQ(lmp->atom->extra_grow, nullptr);
-    ASSERT_EQ(lmp->atom->extra_restart, nullptr);
-    ASSERT_EQ(lmp->atom->extra_border, nullptr);
     ASSERT_EQ(lmp->atom->extra, nullptr);
 
     ASSERT_NE(lmp->atom->mass, nullptr);
@@ -4885,35 +4819,29 @@ TEST_F(AtomStyleTest, property_atom)
     END_HIDE_OUTPUT();
 
     AtomState expected;
-    expected.atom_style         = "atomic";
-    expected.molecular          = Atom::ATOMIC;
-    expected.tag_enable         = 1;
-    expected.map_style          = Atom::MAP_ARRAY;
-    expected.map_user           = Atom::MAP_ARRAY;
-    expected.has_type           = true;
-    expected.has_image          = true;
-    expected.has_mask           = true;
-    expected.has_x              = true;
-    expected.has_v              = true;
-    expected.has_f              = true;
-    expected.has_ivname         = true;
-    expected.has_dvname         = true;
-    expected.has_ianame         = true;
-    expected.has_daname         = true;
-    expected.has_extra_grow     = true;
-    expected.has_extra_restart  = true;
-    expected.has_extra_border   = true;
-    expected.molecule_flag      = 1;
-    expected.q_flag             = 1;
-    expected.rmass_flag         = 1;
-    expected.nivector           = 1;
-    expected.ndvector           = 2;
-    expected.nextra_grow        = 1;
-    expected.nextra_grow_max    = 1;
-    expected.nextra_restart     = 1;
-    expected.nextra_restart_max = 1;
-    expected.nextra_border      = 1;
-    expected.nextra_border_max  = 1;
+    expected.atom_style     = "atomic";
+    expected.molecular      = Atom::ATOMIC;
+    expected.tag_enable     = 1;
+    expected.map_style      = Atom::MAP_ARRAY;
+    expected.map_user       = Atom::MAP_ARRAY;
+    expected.has_type       = true;
+    expected.has_image      = true;
+    expected.has_mask       = true;
+    expected.has_x          = true;
+    expected.has_v          = true;
+    expected.has_f          = true;
+    expected.has_ivname     = true;
+    expected.has_dvname     = true;
+    expected.has_ianame     = true;
+    expected.has_daname     = true;
+    expected.molecule_flag  = 1;
+    expected.q_flag         = 1;
+    expected.rmass_flag     = 1;
+    expected.nivector       = 1;
+    expected.ndvector       = 2;
+    expected.nextra_grow    = 1;
+    expected.nextra_restart = 1;
+    expected.nextra_border  = 1;
     ASSERT_ATOM_STATE_EQ(lmp->atom, expected);
 
     BEGIN_HIDE_OUTPUT();
@@ -5281,16 +5209,10 @@ TEST_F(AtomStyleTest, oxdna)
     ASSERT_EQ(lmp->atom->tag_enable, 1);
     ASSERT_EQ(lmp->atom->molecular, Atom::MOLECULAR);
     ASSERT_EQ(lmp->atom->ntypes, 4);
-    ASSERT_EQ(lmp->atom->nextra_grow, 0);
-    ASSERT_EQ(lmp->atom->nextra_restart, 0);
-    ASSERT_EQ(lmp->atom->nextra_border, 0);
-    ASSERT_EQ(lmp->atom->nextra_grow_max, 0);
-    ASSERT_EQ(lmp->atom->nextra_restart_max, 0);
-    ASSERT_EQ(lmp->atom->nextra_border_max, 0);
+    ASSERT_TRUE(lmp->atom->extra_grow.empty());
+    ASSERT_TRUE(lmp->atom->extra_restart.empty());
+    ASSERT_TRUE(lmp->atom->extra_border.empty());
     ASSERT_EQ(lmp->atom->nextra_store, 0);
-    ASSERT_EQ(lmp->atom->extra_grow, nullptr);
-    ASSERT_EQ(lmp->atom->extra_restart, nullptr);
-    ASSERT_EQ(lmp->atom->extra_border, nullptr);
     ASSERT_EQ(lmp->atom->extra, nullptr);
     ASSERT_NE(lmp->atom->mass, nullptr);
     ASSERT_NE(lmp->atom->rmass, nullptr);
@@ -5372,16 +5294,10 @@ TEST_F(AtomStyleTest, oxdna)
     ASSERT_EQ(lmp->atom->tag_enable, 1);
     ASSERT_EQ(lmp->atom->molecular, Atom::MOLECULAR);
     ASSERT_EQ(lmp->atom->ntypes, 4);
-    ASSERT_EQ(lmp->atom->nextra_grow, 0);
-    ASSERT_EQ(lmp->atom->nextra_restart, 0);
-    ASSERT_EQ(lmp->atom->nextra_border, 0);
-    ASSERT_EQ(lmp->atom->nextra_grow_max, 0);
-    ASSERT_EQ(lmp->atom->nextra_restart_max, 0);
-    ASSERT_EQ(lmp->atom->nextra_border_max, 0);
+    ASSERT_TRUE(lmp->atom->extra_grow.empty());
+    ASSERT_TRUE(lmp->atom->extra_restart.empty());
+    ASSERT_TRUE(lmp->atom->extra_border.empty());
     ASSERT_EQ(lmp->atom->nextra_store, 0);
-    ASSERT_EQ(lmp->atom->extra_grow, nullptr);
-    ASSERT_EQ(lmp->atom->extra_restart, nullptr);
-    ASSERT_EQ(lmp->atom->extra_border, nullptr);
     ASSERT_EQ(lmp->atom->extra, nullptr);
     ASSERT_NE(lmp->atom->mass, nullptr);
     ASSERT_NE(lmp->atom->rmass, nullptr);

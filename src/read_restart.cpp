@@ -392,7 +392,7 @@ void ReadRestart::command(int narg, char **arg)
 
     if (nextra)
       modify->add_fix(fmt::format("_read_restart all READ_RESTART {} {}",
-                                  nextra,modify->nfix_restart_peratom));
+                                  nextra,modify->get_nfix_restart_peratom()));
 
     // move atoms to new processors via irregular()
     // turn sorting on in migrate_atoms() to avoid non-reproducible restarts

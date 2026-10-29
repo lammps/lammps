@@ -60,9 +60,9 @@ FixSRP::FixSRP(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   FixSRP::grow_arrays(atom->nmax);
 
   // extends pack_exchange()
-  atom->add_callback(Atom::GROW);
-  atom->add_callback(Atom::RESTART); // restart
-  atom->add_callback(Atom::BORDER);
+  atom->add_callback(this, Atom::GROW);
+  atom->add_callback(this, Atom::RESTART); // restart
+  atom->add_callback(this, Atom::BORDER);
 
   // initialize to illegal values so we capture
   btype = -1;
@@ -81,9 +81,9 @@ FixSRP::FixSRP(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 FixSRP::~FixSRP()
 {
   // unregister callbacks to this fix from Atom class
-  atom->delete_callback(id,Atom::GROW);
-  atom->delete_callback(id,Atom::RESTART);
-  atom->delete_callback(id,Atom::BORDER);
+  atom->delete_callback(this, Atom::GROW);
+  atom->delete_callback(this, Atom::RESTART);
+  atom->delete_callback(this, Atom::BORDER);
   memory->destroy(array);
 }
 

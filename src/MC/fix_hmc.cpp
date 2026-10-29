@@ -120,7 +120,7 @@ FixHMC::FixHMC(LAMMPS *lmp, int narg, char **arg) :
 
   // register callback
 
-  atom->add_callback(0);
+  atom->add_callback(this, Atom::GROW);
 
   // add new computes for global and per-atom properties
 
@@ -156,7 +156,7 @@ FixHMC::FixHMC(LAMMPS *lmp, int narg, char **arg) :
 
 FixHMC::~FixHMC()
 {
-  atom->delete_callback(id, 0);
+  atom->delete_callback(this, Atom::GROW);
 
   memory->destroy(eglobal);
   memory->destroy(vglobal);

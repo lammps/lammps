@@ -297,7 +297,7 @@ void WriteRestart::write(const std::string &file)
   // is because fix changes atom coords (excepting an integrate fix)
   // just remap in buffer, not actual atoms
 
-  if (modify->restart_pbc_any) {
+  if (modify->has_restart_pbc()) {
     int triclinic = domain->triclinic;
     double *lo,*hi,*period;
 

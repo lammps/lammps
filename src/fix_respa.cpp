@@ -45,7 +45,7 @@ FixRespa::FixRespa(LAMMPS *lmp, int narg, char **arg) :
   f_level = nullptr;
   t_level = nullptr;
   FixRespa::grow_arrays(atom->nmax);
-  atom->add_callback(Atom::GROW);
+  atom->add_callback(this, Atom::GROW);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -54,7 +54,7 @@ FixRespa::~FixRespa()
 {
   // unregister callbacks to this fix from Atom class
 
-  atom->delete_callback(id,Atom::GROW);
+  atom->delete_callback(this, Atom::GROW);
 
   // delete locally stored arrays
 

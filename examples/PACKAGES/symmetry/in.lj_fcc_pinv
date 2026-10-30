@@ -1,0 +1,40 @@
+# fix symmetry example: LJ FCC crystal with inversion symmetry (space
+# group P-1) at constant temperature
+#
+# The orbits of symmetry related atoms are found from the positions:
+# with inversion through the origin of the box, 8 of the 256 atoms are
+# on inversion centers (at multiples of half the box length) and cannot
+# move.  The remaining 248 atoms form 124 pairs.  The temperature is
+# computed from the 3*124 = 372 independent degrees of freedom, so the
+# thermostat works as usual.
+
+units           lj
+atom_style      atomic
+
+lattice         fcc 0.8442
+region          box block 0 4 0 4 0 4
+create_box      1 box
+create_atoms    1 box
+mass            1 1.0
+
+pair_style      lj/cut 2.5
+pair_coeff      * * 1.0 1.0
+pair_modify     shift yes
+neighbor        0.3 bin
+
+# fix symmetry must come after all fixes that change forces
+fix             1 all nvt temp 1.5 1.5 0.5
+fix             sym all symmetry p-1.json
+
+# make random velocities symmetric, then rescale
+velocity        all create 1.5 87287 loop geom
+run             0 post no
+velocity        all scale 1.5
+
+# symmetry indicator: vanishes for inversion symmetric configurations
+variable        odd atom sin(2*PI*(x-xlo)/lx)+sin(2*PI*(y-ylo)/ly)+sin(2*PI*(z-zlo)/lz)
+compute         odd all reduce sum v_odd
+
+thermo_style    custom step temp pe etotal press c_odd
+thermo          100
+run             1000

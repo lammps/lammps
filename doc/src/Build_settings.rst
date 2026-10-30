@@ -8,22 +8,15 @@ Optional build settings
 LAMMPS can be built with several optional settings.  Each subsection
 explains how to do this for building both with CMake and make.
 
-* `C++17 standard compliance`_ when building all of LAMMPS
-* `FFT library`_ for use with the :doc:`kspace_style pppm <kspace_style>` command
-* `Size of LAMMPS integer types and size limits`_
-* `Read or write compressed files`_
-* `Support for downloading files from the input`_
-* `Prevent download of large potential files`_
-* `Memory allocation alignment`_
-* `Workaround for long long integers`_
-* `Exception handling when using LAMMPS as a library`_ to capture errors
+.. contents::
+   :local:
+   :depth: 1
 
 ----------
 
-.. _cxx17:
-
-C++17 standard compliance
--------------------------
+++17 standard compliance
+C++17 standard compliance when building all of LAMMPS
+-----------------------------------------------------
 
 .. versionchanged:: 10Sep2025
 
@@ -50,10 +43,12 @@ FFT library
 -----------
 
 When the KSPACE package is included in a LAMMPS build, the
-:doc:`kspace_style pppm <kspace_style>` command performs 3d FFTs which
-require use of an FFT library to compute 1d FFTs.  The KISS FFT
-library is included with LAMMPS, but other libraries can be faster.
-LAMMPS can use them if they are available on your system.
+:doc:`kspace_style pppm or esp <kspace_style>` commands and their
+variants perform 3d FFTs which require use of an FFT library to compute
+1d FFTs.  The `KISS FFT library
+<https://github.com/mborgerding/kissfft>`_ is included with LAMMPS, but
+other libraries can be faster.  LAMMPS can use them if they are
+available on your system.
 
 .. versionadded:: 7Feb2024
 
@@ -73,9 +68,9 @@ libraries and better pipelining for packing and communication.
                                    # default is FFTW3 if found, else KISS
          -D FFT_KOKKOS=value       # FFTW3 or MKL or NVPL or KISS or CUFFT
                                    # or HIPFFT or MKL_GPU, default is KISS
-         -D FFT_SINGLE=value       # yes or no (default), no = double precision
+         -D FFT_SINGLE=value       # on or off (default), off = double precision
          -D FFT_PACK=value         # array (default) or pointer or memcpy
-         -D FFT_USE_HEFFTE=value   # yes or no (default), yes links to heFFTe
+         -D FFT_USE_HEFFTE=value   # on or off (default), on links to heFFTe
 
       .. note::
 
@@ -392,34 +387,24 @@ Read or write compressed files
 
    Added support for ``brotli`` and ``7-zip``
 
-If this option is enabled, large files can be read or written with
-compression by ``gzip`` or similar tools by several LAMMPS commands,
-including :doc:`read_data <read_data>`, :doc:`write_data <write_data>`,
-:doc:`rerun <rerun>`, :doc:`dump <dump>`, and :doc:`write_dump
-<write_dump>`.  Supported compression tools and algorithms are currently
-``gzip``, ``bzip2``, ``zstd``, ``xz``, ``lz4``, ``lzma`` (via xz),
-``brotli``, and ``7-zip (via 7z)``.  LAMMPS checks at runtime, which
-compression commands are available and adjusts the check for supported
-suffixes accordingly.  The list of available compression formats and
-suffixes is shown when running LAMMPS with the :doc:`-help or -h
-command_line flag <Run_options>`.
+.. versionchanged:: TBD
 
-.. tabs::
+Support for compressed files no longer needs to be enabled at compile
+time; the CMake option ``WITH_GZIP`` and the define ``-DLAMMPS_GZIP``
+were removed.
 
-   .. tab:: CMake build
+Large files can be read or written with compression by ``gzip`` or
+similar tools by several LAMMPS commands, including :doc:`read_data
+<read_data>`, :doc:`write_data <write_data>`, :doc:`rerun <rerun>`,
+:doc:`dump <dump>`, and :doc:`write_dump <write_dump>`.  Supported
+compression tools and algorithms are currently ``gzip``, ``bzip2``,
+``zstd``, ``xz``, ``lz4``, ``lzma`` (via xz), ``brotli``, and ``7-zip
+(via 7z)``.  LAMMPS checks at runtime, which compression commands are
+available and adjusts the check for supported suffixes accordingly.  The
+list of available compression formats and suffixes is shown when running
+LAMMPS with the :doc:`-help or -h command_line flag <Run_options>`.
 
-      .. code-block:: bash
-
-         -D WITH_GZIP=value  # yes or no
-                             # default is yes if CMake can find the gzip program
-
-   .. tab:: Traditional make
-
-      .. code-block:: make
-
-         LMP_INC = -DLAMMPS_GZIP   <other LMP_INC settings>
-
-This option requires that your operating system fully supports the
+This feature requires that your operating system fully supports the
 "popen()" function in the standard runtime library and that a ``gzip``
 or other executable can be found by LAMMPS in the standard search path
 during a run.
@@ -452,7 +437,7 @@ LAMMPS is compiled accordingly which needs the following settings:
 
       .. code-block:: bash
 
-         -D WITH_CURL=value      # yes or no
+         -D WITH_CURL=value      # on or off
                                  # default = yes if CMake finds CURL development files, else no
 
       Usually these settings are all that is needed.  If CMake cannot
@@ -481,8 +466,6 @@ LAMMPS is compiled accordingly which needs the following settings:
 
 ----------
 
-.. _download_pot:
-
 Prevent download of large potential files
 -----------------------------------------
 
@@ -499,8 +482,6 @@ LAMMPS with CMake <Build_cmake>` by adding the setting `-D
 DOWNLOAD_POTENTIALS=off` when configuring.
 
 ----------
-
-.. _align:
 
 Memory allocation alignment
 ---------------------------
@@ -542,8 +523,6 @@ on 64-byte boundaries.
 
 ----------
 
-.. _longlong:
-
 Workaround for long long integers
 ---------------------------------
 
@@ -558,7 +537,7 @@ those systems:
 
       .. code-block:: bash
 
-         -D LAMMPS_LONGLONG_TO_LONG=value     # yes or no (default)
+         -D LAMMPS_LONGLONG_TO_LONG=value     # on or off (default)
 
    .. tab:: Traditional make
 
@@ -571,13 +550,17 @@ those systems:
 .. _exceptions:
 
 Exception handling when using LAMMPS as a library
--------------------------------------------------
+Exception handling when using LAMMPS as a library to capture errors
+-------------------------------------------------------------------
 
 LAMMPS errors do not kill the calling code, but throw an exception.  In
 the C-library interface, the call stack is unwound and control returns
 to the caller, e.g. to Python or a code that is coupled to LAMMPS. The
 error status can then be queried.  When using C++ directly, the calling
-code has to be set up to *catch* exceptions thrown from within LAMMPS.
+code **must be** set up to **catch** exceptions thrown from within
+LAMMPS.  This is particularly necessary when running in parallel, since
+a ``LAMMPSAbortException`` may only be thrown on a single MPI rank and
+thus can lead to the calculation stalling.
 
 .. note::
 
@@ -585,4 +568,3 @@ code has to be set up to *catch* exceptions thrown from within LAMMPS.
    cleanly recover from an exception since not all parallel ranks may
    throw an exception and thus other MPI ranks may get stuck waiting for
    messages from the ones with errors.
-

@@ -27,6 +27,7 @@ namespace LAMMPS_NS {
 // forward declarations
 
 class AtomVec;
+class Fix;
 class Molecule;
 
 class Atom : protected Pointers {
@@ -280,12 +281,14 @@ class Atom : protected Pointers {
   double *mass;
   int *mass_setflag;
 
-  // callback ptrs for atom arrays managed by fix classes
+  // fixes with per-atom arrays that must be grown, copied, exchanged, communicated
+  // with the ghost atoms, or stored in restart files together with the atom arrays.
+  // each list is kept in the order of the fixes in the Modify class, so that the
+  // data of all fixes is packed and unpacked in the same order everywhere
 
-  int nextra_grow, nextra_restart, nextra_border;    // # of callbacks of each type
-  int *extra_grow, *extra_restart, *extra_border;    // index of fix to callback to
-  int nextra_grow_max, nextra_restart_max;           // size of callback lists
-  int nextra_border_max;
+  std::vector<Fix *> extra_grow;       // fixes with grow_arrays(), pack_exchange(), ...
+  std::vector<Fix *> extra_restart;    // fixes with pack_restart() and unpack_restart()
+  std::vector<Fix *> extra_border;     // fixes with pack_border() and unpack_border()
   int nextra_store;
 
   int map_style;                    // style of atom map: 0=none, 1=array, 2=hash
@@ -386,9 +389,9 @@ class Atom : protected Pointers {
   void first_reorder();
   virtual void sort();
 
-  void add_callback(int);
-  void delete_callback(const char *, int);
-  void update_callback(int);
+  void add_callback(Fix *, int);
+  void delete_callback(Fix *, int);
+  void sort_callbacks();
 
   int find_custom(const char *, int &, int &);
   int find_custom_ghost(const char *, int &, int &, int &);
@@ -432,6 +435,10 @@ class Atom : protected Pointers {
   virtual int map_find_hash(tagint);
 
  protected:
+  // the list of fixes with callbacks for flag = GROW, RESTART, or BORDER
+
+  std::vector<Fix *> &callback_list(int);
+
   // global to local ID mapping
 
   int *map_array;      // direct map via array that holds map_tag_max

@@ -90,7 +90,8 @@ Here are suggestions on how to perform these tasks:
   visualization settings interactively.  It also has a *Slide Show*
   feature where images created by :doc:`dump image <dump_image>` are
   collected during a simulation and can be animated interactively or
-  exported to a movie with FFmpeg or ImageMagick.
+  exported to a movie with either `FFmpeg <https://ffmpeg.org/>`_ or
+  `ImageMagick <https://imagemagick.org/>`_.
 
   For high-quality, interactive visualization, there are many excellent
   and free tools available.  See the `Visualization Tools

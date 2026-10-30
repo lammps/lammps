@@ -1,0 +1,191 @@
+LAMMPS (30 Sep 2026 - Development - patch_30Sep2026-579-gd154c51e13)
+  using 1 OpenMP thread(s) per MPI task
+# Big colloid particles and small LJ particles
+
+units           lj
+atom_style      sphere
+dimension       2
+
+lattice         sq 0.1
+Lattice spacing in x,y,z = 3.1622777 3.1622777 3.1622777
+region          box block 0 60 0 60 -0.5 0.5
+create_box      5 box
+Created orthogonal box = (0 0 -1.5811388) to (189.73666 189.73666 1.5811388)
+  1 by 1 by 1 MPI processor grid
+create_atoms 1 box
+Created 3600 atoms
+  using lattice units in orthogonal box = (0 0 -1.5811388) to (189.73666 189.73666 1.5811388)
+  create_atoms CPU = 0.001 seconds
+
+#Roughly equally partition atoms between types 1-4
+set             group all type/fraction 2 0.500 23984
+Setting atom values ...
+  1768 settings made for type/fraction
+set             group all type/fraction 3 0.333 43684
+Setting atom values ...
+  1255 settings made for type/fraction
+set             group all type/fraction 4 0.250 87811
+Setting atom values ...
+  927 settings made for type/fraction
+
+# remove two spheres of small particles and add large particles in the voids
+region sphere1 sphere 60.0 60.0 0.0 30.0 units box
+region sphere2 sphere 130.0 130.0 0.0 30.0 units box
+delete_atoms  region sphere1
+Deleted 289 atoms, new total = 3311
+delete_atoms  region sphere2
+Deleted 287 atoms, new total = 3024
+create_atoms 5 single 60.0 60.0 0.0 units box
+Created 1 atoms
+  using box units in orthogonal box = (0 0 -1.5811388) to (189.73666 189.73666 1.5811388)
+  create_atoms CPU = 0.000 seconds
+create_atoms 5 single 130.0 130.0 0.0 units box
+Created 1 atoms
+  using box units in orthogonal box = (0 0 -1.5811388) to (189.73666 189.73666 1.5811388)
+  create_atoms CPU = 0.000 seconds
+
+set             type 1 mass 400
+Setting atom values ...
+  753 settings made for mass
+set             type 2 mass 1
+Setting atom values ...
+  722 settings made for mass
+
+velocity        all create 1.44 87287 loop geom
+
+# multi neighbor and comm for efficiency
+
+neighbor        1 multi
+neigh_modify    delay 0 collection/type 2 1*4 5
+comm_modify     mode multi reduce/multi
+
+# colloid potential
+
+pair_style      colloid 20.0
+pair_coeff      * * 144.0 1.0 0.0 0.0 3.0
+pair_coeff      1 5 75.4  1.0 0.0 20.0 14.0
+pair_coeff      2 5 75.4  1.0 0.0 20.0 14.0
+pair_coeff      3 5 75.4  1.0 0.0 20.0 14.0
+pair_coeff      4 5 75.4  1.0 0.0 20.0 14.0
+pair_coeff      5 5 39.5  1.0 20.0 20.0 30.0
+
+
+
+fix             1 all npt temp 2.0 2.0 1.0 iso 0.0 1.0 10.0 drag 1.0                 mtk no pchain 0 tchain 1
+fix             2 all enforce2d
+
+#dump           1 all atom 1000 dump.colloid
+
+#dump           2 all image 1000 image.*.jpg type type #               zoom 1.5 center d 0.5 0.5 0.5
+#dump_modify    2 pad 5 adiam 1 5.0 adiam 2 1.5
+
+#dump           3 all movie 1000 movie.mpg type type #               zoom 1.5 center d 0.5 0.5 0.5
+#dump_modify    3 pad 5 adiam 1 5.0 adiam 2 1.5
+
+thermo_style    custom step temp epair etotal press vol
+thermo          100
+
+timestep        0.005
+
+run             2000
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+
+- neighbor multi command: https://doi.org/10.1016/j.cpc.2008.03.005, https://doi.org/10.1007/s40571-020-00361-2
+
+@Article{Intveld08,
+ author =  {in 't Veld, P. J. and S. J.~Plimpton and G. S. Grest},
+ title =   {Accurate and Efficient Methods for Modeling Colloidal
+            Mixtures in an Explicit Solvent using Molecular Dynamics},
+ journal = {Comput.\ Phys.\ Commut.},
+ year =    2008,
+ volume =  179,
+ pages =   {320--329}
+}
+
+@article{Shire2020,
+ author = {Shire, Tom and Hanley, Kevin J. and Stratford, Kevin},
+ title = {{DEM} Simulations of Polydisperse Media: Efficient Contact
+          Detection Applied to Investigate the Quasi-Static Limit},
+ journal = {Computational Particle Mechanics},
+ year = {2020}
+@article{Monti2022,
+ author = {Monti, Joseph M. and Clemmer, Joel T. and Srivastava, 
+           Ishan and Silbert, Leonardo E. and Grest, Gary S. 
+           and Lechman, Jeremy B.},
+ title = {Large-scale frictionless jamming with power-law particle 
+          size distributions},
+ journal = {Phys. Rev. E},
+ volume = {106}
+ issue = {3}
+ year = {2022}
+}
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Generated 0 of 10 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 31
+  ghost atom cutoff = 31
+  collection 1 binsize = 2, bins = 95 95 1
+  collection 2 binsize = 15.5, bins = 13 13 1
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair colloid, perpetual
+      attributes: half, newton on
+      pair build: half/multi/atomonly/newton
+      stencil: half/multi/2d
+      bin: multi
+Per MPI rank memory allocation (min/avg/max) = 4.385 | 4.385 | 4.385 Mbytes
+   Step          Temp          E_pair         TotEng         Press          Volume    
+         0   1.44           0              1.4395241      0.121          36000        
+       100   1.5516348     -0.044476371    1.5066457      0.13574409     36053.91     
+       200   1.7744329     -0.13449561     1.6393509      0.16056127     36190.542    
+       300   1.8979357     -0.14715799     1.7501505      0.17368332     36378.873    
+       400   1.9860318     -0.17054686     1.8148286      0.17048945     36572.054    
+       500   2.0085759     -0.16556131     1.8423508      0.17237418     36720.253    
+       600   2.022447      -0.17035906     1.8514196      0.17333191     36774.957    
+       700   2.0216822     -0.16587858     1.8551355      0.18970407     36693.582    
+       800   2.0398943     -0.17802805     1.8611921      0.17653399     36438.252    
+       900   2.0567953     -0.18268416     1.8734314      0.18232911     35980.434    
+      1000   2.073118      -0.18104995     1.8913829      0.18904294     35305.43     
+      1100   2.1091797     -0.19415266     1.91433        0.19471801     34409.074    
+      1200   2.1301628     -0.18873784     1.940721       0.20743141     33300.204    
+      1300   2.1692683     -0.19933152     1.9692199      0.21925792     31997.729    
+      1400   2.2073332     -0.20988616     1.9967176      0.23656557     30532.305    
+      1500   2.2520667     -0.22663158     2.0246909      0.25275409     28942.838    
+      1600   2.2743528     -0.23066643     2.0429347      0.28170372     27270.061    
+      1700   2.31136       -0.25454928     2.0560469      0.29996374     25552.59     
+      1800   2.3618834     -0.29127704     2.0698258      0.36337634     23831.609    
+      1900   2.3833885     -0.30468379     2.077917       0.38252676     22144.859    
+      2000   2.3949624     -0.31140382     2.0827671      0.4155888      20523.088    
+Loop time of 0.485467 on 1 procs for 2000 steps with 3026 atoms
+
+Performance: 1779728.437 tau/day, 4119.742 timesteps/s, 12.466 Matom-step/s
+99.1% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.16146    | 0.16146    | 0.16146    |   0.0 | 33.26
+Neigh   | 0.11268    | 0.11268    | 0.11268    |   0.0 | 23.21
+Comm    | 0.016409   | 0.016409   | 0.016409   |   0.0 |  3.38
+Output  | 0.00059538 | 0.00059538 | 0.00059538 |   0.0 |  0.12
+Modify  | 0.17239    | 0.17239    | 0.17239    |   0.0 | 35.51
+Other   |            | 0.02193    |            |       |  4.52
+
+Nlocal:           3026 ave        3026 max        3026 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:            397 ave         397 max         397 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:          11765 ave       11765 max       11765 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 11765
+Ave neighs/atom = 3.8879709
+Neighbor list builds = 231
+Dangerous builds = 0
+Total wall time: 0:00:00

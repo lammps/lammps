@@ -119,12 +119,12 @@ void PairCoulCutSoftGapsysOMP::eval(int iifrom, int iito, ThrData * const thr)
       rsq = delx*delx + dely*dely + delz*delz;
       jtype = type[j];
 
-      cut_inner = (1.0 + sigmaq * fabs(qtmp * q[j])) * alphaq * pow(lambda[itype][jtype], 1.0 / 6.0);
+      cut_inner = (1.0 + sigmaq * fabs(qtmp * q[j])) * cut_factor[itype][jtype];
 
       if (rsq < cut_inner * cut_inner) {
 
         forcecoul = factor_coul * qqrd2e * qtmp * q[j];
-        fpair = (- 2.0 / pow(cut_inner, 3) + 3.0 / (pow(cut_inner, 2) * sqrt(rsq))) * forcecoul;
+        fpair = forcecoul * (- 2.0 / cut_inner + 3.0 / sqrt(rsq)) / (cut_inner * cut_inner);
 
         f[i][0] += delx*fpair;
         f[i][1] += dely*fpair;
@@ -137,7 +137,7 @@ void PairCoulCutSoftGapsysOMP::eval(int iifrom, int iito, ThrData * const thr)
 
         if (EFLAG)
           ecoul = factor_coul * qqrd2e * qtmp * q[j] *
-          (rsq / pow(cut_inner, 3) - 3 * sqrt(rsq) / pow(cut_inner, 2) + 3 / cut_inner);
+          (rsq / (cut_inner * cut_inner) - 3 * sqrt(rsq) / cut_inner + 3.0) / cut_inner;
 
         if (EVFLAG) ev_tally_thr(this,i,j,nlocal,NEWTON_PAIR,
                                  0.0,ecoul,fpair,delx,dely,delz,thr);

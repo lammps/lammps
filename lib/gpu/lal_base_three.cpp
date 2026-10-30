@@ -77,9 +77,7 @@ int BaseThreeT::init_three(const int nlocal, const int nall,
   screen=_screen;
 
   int gpu_nbor=0;
-  if (device->gpu_mode()==Device<numtyp,acctyp>::GPU_NEIGH)
-    gpu_nbor=1;
-  else if (device->gpu_mode()==Device<numtyp,acctyp>::GPU_HYB_NEIGH)
+  if (device->gpu_mode()==Device<numtyp,acctyp>::GPU_HYB_NEIGH)
     gpu_nbor=2;
   _gpu_nbor=gpu_nbor;
 

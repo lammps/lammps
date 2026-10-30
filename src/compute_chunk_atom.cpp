@@ -43,7 +43,7 @@ using namespace MathConst;
 
 enum { LOWER, CENTER, UPPER, COORD };
 enum { BOX, LATTICE, REDUCED };
-enum { NODISCARD, MIXED, YESDISCARD };
+enum { NODISCARD = 0, MIXED, YESDISCARD };   // NODISCARD = 0 assumed by continuum/chunk
 enum { ONCE, NFREQ, EVERY };    // used in several files
 enum { LIMITMAX, LIMITEXACT };
 
@@ -284,6 +284,8 @@ ComputeChunkAtom::ComputeChunkAtom(LAMMPS *lmp, int narg, char **arg) :
     } else
       error->all(FLERR, iarg, "Unknown compute chunk/atom keyword {}", arg[iarg]);
   }
+
+  reducedflag = scaleflag == REDUCED;
 
   // set nchunkflag and discard to default values if not explicitly set
   // for binning style, also check in init() if simulation box is static,

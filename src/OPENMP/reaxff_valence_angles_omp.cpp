@@ -237,7 +237,11 @@ namespace ReaxFF {
       // Master thread uses angle counts to compute offsets
       // This can be threaded
 #if defined(_OPENMP)
+#if _OPENMP >= 202011
+#pragma omp masked
+#else
 #pragma omp master
+#endif
 #endif
       {
         int current_count = 0;

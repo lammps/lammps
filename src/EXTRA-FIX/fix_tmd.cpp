@@ -59,7 +59,7 @@ nfileevery(0), fp(nullptr), xf(nullptr), xold(nullptr)
   // register with Atom class
 
   FixTMD::grow_arrays(atom->nmax);
-  atom->add_callback(Atom::GROW);
+  atom->add_callback(this, Atom::GROW);
 
   // make sure an atom map exists before reading in target coordinates
 
@@ -132,7 +132,7 @@ FixTMD::~FixTMD()
 
   // unregister callbacks to this fix from Atom class
 
-  atom->delete_callback(id,Atom::GROW);
+  atom->delete_callback(this, Atom::GROW);
 
   // delete locally stored arrays
 
@@ -538,7 +538,9 @@ void FixTMD::open(const std::string &file)
   if (platform::has_compress_extension(file)) {
     compressed = 1;
     fp = platform::compressed_read(file);
-    if (!fp) error->one(FLERR,"Cannot open compressed file for reading");
+    if (!fp)
+      error->one(FLERR, "Cannot open compressed file {} for reading: {}", file,
+                 platform::compressed_open_error(file));
   } else {
     compressed = 0;
     fp = fopen(file.c_str(),"r");

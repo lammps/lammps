@@ -115,8 +115,6 @@ The *noforce* potential is an alternative way to turn an interaction off:
 it computes the local densities and gradients (so they can be inspected,
 see below) without applying any force.
 
-.. _ldd_indicator:
-
 Indicator functions
 """""""""""""""""""""
 
@@ -189,8 +187,6 @@ discontinuous second derivative at :math:`r_0` and :math:`r_c`):
    \sum_{i=0}^{5} c_{i}r^{i} &r_{0} \leq r \leq r_{c} \\
    0 & r \geq r_{c}
    \end{cases}
-
-.. _ldd_potential:
 
 Potential and gradient functions
 """"""""""""""""""""""""""""""""

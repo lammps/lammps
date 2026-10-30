@@ -1,8 +1,9 @@
 # GitHub action to build LAMMPS on Linux and check that all example input
-# scripts parse, set up, and take one step without crashing: run_tests.py
-# --preflight-only runs every input with "-skiprun" appended, so the loops of
-# all run and minimize commands end after one step.  Two MPI processes
-# exercise the domain decomposition and the initial communication.
+# scripts parse and execute all commands except run and minimize without
+# crashing: run_tests.py --preflight-only runs every input with "-skiprun"
+# appended, which makes LAMMPS skip run and minimize commands entirely
+# (before their setup).  Two MPI processes exercise the domain decomposition
+# when atoms are read or created.
 # The build configuration matches unittest-fftw.yaml (without the unit tests)
 # and shares its ccache cache.
 name: "Check example inputs /w -skiprun"
@@ -22,6 +23,9 @@ concurrency:
   group: ${{ github.event_name }}-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: ${{github.event_name == 'pull_request'}}
 
+permissions:
+  contents: read
+
 jobs:
   build:
     name: Check example inputs
@@ -35,6 +39,7 @@ jobs:
       uses: actions/checkout@v7
       with:
         fetch-depth: 2
+        persist-credentials: false
 
     - name: Install extra packages
       run: |

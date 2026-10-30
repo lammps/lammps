@@ -143,7 +143,7 @@ The *pstyle* argument is the name of the pair style.  If
 sub-styles using the same pair style, then *pstyle* should be specified
 as "style:N", where *N* is which instance of the pair style you wish to
 adapt (e.g., the first or second).  For example, *pstyle* could be
-specified as "soft" or "lubricate" or "lj/cut:1" or "lj/cut:2".  The
+specified as "soft" or "lj/cut:1" or "lj/cut:2".  The
 *pparam* argument is the name of the parameter to change.  This is the
 current list of pair styles and parameters that can be varied by this
 fix.  See the doc pages for individual pair styles and their energy
@@ -176,7 +176,7 @@ formulas for the meaning of these parameters:
 +-----------------------------------------------------------------------+---------------------------------+-------------+
 | :doc:`coul/dsf <pair_coul>`                                           | cut_coul                        | type global |
 +-----------------------------------------------------------------------+---------------------------------+-------------+
-| :doc:`coul/long, coul/msm <pair_coul>`                                | scale                           | type pairs  |
+| :doc:`coul/long, coul/esp, coul/msm <pair_coul>`                      | scale                           | type pairs  |
 +-----------------------------------------------------------------------+---------------------------------+-------------+
 | :doc:`coul/long, coul/msm <pair_coul>`                                | cut_coul                        | type global |
 +-----------------------------------------------------------------------+---------------------------------+-------------+
@@ -290,7 +290,7 @@ formulas for the meaning of these parameters:
    the pair\_\*.cpp file associated with the potential.
 
 Some parameters are global settings for the pair style (e.g., the
-viscosity setting "mu" for :doc:`pair_style lubricate <pair_lubricate>`).
+Coulomb cutoff "cut_coul" for :doc:`pair_style coul/dsf <pair_coul>`).
 Other parameters apply to atom type pairs within the pair style (e.g., the
 prefactor :math:`a` for :doc:`pair_style soft <pair_soft>`).
 
@@ -671,7 +671,12 @@ parameters on the outermost rRESPA level.
 
 Restrictions
 """"""""""""
-none
+
+Not all pair styles support changing their parameters during a run.
+This includes some accelerated variants of pair styles that support it
+otherwise, for example the pair styles in the INTEL package and many
+pair styles in the GPU package.  Fix adapt stops with an error for
+those, also when they are used as sub-styles of a hybrid pair style.
 
 Related commands
 """"""""""""""""

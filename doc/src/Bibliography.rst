@@ -139,6 +139,12 @@ Bibliography
 **(Behler and Parrinello 2007)**
    Behler, J.; Parrinello, M. Phys. Rev. Lett.  2007, 98 (14), 146401.
 
+**(Belytschko)**
+   Belytschko, Guo, Liu, Xiao, Int J Numer Meth Eng, 48, 1359-1400 (2000).
+
+**(Belytschko2)**
+   Belytschko, Lu, Gu, Int J Numer Meth Eng, 37, 229-256 (1994).
+
 **(Bennet)**
    Bennet, J Comput Phys, 22, 245 (1976)
 
@@ -184,6 +190,9 @@ Bibliography
 **(Bond)**
    Bond and Leimkuhler, SIAM J Sci Comput, 30, p 134 (2007).
 
+**(Bonet)**
+   Bonet and Lok, Comput Methods Appl Mech Eng, 180, 97-115 (1999).
+
 **(Bonny)**
    Bonny, Pasianot, Terentyev, Malerba, Philosophical Magazine, 91, 1724 (2011).
 
@@ -192,6 +201,9 @@ Bibliography
 
 **(BoreschKarplus)**
    Boresch and Karplus, J Phys Chem A, 103, 103 (1999).
+
+**(Bower)**
+   Bower, Applied Mechanics of Solids, CRC Press (2011).
 
 **(Branicio2009)**
    Branicio, Rino, Gan and Tsuzuki, J. Phys Condensed Matter 21 (2009) 095002
@@ -333,6 +345,9 @@ Bibliography
 
 **(Cornell)**
    Cornell, Cieplak, Bayly, Gould, Merz, Ferguson, Spellmeyer, Fox, Caldwell, Kollman (1995).  JACS 117, 5179-5197. https://doi.org/10.1021/ja00124a002
+
+**(Cox)**
+   Cox and White, J. Chem. Theor. Comput., 18, 4077 (2022).
 
 **(Cramer)**
    Cramer, Mathematical Methods of Statistics, Princeton University Press (1946).
@@ -562,6 +577,9 @@ Bibliography
 **(Gan2025)**
    Gan, Gao, Liang, Xu, SIAM J Sci Comput, 47, B846-B874 (2025). https://doi.org/10.1137/24M1655809
 
+**(Ganzenmueller)**
+   Ganzenmueller, Comput Methods Appl Mech Eng, 286, 87-106 (2015).
+
 **(Gao)**
    Gao and Weber, Nuclear Instruments and Methods in Physics Research B 191 (2012) 504.
 
@@ -576,6 +594,9 @@ Bibliography
 
 **(Ghoufi)**
    A.\  Ghoufi, P. Malfreyt, "Mesoscale modeling of the water liquid-vapor interface: A surface tension calculation.", Phys. Rev. E, 83, 051601 (2011).
+
+**(Gingold)**
+   Gingold and Monaghan, Mon Not R Astron Soc, 181, 375-389 (1977).
 
 **(Gingrich)**
    Gingrich, `MSc thesis` <https://gingrich.chem.northwestern.edu/papers/ThesiswCorrections.pdf>` (2010).
@@ -612,6 +633,12 @@ Bibliography
 
 **(Goldman2)**
    Goldman, Reed and Fried, J. Chem. Phys. 131, 204103 (2009)
+
+**(Gomez-Gesteira)**
+   Gomez-Gesteira, Rogers, Dalrymple, Crespo, J Hydraulic Res, 48, 6-27 (2010).
+
+**(Gonzalez)**
+   Gonzalez, Sanchez, Macia, Souto-Iglesias, Analysis of WCSPH laminar viscosity models, 4th international SPHERIC workshop, Nantes, France (2009).
 
 **(Grime)**
    Grime and Voth, to appear in J Chem Theory & Computation (2014).
@@ -727,6 +754,9 @@ Bibliography
 **(Hoover)**
    Hoover, Phys Rev A, 31, 1695 (1985).
 
+**(Hoover2006)**
+   Hoover, Smooth Particle Applied Mechanics: The State of the Art, World Scientific, Singapore (2006).
+
 **(Houlsby)**
    Houlsby, Computers and Geotechnics, 36, 953-959 (2009).
 
@@ -787,6 +817,9 @@ Bibliography
 **(Ismail)**
    Ismail, Tsige, In 't Veld, Grest, Molecular Physics (accepted) (2007).
 
+**(ITA)**
+   M. I. Aroyo (ed.), International Tables for Crystallography, Vol. A, Space-Group Symmetry, 6th ed., Wiley (2016), DOI 10.1107/97809553602060000114.
+
 **(Ivanov)**
    Ivanov, Uzdin, Jonsson. arXiv preprint arXiv:1904.02669, (2019).
 
@@ -828,6 +861,9 @@ Bibliography
 
 **(Johansson)**
    A.\  Johansson, E. Weinberg, C. Trott, M. McCarthy, and S. Moore. LAMMPS-KOKKOS: Performance portable molecular dynamics across exascale architectures. In Proceedings of the SC '25 Workshops of the International Conference for High Performance Computing, Networking, Storage and Analysis, page 1217-1232, 2025.
+
+**(Johnson)**
+   Johnson and Cook, Proceedings of the 7th International Symposium on Ballistics, 541-547 (1983).
 
 **(Johnson et al, 1971)**
    Johnson, K. L., Kendall, K., & Roberts, A. D. (1971).  Surface energy and the contact of elastic solids. Proc. R. Soc. Lond. A, 324(1558), 301-313.
@@ -958,11 +994,14 @@ Bibliography
 **(Lesniewski2)**
    Lesniewski, DeLyser, W. G. Noid "Progress toward a better BOCS: systematic coarse-graining with local density potentials" In Prep 2026
 
+**(Leven)**
+   I. Leven, T. Head-Gordon, Physical Chemistry Chemical Physics, 21, 18652-18659 (2019).
+
 **(Leven1)**
-   I.\  Leven, I. Azuri, L. Kronik and O. Hod, J. Chem. Phys. 140, 104106 (2014).
+   I. Leven, I. Azuri, L. Kronik and O. Hod, J. Chem. Phys. 140, 104106 (2014).
 
 **(Leven2)**
-   I.\  Leven et al, J. Chem.Theory Comput. 12, 2896-905 (2016).
+   I. Leven et al, J. Chem.Theory Comput. 12, 2896-905 (2016).
 
 **(Li2013_POF)**
    Li, Hu, Wang, Ma, Zhou, Phys Fluids, 25: 072103 (2013). DOI:10.1063/1.4812366.
@@ -987,6 +1026,9 @@ Bibliography
 
 **(Liu)**
    J. Liu, D. Li, X. Liu, J. Chem. Phys. 145, 024103 (2016).
+
+**(Liu and Liu)**
+   Liu and Liu, Smoothed Particle Hydrodynamics: A Meshfree Particle Method, World Scientific, Singapore (2003).
 
 **(Liu1)**
    S. Liu, I. Grinberg, and A. M. Rappe, *J. Phys.: Condens. Matter*, **25**, 102202 (2013).
@@ -1162,6 +1204,9 @@ Bibliography
 **(Monaghan)**
    Monaghan and Gingold, Journal of Computational Physics, 52, 374-389 (1983).
 
+**(Monaghan2000)**
+   Monaghan, J Comput Phys, 159, 290-311 (2000).
+
 **(Monti)**
    Monti, Clemmer, Srivastava, Silbert, Grest, and Lechman, Phys. Rev. E, (2022).
 
@@ -1182,6 +1227,11 @@ Bibliography
 
 **(Morris)**
    Morris, Fox, Zhu, J Comp Physics, 136, 214-226 (1997).
+
+**(Morrisey thesis)**
+   Morrisey, J. P. (2013). Discrete Element Modelling of
+   Iron Ore Pellets to Include the Effects of Moisture and Fines.
+   PhD thesis, Edinburgh, Scotland: University of Edinburgh.
 
 **(Morse)**
    Morse, Physical review, 34, 57 (1929). https://doi.org/10.1103/PhysRev.34.57
@@ -1418,7 +1468,7 @@ Bibliography
    Rackers, Silva, Wang, Ponder, J Chem Theory Comput, 17, 7056-7084 (2021).
 
 **(Rahman)**
-   Rahman, Foster, Implementation of linear viscoelasticity model in PDLAMMPS (2013) and Implementation of elastic-plastic model in PDLAMMPS, technical reports, University of Texas at San Antonio (included in the LAMMPS distribution as `PDLammps_VES.pdf <PDF/PDLammps_VES.pdf>`_ and `PDLammps_EPS.pdf <PDF/PDLammps_EPS.pdf>`_; see also the PDLAMMPS overview `PDLammps_overview.pdf <PDF/PDLammps_overview.pdf>`_).
+   Rahman, Foster, Implementation of linear viscoelasticity model in PDLAMMPS (2013) and Implementation of elastic-plastic model in PDLAMMPS, technical reports, University of Texas at San Antonio.
 
 **(Ramirez)**
    J.\  Ramirez, S.K. Sukumaran, B. Vorselaars and A.E. Likhtman, J. Chem. Phys. 133, 154103 (2010).
@@ -1696,6 +1746,9 @@ Bibliography
 **(SW)**
    F.\  H. Stillinger, and T. A. Weber, Phys. Rev. B, 31, 5262 (1985).
 
+**(Swegle)**
+   Swegle, Hicks, Attaway, J Comput Phys, 116, 123-134 (1995).
+
 **(Swinburne)**
    Swinburne and Marinica, Physical Review Letters, 120, 1 (2018)
 
@@ -1720,6 +1773,9 @@ Bibliography
 **(Tavenner 2023)**
    J Tavenner, M Mendelev, J Lawson, Computational Materials Science, 218, 111929 (2023).
 
+**(Taylor)**
+   Taylor and Flanagan, PRONTO 2D: A two-dimensional transient solid dynamics program, Sandia report SAND86-0594, Sandia National Laboratories (1987).
+
 **(Tee)**
    Tee and Searles, J. Chem. Phys. 156, 184101 (2022).
 
@@ -1734,6 +1790,12 @@ Bibliography
 
 **(Tersoff_2)**
    J.\  Tersoff, Phys Rev B, 38, 9902 (1988).
+
+**(Thakur et al, 2014)**
+   Thakur, Subhash C., et al. (2014).
+   Micromechanical analysis of cohesive granular materials using
+   the discrete element method with an adhesive  elasto-plastic contact
+   model. Granular Matter 16, 383-400.
 
 **(Theodorou)**
    Theodorou, Suter, Macromolecules, 18, 1206 (1985).
@@ -1916,7 +1978,10 @@ Bibliography
    Wolff and Rudd, Comp Phys Comm, 120, 200-32 (1999).
 
 **(Wood)**
-   Wood and Thompson, J Chem Phys, 148, 241721, (2018)
+   Wood and Thompson, J Chem Phys, 148, 241721, (2018).
+
+**(Wyckoff)**
+   R. W. G. Wyckoff, The Analytical Expression of the Results of the Theory of Space-Groups, Carnegie Institution of Washington, Publication 318 (1922).
 
 **(Xie23)**
    Xie, S.R., Rupp, M. & Hennig, R.G. Ultra-fast interpretable machine-learning potentials. npj Comput Mater 9, 162 (2023). https://doi.org/10.1038/s41524-023-01092-7

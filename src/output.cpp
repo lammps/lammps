@@ -89,6 +89,7 @@ Output::Output(LAMMPS *lmp) : Pointers(lmp), thermo(nullptr)
 
   ndump = 0;
   max_dump = 0;
+  nchanges = nchanges_at_init = 0;
   any_time_dumps = 0;
   next_thermo = next_restart = next_dump_any = next_time_dump_any = MAXBIGINT;
   mode_dump = nullptr;
@@ -154,6 +155,7 @@ void Output::init()
   }
 
   for (int i = 0; i < ndump; i++) dump[i]->init();
+  nchanges_at_init = nchanges;
   any_time_dumps = 0;
   for (int i = 0; i < ndump; i++) {
     if (mode_dump[i]) any_time_dumps = 1;
@@ -975,6 +977,7 @@ Dump *Output::add_dump(int narg, char **arg)
   next_dump[idump] = 0;
 
   ndump++;
+  nchanges++;
   dump_list = std::vector<Dump *>(dump, dump + ndump);
   return dump[idump];
 }
@@ -992,6 +995,7 @@ void Output::modify_dump(int narg, char **arg)
   auto *idump = get_dump_by_id(arg[0]);
   if (!idump) error->all(FLERR, Error::ARGZERO, "Could not find dump_modify ID: {}", arg[0]);
   idump->modify_params(narg-1,&arg[1]);
+  nchanges++;
 }
 
 /* ----------------------------------------------------------------------
@@ -1023,6 +1027,7 @@ void Output::delete_dump(const std::string &id)
     ivar_dump[i-1] = ivar_dump[i];
   }
   ndump--;
+  nchanges++;
   dump[ndump] = nullptr;
   var_dump[ndump] = nullptr;
   dump_list = std::vector<Dump *>(dump, dump + ndump);

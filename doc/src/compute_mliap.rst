@@ -104,13 +104,14 @@ the potential energy, force, or stress, according to the row.
 These quantities correspond to the user-specified reference potential
 that must be subtracted from the target data when training a model.
 The potential energy calculation uses the built in compute *thermo_pe*.
-The stress calculation uses a compute called *mliap_press* that is
-automatically created behind the scenes, according to the following
-command:
+The stress calculation uses a compute of style *pressure* that is
+automatically created behind the scenes with an internal compute ID
+derived from the ID of this compute, as if it was defined by the
+following command:
 
 .. code-block:: LAMMPS
 
-   compute mliap_press all pressure NULL virial
+   compute ID all pressure NULL virial
 
 See section below on output for a detailed explanation of the data
 layout in the global array.

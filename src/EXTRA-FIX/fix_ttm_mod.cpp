@@ -204,8 +204,8 @@ FixTTMMod::FixTTMMod(LAMMPS *lmp, int narg, char **arg) :
     flangevin[i][2] = 0.0;
   }
 
-  atom->add_callback(Atom::GROW);
-  atom->add_callback(Atom::RESTART);
+  atom->add_callback(this, Atom::GROW);
+  atom->add_callback(this, Atom::RESTART);
 
   // initialize electron temperatures on grid
 

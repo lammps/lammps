@@ -26,6 +26,7 @@
 #include "dihedral.h"
 #include "domain.h"
 #include "error.h"
+#include "fix.h"
 #include "force.h"
 #include "group.h"
 #include "improper.h"
@@ -54,7 +55,7 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 using MathConst::MY_PI;
 
-static constexpr double RESTART_VERSION = 3.0;
+static constexpr double RESTART_VERSION = 4.0;
 static constexpr double MAXDLOGVOLRATIO = 1.0;
 static constexpr double DEG2RAD = MY_PI / 180.0;
 static constexpr double BIG = 1.0e20;
@@ -186,8 +187,11 @@ FixGEMC::FixGEMC(LAMMPS *lmp, int narg, char **arg) :
   // and synchronized across both boxes. all seeds are different.
 
   random_universe = new RanPark(lmp, seed);
-  random_world = new RanPark(lmp, seed + 1 + myworld);
-  random_proc = new RanPark(lmp, seed + 3 + universe->me);
+  random_world = new RanPark(lmp, seed);
+  double worldcoord[3] = {(double) myworld, 1.0, 0.0};
+  random_world->reset(seed, worldcoord);
+  random_proc = new RanPark(lmp, seed);
+  random_proc->reset_rank(seed, universe->me);
 
   ntranslation_attempts = ntranslation_successes = 0.0;
   nrotation_attempts = nrotation_successes = 0.0;
@@ -971,7 +975,7 @@ int FixGEMC::accept_both(double dU, int overflow)
 void FixGEMC::reset_comm()
 {
   refresh_ghosts();
-  if (modify->n_pre_neighbor) modify->pre_neighbor();
+  if (modify->has_fixes(FixConst::PRE_NEIGHBOR)) modify->pre_neighbor();
   neighbor->build(1);
 }
 
@@ -1530,7 +1534,7 @@ double FixGEMC::energy_full()
   size_t nbytes = sizeof(double) * (atom->nlocal + atom->nghost);
   if (nbytes) memset(&atom->f[0][0], 0, 3 * nbytes);
 
-  if (modify->n_pre_force) modify->pre_force(vflag);
+  if (modify->has_fixes(FixConst::PRE_FORCE)) modify->pre_force(vflag);
 
   if (force->pair) force->pair->compute(eflag, vflag);
 
@@ -1543,7 +1547,7 @@ double FixGEMC::energy_full()
 
   if (force->kspace) force->kspace->compute(eflag, vflag);
 
-  if (modify->n_post_force_any) modify->post_force(vflag);
+  if (modify->has_fixes(FixConst::POST_FORCE_ANY)) modify->post_force(vflag);
 
   // NOTE: all fixes with energy_global_flag set and which
   //   operate at pre_force() or post_force()
@@ -1560,10 +1564,12 @@ double FixGEMC::energy_full()
 
 void FixGEMC::write_restart(FILE *fp)
 {
+  int nglobalvals = 14;
+  int nlocalvals = comm->nprocs;
+  int ntotalvals = nglobalvals + nlocalvals;
+  std::vector<double> list(ntotalvals);
   int n = 0;
-  double list[14];
   list[n++] = -RESTART_VERSION;
-  list[n++] = random_proc->state();
   list[n++] = random_world->state();
   list[n++] = random_universe->state();
   list[n++] = ubuf(next_reneighbor).d;
@@ -1576,11 +1582,15 @@ void FixGEMC::write_restart(FILE *fp)
   list[n++] = nrotation_attempts;
   list[n++] = nrotation_successes;
   list[n++] = ubuf(update->ntimestep).d;
+  list[n++] = nlocalvals;
+
+  double state = random_proc->state();
+  MPI_Gather(&state, 1, MPI_DOUBLE, &list[n], 1, MPI_DOUBLE, 0, world);
 
   if (comm->me == 0) {
-    int size = n * sizeof(double);
+    int size = ntotalvals * sizeof(double);
     fwrite(&size, sizeof(int), 1, fp);
-    fwrite(list, sizeof(double), n, fp);
+    fwrite(list.data(), sizeof(double), ntotalvals, fp);
   }
 }
 
@@ -1599,10 +1609,10 @@ void FixGEMC::restart(char *buf)
   int version = oldformat ? 1 : static_cast<int>(-list[0]);
   if (!oldformat) n++;
 
-  // only the state of rank 0 was saved, so give each rank a distinct stream
+  // earlier versions stored the state of rank 0 only, ahead of the other values
 
-  double coord[3] = {(double) universe->me, (double) myworld, 0.0};
-  random_proc->reset(static_cast<int>(list[n++]), coord);
+  int procstate = (version < 4) ? static_cast<int>(list[n++]) : 0;
+
   random_world->reset(static_cast<int>(list[n++]));
   random_universe->reset(static_cast<int>(list[n++]));
 
@@ -1623,6 +1633,19 @@ void FixGEMC::restart(char *buf)
   bigint ntimestep_restart = (bigint) ubuf(list[n++]).i;
   if (ntimestep_restart != update->ntimestep)
     error->all(FLERR, "Must not reset timestep when restarting fix gemc");
+
+  // read stored state of RNG unique to this process
+  // if nprocs changed, derive a unique state from the state of proc 0
+
+  if (version >= 4) {
+    auto nlocalvals = (int) list[n++];
+    if (nlocalvals == comm->nprocs) {
+      random_proc->reset(static_cast<int>(list[n + me]));
+      return;
+    }
+    procstate = static_cast<int>(list[n]);
+  }
+  random_proc->reset_rank(procstate, universe->me);
 }
 
 /* ----------------------------------------------------------------------

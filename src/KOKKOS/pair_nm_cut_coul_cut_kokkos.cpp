@@ -201,7 +201,6 @@ KK_FLOAT PairNMCutCoulCutKokkos<DeviceType>::
 compute_evdwl(const KK_FLOAT& rsq, const int& /*i*/, const int& /*j*/,
                const int& itype, const int& jtype) const
 {
-  const KK_FLOAT r2inv = static_cast<KK_FLOAT>(1.0) / rsq;
   const KK_FLOAT nn_val = (STACKPARAMS?m_params[itype][jtype].nn:params(itype,jtype).nn);
   const KK_FLOAT mm_val = (STACKPARAMS?m_params[itype][jtype].mm:params(itype,jtype).mm);
   const KK_FLOAT r = Kokkos::sqrt(rsq);

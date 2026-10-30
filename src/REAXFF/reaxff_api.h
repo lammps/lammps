@@ -126,6 +126,8 @@ extern void Atom_Energy(reax_system *, control_params *, simulation_data *, stor
 // nonbonded
 
 extern void Compute_Polarization_Energy(reax_system *, simulation_data *, storage *);
+extern bool ACKS2_Kinetic_Pair(reax_system *, storage *, int, far_neighbor_data *, double &,
+                               double &);
 extern void vdW_Coulomb_Energy(reax_system *, control_params *, simulation_data *, storage *,
                                reax_list **);
 extern void Tabulated_vdW_Coulomb_Energy(reax_system *, control_params *, simulation_data *,

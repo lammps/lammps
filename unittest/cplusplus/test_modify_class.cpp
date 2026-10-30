@@ -334,7 +334,11 @@ TEST_F(ModifyTest, FailedReplaceLeavesListValid)
     HIDE_OUTPUT([&] {
         command("run 0 post no");
     });
+#if defined(LMP_KOKKOS_SINGLE_DOUBLE) || defined(LMP_KOKKOS_SINGLE_SINGLE)
+    EXPECT_FLOAT_EQ(lmp->atom->f[0][0], 1.0);
+#else
     EXPECT_DOUBLE_EQ(lmp->atom->f[0][0], 1.0);
+#endif
 }
 
 TEST_F(ModifyTest, ReplaceFixKeepsSlot)

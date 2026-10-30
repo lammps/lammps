@@ -49,6 +49,8 @@ PairEAM::PairEAM(LAMMPS *lmp) : Pair(lmp), type2rhor(nullptr), type2z2r(nullptr)
   rho = nullptr;
   fp = nullptr;
   numforce = nullptr;
+  maxforce = 0;
+  forcelist = nullptr;
   type2frho = nullptr;
 
   nfuncfl = 0;
@@ -85,6 +87,7 @@ PairEAM::~PairEAM()
   memory->destroy(rho);
   memory->destroy(fp);
   memory->destroy(numforce);
+  memory->destroy(forcelist);
 
   if (allocated) {
     memory->destroy(setflag);
@@ -148,12 +151,17 @@ void PairEAM::compute(int eflag, int vflag)
     memory->create(numforce,nmax,"pair:numforce");
   }
 
-  double **x = atom->x;
-  double **f = atom->f;
-  int *type = atom->type;
+  const double (*const x)[3] = (const double (*)[3]) atom->x[0];
+  double (*const f)[3] = (double (*)[3]) atom->f[0];
+  double *const rho = this->rho;
+  int *const numforce = this->numforce;
+  const int *const type = atom->type;
   int nlocal = atom->nlocal;
   int nall = nlocal + atom->nghost;
   int newton_pair = force->newton_pair;
+  const double cutforcesq = this->cutforcesq;
+  const double rdr = this->rdr;
+  const int nr = this->nr;
 
   inum = list->inum;
   ilist = list->ilist;
@@ -165,6 +173,14 @@ void PairEAM::compute(int eflag, int vflag)
   if (newton_pair) {
     for (i = 0; i < nall; i++) rho[i] = 0.0;
   } else for (i = 0; i < nlocal; i++) rho[i] = 0.0;
+
+  const bigint init_cap = static_cast<bigint>(inum) * 20 + 64;
+  if (maxforce < init_cap) {
+    maxforce = init_cap;
+    memory->grow(forcelist,maxforce,"pair:forcelist");
+  }
+  int *flist = forcelist;
+  bigint nlist = 0;
 
   // rho = density at each atom
   // loop over neighbors of my atoms
@@ -178,10 +194,20 @@ void PairEAM::compute(int eflag, int vflag)
     jlist = firstneigh[i];
     jnum = numneigh[i];
 
+    if (nlist + jnum > maxforce) {
+      const bigint needed = nlist + jnum;
+      maxforce = needed + (needed >> 2) + 64;
+      memory->grow(forcelist,maxforce,"pair:forcelist");
+      flist = forcelist;
+    }
+    const int *const type2rhor_i = type2rhor[itype];
+    double * const *const rhor_spline_ii = rhor_spline[type2rhor_i[itype]];
+
     // seeding the accumulator with rho[i] keeps the summation order
     // (and thus the result) identical to in-place accumulation
 
     rhotmp = rho[i];
+    nforce = 0;
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
@@ -193,20 +219,36 @@ void PairEAM::compute(int eflag, int vflag)
       rsq = delx*delx + dely*dely + delz*delz;
 
       if (rsq < cutforcesq) {
+        flist[nlist++] = j;
+        ++nforce;
         jtype = type[j];
         p = sqrt(rsq)*rdr + 1.0;
         m = static_cast<int>(p);
         m = MIN(m,nr-1);
         p -= m;
         p = MIN(p,1.0);
-        coeff = rhor_spline[type2rhor[jtype][itype]][m];
-        rhotmp += ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
-        if (newton_pair || j < nlocal) {
-          coeff = rhor_spline[type2rhor[itype][jtype]][m];
-          rho[j] += ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
+        if (jtype == itype) {
+          coeff = rhor_spline_ii[m];
+          const double rho_val = ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
+          rhotmp += rho_val;
+          if (newton_pair || j < nlocal) rho[j] += rho_val;
+        } else {
+          const int rhor_ji = type2rhor[jtype][itype];
+          coeff = rhor_spline[rhor_ji][m];
+          const double rho_val = ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
+          rhotmp += rho_val;
+          if (newton_pair || j < nlocal) {
+            const int rhor_ij = type2rhor_i[jtype];
+            if (rhor_ij == rhor_ji) rho[j] += rho_val;
+            else {
+              coeff = rhor_spline[rhor_ij][m];
+              rho[j] += ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
+            }
+          }
         }
       }
     }
+    numforce[i] = nforce;
     rho[i] = rhotmp;
   }
 
@@ -230,6 +272,9 @@ void PairEAM::compute(int eflag, int vflag)
   // compute forces on each atom
   // loop over neighbors of my atoms
 
+  const double *const fp = this->fp;
+  bigint cur = 0;
+
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
     xtmp = x[i][0];
@@ -237,9 +282,7 @@ void PairEAM::compute(int eflag, int vflag)
     ztmp = x[i][2];
     itype = type[i];
 
-    jlist = firstneigh[i];
-    jnum = numneigh[i];
-    nforce = 0;
+    nforce = numforce[i];
 
     // seeding the accumulators with f[i] keeps the summation order
     // (and thus the result) identical to in-place accumulation;
@@ -249,65 +292,79 @@ void PairEAM::compute(int eflag, int vflag)
     fytmp = f[i][1];
     fztmp = f[i][2];
     fptmp = fp[i];
+    const int *const type2rhor_i = type2rhor[itype];
+    const int *const type2z2r_i = type2z2r[itype];
+    const double *const scale_i = scale[itype];
+    double * const *const rhor_spline_ii = rhor_spline[type2rhor_i[itype]];
+    double * const *const z2r_spline_ii = z2r_spline[type2z2r_i[itype]];
+    const int *const jforce = forcelist + cur;
+    cur += nforce;
 
-    for (jj = 0; jj < jnum; jj++) {
-      j = jlist[jj];
-      j &= NEIGHMASK;
+    for (jj = 0; jj < nforce; jj++) {
+      j = jforce[jj];
 
       delx = xtmp - x[j][0];
       dely = ytmp - x[j][1];
       delz = ztmp - x[j][2];
       rsq = delx*delx + dely*dely + delz*delz;
 
-      if (rsq < cutforcesq) {
-        ++nforce;
-        jtype = type[j];
-        r = sqrt(rsq);
-        p = r*rdr + 1.0;
-        m = static_cast<int>(p);
-        m = MIN(m,nr-1);
-        p -= m;
-        p = MIN(p,1.0);
+      jtype = type[j];
+      r = sqrt(rsq);
+      p = r*rdr + 1.0;
+      m = static_cast<int>(p);
+      m = MIN(m,nr-1);
+      p -= m;
+      p = MIN(p,1.0);
 
-        // rhoip = derivative of (density at atom j due to atom i)
-        // rhojp = derivative of (density at atom i due to atom j)
-        // phi = pair potential energy
-        // phip = phi'
-        // z2 = phi * r
-        // z2p = (phi * r)' = (phi' r) + phi
-        // psip needs both fp[i] and fp[j] terms since r_ij appears in two
-        //   terms of embed eng: Fi(sum rho_ij) and Fj(sum rho_ji)
-        //   hence embed' = Fi(sum rho_ij) rhojp + Fj(sum rho_ji) rhoip
-        // scale factor can be applied by thermodynamic integration
+      // rhoip = derivative of (density at atom j due to atom i)
+      // rhojp = derivative of (density at atom i due to atom j)
+      // phi = pair potential energy
+      // phip = phi'
+      // z2 = phi * r
+      // z2p = (phi * r)' = (phi' r) + phi
+      // psip needs both fp[i] and fp[j] terms since r_ij appears in two
+      //   terms of embed eng: Fi(sum rho_ij) and Fj(sum rho_ji)
+      //   hence embed' = Fi(sum rho_ij) rhojp + Fj(sum rho_ji) rhoip
+      // scale factor can be applied by thermodynamic integration
 
-        coeff = rhor_spline[type2rhor[itype][jtype]][m];
+      if (jtype == itype) {
+        coeff = rhor_spline_ii[m];
         rhoip = (coeff[0]*p + coeff[1])*p + coeff[2];
-        coeff = rhor_spline[type2rhor[jtype][itype]][m];
-        rhojp = (coeff[0]*p + coeff[1])*p + coeff[2];
-        coeff = z2r_spline[type2z2r[itype][jtype]][m];
-        z2p = (coeff[0]*p + coeff[1])*p + coeff[2];
-        z2 = ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
-
-        recip = 1.0/r;
-        phi = z2*recip;
-        phip = z2p*recip - phi*recip;
-        psip = fptmp*rhojp + fp[j]*rhoip + phip;
-        fpair = -scale[itype][jtype]*psip*recip;
-
-        fxtmp += delx*fpair;
-        fytmp += dely*fpair;
-        fztmp += delz*fpair;
-        if (newton_pair || j < nlocal) {
-          f[j][0] -= delx*fpair;
-          f[j][1] -= dely*fpair;
-          f[j][2] -= delz*fpair;
+        rhojp = rhoip;
+        coeff = z2r_spline_ii[m];
+      } else {
+        const int rhor_ij = type2rhor_i[jtype];
+        const int rhor_ji = type2rhor[jtype][itype];
+        coeff = rhor_spline[rhor_ij][m];
+        rhoip = (coeff[0]*p + coeff[1])*p + coeff[2];
+        if (rhor_ji == rhor_ij) rhojp = rhoip;
+        else {
+          coeff = rhor_spline[rhor_ji][m];
+          rhojp = (coeff[0]*p + coeff[1])*p + coeff[2];
         }
-
-        if (eflag) evdwl = scale[itype][jtype]*phi;
-        if (evflag) ev_tally(i,j,nlocal,newton_pair,evdwl,0.0,fpair,delx,dely,delz);
+        coeff = z2r_spline[type2z2r_i[jtype]][m];
       }
+      z2p = (coeff[0]*p + coeff[1])*p + coeff[2];
+      z2 = ((coeff[3]*p + coeff[4])*p + coeff[5])*p + coeff[6];
+
+      recip = 1.0/r;
+      phi = z2*recip;
+      phip = z2p*recip - phi*recip;
+      psip = fptmp*rhojp + fp[j]*rhoip + phip;
+      fpair = -scale_i[jtype]*psip*recip;
+
+      fxtmp += delx*fpair;
+      fytmp += dely*fpair;
+      fztmp += delz*fpair;
+      if (newton_pair || j < nlocal) {
+        f[j][0] -= delx*fpair;
+        f[j][1] -= dely*fpair;
+        f[j][2] -= delz*fpair;
+      }
+
+      if (eflag) evdwl = scale_i[jtype]*phi;
+      if (evflag) ev_tally(i,j,nlocal,newton_pair,evdwl,0.0,fpair,delx,dely,delz);
     }
-    numforce[i] = nforce;
     f[i][0] = fxtmp;
     f[i][1] = fytmp;
     f[i][2] = fztmp;
@@ -1654,6 +1711,7 @@ double PairEAM::memory_usage()
   double bytes = (double)maxeatom * sizeof(double);
   bytes += (double)maxvatom*6 * sizeof(double);
   bytes += (double)2 * nmax * sizeof(double);
+  bytes += (double)maxforce * sizeof(int);
   return bytes;
 }
 

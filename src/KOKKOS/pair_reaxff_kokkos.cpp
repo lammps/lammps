@@ -36,6 +36,7 @@
 #include "kokkos.h"
 #include "math_const.h"
 #include "math_special.h"
+#include "math_special_kokkos.h"
 #include "memory_kokkos.h"
 #include "neigh_request.h"
 #include "neighbor.h"
@@ -1300,8 +1301,8 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeLJCoulomb<NEIGHF
 
       if (rij <= xcut) {
         const KK_FLOAT d = rij / xcut;
-        const KK_FLOAT bond_softness = gp[34] * pow( d, static_cast<KK_FLOAT>(3.0) )
-                                    * pow( static_cast<KK_FLOAT>(1.0) - d, static_cast<KK_FLOAT>(6.0) );
+        const KK_FLOAT bond_softness = gp[34] * MathSpecialKokkos::cube(d)
+                                    * MathSpecialKokkos::powint(static_cast<KK_FLOAT>(1.0) - d, 6);
 
         if (bond_softness > static_cast<KK_FLOAT>(0.0)) {
           /* Coulombic energy contribution */
@@ -1315,8 +1316,8 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeLJCoulomb<NEIGHF
           /* forces contribution */
           KK_FLOAT d_bond_softness;
           d_bond_softness = gp[34]
-                          * static_cast<KK_FLOAT>(3.0) / xcut * pow( d, static_cast<KK_FLOAT>(2.0) )
-                          * pow( static_cast<KK_FLOAT>(1.0) - d, static_cast<KK_FLOAT>(5.0) ) * (static_cast<KK_FLOAT>(1.0) - static_cast<KK_FLOAT>(3.0) * d);
+                          * static_cast<KK_FLOAT>(3.0) / xcut * MathSpecialKokkos::square(d)
+                          * MathSpecialKokkos::powint(static_cast<KK_FLOAT>(1.0) - d, 5) * (static_cast<KK_FLOAT>(1.0) - static_cast<KK_FLOAT>(3.0) * d);
           d_bond_softness = -static_cast<KK_FLOAT>(0.5) * d_bond_softness
                           * SQR( effpot_diff );
           d_bond_softness = static_cast<KK_FLOAT>(KCALpMOL_to_EV) * d_bond_softness
@@ -1454,8 +1455,8 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeTabulatedLJCoulo
 
       if (rij <= xcut) {
         const KK_FLOAT d = rij / xcut;
-        const KK_FLOAT bond_softness = gp[34] * pow( d, static_cast<KK_FLOAT>(3.0) )
-                                    * pow( static_cast<KK_FLOAT>(1.0) - d, static_cast<KK_FLOAT>(6.0) );
+        const KK_FLOAT bond_softness = gp[34] * MathSpecialKokkos::cube(d)
+                                    * MathSpecialKokkos::powint(static_cast<KK_FLOAT>(1.0) - d, 6);
 
         if (bond_softness > 0) {
           /* Coulombic energy contribution */
@@ -1469,8 +1470,8 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeTabulatedLJCoulo
           /* forces contribution */
           KK_FLOAT d_bond_softness;
           d_bond_softness = gp[34]
-                          * static_cast<KK_FLOAT>(3.0) / xcut * pow( d, static_cast<KK_FLOAT>(2.0) )
-                          * pow( static_cast<KK_FLOAT>(1.0) - d, static_cast<KK_FLOAT>(5.0) ) * (static_cast<KK_FLOAT>(1.0) - static_cast<KK_FLOAT>(3.0) * d);
+                          * static_cast<KK_FLOAT>(3.0) / xcut * MathSpecialKokkos::square(d)
+                          * MathSpecialKokkos::powint(static_cast<KK_FLOAT>(1.0) - d, 5) * (static_cast<KK_FLOAT>(1.0) - static_cast<KK_FLOAT>(3.0) * d);
           d_bond_softness = -static_cast<KK_FLOAT>(0.5) * d_bond_softness
                           * SQR( effpot_diff );
           d_bond_softness = static_cast<KK_FLOAT>(KCALpMOL_to_EV) * d_bond_softness
@@ -2396,11 +2397,11 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeMulti2<NEIGHFLAG
     // multibody lone pair: correction for C2
     if (p_lp3 > 0.001 && imass == 12.0 && jmass == 12.0) {
       const KK_FLOAT Di = d_Delta[i];
-      const KK_FLOAT vov3 = d_BO(i,j_index) - Di - 0.040*pow(Di,4.0);
+      const KK_FLOAT vov3 = d_BO(i,j_index) - Di - 0.040*MathSpecialKokkos::powint(Di,4);
       if (vov3 > 3.0) {
         const KK_FLOAT e_lph = p_lp3 * (vov3-3.0)*(vov3-3.0);
         const KK_FLOAT deahu2dbo = 2.0 * p_lp3 * (vov3 - 3.0);
-        const KK_FLOAT deahu2dsbo = 2.0 * p_lp3 * (vov3 - 3.0) * (-1.0 - 0.16 * pow(Di,3.0));
+        const KK_FLOAT deahu2dsbo = 2.0 * p_lp3 * (vov3 - 3.0) * (-1.0 - 0.16 * MathSpecialKokkos::cube(Di));
         d_Cdbo(i,j_index) += deahu2dbo;
         CdDelta_i += deahu2dsbo;
 

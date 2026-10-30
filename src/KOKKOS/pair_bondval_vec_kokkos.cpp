@@ -24,6 +24,7 @@
 #include "error.h"
 #include "force.h"
 #include "kokkos.h"
+#include "math_special_kokkos.h"
 #include "memory_kokkos.h"
 #include "neigh_list_kokkos.h"
 #include "neigh_request.h"
@@ -547,7 +548,7 @@ void PairBondValVecKokkos<DeviceType>::operator()(TagPairBondValVecKernelA<NEIGH
     if (rsq < (d_cutsq(itype,jtype))) {
       KK_FLOAT recip = static_cast<KK_FLOAT>(1.0)/Kokkos::sqrt(rsq);
 
-      const KK_FLOAT Aij = Kokkos::pow((params(itype,jtype).r0)*recip,(params(itype,jtype).alpha))*recip;
+      const KK_FLOAT Aij = MathSpecialKokkos::powauto((params(itype,jtype).r0)*recip,(params(itype,jtype).alpha))*recip;
       s0xtmp += static_cast<KK_ACC_FLOAT>(Aij * (delx));
       s0ytmp += static_cast<KK_ACC_FLOAT>(Aij * (dely));
       s0ztmp += static_cast<KK_ACC_FLOAT>(Aij * (delz));
@@ -637,7 +638,7 @@ void PairBondValVecKokkos<DeviceType>::operator()(TagPairBondValVecKernelAB<EFLA
 
     if (rsq < (d_cutsq(itype,jtype))) {
       KK_FLOAT recip = static_cast<KK_FLOAT>(1.0)/Kokkos::sqrt(rsq);
-      const KK_FLOAT Aij = Kokkos::pow((params(itype,jtype).r0)*recip,(params(itype,jtype).alpha))*recip;
+      const KK_FLOAT Aij = MathSpecialKokkos::powauto((params(itype,jtype).r0)*recip,(params(itype,jtype).alpha))*recip;
       s0xtmp += static_cast<KK_ACC_FLOAT>(Aij * (delx));
       s0ytmp += static_cast<KK_ACC_FLOAT>(Aij * (dely));
       s0ztmp += static_cast<KK_ACC_FLOAT>(Aij * (delz));
@@ -712,7 +713,7 @@ void PairBondValVecKokkos<DeviceType>::operator()(TagPairBondValVecKernelC<NEIGH
       const KK_FLOAT r = Kokkos::sqrt(rsq);
       const KK_FLOAT recip = static_cast<KK_FLOAT>(1.0)/r;
       const KK_FLOAT recip2 = recip*recip;
-      const KK_FLOAT Aij = Kokkos::pow((params(itype,jtype).r0)*recip,(params(itype,jtype).alpha))*recip;
+      const KK_FLOAT Aij = MathSpecialKokkos::powauto((params(itype,jtype).r0)*recip,(params(itype,jtype).alpha))*recip;
       const KK_FLOAT Eij = ((params(itype,jtype).alpha)+static_cast<KK_FLOAT>(1.0))*recip2;
 
       KK_FLOAT fx = (d_Di(j,0)-d_Di(i,0))*Aij

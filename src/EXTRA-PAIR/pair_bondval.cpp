@@ -21,6 +21,7 @@
 #include "comm.h"
 #include "error.h"
 #include "force.h"
+#include "math_special.h"
 #include "memory.h"
 #include "neigh_list.h"
 #include "neighbor.h"
@@ -28,6 +29,7 @@
 #include <cmath>
 
 using namespace LAMMPS_NS;
+using MathSpecial::powauto;
 
 /* ---------------------------------------------------------------------- */
 
@@ -128,9 +130,9 @@ void PairBondVal::compute(int eflag, int vflag)
         if (rsq < cutsq[itype][jtype]) { /*2*/
           recip = 1.0 / sqrt(rsq);
           r = sqrt(rsq);
-          s0[i] += pow(r0[itype][jtype] / r, alpha[itype][jtype]);
+          s0[i] += powauto(r0[itype][jtype] / r, alpha[itype][jtype]);
           if (newton_pair || j < nlocal) {
-            s0[j] += pow(r0[jtype][itype] / r, alpha[jtype][itype]);
+            s0[j] += powauto(r0[jtype][itype] / r, alpha[jtype][itype]);
           }
         } /*2*/
       } /*1*/
@@ -177,7 +179,7 @@ void PairBondVal::compute(int eflag, int vflag)
         if (rsq < cutsq[itype][jtype]) { /*2*/
           r = sqrt(rsq);
           recip = 1.0 / r;
-          Aij = alpha[itype][jtype] * pow(r0[itype][jtype] * recip, alpha[itype][jtype]) * recip;
+          Aij = alpha[itype][jtype] * powauto(r0[itype][jtype] * recip, alpha[itype][jtype]) * recip;
           psip = (fp[i] + fp[j]) * Aij;
           fpair = psip * recip;
 

@@ -474,8 +474,9 @@ For atom type pairs I,J and I != J, the cutoff distance for the
 *coul/cut* style can be mixed.  The default mix value is *geometric*\ .
 See the "pair_modify" command for details.
 
-The :doc:`pair_modify <pair_modify>` shift option is not relevant
-for these pair styles.
+The :doc:`pair_modify <pair_modify>` shift option is not available for
+these pair styles.  In most cases it is not relevant because the applied
+damping functions make the energy go smoothly to zero already.
 
 The *coul/long* style supports the :doc:`pair_modify <pair_modify>`
 table option for tabulation of the short-range portion of the

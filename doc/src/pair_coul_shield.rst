@@ -78,10 +78,9 @@ be given explicitly for each type of particle pairs.
 
 .. versionchanged:: TBD
 
-The :doc:`pair_modify <pair_modify>` *shift* option is not relevant
-for this pair style.  The taper function makes the energy go smoothly
-to zero at the cutoff.  Previously, the shift option subtracted an
-incorrect energy offset when the taper function was turned off.
+The :doc:`pair_modify <pair_modify>` *shift* option is not available
+for this pair style and ignored.  Instead the taper function should
+be used as it makes the energy go smoothly to zero at the cutoff.
 
 The :doc:`pair_modify <pair_modify>` *table* option is not relevant
 for this pair style.

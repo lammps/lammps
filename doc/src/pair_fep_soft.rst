@@ -34,6 +34,7 @@
 .. index:: pair_style lj/class2/soft/gapsys/kk
 .. index:: pair_style lj/class2/soft/gapsys/omp
 .. index:: pair_style lj/class2/coul/cut/soft
+.. index:: pair_style lj/class2/coul/cut/soft/gpu
 .. index:: pair_style lj/class2/coul/cut/soft/kk
 .. index:: pair_style lj/class2/coul/cut/soft/omp
 .. index:: pair_style lj/class2/coul/cut/soft/gapsys

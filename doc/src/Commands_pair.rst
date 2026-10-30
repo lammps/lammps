@@ -155,7 +155,7 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`lj/charmmfsw/coul/long (gko) <pair_charmm>`
    * :doc:`lj/class2 (gko) <pair_class2>`
    * :doc:`lj/class2/coul/cut (gko) <pair_class2>`
-   * :doc:`lj/class2/coul/cut/soft (ko) <pair_fep_soft>`
+   * :doc:`lj/class2/coul/cut/soft (gko) <pair_fep_soft>`
    * :doc:`lj/class2/coul/cut/soft/gapsys (gko) <pair_fep_soft>`
    * :doc:`lj/class2/coul/long (gko) <pair_class2>`
    * :doc:`lj/class2/coul/long/cs (gko) <pair_cs>`
@@ -235,7 +235,7 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`multi/lucy (o) <pair_multi_lucy>`
    * :doc:`multi/lucy/rx (k) <pair_multi_lucy_rx>`
    * :doc:`nb3b/harmonic (ko) <pair_nb3b>`
-   * :doc:`nb3b/screened <pair_nb3b>`
+   * :doc:`nb3b/screened (ko) <pair_nb3b>`
    * :doc:`nm/cut (gko) <pair_nm>`
    * :doc:`nm/cut/coul/cut (gko) <pair_nm>`
    * :doc:`nm/cut/coul/long (gko) <pair_nm>`

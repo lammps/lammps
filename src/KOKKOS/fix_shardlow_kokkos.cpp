@@ -78,7 +78,7 @@ FixShardlowKokkos<DeviceType>::FixShardlowKokkos(LAMMPS *lmp, int narg, char **a
 //  k_pairDPD = nullptr;
   k_pairDPDE = nullptr;
 //  k_pairDPD = (PairDPDfdtKokkos *) force->pair_match("dpd/fdt",1);
-  k_pairDPDE = dynamic_cast<PairDPDfdtEnergyKokkos<DeviceType> *>(force->pair_match("dpd/fdt/energy",0));
+  k_pairDPDE = PairDPDfdtEnergyKokkos<DeviceType>::cast(force->pair_match("dpd/fdt/energy",0));
 
 //   if (k_pairDPDE) {
     comm_forward = 3;
@@ -560,7 +560,7 @@ void FixShardlowKokkos<DeviceType>::initial_integrate(int /*vflag*/)
 
   dtsqrt = static_cast<KK_FLOAT>(sqrt(update->dt));
 
-  NPairSSAKokkos<DeviceType> *np_ssa = dynamic_cast<NPairSSAKokkos<DeviceType>*>(list->np);
+  NPairSSAKokkos<DeviceType> *np_ssa = NPairSSAKokkos<DeviceType>::cast(list->np);
   if (!np_ssa) error->one(FLERR, "NPair wasn't a NPairSSAKokkos object");
   ssa_phaseCt = np_ssa->ssa_phaseCt;
   ssa_phaseLen = np_ssa->ssa_phaseLen;

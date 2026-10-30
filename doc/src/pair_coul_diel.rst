@@ -1,11 +1,12 @@
 .. index:: pair_style coul/diel
+.. index:: pair_style coul/diel/gpu
 .. index:: pair_style coul/diel/kk
 .. index:: pair_style coul/diel/omp
 
 pair_style coul/diel command
 ============================
 
-Accelerator Variants: *coul/diel/kk*, *coul/diel/omp*
+Accelerator Variants: *coul/diel/gpu*, *coul/diel/kk*, *coul/diel/omp*
 
 Syntax
 """"""
@@ -82,9 +83,12 @@ Mixing, shift, table, tail correction, restart, rRESPA info
 This pair style does not support parameter mixing. Coefficients must
 be given explicitly for each type of particle pairs.
 
-This pair style supports the :doc:`pair_modify <pair_modify>` shift
-option for the energy of the Gauss-potential portion of the pair
-interaction.
+.. versionchanged:: TBD
+
+The :doc:`pair_modify <pair_modify>` shift option is not relevant for
+this pair style, since the energy goes to zero at large distances
+where :math:`\epsilon_D(r)` approaches :math:`\epsilon`.  Previously,
+the shift option subtracted an incorrect energy offset.
 
 The :doc:`pair_modify <pair_modify>` table option is not relevant
 for this pair style.

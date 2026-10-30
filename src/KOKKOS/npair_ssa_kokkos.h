@@ -59,6 +59,8 @@ class NPairSSAKokkos : public NPair {
   typename AT::t_int_2d ssa_gitemLen;
 
   NPairSSAKokkos(class LAMMPS *);
+  // checked conversion from a base class pointer, see the .cpp file
+  static NPairSSAKokkos<DeviceType> *cast(class NPair *);
   void copy_neighbor_info() override;
   void copy_bin_info() override;
   void copy_stencil_info() override;

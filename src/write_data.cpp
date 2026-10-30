@@ -16,6 +16,7 @@
 
 #include "angle.h"
 #include "atom.h"
+#include "atom_masks.h"
 #include "atom_vec.h"
 #include "bond.h"
 #include "comm.h"
@@ -160,6 +161,12 @@ void WriteData::command(int narg, char **arg)
 
 void WriteData::write(const std::string &file)
 {
+  // everything below reads the per-atom arrays through the plain pointers,
+  // so bring the host side up to date first; without the KOKKOS package
+  // this does nothing
+
+  atom->sync_host_arrays(ALL_MASK);
+
   // special case where reneighboring is not done in integrator
   //   on timestep data file is written (due to build_once being set)
   // if box is changing, must be reset, else data file will have

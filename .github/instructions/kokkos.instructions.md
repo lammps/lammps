@@ -134,6 +134,12 @@ CPU base's bare helper creation -- prefer that pattern for new styles.
 - Missing explicit template instantiation at the bottom of the `.cpp` file
   (`template class <Name>Kokkos<LMPDeviceType>;` plus the `LMPHostType` line under
   `#ifdef LMP_KOKKOS_GPU`).
+- `dynamic_cast` (or `typeid`) to a `<Name>Kokkos<DeviceType>` class outside the `.cpp`
+  file with its explicit instantiation: with the C++ ABI of macOS on arm64 the type
+  information is then a hidden local copy and the linker warns about "direct access
+  ... to global weak symbol".  Call the static `<Name>Kokkos<DeviceType>::cast()`
+  member instead, and add one (defined next to the explicit instantiation) if the
+  class does not have it yet.
 - Not rebuilding with `make purge` after switching between Make and CMake builds.
 - Overflow-prone `exp()` with a positive argument in `KK_FLOAT` code: in mixed/single
   precision the float overload returns inf above ~88.7 and the forces turn to NaN
@@ -149,6 +155,12 @@ CPU base's bare helper creation -- prefer that pattern for new styles.
   `kokkos->auto_sync = 1` (save and restore the previous value), so that every
   `sync()`/`modified()` it triggers writes through to the legacy host arrays.
   Pattern: fix hooks in `ModifyKokkos`, force computes in `VerletKokkos::run()`.
+- A struct used as the element type of a `Kokkos::View` or `DualView` (for example the
+  CPU base class's `Param` that a many-body style copies to the device in
+  `setup_params()`) must be declared `public`: nvcc rejects a `private` or `protected`
+  nested type as a template argument of a kernel, while HIP and the host backends
+  accept it, so the error only shows in CUDA builds.  `PairSW`, `PairTersoff` and
+  `PairVashishta` declare their `Param` public for this reason.
 - Pair styles switch from stack arrays to device views for parameters when
   `ntypes > MAX_TYPES_STACKPARAMS` (12).  Cover that path with a test system of more
   than 12 atom types (`mol-pair-coul_long_manytypes.yaml`); an unallocated view on
@@ -162,7 +174,7 @@ CPU base's bare helper creation -- prefer that pattern for new styles.
 - `.github/dev-docs/kokkos-porting-guide.md` -- pair/fix template skeletons and the full
   lessons-learned collection (custom kernels, wall styles, thermostat/barostat and
   temperature-compute port patterns, device RNG, GPU-only debugging methods).
-- `.github/dev-docs/kokkos-porting-backlog.md` -- what remains to port and where open work
+- `.github/dev-docs/accelerator-porting-backlog.md` -- what remains to port and where open work
   lives; status tables go stale, so trust the tree (`ls src/KOKKOS/`, `git log`) over any
   table.
 - Build and test commands: `.github/copilot-instructions.md`; the KOKKOS-specific test

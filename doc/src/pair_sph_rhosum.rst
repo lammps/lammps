@@ -1,7 +1,10 @@
 .. index:: pair_style sph/rhosum
+.. index:: pair_style sph/rhosum/omp
 
 pair_style sph/rhosum command
 =============================
+
+Accelerator Variants: *sph/rhosum/omp*
 
 Syntax
 """"""
@@ -34,6 +37,10 @@ types via the :doc:`pair_coeff <pair_coeff>` command as in the examples
 above.
 
 * h (distance units)
+
+----------
+
+.. include:: accel_styles.rst
 
 ----------
 

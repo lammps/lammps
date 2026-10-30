@@ -113,9 +113,15 @@ LAMMPS *init_lammps(LAMMPS::argv &args, const TestConfig &cfg, const bool newton
         if (!omp_suffix && (prerequisite.first == "pair")) {
             // this is a test for pair styles, so if the suffixed
             // version is not available, there is no reason to test.
+            // hybrid pair styles work with the suffixed variants of their
+            // sub-styles, which are listed as prerequisites as well. only
+            // KOKKOS requires a suffixed variant of the hybrid style itself.
             if (lmp->suffix_enable) {
-                style += "/";
-                style += lmp->suffix;
+                const std::string suffix = lmp->suffix;
+                if (!utils::strmatch(style, "^hybrid") || (suffix == "kk")) {
+                    style += "/";
+                    style += suffix;
+                }
             }
         }
 

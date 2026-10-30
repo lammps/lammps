@@ -330,6 +330,11 @@ void PairSWKokkos<DeviceType>::operator()(TagPairSWCompute<NEIGHFLAG,EVFLAG>, co
     delr1[2] = x(j,2) - ztmp;
     const KK_FLOAT rsq1 = delr1[0]*delr1[0] + delr1[1]*delr1[1] + delr1[2]*delr1[2];
 
+    // radial factors of the i-j leg are the same for all k
+
+    ThreeBodyLeg leg1;
+    if (!threebody_leg(d_params[ijparam],rsq1,leg1)) continue;
+
     KK_ACC_FLOAT fxtmpj = 0.0;
     KK_ACC_FLOAT fytmpj = 0.0;
     KK_ACC_FLOAT fztmpj = 0.0;
@@ -345,8 +350,10 @@ void PairSWKokkos<DeviceType>::operator()(TagPairSWCompute<NEIGHFLAG,EVFLAG>, co
       delr2[2] = x(k,2) - ztmp;
       const KK_FLOAT rsq2 = delr2[0]*delr2[0] + delr2[1]*delr2[1] + delr2[2]*delr2[2];
 
-      threebody_kk(d_params[ijparam],d_params[ikparam],d_params[ijkparam],
-                rsq1,rsq2,delr1,delr2,fj,fk,eflag,evdwl);
+      ThreeBodyLeg leg2;
+      if (!threebody_leg(d_params[ikparam],rsq2,leg2)) continue;
+
+      threebody_kk(d_params[ijkparam],leg1,leg2,delr1,delr2,fj,fk,eflag,evdwl);
 
       fxtmpi -= fj[0] + fk[0];
       fytmpi -= fj[1] + fk[1];
@@ -500,68 +507,56 @@ void PairSWKokkos<DeviceType>::twobody(const Param& param, const KK_FLOAT& rsq, 
   if (eflag) eng = (static_cast<KK_FLOAT>(param.c5)*rp - static_cast<KK_FLOAT>(param.c6)*rq) * expsrainv;
 }
 
+/* ----------------------------------------------------------------------
+   radial factors of one leg of a three-body term
+   returns false if the separation rounds up to the cutoff (zero contribution)
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+// NOLINTNEXTLINE
+KOKKOS_INLINE_FUNCTION
+bool PairSWKokkos<DeviceType>::threebody_leg(const Param& param, const KK_FLOAT& rsq,
+                                              ThreeBodyLeg& leg) const
+{
+  leg.r = Kokkos::sqrt(rsq);
+  if (leg.r >= static_cast<KK_FLOAT>(param.cut)) return false;
+
+  const KK_FLOAT rainv = static_cast<KK_FLOAT>(1.0)/(leg.r - static_cast<KK_FLOAT>(param.cut));
+  const KK_FLOAT gsrainv = static_cast<KK_FLOAT>(param.sigma_gamma) * rainv;
+  leg.rinvsq = static_cast<KK_FLOAT>(1.0)/rsq;
+  leg.gsrainvsq = gsrainv*rainv/leg.r;
+  leg.expgsrainv = Kokkos::exp(gsrainv);
+  return true;
+}
+
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
 // NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
-void PairSWKokkos<DeviceType>::threebody_kk(const Param& paramij, const Param& paramik, const Param& paramijk,
-                       const KK_FLOAT& rsq1, const KK_FLOAT& rsq2,
-                       KK_FLOAT *delr1, KK_FLOAT *delr2,
+void PairSWKokkos<DeviceType>::threebody_kk(const Param& paramijk, const ThreeBodyLeg& leg1,
+                       const ThreeBodyLeg& leg2, KK_FLOAT *delr1, KK_FLOAT *delr2,
                        KK_ACC_FLOAT *fj, KK_ACC_FLOAT *fk, const int& eflag, KK_FLOAT& eng) const
 {
-  KK_FLOAT r1,rinvsq1,rainv1,gsrainv1,gsrainvsq1,expgsrainv1;
-  KK_FLOAT r2,rinvsq2,rainv2,gsrainv2,gsrainvsq2,expgsrainv2;
-  KK_FLOAT rinv12,cs,delcs,delcssq,facexp,facrad,frad1,frad2;
-  KK_FLOAT facang,facang12,csfacang,csfac1,csfac2;
+  const KK_FLOAT rinv12 = static_cast<KK_FLOAT>(1.0)/(leg1.r*leg2.r);
+  const KK_FLOAT cs = (delr1[0]*delr2[0] + delr1[1]*delr2[1] + delr1[2]*delr2[2]) * rinv12;
+  const KK_FLOAT delcs = cs - static_cast<KK_FLOAT>(paramijk.costheta);
+  const KK_FLOAT delcssq = delcs*delcs;
 
-  r1 = Kokkos::sqrt(rsq1);
-  r2 = Kokkos::sqrt(rsq2);
+  const KK_FLOAT facexp = leg1.expgsrainv*leg2.expgsrainv;
 
-  // either separation can round up to the cutoff, see the note in twobody()
-
-  if ((r1 >= static_cast<KK_FLOAT>(paramij.cut)) || (r2 >= static_cast<KK_FLOAT>(paramik.cut))) {
-    fj[0] = fj[1] = fj[2] = 0.0;
-    fk[0] = fk[1] = fk[2] = 0.0;
-    if (eflag) eng = 0.0;
-    return;
-  }
-
-  rinvsq1 = static_cast<KK_FLOAT>(1.0)/rsq1;
-  rainv1 = static_cast<KK_FLOAT>(1.0)/(r1 - static_cast<KK_FLOAT>(paramij.cut));
-  gsrainv1 = static_cast<KK_FLOAT>(paramij.sigma_gamma) * rainv1;
-  gsrainvsq1 = gsrainv1*rainv1/r1;
-  expgsrainv1 = Kokkos::exp(gsrainv1);
-
-  rinvsq2 = static_cast<KK_FLOAT>(1.0)/rsq2;
-  rainv2 = static_cast<KK_FLOAT>(1.0)/(r2 - static_cast<KK_FLOAT>(paramik.cut));
-  gsrainv2 = static_cast<KK_FLOAT>(paramik.sigma_gamma) * rainv2;
-  gsrainvsq2 = gsrainv2*rainv2/r2;
-  expgsrainv2 = Kokkos::exp(gsrainv2);
-
-  rinv12 = static_cast<KK_FLOAT>(1.0)/(r1*r2);
-  cs = (delr1[0]*delr2[0] + delr1[1]*delr2[1] + delr1[2]*delr2[2]) * rinv12;
-  delcs = cs - static_cast<KK_FLOAT>(paramijk.costheta);
-  delcssq = delcs*delcs;
-
-  facexp = expgsrainv1*expgsrainv2;
-
-  // facrad = sqrt(paramij.lambda_epsilon*paramik.lambda_epsilon) *
-  //          facexp*delcssq;
-
-  facrad = static_cast<KK_FLOAT>(paramijk.lambda_epsilon) * facexp*delcssq;
-  frad1 = facrad*gsrainvsq1;
-  frad2 = facrad*gsrainvsq2;
-  facang = static_cast<KK_FLOAT>(paramijk.lambda_epsilon2) * facexp*delcs;
-  facang12 = rinv12*facang;
-  csfacang = cs*facang;
-  csfac1 = rinvsq1*csfacang;
+  const KK_FLOAT facrad = static_cast<KK_FLOAT>(paramijk.lambda_epsilon) * facexp*delcssq;
+  const KK_FLOAT frad1 = facrad*leg1.gsrainvsq;
+  const KK_FLOAT frad2 = facrad*leg2.gsrainvsq;
+  const KK_FLOAT facang = static_cast<KK_FLOAT>(paramijk.lambda_epsilon2) * facexp*delcs;
+  const KK_FLOAT facang12 = rinv12*facang;
+  const KK_FLOAT csfacang = cs*facang;
+  const KK_FLOAT csfac1 = leg1.rinvsq*csfacang;
+  const KK_FLOAT csfac2 = leg2.rinvsq*csfacang;
 
   fj[0] = static_cast<KK_ACC_FLOAT>(delr1[0]*(frad1+csfac1)-delr2[0]*facang12);
   fj[1] = static_cast<KK_ACC_FLOAT>(delr1[1]*(frad1+csfac1)-delr2[1]*facang12);
   fj[2] = static_cast<KK_ACC_FLOAT>(delr1[2]*(frad1+csfac1)-delr2[2]*facang12);
-
-  csfac2 = rinvsq2*csfacang;
 
   fk[0] = static_cast<KK_ACC_FLOAT>(delr2[0]*(frad2+csfac2)-delr1[0]*facang12);
   fk[1] = static_cast<KK_ACC_FLOAT>(delr2[1]*(frad2+csfac2)-delr1[1]*facang12);

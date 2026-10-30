@@ -2029,6 +2029,8 @@ as a plugin to avoid licensing conflicts when distributing binaries.
 
 * ``src/ML-PACE``: filenames -> commands
 * :doc:`pair_style pace <pair_pace>`
+* :doc:`compute pace <compute_pace>`
+* :doc:`compute pace/atom <compute_pace>`
 * ``examples/PACKAGES/pace``
 
 ----------

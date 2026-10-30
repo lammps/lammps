@@ -1,0 +1,11 @@
+# geometry setup for the compute pace / pace/atom unit tests
+# small, irregular (non-lattice), periodic H/N/O cell chosen so that atoms
+# interact across the periodic boundaries -> ghost atoms are required, which
+# exercises the local+ghost gradient/virial accumulation in compute pace.
+
+units           metal
+atom_style      atomic
+atom_modify     map hash
+boundary        p p p
+
+read_data       ${input_dir}/data.pace-hno

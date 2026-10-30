@@ -332,6 +332,7 @@ biga
 bigbig
 bigint
 Bij
+bikflag
 bilayer
 bilayers
 bilinear
@@ -887,6 +888,7 @@ df
 dfftw
 DFT
 dftb
+dgradflag
 dgroup
 dh
 dhex

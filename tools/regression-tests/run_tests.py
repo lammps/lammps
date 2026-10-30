@@ -17,10 +17,11 @@ With the current features, users can:
       running them, detected by comparing the -help output of the binary with the styles that
       exist in the source tree, and optionally validated with a "-skiprun" dry run of every
       input script (--preflight, with cacheable verdicts via --preflight-cache)
-    + check that every example input script parses, sets up, and takes one step without
-      crashing by running all of them with "-skiprun" (--preflight-only); together with
-      a small MPI setup this exercises the domain decomposition and communication at a
-      small fraction of the cost of the full runs (see the check-examples.yml workflow)
+    + check that every example input script parses and executes all commands except run
+      and minimize without crashing by running all of them with "-skiprun"
+      (--preflight-only), which skips run and minimize commands entirely; together with
+      a small MPI setup this exercises the domain decomposition at a small fraction of
+      the cost of the full runs (see the check-examples.yml workflow)
     + set a timeout for every input script run if they may take too long
     + skip numerical checks if the goal is just to check if the runs do not fail
 
@@ -63,6 +64,11 @@ The following Python packages need to be installed into an activated environment
     python3 -m venv testing-env
     source testing-env/bin/activate
     pip install numpy pyyaml
+
+Input scripts that use the LAMMPS python module from inside LAMMPS (e.g. those in
+examples/python) get the module from the python folder of this source tree, which is
+prepended to PYTHONPATH for the LAMMPS runs, so that an installed copy of the module
+for a different LAMMPS version cannot interfere.
 
 Example usage (aka, tests for this script):
 
@@ -447,11 +453,11 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
             continue
 
         # with --preflight-only the "-skiprun" run is the whole test: the input script
-        # runs with the configured MPI setup, but the loops of all run and minimize
-        # commands end after one step.  This tests that the input script parses, that
-        # every style exists, that the setup (reading files, building neighbor lists,
-        # initial communication) works, and that one step runs without crashing --
-        # without the cost of the full runs and without any numerical checks
+        # runs with the configured MPI setup, but run and minimize commands are skipped
+        # entirely (before their setup).  This tests that the input script parses, that
+        # every style exists, and that all other commands (reading files, creating atoms
+        # and topology, domain decomposition) work without crashing -- without the cost
+        # of the full runs and without any numerical checks
         if config.get('preflight_only', False):
             str_t = "   + " + input_test + f" ({test_id+1}/{num_tests}) [-skiprun check]"
             logger.info(str_t)
@@ -1299,7 +1305,8 @@ def style_reason(category, name, package):
     input_file        : path of the input script
     missing_styles    : dictionary from compute_missing_styles()
     installed_packages: list of packages included in the binary (optional, used to
-                        check "package gpu/omp/intel/kokkos" commands)
+                        check "package gpu/omp/intel/kokkos" commands and the use of
+                        the python command or python-style variables)
 
     return the reason for skipping the input script, or an empty string
 '''
@@ -1322,6 +1329,18 @@ def incompatible_style_usage(input_file, missing_styles, installed_packages=None
                 if package and (package not in installed_packages):
                     return (f'uses the "package {tokens[1]}" command, which needs the '
                             f'{package} package that is not included in the tested binary')
+            # the python command and python-style variables exist in every binary,
+            # but only work when the PYTHON package is included
+            if installed_packages and ('PYTHON' not in installed_packages):
+                if cmd == 'python':
+                    what = 'the "python" command'
+                elif (cmd == 'variable') and (len(tokens) > 2) and (tokens[2] == 'python'):
+                    what = 'a python-style variable'
+                else:
+                    what = ''
+                if what:
+                    return (f'uses {what}, which needs the PYTHON package that is not '
+                            f'included in the tested binary')
             if cmd not in STYLE_TAKING_COMMANDS:
                 continue
             category, pos = STYLE_TAKING_COMMANDS[cmd]
@@ -1414,11 +1433,11 @@ PREFLIGHT_SKIP_PATTERNS = ("package which is not enabled",
                            "Must use a Kokkos-enabled min style",
                            "not supported by the KOKKOS package")
 
-# error messages that are a consequence of the run and minimize loops being cut
-# short by -skiprun: post-run analysis (e.g. variables dividing by averages that a
-# fix accumulates over the full run, or energies tallied on the expected timestep
-# schedule) cannot work with runs that end after one step.  Such an input script
-# cannot be checked with -skiprun, which is not a failure of the input script.
+# error messages that are a consequence of run and minimize commands being skipped
+# by -skiprun: post-run analysis (e.g. variables dividing by averages that a fix
+# accumulates over the full run, or energies tallied on the expected timestep
+# schedule) cannot work without the runs.  Such an input script cannot be checked
+# with -skiprun, which is not a failure of the input script.
 SKIPRUN_ARTIFACT_PATTERNS = ("was not tallied on needed timestep",
                              "Divide by 0 in variable formula",
                              "compute cannot be invoked before initialization",
@@ -1428,8 +1447,8 @@ SKIPRUN_ARTIFACT_PATTERNS = ("was not tallied on needed timestep",
     validate an input script with a "-skiprun" dry run of the tested binary
 
     With -skiprun the whole input script is parsed and every style instantiated, but
-    the loops of all run and minimize commands end after one step, so this costs
-    little more than the setup.  The run is launched in serial (without mpiexec),
+    run and minimize commands are skipped entirely, so this costs little more than
+    reading the input files.  The run is launched in serial (without mpiexec),
     since which styles exist does not depend on the number of processes.
 
     lmp_binary    : full path to the LAMMPS binary
@@ -2511,8 +2530,8 @@ if __name__ == "__main__":
                              "configuration stays the same")
     parser.add_argument("--preflight-only", dest="preflight_only", action='store_true', default=False,
                         help="Run every input script with \"-skiprun\" appended and only test "
-                             "that it parses, sets up, and takes one step without crashing; "
-                             "no numerical checks are performed")
+                             "that it parses and executes all commands except run and minimize "
+                             "without crashing; no numerical checks are performed")
     parser.add_argument("--gen-ref",dest="genref", action='store_true', default=False,
                         help="Generating reference log files")
     parser.add_argument("--verbose",dest="verbose", action='store_true', default=False,
@@ -2557,6 +2576,15 @@ if __name__ == "__main__":
     # logging
     logger = logging.getLogger(__name__)
     logging.basicConfig(filename=log_file, level=logging.INFO, filemode="w")
+
+    # input scripts that use the LAMMPS python module from inside LAMMPS (e.g. those in
+    # examples/python) must get the module from this source tree: an installed copy of
+    # the module may belong to a different LAMMPS version than the tested binary and then
+    # refuses to work.  The module in the source tree skips this version check.
+    python_dir = os.path.join(LAMMPS_DIR, 'python')
+    if os.path.isdir(os.path.join(python_dir, 'lammps')):
+        pythonpath = [p for p in os.environ.get('PYTHONPATH', '').split(os.pathsep) if p]
+        os.environ['PYTHONPATH'] = os.pathsep.join([python_dir] + pythonpath)
 
     # read in the configuration of the tests; it is needed for splitting the input
     # scripts over the workers as well, so it is read before anything else is done

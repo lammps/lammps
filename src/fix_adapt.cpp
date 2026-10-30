@@ -425,15 +425,31 @@ void FixAdapt::init()
         nsub = utils::inumeric(FLERR,cptr+1,false,lmp);
       }
 
+      std::string pname;
       if (lmp->suffix_enable) {
-        if (lmp->suffix)
-          ad->pair = force->pair_match(fmt::format("{}/{}",pstyle,lmp->suffix),1,nsub);
-        if ((ad->pair == nullptr) && lmp->suffix2)
-          ad->pair = force->pair_match(fmt::format("{}/{}",pstyle,lmp->suffix2),1,nsub);
+        if (lmp->suffix) {
+          pname = fmt::format("{}/{}",pstyle,lmp->suffix);
+          ad->pair = force->pair_match(pname,1,nsub);
+        }
+        if ((ad->pair == nullptr) && lmp->suffix2) {
+          pname = fmt::format("{}/{}",pstyle,lmp->suffix2);
+          ad->pair = force->pair_match(pname,1,nsub);
+        }
       }
-      if (ad->pair == nullptr) ad->pair = force->pair_match(pstyle,1,nsub);
+      if (ad->pair == nullptr) {
+        pname = pstyle;
+        ad->pair = force->pair_match(pstyle,1,nsub);
+      }
       if (ad->pair == nullptr)
         error->all(FLERR, Error::NOLASTLINE, "Fix adapt pair style {} not found", pstyle);
+
+      // Pair::reinit() checks reinitflag only for the top-level pair style,
+      // so the check for sub-styles of hybrid pair styles must be done here.
+      // hybrid pair styles store the names of their sub-styles without suffix.
+
+      if (!ad->pair->reinitflag)
+        error->all(FLERR, Error::NOLASTLINE, "Fix adapt interface to {}pair style {} is not supported",
+                   ad->pair->suffix_flag ? "the accelerated variant of " : "", pname);
 
       void *ptr = ad->pair->extract(ad->pparam,ad->pdim);
       if (ptr == nullptr)

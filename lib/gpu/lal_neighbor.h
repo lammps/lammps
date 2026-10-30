@@ -25,20 +25,8 @@
 #define IJ_SIZE 131072
 
 // same settings with lal_neighbor_gpu.cu
-#if !defined(USE_OPENCL) && !defined(USE_HIP)
-#ifndef LAL_USE_OLD_NEIGHBOR
-// Issue with incorrect results with CUDA >= 11.2 and pre-12.0
-#if (CUDA_VERSION > 11019) && (CUDA_VERSION < 12000)
-#define LAL_USE_OLD_NEIGHBOR
-#endif
-#endif
-#endif
-
-#if defined(USE_HIP) || defined(__APPLE__)
-#define LAL_USE_OLD_NEIGHBOR
-#endif
-
-#ifdef USE_CUDPP
+// the neighbor list build with subgroup support is not used on macOS
+#if defined(__APPLE__)
 #define LAL_USE_OLD_NEIGHBOR
 #endif
 
@@ -59,7 +47,6 @@ class Neighbor {
     * \param host_inum Initial number of particles whose nbors copied to host
     * \param max_nbors Factor (in percentage) applied to density calculated max
     * \param gpu_nbor 0 if neighboring will be performed on host
-    *        gpu_nbor 1 if neighboring will be performed on device
     *        gpu_nbor 2 if binning on host and neighboring on device
     * \param gpu_host 0 if host will not perform force calculations,
     *                 1 if gpu_nbor is true, and host needs a half nbor list,
@@ -73,8 +60,8 @@ class Neighbor {
   bool init(NeighborShared *shared, const int inum, const int host_inum,
             const int max_nbors, const int maxspecial, UCL_Device &dev,
             const int gpu_nbor, const int gpu_host, const bool pre_cut,
-            const int block_cell_2d, const int block_cell_id,
-            const int block_nbor_build, const int threads_per_atom,
+            const int block_cell_2d, const int block_nbor_build,
+            const int threads_per_atom,
             const int simd_size, const bool time_device,
             const std::string &compile_flags, const bool ilist_map);
 
@@ -289,7 +276,7 @@ class Neighbor {
   double _gpu_bytes, _c_bytes, _cell_bytes;
   void alloc(bool &success);
 
-  int _block_cell_2d, _block_cell_id, _max_block_nbor_build, _block_nbor_build;
+  int _block_cell_2d, _max_block_nbor_build, _block_nbor_build;
   int _ncells, _threads_per_atom, _total_atoms;
 
   template <class numtyp, class acctyp>

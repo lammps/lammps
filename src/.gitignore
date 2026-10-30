@@ -198,6 +198,11 @@
 /fix_*manifold*.cpp
 /fix_*manifold*.h
 
+/fix_symmetry.cpp
+/fix_symmetry.h
+/symmetry_group.cpp
+/symmetry_group.h
+
 /meam*.h
 /meam*.cpp
 /pair_meam.cpp
@@ -1142,12 +1147,8 @@
 /fix_qeq_fire.h
 /fix_qeq_reaxff.cpp
 /fix_qeq_reaxff.h
-/fix_qeq_rel_reaxff.cpp
-/fix_qeq_rel_reaxff.h
 /fix_qmmm.cpp
 /fix_qmmm.h
-/fix_qtpie_reaxff.cpp
-/fix_qtpie_reaxff.h
 /fix_reaxff.cpp
 /fix_reaxff.h
 /fix_reaxff_bonds.cpp
@@ -1501,12 +1502,16 @@
 /pair_lj_class2_coul_cut.h
 /pair_lj_class2_coul_cut_soft.cpp
 /pair_lj_class2_coul_cut_soft.h
+/pair_lj_class2_coul_cut_soft_gapsys.cpp
+/pair_lj_class2_coul_cut_soft_gapsys.h
 /pair_lj_class2_coul_long.cpp
 /pair_lj_class2_coul_long.h
 /pair_lj_class2_coul_long_soft.cpp
 /pair_lj_class2_coul_long_soft.h
 /pair_lj_class2_soft.cpp
 /pair_lj_class2_soft.h
+/pair_lj_class2_soft_gapsys.cpp
+/pair_lj_class2_soft_gapsys.h
 /pair_lj_coul.cpp
 /pair_lj_coul.h
 /pair_coul_cut_soft.cpp
@@ -1517,6 +1522,8 @@
 /pair_coul_long_soft.h
 /pair_lj_cut_coul_cut_soft.cpp
 /pair_lj_cut_coul_cut_soft.h
+/pair_lj_cut_coul_cut_soft_gapsys.cpp
+/pair_lj_cut_coul_cut_soft_gapsys.h
 /pair_lj_cut_tip4p_cut.cpp
 /pair_lj_cut_tip4p_cut.h
 /pair_lj_cut_coul_esp.cpp

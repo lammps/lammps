@@ -4,7 +4,7 @@ How-to reference for porting LAMMPS pair, fix, and compute styles to the KOKKOS 
 template skeletons plus the accumulated lessons from past porting work, by theme. The
 always-on rules (copymode guard, virtual allocate, `AT::` vs `DAT::`, datamask/sync,
 full-ports-only, doc checklist) live in `.github/instructions/kokkos.instructions.md` and
-are not repeated here; remaining work is in `.github/dev-docs/kokkos-porting-backlog.md`.
+are not repeated here; remaining work is in `.github/dev-docs/accelerator-porting-backlog.md`.
 
 ## Porting a pair style
 
@@ -621,7 +621,7 @@ numerically unfit for single/mixed, add the corresponding `skip_tests` entries i
 ```bash
 cmake -S cmake -B build -C cmake/presets/gcc.cmake -C cmake/presets/most.cmake \
   -D PKG_KOKKOS=on -D Kokkos_ENABLE_OPENMP=on \
-  -D DOWNLOAD_POTENTIALS=off -D ENABLE_TESTING=on -G Ninja
+  -D DOWNLOAD_POTENTIALS=off -D ENABLE_TESTING=on -D BUILD_SHARED_LIBS=on -G Ninja
 cmake --build build -j 4
 ctest --test-dir build -V -R pair
 ```

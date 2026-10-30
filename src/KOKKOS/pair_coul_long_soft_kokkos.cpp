@@ -145,6 +145,7 @@ compute_fcoul(const KK_FLOAT& rsq, const int& /*i*/, const int&j, const int& ity
               const int& jtype, const KK_FLOAT& factor_coul, const KK_FLOAT& qtmp) const {
   const KK_FLOAT lam1 = (STACKPARAMS?m_params[itype][jtype].lam1:params(itype,jtype).lam1);
   const KK_FLOAT lam2 = (STACKPARAMS?m_params[itype][jtype].lam2:params(itype,jtype).lam2);
+  const KK_FLOAT scale_kk = (STACKPARAMS?m_params[itype][jtype].scale:params(itype,jtype).scale);
 
   const KK_FLOAT r = Kokkos::sqrt(rsq);
   const KK_FLOAT grij = g_ewald_kk * r;
@@ -155,7 +156,7 @@ compute_fcoul(const KK_FLOAT& rsq, const int& /*i*/, const int&j, const int& ity
     t*(static_cast<KK_FLOAT>(A3)+t*(static_cast<KK_FLOAT>(A4)+t*static_cast<KK_FLOAT>(A5))))) * expm2;
 
   const KK_FLOAT denc = Kokkos::sqrt(lam2 + rsq);
-  const KK_FLOAT prefactor = qqrd2e * lam1 * qtmp * q(j) / (denc*denc*denc);
+  const KK_FLOAT prefactor = qqrd2e * scale_kk * lam1 * qtmp * q(j) / (denc*denc*denc);
 
   // already a force/r quantity, as in the base style
 
@@ -179,6 +180,7 @@ compute_ecoul(const KK_FLOAT& rsq, const int& /*i*/, const int&j, const int& ity
               const int& jtype, const KK_FLOAT& factor_coul, const KK_FLOAT& qtmp) const {
   const KK_FLOAT lam1 = (STACKPARAMS?m_params[itype][jtype].lam1:params(itype,jtype).lam1);
   const KK_FLOAT lam2 = (STACKPARAMS?m_params[itype][jtype].lam2:params(itype,jtype).lam2);
+  const KK_FLOAT scale_kk = (STACKPARAMS?m_params[itype][jtype].scale:params(itype,jtype).scale);
 
   const KK_FLOAT r = Kokkos::sqrt(rsq);
   const KK_FLOAT grij = g_ewald_kk * r;
@@ -189,7 +191,7 @@ compute_ecoul(const KK_FLOAT& rsq, const int& /*i*/, const int&j, const int& ity
     t*(static_cast<KK_FLOAT>(A3)+t*(static_cast<KK_FLOAT>(A4)+t*static_cast<KK_FLOAT>(A5))))) * expm2;
 
   const KK_FLOAT denc = Kokkos::sqrt(lam2 + rsq);
-  const KK_FLOAT prefactor = qqrd2e * lam1 * qtmp * q(j) / denc;
+  const KK_FLOAT prefactor = qqrd2e * scale_kk * lam1 * qtmp * q(j) / denc;
 
   KK_FLOAT ecoul = prefactor*erfc;
   if (factor_coul < static_cast<KK_FLOAT>(1.0))
@@ -251,6 +253,7 @@ double PairCoulLongSoftKokkos<DeviceType>::init_one(int i, int j)
 
   k_params.view_host()(i,j).lam1 = static_cast<KK_FLOAT>(lam1[i][j]);
   k_params.view_host()(i,j).lam2 = static_cast<KK_FLOAT>(lam2[i][j]);
+  k_params.view_host()(i,j).scale = static_cast<KK_FLOAT>(scale[i][j]);
   // the Coulomb cutoff is a single global value, not one per type pair
 
   k_params.view_host()(i,j).cutsq = static_cast<KK_FLOAT>(cut_coulsq);

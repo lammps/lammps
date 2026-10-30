@@ -142,11 +142,11 @@ void PairTlsph::PreCompute() {
   int nlocal = atom->nlocal;
   int jnum, jj, i, j, itype, idim;
 
-  tagint **partner = (dynamic_cast<FixSMD_TLSPH_ReferenceConfiguration *>(modify->fix[ifix_tlsph]))->partner;
-  int *npartner = (dynamic_cast<FixSMD_TLSPH_ReferenceConfiguration *>(modify->fix[ifix_tlsph]))->npartner;
-  float **wfd_list = (dynamic_cast<FixSMD_TLSPH_ReferenceConfiguration *>(modify->fix[ifix_tlsph]))->wfd_list;
-  float **wf_list = (dynamic_cast<FixSMD_TLSPH_ReferenceConfiguration *>(modify->fix[ifix_tlsph]))->wf_list;
-  float **degradation_ij = (dynamic_cast<FixSMD_TLSPH_ReferenceConfiguration *>(modify->fix[ifix_tlsph]))->degradation_ij;
+  tagint **partner = fix_tlsph_reference_configuration->partner;
+  int *npartner = fix_tlsph_reference_configuration->npartner;
+  float **wfd_list = fix_tlsph_reference_configuration->wfd_list;
+  float **wf_list = fix_tlsph_reference_configuration->wf_list;
+  float **degradation_ij = fix_tlsph_reference_configuration->degradation_ij;
   double r0, r0Sq, wf, wfd, h, irad, voli, volj, scale, shepardWeight;
   Vector3d dx, dx0, dv, g;
   Matrix3d Ktmp, Ftmp, Fdottmp, L, U, eye;
@@ -291,16 +291,12 @@ void PairTlsph::PreCompute() {
       // stress in the true frame of reference (a stationary observer) is denoted by T, "true stress"
       D[i] = (R[i].transpose() * D[i] * R[i]).eval();
 
-      // limit strain rate
-      //double limit = 1.0e-3 * Lookup[SIGNAL_VELOCITY][itype] / radius[i];
-      //D[i] = LimitEigenvalues(D[i], limit);
-
       /*
        * make sure F stays within some limits
        */
 
       if ((detF[i] < DETF_MIN) || (detF[i] > DETF_MAX) || (numNeighsRefConfig[i] == 0)) {
-        utils::logmesg(lmp, "deleting particle [{}] because det(F)={}f is outside stable range"
+        utils::logmesg(lmp, "deleting particle [{}] because det(F)={} is outside stable range"
                        " {} -- {} \n", tag[i], Fincr[i].determinant(), DETF_MIN, DETF_MAX);
         utils::logmesg(lmp,"nn = {}, damage={}\n", numNeighsRefConfig[i], damage[i]);
         mol[i] = -1;
@@ -420,12 +416,12 @@ void PairTlsph::ComputeForces(int eflag, int vflag) {
   Vector3d xi, xj, vi, vj, f_visc, sumForces, f_spring;
   int periodic = (domain->xperiodic || domain->yperiodic || domain->zperiodic);
 
-  tagint **partner = (dynamic_cast<FixSMD_TLSPH_ReferenceConfiguration *>(modify->fix[ifix_tlsph]))->partner;
-  int *npartner = (dynamic_cast<FixSMD_TLSPH_ReferenceConfiguration *>(modify->fix[ifix_tlsph]))->npartner;
-  float **wfd_list = (dynamic_cast<FixSMD_TLSPH_ReferenceConfiguration *>(modify->fix[ifix_tlsph]))->wfd_list;
-  float **wf_list = (dynamic_cast<FixSMD_TLSPH_ReferenceConfiguration *>(modify->fix[ifix_tlsph]))->wf_list;
-  float **degradation_ij = (dynamic_cast<FixSMD_TLSPH_ReferenceConfiguration *>(modify->fix[ifix_tlsph]))->degradation_ij;
-  float **energy_per_bond = (dynamic_cast<FixSMD_TLSPH_ReferenceConfiguration *>(modify->fix[ifix_tlsph]))->energy_per_bond;
+  tagint **partner = fix_tlsph_reference_configuration->partner;
+  int *npartner = fix_tlsph_reference_configuration->npartner;
+  float **wfd_list = fix_tlsph_reference_configuration->wfd_list;
+  float **wf_list = fix_tlsph_reference_configuration->wf_list;
+  float **degradation_ij = fix_tlsph_reference_configuration->degradation_ij;
+  float **energy_per_bond = fix_tlsph_reference_configuration->energy_per_bond;
   Matrix3d eye;
   eye.setIdentity();
 
@@ -435,7 +431,6 @@ void PairTlsph::ComputeForces(int eflag, int vflag) {
    * iterate over pairs of particles i, j and assign forces using PK1 stress tensor
    */
 
-  //updateFlag = 0;
   hMin = 1.0e22;
   dtRelative = 1.0e22;
 
@@ -580,7 +575,7 @@ void PairTlsph::ComputeForces(int eflag, int vflag) {
 
       // tally atomistic stress tensor
       if (evflag) {
-        ev_tally_xyz(i, j, nlocal, 0, 0.0, 0.0, sumForces(0), sumForces(1), sumForces(2), dx(0), dx(1), dx(2));
+        ev_tally_xyz_full(i, 0.0, 0.0, sumForces(0), sumForces(1), sumForces(2), -dx(0), -dx(1), -dx(2));
       }
 
       shepardWeight += wf * volj;
@@ -623,7 +618,6 @@ void PairTlsph::ComputeForces(int eflag, int vflag) {
         double critical_energy_per_bond = Lookup[CRITICAL_ENERGY_RELEASE_RATE][itype] / (2.0 * Vic);
 
         if (energy_per_bond[i][jj] > critical_energy_per_bond) {
-          //degradation_ij[i][jj] = 1.0;
           partner[i][jj] = 0;
         }
       }
@@ -723,8 +717,6 @@ void PairTlsph::AssembleStress() {
         sigmaInitial(2, 0) = sigmaInitial(0, 2);
         sigmaInitial(2, 1) = sigmaInitial(1, 2);
 
-        //cout << "this is sigma initial" << endl << sigmaInitial << endl;
-
         pInitial = sigmaInitial.trace() / 3.0; // isotropic part of initial stress
         sigmaInitial_dev = Deviator(sigmaInitial);
         d_iso = D[i].trace(); // volumetric part of stretch rate
@@ -744,9 +736,7 @@ void PairTlsph::AssembleStress() {
          * material strength
          */
 
-        //cout << "this is the strain deviator rate" << endl << d_dev << endl;
         ComputeStressDeviator(i, sigmaInitial_dev, d_dev, sigmaFinal_dev, sigma_dev_rate, plastic_strain_increment);
-        //cout << "this is the stress deviator rate" << endl << sigma_dev_rate << endl;
 
         // keep a rolling average of the plastic strain rate over the last 100 or so timesteps
         eff_plastic_strain[i] += plastic_strain_increment;
@@ -802,7 +792,7 @@ void PairTlsph::AssembleStress() {
 
         if (failureModel[itype].integration_point_wise) {
           ComputeDamage(i, strain, T, T_damaged);
-          //T = T_damaged; Do not do this, it is undefined as of now
+          // do not replace T with T_damaged, this is undefined as of now
         }
 
         // store rotated, "true" Cauchy stress
@@ -1610,21 +1600,18 @@ void PairTlsph::init_style() {
     fixarg[0] = (char *) "SMD_TLSPH_NEIGHBORS";
     fixarg[1] = (char *) "tlsph";
     fixarg[2] = (char *) "SMD_TLSPH_NEIGHBORS";
-    modify->add_fix(3, fixarg);
+    fix_tlsph_reference_configuration =
+        dynamic_cast<FixSMD_TLSPH_ReferenceConfiguration *>(modify->add_fix(3, fixarg));
     delete[] fixarg;
-    fix_tlsph_reference_configuration = dynamic_cast<FixSMD_TLSPH_ReferenceConfiguration *>(modify->fix[modify->nfix - 1]);
     fix_tlsph_reference_configuration->pair = this;
   }
 
-// find associated SMD_TLSPH_NEIGHBORS fix that must exist
-// could have changed locations in fix list since created
+  // find associated SMD_TLSPH_NEIGHBORS fix that must exist
 
-  ifix_tlsph = -1;
-  for (int i = 0; i < modify->nfix; i++)
-    if (strcmp(modify->fix[i]->style, "SMD_TLSPH_NEIGHBORS") == 0)
-      ifix_tlsph = i;
-  if (ifix_tlsph == -1)
-    error->all(FLERR, "Fix SMD_TLSPH_NEIGHBORS does not exist");
+  auto fixes = modify->get_fix_by_style("^SMD_TLSPH_NEIGHBORS$");
+  if (fixes.empty()) error->all(FLERR, "Fix SMD_TLSPH_NEIGHBORS does not exist");
+  fix_tlsph_reference_configuration =
+      dynamic_cast<FixSMD_TLSPH_ReferenceConfiguration *>(fixes.back());
 
 }
 
@@ -1882,10 +1869,6 @@ void PairTlsph::ComputeStressDeviator(const int i, const Matrix3d& sigmaInitial_
 
     break;
   case LINEAR_DEFGRAD:
-//LinearStrengthDefgrad(Lookup[LAME_LAMBDA][itype], Lookup[SHEAR_MODULUS][itype], Fincr[i], &sigmaFinal_dev);
-//eff_plastic_strain[i] = 0.0;
-//p_rate = pInitial - sigmaFinal_dev.trace() / 3.0;
-//sigma_dev_rate = sigmaInitial_dev - Deviator(sigmaFinal_dev);
     error->one(FLERR, "LINEAR_DEFGRAD is only for debugging purposes and currently deactivated.");
     R[i].setIdentity();
     break;

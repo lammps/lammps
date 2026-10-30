@@ -11,6 +11,8 @@ BUILDDIR       = ${CURDIR}
 RSTDIR         = $(BUILDDIR)/src
 VENV           = $(BUILDDIR)/docenv
 SPHINXCONFIG   = $(BUILDDIR)/utils/sphinx-config
+# source files with docstrings or comments included in the manual that may reference anchor labels
+ANCHORREFS     = ../src/*.cpp ../src/*.h ../python/lammps/*.py
 MATHJAX        = $(SPHINXCONFIG)/_static/mathjax
 # keep in sync with the MathJax download settings in cmake/Modules/Documentation.cmake
 MATHJAXTAG     = 4.1.3
@@ -76,7 +78,7 @@ help:
 	@echo "  clean         remove all intermediate files"
 	@echo "  clean-all     reset the entire build environment"
 	@echo "  check         run 'anchor_check', 'style_check', 'package_check', 'char_check', 'role_check', and 'example_check'"
-	@echo "  anchor_check  scan for duplicate anchor labels"
+	@echo "  anchor_check  scan for duplicate and unused anchor labels"
 	@echo "  style_check   check for complete and consistent style lists"
 	@echo "  package_check check for complete and consistent package lists"
 	@echo "  char_check    check for non-ASCII characters"
@@ -125,7 +127,7 @@ html: xmlgen globbed-tocs $(VENV) $(SPHINXCONFIG)/conf.py $(MATHJAX) $(MATHJAXFO
 		ln -sf Manual.html html/index.html;\
 		rm -f $(BUILDDIR)/doxygen/xml/run.stamp;\
 		echo "############################################" ; env PYTHONWARNINGS= PYTHONDONTWRITEBYTECODE=1 \
-		$(PYTHON) $(BUILDDIR)/utils/rst_anchor_check.py src/*.rst ;\
+		$(PYTHON) $(BUILDDIR)/utils/rst_anchor_check.py src/*.rst -r $(ANCHORREFS) ;\
 		$(PYTHON) $(BUILDDIR)/utils/check-packages.py -s ../src -d src ;\
 		env LC_ALL=C grep -n '[^ -~]' $(RSTDIR)/*.rst ;\
 		env LC_ALL=C grep -n ' :[a-z]\+`' $(RSTDIR)/*.rst ;\
@@ -225,7 +227,7 @@ pdf: xmlgen globbed-tocs $(VENV) $(SPHINXCONFIG)/conf.py
 		sphinx-build -E $(SPHINXEXTRA) -b latex -c $(SPHINXCONFIG) -d $(BUILDDIR)/doctrees $(RSTDIR) latex ;\
 		rm -f $(BUILDDIR)/doxygen/xml/run.stamp;\
 		echo "############################################" ; env PYTHONWARNINGS= PYTHONDONTWRITEBYTECODE=1 \
-		$(PYTHON) utils/rst_anchor_check.py src/*.rst ;\
+		$(PYTHON) utils/rst_anchor_check.py src/*.rst -r $(ANCHORREFS) ;\
 		$(PYTHON) utils/check-packages.py -s ../src -d src ;\
 		env LC_ALL=C grep -n '[^ -~]' $(RSTDIR)/*.rst ;\
 		env LC_ALL=C grep -n ' :[a-z]\+`' $(RSTDIR)/*.rst ;\
@@ -260,7 +262,7 @@ check : anchor_check style_check package_check char_check role_check example_che
 
 anchor_check :
 	@( env PYTHONWARNINGS= PYTHONDONTWRITEBYTECODE=1 \
-		$(PYTHON) utils/rst_anchor_check.py src/*.rst )
+		$(PYTHON) utils/rst_anchor_check.py src/*.rst -r $(ANCHORREFS) )
 
 style_check : $(VENV)
 	@(\

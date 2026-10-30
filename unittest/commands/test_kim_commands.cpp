@@ -86,8 +86,7 @@ TEST_F(KimCommandsTest, kim_init)
     command("kim init LennardJones_Ar real");
     END_HIDE_OUTPUT();
 
-    int ifix = lmp->modify->find_fix("KIM_MODEL_STORE");
-    ASSERT_GE(ifix, 0);
+    ASSERT_NE(lmp->modify->get_fix_by_id("KIM_MODEL_STORE"), nullptr);
 }
 
 TEST_F(KimCommandsTest, kim_interactions)
@@ -195,8 +194,7 @@ TEST_F(KimCommandsTest, kim_interactions)
     command("mass 1 39.95");
     END_HIDE_OUTPUT();
 
-    int ifix = lmp->modify->find_fix("KIM_MODEL_STORE");
-    ASSERT_GE(ifix, 0);
+    ASSERT_NE(lmp->modify->get_fix_by_id("KIM_MODEL_STORE"), nullptr);
 
     BEGIN_HIDE_OUTPUT();
     command("clear");

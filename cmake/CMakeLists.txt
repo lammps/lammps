@@ -824,8 +824,8 @@ add_custom_target(gitversion COMMAND ${CMAKE_COMMAND}
   -D GIT_EXECUTABLE="${GIT_EXECUTABLE}"
   -D GIT_FOUND="${GIT_FOUND}"
   -D LAMMPS_STYLE_HEADERS_DIR="${LAMMPS_STYLE_HEADERS_DIR}"
-  -P ${CMAKE_CURRENT_SOURCE_DIR}/Modules/generate_lmpgitversion.cmake)
-set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES ${LAMMPS_STYLE_HEADERS_DIR}/gitversion.h)
+  -P "${CMAKE_CURRENT_SOURCE_DIR}/Modules/generate_lmpgitversion.cmake"
+  BYPRODUCTS "${LAMMPS_STYLE_HEADERS_DIR}/lmpgitversion.h")
 add_dependencies(lammps gitversion)
 
 ###########################################
@@ -1104,17 +1104,18 @@ if(PKG_GPU)
   message(STATUS "<<< GPU package settings >>>
 -- GPU API:                  ${GPU_API}")
   if(GPU_API STREQUAL "CUDA")
-    message(STATUS "CUDA Compiler:            ${CUDA_NVCC_EXECUTABLE}")
-    message(STATUS "GPU default architecture: ${GPU_ARCH}")
-    message(STATUS "GPU binning with CUDPP:   ${CUDPP_OPT}")
+    message(STATUS "CUDA Compiler:            ${CMAKE_CUDA_COMPILER}")
+    message(STATUS "CUDA architecture(s):     ${GPU_ARCH}")
     message(STATUS "CUDA MPS support:         ${CUDA_MPS_SUPPORT}")
   elseif(GPU_API STREQUAL "HIP")
-    message(STATUS "HIP platform:     ${HIP_PLATFORM}")
-    message(STATUS "HIP architecture: ${HIP_ARCH}")
-    if(HIP_USE_DEVICE_SORT)
-      message(STATUS "HIP GPU sorting: on")
+    message(STATUS "HIP platform:             ${HIP_PLATFORM}")
+    message(STATUS "HIP version:              ${hip_VERSION}")
+    if(HIP_PLATFORM STREQUAL "amd")
+      message(STATUS "HIP compiler:             ${CMAKE_HIP_COMPILER}")
+      message(STATUS "HIP architecture(s):      ${CMAKE_HIP_ARCHITECTURES}")
     else()
-      message(STATUS "HIP GPU sorting: off")
+      message(STATUS "HIP compiler:             ${HIP_HIPCC_EXECUTABLE}")
+      message(STATUS "HIP architecture(s):      ${GPU_ARCH}")
     endif()
   endif()
   message(STATUS "GPU precision:            ${GPU_PREC}")

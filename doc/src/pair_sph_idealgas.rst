@@ -1,7 +1,10 @@
 .. index:: pair_style sph/idealgas
+.. index:: pair_style sph/idealgas/omp
 
 pair_style sph/idealgas command
 ===============================
+
+Accelerator Variants: *sph/idealgas/omp*
 
 Syntax
 """"""
@@ -33,14 +36,8 @@ the local density, and e is the internal energy per unit mass.  This
 pair style also computes Monaghan's artificial viscosity to prevent
 particles from interpenetrating :ref:`(Monaghan) <ideal-Monoghan>`.
 
-See `this PDF guide <PDF/SPH_LAMMPS_userguide.pdf>`_ to using SPH in
-LAMMPS.
-
-.. note::
-
-   Please note that the SPH PDF guide file has not been updated for
-   many years and thus does not reflect the current *syntax* of the
-   SPH package commands. For that please refer to the LAMMPS manual.
+See the :doc:`Howto sph <Howto_sph>` page for an introduction to
+using SPH in LAMMPS.
 
 The following coefficients must be defined for each pair of atoms
 types via the :doc:`pair_coeff <pair_coeff>` command as in the examples
@@ -48,6 +45,10 @@ above.
 
 * :math:`\nu` artificial viscosity (no units)
 * h kernel function cutoff (distance units)
+
+----------
+
+.. include:: accel_styles.rst
 
 ----------
 

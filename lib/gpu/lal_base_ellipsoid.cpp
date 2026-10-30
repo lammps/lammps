@@ -85,9 +85,7 @@ int BaseEllipsoidT::init_base(const int nlocal, const int nall,
   _ellipsoid_sphere=ellip_sphere;
 
   int gpu_nbor=0;
-  if (device->gpu_mode()==Device<numtyp,acctyp>::GPU_NEIGH)
-    gpu_nbor=1;
-  else if (device->gpu_mode()==Device<numtyp,acctyp>::GPU_HYB_NEIGH)
+  if (device->gpu_mode()==Device<numtyp,acctyp>::GPU_HYB_NEIGH)
     gpu_nbor=2;
 
 

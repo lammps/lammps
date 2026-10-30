@@ -115,6 +115,17 @@ if(PKG_KSPACE)
     target_compile_definitions(test_fft3d PRIVATE -DFFT_SINGLE)
   endif()
 
+  # Propagate the FFT library definitions (FFT_FFTW3, FFT_FFTW_THREADS, ...),
+  # so the library specific tests are not skipped
+  get_target_property(LAMMPS_FFT_DEFINITIONS lammps COMPILE_DEFINITIONS)
+  list(FILTER LAMMPS_FFT_DEFINITIONS INCLUDE REGEX "^-?D?FFT_")
+  target_compile_definitions(test_fft3d PRIVATE ${LAMMPS_FFT_DEFINITIONS})
+
+  # OpenMP lets the tests set the number of threads used by threaded FFTs
+  if(BUILD_OMP AND TARGET OpenMP::OpenMP_CXX)
+    target_link_libraries(test_fft3d PRIVATE OpenMP::OpenMP_CXX)
+  endif()
+
   # Register serial test
   add_test(NAME FFT3D COMMAND test_fft3d)
   set_tests_properties(FFT3D PROPERTIES

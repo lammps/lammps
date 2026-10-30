@@ -326,6 +326,9 @@ void FixNVESpin::initial_integrate(int /*vflag*/)
   // communicate ghost positions (and spins) once, since other fixes may have
   //   changed positions or box since the last comm (e.g. fix deform remap x),
   //   then only ghost spins
+  // no comm between the forward and the backward update of the last sector:
+  //   only ghosts of that sector are out of date then, and atoms of a sector
+  //   never interact with ghosts of the same sector on other processors
 
   if (sector_flag) {                            // sectoring seq. update
     for (int j = 0; j < nsectors; j++) {        // advance quarter s for nlocal
@@ -342,7 +345,7 @@ void FixNVESpin::initial_integrate(int /*vflag*/)
       }
     }
     for (int j = nsectors-1; j >= 0; j--) {     // advance quarter s for nlocal
-      comm->forward_comm(this);
+      if (j < nsectors-1) comm->forward_comm(this);
       int i = stack_head[j];
       while (i >= 0) {
         const int next = backward_stacks[i];
@@ -383,7 +386,7 @@ void FixNVESpin::initial_integrate(int /*vflag*/)
 
   // update half s for all particles
   // ghost positions have changed: communicate them (and spins) once,
-  //   then only ghost spins
+  //   then only ghost spins (none before the backward update of the last sector)
 
   if (sector_flag) {                            // sectoring seq. update
     for (int j = 0; j < nsectors; j++) {        // advance quarter s for nlocal
@@ -400,7 +403,7 @@ void FixNVESpin::initial_integrate(int /*vflag*/)
       }
     }
     for (int j = nsectors-1; j >= 0; j--) {     // advance quarter s for nlocal
-      comm->forward_comm(this);
+      if (j < nsectors-1) comm->forward_comm(this);
       int i = stack_head[j];
       while (i >= 0) {
         const int next = backward_stacks[i];

@@ -20,11 +20,10 @@ The code is maintained by the LAMMPS development team who can be emailed
 at developers@lammps.org.  The LAMMPS WWW Site at www.lammps.org has
 more information about the code and its uses.
 
-The LAMMPS distribution includes the following files and directories:
+The LAMMPS distribution source tarballs include the files and directories:
 
 README                     this file
 LICENSE                    the GNU General Public License (GPLv2)
-CITATION.cff               Citation information for LAMMPS in CFF format
 bench                      benchmark inputs
 cmake                      CMake build files
 doc                        documentation
@@ -37,12 +36,16 @@ src                        source files
 third_party                Copies of thirdparty software bundled with LAMMPS
 tools                      pre- and post-processing tools
 unittest                   test programs for use with CTest
-.github                    Git and GitHub related files and tools
 
-Point your browser at any of these files to get started:
+There are additional files and folders in the git repository.  Those are
+primarily used for automated processing, project management, communication
+with external tools accessing the repository, and customization of AI
+coding agents.
+
+Point your web browser at any of these files to get started:
 
 https://docs.lammps.org/Manual.html         LAMMPS manual
-https://docs.lammps.org/Intro.html          hi-level introduction
+https://docs.lammps.org/Intro.html          hi-level introduction to LAMMPS
 https://docs.lammps.org/Build.html          how to build LAMMPS
 https://docs.lammps.org/Run_head.html       how to run LAMMPS
 https://docs.lammps.org/Commands_all.html   Table of available commands
@@ -52,7 +55,7 @@ https://docs.lammps.org/Library.html        LAMMPS library interfaces
 https://docs.lammps.org/Modify.html         how to modify and extend LAMMPS
 https://docs.lammps.org/Developer.html      LAMMPS developer info
 
-You can also create these doc pages locally:
+You can also create these doc pages locally if they don't already exist:
 
 % cd doc
 % make html                # creates HTML pages in doc/html

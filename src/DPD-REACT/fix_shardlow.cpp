@@ -95,6 +95,8 @@ FixShardlow::FixShardlow(LAMMPS *lmp, int narg, char **arg) :
   pairDPD = nullptr;
   pairDPDE = nullptr;
   pairDPD = dynamic_cast<PairDPDfdt *>(force->pair_match("dpd/fdt",1));
+  if (pairDPD == nullptr)
+    pairDPD = dynamic_cast<PairDPDfdt *>(force->pair_match("dpd/fdt/omp",1));
   pairDPDE = dynamic_cast<PairDPDfdtEnergy *>(force->pair_match("dpd/fdt/energy",1));
   if (pairDPDE == nullptr)
     pairDPDE = dynamic_cast<PairDPDfdtEnergy *>(force->pair_match("dpd/fdt/energy/kk",1));
@@ -155,13 +157,15 @@ void FixShardlow::setup(int /*vflag*/)
       (!modify->get_fix_by_style("gle").empty()) || (!modify->get_fix_by_style("gld").empty()))
     error->all(FLERR,"Cannot use constant temperature integration routines with DPD-REACT.");
 
-  for (int i = 0; i < modify->nfix; i++) {
-    if (utils::strmatch(modify->fix[i]->style,"^shardlow")) fixShardlow = true;
-    if (utils::strmatch(modify->fix[i]->style,"^nve") || utils::strmatch(modify->fix[i]->style,"^nph")) {
+  const auto &fixes = modify->get_fix_list();
+  const int nfix = (int) fixes.size();
+  for (int i = 0; i < nfix; i++) {
+    if (utils::strmatch(fixes[i]->style,"^shardlow")) fixShardlow = true;
+    if (utils::strmatch(fixes[i]->style,"^nve") || utils::strmatch(fixes[i]->style,"^nph")) {
       if (fixShardlow) break;
       else error->all(FLERR,"The deterministic integrator must follow fix shardlow in the input file.");
     }
-    if (i == modify->nfix-1) error->all(FLERR,"A deterministic integrator (e.g. fix nve or fix nph) is required when using fix shardlow.");
+    if (i == nfix-1) error->all(FLERR,"A deterministic integrator (e.g. fix nve or fix nph) is required when using fix shardlow.");
   }
 }
 

@@ -39,7 +39,7 @@ FixEvent::FixEvent(LAMMPS *lmp, int narg, char **arg) :
   // register with Atom class
 
   FixEvent::grow_arrays(atom->nmax);
-  atom->add_callback(Atom::GROW);
+  atom->add_callback(this, Atom::GROW);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -48,7 +48,7 @@ FixEvent::~FixEvent()
 {
   // unregister callbacks to this fix from Atom class
 
-  atom->delete_callback(id,Atom::GROW);
+  atom->delete_callback(this, Atom::GROW);
 
   // delete locally stored array
 

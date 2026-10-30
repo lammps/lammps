@@ -102,12 +102,17 @@ LAMMPS *init_lammps(LAMMPS::argv &args, const TestConfig &cfg, const bool newton
     // check if prerequisite styles are available
     Info *info = new Info(lmp);
     int nfail  = 0;
+    // with the OPENMP package, the plain prerequisite styles are sufficient.
+    // LAMMPS falls back to the plain variant of styles without an /omp variant,
+    // and testing those in combination with threaded styles and fix omp is
+    // useful, too (e.g. hybrid pair styles, fixes, or extra per-atom forces).
+    const bool omp_suffix = lmp->suffix_enable && (std::string(lmp->suffix) == "omp");
     for (const auto &prerequisite : cfg.prerequisites) {
         std::string style = prerequisite.second;
 
-        // this is a test for pair styles, so if the suffixed
-        // version is not available, there is no reason to test.
-        if (prerequisite.first == "pair") {
+        if (!omp_suffix && (prerequisite.first == "pair")) {
+            // this is a test for pair styles, so if the suffixed
+            // version is not available, there is no reason to test.
             if (lmp->suffix_enable) {
                 style += "/";
                 style += lmp->suffix;
@@ -455,8 +460,7 @@ TEST(PairStyle, plain)
     EXPECT_STRESS("run_stress (newton on)", pair->virial, test_config.run_stress, epsilon);
 
     stats.reset();
-    int id        = lmp->modify->find_compute("sum");
-    double energy = lmp->modify->compute[id]->compute_scalar();
+    double energy = lmp->modify->get_compute_by_id("sum")->compute_scalar();
     EXPECT_FP_LE_WITH_EPS(pair->eng_vdwl, test_config.run_vdwl, epsilon);
     EXPECT_FP_LE_WITH_EPS(pair->eng_coul, test_config.run_coul, epsilon);
     // skip comparing per-atom energy with total energy for "kim" and "in.conp"
@@ -501,8 +505,7 @@ TEST(PairStyle, plain)
         EXPECT_STRESS("run_stress (newton off)", pair->virial, test_config.run_stress, epsilon);
 
         stats.reset();
-        id     = lmp->modify->find_compute("sum");
-        energy = lmp->modify->compute[id]->compute_scalar();
+        energy = lmp->modify->get_compute_by_id("sum")->compute_scalar();
         EXPECT_FP_LE_WITH_EPS(pair->eng_vdwl, test_config.run_vdwl, epsilon);
         EXPECT_FP_LE_WITH_EPS(pair->eng_coul, test_config.run_coul, epsilon);
         // skip comparing per-atom energy with total energy for "kim"
@@ -584,8 +587,7 @@ TEST(PairStyle, plain)
         EXPECT_STRESS("run_stress (r-RESPA)", pair->virial, test_config.run_stress, epsilon);
 
         stats.reset();
-        id     = lmp->modify->find_compute("sum");
-        energy = lmp->modify->compute[id]->compute_scalar();
+        energy = lmp->modify->get_compute_by_id("sum")->compute_scalar();
         EXPECT_FP_LE_WITH_EPS(pair->eng_vdwl, test_config.run_vdwl, epsilon);
         EXPECT_FP_LE_WITH_EPS(pair->eng_coul, test_config.run_coul, epsilon);
         EXPECT_FP_LE_WITH_EPS((pair->eng_vdwl + pair->eng_coul), energy, epsilon);
@@ -670,8 +672,7 @@ TEST(PairStyle, omp)
     EXPECT_STRESS("run_stress (newton on)", pair->virial, test_config.run_stress, 10 * epsilon);
 
     stats.reset();
-    int id        = lmp->modify->find_compute("sum");
-    double energy = lmp->modify->compute[id]->compute_scalar();
+    double energy = lmp->modify->get_compute_by_id("sum")->compute_scalar();
     EXPECT_FP_LE_WITH_EPS(pair->eng_vdwl, test_config.run_vdwl, epsilon);
     EXPECT_FP_LE_WITH_EPS(pair->eng_coul, test_config.run_coul, epsilon);
     EXPECT_FP_LE_WITH_EPS((pair->eng_vdwl + pair->eng_coul), energy, epsilon);
@@ -714,8 +715,7 @@ TEST(PairStyle, omp)
                       10 * epsilon);
 
         stats.reset();
-        id     = lmp->modify->find_compute("sum");
-        energy = lmp->modify->compute[id]->compute_scalar();
+        energy = lmp->modify->get_compute_by_id("sum")->compute_scalar();
         EXPECT_FP_LE_WITH_EPS(pair->eng_vdwl, test_config.run_vdwl, epsilon);
         EXPECT_FP_LE_WITH_EPS(pair->eng_coul, test_config.run_coul, epsilon);
         EXPECT_FP_LE_WITH_EPS((pair->eng_vdwl + pair->eng_coul), energy, epsilon);
@@ -856,8 +856,7 @@ static void run_kokkos_test(LAMMPS::argv &args, bool newton = true)
     EXPECT_STRESS("run_stress (newton on)", pair->virial, test_config.run_stress, 10 * epsilon);
 
     stats.reset();
-    int id        = lmp->modify->find_compute("sum");
-    double energy = lmp->modify->compute[id]->compute_scalar();
+    double energy = lmp->modify->get_compute_by_id("sum")->compute_scalar();
     EXPECT_FP_LE_WITH_EPS(pair->eng_vdwl, test_config.run_vdwl, epsilon);
     EXPECT_FP_LE_WITH_EPS(pair->eng_coul, test_config.run_coul, epsilon);
     EXPECT_FP_LE_WITH_EPS((pair->eng_vdwl + pair->eng_coul), energy, epsilon);
@@ -900,8 +899,7 @@ static void run_kokkos_test(LAMMPS::argv &args, bool newton = true)
                       10 * epsilon);
 
         stats.reset();
-        id     = lmp->modify->find_compute("sum");
-        energy = lmp->modify->compute[id]->compute_scalar();
+        energy = lmp->modify->get_compute_by_id("sum")->compute_scalar();
         EXPECT_FP_LE_WITH_EPS(pair->eng_vdwl, test_config.run_vdwl, epsilon);
         EXPECT_FP_LE_WITH_EPS(pair->eng_coul, test_config.run_coul, epsilon);
         EXPECT_FP_LE_WITH_EPS((pair->eng_vdwl + pair->eng_coul), energy, epsilon);
@@ -1514,8 +1512,7 @@ TEST(PairStyle, gpu)
     EXPECT_STRESS("run_stress (newton off)", pair->virial, test_config.run_stress, 10 * epsilon);
 
     stats.reset();
-    auto id     = lmp->modify->find_compute("sum");
-    auto energy = lmp->modify->compute[id]->compute_scalar();
+    auto energy = lmp->modify->get_compute_by_id("sum")->compute_scalar();
     EXPECT_FP_LE_WITH_EPS(pair->eng_vdwl, test_config.run_vdwl, epsilon);
     EXPECT_FP_LE_WITH_EPS(pair->eng_coul, test_config.run_coul, epsilon);
     EXPECT_FP_LE_WITH_EPS((pair->eng_vdwl + pair->eng_coul), energy, epsilon);
@@ -1603,8 +1600,7 @@ TEST(PairStyle, intel)
     EXPECT_STRESS("run_stress", pair->virial, test_config.run_stress, 10 * epsilon);
 
     stats.reset();
-    int id        = lmp->modify->find_compute("sum");
-    double energy = lmp->modify->compute[id]->compute_scalar();
+    double energy = lmp->modify->get_compute_by_id("sum")->compute_scalar();
     EXPECT_FP_LE_WITH_EPS(pair->eng_vdwl, test_config.run_vdwl, epsilon);
     EXPECT_FP_LE_WITH_EPS(pair->eng_coul, test_config.run_coul, epsilon);
 
@@ -1686,8 +1682,7 @@ TEST(PairStyle, opt)
     EXPECT_STRESS("run_stress", pair->virial, test_config.run_stress, 10 * epsilon);
 
     stats.reset();
-    int id        = lmp->modify->find_compute("sum");
-    double energy = lmp->modify->compute[id]->compute_scalar();
+    double energy = lmp->modify->get_compute_by_id("sum")->compute_scalar();
     EXPECT_FP_LE_WITH_EPS(pair->eng_vdwl, test_config.run_vdwl, epsilon);
     EXPECT_FP_LE_WITH_EPS(pair->eng_coul, test_config.run_coul, epsilon);
     EXPECT_FP_LE_WITH_EPS((pair->eng_vdwl + pair->eng_coul), energy, epsilon);

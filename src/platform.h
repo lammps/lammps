@@ -118,6 +118,17 @@ std::string mpi_info(int &major, int &minor);
 
 std::string compress_info();
 
+/*! Check if the current process has superuser or administrator privileges
+ *
+ * On Unix-like operating systems this checks whether the effective user ID
+ * of the process is that of the superuser ("root").  On Windows this checks
+ * whether the process is running with elevated privileges, i.e. what one
+ * gets from using "Run as administrator".
+ *
+ *  \return  true if the process has superuser or administrator privileges */
+
+bool is_superuser();
+
 /*! Add variable to the environment
  *
  * \param  vardef  variable name or variable definition (NAME=value)
@@ -271,7 +282,7 @@ int chdir(const std::string &path);
 
 /*! Create a directory or directory path
  *
- * Unlike the the ``mkdir()`` or ``_mkdir()`` functions of the C library, this
+ * Unlike the ``mkdir()`` or ``_mkdir()`` functions of the C library, this
  * function will also try to create non-existing sub-directories in case they
  * don't exist, and thus it behaves like the ``mkdir -p`` command rather than
  * plain ``mkdir`` or ``md`` in a Unix or Windows shell, respectively.
@@ -283,7 +294,7 @@ int mkdir(const std::string &path);
 
 /*! Delete a directory
  *
- * Unlike the the ``rmdir()`` or ``_rmdir()`` functions of the
+ * Unlike the ``rmdir()`` or ``_rmdir()`` functions of the
  * C library, this function will check for the contents of the
  * folder and recurse into any sub-folders, if necessary, and
  * delete all contained folders and their contents before
@@ -458,9 +469,11 @@ FILE *compressed_write(const std::string &file);
 
 /*! Return text explaining why a compressed file could not be opened
  *
- * If the program required for the compression format of the file
- * cannot be found, the text names the missing program.  Otherwise,
- * the text describes the last system error like utils::getsyserror().
+\verbatim embed:rst
+If the program required for the compression format of the file
+cannot be found, the text names the missing program.  Otherwise,
+the text describes the last system error like :cpp:func:`utils::getsyserror()`.
+\endverbatim
  *
  *  \param  file  name of the file that could not be opened
  *  \return  text explaining the failure */

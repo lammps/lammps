@@ -26,33 +26,7 @@ class Compute;
 class Fix;
 
 class Modify : protected Pointers {
-  friend class Info;
-  friend class FixSRP;
-  friend class Respa;
-  friend class RespaOMP;
-
  public:
-  int n_initial_integrate, n_post_integrate, n_pre_exchange;
-  int n_pre_neighbor, n_post_neighbor;
-  int n_pre_force, n_pre_reverse, n_post_force_any;
-  int n_final_integrate, n_end_of_step;
-  int n_energy_couple, n_energy_global, n_energy_atom;
-  int n_initial_integrate_respa, n_post_integrate_respa;
-  int n_pre_force_respa, n_post_force_respa_any, n_final_integrate_respa;
-  int n_min_pre_exchange, n_min_pre_neighbor, n_min_post_neighbor;
-  int n_min_pre_force, n_min_pre_reverse, n_min_post_force, n_min_energy;
-
-  int restart_pbc_any;         // 1 if any fix sets restart_pbc
-  int nfix_restart_global;     // stored fix global info from restart file
-  int nfix_restart_peratom;    // stored fix peratom info from restart file
-
-  int nfix, maxfix;
-  Fix **fix;     // list of fixes
-  int *fmask;    // bit mask for when each fix is applied
-
-  int ncompute, maxcompute;
-  Compute **compute;    // list of computes
-
   Modify(class LAMMPS *);
   ~Modify() override;
   virtual void init();
@@ -111,51 +85,43 @@ class Modify : protected Pointers {
   Fix *replace_fix(const std::string &, const std::string &, int trysuffix = 1);
   void modify_fix(int, char **);
   void delete_fix(const std::string &);
-  void delete_fix(int);
+  void delete_fix(Fix *);
 
-  // deprecated API
-  int find_fix(const std::string &);
-  // new API
   [[nodiscard]] Fix *get_fix_by_id(const std::string &) const;
-  [[nodiscard]] Fix *get_fix_by_index(int idx) const { return ((idx >= 0) && (idx < nfix)) ? fix[idx] : nullptr; }
+  [[nodiscard]] Fix *get_fix_by_index(int idx) const
+  {
+    return ((idx >= 0) && (idx < (int) fixes.size())) ? fixes[idx] : nullptr;
+  }
   [[nodiscard]] std::vector<Fix *> get_fix_by_style(const std::string &) const;
-  const std::vector<Fix *> &get_fix_list();
-  int get_fix_mask(Fix *ifix) const
-  {
-    for (int i = 0; i < nfix; ++i) {
-      if (fix[i] == ifix) return fmask[i];
-    }
-    return 0;
-  }
-  void set_fix_mask(Fix *ifix, int flags)
-  {
-    for (int i = 0; i < nfix; ++i) {
-      if (fix[i] == ifix) fmask[i] |= flags;
-    }
-  }
-  void clear_fix_mask(Fix *ifix, int flags)
-  {
-    for (int i = 0; i < nfix; ++i) {
-      if (fix[i] == ifix) fmask[i] &= ~flags;
-    }
-  }
+  // the list must not be changed (fix added or deleted) while iterating over it
+  [[nodiscard]] const std::vector<Fix *> &get_fix_list() const { return fixes; }
+  [[nodiscard]] int get_fix_mask(Fix *) const;
+  void set_fix_mask(Fix *, int);
+  void clear_fix_mask(Fix *, int);
+
+  // true if any fix is invoked at any of the stages in mask (bits from FixConst),
+  // as of the last init(). used by integrators to skip stages without fixes
+
+  [[nodiscard]] bool has_fixes(int mask) const { return (stagemask & mask) != 0; }
+
+  // true if fixes or computes were added, deleted, or modified since the last init()
+
+  [[nodiscard]] bool changed_since_init() const { return nchanges != nchanges_at_init; }
 
   Compute *add_compute(int, char **, int trysuffix = 1);
   Compute *add_compute(const std::string &, int trysuffix = 1);
   void modify_compute(int, char **);
   void delete_compute(const std::string &);
-  void delete_compute(int);
+  void delete_compute(Compute *);
 
-  // deprecated API
-  int find_compute(const std::string &);
-  // new API
   [[nodiscard]] Compute *get_compute_by_id(const std::string &) const;
   [[nodiscard]] Compute *get_compute_by_index(int idx) const
   {
-    return ((idx >= 0) && (idx < ncompute)) ? compute[idx] : nullptr;
+    return ((idx >= 0) && (idx < (int) computes.size())) ? computes[idx] : nullptr;
   }
   [[nodiscard]] std::vector<Compute *> get_compute_by_style(const std::string &) const;
-  const std::vector<Compute *> &get_compute_list();
+  // the list must not be changed (compute added or deleted) while iterating over it
+  [[nodiscard]] const std::vector<Compute *> &get_compute_list() const { return computes; }
 
   void clearstep_compute();
   void addstep_compute(bigint);
@@ -170,32 +136,56 @@ class Modify : protected Pointers {
   int read_restart(FILE *);
   void restart_deallocate(int);
 
+  // true if any fix requires that atoms are remapped into the periodic box
+  // when writing a restart file, as of the last init()
+
+  [[nodiscard]] bool has_restart_pbc() const { return restart_pbc_any != 0; }
+
+  // number of fixes with per-atom data read from a restart file that is
+  // waiting for the fixes to be re-defined (reset by the next init())
+
+  [[nodiscard]] int get_nfix_restart_peratom() const { return nfix_restart_peratom; }
+
   double memory_usage();
 
  protected:
-  // internal fix counts
+  int restart_pbc_any;         // 1 if any fix sets restart_pbc
+  int nfix_restart_global;     // stored fix global info from restart file
+  int nfix_restart_peratom;    // stored fix peratom info from restart file
 
-  int n_post_force, n_post_force_group, n_post_force_respa;
+  // lists of fixes and computes in the order they were defined.
+  // fixmask[i] is the mask of stages at which fixes[i] is invoked, as set by
+  // Fix::setmask() and changed by set_fix_mask()/clear_fix_mask(), plus the
+  // internal bits below.  A fix is replaced in place to keep its position.
 
-  // lists of fixes to apply at different stages of timestep
+  std::vector<Fix *> fixes;
+  std::vector<int> fixmask;
+  std::vector<Compute *> computes;
 
-  int *list_initial_integrate, *list_post_integrate;
-  int *list_pre_exchange, *list_pre_neighbor, *list_post_neighbor;
-  int *list_pre_force, *list_pre_reverse;
-  int *list_post_force, *list_post_force_group;
-  int *list_final_integrate, *list_end_of_step;
-  int *list_energy_couple, *list_energy_global, *list_energy_atom;
-  int *list_initial_integrate_respa, *list_post_integrate_respa;
-  int *list_pre_force_respa, *list_post_force_respa;
-  int *list_final_integrate_respa;
-  int *list_min_pre_exchange, *list_min_pre_neighbor, *list_min_post_neighbor;
-  int *list_min_pre_force, *list_min_pre_reverse, *list_min_post_force;
-  int *list_min_energy;
+  // copy of fixmask taken by init() with the bits for the energy contributions
+  // added: fixes are invoked according to this snapshot, so a fix added or a
+  // mask changed after init() takes effect at the next init() only, as with
+  // the lists of fix indices used before. stagemask is the union of callmask
 
-  int *end_of_step_every;
+  std::vector<int> callmask;
+  int stagemask;
 
-  int n_timeflag;    // list of computes that store time invocation
-  int *list_timeflag;
+  // count of changes to the lists (add, delete, replace, fix_modify, compute_modify)
+  // and its value at the last init(), for changed_since_init()
+
+  int nchanges, nchanges_at_init;
+
+  // invoke func(fix) for all fixes whose mask at init() has bit set, in list
+  // order. the loop re-reads the list size and keeps no state in the class, so
+  // func() may add or delete fixes and may itself call another stage (nested
+  // calls from MC fixes) without disturbing the loop
+
+  template <typename Func> void for_each_fix(int bit, Func &&func)
+  {
+    for (std::size_t i = 0; i < fixes.size(); ++i)
+      if (callmask[i] & bit) func(fixes[i]);
+  }
+  void erase_fix_slot(std::size_t);
 
   char **id_restart_global;       // stored fix global info
   char **style_restart_global;    // from read-in restart file
@@ -206,22 +196,6 @@ class Modify : protected Pointers {
   char **style_restart_peratom;    // from read-in restart file
   int *index_restart_peratom;
   int *used_restart_peratom;
-
-  int index_permanent;    // fix/compute index returned to library call
-
-  // vectors to be used for new-API accessors as wrapper
-  std::vector<Fix *> fix_list;
-  std::vector<Compute *> compute_list;
-
-  void list_init(int, int &, int *&);
-  void list_init_end_of_step(int, int &, int *&);
-  void list_init_energy_couple(int &, int *&);
-  void list_init_energy_global(int &, int *&);
-  void list_init_energy_atom(int &, int *&);
-  void list_init_post_force_group(int &, int *&);
-  void list_init_post_force_respa_group(int &, int *&);
-  void list_init_dofflag(int &, int *&);
-  void list_init_compute();
 
  public:
   using ComputeCreator = Compute *(*) (LAMMPS *, int, char **);

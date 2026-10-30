@@ -1172,3 +1172,35 @@ removing them from the CMake cache when re-running CMake, e.g. with:
 
 Alternatively, the variables can be set explicitly with ``-D`` to the
 desired values, or a new build folder can be used.
+
+.. _err0040:
+
+LAMMPS is run with superuser or administrator privileges
+--------------------------------------------------------
+
+The LAMMPS executable prints this warning when it is started from the
+"root" account on Linux or macOS (this includes using ``sudo``), or with
+"Run as administrator" on Windows.  LAMMPS does not need such privileges
+for anything, and running it that way is strongly discouraged.
+
+A LAMMPS input can read, change, and delete files, run other programs,
+and access the network (see :doc:`Build_security`).  For a regular user
+the damage from a mistake in an input file, from a bug in LAMMPS or in
+one of the libraries it uses, or from an input file with malicious
+content is limited to what that user is allowed to access.  With
+superuser or administrator privileges it can affect the entire machine,
+including the operating system and the files of all other users.
+
+To avoid the warning, run LAMMPS from a regular user account.  The same
+applies to compiling and installing LAMMPS: by default, LAMMPS is
+installed into a folder inside the home directory of the user, so that
+no special privileges are needed, and CMake prints a similar warning
+when it is run as superuser.  Programs in containers often run as "root"
+by default.  In that case it is recommended to create a regular user
+account inside the container, or to tell the container software to run
+as a regular user, for example with the ``--user`` flag of ``docker
+run``.
+
+LAMMPS continues after printing the warning.  The warning is only
+printed by the LAMMPS executable and not when LAMMPS is used as a
+library from another program or through the LAMMPS Python module.

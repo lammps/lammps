@@ -75,8 +75,8 @@ potential is shown below.
 **Methods:**
 
 * :py:meth:`lammps.get_neighlist() <lammps.lammps.get_neighlist()>`: Get neighbor list for given index
-* :py:meth:`lammps.get_neighlist_size()`: Get number of elements in neighbor list
-* :py:meth:`lammps.get_neighlist_element_neighbors()`: Get element in neighbor list and its neighbors
+* :py:meth:`lammps.get_neighlist_size() <lammps.lammps.get_neighlist_size()>`: Get number of elements in neighbor list
+* :py:meth:`lammps.get_neighlist_element_neighbors() <lammps.lammps.get_neighlist_element_neighbors()>`: Get element in neighbor list and its neighbors
 
 * :py:meth:`lammps.find_pair_neighlist() <lammps.lammps.find_pair_neighlist()>`: Find neighbor list of pair style
 * :py:meth:`lammps.find_fix_neighlist() <lammps.lammps.find_pair_neighlist()>`: Find neighbor list of fix style

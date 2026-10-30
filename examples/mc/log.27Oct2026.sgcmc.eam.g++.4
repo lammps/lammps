@@ -1,0 +1,144 @@
+LAMMPS (30 Sep 2026 - Development - patch_30Sep2026-584-g503edac323-modified)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread.
+  using 1 OpenMP thread(s) per MPI task
+# general variables
+variable        temperature equal 700
+variable        size equal 20
+
+# variables for 'fix sgcmc'
+variable        nsteps_mc     equal 100
+variable        swap_fraction equal 0.2
+variable        temperature_mc equal ${temperature}
+variable        temperature_mc equal 700
+variable        deltamu equal -0.70
+variable        target_concentration equal 0.02
+variable        kappa equal 1e3
+
+# general settings
+units           metal
+atom_style      atomic
+
+# set up structure
+boundary        p p p
+lattice         bcc 2.88
+Lattice spacing in x,y,z = 2.88 2.88 2.88
+region          box block 0 ${size}  0 ${size}  0 ${size}
+region          box block 0 20  0 ${size}  0 ${size}
+region          box block 0 20  0 20  0 ${size}
+region          box block 0 20  0 20  0 20
+create_box      2 box
+Created orthogonal box = (0 0 0) to (57.6 57.6 57.6)
+  1 by 2 by 2 MPI processor grid
+create_atoms    1 box
+Created 16000 atoms
+  using lattice units in orthogonal box = (0 0 0) to (57.6 57.6 57.6)
+  create_atoms CPU = 0.001 seconds
+reset_timestep  0
+timestep        0.0025
+
+# set up interaction
+pair_style      eam/fs
+pair_coeff      * * FeCu.pasianot.eamfs Fe Cu
+
+# initialize velocities
+variable        double_temp equal ${temperature}*2
+variable        double_temp equal 700*2
+velocity        all create ${double_temp} 428459 dist gaussian loop geom
+velocity        all create 1400 428459 dist gaussian loop geom
+
+# what and how to run
+fix             integrate all npt                 temp ${temperature} ${temperature} 1.7                 aniso 0.0 0.0 1.5
+fix             integrate all npt                 temp 700 ${temperature} 1.7                 aniso 0.0 0.0 1.5
+fix             integrate all npt                 temp 700 700 1.7                 aniso 0.0 0.0 1.5
+fix             mc all sgcmc ${nsteps_mc} ${swap_fraction} ${temperature_mc} ${deltamu}                 randseed 324234                 variance ${kappa} ${target_concentration}
+fix             mc all sgcmc 100 ${swap_fraction} ${temperature_mc} ${deltamu}                 randseed 324234                 variance ${kappa} ${target_concentration}
+fix             mc all sgcmc 100 0.2 ${temperature_mc} ${deltamu}                 randseed 324234                 variance ${kappa} ${target_concentration}
+fix             mc all sgcmc 100 0.2 700 ${deltamu}                 randseed 324234                 variance ${kappa} ${target_concentration}
+fix             mc all sgcmc 100 0.2 700 -0.7                 randseed 324234                 variance ${kappa} ${target_concentration}
+fix             mc all sgcmc 100 0.2 700 -0.7                 randseed 324234                 variance 1000 ${target_concentration}
+fix             mc all sgcmc 100 0.2 700 -0.7                 randseed 324234                 variance 1000 0.02
+  SGC - Number of MD timesteps: 100
+  SGC - Fraction of swap atoms: 0.2
+  SGC - Temperature: 700
+  SGC - Chemical potential of species 2: -0.7
+  SGC - Random number seed: 324234
+  SGC - Kappa: 1000
+  SGC - Target concentration of species 1: 0.98
+  SGC - Target concentration of species 2: 0.02
+
+# set up output
+thermo          100
+thermo_style    custom step temp atoms pe press                 lx ly lz f_mc[1] f_mc[2] f_mc[3] f_mc[4]
+#dump            1 all custom 200 mc.*.dump id type x y z
+
+run             2000
+  SGC - Interaction radius: 5.50679
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 7.50679
+  ghost atom cutoff = 7.50679
+  binsize = 3.753395, bins = 16 16 16
+  2 neighbor lists, perpetual/occasional/extra = 2 0 0
+  (1) pair eam/fs, perpetual, half/full from (2)
+      attributes: half, newton on
+      pair build: halffull/newton
+      stencil: none
+      bin: none
+  (2) fix sgcmc, perpetual
+      attributes: full, newton on
+      pair build: full/bin/atomonly
+      stencil: full/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 7.809 | 7.809 | 7.809 Mbytes
+   Step          Temp         Atoms        PotEng         Press            Lx             Ly             Lz          f_mc[1]        f_mc[2]        f_mc[3]        f_mc[4]    
+         0   1400               16000  -65889.786     -28854.541      57.6           57.6           57.6           0              0              1              0            
+       100   736.8811           16000  -64519.448      5266.7307      57.314566      57.32595       57.321073      22             3210           0.998625       0.001375     
+       200   683.30644          16000  -64386.031     -1140.003       57.418122      57.424147      57.411898      22             3178           0.99725        0.00275      
+       300   682.30876          16000  -64358.801     -1378.7225      57.423154      57.421316      57.417753      31             3169           0.9954375      0.0045625    
+       400   693.40791          16000  -64348.499      1755.7218      57.381277      57.378925      57.381183      33             3167           0.9935         0.0065       
+       500   693.38557          16000  -64313.54      -2011.7647      57.433702      57.43264       57.437916      23             3177           0.9920625      0.0079375    
+       600   694.04457          16000  -64288.5        503.3556       57.402973      57.408175      57.409714      28             3172           0.9904375      0.0095625    
+       700   693.16353          16000  -64257.453      252.39929      57.412797      57.414112      57.411147      37             3163           0.988125       0.011875     
+       800   689.50008          16000  -64211.633     -1028.3436      57.428302      57.440914      57.429254      28             3172           0.9865         0.0135       
+       900   692.80636          16000  -64190.982      672.36182      57.405929      57.413128      57.420283      31             3169           0.9845625      0.0154375    
+      1000   696.97906          16000  -64168.462     -798.10714      57.431861      57.431432      57.436043      37             3163           0.9825         0.0175       
+      1100   691.1734           16000  -64122.947     -167.85379      57.432559      57.432765      57.424574      38             3162           0.98025        0.01975      
+      1200   693.34014          16000  -64091.699      401.61979      57.424312      57.438389      57.415275      34             3166           0.98           0.02         
+      1300   691.28291          16000  -64082.07      -819.60305      57.430292      57.453165      57.445769      30             3170           0.98           0.02         
+      1400   700.03659          16000  -64098.556      848.38347      57.421012      57.416039      57.426942      24             3176           0.98           0.02         
+      1500   694.85815          16000  -64086.081     -359.88096      57.458008      57.438605      57.422392      16             3184           0.98           0.02         
+      1600   694.63754          16000  -64082.796      105.35123      57.426472      57.443753      57.431389      30             3170           0.98           0.02         
+      1700   695.19866          16000  -64080.625      695.18326      57.408904      57.423533      57.4502        22             3178           0.98           0.02         
+      1800   696.70121          16000  -64081.325     -944.61204      57.468557      57.427836      57.450323      19             3181           0.9800625      0.0199375    
+      1900   698.29354          16000  -64083.018      1302.9496      57.449279      57.417935      57.391263      29             3171           0.98           0.02         
+      2000   696.36006          16000  -64075.289     -526.83099      57.418853      57.472891      57.450772      16             3184           0.98           0.02         
+Loop time of 10.6858 on 4 procs for 2000 steps with 16000 atoms
+
+Performance: 40.427 ns/day, 0.594 hours/ns, 187.164 timesteps/s, 2.995 Matom-step/s
+99.4% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 9.9899     | 10.114     | 10.165     |   2.3 | 94.65
+Neigh   | 0.032671   | 0.033103   | 0.033369   |   0.2 |  0.31
+Comm    | 0.19412    | 0.24611    | 0.37184    |  14.8 |  2.30
+Output  | 0.00055357 | 0.00056121 | 0.00057954 |   0.0 |  0.01
+Modify  | 0.25561    | 0.25626    | 0.257      |   0.1 |  2.40
+Other   |            | 0.0356     |            |       |  0.33
+
+Nlocal:           4000 ave        4036 max        3945 min
+Histogram: 1 0 0 0 0 1 0 0 1 1
+Nghost:        8274.75 ave        8331 max        8241 min
+Histogram: 2 0 0 0 1 0 0 0 0 1
+Neighs:         310998 ave      314551 max      305920 min
+Histogram: 1 0 0 0 0 1 0 0 1 1
+FullNghs:       621996 ave      629024 max      611922 min
+Histogram: 1 0 0 0 0 1 0 0 1 1
+
+Total # of neighbors = 2487986
+Ave neighs/atom = 155.49912
+Neighbor list builds = 3
+Dangerous builds = 0
+Total wall time: 0:00:10

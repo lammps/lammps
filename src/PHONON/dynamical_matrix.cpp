@@ -26,6 +26,7 @@
 #include "domain.h"
 #include "error.h"
 #include "finish.h"
+#include "fix.h"
 #include "force.h"
 #include "group.h"
 #include "improper.h"
@@ -93,7 +94,6 @@ void DynamicalMatrix::setup()
     force->kspace->setup();
   }
   update_force();
-
 
   update->setupflag = 0;
 
@@ -418,7 +418,6 @@ void DynamicalMatrix::displace_atom(int local_idx, int direction, int magnitude)
   }
 }
 
-
 /* ----------------------------------------------------------------------
    evaluate potential energy and forces
    may migrate atoms due to reneighboring
@@ -432,11 +431,8 @@ void DynamicalMatrix::update_force()
   neighbor->ago = 0;
   if (modify->get_fix_by_id("package_intel")) neighbor->decide();
   force_clear();
-  int n_pre_force = modify->n_pre_force;
-  int n_pre_reverse = modify->n_pre_reverse;
-  int n_post_force = modify->n_post_force_any;
 
-  if (n_pre_force) {
+  if (modify->has_fixes(FixConst::PRE_FORCE)) {
     modify->pre_force(vflag);
     timer->stamp(Timer::MODIFY);
   }
@@ -456,7 +452,7 @@ void DynamicalMatrix::update_force()
     force->kspace->compute(eflag,vflag);
     timer->stamp(Timer::KSPACE);
   }
-  if (n_pre_reverse) {
+  if (modify->has_fixes(FixConst::PRE_REVERSE)) {
     modify->pre_reverse(eflag,vflag);
     timer->stamp(Timer::MODIFY);
   }
@@ -466,7 +462,7 @@ void DynamicalMatrix::update_force()
   }
   // force modifications
 
-  if (n_post_force) {
+  if (modify->has_fixes(FixConst::POST_FORCE_ANY)) {
     modify->post_force(vflag);
     timer->stamp(Timer::MODIFY);
   }

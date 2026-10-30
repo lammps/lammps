@@ -49,7 +49,6 @@ class FixWidom : public Fix {
  private:
   int molecule_group, molecule_group_bit;
   int molecule_group_inversebit;
-  int exclusion_group, exclusion_group_bit;
   int nwidom_type, nevery, seed;
   int ninsertions;
   int exchmode;            // exchange ATOM or MOLECULE

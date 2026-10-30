@@ -59,7 +59,7 @@ nfileevery(0), fp(nullptr), xf(nullptr), xold(nullptr)
   // register with Atom class
 
   FixTMD::grow_arrays(atom->nmax);
-  atom->add_callback(Atom::GROW);
+  atom->add_callback(this, Atom::GROW);
 
   // make sure an atom map exists before reading in target coordinates
 
@@ -132,7 +132,7 @@ FixTMD::~FixTMD()
 
   // unregister callbacks to this fix from Atom class
 
-  atom->delete_callback(id,Atom::GROW);
+  atom->delete_callback(this, Atom::GROW);
 
   // delete locally stored arrays
 

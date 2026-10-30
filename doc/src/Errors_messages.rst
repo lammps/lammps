@@ -500,10 +500,6 @@ Please also see the page with :doc:`Warning messages <Errors_warnings>`.
    This is a restriction due to the way atoms are organized in a list to
    enable the atom_modify first command.
 
-*Cannot do atom/swap on atoms in atom_modify first group*
-   This is a restriction due to the way atoms are organized in a list to
-   enable the atom_modify first command.
-
 *Cannot dump sort when multiple dump files are written*
    In this mode, each processor dumps its atoms to a file, so
    no sorting is allowed.

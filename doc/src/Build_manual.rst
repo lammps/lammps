@@ -90,7 +90,7 @@ folder.  The following ``make`` commands are available:
    make upgrade       # upgrade the python packages in the virtual environment
 
    make check         # run all checks listed in this block
-   make anchor_check  # check for duplicate anchor labels
+   make anchor_check  # check for duplicate and unused anchor labels
    make style_check   # check for complete and consistent style lists
    make package_check # check for complete and consistent package lists
    make char_check    # check for non-ASCII characters

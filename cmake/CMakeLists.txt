@@ -66,6 +66,16 @@ set(LAMMPS_POTENTIALS_URL "${LAMMPS_DOWNLOADS_URL}/potentials")
 set(LAMMPS_THIRDPARTY_URL "${LAMMPS_DOWNLOADS_URL}/thirdparty")
 mark_as_advanced(LAMMPS_DOWNLOADS_URL)
 
+# compiling, installing, or running LAMMPS as superuser (root) is strongly discouraged. warn about it.
+if(CMAKE_HOST_UNIX)
+  execute_process(COMMAND id -u OUTPUT_VARIABLE _LAMMPS_USER_ID OUTPUT_STRIP_TRAILING_WHITESPACE ERROR_QUIET)
+  if(_LAMMPS_USER_ID STREQUAL "0")
+    message(WARNING "LAMMPS is being configured as superuser (root).  Compiling, installing, "
+      "or running LAMMPS as superuser is strongly discouraged.\n"
+      "For more information see https://docs.lammps.org/err0040")
+  endif()
+endif()
+
 # by default, install into $HOME/.local (not /usr/local), so that no root access (and sudo!!) is needed
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
   if((CMAKE_SYSTEM_NAME STREQUAL "Windows") AND (NOT CMAKE_CROSSCOMPILING))
@@ -735,7 +745,7 @@ foreach(PKG_LIB H5MD)
   endif()
 endforeach()
 
-if(PKG_ELECTRODE OR PKG_ML-POD)
+if(PKG_ELECTRODE OR PKG_ML-POD OR PKG_RHEO)
   target_link_libraries(lammps PRIVATE ${LAPACK_LIBRARIES})
 endif()
 
@@ -814,8 +824,8 @@ add_custom_target(gitversion COMMAND ${CMAKE_COMMAND}
   -D GIT_EXECUTABLE="${GIT_EXECUTABLE}"
   -D GIT_FOUND="${GIT_FOUND}"
   -D LAMMPS_STYLE_HEADERS_DIR="${LAMMPS_STYLE_HEADERS_DIR}"
-  -P ${CMAKE_CURRENT_SOURCE_DIR}/Modules/generate_lmpgitversion.cmake)
-set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES ${LAMMPS_STYLE_HEADERS_DIR}/gitversion.h)
+  -P "${CMAKE_CURRENT_SOURCE_DIR}/Modules/generate_lmpgitversion.cmake"
+  BYPRODUCTS "${LAMMPS_STYLE_HEADERS_DIR}/lmpgitversion.h")
 add_dependencies(lammps gitversion)
 
 ###########################################
@@ -1094,17 +1104,18 @@ if(PKG_GPU)
   message(STATUS "<<< GPU package settings >>>
 -- GPU API:                  ${GPU_API}")
   if(GPU_API STREQUAL "CUDA")
-    message(STATUS "CUDA Compiler:            ${CUDA_NVCC_EXECUTABLE}")
-    message(STATUS "GPU default architecture: ${GPU_ARCH}")
-    message(STATUS "GPU binning with CUDPP:   ${CUDPP_OPT}")
+    message(STATUS "CUDA Compiler:            ${CMAKE_CUDA_COMPILER}")
+    message(STATUS "CUDA architecture(s):     ${GPU_ARCH}")
     message(STATUS "CUDA MPS support:         ${CUDA_MPS_SUPPORT}")
   elseif(GPU_API STREQUAL "HIP")
-    message(STATUS "HIP platform:     ${HIP_PLATFORM}")
-    message(STATUS "HIP architecture: ${HIP_ARCH}")
-    if(HIP_USE_DEVICE_SORT)
-      message(STATUS "HIP GPU sorting: on")
+    message(STATUS "HIP platform:             ${HIP_PLATFORM}")
+    message(STATUS "HIP version:              ${hip_VERSION}")
+    if(HIP_PLATFORM STREQUAL "amd")
+      message(STATUS "HIP compiler:             ${CMAKE_HIP_COMPILER}")
+      message(STATUS "HIP architecture(s):      ${CMAKE_HIP_ARCHITECTURES}")
     else()
-      message(STATUS "HIP GPU sorting: off")
+      message(STATUS "HIP compiler:             ${HIP_HIPCC_EXECUTABLE}")
+      message(STATUS "HIP architecture(s):      ${GPU_ARCH}")
     endif()
   endif()
   message(STATUS "GPU precision:            ${GPU_PREC}")

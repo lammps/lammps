@@ -55,6 +55,7 @@ void Run::command(int narg, char **arg)
   int stopflag = 0;
   bigint start,stop;
   int preflag = 1;
+  int preidx = -1;
   int postflag = 1;
   int nevery = 0;
   int ncommands = 0;
@@ -78,6 +79,7 @@ void Run::command(int narg, char **arg)
     } else if (strcmp(arg[iarg],"pre") == 0) {
       if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "run pre", error);
       preflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
+      preidx = iarg+1;
       iarg += 2;
     } else if (strcmp(arg[iarg],"post") == 0) {
       if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "run post", error);
@@ -169,7 +171,12 @@ void Run::command(int narg, char **arg)
     if (preflag || update->first_update == 0) {
       lmp->init();
       update->integrate->setup(1);
-    } else output->setup(0);
+    } else {
+      if (modify->changed_since_init() || output->changed_since_init())
+        error->all(FLERR, preidx, "Cannot use run with 'pre no' after fixes, computes, or "
+                   "dumps were added, deleted, or modified");
+      output->setup(0);
+    }
 
     timer->init();
     timer->barrier_start();
@@ -210,7 +217,12 @@ void Run::command(int narg, char **arg)
       if (preflag || iter == 0) {
         lmp->init();
         update->integrate->setup(1);
-      } else output->setup(0);
+      } else {
+        if (modify->changed_since_init() || output->changed_since_init())
+          error->all(FLERR, preidx, "Cannot use run with 'pre no' after fixes, computes, or "
+                     "dumps were added, deleted, or modified");
+        output->setup(0);
+      }
 
       timer->init();
       timer->barrier_start();

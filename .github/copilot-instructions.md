@@ -23,7 +23,7 @@ is in `cmake/`, NOT the repository root.
 
 ```bash
 cmake -S cmake -B build -C cmake/presets/gcc.cmake -C cmake/presets/most.cmake \
-      -D ENABLE_TESTING=on -D DOWNLOAD_POTENTIALS=off -G Ninja
+      -D ENABLE_TESTING=on -D BUILD_SHARED_LIBS=on -D DOWNLOAD_POTENTIALS=off -G Ninja
 cmake --build build -j 4
 # Executable: build/lmp
 ```
@@ -35,6 +35,10 @@ cmake --build build -j 4
   optional packages in `src/<PACKAGE-NAME>/` directories.
 - Use `-D DOWNLOAD_POTENTIALS=off` to avoid network dependence in CI or restricted
   environments.
+- With `-D ENABLE_TESTING=on`, ALWAYS also set `-D BUILD_SHARED_LIBS=on`: with the
+  default static library, each of the 100+ test executables links its own copy of
+  LAMMPS (several hundred MB each with the default RelWithDebInfo debug info), and a
+  static testing build can exceed 70 GB even with few packages.
 - If MPI is not found, install your distribution's MPI development package or set
   `-D MPI_CXX_COMPILER=mpicxx` explicitly.  LAMMPS uses its bundled KISS FFT by
   default; FFTW3 is optional, not required.
@@ -99,14 +103,19 @@ loosening tolerances or tagging the test `unstable`.
   a bug, check the base style, all suffix variants (`/omp`, `/kk`, `/gpu`, `/opt`,
   `/intel`), and sibling styles cloned from the same template for the same code shape,
   and fix all occurrences together.
-- The INTEL package is unmaintained: it receives only bug fixes and adjustments to
-  API changes.  Do not add or propose new `/intel` variants.
+- The core developers no longer develop the INTEL package: their own work on it is
+  limited to bug fixes and adjustments to API changes.  Do not add or propose new
+  `/intel` variants yourself.  New INTEL code from contributors is acceptable, since
+  the contributor takes on its maintenance: review it on its merits, and do not ask
+  for its removal only because of this rule.
 - The PR template contains a mandatory **AI Tools Usage** section whose default text
   states no AI was used; when AI tools generated code, edit that section to disclose it
-  honestly.  This section is the ONLY place for AI attribution: do NOT add
-  `Co-Authored-By:`, `Claude-Session:`, `Generated with ...`, or similar AI-attribution
-  trailer lines to commit messages or PR descriptions.  This applies to Claude Code,
-  GitHub Copilot, and any other coding agent alike.
+  honestly (tools and models used, which parts they generated).  This section is the
+  ONLY place for AI attribution: do NOT add `Co-Authored-By:`, `Claude-Session:`,
+  `Generated with ...`, or similar AI-attribution trailer lines to commit messages or
+  PR descriptions, and do NOT name an AI tool or model as contributing author in
+  source file headers.  This applies to Claude Code, GitHub Copilot, and any other
+  coding agent alike.  The policy details are in `doc/src/Developer_agents.rst`.
 
 ## Task-Specific Guides
 

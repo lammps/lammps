@@ -136,6 +136,7 @@ FixChargeRegulation::FixChargeRegulation(LAMMPS *lmp, int narg, char **arg) :
   next_reneighbor = update->ntimestep + 1;
   random_equal = new RanPark(lmp, seed);
   random_unequal = new RanPark(lmp, seed);
+  random_unequal->reset_rank(seed, comm->me);
   nacid_attempts = 0;
   nacid_successes = 0;
   nbase_attempts = 0;
@@ -255,16 +256,18 @@ void FixChargeRegulation::init() {
     neighbor->modify_params(fmt::format("exclude group {} {}",group_id,group_id));
   }
 
-  // check that no deletable atoms are in atom->firstgroup
-  // deleting such an atom would not leave firstgroup atoms first
+  // check that no free ions are in atom->firstgroup
+  // they can be deleted, and deleting such an atom would not leave firstgroup atoms first
 
   if (atom->firstgroup >= 0) {
     int *mask = atom->mask;
+    int *type = atom->type;
     int firstgroupbit = group->bitmask[atom->firstgroup];
 
     int flag = 0;
     for (int i = 0; i < atom->nlocal; i++)
-      if ((mask[i] == groupbit) && (mask[i] && firstgroupbit)) flag = 1;
+      if (((type[i] == cation_type) || (type[i] == anion_type)) && (mask[i] & firstgroupbit))
+        flag = 1;
 
     int flagall;
     MPI_Allreduce(&flag, &flagall, 1, MPI_INT, MPI_SUM, world);
@@ -1141,7 +1144,7 @@ double FixChargeRegulation::energy_full() {
   atom->nghost = 0;
   comm->borders();
   if (triclinic) domain->lamda2x(atom->nlocal + atom->nghost);
-  if (modify->n_pre_neighbor) modify->pre_neighbor();
+  if (modify->has_fixes(FixConst::PRE_NEIGHBOR)) modify->pre_neighbor();
   neighbor->build(1);
 
   if (overlap_flag) {
@@ -1171,7 +1174,7 @@ double FixChargeRegulation::energy_full() {
   size_t nbytes = sizeof(double) * (atom->nlocal + atom->nghost);
   if (nbytes) memset(&atom->f[0][0], 0, 3 * nbytes);
 
-  if (modify->n_pre_force) modify->pre_force(vflag);
+  if (modify->has_fixes(FixConst::PRE_FORCE)) modify->pre_force(vflag);
 
   if (force->pair) force->pair->compute(eflag, vflag);
 
@@ -1184,8 +1187,8 @@ double FixChargeRegulation::energy_full() {
 
   if (force->kspace) force->kspace->compute(eflag, vflag);
 
-  if (modify->n_pre_reverse) modify->pre_reverse(eflag,vflag);
-  if (modify->n_post_force_any) modify->post_force(vflag);
+  if (modify->has_fixes(FixConst::PRE_REVERSE)) modify->pre_reverse(eflag,vflag);
+  if (modify->has_fixes(FixConst::POST_FORCE_ANY)) modify->post_force(vflag);
 
   update->eflag_global = update->ntimestep;
   double total_energy = c_pe->compute_scalar();
@@ -1284,10 +1287,12 @@ double FixChargeRegulation::compute_vector(int n) {
 
 void FixChargeRegulation::write_restart(FILE *fp)
 {
+  int nglobalvals = 10;
+  int nlocalvals = comm->nprocs;
+  int ntotalvals = nglobalvals + nlocalvals;
+  std::vector<double> list(ntotalvals);
   int n = 0;
-  double list[10];
   list[n++] = random_equal->state();
-  list[n++] = random_unequal->state();
   list[n++] = nacid_attempts;
   list[n++] = nacid_successes;
   list[n++] = nbase_attempts;
@@ -1296,11 +1301,15 @@ void FixChargeRegulation::write_restart(FILE *fp)
   list[n++] = nsalt_successes;
   list[n++] = ubuf(next_reneighbor).d;
   list[n++] = ubuf(update->ntimestep).d;
+  list[n++] = nlocalvals;
+
+  double state = random_unequal->state();
+  MPI_Gather(&state, 1, MPI_DOUBLE, &list[n], 1, MPI_DOUBLE, 0, world);
 
   if (comm->me == 0) {
-    int size = (int) sizeof(list);
-    fwrite(&size,sizeof(int),1,fp);
-    fwrite(list,sizeof(list),1,fp);
+    int size = ntotalvals * sizeof(double);
+    fwrite(&size, sizeof(int), 1, fp);
+    fwrite(list.data(), sizeof(double), ntotalvals, fp);
   }
 }
 
@@ -1316,8 +1325,6 @@ void FixChargeRegulation::restart(char *buf)
   seed = static_cast<int>(list[n++]);
   random_equal->reset(seed);
 
-  seed = static_cast<int>(list[n++]);
-  random_unequal->reset(seed);
   // NOLINTBEGIN
   nacid_attempts  = list[n++];
   nacid_successes = list[n++];
@@ -1329,7 +1336,19 @@ void FixChargeRegulation::restart(char *buf)
   next_reneighbor = (bigint) ubuf(list[n++]).i;
   bigint ntimestep_restart = (bigint) ubuf(list[n++]).i;
   if (ntimestep_restart != update->ntimestep)
-    error->all(FLERR,"Must not reset timestep when restarting fix gcmc");
+    error->all(FLERR,"Must not reset timestep when restarting fix charge/regulation");
+
+  // read stored state of RNG unique to this process
+  // if nprocs changed, derive a unique state from the state of proc 0
+
+  auto nlocalvals = (int) list[n++];
+  if (nlocalvals == comm->nprocs) {
+    seed = static_cast<int>(list[n + comm->me]);
+    random_unequal->reset(seed);
+  } else {
+    seed = static_cast<int>(list[n]);
+    random_unequal->reset_rank(seed, comm->me);
+  }
 }
 
 /* ---------------------------------------------------------------------- */

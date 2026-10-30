@@ -158,7 +158,7 @@ FixQEqReaxFF::FixQEqReaxFF(LAMMPS *lmp, int narg, char **arg) :
   H.n = H.m = 0;
   H.firstnbr = H.numnbrs = H.jlist = nullptr;
   H.val = nullptr;
-  atom->add_callback(Atom::GROW);
+  atom->add_callback(this, Atom::GROW);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -171,7 +171,7 @@ FixQEqReaxFF::~FixQEqReaxFF()
 
   // unregister callbacks to this fix from Atom class
 
-  atom->delete_callback(id,Atom::GROW);
+  atom->delete_callback(this, Atom::GROW);
 
   memory->destroy(s_hist);
   memory->destroy(t_hist);
@@ -725,6 +725,11 @@ void FixQEqReaxFF::compute_H()
         }
 
         if (flag) {
+          // check before writing past the end of the matrix
+          if (m_fill >= H.m)
+            error->one(FLERR, Error::NOLASTLINE,
+                       "Fix qeq/reaxff H matrix size has been exceeded: m_fill={} H.m={}\n",
+                       m_fill, H.m);
           H.jlist[m_fill] = j;
           H.val[m_fill] = calculate_H(sqrt(r_sqr), shld[type[i]][type[j]]);
           m_fill++;
@@ -735,7 +740,7 @@ void FixQEqReaxFF::compute_H()
   }
 
   if (m_fill >= H.m)
-    error->all(FLERR, Error::NOLASTLINE, "Fix qeq/reaxff H matrix size has been exceeded: m_fill={} H.m={}\n",
+    error->one(FLERR, Error::NOLASTLINE, "Fix qeq/reaxff H matrix size has been exceeded: m_fill={} H.m={}\n",
                m_fill, H.m);
 }
 

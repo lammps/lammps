@@ -56,3 +56,26 @@ more replicas than you have physical processors. This is useful for
 testing and debugging, since with most modern processors and MPI
 libraries, the efficiency of a calculation can severely diminish when
 oversubscribing processors.
+
+All partitions execute the same input script.  This means that commands
+that write files, e.g. :doc:`dump <dump>`, :doc:`restart <restart>`, or
+:doc:`write_restart <write_restart>`, are executed on all partitions,
+and they will write to the same file at the same time unless the file
+name is different for each partition.  The resulting file may contain
+the data of just one of the replicas or a garbled mix of data from
+several replicas.  To avoid this, include a variable in the file name
+that has a different value on each partition, e.g. the replica number:
+
+.. code-block:: LAMMPS
+
+   variable rep world 0 1 2 3 4 5 6 7
+   dump 1 all atom 1000 dump.replica.${rep}
+   write_restart restart.replica.${rep}
+
+Instead of a world-style variable, you can also use a universe- or
+uloop-style :doc:`variable <variable>`.  The :doc:`prd <prd>` and
+:doc:`tad <tad>` commands are an exception: they write a single dump or
+restart file for all partitions themselves; see their documentation for
+details.  Log files and screen output are separated automatically into
+one file per partition, see the :doc:`-log and -screen command-line
+switches <Run_options>`.

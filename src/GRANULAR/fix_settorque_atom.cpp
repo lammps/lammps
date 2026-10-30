@@ -180,7 +180,9 @@ void FixSetTorqueAtom::init()
   }
 
   if ((modify->check_rigid_group_overlap(groupbit)) && (comm->me == 0))
-    error->warning(FLERR,"Setting torques to atoms in rigid bodies with fix settorque/atom may not work as expected");
+    error->warning(FLERR,
+                   "Setting torques to atoms in rigid bodies with fix settorque/atom may not work "
+                   "as expected");
 }
 
 /* ---------------------------------------------------------------------- */

@@ -50,6 +50,7 @@ Pre-processing tools
    * :ref:`eam database <eamdb>`
    * :ref:`eam generate <eamgn>`
    * :ref:`eff <eff>`
+   * :ref:`find-symmetry <findsym>`
    * :ref:`ipp <ipp>`
    * :ref:`micelle2d <micelle>`
    * :ref:`moltemplate <moltemplate>`
@@ -358,6 +359,43 @@ See README file in the tools/fep directory.
 
 ----------
 
+.. _findsym:
+
+find-symmetry tool
+------------------
+
+.. versionadded:: TBD
+
+The tools/symmetry directory contains the *find-symmetry* program,
+which writes symmetry files for the :doc:`fix symmetry <fix_symmetry>`
+command.  It uses the `spglib library <https://spglib.readthedocs.io/>`_
+and is compiled with CMake when ``-D BUILD_TOOLS=on`` is used, unless
+``-D USE_SPGLIB=off`` is also given.
+
+It has two modes.  Given a LAMMPS data file, e.g. written by the
+:doc:`write_data <write_data>` command, it determines the space group of
+the atoms in the simulation box and writes its operators.  When the box
+consists of several unit cells, the operators of one unit cell are
+written with a "supercell" entry, which keeps the file short.  It also
+reports by how much the positions deviate from exact symmetry, if that
+requires a larger *tol* setting for the fix.
+
+.. code-block:: bash
+
+   find-symmetry -o crystal.json data.crystal
+
+With the ``-g`` flag and a space group number, it writes the operators
+of that space group in its standard setting, e.g. for a box of 2 x 2 x 1
+conventional unit cells of a monoclinic crystal in space group P2_1/c:
+
+.. code-block:: bash
+
+   find-symmetry -g 14 -s 2 2 1 -o p21c.json
+
+Run ``find-symmetry -h`` for a list of all options.
+
+----------
+
 .. _ipi:
 
 i-PI tool
@@ -537,7 +575,7 @@ input files that is linked to the :ref:`LAMMPS C-library
 repository at https://github.com/lammps/lammps-gui/ and the online
 documentation is at https://lammps-gui.lammps.org/
 
-It is still possible to compile :ref:`LAMMPS-GUI together with LAMMPS <tools>`.
+It is still possible to compile :ref:`LAMMPS-GUI together with LAMMPS <build_tools>`.
 
 ----------
 

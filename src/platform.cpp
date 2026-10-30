@@ -532,6 +532,30 @@ std::string platform::compress_info()
   if (none_found) buf += "None\n";
   return buf;
 }
+
+/* ----------------------------------------------------------------------
+   check if process has superuser (root) or administrator privileges
+------------------------------------------------------------------------- */
+
+bool platform::is_superuser()
+{
+#if defined(_WIN32)
+  // a process started with "Run as administrator" has an elevated access token
+  bool elevated = false;
+  HANDLE token = nullptr;
+  if (OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY, &token)) {
+    TOKEN_ELEVATION elevation;
+    DWORD size = sizeof(elevation);
+    if (GetTokenInformation(token, TokenElevation, &elevation, sizeof(elevation), &size))
+      elevated = (elevation.TokenIsElevated != 0);
+    CloseHandle(token);
+  }
+  return elevated;
+#else
+  return (geteuid() == 0);
+#endif
+}
+
 /* ----------------------------------------------------------------------
    set environment variable
 ------------------------------------------------------------------------- */

@@ -45,6 +45,9 @@ Platform information functions
 .. doxygenfunction:: compress_info
    :project: progguide
 
+.. doxygenfunction:: is_superuser
+   :project: progguide
+
 
 File and path functions and global constants
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

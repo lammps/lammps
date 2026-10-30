@@ -1,1 +1,25 @@
-see the SPH user's guide for a detailed explanation of these examples.
+SPH examples
+
+cavity_flow/in.cavity_flow : shear-driven laminar flow in a 2d square cavity
+heatconduction/in.sph_heat_conduction_2d : heat conduction in a 2d bar of stationary particles
+heatconduction/in.sph_heat_conduction_3d : heat conduction in a 3d bar of stationary particles
+shock_tube/in.shock2d : quasi-1d shock tube problem in 2d
+shock_tube/in.shock3d : quasi-1d shock tube problem in 3d
+water_collapse/in.water_collapse : collapse of a 2d water column in a container with an obstacle
+
+Some of these inputs run only a small number of time steps by default,
+so that they can also be used for regression testing.  For those, the
+number of time steps is set with the index style variable "nsteps",
+which can be changed from the command line with the -var flag:
+
+shock_tube/in.shock3d : default 100, use "-var nsteps 400" to run until
+    t = 20, which is needed to compare with the exact solution using the
+    compare_exact.gpl gnuplot script
+water_collapse/in.water_collapse : default 2000, use "-var nsteps 50000"
+    to follow the collapse of the water column until t = 10
+
+Example: lmp -in in.water_collapse -var nsteps 50000
+
+See the SPH how to page in the LAMMPS documentation,
+https://docs.lammps.org/Howto_sph.html
+for a detailed explanation of these examples.

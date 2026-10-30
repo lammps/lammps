@@ -1,0 +1,123 @@
+LAMMPS (30 Sep 2026 - Development - patch_30Sep2026-557-g6b420a463c-modified)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread.
+  using 1 OpenMP thread(s) per MPI task
+# fix symmetry example: relaxation of an LJ FCC crystal with the full
+# cubic symmetry of the FCC structure (space group Fm-3m)
+#
+# The symmetry file was written with the find-symmetry tool:
+#   find-symmetry -g 225 -s 4 4 4 -o fm-3m.json
+# It contains the 192 operators of the conventional cubic unit cell and
+# a supercell entry for the 4 x 4 x 4 unit cells in the box.  With all
+# translations between unit cells included, every atom is related to
+# every other atom and there are no free coordinates: only the volume
+# of the box can change.  The minimization with fix box/relax finds the
+# lattice constant at zero pressure for this potential.
+
+units           lj
+atom_style      atomic
+
+lattice         fcc 0.8442
+Lattice spacing in x,y,z = 1.6795962 1.6795962 1.6795962
+region          box block 0 4 0 4 0 4
+create_box      1 box
+Created orthogonal box = (0 0 0) to (6.7183848 6.7183848 6.7183848)
+  1 by 1 by 1 MPI processor grid
+create_atoms    1 box
+Created 256 atoms
+  using lattice units in orthogonal box = (0 0 0) to (6.7183848 6.7183848 6.7183848)
+  create_atoms CPU = 0.000 seconds
+mass            1 1.0
+
+pair_style      lj/cut 2.5
+pair_coeff      * * 1.0 1.0
+pair_modify     shift yes
+
+fix             sym all symmetry fm-3m.json
+fix             relax all box/relax iso 0.0
+
+variable        a equal lx/4
+thermo_style    custom step pe press vol v_a
+thermo_modify   format float %14.8g
+print           "Initial lattice constant: $(lx/4:%.8f)"
+Initial lattice constant: 1.67959619
+min_modify      line quadratic
+minimize        0.0 1.0e-10 1000 10000
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+
+- fix symmetry: https://doi.org/10.1021/acs.jctc.2c00401
+
+@Article{WhiteCoxSymmetricMD,
+author = {Cox, Sam and White, Andrew D.},
+title = {Symmetric Molecular Dynamics},
+journal = {Journal of Chemical Theory and Computation},
+volume = {18},
+number = {7},
+pages = {4077-4081},
+year = {2022},
+doi = {10.1021/acs.jctc.2c00401},
+note ={PMID: 35699649},
+url = {https://doi.org/10.1021/acs.jctc.2c00401},
+}
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+Fix symmetry sym: group Fm-3m (225) with 12288 operators, 256 atoms in 1 orbits (1 on special positions) with 0 independent coordinates
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 2.8
+  ghost atom cutoff = 2.8
+  binsize = 1.4, bins = 5 5 5
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cut, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d
+      bin: standard
+WARNING: Energy due to 1 extra global DOFs will be included in minimizer energies
+ (src/min.cpp:224)
+Per MPI rank memory allocation (min/avg/max) = 4.244 | 4.244 | 4.244 Mbytes
+   Step         PotEng         Press          Volume          v_a      
+         0       -6.332812     -6.2353173      303.24568      1.6795962
+       776       -7.463262 -1.1109296e-14      238.14511      1.5496034
+Loop time of 0.897252 on 1 procs for 776 steps with 256 atoms
+
+99.5% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+Minimization stats:
+  Stopping criterion = force tolerance
+  Energy initial, next-to-last, final = 
+     -6.33281199258097  -7.46326203844016  -7.46326203844066
+  Force two-norm initial, final = 5672.499 8.6026799e-12
+  Force max component initial, final = 5672.499 8.6026799e-12
+  Final line search alpha, max atom move = 1 8.6026799e-12
+  Iterations, force evaluations = 776 779
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.083336   | 0.083336   | 0.083336   |   0.0 |  9.29
+Neigh   | 0.001643   | 0.001643   | 0.001643   |   0.0 |  0.18
+Comm    | 0.0036522  | 0.0036522  | 0.0036522  |   0.0 |  0.41
+Output  | 0          | 0          | 0          |   0.0 |  0.00
+Modify  | 0.79292    | 0.79292    | 0.79292    |   0.0 | 88.37
+Other   |            | 0.01571    |            |       |  1.75
+
+Nlocal:            256 ave         256 max         256 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:           1431 ave        1431 max        1431 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:          11008 ave       11008 max       11008 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 11008
+Ave neighs/atom = 43
+Neighbor list builds = 6
+Dangerous builds = 0
+print           "Final lattice constant: $(lx/4:%.8f)"
+Final lattice constant: 1.54960342
+Total wall time: 0:00:00

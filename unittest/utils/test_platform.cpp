@@ -346,6 +346,25 @@ TEST(Platform, is_console)
     platform::unlink("file_is_no_console.txt");
 }
 
+TEST(Platform, is_superuser)
+{
+    const bool flag = platform::is_superuser();
+    // the result must not change between calls
+    EXPECT_EQ(flag, platform::is_superuser());
+#if !defined(_WIN32)
+    // compare with the user ID that is reported by the "id" command, if available
+    if (!platform::find_exe_path("id").empty()) {
+        FILE *fp = platform::popen("id -u", "r");
+        ASSERT_NE(fp, nullptr);
+        char buf[32]    = {'\0'};
+        const char *ptr = fgets(buf, 32, fp);
+        platform::pclose(fp);
+        ASSERT_NE(ptr, nullptr);
+        EXPECT_EQ(flag, (std::string(buf) == "0\n"));
+    }
+#endif
+}
+
 TEST(Platform, path_and_directory)
 {
     platform::unlink("path_is_directory");

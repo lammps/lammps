@@ -15,6 +15,8 @@
  Contributing authors: Andres Jaramillo-Botero, Hai Xiao, Julius Su (Caltech)
 ------------------------------------------------------------------------- */
 
+#include "math_special.h"
+
 #include <cmath>
 
 namespace LAMMPS_NS {
@@ -487,26 +489,26 @@ static inline void PauliCorePElec(double rc, double re2, double *epauli, double 
 {
   double E, dEdrc, dEdre2;
 
-  E = PAULI_CORE_P_A * pow((2.0 / (PAULI_CORE_P_B / re2 + re2 / PAULI_CORE_P_B)), 5.0) *
-      pow((rc - PAULI_CORE_P_C * re2), 2.0) *
-      exp(-PAULI_CORE_P_D * pow((rc - PAULI_CORE_P_C * re2), 2.0) / (PAULI_CORE_P_E + re2 * re2));
+  E = PAULI_CORE_P_A * MathSpecial::powint(2.0 / (PAULI_CORE_P_B / re2 + re2 / PAULI_CORE_P_B), 5) *
+      MathSpecial::square(rc - PAULI_CORE_P_C * re2) *
+      exp(-PAULI_CORE_P_D * MathSpecial::square(rc - PAULI_CORE_P_C * re2) / (PAULI_CORE_P_E + re2 * re2));
 
-  dEdrc = PAULI_CORE_P_A * pow((2.0 / (PAULI_CORE_P_B / re2 + re2 / PAULI_CORE_P_B)), 5.0) * 2.0 *
+  dEdrc = PAULI_CORE_P_A * MathSpecial::powint(2.0 / (PAULI_CORE_P_B / re2 + re2 / PAULI_CORE_P_B), 5) * 2.0 *
           (rc - PAULI_CORE_P_C * re2) *
-          exp(-PAULI_CORE_P_D * pow((rc - PAULI_CORE_P_C * re2), 2.0) /
+          exp(-PAULI_CORE_P_D * MathSpecial::square(rc - PAULI_CORE_P_C * re2) /
               (PAULI_CORE_P_E + re2 * re2)) +
       E * (-PAULI_CORE_P_D * 2.0 * (rc - PAULI_CORE_P_C * re2) / (PAULI_CORE_P_E + re2 * re2));
 
   dEdre2 = E *
           (-5.0 / (PAULI_CORE_P_B / re2 + re2 / PAULI_CORE_P_B) *
            (-PAULI_CORE_P_B / (re2 * re2) + 1.0 / PAULI_CORE_P_B)) +
-      PAULI_CORE_P_A * pow((2.0 / (PAULI_CORE_P_B / re2 + re2 / PAULI_CORE_P_B)), 5.0) * 2.0 *
+      PAULI_CORE_P_A * MathSpecial::powint(2.0 / (PAULI_CORE_P_B / re2 + re2 / PAULI_CORE_P_B), 5) * 2.0 *
           (rc - PAULI_CORE_P_C * re2) * (-PAULI_CORE_P_C) *
-          exp(-PAULI_CORE_P_D * pow((rc - PAULI_CORE_P_C * re2), 2.0) /
+          exp(-PAULI_CORE_P_D * MathSpecial::square(rc - PAULI_CORE_P_C * re2) /
               (PAULI_CORE_P_E + re2 * re2)) +
       E *
           (2.0 * PAULI_CORE_P_D * (rc - PAULI_CORE_P_C * re2) *
-           (PAULI_CORE_P_C * PAULI_CORE_P_E + rc * re2) / pow((PAULI_CORE_P_E + re2 * re2), 2.0));
+           (PAULI_CORE_P_C * PAULI_CORE_P_E + rc * re2) / MathSpecial::square(PAULI_CORE_P_E + re2 * re2));
 
   *epauli += E;
   *frc -= dEdrc;

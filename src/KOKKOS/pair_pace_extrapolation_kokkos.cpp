@@ -34,6 +34,7 @@
 
 #include "ace/ace_b_basis.h"
 #include "ace/ace_b_evaluator.h"
+#include "math_special_kokkos.h"
 
 #include <cstring>
 
@@ -1892,8 +1893,8 @@ void PairPACEExtrapolationKokkos<DeviceType>::cutoff_func_poly(const KK_FLOAT r,
     dfc = 0;
   } else {
     KK_FLOAT x = 1 - 2 * (1 + (r - r_in) / delta_in);
-    fc = 0.5 + 7.5 / 2. * (x / 4. - pow(x, 3) / 6. + pow(x, 5) / 20.);
-    dfc = -7.5 / delta_in * (0.25 - x * x / 2.0 + pow(x, 4) / 4.);
+    fc = 0.5 + 7.5 / 2. * (x / 4. - MathSpecialKokkos::cube(x) / 6. + MathSpecialKokkos::powint(x, 5) / 20.);
+    dfc = -7.5 / delta_in * (0.25 - x * x / 2.0 + MathSpecialKokkos::powint(x, 4) / 4.);
   }
 }
 
@@ -1912,7 +1913,7 @@ void PairPACEExtrapolationKokkos<DeviceType>::Fexp(const KK_FLOAT x, const KK_FL
     KK_FLOAT g;
     const KK_FLOAT a = abs(x);
     const KK_FLOAT am = pow(a, m);
-    const KK_FLOAT w3x3 = pow(w * a, 3); //// use cube
+    const KK_FLOAT w3x3 = MathSpecialKokkos::cube(w * a);
     const KK_FLOAT sign_factor = (signbit(x) ? -1 : 1);
     if (w3x3 > 30.0)
         g = 0.0;

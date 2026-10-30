@@ -19,6 +19,7 @@
 #include "atom.h"
 #include "error.h"
 #include "fix.h"
+#include "math_special.h"
 #include "memory.h"
 #include "modify.h"
 #include "neigh_list.h"
@@ -28,6 +29,8 @@
 #include <cstring>
 
 using namespace LAMMPS_NS;
+using MathSpecial::cube;
+using MathSpecial::powint;
 
 /* ---------------------------------------------------------------------- */
 
@@ -274,7 +277,7 @@ double PairLambdaZoneAPIP::switching_function_poly_distance(double input)
     return 0;
   } else {
     double deltatmp = 1 - 2 * (1 + (input - cut_hi) / (cut_width));
-    return 0.5 + 7.5 / 2. * (deltatmp / 4. - pow(deltatmp, 3) / 6. + pow(deltatmp, 5) / 20.);
+    return 0.5 + 7.5 / 2. * (deltatmp / 4. - cube(deltatmp) / 6. + powint(deltatmp, 5) / 20.);
   }
 }
 

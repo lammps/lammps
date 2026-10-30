@@ -12,12 +12,15 @@
 #ifndef SMD_KERNEL_FUNCTIONS_H
 #define SMD_KERNEL_FUNCTIONS_H
 
+#include "math_special.h"
+
+
 namespace SMD_Kernels {
 static inline double Kernel_Wendland_Quintic_NotNormalized(const double r, const double h)
 {
   if (r < h) {
     double q = 2.0 * r / h;
-    return pow(1.0 - 0.5 * q, 4) * (2.0 * q + 1.0);
+    return LAMMPS_NS::MathSpecial::powint(1.0 - 0.5 * q, 4) * (2.0 * q + 1.0);
   } else {
     return 0.0;
   }
@@ -29,7 +32,7 @@ static inline double Kernel_Cubic_Spline(const double r, const double h)
   if (q > 2.0) {
     return 0.0;
   } else if ((q <= 2.0) && (q > 1.0)) {
-    return pow(2.0 - q, 3.0) / 6.0;
+    return LAMMPS_NS::MathSpecial::cube(2.0 - q) / 6.0;
   } else if ((q >= 0.0) && (q <= 1.0)) {
     return 2. / 3. - q * q + 0.5 * q * q * q;
   } else {

@@ -35,6 +35,7 @@
 #include <cstring>
 
 using namespace LAMMPS_NS;
+using MathSpecial::powauto;
 using MathSpecial::square;
 
 /* ---------------------------------------------------------------------- */
@@ -151,7 +152,7 @@ void PairLJPirani::compute(int eflag, int vflag)
         rx = r / rm[itype][jtype];
         n_x = alpha[itype][jtype] * rx * rx + beta[itype][jtype];
         pow_rx_n_x = pow(1.0 / rx, n_x);
-        pow_rx_gamma = pow(1.0 / rx, gamma[itype][jtype]);
+        pow_rx_gamma = powauto(1.0 / rx, gamma[itype][jtype]);
 
         filj1 = -2.0 * alpha[itype][jtype] * gamma[itype][jtype] * rx * pow_rx_n_x /
             (square(n_x - gamma[itype][jtype]) * rm[itype][jtype]);
@@ -183,9 +184,9 @@ void PairLJPirani::compute(int eflag, int vflag)
         }
 
         if (eflag) {
-          ilj1 = epsilon[itype][jtype] * gamma[itype][jtype] * pow(1 / rx, n_x) /
+          ilj1 = epsilon[itype][jtype] * gamma[itype][jtype] * pow_rx_n_x /
               (n_x - gamma[itype][jtype]);
-          ilj2 = -epsilon[itype][jtype] * n_x * pow(1 / rx, gamma[itype][jtype]) /
+          ilj2 = -epsilon[itype][jtype] * n_x * pow_rx_gamma /
               (n_x - gamma[itype][jtype]);
 
           evdwl = ilj1 + ilj2 - offset[itype][jtype];
@@ -266,7 +267,7 @@ void PairLJPirani::compute_inner()
         rx = r / rm[itype][jtype];
         n_x = alpha[itype][jtype] * rx * rx + beta[itype][jtype];
         pow_rx_n_x = pow(1.0 / rx, n_x);
-        pow_rx_gamma = pow(1.0 / rx, gamma[itype][jtype]);
+        pow_rx_gamma = powauto(1.0 / rx, gamma[itype][jtype]);
 
         filj1 = -2.0 * alpha[itype][jtype] * gamma[itype][jtype] * rx * pow_rx_n_x /
             (square(n_x - gamma[itype][jtype]) * rm[itype][jtype]);
@@ -377,7 +378,7 @@ void PairLJPirani::compute_middle()
         rx = r / rm[itype][jtype];
         n_x = alpha[itype][jtype] * rx * rx + beta[itype][jtype];
         pow_rx_n_x = pow(1.0 / rx, n_x);
-        pow_rx_gamma = pow(1.0 / rx, gamma[itype][jtype]);
+        pow_rx_gamma = powauto(1.0 / rx, gamma[itype][jtype]);
 
         filj1 = -2.0 * alpha[itype][jtype] * gamma[itype][jtype] * rx * pow_rx_n_x /
             (square(n_x - gamma[itype][jtype]) * rm[itype][jtype]);
@@ -491,7 +492,7 @@ void PairLJPirani::compute_outer(int eflag, int vflag)
           rx = r / rm[itype][jtype];
           n_x = alpha[itype][jtype] * rx * rx + beta[itype][jtype];
           pow_rx_n_x = pow(1.0 / rx, n_x);
-          pow_rx_gamma = pow(1.0 / rx, gamma[itype][jtype]);
+          pow_rx_gamma = powauto(1.0 / rx, gamma[itype][jtype]);
 
           filj1 = -2.0 * alpha[itype][jtype] * gamma[itype][jtype] * rx * pow_rx_n_x /
               (square(n_x - gamma[itype][jtype]) * rm[itype][jtype]);
@@ -537,7 +538,7 @@ void PairLJPirani::compute_outer(int eflag, int vflag)
 
           ilj1 = epsilon[itype][jtype] * gamma[itype][jtype] * pow(1 / rx, n_x) /
               (n_x - gamma[itype][jtype]);
-          ilj2 = -epsilon[itype][jtype] * n_x * pow(1 / rx, gamma[itype][jtype]) /
+          ilj2 = -epsilon[itype][jtype] * n_x * powauto(1.0 / rx, gamma[itype][jtype]) /
               (n_x - gamma[itype][jtype]);
 
           evdwl = ilj1 + ilj2 - offset[itype][jtype];
@@ -552,7 +553,7 @@ void PairLJPirani::compute_outer(int eflag, int vflag)
             rx = r / rm[itype][jtype];
             n_x = alpha[itype][jtype] * rx * rx + beta[itype][jtype];
             pow_rx_n_x = pow(1.0 / rx, n_x);
-            pow_rx_gamma = pow(1.0 / rx, gamma[itype][jtype]);
+            pow_rx_gamma = powauto(1.0 / rx, gamma[itype][jtype]);
 
             filj1 = -2.0 * alpha[itype][jtype] * gamma[itype][jtype] * rx * pow_rx_n_x /
                 (square(n_x - gamma[itype][jtype]) * rm[itype][jtype]);
@@ -847,12 +848,12 @@ double PairLJPirani::single(int /*i*/, int /*j*/, int itype, int jtype, double r
   rx = r / rm[itype][jtype];
   n_x = alpha[itype][jtype] * rx * rx + beta[itype][jtype];
   filj1 = -2.0 * alpha[itype][jtype] * gamma[itype][jtype] * rx * pow(1 / rx, n_x) /
-      (pow(n_x - gamma[itype][jtype], 2.0) * rm[itype][jtype]);
+      (square(n_x - gamma[itype][jtype]) * rm[itype][jtype]);
 
-  filj2 = +2.0 * alpha[itype][jtype] * rx * n_x * pow(1 / rx, gamma[itype][jtype]) /
-      (pow(n_x - gamma[itype][jtype], 2.0) * rm[itype][jtype]);
+  filj2 = +2.0 * alpha[itype][jtype] * rx * n_x * powauto(1.0 / rx, gamma[itype][jtype]) /
+      (square(n_x - gamma[itype][jtype]) * rm[itype][jtype]);
 
-  filj3 = -2.0 * alpha[itype][jtype] * rx * pow(1 / rx, gamma[itype][jtype]) /
+  filj3 = -2.0 * alpha[itype][jtype] * rx * powauto(1.0 / rx, gamma[itype][jtype]) /
       (rm[itype][jtype] * (n_x - gamma[itype][jtype]));
 
   filj4 = +2.0 * alpha[itype][jtype] * gamma[itype][jtype] * (rx / rm[itype][jtype]) * log(1 / rx) *
@@ -860,7 +861,7 @@ double PairLJPirani::single(int /*i*/, int /*j*/, int itype, int jtype, double r
 
   filj5 = -1.0 * gamma[itype][jtype] * n_x * pow(1 / rx, n_x) / (r * (n_x - gamma[itype][jtype]));
 
-  filj6 = +1.0 * gamma[itype][jtype] * n_x * pow(1 / rx, gamma[itype][jtype]) /
+  filj6 = +1.0 * gamma[itype][jtype] * n_x * powauto(1.0 / rx, gamma[itype][jtype]) /
       (r * (n_x - gamma[itype][jtype]));
 
   forceilj = -epsilon[itype][jtype] * (filj1 + filj2 + filj3 + filj4 + filj5 + filj6);
@@ -870,7 +871,7 @@ double PairLJPirani::single(int /*i*/, int /*j*/, int itype, int jtype, double r
   ilj1 =
       epsilon[itype][jtype] * gamma[itype][jtype] * pow(1 / rx, n_x) / (n_x - gamma[itype][jtype]);
   ilj2 =
-      -epsilon[itype][jtype] * n_x * pow(1 / rx, gamma[itype][jtype]) / (n_x - gamma[itype][jtype]);
+      -epsilon[itype][jtype] * n_x * powauto(1.0 / rx, gamma[itype][jtype]) / (n_x - gamma[itype][jtype]);
   return factor_lj * (ilj1 + ilj2 - offset[itype][jtype]);
 }
 

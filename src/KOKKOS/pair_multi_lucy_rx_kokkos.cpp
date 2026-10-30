@@ -103,7 +103,7 @@ void PairMultiLucyRXKokkos<DeviceType>::coeff(int narg, char **arg) {
   update_table = 1;
 
   // rx_fix is initialized in PairMultiLucyRX::coeff().
-  rx_fixKK = dynamic_cast<FixRxKokkos<DeviceType> *>(rx_fix);
+  rx_fixKK = FixRxKokkos<DeviceType>::cast(rx_fix);
   if (!rx_fixKK)
     error->all(FLERR, Error::NOLASTLINE, "Fix rx not defined or not compatible with pair style");
 }

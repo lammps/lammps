@@ -8,7 +8,7 @@ prerequisites: ! |
 pre_commands: ! ""
 post_commands: ! ""
 input_file: in.manybody
-pair_style: dispersion/d3 zero pbe 12.0 12.0
+pair_style: dispersion/d3 original pbe 12.0 12.0
 pair_coeff: ! |
   * * Si Si Si Si Si Si Si Si
 extract: ! ""

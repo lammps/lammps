@@ -155,13 +155,7 @@ void PairCoulShieldOMP::eval(int iifrom, int iito, ThrData *const thr)
         }
 
         double ecoul = 0.0;
-        if (EFLAG) {
-          if (tap_flag)
-            ecoul = Vc * Tap;
-          else
-            ecoul = Vc - offset[itype][jtype];
-          ecoul *= factor_coul;
-        }
+        if (EFLAG) ecoul = Vc * Tap * factor_coul;
 
         if (EVFLAG)
           ev_tally_thr(this, i, j, nlocal, NEWTON_PAIR, 0.0, ecoul, fpair, delx, dely, delz, thr);

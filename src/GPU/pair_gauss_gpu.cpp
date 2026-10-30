@@ -35,7 +35,7 @@ using namespace LAMMPS_GPU;
 
 /* ---------------------------------------------------------------------- */
 
-PairGaussGPU::PairGaussGPU(LAMMPS *lmp) : PairGauss(lmp), gpu_mode(GPU_FORCE)
+PairGaussGPU::PairGaussGPU(LAMMPS *lmp) : PairGauss(lmp), gpu_mode(GPU_FORCE), update_coeffs(false)
 {
   respa_enable = 0;
   suffix_flag |= Suffix::GPU;
@@ -56,6 +56,11 @@ PairGaussGPU::~PairGaussGPU()
 void PairGaussGPU::compute(int eflag, int vflag)
 {
   ev_init(eflag, vflag);
+
+  if (update_coeffs) {
+    gauss_gpu_reinit(atom->ntypes + 1, cutsq, a, b, offset);
+    update_coeffs = false;
+  }
 
   int nall = atom->nlocal + atom->nghost;
   int inum;
@@ -129,11 +134,13 @@ void PairGaussGPU::init_style()
 
 /* ---------------------------------------------------------------------- */
 
-void PairGaussGPU::reinit()
+double PairGaussGPU::init_one(int i, int j)
 {
-  Pair::reinit();
+  // the parameters may have been changed, e.g. by fix adapt,
+  // so copy them to the GPU again before the next compute()
 
-  gauss_gpu_reinit(atom->ntypes + 1, cutsq, a, b, offset);
+  update_coeffs = true;
+  return PairGauss::init_one(i, j);
 }
 
 /* ---------------------------------------------------------------------- */

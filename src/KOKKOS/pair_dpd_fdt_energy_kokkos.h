@@ -63,6 +63,8 @@ class PairDPDfdtEnergyKokkos : public PairDPDfdtEnergy {
 
   PairDPDfdtEnergyKokkos(class LAMMPS *);
   ~PairDPDfdtEnergyKokkos() override;
+  // checked conversion from a base class pointer, see the .cpp file
+  static PairDPDfdtEnergyKokkos<DeviceType> *cast(class Pair *);
   void compute(int, int) override;
   void init_style() override;
   double init_one(int, int) override;

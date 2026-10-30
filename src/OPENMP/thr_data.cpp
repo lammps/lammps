@@ -34,7 +34,8 @@ ThrData::ThrData(int tid, Timer *t) :
     eatom_pair(nullptr), eatom_bond(nullptr), eatom_angle(nullptr), eatom_dihed(nullptr),
     eatom_imprp(nullptr), eatom_kspce(nullptr), vatom_pair(nullptr), vatom_bond(nullptr), vatom_angle(nullptr), vatom_dihed(nullptr),
     vatom_imprp(nullptr), vatom_kspce(nullptr), cvatom_pair(nullptr), cvatom_angle(nullptr), cvatom_dihed(nullptr), cvatom_imprp(nullptr),
-    _f(nullptr), _torque(nullptr), _erforce(nullptr), _de(nullptr), _drho(nullptr), _mu(nullptr),
+    _f(nullptr), _torque(nullptr), _erforce(nullptr), _de(nullptr), _drho(nullptr),
+    _edpd_flux(nullptr), _cc_flux(nullptr), _mu(nullptr),
     _lambda(nullptr), _rhoB(nullptr), _D_values(nullptr), _rho(nullptr), _fp(nullptr),
     _rho1d(nullptr), _drho1d(nullptr), _rho1d_order(0), _rho1d_6(nullptr), _drho1d_6(nullptr),
     _rho1d_6_order(0), _tid(tid), _timer(t)
@@ -75,7 +76,7 @@ double ThrData::get_time(enum Timer::ttype flag)
 /* ---------------------------------------------------------------------- */
 
 void ThrData::init_force(int nall, double **f, double **torque, double *erforce, double *de,
-                         double *drho)
+                         double *drho, double *edpd_flux, double **cc_flux, int ncc)
 {
   eng_vdwl = eng_coul = eng_bond = eng_angle = eng_dihed = eng_imprp = eng_kspce = 0.0;
   memset(virial_pair, 0, 6 * sizeof(double));
@@ -118,6 +119,18 @@ void ThrData::init_force(int nall, double **f, double **torque, double *erforce,
     memset(&(_drho[0]), 0, nall * sizeof(double));
   } else
     _drho = nullptr;
+
+  if (nall >= 0 && edpd_flux) {
+    _edpd_flux = edpd_flux + _tid * nall;
+    memset(&(_edpd_flux[0]), 0, nall * sizeof(double));
+  } else
+    _edpd_flux = nullptr;
+
+  if (nall >= 0 && cc_flux && (ncc > 0)) {
+    _cc_flux = cc_flux + _tid * nall;
+    memset(&(_cc_flux[0][0]), 0, nall * ncc * sizeof(double));
+  } else
+    _cc_flux = nullptr;
 }
 
 /* ----------------------------------------------------------------------

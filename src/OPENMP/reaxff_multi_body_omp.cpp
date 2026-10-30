@@ -41,7 +41,7 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 namespace ReaxFF {
-  void Atom_EnergyOMP(reax_system *system, simulation_data *data,
+  void Atom_EnergyOMP(reax_system *system, control_params *control, simulation_data *data,
                       storage *workspace, reax_list **lists)
   {
     /* Initialize parameters */
@@ -53,6 +53,7 @@ namespace ReaxFF {
     const double p_ovun8 = system->reax_param.gp.l[9];
 
     reax_list *bonds = (*lists) + BONDS;
+    const int enobondsflag = control->enobondsflag;
 
     double total_Elp = 0.0;
     double total_Eun = 0.0;
@@ -106,7 +107,7 @@ namespace ReaxFF {
           numbonds ++;
 
         /* calculate the energy */
-        if (numbonds > 0)
+        if ((numbonds > 0) || enobondsflag)
           total_Elp += e_lp =
             p_lp2 * workspace->Delta_lp[i] * inv_expvd2;
 
@@ -114,7 +115,7 @@ namespace ReaxFF {
           75 * p_lp2 * workspace->Delta_lp[i] * expvd2 * SQR(inv_expvd2);
         CElp = dElp * workspace->dDelta_lp[i];
 
-        if (numbonds > 0) workspace->CdDelta[i] += CElp;  // lp - 1st term
+        if ((numbonds > 0) || enobondsflag) workspace->CdDelta[i] += CElp;  // lp - 1st term
 
         /* tally into per-atom energy */
         if (system->pair_ptr->eflag_either)
@@ -216,7 +217,7 @@ namespace ReaxFF {
         for (pj = Start_Index(i, bonds); pj < End_Index(i, bonds); ++pj)
           numbonds ++;
 
-        if (numbonds > 0) total_Eun += e_un =
+        if ((numbonds > 0) || enobondsflag) total_Eun += e_un =
                             -p_ovun5 * (1.0 - exp_ovun6) * inv_exp_ovun2n * inv_exp_ovun8;
 
         CEunder1 = inv_exp_ovun2n *
@@ -230,14 +231,14 @@ namespace ReaxFF {
         /* tally into per-atom energy */
         if (system->pair_ptr->eflag_either) {
           eng_tmp = e_ov;
-          if (numbonds > 0) eng_tmp+= e_un;
+          if ((numbonds > 0) || enobondsflag) eng_tmp+= e_un;
           pair_reax_ptr->ev_tally_thr_proxy( i, i, system->n, 1,
                                             eng_tmp, 0.0, 0.0, 0.0, 0.0, 0.0, thr);
         }
 
         /* forces */
         workspace->CdDelta[i] += CEover3;   // OvCoor - 2nd term
-        if (numbonds > 0) workspace->CdDelta[i] += CEunder3;  // UnCoor - 1st term
+        if ((numbonds > 0) || enobondsflag) workspace->CdDelta[i] += CEunder3;  // UnCoor - 1st term
 
         for (pj = Start_Index(i, bonds); pj < End_Index(i, bonds); ++pj) {
           pbond = &(bonds->select.bond_list[pj]);

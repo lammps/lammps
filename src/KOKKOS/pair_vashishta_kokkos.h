@@ -118,6 +118,12 @@ class PairVashishtaKokkos : public PairVashishta {
 
   t_param_1d d_params;
 
+  // tabulated two-body term beyond tabinnersq, used by vashishta/table/kk
+
+  int tabflag;
+  KK_FLOAT tabinnersq_kk, oneOverDeltaR2_kk;
+  typename AT::t_kkfloat_3d_randomread d_forceTable, d_potentialTable;
+
   void setup_params() override;
 
 // NOLINTNEXTLINE

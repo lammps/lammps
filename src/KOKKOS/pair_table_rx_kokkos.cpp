@@ -50,6 +50,7 @@ enum{NONE,RLINEAR,RSQ,BMP};
 #define OneFluidValue (-1)
 #define isOneFluid(_site_) ( (_site_) == OneFluidValue )
 
+namespace {
 template<class DeviceType>
 // NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
@@ -151,6 +152,7 @@ void getMixingWeights(
     mixWtSite2 = nMolecules2;
   }
 }
+}    // namespace
 
 /* ---------------------------------------------------------------------- */
 
@@ -292,6 +294,7 @@ compute_evdwl(
   return evdwl;
 }
 
+namespace {
 template<class DeviceType, int NEIGHFLAG, int TABSTYLE, int NEWTON_PAIR>
 // NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
@@ -402,6 +405,7 @@ ev_tally(
     }
   }
 }
+}    // namespace
 
 template <class DeviceType, int NEIGHFLAG, bool STACKPARAMS, int TABSTYLE,
           int EVFLAG, int NEWTON_PAIR>
@@ -1084,6 +1088,9 @@ void PairTableRXKokkos<DeviceType>::coeff(int narg, char **arg)
   nspecies = rx_fixKK->get_nspecies();
   if (nspecies==0) error->all(FLERR,"There are no rx species specified.");
 
+  // pair_coeff may be used more than once, so release the names of the last one
+
+  delete[] site1;
   site1 = utils::strdup(arg[4]);
 
   const auto & species_str_to_species_ind =
@@ -1094,6 +1101,7 @@ void PairTableRXKokkos<DeviceType>::coeff(int narg, char **arg)
     error->all(FLERR,"Site1 name not recognized in pair coefficients");
   }
 
+  delete[] site2;
   site2 = utils::strdup(arg[5]);
 
   if (species_str_to_species_ind.find(site2) == species_str_to_species_ind.end()

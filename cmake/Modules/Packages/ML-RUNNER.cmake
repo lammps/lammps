@@ -35,6 +35,12 @@ else()
   message(WARNING "No compatible FFT library found. The ML-RUNNER package only supports -DFFT=FFTW3 or -DFFT=MKL. RuNNer will fall back to being compiled WITHOUT FFT support, and certain features will not be available.")
 endif()
 
+if(USE_INTERNAL_LINALG)
+  set(RUNNER_BLAS_LIBRARIES "$<TARGET_FILE:linalg>")
+  set(RUNNER_LAPACK_LIBRARIES "$<TARGET_FILE:linalg>")
+  set(RUNNER_DEPENDS_BLAS linalg)
+endif()
+
 if(BUILD_MPI)
   # Ensure the Fortran MPI components are found
   find_package(MPI REQUIRED COMPONENTS CXX Fortran)
@@ -73,6 +79,7 @@ if(DOWNLOAD_RUNNER)
     GIT_TAG "2.0.5_20260820"
     GIT_SHALLOW YES
     GIT_PROGRESS YES
+    DEPENDS ${RUNNER_DEPENDS_BLAS}
 
     # Pass CMake arguments to RuNNer's build system
     CMAKE_ARGS
@@ -89,6 +96,8 @@ if(DOWNLOAD_RUNNER)
       -DUSE_MPI=${BUILD_MPI}
       -DCMAKE_INSTALL_PREFIX=${CMAKE_CURRENT_BINARY_DIR}/runner_install
       -DBUILD_SHARED_LIB=${RUNNER_SHARED_LIB}
+      -DBLAS_LIBRARIES=${RUNNER_BLAS_LIBRARIES}
+      -DLAPACK_LIBRARIES=${RUNNER_LAPACK_LIBRARIES}
 
     # Define the build and install steps
     BUILD_COMMAND ${CMAKE_COMMAND} --build <BINARY_DIR>

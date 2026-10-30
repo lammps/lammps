@@ -174,7 +174,14 @@ KOKKOS_INLINE_FUNCTION
 void ComputeEntropyAtomKokkos<DeviceType>::operator()(TagComputeEntropyAtom<LOCAL>, const int &ii) const
 {
   const int i = d_ilist[ii];
-  if (!(mask[i] & groupbit_kk)) return;
+
+  // with averaging the pair entropy is needed for all atoms, since atoms
+  // in the group may have neighbors outside the group
+
+  if (!avg_flag && !(mask[i] & groupbit_kk)) {
+    d_pair_entropy[i] = static_cast<KK_FLOAT>(0.0);
+    return;
+  }
 
   const KK_FLOAT xtmp = x(i,0);
   const KK_FLOAT ytmp = x(i,1);
@@ -251,7 +258,10 @@ KOKKOS_INLINE_FUNCTION
 void ComputeEntropyAtomKokkos<DeviceType>::operator()(TagComputeEntropyAtomAvg, const int &ii) const
 {
   const int i = d_ilist[ii];
-  if (!(mask[i] & groupbit_kk)) return;
+  if (!(mask[i] & groupbit_kk)) {
+    d_pair_entropy_avg[i] = static_cast<KK_FLOAT>(0.0);
+    return;
+  }
 
   const KK_FLOAT xtmp = x(i,0);
   const KK_FLOAT ytmp = x(i,1);

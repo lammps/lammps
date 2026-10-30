@@ -130,6 +130,8 @@ class PairPACEKokkos : public PairPACE {
   KOKKOS_INLINE_FUNCTION
   void operator() (TagPairPACEComputeForce<NEIGHFLAG,EVFLAG>,const int& ii, EV_FLOAT&) const;
 
+  double memory_usage() override;
+
  protected:
   int inum, maxneigh, chunk_size, chunk_offset, idx_ms_combs_max, idx_sph_max;
 
@@ -221,7 +223,6 @@ class PairPACEKokkos : public PairPACE {
   void copy_tilde();
   void allocate() override;
   void precompute_harmonics();
-  double memory_usage() override;
 
   template<int NEIGHFLAG>
 // NOLINTNEXTLINE

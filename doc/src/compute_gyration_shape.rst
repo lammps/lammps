@@ -77,12 +77,12 @@ vector values from a compute as input.  See the
 :doc:`Howto output <Howto_output>` page for an overview of LAMMPS output
 options.
 
-.. versionchanged:: TBD
+.. versionchanged:: 30Sep2026
 
 Eigenvalues that are negligible compared to the largest eigenvalue (less than
 one part in :math:`10^{12}`) are reported as exactly zero.  This is the case
 for planar or linear molecules, where the corresponding eigenvalue is only
-roundoff noise.
+round-off noise.
 
 The vector values calculated by this compute are
 "intensive".  The first five vector values will be in

@@ -124,6 +124,14 @@ reference length, which made the force on particle *i* differ from
 minus the force on particle *j* for strongly polydisperse pairs.
 Results for monodisperse systems are unchanged.
 
+.. versionchanged:: 30Sep2026
+
+Style *lubricate* does not include the FLD drag force in the virial.
+The drag acts on each particle individually rather than between pairs,
+so it does not contribute to the pressure through the F dot r sum.
+Styles *lubricate/poly*, *lubricateU* and *lubricateU/poly* treat it the
+same way.
+
 The viscosity *mu* can be varied in a time-dependent manner over the
 course of a simulation, in which case in which case the pair_style
 setting for *mu* will be overridden.  See the :doc:`fix adapt <fix_adapt>`

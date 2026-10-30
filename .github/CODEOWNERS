@@ -195,3 +195,9 @@
 
 # for releases
 /src/version.h         @sjplimp
+
+# coding agents
+/AGENTS.md                         @akohlmey @stanmoore1
+/.github/copilot-instructions.md   @akohlmey @stanmoore1
+/.github/dev-docs/*                @akohlmey @stanmoore1
+/.github/instructions/*            @akohlmey @stanmoore1

@@ -452,7 +452,8 @@ void FixDeformPressure::init()
 
   if (set[3].style && set[5].style && set[4].style != ERATERS) {
     if (flipflag && set[3].style == PRESSURE)
-      error->all(FLERR, "Fix {} cannot use yz pressure with xy if xz is not erate/rescale", style);
+      error->all(FLERR, "Fix {} cannot use yz pressure with box flips and a defined xy unless xz is erate/rescale",
+                 style);
   }
 }
 

@@ -194,6 +194,8 @@ void FixLangevinKokkos<DeviceType>::post_force(int /*vflag*/)
 
   if (zeroflag) {
     fsum[0] = fsum[1] = fsum[2] = 0.0;
+    // sync the mask to the host, Group::count() reads it there
+    atomKK->sync(Host,MASK_MASK);
     count = group->count(igroup);
     if (count == 0)
       error->all(FLERR,"Cannot zero Langevin force of 0 atoms");
@@ -402,7 +404,7 @@ void FixLangevinKokkos<DeviceType>::post_force(int /*vflag*/)
   atomKK->modified(execution_space,datamask_modify);
 
   // thermostat omega and angmom
-  if (oflag) omega_thermostat();
+  if (oflag) omega_thermostat_kokkos();
   if (ascale != 0.0) angmom_thermostat();
 
 }

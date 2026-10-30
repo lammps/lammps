@@ -27,6 +27,7 @@
 #include "math_extra.h"
 #include "math_special.h"
 #include "memory.h"
+#include "neighbor.h"
 #include "pair.h"
 #include "update.h"
 
@@ -201,7 +202,16 @@ void EwaldDisp::init()
 
   if (!gewaldflag) g_ewald = 1.0;
   if (!gewaldflag_6) g_ewald_6 = 1.0;
-  pair->init();  // so B is defined
+
+  // init the pair style for its coefficients (so B is defined), without
+  // keeping its neighbor requests; Force::init() calls it again
+
+  neighrequest_flag = 0;
+  int nrequest_hold = neighbor->nrequest;
+  pair->init();
+  neighbor->discard_requests(nrequest_hold);
+  neighrequest_flag = 1;
+
   init_coeffs();
   init_coeff_sums();
   if (termflag[TERM_COUL]) qsum_qsq();

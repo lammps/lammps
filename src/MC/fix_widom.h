@@ -94,6 +94,7 @@ class FixWidom : public Fix {
   class Compute *c_pe;
 
   void options(int, char **);
+  int local_index(tagint);
 };
 
 }    // namespace LAMMPS_NS

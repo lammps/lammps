@@ -82,9 +82,6 @@ void AngleClass2Kokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     d_vatom = k_vatom.template view<DeviceType>();
   }
 
-  //atomKK->sync(execution_space,datamask_read);
-  //if (eflag || vflag) atomKK->modified(execution_space,datamask_modify);
-  //else atomKK->modified(execution_space,F_MASK);
 
   k_theta0.template sync<DeviceType>();
   k_k2.template sync<DeviceType>();
@@ -101,6 +98,12 @@ void AngleClass2Kokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   k_setflag_a.template sync<DeviceType>();
   k_setflag_bb.template sync<DeviceType>();
   k_setflag_ba.template sync<DeviceType>();
+
+  // sync and claim here too: the MC fixes call this outside run_style verlet/kk
+
+  atomKK->sync(execution_space,datamask_read);
+  if (eflag || vflag) atomKK->modified(execution_space,datamask_modify);
+  else atomKK->modified(execution_space,F_MASK);
 
   x = atomKK->k_x.template view<DeviceType>();
   f = atomKK->k_f.template view<DeviceType>();

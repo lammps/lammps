@@ -410,7 +410,7 @@ TEST(CheckFormat, reject_surplus_conversions)
 TEST(CheckFormat, reject_malformed)
 {
     ASSERT_THAT(utils::check_format("%", FmtArg::FLOAT), StartsWith("incomplete conversion"));
-    ASSERT_THAT(utils::check_format("%g %", {FmtArg::FLOAT}), StartsWith("incomplete conversion"));
+    ASSERT_THAT(utils::check_format("%g %", FmtArg::FLOAT), StartsWith("incomplete conversion"));
     ASSERT_THAT(utils::check_format("%12.4", FmtArg::FLOAT), StartsWith("incomplete conversion"));
     ASSERT_THAT(utils::check_format("%y", FmtArg::FLOAT), StartsWith("unsupported conversion"));
     // %n writes through a pointer argument and must never be accepted

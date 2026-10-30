@@ -557,7 +557,7 @@ the normal damping :math:`\eta_n` (see above):
 
 .. math::
 
-   \eta_t = -x_{\gamma,t} \eta_n
+   \eta_t = x_{\gamma,t} \eta_n
 
 The normal damping prefactor :math:`\eta_n` is determined by the choice
 of the *damping* keyword, as discussed above.  Thus, the *damping*

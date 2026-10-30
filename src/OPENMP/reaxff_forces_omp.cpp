@@ -49,7 +49,7 @@ namespace ReaxFF {
 
     BOOMP(system, workspace, lists);
     BondsOMP(system, data, workspace, lists);
-    Atom_EnergyOMP(system, data, workspace, lists);
+    Atom_EnergyOMP(system, control, data, workspace, lists);
     Valence_AnglesOMP(system, control, data, workspace, lists);
     Torsion_AnglesOMP(system, control, data, workspace, lists);
     if (control->hbond_cut > 0)

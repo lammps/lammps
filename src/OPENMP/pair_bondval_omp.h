@@ -11,25 +11,34 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifdef FIX_CLASS
+#ifdef PAIR_CLASS
 // clang-format off
-FixStyle(qeq/rel/reaxff,FixQEqRelReaxFF);
+PairStyle(bondval/omp,PairBondValOMP);
 // clang-format on
 #else
 
-#ifndef LMP_FIX_QEQ_REL_REAXFF_H
-#define LMP_FIX_QEQ_REL_REAXFF_H
+#ifndef LMP_PAIR_BONDVAL_OMP_H
+#define LMP_PAIR_BONDVAL_OMP_H
 
-#include "fix_qtpie_reaxff.h"
+#include "pair_bondval.h"
+#include "thr_omp.h"
 
 namespace LAMMPS_NS {
 
-class FixQEqRelReaxFF : public FixQtpieReaxFF {
+class PairBondValOMP : public PairBondVal, public ThrOMP {
+
  public:
-  FixQEqRelReaxFF(class LAMMPS *, int, char **);
+  PairBondValOMP(class LAMMPS *);
+
+  void compute(int, int) override;
+  double memory_usage() override;
 
  protected:
-  void calc_chi_eff() override;
+  int maxthreads;
+
+ private:
+  template <int EVFLAG, int EFLAG, int NEWTON_PAIR>
+  void eval(int ifrom, int ito, ThrData *const thr);
 };
 
 }    // namespace LAMMPS_NS

@@ -128,8 +128,9 @@ automatically: read them before starting the corresponding kind of work.
 | C++ code in `src/`, `lib/`, `unittest/`; adding styles | `.github/instructions/source-code.instructions.md` (auto) |
 | build system (`cmake/`, legacy make) | `.github/instructions/build-system.instructions.md` (auto) |
 | `src/KOKKOS/` styles (rules, policies) | `.github/instructions/kokkos.instructions.md` (auto) |
-| porting a style to KOKKOS | `.github/dev-docs/kokkos-porting-guide.md` + `kokkos-porting-backlog.md` |
-| porting/auditing `src/OPENMP/` (`/omp`) styles | `.github/dev-docs/openmp-porting.md` |
+| porting a style to KOKKOS | `.github/dev-docs/kokkos-porting-guide.md` + `accelerator-porting-backlog.md` |
+| porting/auditing `src/OPENMP/` (`/omp`) styles | `.github/dev-docs/openmp-porting.md` + `accelerator-porting-backlog.md` |
+| porting a pair style to the GPU package (`src/GPU/`, `lib/gpu/`) | `.github/dev-docs/accelerator-porting-backlog.md` (GPU section: file layout, template commit, constraints) |
 | granular/DEM code or tests | `.github/instructions/granular-tests.instructions.md` (auto) |
 | documentation (`doc/`) | `.github/instructions/documentation.instructions.md` (auto) |
 | force-style YAML tests (`unittest/`) | `.github/instructions/force-style-tests.instructions.md` (auto) |

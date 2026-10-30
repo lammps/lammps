@@ -53,6 +53,7 @@ FixACKS2ReaxFFKokkos(LAMMPS *lmp, int narg, char **arg) :
 
   kokkosable = 1;
   sort_device = 1;
+  forward_comm_device = reverse_comm_device = 1;
   atomKK = (AtomKokkos *) atom;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
 
@@ -383,15 +384,8 @@ void FixACKS2ReaxFFKokkos<DeviceType>::pre_force(int /*vflag*/)
     dup_X_diag = {};
   }
 
-  if (neighflag != FULL) {
-    pack_flag = 4;
-    //comm->reverse_comm(this); //Coll_Vector( X_diag );
-    k_X_diag.template modify<DeviceType>();
-    k_X_diag.sync_host();
-    comm->reverse_comm(this);
-    k_X_diag.modify_host();
-    k_X_diag.template sync<DeviceType>();
-  }
+  pack_flag = 4;
+  reverse_comm_vector(k_X_diag, 0); //Coll_Vector( X_diag );
 
   if (efield) get_chi_field();
 
@@ -403,17 +397,11 @@ void FixACKS2ReaxFFKokkos<DeviceType>::pre_force(int /*vflag*/)
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagACKS2InitMatvec>(0,nn),*this);
 
   pack_flag = 2;
-  // comm->forward_comm(this); //Dist_vector( s );
-  k_s.template modify<DeviceType>();
-  k_s.sync_host();
-  comm->forward_comm(this);
-  more_forward_comm(k_s.view_host().data());
-  k_s.modify_host();
-  k_s.template sync<DeviceType>();
+  forward_comm_vector(k_s, 1); //Dist_vector( s );
 
   // bicgstab solve over b_s, s
 
-  bicgstab_solve();
+  matvecs = bicgstab_solve();
 
   calculate_Q();
 
@@ -428,6 +416,8 @@ void FixACKS2ReaxFFKokkos<DeviceType>::pre_force(int /*vflag*/)
 
   atomKK->modified(execution_space,datamask_modify);
   k_s.modify<DeviceType>();
+
+  d_neighbors = typename AT::t_neighbors_2d();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -588,7 +578,13 @@ void FixACKS2ReaxFFKokkos<DeviceType>::compute_h_item(int ii, bigint &m_fill, co
   const int i = d_ilist[ii];
   int j,jj,jtype;
 
-  if (mask[i] & groupbit) {
+  // atoms outside the fix group act as fixed charges.  with a half neighbor
+  // list, a pair of a group atom and a non-group atom may be listed with
+  // either one, so rows are also built for non-group atoms, but only with
+  // their neighbors in the group.
+
+  const bool igroup = mask[i] & groupbit;
+  if (igroup || (NEIGHFLAG != FULL)) {
 
     const KK_FLOAT xtmp = x(i,0);
     const KK_FLOAT ytmp = x(i,1);
@@ -602,6 +598,7 @@ void FixACKS2ReaxFFKokkos<DeviceType>::compute_h_item(int ii, bigint &m_fill, co
     for (jj = 0; jj < jnum; jj++) {
       j = d_neighbors(i,jj);
       j &= NEIGHMASK;
+      if (!igroup && !(mask[j] & groupbit)) continue;
       jtype = type(j);
 
       const KK_FLOAT delx = x(j,0) - xtmp;
@@ -734,8 +731,10 @@ void FixACKS2ReaxFFKokkos<DeviceType>::compute_h_team(
 
         if (ii < nn) {
           const int i = s_ilist[idx];
+          const bool igroup = mask[i] & groupbit;
 
-          if (mask[i] & groupbit) {
+          // see comment in compute_h_item()
+          if (igroup || (NEIGHFLAG != FULL)) {
             const KK_FLOAT xtmp = x(i, 0);
             const KK_FLOAT ytmp = x(i, 1);
             const KK_FLOAT ztmp = x(i, 2);
@@ -784,7 +783,7 @@ void FixACKS2ReaxFFKokkos<DeviceType>::compute_h_team(
                       const KK_FLOAT delz = x(j, 2) - ztmp;
 
                       // valid nbr interaction
-                      bool valid = true;
+                      bool valid = igroup || (mask[j] & groupbit);
                       if (NEIGHFLAG != FULL) {
                         // skip half of the interactions
                         const tagint jtag = tag(j);
@@ -906,6 +905,8 @@ void FixACKS2ReaxFFKokkos<DeviceType>::compute_x_item(int ii, bigint &m_fill, co
     for (jj = 0; jj < jnum; jj++) {
       j = d_neighbors(i,jj);
       j &= NEIGHMASK;
+      // the X matrix only couples atoms in the group
+      if (!(mask[j] & groupbit)) continue;
       jtype = type(j);
 
       const KK_FLOAT delx = x(j,0) - xtmp;
@@ -1095,7 +1096,8 @@ void FixACKS2ReaxFFKokkos<DeviceType>::compute_x_team(
                       const KK_FLOAT delz = x(j, 2) - ztmp;
 
                       // valid nbr interaction
-                      bool valid = true;
+                      // the X matrix only couples atoms in the group
+                      bool valid = mask[j] & groupbit;
                       if (NEIGHFLAG != FULL) {
                         // skip half of the interactions
                         const tagint jtag = tag(j);
@@ -1196,13 +1198,13 @@ template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void FixACKS2ReaxFFKokkos<DeviceType>::operator() (TagACKS2InitMatvec, const int &ii) const
 {
-  if (d_X_diag[ii] == 0.0)
-    d_Xdia_inv[ii] = 1.0;
-  else
-    d_Xdia_inv[ii] = 1.0 / d_X_diag[ii];
-
   const int i = d_ilist[ii];
   const int itype = type(i);
+
+  if (d_X_diag[i] == 0.0)
+    d_Xdia_inv[i] = 1.0;
+  else
+    d_Xdia_inv[i] = 1.0 / d_X_diag[i];
 
   if (mask[i] & groupbit) {
     d_Hdia_inv[i] = 1.0 / params(itype).eta;
@@ -1211,6 +1213,10 @@ void FixACKS2ReaxFFKokkos<DeviceType>::operator() (TagACKS2InitMatvec, const int
 
     d_s[i] = 4*(d_s_hist(i,0)+d_s_hist(i,2))-(6*d_s_hist(i,1)+d_s_hist(i,3));
     d_s[NN+i] = 4*(d_s_hist_X(i,0)+d_s_hist_X(i,2))-(6*d_s_hist_X(i,1)+d_s_hist_X(i,3));
+  } else {
+    // atoms outside the group only contribute their fixed charge
+    d_s[i] = q(i);
+    d_s[NN+i] = 0.0;
   }
 
   // last two rows
@@ -1236,13 +1242,7 @@ int FixACKS2ReaxFFKokkos<DeviceType>::bicgstab_solve()
   sparse_matvec_acks2(d_s, d_d);
 
   pack_flag = 1;
-  k_d.template modify<DeviceType>();
-  k_d.sync_host();
-  if (neighflag != FULL)
-    comm->reverse_comm(this); //Coll_vector( d );
-  more_reverse_comm(k_d.view_host().data());
-  k_d.modify_host();
-  k_d.template sync<DeviceType>();
+  reverse_comm_vector(k_d, 1); //Coll_vector( d );
 
   // vector_sum( r , 1.,  b, -1., d, nn );
   // bnorm = parallel_norm( b, nn );
@@ -1288,25 +1288,13 @@ int FixACKS2ReaxFFKokkos<DeviceType>::bicgstab_solve()
     }
 
     pack_flag = 1;
-    // comm->forward_comm(this); //Dist_vector( d );
-    k_d.template modify<DeviceType>();
-    k_d.sync_host();
-    comm->forward_comm(this);
-    more_forward_comm(k_d.view_host().data());
-    k_d.modify_host();
-    k_d.template sync<DeviceType>();
+    forward_comm_vector(k_d, 1); //Dist_vector( d );
 
     // sparse_matvec( &H, &X, d, z );
     sparse_matvec_acks2(d_d, d_z);
 
     pack_flag = 2;
-    k_z.template modify<DeviceType>();
-    k_z.sync_host();
-    if (neighflag != FULL)
-      comm->reverse_comm(this); //Coll_vector( z );
-    more_reverse_comm(k_z.view_host().data());
-    k_z.modify_host();
-    k_z.template sync<DeviceType>();
+    reverse_comm_vector(k_z, 1); //Coll_vector( z );
 
     // tmp = parallel_dot( r_hat, z, nn);
     my_dot = dot_sqr = 0.0;
@@ -1334,24 +1322,12 @@ int FixACKS2ReaxFFKokkos<DeviceType>::bicgstab_solve()
 
     // sparse_matvec( &H, &X, q_hat, y );
     pack_flag = 3;
-    // comm->forward_comm(this); //Dist_vector( q_hat );
-    k_q_hat.template modify<DeviceType>();
-    k_q_hat.sync_host();
-    comm->forward_comm(this);
-    more_forward_comm(k_q_hat.view_host().data());
-    k_q_hat.modify_host();
-    k_q_hat.template sync<DeviceType>();
+    forward_comm_vector(k_q_hat, 1); //Dist_vector( q_hat );
 
     sparse_matvec_acks2(d_q_hat, d_y);
 
     pack_flag = 3;
-    k_y.template modify<DeviceType>();
-    k_y.sync_host();
-    if (neighflag != FULL)
-      comm->reverse_comm(this); //Coll_vector( y );
-    more_reverse_comm(k_y.view_host().data());
-    k_y.modify_host();
-    k_y.template sync<DeviceType>();
+    reverse_comm_vector(k_y, 1); //Coll_vector( y );
 
     // sigma = parallel_dot( y, q, nn);
     my_dot = dot_sqr = 0.0;
@@ -1384,7 +1360,7 @@ int FixACKS2ReaxFFKokkos<DeviceType>::bicgstab_solve()
     if (omega == 0 || rho == 0) {
       error->warning(FLERR,"Fix acks2/reaxff/kk BiCGStab numerical breakdown, omega = {:.8}, rho = {:.8}",
                       omega,rho);
-    } else if (i >= imax) {
+    } else if ((i >= imax) && maxwarn) {
       error->warning(FLERR,"Fix acks2/reaxff/kk BiCGStab convergence failed after {} iterations "
                            "at step {}", i, update->ntimestep);
     }
@@ -1399,14 +1375,234 @@ template<class DeviceType>
 void FixACKS2ReaxFFKokkos<DeviceType>::calculate_Q()
 {
   pack_flag = 2;
-  //comm->forward_comm( this ); //Dist_vector( s );
-  k_s.modify<DeviceType>();
-  k_s.sync_host();
-  comm->forward_comm(this);
-  k_s.modify_host();
-  k_s.sync<DeviceType>();
+  forward_comm_vector(k_s, 0); //Dist_vector( s );
 
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagACKS2CalculateQ>(0,NN),*this);
+}
+
+/* ----------------------------------------------------------------------
+   vector of the solver that is communicated with the given pack_flag
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+DAT::ttransform_kkfloat_1d *FixACKS2ReaxFFKokkos<DeviceType>::comm_vector(int flag, int forward)
+{
+  if (forward) {
+    if (flag == 1) return &k_d;
+    if (flag == 2) return &k_s;
+    if (flag == 3) return &k_q_hat;
+  } else {
+    if (flag == 1) return &k_d;
+    if (flag == 2) return &k_z;
+    if (flag == 3) return &k_y;
+    if (flag == 4) return &k_X_diag;
+  }
+  error->all(FLERR, "Unknown communication pattern {} in fix {}", flag, style);
+  return nullptr;
+}
+
+/* ----------------------------------------------------------------------
+   forward and reverse communication of a solver vector, which stays on the
+   device unless the communication is done on the host.  the last two rows
+   of the vectors that have them are exchanged with the rank that owns them.
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+void FixACKS2ReaxFFKokkos<DeviceType>::forward_comm_vector(DAT::ttransform_kkfloat_1d &k_vec,
+                                                           int last_rows)
+{
+  k_vec.template modify<DeviceType>();
+  comm->forward_comm(this);
+  k_vec.template sync<DeviceType>();
+  if (last_rows) last_rows_comm(k_vec, 1);
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+void FixACKS2ReaxFFKokkos<DeviceType>::reverse_comm_vector(DAT::ttransform_kkfloat_1d &k_vec,
+                                                           int last_rows)
+{
+  k_vec.template modify<DeviceType>();
+  if (neighflag != FULL) comm->reverse_comm(this);
+  k_vec.template sync<DeviceType>();
+  if (last_rows) last_rows_comm(k_vec, 0);
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+void FixACKS2ReaxFFKokkos<DeviceType>::last_rows_comm(DAT::ttransform_kkfloat_1d &k_vec,
+                                                      int forward)
+{
+  auto d_vec = k_vec.template view<DeviceType>();
+  auto d_last = Kokkos::subview(d_vec, std::make_pair(2*NN, 2*NN+2));
+  auto h_last = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), d_last);
+  double tmp[2] = {static_cast<double>(h_last(0)), static_cast<double>(h_last(1))};
+
+  if (forward) {
+    MPI_Bcast(tmp, 2, MPI_DOUBLE, last_rows_rank, world);
+  } else {
+    if (last_rows_flag)
+      MPI_Reduce(MPI_IN_PLACE, tmp, 2, MPI_DOUBLE, MPI_SUM, last_rows_rank, world);
+    else
+      MPI_Reduce(tmp, nullptr, 2, MPI_DOUBLE, MPI_SUM, last_rows_rank, world);
+  }
+
+  if (forward || last_rows_flag) {
+    h_last(0) = static_cast<KK_FLOAT>(tmp[0]);
+    h_last(1) = static_cast<KK_FLOAT>(tmp[1]);
+    Kokkos::deep_copy(d_last, h_last);
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+int FixACKS2ReaxFFKokkos<DeviceType>::pack_forward_comm_kokkos(int n, DAT::tdual_int_1d k_sendlist,
+                                                              DAT::tdual_double_1d &k_buf,
+                                                              int /*pbc_flag*/, int * /*pbc*/)
+{
+  d_sendlist = k_sendlist.view<DeviceType>();
+  d_commbuf = k_buf.view<DeviceType>();
+  d_commvec = comm_vector(pack_flag, 1)->template view<DeviceType>();
+  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagACKS2PackForwardComm>(0,n),*this);
+  return n*2;
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+// NOLINTNEXTLINE
+KOKKOS_INLINE_FUNCTION
+void FixACKS2ReaxFFKokkos<DeviceType>::operator()(TagACKS2PackForwardComm, const int &i) const
+{
+  const int j = d_sendlist(i);
+  d_commbuf[2*i] = static_cast<double>(d_commvec[j]);
+  d_commbuf[2*i+1] = static_cast<double>(d_commvec[NN+j]);
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+void FixACKS2ReaxFFKokkos<DeviceType>::unpack_forward_comm_kokkos(int n, int first_in,
+                                                                 DAT::tdual_double_1d &k_buf)
+{
+  first = first_in;
+  d_commbuf = k_buf.view<DeviceType>();
+  d_commvec = comm_vector(pack_flag, 1)->template view<DeviceType>();
+  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagACKS2UnpackForwardComm>(0,n),*this);
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+// NOLINTNEXTLINE
+KOKKOS_INLINE_FUNCTION
+void FixACKS2ReaxFFKokkos<DeviceType>::operator()(TagACKS2UnpackForwardComm, const int &i) const
+{
+  d_commvec[first+i] = static_cast<KK_FLOAT>(d_commbuf[2*i]);
+  d_commvec[NN+first+i] = static_cast<KK_FLOAT>(d_commbuf[2*i+1]);
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+int FixACKS2ReaxFFKokkos<DeviceType>::pack_reverse_comm_kokkos(int n, int first_in,
+                                                              DAT::tdual_double_1d &k_buf)
+{
+  first = first_in;
+  d_commbuf = k_buf.view<DeviceType>();
+  d_commvec = comm_vector(pack_flag, 0)->template view<DeviceType>();
+  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagACKS2PackReverseComm>(0,n),*this);
+  return (pack_flag == 4) ? n : n*2;
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+// NOLINTNEXTLINE
+KOKKOS_INLINE_FUNCTION
+void FixACKS2ReaxFFKokkos<DeviceType>::operator()(TagACKS2PackReverseComm, const int &i) const
+{
+  if (pack_flag == 4) {
+    d_commbuf[i] = static_cast<double>(d_commvec[first+i]);
+  } else {
+    d_commbuf[2*i] = static_cast<double>(d_commvec[first+i]);
+    d_commbuf[2*i+1] = static_cast<double>(d_commvec[NN+first+i]);
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+void FixACKS2ReaxFFKokkos<DeviceType>::unpack_reverse_comm_kokkos(int n, DAT::tdual_int_1d k_sendlist,
+                                                                 DAT::tdual_double_1d &k_buf)
+{
+  d_sendlist = k_sendlist.view<DeviceType>();
+  d_commbuf = k_buf.view<DeviceType>();
+  d_commvec = comm_vector(pack_flag, 0)->template view<DeviceType>();
+  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagACKS2UnpackReverseComm>(0,n),*this);
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+// NOLINTNEXTLINE
+KOKKOS_INLINE_FUNCTION
+void FixACKS2ReaxFFKokkos<DeviceType>::operator()(TagACKS2UnpackReverseComm, const int &i) const
+{
+  const int j = d_sendlist(i);
+  if (pack_flag == 4) {
+    d_commvec[j] += static_cast<KK_FLOAT>(d_commbuf[i]);
+  } else {
+    d_commvec[j] += static_cast<KK_FLOAT>(d_commbuf[2*i]);
+    d_commvec[NN+j] += static_cast<KK_FLOAT>(d_commbuf[2*i+1]);
+  }
+}
+
+/* ----------------------------------------------------------------------
+   the host versions of the communication functions make the solver vector
+   current on the host before packing and mark it as modified after unpacking
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+int FixACKS2ReaxFFKokkos<DeviceType>::pack_forward_comm(int n, int *list, double *buf,
+                                                       int pbc_flag, int *pbc)
+{
+  comm_vector(pack_flag, 1)->sync_host();
+  return FixACKS2ReaxFF::pack_forward_comm(n, list, buf, pbc_flag, pbc);
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+void FixACKS2ReaxFFKokkos<DeviceType>::unpack_forward_comm(int n, int first_in, double *buf)
+{
+  auto *k_vec = comm_vector(pack_flag, 1);
+  k_vec->sync_host();
+  FixACKS2ReaxFF::unpack_forward_comm(n, first_in, buf);
+  k_vec->modify_host();
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+int FixACKS2ReaxFFKokkos<DeviceType>::pack_reverse_comm(int n, int first_in, double *buf)
+{
+  comm_vector(pack_flag, 0)->sync_host();
+  return FixACKS2ReaxFF::pack_reverse_comm(n, first_in, buf);
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+void FixACKS2ReaxFFKokkos<DeviceType>::unpack_reverse_comm(int n, int *list, double *buf)
+{
+  auto *k_vec = comm_vector(pack_flag, 0);
+  k_vec->sync_host();
+  FixACKS2ReaxFF::unpack_reverse_comm(n, list, buf);
+  k_vec->modify_host();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1487,16 +1683,17 @@ void FixACKS2ReaxFFKokkos<DeviceType>::operator() (TagACKS2SparseMatvec3_Half<NE
   auto a_bb = v_bb.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
 
   const int i = d_ilist[ii];
-  if (mask[i] & groupbit) {
-    KK_FLOAT tmp = 0.0;
+  KK_FLOAT tmp = 0.0;
 
-    // H Matrix
-    for (bigint jj = d_firstnbr[i]; jj < d_firstnbr[i] + d_numnbrs[i]; jj++) {
-      const int j = d_jlist(jj);
-      tmp += d_val(jj) * d_xx[j];
-      a_bb[j] += d_val(jj) * d_xx[i];
-    }
-    a_bb[i] += tmp;
+  // H Matrix: the rows of atoms outside the group only contain neighbors in the group
+  for (bigint jj = d_firstnbr[i]; jj < d_firstnbr[i] + d_numnbrs[i]; jj++) {
+    const int j = d_jlist(jj);
+    tmp += d_val(jj) * d_xx[j];
+    a_bb[j] += d_val(jj) * d_xx[i];
+  }
+  a_bb[i] += tmp;
+
+  if (mask[i] & groupbit) {
 
     // X Matrix
     tmp = 0.0;
@@ -1646,6 +1843,9 @@ void FixACKS2ReaxFFKokkos<DeviceType>::operator() (TagACKS2Precon1A, const int &
 
       d_d[i] = d_p[i]*d_Hdia_inv[i];
       d_d[NN+i] = d_p[NN+i]*d_Xdia_inv[i];
+  } else {
+    // atoms outside the group have fixed charges
+    d_d[i] = d_d[NN+i] = 0.0;
   }
 
   // last two rows
@@ -1675,6 +1875,9 @@ void FixACKS2ReaxFFKokkos<DeviceType>::operator() (TagACKS2Precon1B, const int &
 
       d_d[i] = d_p[i]*d_Hdia_inv[i];
       d_d[NN+i] = d_p[NN+i]*d_Xdia_inv[i];
+  } else {
+    // atoms outside the group have fixed charges
+    d_d[i] = d_d[NN+i] = 0.0;
   }
 
   // last two rows
@@ -1804,6 +2007,9 @@ void FixACKS2ReaxFFKokkos<DeviceType>::operator() (TagACKS2Precon2, const int &i
   if (mask[i] & groupbit) {
     d_q_hat[i] = d_q[i]*d_Hdia_inv[i];
     d_q_hat[NN+i] = d_q[NN+i]*d_Xdia_inv[i];
+  } else {
+    // atoms outside the group have fixed charges
+    d_q_hat[i] = d_q_hat[NN+i] = 0.0;
   }
 
   // last two rows
@@ -1945,6 +2151,22 @@ void FixACKS2ReaxFFKokkos<DeviceType>::copy_arrays(int i, int j, int delflag)
   k_s_hist_X.sync_host();
 
   FixACKS2ReaxFF::copy_arrays(i,j,delflag);
+
+  k_s_hist.modify_host();
+  k_s_hist_X.modify_host();
+}
+
+/* ----------------------------------------------------------------------
+   initialize history for an atom created during the run
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+void FixACKS2ReaxFFKokkos<DeviceType>::set_arrays(int i)
+{
+  k_s_hist.sync_host();
+  k_s_hist_X.sync_host();
+
+  FixACKS2ReaxFF::set_arrays(i);
 
   k_s_hist.modify_host();
   k_s_hist_X.modify_host();

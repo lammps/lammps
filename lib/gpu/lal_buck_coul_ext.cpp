@@ -46,7 +46,7 @@ int buckc_gpu_init(const int ntypes, double **cutsq, double **host_rhoinv,
   int gpu_rank=BUCKCMF.device->gpu_rank();
   int procs_per_gpu=BUCKCMF.device->procs_per_gpu();
 
-  BUCKCMF.device->init_message(screen,"buck",first_gpu,last_gpu);
+  BUCKCMF.device->init_message(screen,"buck/coul/cut",first_gpu,last_gpu);
 
   bool message=false;
   if (BUCKCMF.device->replica_me()==0 && screen)

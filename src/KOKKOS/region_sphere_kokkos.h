@@ -47,6 +47,8 @@ class RegSphereKokkos : public RegSphere, public KokkosBase  {
   static constexpr int MAXCONTACT = 1;
 
   RegSphereKokkos(class LAMMPS *, int, char **);
+  // checked conversion from a base class pointer, see the .cpp file
+  static RegSphereKokkos<DeviceType> *cast(class Region *);
 
   void match_all_kokkos(int, DAT::tdual_int_1d) override;
 

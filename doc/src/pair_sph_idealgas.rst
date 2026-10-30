@@ -1,7 +1,10 @@
 .. index:: pair_style sph/idealgas
+.. index:: pair_style sph/idealgas/omp
 
 pair_style sph/idealgas command
 ===============================
+
+Accelerator Variants: *sph/idealgas/omp*
 
 Syntax
 """"""
@@ -42,6 +45,10 @@ above.
 
 * :math:`\nu` artificial viscosity (no units)
 * h kernel function cutoff (distance units)
+
+----------
+
+.. include:: accel_styles.rst
 
 ----------
 

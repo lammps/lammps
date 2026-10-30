@@ -384,8 +384,6 @@
 
 /atom_vec_spin.cpp
 /atom_vec_spin.h
-/compute_ke_tspin.cpp
-/compute_ke_tspin.h
 /compute_spin.cpp
 /compute_spin.h
 /compute_temp_tspin.cpp

@@ -32,13 +32,14 @@ namespace LAMMPS_NS {
 class ComputeTempTSpin : public Compute {
  public:
   ComputeTempTSpin(class LAMMPS *, int, char **);
+  ~ComputeTempTSpin() override;
 
   void init() override;
   double compute_scalar() override;
+  void compute_vector() override;
 
  private:
   int index_vs, index_sm;
-  double tfactor;
 };
 
 }    // namespace LAMMPS_NS

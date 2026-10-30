@@ -84,7 +84,7 @@ barostat energy contribution, including the spin thermostat chain.
 The scalar is "extensive".
 
 The auxiliary spin kinetic energy is not included in *econserve*.
-Add the energy from :doc:`compute ke/tspin <compute_ke_tspin>` to
+Add the energy from :doc:`compute temp/tspin <compute_temp_tspin>` to
 monitor the extended conserved energy for constant temperature and
 pressure targets, zero *drag*, and no other energy exchange.  All
 relevant potential-energy contributions must be included in *pe*.
@@ -112,7 +112,6 @@ Related commands
 
 :doc:`fix nve/tspin <fix_nve_tspin>`,
 :doc:`fix langevin/tspin <fix_langevin_tspin>`,
-:doc:`compute ke/tspin <compute_ke_tspin>`,
 :doc:`compute temp/tspin <compute_temp_tspin>`,
 :doc:`velocity/tspin <velocity_tspin>`,
 :doc:`fix nvt <fix_nh>`

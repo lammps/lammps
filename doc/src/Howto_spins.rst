@@ -79,9 +79,8 @@ The following commands support TSPIN simulations:
   restoring potential when needed.
 * :doc:`velocity/tspin <velocity_tspin>` initializes auxiliary spin
   velocities and can assign spin masses.
-* :doc:`compute ke/tspin <compute_ke_tspin>` and
-  :doc:`compute temp/tspin <compute_temp_tspin>` report the auxiliary
-  spin kinetic energy and temperature.
+* :doc:`compute temp/tspin <compute_temp_tspin>` reports the auxiliary
+  spin temperature and kinetic energy.
 
 The following fixed-lattice example assumes that the simulation box,
 atoms, masses, and initial spins have been defined.  It demonstrates
@@ -97,8 +96,7 @@ commands using a harmonic modulus potential without spin-spin interactions.
    velocity/tspin all create 300.0 12345 spinmass 0.0075
    fix 3 all langevin/tspin 300.0 300.0 0.05 48279
    compute 1 all temp/tspin
-   compute 2 all ke/tspin
-   thermo_style custom step pe c_1 c_2
+   thermo_style custom step pe c_1 c_1[1]
 
 Magnetic output
 ^^^^^^^^^^^^^^^
@@ -111,9 +109,8 @@ TSPIN kinetic temperature.  Use :doc:`compute property/atom
 <compute_property_atom>` to access spin magnitudes and directions.
 
 The usual *ke*, *etotal*, and *econserve* exclude auxiliary spin kinetic
-energy.  See :doc:`compute ke/tspin <compute_ke_tspin>` for energy
-conservation checks and :doc:`compute temp/tspin <compute_temp_tspin>`
-for the kinetic spin temperature.
+energy.  See :doc:`compute temp/tspin <compute_temp_tspin>` for energy
+conservation checks and the kinetic spin temperature.
 
 Do not combine inertial and fixed-modulus spin integrators on the same
 atoms.  With SPIN pair styles, this restriction also applies to disjoint

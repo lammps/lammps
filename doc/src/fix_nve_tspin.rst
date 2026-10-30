@@ -83,7 +83,7 @@ control the spin magnitude.
 
 The auxiliary spin kinetic energy is not included in the
 usual thermodynamic quantities *ke*, *etotal*, or *econserve*.
-See :doc:`compute ke/tspin <compute_ke_tspin>` for how to
+See :doc:`compute temp/tspin <compute_temp_tspin>` for how to
 monitor the conserved energy in NVE simulations.
 
 ----------
@@ -124,7 +124,7 @@ Related commands
 :doc:`fix nvt/tspin <fix_nvt_tspin>`,
 :doc:`fix langevin/tspin <fix_langevin_tspin>`,
 :doc:`fix spring/tspin <fix_spring_tspin>`,
-:doc:`compute ke/tspin <compute_ke_tspin>`,
+:doc:`compute temp/tspin <compute_temp_tspin>`,
 :doc:`velocity/tspin <velocity_tspin>`,
 :doc:`fix nve/spin <fix_nve_spin>`
 

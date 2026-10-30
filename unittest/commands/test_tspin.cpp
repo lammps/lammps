@@ -284,28 +284,34 @@ TEST_F(TSpinTest, TemperatureUsesActiveSpinsAndGroup)
     command("compute ts all temp/tspin");
     command("compute tw warm temp/tspin");
     command("compute tc cold temp/tspin");
-    command("compute ks all ke/tspin");
     command("variable tlat equal temp");
     command("variable klat equal ke");
     command("variable plat equal press");
-    command("thermo_style custom step temp ke press c_ts");
+    command("thermo_style custom step temp ke press c_ts c_ts[1]");
     command("run 0 post no");
     END_HIDE_OUTPUT();
 
     auto *ts = lmp->modify->get_compute_by_id("ts");
     auto *tw = lmp->modify->get_compute_by_id("tw");
     auto *tc = lmp->modify->get_compute_by_id("tc");
-    auto *ks = lmp->modify->get_compute_by_id("ks");
     const double expected = 14.0 * 0.0075 * 55.845 * lmp->force->mvv2e /
                             (3.0 * lmp->force->boltz);
     EXPECT_NEAR(ts->compute_scalar(), expected, expected * 1.0e-12);
     EXPECT_NEAR(tw->compute_scalar(), expected, expected * 1.0e-12);
     EXPECT_DOUBLE_EQ(tc->compute_scalar(), 0.0);
     EXPECT_DOUBLE_EQ(ts->dof, 3.0 * (lmp->atom->natoms - 4));
-    EXPECT_NEAR(2.0 * ks->compute_scalar(), ts->dof * lmp->force->boltz * expected, 1.0e-10);
+    ts->compute_vector();
+    tc->compute_vector();
+    const double expected_ke = 0.5 * 14.0 * 0.0075 * 55.845 * lmp->force->mvv2e *
+                               (lmp->atom->natoms - 4);
+    EXPECT_NEAR(ts->vector[0], expected_ke, expected_ke * 1.0e-12);
+    EXPECT_NEAR(2.0 * ts->vector[0], ts->dof * lmp->force->boltz * expected, 1.0e-10);
+    EXPECT_DOUBLE_EQ(tc->vector[0], 0.0);
     EXPECT_EQ(ts->tempflag, 0);
     EXPECT_EQ(ts->extscalar, 0);
-    EXPECT_EQ(ts->vector_flag, 0);
+    EXPECT_EQ(ts->vector_flag, 1);
+    EXPECT_EQ(ts->size_vector, 1);
+    EXPECT_EQ(ts->extvector, 1);
 
     // Evaluating the spin diagnostic must not replace the mechanical temperature.
     EXPECT_DOUBLE_EQ(get_variable_value("tlat"), 0.0);

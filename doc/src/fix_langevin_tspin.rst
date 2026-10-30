@@ -73,11 +73,10 @@ and assigning spin masses:
    fix 2 all langevin/tspin 300.0 300.0 0.05 48279
    fix 3 all nve/tspin lattice frozen
 
-Report the auxiliary spin kinetic energy with :doc:`compute ke/tspin
-<compute_ke_tspin>` and the corresponding kinetic spin temperature with
-:doc:`compute temp/tspin <compute_temp_tspin>`.  The bath exchanges
-energy with the spins, so *etotal* plus *c_ske* is not conserved.  This
-fix does not tally that exchange.
+Report the auxiliary kinetic spin temperature and spin kinetic energy
+with :doc:`compute temp/tspin <compute_temp_tspin>`.  The bath exchanges
+energy with the spins, so *etotal* plus the spin kinetic energy is not
+conserved.  This fix does not tally that exchange.
 
 ----------
 
@@ -111,7 +110,7 @@ Related commands
 
 :doc:`fix nve/tspin <fix_nve_tspin>`,
 :doc:`fix nvt/tspin <fix_nvt_tspin>`,
-:doc:`compute ke/tspin <compute_ke_tspin>`,
+:doc:`compute temp/tspin <compute_temp_tspin>`,
 :doc:`fix langevin <fix_langevin>`
 
 Default

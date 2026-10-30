@@ -72,7 +72,6 @@ Related commands
 :doc:`velocity <velocity>`,
 :doc:`fix nve/tspin <fix_nve_tspin>`,
 :doc:`fix nvt/tspin <fix_nvt_tspin>`,
-:doc:`compute ke/tspin <compute_ke_tspin>`,
 :doc:`compute temp/tspin <compute_temp_tspin>`
 
 Default

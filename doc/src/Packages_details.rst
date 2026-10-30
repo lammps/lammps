@@ -3065,7 +3065,6 @@ supported.
 * :doc:`fix langevin/tspin <fix_langevin_tspin>`
 * :doc:`fix spring/tspin <fix_spring_tspin>`
 * :doc:`compute spin <compute_spin>`
-* :doc:`compute ke/tspin <compute_ke_tspin>`
 * :doc:`compute temp/tspin <compute_temp_tspin>`
 * :doc:`velocity/tspin <velocity_tspin>`
 * :doc:`neb/spin <neb_spin>`

@@ -14,6 +14,13 @@
 /* ------------------------------------------------------------------------
    Contributing author: Zhengtao Huang (The University of Hong Kong)
                         hzt990224@gmail.com
+
+   Kinetic temperature and kinetic energy of the spin degrees of freedom of
+   inertial spin dynamics.  The scalar is the temperature and the first vector
+   element the energy, sum over the group of 1/2 s_mass |v_s|^2.  Because this
+   energy is not part of the thermodynamic keyword ke, add it explicitly to
+   the thermo output with a c_ID[1] reference when running fix nve/tspin,
+   fix nvt/tspin or fix langevin/tspin.
 ------------------------------------------------------------------------- */
 
 #include "compute_temp_tspin.h"
@@ -29,25 +36,35 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 ComputeTempTSpin::ComputeTempTSpin(LAMMPS *lmp, int narg, char **arg) :
-    Compute(lmp, narg, arg), index_vs(-1), index_sm(-1), tfactor(0.0)
+    Compute(lmp, narg, arg), index_vs(-1), index_sm(-1)
 {
   if (narg != 3) error->all(FLERR, "Incorrect number of arguments for compute temp/tspin");
   if (!atom->sp_flag) error->all(FLERR, "Compute temp/tspin requires atom style spin");
 
-  scalar_flag = 1;
+  scalar_flag = vector_flag = 1;
+  size_vector = 1;
   extscalar = 0;
+  extvector = 1;
 
   // A spin-temperature diagnostic must not supply translational kinetic
   // energy or a kinetic pressure tensor to the ordinary temperature users.
 
   tempflag = 0;
+
+  vector = new double[size_vector];
+}
+
+/* ---------------------------------------------------------------------- */
+
+ComputeTempTSpin::~ComputeTempTSpin()
+{
+  delete[] vector;
 }
 
 /* ---------------------------------------------------------------------- */
 
 void ComputeTempTSpin::init()
 {
-  tfactor = force->mvv2e / force->boltz;
   tspin_bind_state(atom, error, "Compute temp/tspin", index_vs, index_sm);
 }
 
@@ -56,6 +73,17 @@ void ComputeTempTSpin::init()
 double ComputeTempTSpin::compute_scalar()
 {
   invoked_scalar = update->ntimestep;
+
+  compute_vector();
+  scalar = (dof > 0.0) ? 2.0 * vector[0] / (dof * force->boltz) : 0.0;
+  return scalar;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void ComputeTempTSpin::compute_vector()
+{
+  invoked_vector = update->ntimestep;
 
   double **v_s = atom->darray[index_vs];
   double *s_mass = atom->dvector[index_sm];
@@ -72,7 +100,6 @@ double ComputeTempTSpin::compute_scalar()
 
   double total[2];
   MPI_Allreduce(local, total, 2, MPI_DOUBLE, MPI_SUM, world);
+  vector[0] = 0.5 * force->mvv2e * total[0];
   dof = total[1];
-  scalar = (dof > 0.0) ? tfactor * total[0] / dof : 0.0;
-  return scalar;
 }

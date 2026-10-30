@@ -366,9 +366,9 @@ tagint FixGEMC::insert_atom(int itype, int imask, double iq, double *iv, double 
 
 void FixGEMC::attempt_atomic_translation_full()
 {
-  ntranslation_attempts += 1.0;
-
   if (natom_total == 0) return;
+
+  ntranslation_attempts += 1.0;
 
   int local = use_local();
   double energy_before = energy_stored;
@@ -593,13 +593,13 @@ tagint FixGEMC::gather_molecule(tagint molid, std::vector<double> &data)
 
 void FixGEMC::attempt_molecule_translation_full()
 {
-  ntranslation_attempts += 1.0;
-
   // all owned atoms must be in the atom arrays
 
   flush_pending();
 
   if (natom_total == 0) return;
+
+  ntranslation_attempts += 1.0;
 
   double energy_before = energy_stored;
   tagint molid = pick_random_molecule();
@@ -655,13 +655,13 @@ void FixGEMC::attempt_molecule_translation_full()
 
 void FixGEMC::attempt_molecule_rotation_full()
 {
-  nrotation_attempts += 1.0;
-
   // all owned atoms must be in the atom arrays
 
   flush_pending();
 
   if (natom_total == 0) return;
+
+  nrotation_attempts += 1.0;
 
   double energy_before = energy_stored;
   tagint molid = pick_random_molecule();

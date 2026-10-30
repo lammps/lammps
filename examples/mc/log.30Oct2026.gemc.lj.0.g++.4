@@ -1,6 +1,5 @@
-LAMMPS (2 Sep 2026)
+LAMMPS (30 Sep 2026 - Development - 3faab3906-modified)
 Processor partition = 0
-OMP_NUM_THREADS environment is not set. Defaulting to 1 thread.
   using 1 OpenMP thread(s) per MPI task
 # vapor-liquid coexistence of the Lennard-Jones fluid truncated and
 # shifted at 2.5 sigma with Gibbs ensemble Monte Carlo (GEMC)
@@ -32,7 +31,7 @@ create_atoms    1 random ${N} 4321 NULL overlap 0.9 maxtry 1000
 create_atoms    1 random 100 4321 NULL overlap 0.9 maxtry 1000
 Created 100 atoms
   using lattice units in orthogonal box = (0 0 0) to (12.59921 12.59921 12.59921)
-  create_atoms CPU = 0.000 seconds
+  create_atoms CPU = 0.002 seconds
 mass            1 1.0
 
 pair_style      lj/cut 2.5
@@ -62,9 +61,9 @@ Per MPI rank memory allocation (min/avg/max) = 4.194 | 4.194 | 4.194 Mbytes
    Step          Temp          E_pair         E_mol          TotEng         Press     
          0   0             -0.13445723     0             -0.13445723     0.055090638  
         40   0             -0.73463977     0             -0.73463977    -0.0025705996 
-Loop time of 0.000535112 on 1 procs for 40 steps with 100 atoms
+Loop time of 0.000652612 on 1 procs for 40 steps with 100 atoms
 
-7.8% CPU use with 1 MPI tasks x 1 OpenMP threads
+100.1% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 Minimization stats:
   Stopping criterion = energy tolerance
@@ -78,12 +77,12 @@ Minimization stats:
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.00012166 | 0.00012166 | 0.00012166 |   0.0 | 22.74
-Neigh   | 0.00022225 | 0.00022225 | 0.00022225 |   0.0 | 41.53
-Comm    | 7.5309e-05 | 7.5309e-05 | 7.5309e-05 |   0.0 | 14.07
+Pair    | 0.0001331  | 0.0001331  | 0.0001331  |   0.0 | 20.40
+Neigh   | 0.00031219 | 0.00031219 | 0.00031219 |   0.0 | 47.84
+Comm    | 8.0479e-05 | 8.0479e-05 | 8.0479e-05 |   0.0 | 12.33
 Output  | 0          | 0          | 0          |   0.0 |  0.00
 Modify  | 0          | 0          | 0          |   0.0 |  0.00
-Other   |            | 0.0001159  |            |       | 21.66
+Other   |            | 0.0001268  |            |       | 19.43
 
 Nlocal:            100 ave         100 max         100 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -141,20 +140,20 @@ Per MPI rank memory allocation (min/avg/max) = 3.069 | 3.069 | 3.069 Mbytes
      18000          73   1954.3345     -21.613663      0.037352869    1800259        1542099        1799709        22567          36032          13057        
      19000          93   1995.4627     -38.437336      0.046605732    1900423        1627515        1899507        23821          38070          13736        
      20000         100   2025.532      -40.680644      0.049369745    2000673        1711464        1999289        24824          40038          14437        
-Loop time of 58.4322 on 1 procs for 20000 steps with 100 atoms
+Loop time of 53.859 on 1 procs for 20000 steps with 100 atoms
 
-Performance: 147863.744 tau/day, 342.277 timesteps/s, 34.228 katom-step/s
-97.9% CPU use with 1 MPI tasks x 1 OpenMP threads
+Performance: 160418.787 tau/day, 371.340 timesteps/s, 37.134 katom-step/s
+98.8% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.053176   | 0.053176   | 0.053176   |   0.0 |  0.09
-Neigh   | 0.5215     | 0.5215     | 0.5215     |   0.0 |  0.89
-Comm    | 0.11611    | 0.11611    | 0.11611    |   0.0 |  0.20
-Output  | 0.0011859  | 0.0011859  | 0.0011859  |   0.0 |  0.00
-Modify  | 57.694     | 57.694     | 57.694     |   0.0 | 98.74
-Other   |            | 0.04584    |            |       |  0.08
+Pair    | 0.053865   | 0.053865   | 0.053865   |   0.0 |  0.10
+Neigh   | 0.47901    | 0.47901    | 0.47901    |   0.0 |  0.89
+Comm    | 0.083377   | 0.083377   | 0.083377   |   0.0 |  0.15
+Output  | 0.00079144 | 0.00079144 | 0.00079144 |   0.0 |  0.00
+Modify  | 53.175     | 53.175     | 53.175     |   0.0 | 98.73
+Other   |            | 0.06704    |            |       |  0.12
 
 Nlocal:            100 ave         100 max         100 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -167,4 +166,4 @@ Total # of neighbors = 246
 Ave neighs/atom = 2.46
 Neighbor list builds = 80038
 Dangerous builds = 0
-Total wall time: 0:00:58
+Total wall time: 0:00:53

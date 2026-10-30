@@ -352,9 +352,12 @@ void FixGEMC::init()
         if (ifix->energy_global_flag && ifix->thermo_energy)
           reason = fmt::format("fix {} contributes to the potential energy", ifix->id);
     }
+
+    // moves of molecules always use the total energy, as documented, so no warning
+
     if (!reason.empty()) {
       local_flag = 0;
-      if (comm->me == 0)
+      if ((comm->me == 0) && !molflag)
         error->warning(FLERR, "Fix gemc uses full energy evaluations for all moves because {}",
                        reason);
     }
@@ -447,6 +450,10 @@ void FixGEMC::check_molecules()
       inbuf[n].mol = molecule[i];
       inbuf[n].tag = atom->tag[i];
       inbuf[n].type = atom->type[i];
+      inbuf[n].ntopo[0] = atom->num_bond ? atom->num_bond[i] : 0;
+      inbuf[n].ntopo[1] = atom->num_angle ? atom->num_angle[i] : 0;
+      inbuf[n].ntopo[2] = atom->num_dihedral ? atom->num_dihedral[i] : 0;
+      inbuf[n].ntopo[3] = atom->num_improper ? atom->num_improper[i] : 0;
       inbuf[n].q = q ? q[i] : 0.0;
       n++;
     }
@@ -461,7 +468,8 @@ void FixGEMC::check_molecules()
     if (flag_all)
       error->all(FLERR,
                  "Molecules in fix gemc group must match molecule template {}: same number and "
-                 "types of atoms, with consecutive atom IDs in template order",
+                 "types of atoms, with consecutive atom IDs in template order, and the same "
+                 "number of bonds, angles, dihedrals, and impropers",
                  idmol);
     charged = rvous_charged;
     if (onemol->qflag) {
@@ -495,6 +503,17 @@ int FixGEMC::rendezvous_check(int n, char *inbuf, int &flag, int *& /*proclist*/
   const int natoms = fptr->natoms_per_molecule;
   Molecule *onemol = fptr->onemol;
 
+  // numbers of bonds, angles, dihedrals, and impropers of the template, counted
+  // like those of the atoms, which follow the same newton_bond setting
+
+  int ntopo_mol[4] = {0, 0, 0, 0};
+  for (int i = 0; i < natoms; i++) {
+    if (onemol->bondflag) ntopo_mol[0] += onemol->num_bond[i];
+    if (onemol->angleflag) ntopo_mol[1] += onemol->num_angle[i];
+    if (onemol->dihedralflag) ntopo_mol[2] += onemol->num_dihedral[i];
+    if (onemol->improperflag) ntopo_mol[3] += onemol->num_improper[i];
+  }
+
   std::sort(in, in + n, [](const CheckRvous &a, const CheckRvous &b) {
     return (a.mol < b.mol) || ((a.mol == b.mol) && (a.tag < b.tag));
   });
@@ -505,7 +524,9 @@ int FixGEMC::rendezvous_check(int n, char *inbuf, int &flag, int *& /*proclist*/
     while ((kend < n) && (in[kend].mol == in[k].mol)) kend++;
     if (kend - k != natoms) fptr->rvous_bad = 1;
     double qmol = 0.0;
+    int ntopo[4] = {0, 0, 0, 0};
     for (int m = k; m < kend; m++) {
+      for (int t = 0; t < 4; t++) ntopo[t] += in[m].ntopo[t];
       int iatom = m - k;
       if (iatom < natoms) {
         if (in[m].type != onemol->type[iatom]) fptr->rvous_bad = 1;
@@ -513,6 +534,8 @@ int FixGEMC::rendezvous_check(int n, char *inbuf, int &flag, int *& /*proclist*/
       }
       qmol += in[m].q;
     }
+    for (int t = 0; t < 4; t++)
+      if (ntopo[t] != ntopo_mol[t]) fptr->rvous_bad = 1;
     if (fabs(qmol) > 1.0e-6) fptr->rvous_charged = 1;
     k = kend;
   }
@@ -524,6 +547,47 @@ int FixGEMC::rendezvous_check(int n, char *inbuf, int &flag, int *& /*proclist*/
 }
 
 /* ----------------------------------------------------------------------
+   1 if an atom in the fix group is part of a bond, angle, dihedral, or
+   improper owned by this rank.  each of them is stored with one of its atoms
+   (or all of them with newton_bond off), and all of its atoms are owned or
+   ghost atoms of the rank that stores it.
+------------------------------------------------------------------------- */
+
+int FixGEMC::group_topology()
+{
+  if (!atom->molecular) return 0;
+  int *mask = atom->mask;
+
+  auto ingroup = [&](tagint itag) {
+    int j = atom->map(itag);
+    return (j >= 0) && (mask[j] & groupbit);
+  };
+
+  for (int i = 0; i < atom->nlocal; i++) {
+    int self = mask[i] & groupbit;
+    if (atom->num_bond)
+      for (int m = 0; m < atom->num_bond[i]; m++)
+        if (self || ingroup(atom->bond_atom[i][m])) return 1;
+    if (atom->num_angle)
+      for (int m = 0; m < atom->num_angle[i]; m++)
+        if (ingroup(atom->angle_atom1[i][m]) || ingroup(atom->angle_atom2[i][m]) ||
+            ingroup(atom->angle_atom3[i][m]))
+          return 1;
+    if (atom->num_dihedral)
+      for (int m = 0; m < atom->num_dihedral[i]; m++)
+        if (ingroup(atom->dihedral_atom1[i][m]) || ingroup(atom->dihedral_atom2[i][m]) ||
+            ingroup(atom->dihedral_atom3[i][m]) || ingroup(atom->dihedral_atom4[i][m]))
+          return 1;
+    if (atom->num_improper)
+      for (int m = 0; m < atom->num_improper[i]; m++)
+        if (ingroup(atom->improper_atom1[i][m]) || ingroup(atom->improper_atom2[i][m]) ||
+            ingroup(atom->improper_atom3[i][m]) || ingroup(atom->improper_atom4[i][m]))
+          return 1;
+  }
+  return 0;
+}
+
+/* ----------------------------------------------------------------------
    checks and initialization that require communication between the boxes.
    done in setup() and not in init(), since only setup() is guaranteed to be
    called at the same time in both partitions (at the start of a run).
@@ -531,6 +595,19 @@ int FixGEMC::rendezvous_check(int n, char *inbuf, int &flag, int *& /*proclist*/
 
 void FixGEMC::setup(int /*vflag*/)
 {
+  // without the mol keyword, exchanged atoms must not be bonded to other atoms.
+  // checked here, since the ghost atoms that hold the bond partners exist now
+
+  if (!molflag) {
+    int flag = group_topology();
+    int flag_all;
+    MPI_Allreduce(&flag, &flag_all, 1, MPI_INT, MPI_MAX, world);
+    if (flag_all)
+      error->all(FLERR,
+                 "Fix gemc group contains atoms with bonds, angles, dihedrals, or impropers; "
+                 "use the mol keyword");
+  }
+
   // both boxes must use the same settings, or they would fall out of step and hang
 
   // this includes the state of the synchronized random number generator
@@ -705,8 +782,7 @@ void FixGEMC::tune_steps()
     double factor = MIN(MAX(ratio / tune_trans, 0.5), 1.5);
     double maxdisp = 0.5 * min_box_width();
     if (local_flag) maxdisp = MIN(maxdisp, 0.5 * local_skin());
-    displace = MIN(displace * factor, maxdisp);
-    displace = max_translation();
+    displace = MIN(MIN(displace * factor, maxdisp), max_move());
     displace = MAX(displace, 1.0e-6 * maxdisp);
     tune_last[0] = ntranslation_attempts;
     tune_last[1] = ntranslation_successes;
@@ -739,14 +815,10 @@ void FixGEMC::tune_steps()
 
 void FixGEMC::print_progress()
 {
-  // world 0 needs the atom count of world 1 for the message
+  // rank 0 of both boxes follows the progress, since the boxes are at the
+  // same timestep.  world 0 needs the atom count of world 1 for the message
 
-  bigint n_other = 0;
-  if (me == 0)
-    MPI_Sendrecv(&natom_total, 1, MPI_LMP_BIGINT, 1 - myworld, 0, &n_other, 1, MPI_LMP_BIGINT,
-                 1 - myworld, 0, comm_replica, MPI_STATUS_IGNORE);
-
-  if (universe->me != 0) return;
+  if (me != 0) return;
 
   double delta = update->ntimestep - update->beginstep;
   if ((delta != 0.0) && (update->beginstep != update->endstep))
@@ -754,6 +826,12 @@ void FixGEMC::print_progress()
   int status = static_cast<int>(delta * 100.0);
   if (status <= progress) return;
   progress = status;
+
+  bigint n_other = 0;
+  MPI_Sendrecv(&natom_total, 1, MPI_LMP_BIGINT, 1 - myworld, 0, &n_other, 1, MPI_LMP_BIGINT,
+               1 - myworld, 0, comm_replica, MPI_STATUS_IGNORE);
+
+  if (universe->me != 0) return;
 
   double now[6] = {ntranslation_successes, ntranslation_attempts, nvolume_successes,
                    nvolume_attempts,       nexchange_successes,   nexchange_attempts};
@@ -1613,12 +1691,14 @@ void FixGEMC::box_widths(double *w)
    largest distance an atom may move in a translation or rotation.
    with more than one rank per box, comm->exchange() in energy_full() can
    only move an atom to a neighboring subdomain, so the distance must stay
-   below the smallest subdomain width
+   below the smallest subdomain width.  with one rank, domain->pbc() can
+   only wrap an atom by one box length, so the distance stays below half
+   the smallest box width
 ------------------------------------------------------------------------- */
 
 double FixGEMC::max_move()
 {
-  if (comm->nprocs == 1) return BIG;
+  if (comm->nprocs == 1) return 0.5 * min_box_width();
   double w[3];
   box_widths(w);
   double wsub = BIG;

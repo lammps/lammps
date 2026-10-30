@@ -1,6 +1,5 @@
-LAMMPS (2 Sep 2026)
+LAMMPS (30 Sep 2026 - Development - 3faab3906-modified)
 Processor partition = 1
-OMP_NUM_THREADS environment is not set. Defaulting to 1 thread.
   using 1 OpenMP thread(s) per MPI task
 # vapor-liquid coexistence of the Lennard-Jones fluid truncated and
 # shifted at 2.5 sigma with Gibbs ensemble Monte Carlo (GEMC)
@@ -62,9 +61,9 @@ Per MPI rank memory allocation (min/avg/max) = 4.229 | 4.229 | 4.23 Mbytes
    Step          Temp          E_pair         E_mol          TotEng         Press     
          0   0             -1.8210593      0             -1.8210593      6.6164045    
        100   0             -5.4398412      0             -5.4398412     -1.4120399    
-Loop time of 0.0212797 on 3 procs for 100 steps with 400 atoms
+Loop time of 0.0228333 on 3 procs for 100 steps with 400 atoms
 
-98.9% CPU use with 3 MPI tasks x 1 OpenMP threads
+75.1% CPU use with 3 MPI tasks x 1 OpenMP threads
 
 Minimization stats:
   Stopping criterion = max iterations
@@ -78,12 +77,12 @@ Minimization stats:
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.0069206  | 0.0074347  | 0.0080143  |   0.5 | 34.94
-Neigh   | 0.0053495  | 0.0053739  | 0.0054192  |   0.0 | 25.25
-Comm    | 0.0061275  | 0.0067206  | 0.0071585  |   0.5 | 31.58
-Output  | 1.5784e-05 | 1.6207e-05 | 1.7017e-05 |   0.0 |  0.08
+Pair    | 0.0078389  | 0.0081676  | 0.0084318  |   0.3 | 35.77
+Neigh   | 0.00558    | 0.0057726  | 0.0060026  |   0.2 | 25.28
+Comm    | 0.0064951  | 0.0069744  | 0.0074991  |   0.5 | 30.54
+Output  | 1.9476e-05 | 1.988e-05  | 2.0548e-05 |   0.0 |  0.09
 Modify  | 0          | 0          | 0          |   0.0 |  0.00
-Other   |            | 0.001734   |            |       |  8.15
+Other   |            | 0.001899   |            |       |  8.32
 
 Nlocal:        133.333 ave         148 max         122 min
 Histogram: 1 0 0 1 0 0 0 0 0 1
@@ -141,20 +140,20 @@ Per MPI rank memory allocation (min/avg/max) = 3.104 | 3.104 | 3.105 Mbytes
      18000         427   661.05013     -1670.1502      0.64594193     1800259        471719         1799709        22567          36032          13057        
      19000         407   619.9219      -1608.2654      0.65653432     1900423        498130         1899507        23821          38070          13736        
      20000         400   589.85257     -1620.4632      0.67813556     2000673        523551         1999289        24824          40038          14437        
-Loop time of 58.4324 on 3 procs for 20000 steps with 400 atoms
+Loop time of 53.8592 on 3 procs for 20000 steps with 400 atoms
 
-Performance: 147863.051 tau/day, 342.276 timesteps/s, 136.910 katom-step/s
-95.9% CPU use with 3 MPI tasks x 1 OpenMP threads
+Performance: 160418.210 tau/day, 371.338 timesteps/s, 148.535 katom-step/s
+96.5% CPU use with 3 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.71776    | 0.72971    | 0.74561    |   1.4 |  1.25
-Neigh   | 2.9869     | 3.0535     | 3.091      |   2.7 |  5.23
-Comm    | 1.8854     | 1.9446     | 2.0221     |   4.1 |  3.33
-Output  | 0.0007865  | 0.00084017 | 0.00092288 |   0.0 |  0.00
-Modify  | 52.633     | 52.637     | 52.64      |   0.0 | 90.08
-Other   |            | 0.06659    |            |       |  0.11
+Pair    | 0.7163     | 0.73417    | 0.74632    |   1.5 |  1.36
+Neigh   | 2.8656     | 2.9355     | 2.9717     |   2.9 |  5.45
+Comm    | 1.6872     | 1.7383     | 1.8332     |   5.1 |  3.23
+Output  | 0.00074783 | 0.0007769  | 0.00082805 |   0.0 |  0.00
+Modify  | 48.361     | 48.364     | 48.368     |   0.0 | 89.80
+Other   |            | 0.08592    |            |       |  0.16
 
 Nlocal:        133.333 ave         134 max         133 min
 Histogram: 2 0 0 0 0 0 0 0 0 1
@@ -167,4 +166,4 @@ Total # of neighbors = 12155
 Ave neighs/atom = 30.3875
 Neighbor list builds = 80038
 Dangerous builds = 0
-Total wall time: 0:00:58
+Total wall time: 0:00:53

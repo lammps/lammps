@@ -89,18 +89,12 @@ move at the same time:
 
 * A *translation* moves a randomly chosen atom of the fix group in each
   box by a random displacement inside a sphere of radius *displace*.
-  When a box runs on more than one processor, the radius is limited to
-  half of the smallest subdomain width, since an atom can only move
-  to a neighboring subdomain during the move.
+  The radius is limited to half of the smallest box width, and when a
+  box runs on more than one processor, to half of the smallest subdomain
+  width, since an atom can only move to a neighboring subdomain during
+  the move.
   The two boxes accept or reject their translations independently with
   the Metropolis criterion :math:`\min[1, \exp(-\Delta U/k_B T)]`.
-
-.. versionchanged:: TBD
-
-   An exchange keeps the atom type, charge, group membership, and
-   velocity of the removed atom; previously an atom of type 1 with a
-   random velocity was inserted.  Atom styles with per-atom masses now
-   stop with an error instead of a warning.
 
 * An *exchange* removes a randomly chosen atom of the fix group from one
   box, the donor box, and inserts it at a random position in the other
@@ -136,6 +130,13 @@ Exchange and volume moves are always accepted or rejected by both boxes
 together.  The energy *U* is the total potential energy of a box, as
 computed by the *thermo_pe* compute, see below.
 
+.. versionchanged:: TBD
+
+An exchange keeps the atom type, charge, group membership, and velocity
+of the removed atom; previously an atom of type 1 with a random velocity
+was inserted.  Atom styles with per-atom masses now stop with an error
+instead of a warning.
+
 Atoms that are not in the fix group are never translated or
 exchanged, but they interact with the other atoms and are scaled by
 volume moves.  Different atom types can be used, e.g. to study the
@@ -151,7 +152,10 @@ to molecules that are copies of the molecule template given by
 same atom types as the template, and consecutive atom IDs in the order
 of the template atoms.  This is the case for molecules created with the
 :doc:`create_atoms <create_atoms>` command using the same template, and
-for all molecules inserted by this fix.  The template provides the
+for all molecules inserted by this fix.  Each molecule must also have
+the same number of bonds, angles, dihedrals, and impropers as the
+template.  Without the *mol* keyword, the atoms of the fix group must not
+be part of bonds, angles, dihedrals, or impropers.  The template provides the
 bond topology of inserted molecules; the atom style must allow it, and
 enough space for bonds, angles, and special neighbors must be reserved,
 e.g. with the *extra/special/per/atom* keyword of :doc:`create_box
@@ -162,9 +166,8 @@ e.g. with the *extra/special/per/atom* keyword of :doc:`create_box
   radius *displace*, or a rotation of a randomly chosen molecule about
   its center of mass around a random axis by a random angle between
   -*maxangle* and +*maxangle*.  The default *maxangle* is 30 degrees.
-  When a box runs on more than one processor, rotations that would
-  move an atom farther than half of the smallest subdomain width are
-  rejected.
+  Rotations that would move an atom farther than the limit for the
+  translation radius are rejected.
   These are rigid-body moves; to sample the internal degrees of
   freedom of flexible molecules, combine the fix with time integration
   (see below).
@@ -297,12 +300,11 @@ keyword requests that the total energy is computed for all moves.
 
 .. versionchanged:: TBD
 
-   The cost of translations and exchanges with single-atom energies no
-   longer grows with the number of atoms in the box.  Ghost atoms are
-   rebuilt only when an atom would move farther than the distance above
-   outside of the subdomain of its processor, or beyond the neighboring
-   subdomains, so a larger communication cutoff makes this less
-   frequent.
+The cost of translations and exchanges with single-atom energies no
+longer grows with the number of atoms in the box.  Ghost atoms are
+rebuilt only when an atom would move farther than the distance above
+outside of the subdomain of its processor, or beyond the neighboring
+subdomains, so a larger communication cutoff makes this less frequent.
 
 Some fixes have an associated potential energy.  Examples of such fixes
 include: :doc:`efield <fix_efield>`, :doc:`gravity <fix_gravity>`,
@@ -396,9 +398,11 @@ shake <fix_shake>`, or :doc:`fix rattle <fix_shake>` are not supported;
 molecules stay rigid in pure MC simulations, since all their moves are
 rigid-body moves.
 
-Inserted atoms and molecules get new atom and molecule IDs, and the IDs
-of removed ones are not reused, so the largest ID keeps growing during a
-long simulation.  This increases the memory used by the atom map, and
+Inserted atoms and molecules get new atom and molecule IDs that are
+larger than all IDs in their box.  The IDs of removed atoms and
+molecules are therefore not reused, except when the one with the largest
+ID was removed, and the largest ID keeps growing during a long
+simulation.  This increases the memory used by the atom map, and
 the IDs may eventually exceed the maximum allowed value.  Use
 :doc:`atom_modify map hash <atom_modify>` to limit the memory use.
 When atoms (not molecules) are exchanged, the :doc:`reset_atoms id

@@ -1,6 +1,5 @@
-LAMMPS (2 Sep 2026)
+LAMMPS (30 Sep 2026 - Development - 3faab3906-modified)
 Processor partition = 0
-OMP_NUM_THREADS environment is not set. Defaulting to 1 thread.
   using 1 OpenMP thread(s) per MPI task
 # vapor-liquid coexistence of the Lennard-Jones fluid truncated and
 # shifted at 2.5 sigma with Gibbs ensemble Monte Carlo (GEMC)
@@ -62,9 +61,9 @@ Per MPI rank memory allocation (min/avg/max) = 4.194 | 4.194 | 4.194 Mbytes
    Step          Temp          E_pair         E_mol          TotEng         Press     
          0   0             -0.13445723     0             -0.13445723     0.055090638  
         40   0             -0.73463977     0             -0.73463977    -0.0025705996 
-Loop time of 0.000831068 on 1 procs for 40 steps with 100 atoms
+Loop time of 0.000779006 on 1 procs for 40 steps with 100 atoms
 
-11.1% CPU use with 1 MPI tasks x 1 OpenMP threads
+26.1% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 Minimization stats:
   Stopping criterion = energy tolerance
@@ -78,12 +77,12 @@ Minimization stats:
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.00022784 | 0.00022784 | 0.00022784 |   0.0 | 27.42
-Neigh   | 0.00030097 | 0.00030097 | 0.00030097 |   0.0 | 36.21
-Comm    | 0.00014556 | 0.00014556 | 0.00014556 |   0.0 | 17.52
+Pair    | 0.00020814 | 0.00020814 | 0.00020814 |   0.0 | 26.72
+Neigh   | 0.00031377 | 0.00031377 | 0.00031377 |   0.0 | 40.28
+Comm    | 0.00010106 | 0.00010106 | 0.00010106 |   0.0 | 12.97
 Output  | 0          | 0          | 0          |   0.0 |  0.00
 Modify  | 0          | 0          | 0          |   0.0 |  0.00
-Other   |            | 0.0001567  |            |       | 18.85
+Other   |            | 0.000156   |            |       | 20.03
 
 Nlocal:            100 ave         100 max         100 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -141,20 +140,20 @@ Per MPI rank memory allocation (min/avg/max) = 3.069 | 3.069 | 3.069 Mbytes
      18000          89   1974.3718     -42.846923      0.045077629    1800259        1537724        1799709        22079          36032          13079        
      19000          92   2007.1107     -38.144921      0.045837034    1900423        1622774        1899507        23278          38070          13790        
      20000          86   2014.169      -36.14472       0.04269751     2000673        1708983        1999289        24276          40038          14497        
-Loop time of 82.8276 on 1 procs for 20000 steps with 86 atoms
+Loop time of 309.813 on 1 procs for 20000 steps with 86 atoms
 
-Performance: 104313.036 tau/day, 241.465 timesteps/s, 20.766 katom-step/s
-95.4% CPU use with 1 MPI tasks x 1 OpenMP threads
+Performance: 27887.805 tau/day, 64.555 timesteps/s, 5.552 katom-step/s
+49.3% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.058384   | 0.058384   | 0.058384   |   0.0 |  0.07
-Neigh   | 0.56871    | 0.56871    | 0.56871    |   0.0 |  0.69
-Comm    | 0.12806    | 0.12806    | 0.12806    |   0.0 |  0.15
-Output  | 0.00092508 | 0.00092508 | 0.00092508 |   0.0 |  0.00
-Modify  | 82.016     | 82.016     | 82.016     |   0.0 | 99.02
-Other   |            | 0.05595    |            |       |  0.07
+Pair    | 0.11771    | 0.11771    | 0.11771    |   0.0 |  0.04
+Neigh   | 1.0682     | 1.0682     | 1.0682     |   0.0 |  0.34
+Comm    | 0.22211    | 0.22211    | 0.22211    |   0.0 |  0.07
+Output  | 0.0049144  | 0.0049144  | 0.0049144  |   0.0 |  0.00
+Modify  | 308.24     | 308.24     | 308.24     |   0.0 | 99.49
+Other   |            | 0.1592     |            |       |  0.05
 
 Nlocal:             86 ave          86 max          86 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -167,4 +166,4 @@ Total # of neighbors = 209
 Ave neighs/atom = 2.4302326
 Neighbor list builds = 80038
 Dangerous builds = 0
-Total wall time: 0:01:22
+Total wall time: 0:05:10

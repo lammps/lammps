@@ -165,6 +165,7 @@ class FixGEMC : public Fix {
   struct CheckRvous {
     tagint mol, tag;
     int type;
+    int ntopo[4];    // number of bonds, angles, dihedrals, impropers stored with the atom
     double q;
   };
   bigint rvous_count;    // number of molecules on this rank in the rendezvous decomposition
@@ -172,6 +173,7 @@ class FixGEMC : public Fix {
   int rvous_charged;     // 1 if a molecule on this rank has a net charge
   static int rendezvous_centers(int, char *, int &, int *&, char *&, void *);
   static int rendezvous_check(int, char *, int &, int *&, char *&, void *);
+  int group_topology();
 
   void attempt_atomic_translation_full();
   void attempt_volume_change_full();

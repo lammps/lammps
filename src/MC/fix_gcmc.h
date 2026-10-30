@@ -124,6 +124,7 @@ class FixGCMC : public Fix {
   int triclinic;    // 0 = orthog box, 1 = triclinic
 
   class Compute *c_pe;
+  class Irregular *irregular;
 
   // private methods
 
@@ -146,6 +147,7 @@ class FixGCMC : public Fix {
 
   double energy(int, int, tagint, double *);
   double energy_full();
+  void migrate_atoms();
   double molecule_energy(tagint);
 
   void warn_region_reject();

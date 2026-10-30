@@ -31,6 +31,7 @@
 #include "force.h"
 #include "group.h"
 #include "improper.h"
+#include "irregular.h"
 #include "kspace.h"
 #include "math_const.h"
 #include "math_extra.h"
@@ -76,7 +77,7 @@ FixGCMC::FixGCMC(LAMMPS *lmp, int narg, char **arg) :
     sublo(nullptr), subhi(nullptr), local_gas_list(nullptr), cutsq(nullptr), molcoords(nullptr),
     molq(nullptr), molimage(nullptr), moltags(nullptr), pair(nullptr), random_equal(nullptr),
     random_unequal(nullptr), model_atom(nullptr), onemols(nullptr), fixrigid(nullptr),
-    fixshake(nullptr), idrigid(nullptr), idshake(nullptr), c_pe(nullptr)
+    fixshake(nullptr), idrigid(nullptr), idshake(nullptr), c_pe(nullptr), irregular(nullptr)
 {
   if (narg < 11) utils::missing_cmd_args(FLERR, "fix gcmc", error);
 
@@ -428,6 +429,7 @@ FixGCMC::~FixGCMC()
   memory->destroy(molq);
   memory->destroy(molimage);
   memory->destroy(moltags);
+  delete irregular;
 
   delete[] idrigid;
   delete[] idshake;
@@ -778,6 +780,13 @@ void FixGCMC::init()
     }
   }
 
+  // full energy moves let comm->exchange() move atoms only to adjacent
+  // processors, so atoms displaced farther by a trial move are migrated
+  // with an irregular communication
+
+  delete irregular;
+  irregular = nullptr;
+  if (full_flag && (comm->nprocs > 1)) irregular = new Irregular(lmp);
 }
 
 /* ----------------------------------------------------------------------
@@ -842,12 +851,7 @@ void FixGCMC::pre_exchange()
         }
       }
     }
-    if (triclinic) domain->x2lamda(atom->nlocal);
-    domain->pbc();
-    comm->exchange();
-    atom->nghost = 0;
-    comm->borders();
-    if (triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
+    migrate_atoms();
 
   } else {
 
@@ -1311,6 +1315,16 @@ void FixGCMC::attempt_molecule_rotation()
       domain->remap(xtmp);
       if (!domain->inside(xtmp))
         error->one(FLERR,"Fix gcmc put atom outside box");
+
+      // the trial energy is computed next to the current position of
+      // the atom, where this processor has its ghost atoms.  the wrapped
+      // position may lie in the subdomain of another processor.
+
+      double xold[3];
+      domain->unmap(x[i],image[i],xold);
+      xtmp[0] = x[i][0] + molcoords[n][0] - xold[0];
+      xtmp[1] = x[i][1] + molcoords[n][1] - xold[1];
+      xtmp[2] = x[i][2] + molcoords[n][2] - xold[2];
       energy_after += energy(i,atom->type[i],rotation_molecule,xtmp);
       n++;
     }
@@ -2512,6 +2526,23 @@ double FixGCMC::molecule_energy(tagint gas_molecule_id)
 }
 
 /* ----------------------------------------------------------------------
+   move atoms to their owning processors and rebuild the ghost atoms.
+   a full energy trial move or its reversal can displace atoms by more
+   than one subdomain, which comm->exchange() alone cannot handle.
+------------------------------------------------------------------------- */
+
+void FixGCMC::migrate_atoms()
+{
+  if (triclinic) domain->x2lamda(atom->nlocal);
+  domain->pbc();
+  if (irregular && irregular->migrate_check()) irregular->migrate_atoms();
+  comm->exchange();
+  atom->nghost = 0;
+  comm->borders();
+  if (triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
+}
+
+/* ----------------------------------------------------------------------
    compute system potential energy
 ------------------------------------------------------------------------- */
 
@@ -2519,12 +2550,7 @@ double FixGCMC::energy_full()
 {
   int imolecule;
 
-  if (triclinic) domain->x2lamda(atom->nlocal);
-  domain->pbc();
-  comm->exchange();
-  atom->nghost = 0;
-  comm->borders();
-  if (triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
+  migrate_atoms();
   if (modify->n_pre_neighbor) modify->pre_neighbor();
   neighbor->build(1);
 

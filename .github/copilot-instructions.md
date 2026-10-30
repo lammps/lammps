@@ -139,6 +139,7 @@ automatically: read them before starting the corresponding kind of work.
 | finite-size particles, inertia/angmom | `.github/dev-docs/finite-size-particles.md` |
 | new/changed styles: MPI, restart, buffers | `.github/dev-docs/style-implementation-notes.md` |
 | refactor validation, platform failures, benchmarks, debugging | `.github/dev-docs/testing-and-verification.md` |
+| porting a pair style to the GPU package (`src/GPU/`, `lib/gpu/`) | `.github/dev-docs/gpu-porting-guide.md` |
 
 ## Trust These Instructions
 

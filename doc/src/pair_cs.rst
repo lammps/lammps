@@ -1,5 +1,6 @@
 .. index:: pair_style born/coul/dsf/cs
 .. index:: pair_style born/coul/dsf/cs/kk
+.. index:: pair_style born/coul/dsf/cs/gpu
 .. index:: pair_style born/coul/dsf/cs/omp
 .. index:: pair_style born/coul/long/cs
 .. index:: pair_style born/coul/long/cs/kk
@@ -11,6 +12,7 @@
 .. index:: pair_style born/coul/wolf/cs/omp
 .. index:: pair_style buck/coul/long/cs
 .. index:: pair_style buck/coul/long/cs/kk
+.. index:: pair_style buck/coul/long/cs/gpu
 .. index:: pair_style buck/coul/long/cs/omp
 .. index:: pair_style coul/long/cs
 .. index:: pair_style coul/long/cs/kk
@@ -18,18 +20,21 @@
 .. index:: pair_style coul/long/cs/omp
 .. index:: pair_style coul/wolf/cs
 .. index:: pair_style coul/wolf/cs/kk
+.. index:: pair_style coul/wolf/cs/gpu
 .. index:: pair_style coul/wolf/cs/omp
 .. index:: pair_style lj/cut/coul/long/cs
 .. index:: pair_style lj/cut/coul/long/cs/kk
+.. index:: pair_style lj/cut/coul/long/cs/gpu
 .. index:: pair_style lj/cut/coul/long/cs/omp
 .. index:: pair_style lj/class2/coul/long/cs
 .. index:: pair_style lj/class2/coul/long/cs/kk
+.. index:: pair_style lj/class2/coul/long/cs/gpu
 .. index:: pair_style lj/class2/coul/long/cs/omp
 
 pair_style born/coul/dsf/cs command
 ===================================
 
-Accelerator Variants: *born/coul/dsf/cs/kk*, *born/coul/dsf/cs/omp*
+Accelerator Variants: *born/coul/dsf/cs/gpu*, *born/coul/dsf/cs/kk*, *born/coul/dsf/cs/omp*
 
 pair_style born/coul/long/cs command
 ====================================
@@ -44,7 +49,7 @@ Accelerator Variants: *born/coul/wolf/cs/gpu*, *born/coul/wolf/cs/kk*, *born/cou
 pair_style buck/coul/long/cs command
 ====================================
 
-Accelerator Variants: *buck/coul/long/cs/kk*, *buck/coul/long/cs/omp*
+Accelerator Variants: *buck/coul/long/cs/gpu*, *buck/coul/long/cs/kk*, *buck/coul/long/cs/omp*
 
 pair_style coul/long/cs command
 ===============================
@@ -54,17 +59,17 @@ Accelerator Variants: *coul/long/cs/gpu*, *coul/long/cs/kk*, *coul/long/cs/omp*
 pair_style coul/wolf/cs command
 ===============================
 
-Accelerator Variants: *coul/wolf/cs/kk*, *coul/wolf/cs/omp*
+Accelerator Variants: *coul/wolf/cs/gpu*, *coul/wolf/cs/kk*, *coul/wolf/cs/omp*
 
 pair_style lj/cut/coul/long/cs command
 ======================================
 
-Accelerator Variants: *lj/cut/coul/long/cs/kk*, *lj/cut/coul/long/cs/omp*
+Accelerator Variants: *lj/cut/coul/long/cs/gpu*, *lj/cut/coul/long/cs/kk*, *lj/cut/coul/long/cs/omp*
 
 pair_style lj/class2/coul/long/cs command
 =========================================
 
-Accelerator Variants: *lj/class2/coul/long/cs/kk*, *lj/class2/coul/long/cs/omp*
+Accelerator Variants: *lj/class2/coul/long/cs/gpu*, *lj/class2/coul/long/cs/kk*, *lj/class2/coul/long/cs/omp*
 
 Syntax
 """"""

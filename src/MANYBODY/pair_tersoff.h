@@ -22,6 +22,8 @@ PairStyle(tersoff,PairTersoff);
 
 #include "pair.h"
 
+#include <cmath>
+
 namespace LAMMPS_NS {
 
 class PairTersoff : public Pair {
@@ -34,7 +36,7 @@ class PairTersoff : public Pair {
   void init_style() override;
   double init_one(int, int) override;
 
-  template <int SHIFT_FLAG, int EVFLAG, int EFLAG, int VFLAG_ATOM> void eval();
+  template <int SHIFT_FLAG, int EVFLAG, int EFLAG, int VFLAG_ATOM, int ZTERM_FLAG> void eval();
 
   static constexpr int NPARAMS_PER_LINE = 17;
 
@@ -55,11 +57,23 @@ class PairTersoff : public Pair {
     double c0;    // added for TersoffMODC
   };
 
+  struct ShortGeom {
+    double del[3], hat[3];
+    double rsq, rinv, r, rinva;
+    int j, jtype;
+  };
+
+  struct ZetaTerm {
+    double fc, dfc, ex_delr, ex_delr_d;
+  };
+
  protected:
-  Param *params;      // parameter set for an I-J-K interaction
-  double cutmax;      // max cutoff for all elements
-  int maxshort;       // size of short neighbor list array
-  int *neighshort;    // short neighbor list array
+  Param *params;           // parameter set for an I-J-K interaction
+  double cutmax;           // max cutoff for all elements
+  int maxshort;            // size of short neighbor list array
+  ShortGeom *shortgeom;    // cached short-neighbor geometry
+  ZetaTerm *zterm;         // cached 3-body radial terms per neighbor k
+  int zterm_flag;          // 1 if base Tersoff 3-body cache is active
 
   int shift_flag;    // flag to turn on/off shift
   double shift;      // negative change in equilibrium bond length
@@ -82,7 +96,37 @@ class PairTersoff : public Pair {
 
   virtual void ters_zetaterm_d(double, double *, double, double, double *, double, double, double *,
                                double *, double *, Param *);
+  double zeta_term(Param *, double, double, double *, double *, ZetaTerm &);
+  void zeta_term_d(double, double *, double, double *, double, const ZetaTerm &, double *, double *,
+                   double *, Param *);
   void costheta_d(double *, double, double *, double, double *, double *, double *);
+
+  template <int ZTERM_FLAG> void compute_zterm(int);
+
+  template <int SHIFT_FLAG, int ZTERM_FLAG>
+  inline void fill_shortgeom(const int j, const int jtype, const double raw_rsq, const double rsq,
+                             const double dx, const double dy, const double dz, ShortGeom &g) const
+  {
+    g.del[0] = dx;
+    g.del[1] = dy;
+    g.del[2] = dz;
+    g.rsq = rsq;
+    const double r_raw = sqrt(raw_rsq);
+    const double rinv = 1.0 / r_raw;
+    g.rinv = rinv;
+    g.hat[0] = dx * rinv;
+    g.hat[1] = dy * rinv;
+    g.hat[2] = dz * rinv;
+    if (SHIFT_FLAG && ZTERM_FLAG) {
+      g.r = sqrt(rsq);
+      g.rinva = 1.0 / (g.r - shift);
+    } else {
+      g.r = r_raw;
+      g.rinva = rinv;
+    }
+    g.j = j;
+    g.jtype = jtype;
+  }
 
   // inlined functions for efficiency
 

@@ -18,6 +18,7 @@
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
+#include "memory.h"
 #include "neigh_list.h"
 #include "suffix.h"
 
@@ -94,6 +95,25 @@ void PairLJCharmmCoulLongOMP::eval(int iifrom, int iito, ThrData * const thr)
   const int * const numneigh = list->numneigh;
   const int * const * const firstneigh = list->firstneigh;
   const int nlocal = atom->nlocal;
+  const double cut_bothsq = this->cut_bothsq;
+  const double cut_coulsq = this->cut_coulsq;
+  const double cut_ljsq = this->cut_ljsq;
+  const double cut_lj_innersq = this->cut_lj_innersq;
+  const double tabinnersq = this->tabinnersq;
+  const int ncoultablebits = this->ncoultablebits;
+  const int ncoulmask = this->ncoulmask;
+  const int ncoulshiftbits = this->ncoulshiftbits;
+  const double * _noalias const rtable = this->rtable;
+  const double * _noalias const drtable = this->drtable;
+  const double * _noalias const ftable = this->ftable;
+  const double * _noalias const dftable = this->dftable;
+  const double * _noalias const ctable = this->ctable;
+  const double * _noalias const dctable = this->dctable;
+  const double * _noalias const etable = this->etable;
+  const double * _noalias const detable = this->detable;
+  int jpack_stk[512];
+  int *jpack_heap = nullptr;
+  int max_jpack = 512;
 
   // loop over neighbors of my atoms
 
@@ -115,12 +135,29 @@ void PairLJCharmmCoulLongOMP::eval(int iifrom, int iito, ThrData * const thr)
     const double * _noalias const lj3i = lj3[itype];
     const double * _noalias const lj4i = lj4[itype];
 
+    if (jnum > max_jpack) {
+      max_jpack = jnum + 64;
+      memory->grow(jpack_heap,max_jpack,"pair:jpack");
+    }
+    int * _noalias const jpack = (jnum > 512) ? jpack_heap : jpack_stk;
+    int ninter = 0;
     for (int jj = 0; jj < jnum; jj++) {
+      const int j = jlist[jj];
+      const int jraw = j & NEIGHMASK;
+      const double delx = xtmp - x[jraw].x;
+      const double dely = ytmp - x[jraw].y;
+      const double delz = ztmp - x[jraw].z;
+      const double rsq = delx*delx + dely*dely + delz*delz;
+      jpack[ninter] = j;
+      ninter += (rsq < cut_bothsq);
+    }
+
+    for (int jj = 0; jj < ninter; jj++) {
       double forcecoul, forcelj, evdwl, ecoul;
       forcecoul = forcelj = evdwl = ecoul = 0.0;
 
-      const int sbindex = sbmask(jlist[jj]);
-      const int j = jlist[jj] & NEIGHMASK;
+      const int sbindex = sbmask(jpack[jj]);
+      const int j = jpack[jj] & NEIGHMASK;
 
       const double delx = xtmp - x[j].x;
       const double dely = ytmp - x[j].y;
@@ -128,6 +165,7 @@ void PairLJCharmmCoulLongOMP::eval(int iifrom, int iito, ThrData * const thr)
       const double rsq = delx*delx + dely*dely + delz*delz;
       const int jtype = type[j];
 
+      // always true for packed pairs; kept to avoid re-indenting loop body
       if (rsq < cut_bothsq) {
         const double r2inv = 1.0/rsq;
 
@@ -212,6 +250,7 @@ void PairLJCharmmCoulLongOMP::eval(int iifrom, int iito, ThrData * const thr)
     f[i].y += fytmp;
     f[i].z += fztmp;
   }
+  if (jpack_heap) memory->destroy(jpack_heap);
 }
 
 /* ---------------------------------------------------------------------- */

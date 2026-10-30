@@ -1,18 +1,20 @@
 .. index:: pair_style bondval
 .. index:: pair_style bondval/kk
+.. index:: pair_style bondval/omp
 .. index:: pair_style bondval/vec
 .. index:: pair_style bondval/vec/kk
+.. index:: pair_style bondval/vec/omp
 
 
 pair_style bondval command
 ==========================
 
-Accelerator Variants: *bondval/kk*
+Accelerator Variants: *bondval/kk*, *bondval/omp*
 
 pair_style bondval/vec command
 ==============================
 
-Accelerator Variants: *bondval/vec/kk*
+Accelerator Variants: *bondval/vec/kk*, *bondval/vec/omp*
 
 Syntax
 """"""

@@ -35,7 +35,8 @@ using namespace LAMMPS_GPU;
 
 /* ---------------------------------------------------------------------- */
 
-PairLJExpandGPU::PairLJExpandGPU(LAMMPS *lmp) : PairLJExpand(lmp), gpu_mode(GPU_FORCE)
+PairLJExpandGPU::PairLJExpandGPU(LAMMPS *lmp) :
+    PairLJExpand(lmp), gpu_mode(GPU_FORCE), update_coeffs(false)
 {
   respa_enable = 0;
   suffix_flag |= Suffix::GPU;
@@ -56,6 +57,11 @@ PairLJExpandGPU::~PairLJExpandGPU()
 void PairLJExpandGPU::compute(int eflag, int vflag)
 {
   ev_init(eflag, vflag);
+
+  if (update_coeffs) {
+    lje_gpu_reinit(atom->ntypes + 1, cutsq, lj1, lj2, lj3, lj4, offset, shift);
+    update_coeffs = false;
+  }
 
   int nall = atom->nlocal + atom->nghost;
   int inum;
@@ -131,11 +137,13 @@ void PairLJExpandGPU::init_style()
 
 /* ---------------------------------------------------------------------- */
 
-void PairLJExpandGPU::reinit()
+double PairLJExpandGPU::init_one(int i, int j)
 {
-  Pair::reinit();
+  // the parameters may have been changed, e.g. by fix adapt,
+  // so copy them to the GPU again before the next compute()
 
-  lje_gpu_reinit(atom->ntypes + 1, cutsq, lj1, lj2, lj3, lj4, offset, shift);
+  update_coeffs = true;
+  return PairLJExpand::init_one(i, j);
 }
 
 /* ---------------------------------------------------------------------- */

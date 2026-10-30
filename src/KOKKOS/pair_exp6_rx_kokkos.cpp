@@ -1673,7 +1673,7 @@ void PairExp6rxKokkos<DeviceType>::coeff(int narg, char **arg)
   PairExp6rx::coeff(narg,arg);
 
   // rx_fix is initialized by PairExp6rx::coeff(), cast to KOKKOS version
-  rx_fixKK = dynamic_cast<FixRxKokkos<DeviceType> *>(rx_fix);
+  rx_fixKK = FixRxKokkos<DeviceType>::cast(rx_fix);
   if (!rx_fixKK)
     error->all(FLERR, Error::NOLASTLINE, "Fix rx not defined or not compatible with pair style");
 

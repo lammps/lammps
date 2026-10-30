@@ -1,0 +1,443 @@
+# Accelerator Porting Backlog (GPU, KOKKOS, OPENMP)
+
+**STATUS TABLES GO STALE.** Trust `ls src/GPU/ src/KOKKOS/ src/OPENMP/` and `git log`
+over this file, and regenerate the pair-style coverage table with
+`.github/dev-docs/accelerator-coverage-scan.py` (`--summary`, `--missing omp|gpu|kk`,
+`--pkg NAME`, `--yaml`) instead of editing counts by hand.
+Last verified: 2026-10-24 (develop at 049f269111).
+
+This file replaces the KOKKOS-only `kokkos-porting-backlog.md` (last refreshed
+2026-08-28 after the Tier 1 pass, PR #4989).  Its still-open KOKKOS content is carried
+over, condensed, in the KOKKOS section; the OPENMP and GPU sections are new.  The
+how-to for each package lives elsewhere: `kokkos-porting-guide.md`, `openmp-porting.md`,
+and (to be written with the first GPU port) `gpu-porting-guide.md`.  Scheduled batches
+and their progress live outside the tree, in the maintainer's plan files.
+
+## Coverage snapshot
+
+Pair styles (the focus of this backlog), from the scan script on 2026-10-24, after
+the OPENMP batches (19 + 9 new `/omp` styles, plus `pace/omp` from #5243) and the
+KOKKOS batches (12, 9 and 4 new `/kk` styles).  "Base" includes 7 `DEPRECATED` stubs,
+`hybrid*` and `zero*`.
+
+| | count |
+|---|---|
+| base pair styles | 333 |
+| with `/omp` | 233 |
+| with `/kk` | 163 |
+| with `/gpu` | 72 |
+| with `/intel` / `/opt` | 19 / 16 |
+| no accelerator variant at all | 83 (CG-DNA 23, SPIN 7, APIP 7, MACHDYN 4, ML 6, PERI 2, ...) |
+| with a `unittest/force-styles` YAML reference | 250 |
+
+Other style kinds under KOKKOS (counted 2026-08-28; the `/kk` column counts source
+files): Fix 343/87, Compute 188/25, KSpace 27/2, AtomVec 30/12, bonded 97/71, Region
+10/7, Minimize 10/4.  `NPair`/`NStencil`/`NBin` are not a gap (see "Neighbor" below).
+
+## Exclusions
+
+**Pending pull requests (do not touch; check `gh pr list` before starting anything):**
+`granular` (/kk, #5208 and #5187), the oxDNA/oxRNA family (/kk, #5141),
+`dispersion/d3` (/omp and /kk, #5056), MTP (#5023), `reaxff` and `qeq/reaxff` (#5242),
+`lubricate/poly` and `brownian/poly` (#5040), `lj/cut/coul/long2` and the
+`pair_kokkos.h` neighbor-cluster changes (#5086).
+
+**Standing decisions:** PERI is being replaced by BPM (no new work on `peri/*`); SPIN
+(`fix nve/spin` is a sequential sweep, a threaded or device `compute()` gains <= 1.2x);
+the lubricate family is slated for removal; AIREBO/REBO/rebomos/COMB/COMB3/BOP/LCBOP are
+not ported by any accelerator package and will not be; ML-QUIP is keep-building-only;
+external-library wrappers (`lepton`, `python`, `kim`, `quip`, `hdnnp`, `mbx`, `mgpt`,
+`runner`) have nothing to offload; MSM pair styles are pointless for KOKKOS and GPU
+without `msm/kk` or `msm/gpu`; no new `/intel` variants (the core developers only
+maintain INTEL; contributor INTEL code is welcome).
+
+## Effort scale
+
+Used by every table below.  Estimates include the docs and the unit-test run.
+
+| level | meaning |
+|---|---|
+| TRIVIAL | under 2 hours: near-mechanical clone of a sibling variant |
+| SMALL | half a day: clone plus a changed formula, a second RNG, a torque term, ... |
+| MEDIUM | 1-2 days: new kernel shape, per-thread or device scratch, two-phase comm |
+| LARGE | several days, or blocked on a framework piece listed next to it |
+
+Per-package cost floor, before any physics: OPENMP = 2 files (`src/OPENMP/
+pair_X_omp.{h,cpp}`, registration automatic); KOKKOS = 2 files + `src/KOKKOS/Install.sh`;
+GPU = 6 files (`src/GPU/pair_X_gpu.{h,cpp}`, `lib/gpu/lal_X.{h,cpp,cu}`,
+`lib/gpu/lal_X_ext.cpp`) + a declaration block in `lib/gpu/include/lammps_gpu.h` +
+`src/GPU/Install.sh` + `src/Purge.list`.  All three: the `(o)`/`(k)`/`(g)` letter in
+`doc/src/Commands_pair.rst`, an `.. index::` line and the "Accelerator Variants" entry
+of the pair page, no `versionadded`.
+
+Validation is free when the base style has a YAML reference: `test_pair_style` runs
+the `omp`, `kokkos_omp`, `kokkos_serial`, `kokkos_gpu`, `gpu`, `intel` and `opt` cases
+off the CPU reference automatically.  A missing variant SKIPS SILENTLY, so confirm in
+`ctest -V` output that the new case ran, and drop stale accelerator tokens from
+`skip_tests:` when a port makes them runnable.
+
+## OPENMP
+
+### Framework item: per-thread reduction beyond f and torque (DONE 2026-10-15)
+
+Done in the first OPENMP batch on branch `more-accelerator-porting`; the rest of
+this section describes the design.  `FixOMP::pre_force` hands every thread a zeroed slice of `atom->f`, `torque`,
+`erforce`, `desph` and `drho` (`fix_omp.cpp`, `ThrData::init_force`), and `Atom`
+allocates `nthreads` copies of those plus `edpd_flux`, `cc_flux`, `fm`, `fm_long`
+(`atom.cpp`, `threadflag`).  But `ThrOMP::reduce_thr` (`thr_omp.cpp`) folds back only
+`f` and `torque`, so no `/omp` pair style has ever used the other slices.  The work:
+add `data_reduce_thr` calls for `erforce`, `desph`, `drho`, `edpd_flux` and `cc_flux`
+(stride `cc_species`) in the same `last_omp_style` block as `torque`, extend
+`ThrData::init_force` / `FixOMP::pre_force` with `edpd_flux` and `cc_flux` slices, add
+`get_erforce()`/`get_edpd_flux()`/`get_cc_flux()`.  Not in the `last_pair_hybrid`
+early-reduction branch (that exists only for `PairHybrid`'s `virial_fdotr_compute`).
+Consumers accumulate into `thr->get_drho()` etc. exactly as the base does and never
+zero or reduce the slice themselves (zeroing "its" slice at `eval()` start, the
+`init_eam` idiom, erases the previous hybrid sub-style's contribution).  Ordering is
+already right: the fold completes before `comm->reverse_comm()`, the SPH/EDPD/EFF
+integrators and `Min::energy_force -> min_xf_get`.  Known gap shared with torque:
+`respa/omp` reduces only `f`.  The YAML harness compares only `f`: validate with
+`-pk omp 1` vs `-pk omp 4` vs the plain style on `examples/PACKAGES/sph`, `dpd-meso`
+and `eff` decks, and a negative control (remove one reduction, watch it diverge).
+EAM/CD scratch (`rhoB`, `D_values`) stays style-owned like `pair_eam_omp`; a
+`ThrData::init_cdeam()` next to `init_eim()` is the natural hook.
+
+### Pair styles without /omp
+
+| effort | styles (template to clone) |
+|---|---|
+| SMALL | `multi/lucy/rx`, `table/rx` (pair-owned per-thread `uCG`/`uCGnew`, reduced before `fix eos/table/rx` reverse-comms them; multi/lucy/omp shows the density fold); `dpd/fdt/energy` (dpd/fdt/omp per-thread RNG plus per-thread `duCond`/`duMech` folded before the reverse comm; add the `/omp` name to the `pair_match()` list in `fix_shardlow.cpp`) |
+| MEDIUM | `ldd` (local/density/omp shape: per-thread `nelements`-wide density and gradient arrays, reverse + forward comm inside `compute()`; the indicator and potential lookups are read-only; 23 YAMLs); `pace/extrapolation` (pace/omp from #5243 shows the per-thread evaluator + basis copies; no YAML and no deck yet: needs an `.asi` active-set file); `eam/cd` + `eam/cd/old` (CDEAM scratch, two or four comm stages inside `eval()`); `polymorphic` (tersoff/omp; member scratch per thread); `kolmogorov/crespi/full` (drip/omp: serial ILP neighbor prep, threaded eval); `exp6/rx` (1.3k lines, per-atom parameter arrays); `eff/cut` (new `ev_tally_eff_thr`, `erforce` fold before `min_xf_get()`, and it has no YAML reference: needs an `atom_style electron` deck first); `snap` (one `SNA` instance per thread; `/kk` shows the decomposition) |
+| LARGE / not worth it | `bop` (serial `gneigh` + 1200 lines of `SigmaBo`/`PiBo` on member scratch writing `atom->f`), `comb3`, `mliap` (Python models, GIL), `pod`, `amoeba`/`hippo` (2.5k lines, comm + map + fix), `mesocnt`(+`viscous`), `smd/*`, `surf/granular`, `granular/superellipsoid`, `rheo`, `lubricateU`(+`poly`), APIP styles, `meam` (library), `spin/*` (SMALL each, <= 1.2x gain), `granular` (wait for the #5208 kernel refactor) |
+
+Done 2026-10-15 (first OPENMP batch, with the framework item): `sph/heatconduction`,
+`sph/idealgas`, `sph/lj`, `sph/rhosum`, `sph/taitwater`, `sph/taitwater/morris`,
+`mdpd/rhosum`, `lj/cut/soft/gapsys`, `bpm/peri`, `dpd/coul/slater/long`,
+`lj/long/dipole/long`, `lj/long/coul/long/dielectric`, `nb3b/screened`,
+`sw/angle/table`, `edip/multi`, `meam/sw/spline`, `smatb`, `smatb/single`,
+`multi/lucy`.  Verification recipe used: the YAML `omp` cases (4 threads unless the
+YAML is tagged `single_thread`), plus example decks plain vs `-sf omp -pk omp 1`
+(bit-identical for the SPH family) vs `-pk omp 4` vs 2 MPI ranks, comparing thermo
+output at full precision; for multi/lucy the folded local density was compared
+through `compute sph/rho/atom`.
+
+Done 2026-10-24 (second OPENMP batch): `lj/class2/soft/gapsys`,
+`lj/cut/coul/cut/soft/gapsys`, `lj/class2/coul/cut/soft/gapsys` (added in #5162),
+`sdpd/taitwater/isothermal`, `edpd`, `tdpd` (the first consumers of the `edpd_flux`
+and `cc_flux` folds), `uf3` (thread-local short list; per-thread centroid stress
+through the new `ThrData::get_cvatom_pair()`), `bondval`, `bondval/vec` (eam/omp
+two-phase pattern on pair-owned per-thread sums).  `lj/cut/soft/gapsys/omp` now uses
+the precomputed soft-core coefficients the base style gained in #5162.  The
+stochastic styles keep the base generator on thread 0, so their YAML files are tagged
+`single_thread`; at 4 threads they were checked on decks without (`tdpd`: gamma and
+epsilon 0, exact to 1e-14) or with negligible noise (`edpd`: gamma 0, cv x1e10 and
+kappa x1e-10, which keeps the conduction and shrinks the heat noise 1e5-fold; agrees
+to 3e-7, the same as a plain run with another seed; `sdpd`: temperature x1e-20, the
+density sums agree to 2e-15).
+
+Orphans and drift: none found 2026-10-15 (every `pair_*_omp.cpp` has a base; the 30
+`/omp` files untouched since the 2022 bulk reformat whose bases changed in 2025-2026
+were spot-checked, all cosmetic).  Maintenance method and bug classes:
+`openmp-porting.md`.
+
+## KOKKOS
+
+### Framework facts (carried over, still true)
+
+- A device-callable atom map exists: `AtomKokkos::map_kokkos<DeviceType>()`
+  (`fix_shake_kokkos`, `fix_cmap_kokkos`, `fix_rigid_small_kokkos` use it).
+- Region + atom-style variables are solved in `fix_setforce_kokkos.cpp`
+  (`dynamic_cast<KokkosBase *>` + `match_all_kokkos`, host-evaluated variables in a
+  DualView); the region type list lives once in `region_kokkos_styles.h`.
+- Group reductions exist on device (`group_kokkos.h`: mass, xcm, vcm, angmom, inertia,
+  gyration, gyration tensor).
+- Neighbor stencils are deliberately host-computed and memcpy'd.
+- `PPPMKokkos` is ik-differentiation only (`kspace_modify diff ad` errors).
+- Per-atom density with device forward+reverse comm exists in `pair_eam_kokkos`
+  (`pack/unpack_forward_comm_kokkos`, `pack/unpack_reverse_comm_kokkos`): the
+  template for every EAM-shaped style below.
+- Missing: a uniform device per-atom virial/energy accessor across the force
+  hierarchies; device reverse-comm for computes; KOKKOS `fix STORE/ATOM`; a KOKKOS
+  local-data (`array_local`) framework; `compute chunk/atom` on device.
+
+### Pair styles without /kk
+
+| effort | styles (device template to clone) |
+|---|---|
+| MEDIUM (many-body, template exists) | `tersoff/table`; `extep`; `kolmogorov/crespi/z`, `lebedeva/z` (hand kernels, anisotropic force, no normals; usually combined with `rebo`/`airebo`, which have no `/kk`); `coul/exclude` (hand kernel: no `cutsq` guard, skips `sbmask(j)==0`; mostly used with `mbx`); `coul/streitz` (full list; `fix qeq/slater` stays host); `dpd/fdt` (a subset of dpd/fdt/energy/kk, but `fix shardlow/kk` accepts only `dpd/fdt/energy/kk`, so it needs that fix extended first) |
+| LARGE (framework piece first) | EAM-shaped density styles `eam/cd`, `local/density`, `eim`, `meam/spline`, `meam/sw/spline`, `smatb`(+`single`), `multi/lucy` (MEDIUM each once the first reuses the eam/kk comm pattern); DRUDE `thole`, `lj/cut/thole/long`, `coul/tt` (partner indices precomputed per reneighbor through the device map); `hbond/dreiding/*` (topology walk via `tagprev`); ASPHERE `gayberne` then `resquared` (`AtomVecEllipsoidKokkos` + `MathExtraKokkos::quat_to_mat` exist; ylz/kk is the only ellipsoid pair so far); INTERLAYER `ilp/graphene/hbn`, `ilp/tmd`, `saip/metal`, `saip/metal/tmd`, `aip/water/2dm`, `kolmogorov/crespi/full`, `drip` (all gated on `ILP_neigh()` + `calc_normal()` on device; once the first exists the rest ride along); `lj/long/coul/long`, `buck/long/coul/long`, `lj/long/tip4p/long`, `lj/long/dipole/long`, `lj/cut/dipole/long` (pointless before `pppm/disp/kk` or a dipole kspace on device); DIELECTRIC (7 styles: need `atom_vec_dielectric_kokkos` and `fix polarize/*`); atom-vec gated: SPH (6 + `sdpd/taitwater/isothermal`), DPD-MESO (`edpd`, `mdpd`, `mdpd/rhosum`, `tdpd`), EFF, MACHDYN, RHEO (`rheo`, `rheo/solid`), BODY, `line/lj`, `tri/lj`, MESONT, BPM (`bpm/spring`, `bpm/peri`: `atom_vec_bpm_sphere_kokkos`); `polymorphic`, `smtbq`, `e3b`, `brownian/poly` (after #5040) |
+| do not port | `ldd` (virtual indicator and potential classes called in the inner loop), MSM pair styles (8), SPIN (7), AIREBO family, `rebo`, `rebomos`, `comb`, `comb3`, `bop`, `lcbop`, lubricate family, external wrappers, `srp`, `list`, `tracker`, `dsmc`, `zero` |
+
+Done 2026-10-15 (first KOKKOS batch, the former SMALL row): `coul/cut/soft/gapsys`,
+`lj/cut/soft/gapsys`, `lj/class2/coul/cut/soft`, `lj/class2/coul/long/soft`,
+`tip4p/long/soft`, `lj/cut/tip4p/long/soft` (on the shared `pair_tip4p_kokkos.h`
+template), `coul/esp`, `lj/cut/coul/esp` (ESP polynomial coefficients copied to the
+device in `init_style()`; the coulomb tables come from `Pair::init_tables()`, which
+handles ESP), `dpd/coul/slater/long` (dpd/kk RNG pool; the YAML now carries the
+`kokkos_*_devicerng` tokens), `lj/sf/dipole/sf`, `mesomem/dipole` (range-policy hand
+kernels with torque, no autotuner path), `coul/ctip` (`pair_kokkos.h` for the pair term
+plus a self-energy kernel that runs only when energies are requested).  Verification
+recipe used: the YAML `kokkos_omp`/`kokkos_omp_full`/`vatom_only_kokkos` cases; a
+`-D KOKKOS_DEBUG_RNG=on` build for the stochastic style (reproduces the reference
+exactly on one thread); 20-step MD on each YAML system plain vs `-k on t 1`, `t 4`,
+`neigh full newton off` and 2 MPI ranks, comparing thermo and per-step sums of
+`pe/atom` and `stress/atom` (agreement 3e-13 or better); the same on the 15-type
+`data.fourmol-manytypes` for the `pair_kokkos.h` ports (non-stack parameter path);
+and a HIP compile of the new files.
+
+Done 2026-10-15 (second KOKKOS batch, many-body): `nb3b/harmonic`, `nb3b/screened` (sw/kk
+shape without the two-body term; the screened variant is selected at run time),
+`vashishta/table` (vashishta/kk with an optional table branch in its two-body term),
+`sw/angle/table`, `threebody/table` (sw/kk shape; the angle and three-body tables are
+flattened into 2d device views padded to the longest table), `atm` (short list of the
+neighbors in the larger-x half space, per-type coefficients re-synced after
+`init_one()`), `edip` (a pre-loop kernel stores the short list with the three-body
+factors and the coordination Z; the two-body interpolations are repeated instead of
+kept in per-thread scratch), `gw`, `gw/zbl` (a direct port of `PairGW::compute()` as a
+template on the CPU base class, as `pair_tip4p_kokkos.h` does; GW is Tersoff with a
+different bond-order function, but reusing tersoff/kk would make gw/kk a Tersoff
+object).  Like sw/kk, all of them need `newton on` with a half neighbor list (`-pk
+kokkos newton on neigh half`, not the GPU default).  Verification as for the first
+batch, plus extra decks for the `spline` angle table and type-dependent `atm`
+coefficients, and a `Kokkos_ENABLE_DEBUG_BOUNDS_CHECK` build.  Observed on the way:
+the `neigh full` path of vashishta/kk is unreachable, since KOKKOS requires `newton off`
+with `neigh full` and vashishta requires `newton on`.
+
+Done 2026-10-24 (third KOKKOS batch): `lj/class2/soft/gapsys`,
+`lj/cut/coul/cut/soft/gapsys`, `lj/class2/coul/cut/soft/gapsys` (`pair_kokkos.h`; the
+coulomb soft-core radius depends on the charge product, and pair_kokkos.h sees only
+the overall cutoff, so the kernels test the soft-core regions before the LJ and
+coulomb cutoffs as the base does), `edip/multi` (edip/kk structure: a pre-loop kernel
+stores the short list and the coordination Z, the base functions run on a device copy
+of the `Param` table; newton on with a half list).  `lj/cut/soft/gapsys/kk` copies the
+coefficients the base style now precomputes.  Verified as for the earlier batches,
+including 15-type decks for the non-stack parameter path and decks in which both
+soft cores contribute; HIP compile of the new files; a CUDA round (V100, double and
+mixed precision) that also ran the `fix adapt` lambda ramp on the device, to check
+that coefficients recomputed on the host reach the GPU.  Mixed precision needed
+`epsilon: 5e-13` for the edip/multi YAML test (one nearly cancelled force component).
+
+Atom styles (`sph`, `peri`, `edpd`/`mdpd`/`tdpd`, `electron`, `smd`, `apip`, `oxdna`)
+remain the highest-leverage *gating* items: `AtomKokkos::new_avec` hard-errors on them,
+and each needs new masks in `atom_masks.h`.  Do **not** port `atom_style template`
+(`neighbor_kokkos.cpp` errors on molecule templates because the KK neighbor build reads
+special bonds from the per-atom `special` list only; porting the vec alone would make
+neighbor lists silently wrong).  `bond special` is not portable (needs a device
+`Pair::single()`).
+
+### Tier 0 -- framework work that unblocks the most
+
+1. **`NBinMulti` on device** + a `MULTI` template parameter on `NPairKokkos`.
+   `neighbor multi` is a hard error under KOKKOS, which costs polydisperse granular and
+   colloidal users the O(N) optimization exactly where `gran/*/kk`, `colloid/kk`,
+   `yukawa/colloid/kk` and `wall/gran/kk` already run.  Stencils come free (host
+   `NStencilMulti` via the existing memcpy).  Highest-value neighbor work by far.
+2. **KOKKOS `fix STORE/ATOM`** (DualView `astore` + `pack_exchange_kokkos`): unblocks
+   `compute displace/atom` and `compute msd`.
+3. **Device reverse-comm for computes** (`KokkosBase` + `CommKokkos`): unblocks
+   `compute contact/atom`, `snad/atom`, `snav/atom`.
+4. **Uniform device per-atom virial/energy accessor**: unblocks `compute stress/atom`,
+   `pe/atom`, `centroid/stress/atom`, `heat/flux` and the meta-computes (`reduce`,
+   `slice`, `global/atom`, `fix pair`).
+5. **Lift the `kspace_modify diff ad` restriction** in `pppm_kokkos.cpp`.
+6. **Region dispatch refactor** -- partly done (type list in `region_kokkos_styles.h`);
+   replacing the `dynamic_cast` chain with a virtual device interface is what is left.
+
+### Non-pair styles: Tier 2 (moderate effort, clear payoff)
+
+- **QEQ family (6 fixes + `qeq/comb`)**: CSR `H` over the neighbor list + CG with a
+  forward comm per iteration, exactly what `fix_qeq_reaxff_kokkos.cpp` does; the shared
+  `FixQEq` base means one port covers all.  The largest block of unblocked device work.
+- `fix indent` (four per-atom loops; ~1140 lines now, no longer small);
+  `nvt/npt/nph/asphere` as `FixNHAsphereKokkos : FixNHKokkos` + `compute
+  temp/asphere/kk`; `pppm/stagger/kk` (run the existing kernels twice with a shifted
+  `shiftone`: the most realistic KSPACE target); `fix msst`, `fix rattle` (subclass of
+  the ported `FixShake`), `fix wall/table`, `wall/ees`, `wall/reflect/stochastic`,
+  `fix gld`, `fix ffl`; `compute rdf` (histogram with `atomic_add`), `compute sna/atom`
+  (`sna_kokkos_impl.h` has the descriptor on device).
+
+### Non-pair styles: Tier 3 (hard, moves flagship workloads)
+
+- **`pppm/disp`** (8860 lines): realistic scoping is `function[0]` (coulomb) +
+  `function[1]` (geometric mixing) only, hard-error on arithmetic/none; even that is
+  ~2x `pppm_kokkos.cpp`.  Prerequisite for the `lj/long`/`buck/long` pair styles.
+- `fix ttm`, `ttm/grid`; `ewald/kk` (O(N^1.5) but the easiest kspace: two
+  `parallel_reduce` over kmax x nlocal plus a force kernel; has `/gpu` and `/omp`).
+
+### Do NOT port (KOKKOS)
+
+- No device work to offer: `compute pe`, `compute pressure` (no per-atom loop), `fix
+  ave/time`, `fix vector`, `fix print`, `fix set`, `fix store/state`, `compute
+  property/atom`, all `Command` and `Dump` styles.
+- Meta-styles over other styles' host pointers (a `/kk` would be a fake port):
+  `compute reduce`, `reduce/region`, `slice`, `global/atom`, `fix pair`, `fix ave/atom`.
+  They fall out of Tier 0 item 4.
+- Atom count or topology changes: `fix deposit`, `evaporate`, `pour`, `append/atoms`,
+  all of MC; `fix tfmc`.
+- Inherently serial: `fix thermal/conductivity`, `fix viscosity`, `compute
+  born/matrix`, `stress/mop`, `fabric` (host `pair->single()`), `fix numdiff`,
+  `numdiff/virial`, `fix gle`.  `fix move`, `fix deform/pressure` (host scalar work);
+  `fix restrain` (portable, no payoff).
+- Whole TALLY package (`Pair::add_tally_callback` host callback per pair).
+- The whole SPIN package (sequential symplectic sweep with `forward_comm` inside the
+  loop; all six `pair_spin_*` unported; `min spin*` likewise).
+- `kspace msm`, `msm/cg` and every `*/msm` pair style; ELECTRODE (dense capacitance
+  matrix on the host); `atom_style body`; `fix rigid` (big) and `rigid/nve|nvt|npt|nph`
+  (`rigid/small` is ported and recommended); `pair srp`; `fix ilves/omp`-style
+  per-cluster threading (benchmarked and rejected); r-RESPA (four independent
+  blockers, recommend against without a concrete user).
+- `fix npt/kk` and `nph/kk` are complete full ports; nothing remains on Nose-Hoover.
+
+### Neighbor
+
+Do not track `NStencilStyle` or `NPairStyle` as a gap: stencils are host-computed by
+design, ~half the non-kk `NPairStyle` registrations are `/omp` variants, the
+`atomonly` micro-variants fold into the templated `NPairKokkos`, `nsq` is deliberately
+rejected, `multi/old` is gone, and respa lists cannot be requested.  The honest gap is
+`multi` binning (Tier 0 item 1) plus `skip/size/off2on` and `skip/size/off2on/oneside`
+(granular hybrid setups, `fix wall/gran/region`, GRANSURF) as a distant second.
+
+### History
+
+Tier 1 (PR #4989, 2026-08/09): 23 pair styles on the `pair_kokkos.h` template (8 FEP
+soft-core, 8 CORESHELL `/cs`, 7 singletons), 4 many-body derivations (`sw/mod`,
+`tersoff/mod/c`, `gran/hooke`, `gran/hertz/history`), 4 bonded table styles, 13 fixes,
+7 computes, 5 regions, 2 minimizers.  Lessons worth keeping: the `/cs` B0..B5 erfc
+series pairs with its own EWALD_P (9.95473818e-1), not `EwaldConst::EWALD_P`; the
+`EPS_EWALD_SQR` correction reaches the LJ term on the CPU through a shared `r2inv` but
+only the Coulomb term in the template (eight YAML epsilons were raised ~4x the measured
+7.7e-12); device RNG streams cannot reproduce the CPU Marsaglia stream (YAML skips
+`kokkos_*` for `baoab`, `brownian`, `langevin`, `gjf`).  CPU bugs fixed by that pass:
+`lj/smooth/linear` (+`/omp`, `lj/sf`) tallied the pair energy without `factor_lj`;
+`~PairLJCharmmfswCoulCharmmfsh` restored `qqr2e` before checking `copymode`.  Left
+alone and reproduced by `/kk`: `morse/soft` does not subtract `offset` in `compute()`
+while `single()` does; `compute entropy/atom`'s first bin has `rbinsq[0] = 0`.
+Verification decks for all Tier 1 styles: `kokkos-tier1-verification/`.
+
+## GPU
+
+### Template facts
+
+- One style = `src/GPU/pair_X_gpu.{h,cpp}` (subclass of the CPU class overriding ctor,
+  dtor, `compute`, `init_style`, `memory_usage`, plus `reinit` when the base has it),
+  `lib/gpu/lal_X.{h,cpp,cu}` (device class + kernels `k_X` / `k_X_fast`),
+  `lib/gpu/lal_X_ext.cpp` (C entry points `X_gpu_init/compute/compute_n/clear/bytes` in
+  `namespace LAMMPS_GPU`), a declaration block in `lib/gpu/include/lammps_gpu.h`
+  (included on both sides, so signatures are checked), two `action` lines in
+  `src/GPU/Install.sh`, an entry in `src/Purge.list`.  CMake globs `lib/gpu/*.cpp` and
+  `*.cu` for CUDA, OpenCL and HIP (`cmake/Modules/Packages/GPU.cmake`); the kernel
+  symbol is the file name minus `lal_`; the host `.cpp` includes `X_cl.h` /
+  `X_cubin.h`.  The legacy `lib/gpu/Makefile.*` are gone.  Clean template commit:
+  086cf49a8c (`coul/slater/long`, 2023-12), minus three API changes since
+  (`lammps_gpu.h` consolidation 6de3baf5bf/e8059a06dd, `host_start`/`cpu_time` removal
+  21d55a1540, `periodicity` argument baf16f9117): copy the structure from the commit
+  and the code from the current `lal_coul_slater_long.*`.
+- Base families in `lib/gpu/lal_base_*`: `atomic` (lj, born, buck, morse, mie, eam,
+  table, zbl, yukawa), `charge` (q array + texture, `threads_per_charge`; `qqrd2e` and
+  `g_ewald` are per style), `dipole`, `dpd` (uploads `v` + `tag`, in-kernel Saru RNG
+  seeded from the tag pair), `sph`, `three` (2-body + three-center + three-end kernels,
+  `REQ_FULL|REQ_GHOST` lists), `ellipsoid`, `amoeba`.
+- Long-range Coulomb is the analytic erfc polynomial only; no kernel reads
+  `ncoultablebits`, so every `*_table` YAML lists `gpu` in `skip_tests` and
+  `init_tables` is called on the host only for the inherited `single()`.
+- Both newton settings work (full lists, forces on local atoms only; the per-style
+  newton checks went in 2021).  `eatom`/`vatom` are accumulated on device and added in
+  `FixGPU::post_force`.  Hybrid works with host neighbor lists (`neigh no`) only.
+  `respa_enable = 0` everywhere.  Triclinic works; `neigh_modify exclude` and
+  `atom_style template` do not with device neighbor builds.
+- Precision at configure time: `-D GPU_PREC=single|mixed|double` (default mixed).
+  The YAML harness relaxes `epsilon` x7.5 (double), x5e8 (mixed), x1e10 (single):
+  validate new kernels against a double-precision build, then run mixed and HIP.
+- `src/GPU/Install.sh` is missing the `action` lines for nine existing styles
+  (`coul/slater/long`, the SPH styles, the soft styles among them); harmless for CMake
+  builds, fix when touching the file.
+
+### Pair styles without /gpu
+
+| effort | styles (closest `lal_` kernel) |
+|---|---|
+| SMALL (charge family) | `lj/charmmfsw/coul/long` (lal_charmm_long + force switching), `lj/charmmfsw/coul/charmmfsh`, `lj/charmm/coul/charmm/implicit` (lal_charmm); `lj/class2/coul/cut` (lal_lj_class2_long + lal_lj_coul); `coul/wolf`, `lj/cut/coul/wolf` (lal_born_coul_wolf); `born/coul/dsf`, `born/coul/dsf/cs` (lal_coul_dsf + lal_born); `coul/slater/cut` (lal_coul_slater_long); FEP `coul/cut/soft`, `coul/long/soft`, `lj/cut/soft`, `lj/class2/soft`, `morse/soft`, `lj/charmm/coul/long/soft` (lal_lj_coul_soft, lal_lj_coul_long_soft); CORESHELL `buck/coul/long/cs`, `lj/cut/coul/long/cs`, `lj/class2/coul/long/cs`, `coul/wolf/cs` (lal_born_coul_long_cs, lal_coul_long_cs, lal_born_coul_wolf_cs); `lj/gromacs/coul/gromacs` (lal_lj_gromacs); `nm/cut/coul/cut`, `nm/cut/coul/long` (lal_lj_coul, lal_lj_coul_long); `coul/diel`, `coul/shield`, `coul/cut/global` (lal_coul); `lj/switch3/coulgauss/long`, `mm3/switch3/coulgauss/long`, `coul/esp`, `lj/cut/coul/esp` (lal_lj_coul_long); `pedone`, `buck6d/coul/gauss/dsf`, `buck6d/coul/gauss/long`, `lj/class2/coul/cut/soft`, `lj/class2/coul/long/soft`, `coul/cut/soft/gapsys` |
+| SMALL (atomic family) | `nm/cut`, `nm/cut/split`, `harmonic/cut`, `wf/cut`, `momb`, `lj/pirani`, `lj/mdf`, `buck/mdf`, `lennard/mdf`, `lj/smooth/linear` (+`lj/sf` alias), `morse/smooth/linear`, `lj/relres`, `cosine/squared`, `born/gauss`, `gauss/cut`, `lj/cut/soft/gapsys` (lal_lj and siblings); with a radius upload (lal_colloid / lal_yukawa_colloid pattern): `lj/cut/sphere`, `lj/expand/sphere`; DPD `dpd/ext`, `dpd/ext/tstat` (lal_dpd) |
+| MEDIUM | `tip4p/long`, `tip4p/cut`, `lj/cut/tip4p/cut` (lal_lj_tip4p_long M-site kernel); `mesomem/dipole` (lal_dipole_lj); three family `sw/mod` (lal_sw), `tersoff/mod/c` (lal_tersoff_mod), `vashishta/table` (lal_vashishta), `nb3b/harmonic`(+`screened`), `gw`(+`zbl`) (lal_tersoff), `sw/angle/table`, `threebody/table`, `edip`; `ylz` (lal_gayberne); `lj/long/coul/long` (lal_lj_coul_long + the analytic dispersion terms; the kspace stays on the host anyway); density styles `eam/cd`, `local/density`, `eim` (lal_eam) |
+| LARGE / not now | `atm` (no triple-loop template), `meam`, ML (`snap`, `pace`, `pod`, `uf3`, `mliap`), the ILP family, `granular` (owner: the GPU package maintainer), BPM, SPIN, oxDNA, DIELECTRIC, `eff/cut` (requested in #3325; electron radius data on device), `amoeba`/`hippo` already exist |
+
+Known gaps in existing `/gpu` variants (from `skip_tests`): no Coulomb tables (by
+design), `tersoff*` reject `shift`, `sw` rejects `threebody off`, hybrid and
+hybrid/scaled need host neighbor lists, the DPD and QEQ families skip because of RNG
+or host-side solvers; `edpd/gpu` and `mdpd/gpu` are unverified since the SPH GPU
+crash fixes of #5212.
+
+## Tests
+
+- Mechanics (`unittest/force-styles/test_pair_style.cpp`): the skip token in
+  `skip_tests:` is the gtest case name (`omp`, `gpu`, `intel`, `opt`, `kokkos_omp`,
+  `kokkos_serial`, `kokkos_gpu`, plus `<case>_double|_mixed|_single`,
+  `<case>_devicerng`, `<case>_full`, `single_thread`, `host_neigh`, `gpu_no_single`,
+  `gpu_no_mixed`, `single`, `extract`, `nofdotr`, `vatom_only`, `numdiff`).  KOKKOS
+  cases run `-k on t 4 -sf kk` (OpenMP) / `-k on t 1` (Serial) / `-k on g 1 -pk kokkos
+  neigh half newton on` (device), epsilon x5, then x2e9 mixed / x1e10 single.  GPU runs
+  `-sf gpu` (`-pk gpu 0 neigh no` for hybrids), newton off only.  OPENMP runs
+  `-pk omp 4 -sf omp`, epsilon x5.  Generation: `test_pair_style <template.yaml> -g
+  <new.yaml>` (first argument is a hand-edited copy of a related YAML), remove the
+  `generated` tag after review, re-run cmake.
+- Pair styles WITHOUT a YAML reference and what a reference needs: `eff/cut` (new
+  deck + data file: `atom_style electron`, `units electron`; the harness compares `f`
+  only, not `erforce`); `line/lj`, `tri/lj` (new 2d line / tri decks, or `in.empty` +
+  `set ... line|tri`); `amoeba`, `hippo` (new deck: `atom_style amoeba`, `fix
+  property/atom`, `.prm`/`.key` files; newton on, 3d); `body/nparticle` (new data file
+  with a Bodies section; existing body decks are rounded/polygon and polyhedron);
+  `mesocnt` (new deck: CNT bead chains, `special_bonds lj 1 1 1`, newton on + full
+  list); `rheo` (`in.rheo` exists; needs the `fix rheo`, `rheo/pressure`,
+  `rheo/viscosity` stack in `post_commands`; `fix rheo` integrates on its own);
+  `surf/granular` (line/tri with radius, newton on, ghost velocities);
+  `granular/superellipsoid` (`in.empty` + `atom_style ellipsoid superellipsoid`;
+  already covered by `unittest/granular/`); `smd/*` (own integrator fix + `tlsph`
+  group: conflicts with the harness, hardest); `peri/*` (covered by
+  `test_pair_peri.cpp` on purpose); `mesont/tpm` (deprecated stub).  Any YAML built on
+  `in.empty` must skip `single`.
+- The YAML harness compares only `f`, energy and stress: per-atom accumulators
+  (`drho`, `desph`, `erforce`, `edpd_flux`, `cc_flux`, `efield`) need an OutputStyle
+  YAML (`test_output_style.cpp`, e.g. clones of `compute-sph_rho_atom.yaml` with the
+  pair style in `post_commands`) or an example-deck comparison.
+
+## Bugs found by the 2026-10-15 survey
+
+1. `src/OPENMP/pair_edip_omp.cpp`: the per-thread `preForceCoord` slice was offset by
+   `tid * 64` while each thread uses `5 * 64` entries (the base allocates
+   `5 * nthreads * 64`), so threads overlapped once an atom had more than 12 neighbors
+   in the cutoff-function range.  `edip`, `edip/omp` and `edip/multi` also never
+   checked the neighbor count against the fixed 64-entry scratch.
+2. `src/DPD-MESO/pair_edpd.cpp`: `read_restart_settings()` seeded `randomT` with the
+   same seed as `random` (`settings()` uses `2*seed`), so after a restart the two noise
+   streams were identical.
+3. `src/MANYBODY/pair_nb3b_harmonic.cpp`: substyle string typo `"nb3n/harmonic"`.
+4. Design question, not a bug fix: `pair bpm/peri` tallies `fpair*vfrac_eff` into the
+   virial on purpose but does not set `no_virial_fdotr_compute`, so the global virial
+   differs between the fdotr path and the per-pair tally path.
+
+5. `src/FEP/pair_lj_class2_coul_long_soft.cpp` (found 2026-10-15 while porting): the
+   `pair_modify shift yes` offset lacked the `lambda^n` prefactor, so the shifted
+   energy did not vanish at the cutoff for lambda < 1.
+6. `src/KSPACE/pair_coul_esp.cpp` (and `/omp`): the per-type-pair `scale` that
+   `fix adapt` can change was applied only to the tabulated energy.
+
+7. `src/compute_reduce.cpp` (found 2026-10-15 by the KOKKOS batch verification): the
+   vector output of the `sumabs` mode was never reduced (uninitialized values) and the
+   `aveabs` mode was not divided by the count.  Do not use `compute reduce sumabs` with
+   several inputs in verification decks on branches without the fix.
+
+8. `src/MANYBODY/pair_threebody_table.cpp` (found 2026-10-15 while porting, used by
+   `/omp` too): the cosine was not clamped to [-1,1] before `acos()`; for (nearly)
+   collinear neighbors rounding gives NaN and the table index becomes garbage
+   (segmentation fault).
+9. Spline table lookups read one entry past the end of the table at the upper bound
+   (found 2026-10-15 while porting): `angle_style table` (also `/omp` and `/kk`) and
+   `pair sw/angle/table` at an angle of exactly 180 degrees, which a linear angle
+   reaches through the clamped cosine; `bond_style table` (also `/omp` and `/kk`) and
+   `fix wall/table` only at exactly the outer table bound.
+10. `src/KOKKOS/angle_dipole_kokkos.cpp` (found 2026-10-15 by the CUDA round, not
+    fixed): the `SMALL*SMALL` guards (`SMALL` = 1.0e-100) are zero in single precision,
+    so in mixed-precision builds they never trigger; only exactly coincident atoms are
+    affected.
+
+Items 1-3, 5-9 are fixed on their own branch; see the commit history.

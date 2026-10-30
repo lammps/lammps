@@ -82,7 +82,7 @@ FixEOStableRXKokkos<DeviceType>::FixEOStableRXKokkos(LAMMPS *lmp, int narg, char
   k_moleculeCorrCoeff.sync<DeviceType>();
   d_moleculeCorrCoeff = k_moleculeCorrCoeff.view<DeviceType>();
 
-  rx_fixKK = dynamic_cast<FixRxKokkos<DeviceType> *>(rx_fix);
+  rx_fixKK = FixRxKokkos<DeviceType>::cast(rx_fix);
 }
 
 /* ---------------------------------------------------------------------- */

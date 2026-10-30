@@ -359,6 +359,20 @@ void MLIAPDataKokkos<DeviceType>::sync(ExecutionSpace space, uint64_t mask, bool
   }
 }
 
+/* ----------------------------------------------------------------------
+   convert a pointer to the base class into one to this class, nullptr if
+   it points to an instance of another class.  this must be done here,
+   where the class is explicitly instantiated: elsewhere the dynamic_cast
+   uses a hidden local copy of the type information with the C++ ABI of
+   macOS on arm64, so the linker warns about different visibility settings
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+MLIAPDataKokkos<DeviceType> *MLIAPDataKokkos<DeviceType>::cast(MLIAPData *ptr)
+{
+  return dynamic_cast<MLIAPDataKokkos<DeviceType> *>(ptr);
+}
+
 /* ---------------------------------------------------------------------- */
 
 template class MLIAPDataKokkos<LMPDeviceType>;

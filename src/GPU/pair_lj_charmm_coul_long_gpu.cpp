@@ -118,6 +118,8 @@ void PairLJCharmmCoulLongGPU::init_style()
     }
   }
 
+  if (cut_lj_inner >= cut_lj) error->all(FLERR, "Pair inner cutoff >= Pair outer cutoff");
+
   cut_lj_innersq = cut_lj_inner * cut_lj_inner;
   cut_ljsq = cut_lj * cut_lj;
   cut_coulsq = cut_coul * cut_coul;
@@ -125,6 +127,7 @@ void PairLJCharmmCoulLongGPU::init_style()
 
   denom_lj =
       (cut_ljsq - cut_lj_innersq) * (cut_ljsq - cut_lj_innersq) * (cut_ljsq - cut_lj_innersq);
+  denom_lj_inv = 1.0 / denom_lj;
 
   double cell_size = sqrt(cut_bothsq) + neighbor->skin;
 

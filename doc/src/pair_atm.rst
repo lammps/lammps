@@ -1,10 +1,11 @@
 .. index:: pair_style atm
+.. index:: pair_style atm/kk
 .. index:: pair_style atm/omp
 
 pair_style atm command
 ======================
 
-Accelerator Variants: *atm/omp*
+Accelerator Variants: *atm/kk*, *atm/omp*
 
 Syntax
 """"""

@@ -61,6 +61,8 @@ PairGW::PairGW(LAMMPS *lmp) :
 
 PairGW::~PairGW()
 {
+  if (copymode) return;
+
   memory->destroy(params);
   memory->destroy(elem3param);
 

@@ -86,6 +86,8 @@ class PairEAM : public Pair {
 
   double *rho, *fp;
   int *numforce;
+  bigint maxforce;
+  int *forcelist;
 
   // potentials as file data
 

@@ -52,24 +52,30 @@ endif()
 file(GLOB GPU_LIB_SOURCES CONFIGURE_DEPENDS ${LAMMPS_LIB_SOURCE_DIR}/gpu/[^.]*.cpp)
 file(MAKE_DIRECTORY ${LAMMPS_LIB_BINARY_DIR}/gpu)
 
-# Before the native CUDA support of CMake was used, GPU_ARCH took the nvcc names
-# of NVIDIA GPU architectures (e.g. sm_70) instead of the numbers of the CMake
-# convention (e.g. 70).  Convert the old names and print a deprecation warning.
-macro(convert_cuda_arch_names)
-  if(GPU_ARCH MATCHES "sm_")
-    string(REGEX REPLACE "sm_([0-9]+[a-z]?)" "\\1" _gpu_arch "${GPU_ARCH}")
-    message(DEPRECATION "GPU_ARCH=${GPU_ARCH} uses the deprecated nvcc architecture names. "
-      "Converting it to GPU_ARCH=${_gpu_arch}, please use that setting instead.")
-    set(GPU_ARCH "${_gpu_arch}" CACHE STRING "LAMMPS GPU architecture for CUDA. Use 'all', 'all-major', or a list of numbers e.g. '50;70;72;80'" FORCE)
-    set(GPU_ARCH "${_gpu_arch}")
-    unset(_gpu_arch)
+# Before CMake's conventions for CUDA architectures were adopted, GPU_ARCH used
+# the format of nvcc (e.g. sm_75, which was also the default).  Convert such
+# settings, also when they come from the CMake cache of an existing build folder.
+function(convert_nvcc_gpu_arch)
+  set(_archs "")
+  foreach(_arch ${GPU_ARCH})
+    if(_arch MATCHES "^sm_([0-9]+[a-z]?)$")
+      list(APPEND _archs "${CMAKE_MATCH_1}")
+    else()
+      list(APPEND _archs "${_arch}")
+    endif()
+  endforeach()
+  if(NOT "${_archs}" STREQUAL "${GPU_ARCH}")
+    message(DEPRECATION "GPU_ARCH=${GPU_ARCH} uses the format of earlier LAMMPS versions, "
+      "which is deprecated. Using GPU_ARCH=${_archs} instead")
+    set(GPU_ARCH "${_archs}" CACHE STRING "LAMMPS GPU architecture for CUDA. Use 'all', 'all-major', or a list of numbers e.g. '50;70;72;80'" FORCE)
+    set(GPU_ARCH "${_archs}" PARENT_SCOPE)
   endif()
-endmacro()
+endfunction()
 
 if(GPU_API STREQUAL "CUDA")
   # GPU_ARCH is the canonical LAMMPS GPU architecture setting variable for all GPU_API backends.
   set(GPU_ARCH "all-major" CACHE STRING "LAMMPS GPU architecture for CUDA. Use 'all', 'all-major', or a list of numbers e.g. '50;70;72;80'")
-  convert_cuda_arch_names()
+  convert_nvcc_gpu_arch()
   set(CMAKE_CUDA_ARCHITECTURES "${GPU_ARCH}")
 
   # nvcc refuses to work with host compilers that it does not know about and
@@ -327,7 +333,7 @@ elseif(GPU_API STREQUAL "HIP")
     # with hipcc from custom commands.
     if(HIP_PLATFORM STREQUAL "nvidia")
       set(GPU_ARCH "all-major" CACHE STRING "LAMMPS GPU architecture for CUDA. Use 'all', 'all-major', or a list of numbers e.g. '50;70;72;80'")
-      convert_cuda_arch_names()
+      convert_nvcc_gpu_arch()
       find_package(CUDAToolkit REQUIRED)
       if(CUDAToolkit_VERSION VERSION_LESS 12.0)
         message(FATAL_ERROR "CUDA Toolkit version 12.0 or later is required")

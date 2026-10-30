@@ -450,18 +450,18 @@ TEST_F(SetTest, PosVelCharge)
     command("fix two all set 2 0 group top charge v_stepquart");
     command("run 4 post no");
     END_HIDE_OUTPUT();
-    EXPECT_DOUBLE_EQ(atom->q[0], 1.0);
-    EXPECT_DOUBLE_EQ(atom->q[1], 1.0);
-    EXPECT_DOUBLE_EQ(atom->q[2], -2.0);
-    EXPECT_DOUBLE_EQ(atom->q[3], -2.0);
-    EXPECT_DOUBLE_EQ(atom->q[4], 1.0);
-    EXPECT_DOUBLE_EQ(atom->q[5], 1.0);
-    EXPECT_DOUBLE_EQ(atom->q[6], -2.0);
-    EXPECT_DOUBLE_EQ(atom->q[7], -2.0);
+    EXPECT_KKFLOAT_EQ(atom->q[0], 1.0);
+    EXPECT_KKFLOAT_EQ(atom->q[1], 1.0);
+    EXPECT_KKFLOAT_EQ(atom->q[2], -2.0);
+    EXPECT_KKFLOAT_EQ(atom->q[3], -2.0);
+    EXPECT_KKFLOAT_EQ(atom->q[4], 1.0);
+    EXPECT_KKFLOAT_EQ(atom->q[5], 1.0);
+    EXPECT_KKFLOAT_EQ(atom->q[6], -2.0);
+    EXPECT_KKFLOAT_EQ(atom->q[7], -2.0);
 
     // confirm that ghost atom charges are unchanged
     for (int i = nlocal; i < nall; ++i)
-        ASSERT_DOUBLE_EQ(atom->q[i], 0.0);
+        ASSERT_KKFLOAT_EQ(atom->q[i], 0.0);
 
     // replace fix set command to variant with updating ghosts
     BEGIN_HIDE_OUTPUT();
@@ -469,14 +469,14 @@ TEST_F(SetTest, PosVelCharge)
     command("fix two all set 2 1 group top charge v_stepquart");
     command("run 4 post no");
     END_HIDE_OUTPUT();
-    EXPECT_DOUBLE_EQ(atom->q[0], 2.0);
-    EXPECT_DOUBLE_EQ(atom->q[1], 2.0);
-    EXPECT_DOUBLE_EQ(atom->q[2], -4.0);
-    EXPECT_DOUBLE_EQ(atom->q[3], -4.0);
-    EXPECT_DOUBLE_EQ(atom->q[4], 2.0);
-    EXPECT_DOUBLE_EQ(atom->q[5], 2.0);
-    EXPECT_DOUBLE_EQ(atom->q[6], -4.0);
-    EXPECT_DOUBLE_EQ(atom->q[7], -4.0);
+    EXPECT_KKFLOAT_EQ(atom->q[0], 2.0);
+    EXPECT_KKFLOAT_EQ(atom->q[1], 2.0);
+    EXPECT_KKFLOAT_EQ(atom->q[2], -4.0);
+    EXPECT_KKFLOAT_EQ(atom->q[3], -4.0);
+    EXPECT_KKFLOAT_EQ(atom->q[4], 2.0);
+    EXPECT_KKFLOAT_EQ(atom->q[5], 2.0);
+    EXPECT_KKFLOAT_EQ(atom->q[6], -4.0);
+    EXPECT_KKFLOAT_EQ(atom->q[7], -4.0);
 
     // confirm that ghost atom charges are non-zero
     for (int i = nlocal; i < nall; ++i)

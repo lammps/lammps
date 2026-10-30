@@ -318,9 +318,9 @@ supported ``GPU_ARCH`` setting for different GPU hardware are as follows:
 * ``all`` for including support all GPU architectures supported by the CUDA toolkit
 * a single number or a list of numbers of individual GPU architectures, e.g. ``60;70;75;80;90``.
 
-The names of individual architectures used before, e.g. ``sm_70``, are
-still accepted and converted to numbers, but their use is deprecated and
-prints a warning.
+Settings in the format of earlier LAMMPS versions, e.g. ``sm_75``, are
+still accepted (also in the CMake cache of an existing build folder),
+but they are deprecated and converted to the new format with a warning.
 
 When compiling for CUDA or HIP with CUDA, version 12.0 or later of the
 CUDA toolkit is required and a GPU architecture of Pascal (60) or later,

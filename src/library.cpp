@@ -6609,6 +6609,30 @@ int lammps_neighlist_num_elements(void *handle, int idx) {
 /** Return atom local index, number of neighbors, and array of neighbor local
  * atom indices of neighbor list entry
  *
+\verbatim embed:rst
+
+.. note::
+
+   The array of neighbors is part of the neighbor list itself, so the
+   neighbor indices are stored the same way LAMMPS uses them internally.
+   For systems with :doc:`special neighbors <special_bonds>` (pairs of
+   atoms connected by bonds, angles, or dihedrals), the two highest bits
+   of a neighbor index may be set to record whether that pair is a 1-2,
+   1-3, or 1-4 neighbor.  Such indices are very large or negative numbers
+   and must have those bits removed before they can be used as local atom
+   indices, e.g. with ``j = neighbors[jj] & 0x1FFFFFFF;``.  The value of
+   ``(neighbors[jj] >> 30) & 3`` is 1, 2, or 3 for 1-2, 1-3, or 1-4
+   neighbors, respectively, and 0 for all other neighbors.
+
+   No bits are set for special neighbors with weighting factors of 1.0
+   for both Lennard-Jones and Coulomb interactions.  Special neighbors
+   with weighting factors of 0.0 for both are removed from the neighbor
+   list instead, except for the cases listed in the :doc:`special_bonds
+   <special_bonds>` command documentation (e.g. when a KSpace style is
+   used), where the bits are set for all special neighbors.
+
+\endverbatim
+ *
  * \param handle          pointer to a previously created LAMMPS instance cast to ``void *``.
  * \param idx             index of this neighbor list in the list of all neighbor lists
  * \param element         index of this neighbor list entry

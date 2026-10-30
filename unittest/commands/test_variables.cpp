@@ -324,17 +324,17 @@ TEST_F(VariableTest, AtomicSystem)
     ASSERT_EQ(variable->vectorstyle(variable->find("one")), 0);
     ASSERT_EQ(variable->vectorstyle(variable->find("press")), 1);
 
-    ASSERT_DOUBLE_EQ(variable->compute_equal("v_pmax"), 0.0);
-    ASSERT_DOUBLE_EQ(variable->compute_equal("v_psum"), 0.0);
-    ASSERT_DOUBLE_EQ(variable->compute_equal("v_rgmax"), 1.25);
-    ASSERT_DOUBLE_EQ(variable->compute_equal("v_rgsum"), 3.75);
-    ASSERT_DOUBLE_EQ(variable->compute_equal("v_sum[1]"), 1.25);
+    ASSERT_KKFLOAT_EQ(variable->compute_equal("v_pmax"), 0.0);
+    ASSERT_KKFLOAT_EQ(variable->compute_equal("v_psum"), 0.0);
+    ASSERT_KKFLOAT_EQ(variable->compute_equal("v_rgmax"), 1.25);
+    ASSERT_KKFLOAT_EQ(variable->compute_equal("v_rgsum"), 3.75);
+    ASSERT_KKFLOAT_EQ(variable->compute_equal("v_sum[1]"), 1.25);
 
     // check handling of immediate variables
-    ASSERT_DOUBLE_EQ(variable->compute_equal("f_press[1]"), 0.0);
-    ASSERT_DOUBLE_EQ(variable->compute_equal("c_press"), 0.0);
-    ASSERT_DOUBLE_EQ(variable->compute_equal("c_press[2]"), 0.0);
-    ASSERT_DOUBLE_EQ(variable->compute_equal("c_press[1+1]"), 0.0);
+    ASSERT_KKFLOAT_EQ(variable->compute_equal("f_press[1]"), 0.0);
+    ASSERT_KKFLOAT_EQ(variable->compute_equal("c_press"), 0.0);
+    ASSERT_KKFLOAT_EQ(variable->compute_equal("c_press[2]"), 0.0);
+    ASSERT_KKFLOAT_EQ(variable->compute_equal("c_press[1+1]"), 0.0);
     ASSERT_DOUBLE_EQ(variable->compute_equal("1.5+3.25"), 4.75);
     ASSERT_DOUBLE_EQ(variable->compute_equal("-2.5*1.5"), -3.75);
 

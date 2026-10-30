@@ -398,7 +398,8 @@ class numpy_wrapper:
     This function is a wrapper around the function
     :py:meth:`lammps.get_neighlist_element_neighbors() <lammps.lammps.get_neighlist_element_neighbors()>`
     method. It behaves the same as the original method, but returns a NumPy array containing the neighbors
-    instead of a ``ctypes`` pointer.
+    instead of a ``ctypes`` pointer.  The neighbor indices may have bits set for special neighbors that
+    need to be removed before using them as local atom indices; see :doc:`Python_neighbor`.
 
     :param element: neighbor list index
     :type  element: int

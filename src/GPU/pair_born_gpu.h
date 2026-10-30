@@ -30,13 +30,14 @@ class PairBornGPU : public PairBorn {
   ~PairBornGPU() override;
   void compute(int, int) override;
   void init_style() override;
-  void reinit() override;
+  double init_one(int, int) override;
   double memory_usage() override;
 
   enum { GPU_FORCE, GPU_NEIGH, GPU_HYB_NEIGH };
 
  private:
   int gpu_mode;
+  bool update_coeffs;    // per-type parameters changed since the last copy to the GPU
 };
 
 }    // namespace LAMMPS_NS

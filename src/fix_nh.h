@@ -131,7 +131,7 @@ class FixNH : public Fix {
 
   void couple();
   virtual void remap();
-  void nhc_temp_integrate();
+  virtual void nhc_temp_integrate();
   void nhc_press_integrate();
 
   virtual void nve_x();    // may be overwritten by child classes

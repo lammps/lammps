@@ -43,13 +43,20 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-PairSpin::PairSpin(LAMMPS *lmp) : Pair(lmp), emag(nullptr)
+PairSpin::PairSpin(LAMMPS *lmp) : Pair(lmp), emag(nullptr), typeflag_spin(nullptr)
 {
   hbar = force->hplanck/MY_2PI;
   single_enable = 0;
   respa_enable = 0;
   no_virial_fdotr_compute = 1;
   lattice_flag = 0;
+}
+
+/* ---------------------------------------------------------------------- */
+
+PairSpin::~PairSpin()
+{
+  memory->destroy(typeflag_spin);
 }
 
 /* ----------------------------------------------------------------------
@@ -103,6 +110,22 @@ void PairSpin::init_style()
 
   nlocal_max = atom->nlocal;
   memory->grow(emag,nlocal_max,"pair/spin:emag");
+
+  // flag atom types for which this style has coefficients with any type,
+  //   so compute_single_pair() does not need to search setflag for every spin
+
+  const int ntypes = atom->ntypes;
+  memory->destroy(typeflag_spin);
+  memory->create(typeflag_spin,ntypes+1,"pair/spin:typeflag_spin");
+  for (int i = 1; i <= ntypes; i++) {
+    typeflag_spin[i] = 0;
+    for (int j = 1; j <= ntypes; j++) {
+      if (setflag[MIN(i,j)][MAX(i,j)] == 1) {
+        typeflag_spin[i] = 1;
+        break;
+      }
+    }
+  }
 }
 
 /* ---------------------------------------------------------------------- */

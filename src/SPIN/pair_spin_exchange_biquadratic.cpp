@@ -311,8 +311,8 @@ void PairSpinExchangeBiquadratic::compute_single_pair(int ii, double fmi[3])
   double delx,dely,delz;
   double spi[3],spj[3];
 
-  int j,jnum,itype,jtype,ntypes;
-  int k,locflag;
+  int j,jnum,itype,jtype;
+  int locflag;
   int *jlist,*numneigh,**firstneigh;
 
   double rsq;
@@ -323,24 +323,7 @@ void PairSpinExchangeBiquadratic::compute_single_pair(int ii, double fmi[3])
   // check if interaction applies to type of ii
 
   itype = type[ii];
-  ntypes = atom->ntypes;
-  locflag = 0;
-  k = 1;
-  while (k <= ntypes) {
-    if (k <= itype) {
-      if (setflag[k][itype] == 1) {
-        locflag =1;
-        break;
-      }
-      k++;
-    } else if (k > itype) {
-      if (setflag[itype][k] == 1) {
-        locflag =1;
-        break;
-      }
-      k++;
-    } else error->all(FLERR,"Wrong type number");
-  }
+  locflag = typeflag_spin[itype];
 
   // if interaction applies to type ii,
   // locflag = 1 and compute pair interaction

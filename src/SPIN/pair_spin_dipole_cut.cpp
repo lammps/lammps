@@ -283,12 +283,12 @@ void PairSpinDipoleCut::compute(int eflag, int vflag)
 
 void PairSpinDipoleCut::compute_single_pair(int ii, double fmi[3])
 {
-  int j,jnum,itype,jtype,ntypes;
+  int j,jnum,itype,jtype;
   int *jlist,*numneigh,**firstneigh;
   double rsq,rinv,r2inv,r3inv,local_cut2;
   double xi[3],rij[3],eij[3],spi[4],spj[4];
 
-  int k,locflag;
+  int locflag;
   int *type = atom->type;
   double **x = atom->x;
   double **sp = atom->sp;
@@ -299,24 +299,7 @@ void PairSpinDipoleCut::compute_single_pair(int ii, double fmi[3])
   // check if interaction applies to type of ii
 
   itype = type[ii];
-  ntypes = atom->ntypes;
-  locflag = 0;
-  k = 1;
-  while (k <= ntypes) {
-    if (k <= itype) {
-      if (setflag[k][itype] == 1) {
-        locflag =1;
-        break;
-      }
-      k++;
-    } else if (k > itype) {
-      if (setflag[itype][k] == 1) {
-        locflag =1;
-        break;
-      }
-      k++;
-    } else error->all(FLERR,"Wrong type number");
-  }
+  locflag = typeflag_spin[itype];
 
 
   // if interaction applies to type ii,

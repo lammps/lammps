@@ -26,13 +26,24 @@
 #include "mliap_model_python_kokkos.h"
 #include "mliap_unified_kokkos.h"
 #endif
+#include "comm_kokkos.h"
 #include "error.h"
 #include "neigh_request.h"
 #include "lammps.h"
 #include "kokkos.h"
 #include "pointers.h"
 
+#include <climits>
+#include <type_traits>
+
 using namespace LAMMPS_NS;
+
+namespace {
+// true for the instance that runs on the GPU in a KOKKOS GPU build
+template <class DeviceType>
+constexpr bool is_device_instance =
+    std::is_same_v<DeviceType, LMPDeviceType> && !std::is_same_v<LMPDeviceType, LMPHostType>;
+}    // namespace
 
 /* ---------------------------------------------------------------------- */
 
@@ -339,6 +350,67 @@ void PairMLIAPKokkos<DeviceType>::init_style()
 
 /* ---------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------
+   The ML-IAP feature exchange of a device instance passes pointers to
+   device memory (from Torch or CuPy) and a vector length that is only
+   known at the time of the call.  The legacy (CommBrick) pair
+   communication packs through the host callbacks below into host buffers
+   that were sized in Comm::init() before that length was known.  KOKKOS
+   forces the legacy path with "pair/only on" and with "gpu/aware off" on
+   more than one MPI rank.  For a device instance, use the KOKKOS device
+   pair communication in these cases: it grows its buffers as needed and
+   stages only the MPI buffers through the host when GPU-aware MPI is off.
+   An explicit "comm/pair/forward host" or "no" (or the reverse keyword)
+   cannot work, since the data is in device memory, so stop with an error.
+   Host instances and the default (non-legacy) device path are unchanged.
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+bool PairMLIAPKokkos<DeviceType>::device_route(bool forward)
+{
+  if constexpr (!is_device_instance<DeviceType>) {
+    return false;
+  } else {
+    const char *dir = forward ? "forward" : "reverse";
+    const int legacy =
+      forward ? lmp->kokkos->forward_pair_comm_legacy : lmp->kokkos->reverse_pair_comm_legacy;
+    if (!legacy) return false;
+    const int forced =
+      forward ? lmp->kokkos->forward_pair_comm_changed : lmp->kokkos->reverse_pair_comm_changed;
+    if (!forced)
+      error->all(FLERR, "Pair style mliap/kk on the GPU does not support package kokkos "
+                 "comm/pair/{} host or no, use comm/pair/{} device", dir, dir);
+    if (!dynamic_cast<CommKokkos *>(comm))
+      error->all(FLERR, "Pair style mliap/kk on the GPU with package kokkos pair/only on or "
+                 "gpu/aware off requires comm_style brick");
+    return true;
+  }
+}
+
+/* ----------------------------------------------------------------------
+   the device pointers come from Torch or CuPy, which may use a stream that
+   KOKKOS does not know about, so the routed exchange is enclosed by global
+   fences before the first read and after the last write.  The default
+   (non-legacy) path is unchanged: no extra copy, fence or transfer.
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+void PairMLIAPKokkos<DeviceType>::exchange_pair_comm(bool forward, bool routed)
+{
+  if (!routed) {
+    if (forward) comm->forward_comm(this);
+    else comm->reverse_comm(this);
+    return;
+  }
+  if constexpr (is_device_instance<DeviceType>) {
+    auto *commKK = static_cast<CommKokkos *>(comm);    // checked in device_route()
+    if (forward) commKK->forward_comm_device<DeviceType>(this);
+    else commKK->reverse_comm_device<DeviceType>(this);
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
 template<class DeviceType>
 template<class CommType>
 int PairMLIAPKokkos<DeviceType>::forward_comm(CommType* copy_from_, CommType* copy_to_, const int vl)
@@ -355,11 +427,17 @@ int PairMLIAPKokkos<DeviceType>::forward_comm(CommType* copy_from_, CommType* co
   copy_from = copy_from_;
   comm_forward = vec_len=vl;
 
+  if ((vl < 0) || ((long long) (atom->nlocal + atom->nghost) * vl > (long long) INT_MAX))
+    error->one(FLERR, "ML-IAP forward exchange: invalid vector length {} for {} local and ghost "
+               "atoms", vl, atom->nlocal + atom->nghost);
+  const bool routed = device_route(true);
+  if (routed) Kokkos::fence("PairMLIAPKokkos::forward_comm: before exchange");
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType>(0,(atom->nlocal+atom->nghost)*vl), KOKKOS_LAMBDA (int i) {
     copy_to_[i] = copy_from_[i];
   });
   //call comm
-  comm->forward_comm(this);
+  exchange_pair_comm(true, routed);
+  if (routed) Kokkos::fence("PairMLIAPKokkos::forward_comm: after exchange");
 
   return 0;
 }
@@ -381,17 +459,23 @@ int PairMLIAPKokkos<DeviceType>::reverse_comm(CommType* copy_from_, CommType* co
   copy_from = copy_from_;
   comm_reverse = vec_len = vl;
 
+  if ((vl < 0) || ((long long) (atom->nlocal + atom->nghost) * vl > (long long) INT_MAX))
+    error->one(FLERR, "ML-IAP reverse exchange: invalid vector length {} for {} local and ghost "
+               "atoms", vl, atom->nlocal + atom->nghost);
+  const bool routed = device_route(false);
+  if (routed) Kokkos::fence("PairMLIAPKokkos::reverse_comm: before exchange");
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType>(0,(atom->nlocal+atom->nghost)*vl), KOKKOS_LAMBDA (int i) {
     copy_to_[i] = copy_from_[i]; // Copy inputs
   });
 
-  comm->reverse_comm(this);
+  exchange_pair_comm(false, routed);
 
   Kokkos::parallel_for(
     Kokkos::RangePolicy<DeviceType>( (atom->nlocal)*vl,(atom->nlocal + atom->nghost)*vl),
     KOKKOS_LAMBDA (int i) {
     copy_to_[i] = 0; //Zero out ghosts
   });
+  if (routed) Kokkos::fence("PairMLIAPKokkos::reverse_comm: after exchange");
 
   return 0;
 }
@@ -441,6 +525,8 @@ template<class DeviceType>
 int PairMLIAPKokkos<DeviceType>::pack_forward_comm(int nv, int* idx_v, double *fill,
                                                    int int2, int *intp)
 {
+  if constexpr (is_device_instance<DeviceType>)
+    error->one(FLERR, "Internal error: ML-IAP host communication called for data on the GPU");
   static bool first=true;
   if (first) {
     error->warning(FLERR,"PackForwardComm has only been tested on Kokkos devices");
@@ -510,6 +596,8 @@ void PairMLIAPKokkos<DeviceType>::unpack_forward_comm_kokkos(
 template<class DeviceType>
 void PairMLIAPKokkos<DeviceType>::unpack_forward_comm(int nv, int first_up, double *fill)
 {
+  if constexpr (is_device_instance<DeviceType>)
+    error->one(FLERR, "Internal error: ML-IAP host communication called for data on the GPU");
   switch( comm_type ) {
     case COMM_TYPE::FLOAT:
       return unpack_forward_comm(nv,first_up,fill,std::get<float*>(copy_to));
@@ -573,6 +661,8 @@ int PairMLIAPKokkos<DeviceType>::pack_reverse_comm_kokkos(int nv, int first_up, 
 template<class DeviceType>
 int PairMLIAPKokkos<DeviceType>::pack_reverse_comm(int nv, int first_up, double *fill)
 {
+  if constexpr (is_device_instance<DeviceType>)
+    error->one(FLERR, "Internal error: ML-IAP host communication called for data on the GPU");
   switch( comm_type ) {
     case COMM_TYPE::FLOAT:
       return pack_reverse_comm(nv,first_up,fill,std::get<float*>(copy_to));
@@ -641,6 +731,8 @@ void PairMLIAPKokkos<DeviceType>::unpack_reverse_comm_kokkos(int nv, DAT::tdual_
 template<class DeviceType>
 void PairMLIAPKokkos<DeviceType>::unpack_reverse_comm(int nv, int *idx, double *fill)
 {
+  if constexpr (is_device_instance<DeviceType>)
+    error->one(FLERR, "Internal error: ML-IAP host communication called for data on the GPU");
   switch( comm_type ) {
     case COMM_TYPE::FLOAT:
       return unpack_reverse_comm(nv,idx,fill,std::get<float*>(copy_to));

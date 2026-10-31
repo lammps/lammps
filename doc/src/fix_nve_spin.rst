@@ -67,10 +67,10 @@ in parallel with a processor grid like "processors \* \* 1".  With
 
 .. versionchanged:: TBD
 
-   Sectors are only created in directions divided between processors
-   (before, 2x2x2 sectors were always required), the size requirement
-   includes the neighbor skin, and it is checked again whenever the
-   sub-domains change.
+Sectors are only created in directions divided between processors
+(before, 2x2x2 sectors were always required), the size requirement
+includes the neighbor skin, and it is checked again whenever the
+sub-domains change.
 
 ----------
 
@@ -98,11 +98,11 @@ with the settings
 
 .. code-block:: LAMMPS
 
-   neigh_modify every 1 delay 0 check yes
+   neigh_modify every 1 delay 0 check yes once no
 
-With other settings (e.g. *every* > 1 or *delay* > 0), a warning is
-printed, and another one if atoms did move too far during the run
-(i.e. if there are "dangerous builds"), since then spins of atoms on
+With other settings (e.g. *every* > 1, *delay* > 0, or *once* yes), a
+warning is printed, and another one if atoms did move too far during the
+run (i.e. if there are "dangerous builds"), since then spins of atoms on
 different processors may have been updated in the wrong order.
 
 Related commands

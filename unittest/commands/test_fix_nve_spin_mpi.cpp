@@ -7,6 +7,7 @@
 // assignment or stale ghost spins), the energy would no longer be conserved.
 
 #include "exceptions.h"
+#include "fmt/format.h"
 #include "info.h"
 #include "input.h"
 #include "lammps.h"

@@ -272,16 +272,18 @@ void FixNVESpin::init()
 
   // the sectoring algorithm requires that atoms move less than half the
   //   neighbor skin between reneighborings, which is only guaranteed if
-  //   the distance check is done on every step
+  //   reneighboring is considered on every step (with check no, lists
+  //   are then rebuilt on every step, which is also safe)
 
   danger_flag = 0;
   if (sector_flag && lattice_flag && (comm->me == 0) &&
-      ((neighbor->every > 1) || (neighbor->delay > 0)))
+      ((neighbor->every > 1) || (neighbor->delay > 0) || neighbor->build_once))
     error->warning(FLERR, "Fix nve/spin with multiple processors and a moving lattice may "
                    "give inaccurate results if atoms move more than half the neighbor skin "
                    "distance between neighbor list builds. This is possible with the "
-                   "current settings (neigh_modify every {} delay {}). To avoid this, use "
-                   "'neigh_modify every 1 delay 0 check yes'", neighbor->every, neighbor->delay);
+                   "current settings (neigh_modify every {} delay {} once {}). To avoid "
+                   "this, use 'neigh_modify every 1 delay 0 check yes once no'",
+                   neighbor->every, neighbor->delay, neighbor->build_once ? "yes" : "no");
 
   // init. size of stacking lists (sectoring)
 

@@ -12,13 +12,16 @@ Syntax
 
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * nve/spin = style name of this fix command
-* keyword = *lattice*
+* zero or more keyword/value pairs may be appended
+* keyword = *lattice* or *selfconsistent*
 
   .. parsed-literal::
 
        *lattice* value = *moving* or *frozen*
          moving = integrate both spin and atomic degrees of freedom
          frozen = integrate spins on a fixed lattice
+       *selfconsistent* value = N
+         N = number of iterations for the field of each single spin update (>= 0)
 
 Examples
 """"""""
@@ -27,6 +30,7 @@ Examples
 
    fix 3 all nve/spin lattice moving
    fix 1 all nve/spin lattice frozen
+   fix 1 all nve/spin lattice frozen selfconsistent 2
 
 Description
 """""""""""
@@ -51,6 +55,51 @@ according to the implementation reported in :ref:`(Omelyan) <Omelyan1>`.
 A sectoring method enables this scheme for parallel calculations.
 The implementation of this sectoring algorithm is reported
 in :ref:`(Tranchida) <Tranchida1>`.
+Each processor sub-domain is cut in two halves (sectors) along every
+direction in which the simulation box is divided between several
+processors (see the :doc:`processors <processors>` command), giving 2,
+4, or 8 sectors.  Spins in sectors with the same index on different
+processors do not interact and are updated at the same time.  This
+requires the sub-domain of each processor to be at least twice as wide
+as the largest magnetic pair cutoff plus the :doc:`neighbor skin
+distance <neighbor>` in each of these directions.  The skin is needed
+because atoms can move by up to half the skin distance between two
+neighbor list builds.  There is no size requirement in directions that
+are not divided between processors, so that, e.g., thin films can be run
+in parallel with a processor grid like "processors \* \* 1".  With
+:doc:`comm_style tiled <comm_style>`, all directions are cut in two.
+
+.. versionchanged:: TBD
+
+Sectors are only created in directions divided between processors
+(before, 2x2x2 sectors were always required), the size requirement
+includes the neighbor skin, and it is checked again whenever the
+sub-domains change.
+
+.. versionadded:: TBD
+
+Each spin is rotated about its precession field, which is computed just
+before its update and held constant during the rotation.  If this field
+depends on the spin itself, as for magnetic anisotropy (:doc:`fix
+precession/spin <fix_precession_spin>` with *anisotropy* or *cubic*),
+:doc:`biquadratic exchange <pair_spin_exchange>`, or :doc:`pair spin/neel
+<pair_spin_neel>`, this update is no longer time-symmetric, and the
+energy drifts steadily, at a rate proportional to the timestep.  With
+the *selfconsistent* keyword, the field of each spin update is instead
+evaluated at the midpoint between the old and the new spin direction,
+found by *N* iterations, each of which computes the field on that spin
+once more.  This removes the drift.  In tests with 1024 spins of bcc
+iron at 300 K on a frozen lattice, with timesteps of 0.1 to 0.4 fs,
+*N* = 2 reduced the energy drift by a factor of 10\ :sup:`5` or more
+for anisotropy and biquadratic exchange, and of 10\ :sup:`3` or more
+for *spin/neel*.  The energy was then conserved to round-off for
+uniaxial anisotropy and, with *N* = 4, for biquadratic exchange.  Each
+iteration adds one field evaluation per spin update: with exchange and
+anisotropy only, *N* = 2 made the run about 2.4 times slower, and with
+an EAM potential and a moving lattice about 1.15 times slower.  For
+interactions that do not depend on
+the spin itself (e.g. Heisenberg exchange, DMI, Zeeman), the results do
+not change.  The default *N* = 0 gives the original update.
 
 ----------
 
@@ -60,6 +109,10 @@ Restrictions
 This fix style can only be used if LAMMPS was built with the SPIN
 package.  See the :doc:`Build package <Build_package>` page for more
 info.
+
+The *selfconsistent* keyword cannot be used with :doc:`fix langevin/spin
+<fix_langevin_spin>` at a non-zero temperature, since the random field
+would be drawn again at each iteration.
 
 To use the spin algorithm, it is necessary to define a map with
 the atom_modify command. Typically, by adding the command:
@@ -71,6 +124,20 @@ the atom_modify command. Typically, by adding the command:
 before you create the simulation box. Note that the keyword "hash"
 instead of "array" is also valid.
 
+When running on multiple processors with a moving lattice, the sectoring
+algorithm relies on atoms moving less than half the neighbor skin
+distance between two neighbor list builds.  This is only guaranteed
+with the settings
+
+.. code-block:: LAMMPS
+
+   neigh_modify every 1 delay 0 check yes once no
+
+With other settings (e.g. *every* > 1, *delay* > 0, or *once* yes), a
+warning is printed, and another one if atoms did move too far during the
+run (i.e. if there are "dangerous builds"), since then spins of atoms on
+different processors may have been updated in the wrong order.
+
 Related commands
 """"""""""""""""
 
@@ -79,7 +146,7 @@ Related commands
 Default
 """""""
 
-The option default is lattice = moving.
+The option defaults are lattice = moving and selfconsistent = 0.
 
 ----------
 

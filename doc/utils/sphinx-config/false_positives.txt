@@ -3827,6 +3827,7 @@ Seifert
 Seitz
 Seleson
 selfalign
+selfconsistent
 sellerio
 Sellerio
 Semaev

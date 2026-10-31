@@ -303,9 +303,19 @@ if(WITH_ZLIB)
   target_link_libraries(lammps PRIVATE ZLIB::ZLIB)
 endif()
 
-# tell CMake to export all symbols to a .dll on Windows with MinGW cross-compilers
+# a .dll on Windows can export at most 65535 symbols, which is too few for exporting all
+# symbols with MinGW cross-compilers and many packages.  So we generate a .def file with
+# all symbols except those that do not need to be exported (see GenerateDLLExports.cmake)
 if(BUILD_SHARED_LIBS AND (CMAKE_SYSTEM_NAME STREQUAL "Windows") AND CMAKE_CROSSCOMPILING)
-  set_target_properties(lammps PROPERTIES LINK_FLAGS "-Wl,--export-all-symbols")
+  file(GENERATE OUTPUT ${CMAKE_BINARY_DIR}/liblammps-objects.txt
+    CONTENT "$<JOIN:$<TARGET_OBJECTS:lammps>,\n>\n")
+  add_custom_command(TARGET lammps PRE_LINK
+    COMMAND ${CMAKE_COMMAND} -D NM=${CMAKE_NM}
+      -D OBJECTS=${CMAKE_BINARY_DIR}/liblammps-objects.txt
+      -D DEF_FILE=${CMAKE_BINARY_DIR}/liblammps.def
+      -P ${CMAKE_CURRENT_SOURCE_DIR}/Modules/GenerateDLLExports.cmake
+    VERBATIM)
+  target_link_options(lammps PRIVATE ${CMAKE_BINARY_DIR}/liblammps.def)
 endif()
 
 add_executable(lmp ${MAIN_SOURCES})

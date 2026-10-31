@@ -722,6 +722,7 @@ static void RotateSpin(const double *s, const double *fm, double dts, double *g)
 
 void FixNVESpin::UpdateSingleSpin(int i)
 {
+  int *sametag = atom->sametag;
   double **sp = atom->sp;
   double **fm = atom->fm;
   double s0[3],g[3];
@@ -737,6 +738,16 @@ void FixNVESpin::UpdateSingleSpin(int i)
       sp[i][0] = 0.5*(s0[0] + g[0]);
       sp[i][1] = 0.5*(s0[1] + g[1]);
       sp[i][2] = 0.5*(s0[2] + g[2]);
+
+      // periodic images of spin i on this proc, which spin i may interact
+      //   with in small boxes, also take the midpoint value
+      //   (AdvanceSingleSpin() sets them to the new value afterwards)
+
+      for (int j = sametag[i]; j >= 0; j = sametag[j]) {
+        sp[j][0] = sp[i][0];
+        sp[j][1] = sp[i][1];
+        sp[j][2] = sp[i][2];
+      }
       ComputeInteractionsSpin(i);
     }
     sp[i][0] = s0[0];

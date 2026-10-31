@@ -327,14 +327,17 @@ void FixOMP::pre_force(int)
   double *erforce = atom->erforce;
   double *desph = atom->desph;
   double *drho = atom->drho;
+  double *edpd_flux = atom->edpd_flux;
+  double **cc_flux = atom->cc_flux;
+  const int ncc = atom->cc_species;
 
 #if defined(_OPENMP)
-#pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(f,torque,erforce,desph,drho)
+#pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(f,torque,erforce,desph,drho,edpd_flux,cc_flux)
 #endif
   {
     const int tid = get_tid();
     thr[tid]->check_tid(tid);
-    thr[tid]->init_force(nall,f,torque,erforce,desph,drho);
+    thr[tid]->init_force(nall,f,torque,erforce,desph,drho,edpd_flux,cc_flux,ncc);
   } // end of omp parallel region
 
   // the integrators skip their force_clear() when this fix is active,

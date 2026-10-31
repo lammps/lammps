@@ -65,6 +65,8 @@ src/Makefile.package.settings-e
 /test
 /dev
 .Rhistory
+/.github/release_steps.html
+/.github/release_steps.epub
 
 # Claude code generated/maintained files
 /CLAUDE.md

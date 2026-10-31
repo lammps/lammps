@@ -56,7 +56,7 @@ int tersoff_zbl_gpu_init(const int ntypes, const int inum, const int nall,
   int procs_per_gpu=TSZMF.device->procs_per_gpu();
 
 
-  TSZMF.device->init_message(screen,"tersoff/zbl/gpu",first_gpu,last_gpu);
+  TSZMF.device->init_message(screen,"tersoff/zbl",first_gpu,last_gpu);
 
   bool message=false;
   if (TSZMF.device->replica_me()==0 && screen)

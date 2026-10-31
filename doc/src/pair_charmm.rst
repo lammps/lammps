@@ -4,6 +4,7 @@
 .. index:: pair_style lj/charmm/coul/charmm/kk
 .. index:: pair_style lj/charmm/coul/charmm/omp
 .. index:: pair_style lj/charmm/coul/charmm/implicit
+.. index:: pair_style lj/charmm/coul/charmm/implicit/gpu
 .. index:: pair_style lj/charmm/coul/charmm/implicit/kk
 .. index:: pair_style lj/charmm/coul/charmm/implicit/omp
 .. index:: pair_style lj/charmm/coul/long
@@ -15,9 +16,11 @@
 .. index:: pair_style lj/charmm/coul/msm
 .. index:: pair_style lj/charmm/coul/msm/omp
 .. index:: pair_style lj/charmmfsw/coul/charmmfsh
+.. index:: pair_style lj/charmmfsw/coul/charmmfsh/gpu
 .. index:: pair_style lj/charmmfsw/coul/charmmfsh/kk
 .. index:: pair_style lj/charmmfsw/coul/charmmfsh/omp
 .. index:: pair_style lj/charmmfsw/coul/long
+.. index:: pair_style lj/charmmfsw/coul/long/gpu
 .. index:: pair_style lj/charmmfsw/coul/long/omp
 .. index:: pair_style lj/charmmfsw/coul/long/kk
 
@@ -29,7 +32,7 @@ Accelerator Variants: *lj/charmm/coul/charmm/gpu*, *lj/charmm/coul/charmm/intel*
 pair_style lj/charmm/coul/charmm/implicit command
 =================================================
 
-Accelerator Variants: *lj/charmm/coul/charmm/implicit/kk*, *lj/charmm/coul/charmm/implicit/omp*
+Accelerator Variants: *lj/charmm/coul/charmm/implicit/gpu*, *lj/charmm/coul/charmm/implicit/kk*, *lj/charmm/coul/charmm/implicit/omp*
 
 pair_style lj/charmm/coul/long command
 ======================================
@@ -44,12 +47,12 @@ Accelerator Variants: *lj/charmm/coul/msm/omp*
 pair_style lj/charmmfsw/coul/charmmfsh command
 ==============================================
 
-Accelerator Variants: *lj/charmmfsw/coul/charmmfsh/kk*, *lj/charmmfsw/coul/charmmfsh/omp*
+Accelerator Variants: *lj/charmmfsw/coul/charmmfsh/gpu*, *lj/charmmfsw/coul/charmmfsh/kk*, *lj/charmmfsw/coul/charmmfsh/omp*
 
 pair_style lj/charmmfsw/coul/long command
 =========================================
 
-Accelerator Variants: *lj/charmmfsw/coul/long/kk*, *lj/charmmfsw/coul/long/omp*
+Accelerator Variants: *lj/charmmfsw/coul/long/gpu*, *lj/charmmfsw/coul/long/kk*, *lj/charmmfsw/coul/long/omp*
 
 Syntax
 """"""

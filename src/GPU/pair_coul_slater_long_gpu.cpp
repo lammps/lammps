@@ -38,7 +38,8 @@ using namespace EwaldConst;
 
 /* ---------------------------------------------------------------------- */
 
-PairCoulSlaterLongGPU::PairCoulSlaterLongGPU(LAMMPS *lmp) : PairCoulSlaterLong(lmp), gpu_mode(GPU_FORCE)
+PairCoulSlaterLongGPU::PairCoulSlaterLongGPU(LAMMPS *lmp) :
+    PairCoulSlaterLong(lmp), gpu_mode(GPU_FORCE), update_coeffs(false)
 {
   respa_enable = 0;
   suffix_flag |= Suffix::GPU;
@@ -59,6 +60,11 @@ PairCoulSlaterLongGPU::~PairCoulSlaterLongGPU()
 void PairCoulSlaterLongGPU::compute(int eflag, int vflag)
 {
   ev_init(eflag, vflag);
+
+  if (update_coeffs) {
+    csl_gpu_reinit(atom->ntypes + 1, scale);
+    update_coeffs = false;
+  }
 
   int nall = atom->nlocal + atom->nghost;
   int inum;
@@ -134,11 +140,13 @@ void PairCoulSlaterLongGPU::init_style()
 
 /* ---------------------------------------------------------------------- */
 
-void PairCoulSlaterLongGPU::reinit()
+double PairCoulSlaterLongGPU::init_one(int i, int j)
 {
-  Pair::reinit();
+  // the parameters may have been changed, e.g. by fix adapt,
+  // so copy them to the GPU again before the next compute()
 
-  csl_gpu_reinit(atom->ntypes + 1, scale);
+  update_coeffs = true;
+  return PairCoulSlaterLong::init_one(i, j);
 }
 
 /* ---------------------------------------------------------------------- */

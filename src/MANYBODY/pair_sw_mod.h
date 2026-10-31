@@ -28,13 +28,6 @@ class PairSWMOD : public PairSW {
  public:
   PairSWMOD(class LAMMPS *);
   void settings(int, char **) override;
-
- protected:
-  double delta1;
-  double delta2;
-
-  void threebody(Param *, Param *, Param *, double, double, double *, double *, double *, double *,
-                 int, double &) override;
 };
 
 }    // namespace LAMMPS_NS

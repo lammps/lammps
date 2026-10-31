@@ -37,6 +37,7 @@ class FixNVESpin : public Fix {
 
   void ComputeInteractionsSpin(int);    // compute and advance single spin functions
   void AdvanceSingleSpin(int);
+  void UpdateSingleSpin(int);
 
   void sectoring();    // sectoring operation functions
   int coords2sector(double *);
@@ -56,6 +57,8 @@ class FixNVESpin : public Fix {
   int danger_flag;    // 1 if the warning about dangerous neighbor builds was printed
 
   double dtv, dtf, dts;    // velocity, force, and spin timesteps
+
+  int sciter;    // # of self-consistent iterations of each single spin update
 
   int nlocal_max;    // max value of nlocal (for size of lists)
 

@@ -3217,6 +3217,7 @@ Pedone
 peID
 PEigenDense
 Peng
+pentane
 peptide
 peratom
 Perf
@@ -3826,6 +3827,7 @@ Seifert
 Seitz
 Seleson
 selfalign
+selfconsistent
 sellerio
 Sellerio
 Semaev
@@ -4669,6 +4671,7 @@ xlat
 xlattice
 xlcg
 xldamp
+xlguard
 xlkappa
 xlmd
 xlo

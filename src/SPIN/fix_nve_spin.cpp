@@ -90,6 +90,10 @@ FixNVESpin::FixNVESpin(LAMMPS *lmp, int narg, char **arg) :
 
   sector_flag = (comm->nprocs > 1) ? 1 : 0;
 
+  // no self-consistent iterations of the single spin updates by default
+
+  sciter = 0;
+
   // defining lattice_flag
 
   // changing the lattice option, from (yes,no) -> (moving,frozen)
@@ -105,6 +109,12 @@ FixNVESpin::FixNVESpin(LAMMPS *lmp, int narg, char **arg) :
       else if ((latarg == "yes") || (latarg == "on") || (latarg == "true") || (latarg == "moving"))
         lattice_flag = 1;
       else error->all(FLERR,"Illegal fix/nve/spin command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"selfconsistent") == 0) {
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "fix nve/spin selfconsistent", error);
+      sciter = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
+      if (sciter < 0)
+        error->all(FLERR, iarg+1, "Fix nve/spin selfconsistent must be >= 0, not {}", sciter);
       iarg += 2;
     } else error->all(FLERR,"Illegal fix/nve/spin command");
   }
@@ -243,8 +253,15 @@ void FixNVESpin::init()
     maglangevin_flag = 1;
     delete[] locklangevinspin;
     locklangevinspin = new FixLangevinSpin*[nlangspin];
-    for (int i = 0; i < nlangspin; i++)
+    for (int i = 0; i < nlangspin; i++) {
       locklangevinspin[i] = dynamic_cast<FixLangevinSpin *>(langfixes[i]);
+
+      // the random field would be drawn again at each iteration
+
+      if ((sciter > 0) && locklangevinspin[i]->temp_flag)
+        error->all(FLERR, Error::NOLASTLINE, "Fix nve/spin selfconsistent cannot be used with "
+                   "fix langevin/spin {} at a non-zero temperature", locklangevinspin[i]->id);
+    }
   }
 
   // ptrs FixSetForceSpin classes
@@ -313,8 +330,7 @@ void FixNVESpin::initial_integrate(int /*vflag*/)
       while (i >= 0) {
         const int next = forward_stacks[i];
         if (mask[i] & groupbit) {
-          ComputeInteractionsSpin(i);
-          AdvanceSingleSpin(i);
+          UpdateSingleSpin(i);
         }
         i = next;
       }
@@ -325,8 +341,7 @@ void FixNVESpin::initial_integrate(int /*vflag*/)
       while (i >= 0) {
         const int next = backward_stacks[i];
         if (mask[i] & groupbit) {
-          ComputeInteractionsSpin(i);
-          AdvanceSingleSpin(i);
+          UpdateSingleSpin(i);
         }
         i = next;
       }
@@ -335,14 +350,12 @@ void FixNVESpin::initial_integrate(int /*vflag*/)
     comm->forward_comm();                        // comm. positions of ghost atoms
     for (int i = 0; i < nlocal; i++) {           // advance quarter s for nlocal
       if (mask[i] & groupbit) {
-        ComputeInteractionsSpin(i);
-        AdvanceSingleSpin(i);
+        UpdateSingleSpin(i);
       }
     }
     for (int i = nlocal-1; i >= 0; i--) {        // advance quarter s for nlocal
       if (mask[i] & groupbit) {
-        ComputeInteractionsSpin(i);
-        AdvanceSingleSpin(i);
+        UpdateSingleSpin(i);
       }
     }
   }
@@ -368,8 +381,7 @@ void FixNVESpin::initial_integrate(int /*vflag*/)
       while (i >= 0) {
         const int next = forward_stacks[i];
         if (mask[i] & groupbit) {
-          ComputeInteractionsSpin(i);
-          AdvanceSingleSpin(i);
+          UpdateSingleSpin(i);
         }
         i = next;
       }
@@ -380,8 +392,7 @@ void FixNVESpin::initial_integrate(int /*vflag*/)
       while (i >= 0) {
         const int next = backward_stacks[i];
         if (mask[i] & groupbit) {
-          ComputeInteractionsSpin(i);
-          AdvanceSingleSpin(i);
+          UpdateSingleSpin(i);
         }
         i = next;
       }
@@ -390,14 +401,12 @@ void FixNVESpin::initial_integrate(int /*vflag*/)
     comm->forward_comm();                       // comm. positions of ghost atoms
     for (int i = 0; i < nlocal; i++) {          // advance quarter s for nlocal-1
       if (mask[i] & groupbit) {
-        ComputeInteractionsSpin(i);
-        AdvanceSingleSpin(i);
+        UpdateSingleSpin(i);
       }
     }
     for (int i = nlocal-1; i >= 0; i--) {       // advance quarter s for nlocal-1
       if (mask[i] & groupbit) {
-        ComputeInteractionsSpin(i);
-        AdvanceSingleSpin(i);
+        UpdateSingleSpin(i);
       }
     }
   }
@@ -586,6 +595,74 @@ int FixNVESpin::coords2sector(double *x)
 }
 
 /* ----------------------------------------------------------------------
+   rotate the spin s about the field fm during a time dts:
+   g = s + dts/2 fm x (s + g) (Cayley transform), so that |g| = |s|
+   single-spin propagator of Omelyan, Mryglod, and Folk, Phys Rev Lett 86,
+   898 (2001), in the form of Eq. (15) of Tranchida et al. (2018)
+---------------------------------------------------------------------- */
+
+static void RotateSpin(const double *s, const double *fm, double dts, double *g)
+{
+  double fm2,energy,dts2;
+  double cp[3];
+
+  fm2 = (fm[0]*fm[0])+(fm[1]*fm[1])+(fm[2]*fm[2]);
+  energy = (s[0]*fm[0])+(s[1]*fm[1])+(s[2]*fm[2]);
+  dts2 = dts*dts;
+
+  cp[0] = fm[1]*s[2] - fm[2]*s[1];
+  cp[1] = fm[2]*s[0] - fm[0]*s[2];
+  cp[2] = fm[0]*s[1] - fm[1]*s[0];
+
+  g[0] = s[0] + cp[0]*dts;
+  g[1] = s[1] + cp[1]*dts;
+  g[2] = s[2] + cp[2]*dts;
+
+  g[0] += (fm[0]*energy - 0.5*s[0]*fm2)*0.5*dts2;
+  g[1] += (fm[1]*energy - 0.5*s[1]*fm2)*0.5*dts2;
+  g[2] += (fm[2]*energy - 0.5*s[2]*fm2)*0.5*dts2;
+
+  g[0] /= (1.0 + 0.25*fm2*dts2);
+  g[1] /= (1.0 + 0.25*fm2*dts2);
+  g[2] /= (1.0 + 0.25*fm2*dts2);
+}
+
+/* ----------------------------------------------------------------------
+   compute the field on spin i and advance it of a timestep dts
+   with sciter > 0, the field is evaluated at the midpoint (s + s')/2 of
+   the update, found by sciter fixed-point iterations; this makes the
+   update time-symmetric also when the field on spin i depends on s_i
+   (anisotropy, biquadratic exchange, ...)
+---------------------------------------------------------------------- */
+
+void FixNVESpin::UpdateSingleSpin(int i)
+{
+  double **sp = atom->sp;
+  double **fm = atom->fm;
+  double s0[3],g[3];
+
+  ComputeInteractionsSpin(i);
+
+  if (sciter > 0) {
+    s0[0] = sp[i][0];
+    s0[1] = sp[i][1];
+    s0[2] = sp[i][2];
+    for (int k = 0; k < sciter; k++) {
+      RotateSpin(s0,fm[i],dts,g);
+      sp[i][0] = 0.5*(s0[0] + g[0]);
+      sp[i][1] = 0.5*(s0[1] + g[1]);
+      sp[i][2] = 0.5*(s0[2] + g[2]);
+      ComputeInteractionsSpin(i);
+    }
+    sp[i][0] = s0[0];
+    sp[i][1] = s0[1];
+    sp[i][2] = s0[2];
+  }
+
+  AdvanceSingleSpin(i);
+}
+
+/* ----------------------------------------------------------------------
    advance the spin i of a timestep dts
 ---------------------------------------------------------------------- */
 
@@ -595,30 +672,9 @@ void FixNVESpin::AdvanceSingleSpin(int i)
   int *sametag = atom->sametag;
   double **sp = atom->sp;
   double **fm = atom->fm;
-  double fm2,energy,dts2;
-  double cp[3],g[3];
+  double g[3];
 
-  cp[0] = cp[1] = cp[2] = 0.0;
-  g[0] = g[1] = g[2] = 0.0;
-  fm2 = (fm[i][0]*fm[i][0])+(fm[i][1]*fm[i][1])+(fm[i][2]*fm[i][2]);
-  energy = (sp[i][0]*fm[i][0])+(sp[i][1]*fm[i][1])+(sp[i][2]*fm[i][2]);
-  dts2 = dts*dts;
-
-  cp[0] = fm[i][1]*sp[i][2] - fm[i][2]*sp[i][1];
-  cp[1] = fm[i][2]*sp[i][0] - fm[i][0]*sp[i][2];
-  cp[2] = fm[i][0]*sp[i][1] - fm[i][1]*sp[i][0];
-
-  g[0] = sp[i][0] + cp[0]*dts;
-  g[1] = sp[i][1] + cp[1]*dts;
-  g[2] = sp[i][2] + cp[2]*dts;
-
-  g[0] += (fm[i][0]*energy - 0.5*sp[i][0]*fm2)*0.5*dts2;
-  g[1] += (fm[i][1]*energy - 0.5*sp[i][1]*fm2)*0.5*dts2;
-  g[2] += (fm[i][2]*energy - 0.5*sp[i][2]*fm2)*0.5*dts2;
-
-  g[0] /= (1.0 + 0.25*fm2*dts2);
-  g[1] /= (1.0 + 0.25*fm2*dts2);
-  g[2] /= (1.0 + 0.25*fm2*dts2);
+  RotateSpin(sp[i],fm[i],dts,g);
 
   sp[i][0] = g[0];
   sp[i][1] = g[1];

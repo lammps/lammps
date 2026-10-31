@@ -37,6 +37,7 @@ class FixNVESpin : public Fix {
 
   void ComputeInteractionsSpin(int);    // compute and advance single spin functions
   void AdvanceSingleSpin(int);
+  void UpdateSingleSpin(int);
 
   void sectoring();    // sectoring operation functions
   int coords2sector(double *);
@@ -53,6 +54,8 @@ class FixNVESpin : public Fix {
                       // sector_flag = 1  if parallel algorithm
 
   double dtv, dtf, dts;    // velocity, force, and spin timesteps
+
+  int sciter;    // # of self-consistent iterations of each single spin update
 
   int nlocal_max;    // max value of nlocal (for size of lists)
 

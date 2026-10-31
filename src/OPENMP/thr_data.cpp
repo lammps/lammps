@@ -128,7 +128,7 @@ void ThrData::init_force(int nall, double **f, double **torque, double *erforce,
 
   if (nall >= 0 && cc_flux && (ncc > 0)) {
     _cc_flux = cc_flux + _tid * nall;
-    memset(&(_cc_flux[0][0]), 0, nall * ncc * sizeof(double));
+    memset(&(_cc_flux[0][0]), 0, nall * sizeof(double) * ncc);
   } else
     _cc_flux = nullptr;
 }

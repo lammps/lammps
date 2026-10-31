@@ -24,6 +24,7 @@
 #include "force.h"
 #include "math_const.h"
 #include "math_extra.h"
+#include "math_special.h"
 #include "memory.h"
 #include "neighbor.h"
 #include "update.h"
@@ -34,6 +35,7 @@
 using namespace LAMMPS_NS;
 using namespace MathExtra;
 using MathConst::MY_PI;
+using MathSpecial::square;
 
 static constexpr int SELF_CUTOFF = 3;
 static constexpr double RHOMIN = 10.0;
@@ -514,18 +516,18 @@ void PairMesoCNTViscous::compute(int eflag, int vflag)
             double etamin = calpha * param[2];
             double dsq1;
             if (etamin < param[6]) {
-              dsq1 = hsq + pow(sin(param[1]) * param[6], 2);
-              dsq1 += pow(param[2] - calpha * param[6], 2);
+              dsq1 = hsq + square(sin(param[1]) * param[6]);
+              dsq1 += square(param[2] - calpha * param[6]);
             } else
-              dsq1 = hsq + pow(sin(param[1]) * param[2], 2);
+              dsq1 = hsq + square(sin(param[1]) * param[2]);
 
             etamin = calpha * param[3];
             double dsq2;
             if (etamin < param[6]) {
-              dsq2 = hsq + pow(sin(param[1]) * param[6], 2);
-              dsq2 += pow(param[3] - calpha * param[6], 2);
+              dsq2 = hsq + square(sin(param[1]) * param[6]);
+              dsq2 += square(param[3] - calpha * param[6]);
             } else
-              dsq2 = hsq + pow(sin(param[1]) * param[3], 2);
+              dsq2 = hsq + square(sin(param[1]) * param[3]);
 
             if (dsq1 > cutoffsq && dsq2 > cutoffsq) continue;
           }

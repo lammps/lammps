@@ -23,6 +23,7 @@
 #include "fix_store_atom.h"
 #include "force.h"
 #include "group.h"
+#include "math_special.h"
 #include "memory.h"
 #include "modify.h"
 #include "pair_lambda_input_apip.h"
@@ -35,6 +36,8 @@
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
+using MathSpecial::cube;
+using MathSpecial::powint;
 
 static const char cite_fix_lambda_c[] =
     "fix lambda command: doi.org/10.1063/5.0245877\n\n"
@@ -641,7 +644,7 @@ double FixLambdaAPIP::switching_function_poly(double input)
     return 0;
   } else {
     double deltatmp = 1 - 2 * (1 + (input - threshold_hi) / (threshold_width));
-    return 0.5 + 7.5 / 2. * (deltatmp / 4. - pow(deltatmp, 3) / 6. + pow(deltatmp, 5) / 20.);
+    return 0.5 + 7.5 / 2. * (deltatmp / 4. - cube(deltatmp) / 6. + powint(deltatmp, 5) / 20.);
   }
 }
 

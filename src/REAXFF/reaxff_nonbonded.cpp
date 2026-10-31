@@ -26,10 +26,14 @@
   ----------------------------------------------------------------------*/
 
 #include "reaxff_api.h"
+#include "math_special.h"
 
 #include "pair.h"
 
 #include <cmath>
+using LAMMPS_NS::MathSpecial::cube;
+using LAMMPS_NS::MathSpecial::powint;
+using LAMMPS_NS::MathSpecial::square;
 
 namespace ReaxFF {
   void Compute_Polarization_Energy(reax_system *system, simulation_data *data, storage *workspace)
@@ -94,8 +98,8 @@ namespace ReaxFF {
     if (!flag) return false;
 
     const double d = nbr_pj->d / xcut;
-    const double bond_softness = system->reax_param.gp.l[34] * pow( d, 3.0 )
-                               * pow( 1.0 - d, 6.0 );
+    const double bond_softness = system->reax_param.gp.l[34] * cube(d)
+                               * powint(1.0 - d, 6);
     if (!(bond_softness > 0.0)) return false;
 
     /* Coulombic energy contribution */
@@ -106,8 +110,8 @@ namespace ReaxFF {
 
     /* forces contribution */
     d_bond_softness = system->reax_param.gp.l[34]
-                    * 3.0 / xcut * pow( d, 2.0 )
-                    * pow( 1.0 - d, 5.0 ) * (1.0 - 3.0 * d);
+                    * 3.0 / xcut * square(d)
+                    * powint(1.0 - d, 5) * (1.0 - 3.0 * d);
     d_bond_softness = -0.5 * d_bond_softness
                     * SQR( effpot_diff );
     d_bond_softness = KCALpMOL_to_EV * d_bond_softness
@@ -267,9 +271,9 @@ namespace ReaxFF {
 
               //  lg correction, only if lgvdw is yes
               if (control->lgflag) {
-                r_ij5 = pow(r_ij, 5.0);
-                r_ij6 = pow(r_ij, 6.0);
-                re6 = pow(twbp->lgre, 6.0);
+                r_ij5 = powint(r_ij, 5);
+                r_ij6 = powint(r_ij, 6);
+                re6 = powint(twbp->lgre, 6);
                 e_lg = -(twbp->lgcij/(r_ij6 + re6));
                 data->my_en.e_vdW += Tap * e_lg;
 
@@ -489,9 +493,9 @@ namespace ReaxFF {
 
         //  lg correction, only if lgvdw is yes
         if (control->lgflag) {
-          r_ij5 = pow(r_ij, 5.0);
-          r_ij6 = pow(r_ij, 6.0);
-          re6 = pow(twbp->lgre, 6.0);
+          r_ij5 = powint(r_ij, 5);
+          r_ij6 = powint(r_ij, 6);
+          re6 = powint(twbp->lgre, 6);
           e_lg = -(twbp->lgcij/(r_ij6 + re6));
           lr->e_vdW += Tap * e_lg;
 

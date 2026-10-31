@@ -79,6 +79,8 @@ class PairTersoff : public Pair {
   virtual double ters_fa_d(double, Param *);
   virtual double ters_bij(double, Param *);
   virtual double ters_bij_d(double, Param *);
+  // must be overridden together with ters_bij() and ters_bij_d()
+  virtual void ters_bij_and_d(double, Param *, double &, double &);
 
   virtual void ters_zetaterm_d(double, double *, double, double, double *, double, double, double *,
                                double *, double *, Param *);

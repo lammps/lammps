@@ -26,10 +26,13 @@
   ----------------------------------------------------------------------*/
 
 #include "reaxff_api.h"
+#include "math_special.h"
 
 #include "pair.h"
 
 #include <cmath>
+using LAMMPS_NS::MathSpecial::cube;
+using LAMMPS_NS::MathSpecial::powint;
 #include <cstring>
 
 namespace ReaxFF {
@@ -108,13 +111,13 @@ namespace ReaxFF {
           twbp = &(system->reax_param.tbp[type_i][type_j]);
           bo_ij = &(bonds->select.bond_list[pj].bo_data);
           Di = workspace->Delta[i];
-          vov3 = bo_ij->BO - Di - 0.040*pow(Di, 4.);
+          vov3 = bo_ij->BO - Di - 0.040*powint(Di, 4);
 
           if (vov3 > 3.) {
             data->my_en.e_lp += e_lph = p_lp3 * SQR(vov3-3.0);
 
             deahu2dbo = 2.*p_lp3*(vov3 - 3.);
-            deahu2dsbo = 2.*p_lp3*(vov3 - 3.)*(-1. - 0.16*pow(Di, 3.));
+            deahu2dsbo = 2.*p_lp3*(vov3 - 3.)*(-1. - 0.16*cube(Di));
 
             bo_ij->Cdbo += deahu2dbo;
             workspace->CdDelta[i] += deahu2dsbo;

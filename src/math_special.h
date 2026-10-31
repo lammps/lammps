@@ -131,7 +131,7 @@ namespace LAMMPS_NS::MathSpecial {
     return x * x * x;
   }
 
-  /* Fast inline version of pow(-1.0, n)
+  /*! Fast inline version of pow(-1.0, n)
    *
    *  \param   n argument (integer)
    *  \return  -1 if n is odd, 1.0 if n is even */
@@ -141,7 +141,7 @@ namespace LAMMPS_NS::MathSpecial {
     return (n & 1) ? -1.0 : 1.0;
   }
 
-  /* Fast inline version of pow(x,n) for integer n
+  /*! Fast inline version of pow(x,n) for integer n
    *
    * This is a version of pow(x,n) optimized for n being integer.
    * Speedups of up to 10x faster than pow(x,y) have been measured.
@@ -164,7 +164,28 @@ namespace LAMMPS_NS::MathSpecial {
     return (n > 0) ? yy : 1.0 / yy;
   }
 
-  /* Fast inline version of (sin(x)/x)^n as used by PPPM kspace styles
+  /*! Version of pow(x,n) for an exponent that is only known at run time
+   *
+   * Dispatches to powint() when the exponent happens to have an integer
+   * value, and to std::pow() otherwise.  Useful where a force field
+   * parameter is a floating point number that is an integer for most
+   * parameter sets.  Follows the powint() convention of returning 0 for
+   * x == 0, which differs from std::pow() for a negative exponent.
+   *
+   *  \param   x base
+   *  \param   n exponent
+   *  \return  value of x^n */
+
+  static inline double powauto(const double x, const double n)
+  {
+    if (n == 0.0) return 1.0;
+    if (x == 0.0) return 0.0;
+    const double rounded = std::round(n);
+    if (n == rounded) return powint(x, static_cast<int>(rounded));
+    return std::pow(x, n);
+  }
+
+  /*! Fast inline version of (sin(x)/x)^n as used by PPPM kspace styles
    *
    * This is an optimized function to compute (sin(x)/x)^n as frequently used by PPPM.
    *

@@ -25,6 +25,7 @@
 #include "info.h"
 #include "math_const.h"
 #include "math_extra.h"
+#include "math_special.h"
 #include "memory.h"
 #include "my_page.h"
 #include "neigh_list.h"
@@ -37,6 +38,8 @@
 using namespace LAMMPS_NS;
 using namespace MathConst;
 using namespace MathExtra;
+using MathSpecial::cube;
+using MathSpecial::square;
 
 static constexpr int DELTA = 4;
 static constexpr int PGDELTA = 1;
@@ -750,7 +753,7 @@ double PairExTeP::zeta(Param *param, double rij, double rik,
   costheta = (delrij[0]*delrik[0] + delrij[1]*delrik[1] +
               delrij[2]*delrik[2]) / (rij*rik);
 
-  if (param->powermint == 3) arg = pow(param->lam3 * (rij-rik),3.0);
+  if (param->powermint == 3) arg = cube(param->lam3 * (rij-rik));
   else arg = param->lam3 * (rij-rik);
 
   if (arg > 69.0776) ex_delr = 1.e30;
@@ -887,7 +890,7 @@ void PairExTeP::ters_zetaterm_d(double prefactor,
 
   fc = ters_fc(rik,param);
   dfc = ters_fc_d(rik,param);
-  if (param->powermint == 3) tmp = pow(param->lam3 * (rij-rik),3.0);
+  if (param->powermint == 3) tmp = cube(param->lam3 * (rij-rik));
   else tmp = param->lam3 * (rij-rik);
 
   if (tmp > 69.0776) ex_delr = 1.e30;
@@ -895,7 +898,7 @@ void PairExTeP::ters_zetaterm_d(double prefactor,
   else ex_delr = exp(tmp);
 
   if (param->powermint == 3)
-    ex_delr_d = 3.0*pow(param->lam3,3.0) * pow(rij-rik,2.0)*ex_delr;
+    ex_delr_d = 3.0*cube(param->lam3) * square(rij-rik)*ex_delr;
   else ex_delr_d = param->lam3 * ex_delr;
 
   cos_theta = dot3(rij_hat,rik_hat);

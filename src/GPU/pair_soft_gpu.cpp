@@ -36,7 +36,7 @@ using namespace LAMMPS_GPU;
 
 /* ---------------------------------------------------------------------- */
 
-PairSoftGPU::PairSoftGPU(LAMMPS *lmp) : PairSoft(lmp), gpu_mode(GPU_FORCE)
+PairSoftGPU::PairSoftGPU(LAMMPS *lmp) : PairSoft(lmp), gpu_mode(GPU_FORCE), update_coeffs(false)
 {
   respa_enable = 0;
   suffix_flag |= Suffix::GPU;
@@ -57,6 +57,11 @@ PairSoftGPU::~PairSoftGPU()
 void PairSoftGPU::compute(int eflag, int vflag)
 {
   ev_init(eflag, vflag);
+
+  if (update_coeffs) {
+    soft_gpu_reinit(atom->ntypes + 1, cutsq, prefactor, cut);
+    update_coeffs = false;
+  }
 
   int nall = atom->nlocal + atom->nghost;
   int inum;
@@ -130,11 +135,13 @@ void PairSoftGPU::init_style()
 
 /* ---------------------------------------------------------------------- */
 
-void PairSoftGPU::reinit()
+double PairSoftGPU::init_one(int i, int j)
 {
-  Pair::reinit();
+  // the parameters may have been changed, e.g. by fix adapt,
+  // so copy them to the GPU again before the next compute()
 
-  soft_gpu_reinit(atom->ntypes + 1, cutsq, prefactor, cut);
+  update_coeffs = true;
+  return PairSoft::init_one(i, j);
 }
 
 /* ---------------------------------------------------------------------- */

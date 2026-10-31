@@ -37,7 +37,7 @@ using namespace LAMMPS_GPU;
 
 /* ---------------------------------------------------------------------- */
 
-PairUFMGPU::PairUFMGPU(LAMMPS *lmp) : PairUFM(lmp), gpu_mode(GPU_FORCE)
+PairUFMGPU::PairUFMGPU(LAMMPS *lmp) : PairUFM(lmp), gpu_mode(GPU_FORCE), update_coeffs(false)
 {
   respa_enable = 0;
   suffix_flag |= Suffix::GPU;
@@ -58,6 +58,11 @@ PairUFMGPU::~PairUFMGPU()
 void PairUFMGPU::compute(int eflag, int vflag)
 {
   ev_init(eflag, vflag);
+
+  if (update_coeffs) {
+    ufml_gpu_reinit(atom->ntypes + 1, cutsq, uf1, uf2, uf3, offset);
+    update_coeffs = false;
+  }
 
   int nall = atom->nlocal + atom->nghost;
   int inum;
@@ -133,11 +138,13 @@ void PairUFMGPU::init_style()
 
 /* ---------------------------------------------------------------------- */
 
-void PairUFMGPU::reinit()
+double PairUFMGPU::init_one(int i, int j)
 {
-  Pair::reinit();
+  // the parameters may have been changed, e.g. by fix adapt,
+  // so copy them to the GPU again before the next compute()
 
-  ufml_gpu_reinit(atom->ntypes + 1, cutsq, uf1, uf2, uf3, offset);
+  update_coeffs = true;
+  return PairUFM::init_one(i, j);
 }
 
 /* ---------------------------------------------------------------------- */

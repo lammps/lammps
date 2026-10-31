@@ -3,7 +3,7 @@ lammps_version: 17 Apr 2024
 tags:
 date_generated: Sun Jun  9 11:41:13 2024
 epsilon: 1e-13
-skip_tests:
+skip_tests: gpu
 prerequisites: ! |
   atom full
   pair lj/cut

@@ -177,33 +177,36 @@ double FixQEqDynamic::compute_eneg()
   pack_flag = 2;
   comm->forward_comm(this);
 
+  // include the rows of atoms outside the group, since the half neighbor list
+  // may store their pairs with atoms in the group there
+
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
     itype = type[i];
+    const bool igroup = mask[i] & groupbit;
 
-    if (mask[i] & groupbit) {
+    if (igroup) qf[i] += chi[itype] + eta[itype] * q[i];
 
-      qf[i] += chi[itype] + eta[itype] * q[i];
+    jlist = firstneigh[i];
+    jnum = numneigh[i];
 
-      jlist = firstneigh[i];
-      jnum = numneigh[i];
+    for (jj = 0; jj < jnum; jj++) {
+      j = jlist[jj];
+      j &= NEIGHMASK;
+      const bool jgroup = mask[j] & groupbit;
+      if (!igroup && !jgroup) continue;
 
-      for (jj = 0; jj < jnum; jj++) {
-        j = jlist[jj];
-        j &= NEIGHMASK;
+      delr[0] = x[i][0] - x[j][0];
+      delr[1] = x[i][1] - x[j][1];
+      delr[2] = x[i][2] - x[j][2];
+      rsq = delr[0] * delr[0] + delr[1] * delr[1] + delr[2] * delr[2];
 
-        delr[0] = x[i][0] - x[j][0];
-        delr[1] = x[i][1] - x[j][1];
-        delr[2] = x[i][2] - x[j][2];
-        rsq = delr[0] * delr[0] + delr[1] * delr[1] + delr[2] * delr[2];
+      if (rsq > cutoff_sq) continue;
 
-        if (rsq > cutoff_sq) continue;
-
-        r = sqrt(rsq);
-        rinv = 1.0 / r;
-        qf[i] += q[j] * rinv;
-        qf[j] += q[i] * rinv;
-      }
+      r = sqrt(rsq);
+      rinv = 1.0 / r;
+      if (igroup) qf[i] += q[j] * rinv;
+      if (jgroup) qf[j] += q[i] * rinv;
     }
   }
 

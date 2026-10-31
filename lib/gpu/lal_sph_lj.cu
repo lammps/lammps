@@ -56,7 +56,7 @@ _texture_2d( vel_tex,int4);
 /* ------------------------------------------------------------------------ */
 /* Lennard-Jones EOS,
    Francis H. Ree
-   "Analytic representation of thermodynamic data for the Lennard‐Jones fluid",
+   "Analytic representation of thermodynamic data for the Lennard-Jones fluid",
    Journal of Chemical Physics 73 pp. 5401-5403 (1980)
    return p = pc[0], c = pc[1]
 */

@@ -297,6 +297,31 @@ TEST_F(SimpleCommandsTest, Suffix)
     ASSERT_THAT(utils::strip_style_suffix("one/three", lmp), StrEq("one"));
     ASSERT_THAT(utils::strip_style_suffix("four/one", lmp), StrEq("four/one"));
 
+    // only the longest matching suffix is removed, and only once
+    BEGIN_HIDE_OUTPUT();
+    command("suffix hybrid two one/two");
+    END_HIDE_OUTPUT();
+    ASSERT_THAT(utils::strip_style_suffix("four/one/two", lmp), StrEq("four"));
+    ASSERT_THAT(utils::strip_style_suffix("four/two", lmp), StrEq("four"));
+    ASSERT_THAT(utils::strip_style_suffix("four/two/two", lmp), StrEq("four/two"));
+    ASSERT_THAT(utils::strip_style_suffix("fourtwo", lmp), StrEq("fourtwo"));
+    ASSERT_THAT(utils::strip_style_suffix("/two", lmp), StrEq("/two"));
+
+    // with "pair/only on" non-pair styles get the suffix from LAMMPS::non_pair_suffix()
+    BEGIN_HIDE_OUTPUT();
+    command("suffix kk");
+    END_HIDE_OUTPUT();
+    lmp->pair_only_flag = 1;
+    ASSERT_THAT(utils::strip_style_suffix("nvt/kk", lmp), StrEq("nvt"));
+#if defined(LMP_KOKKOS_GPU)
+    ASSERT_THAT(lmp->non_pair_suffix(), StrEq("kk/host"));
+    ASSERT_THAT(utils::strip_style_suffix("nvt/kk/host", lmp), StrEq("nvt"));
+#else
+    ASSERT_EQ(lmp->non_pair_suffix(), nullptr);
+    ASSERT_THAT(utils::strip_style_suffix("nvt/kk/host", lmp), StrEq("nvt/kk/host"));
+#endif
+    lmp->pair_only_flag = 0;
+
     BEGIN_HIDE_OUTPUT();
     command("suffix four");
     END_HIDE_OUTPUT();

@@ -171,6 +171,9 @@ namespace LAMMPS_NS::MathSpecial {
    * parameter is a floating point number that is an integer for most
    * parameter sets.  Follows the powint() convention of returning 0 for
    * x == 0, which differs from std::pow() for a negative exponent.
+   * The integer test converts to int instead of calling std::round(),
+   * which is a library call unless the compiler may use SSE4.1; exponents
+   * of 65536 or more in magnitude always use std::pow().
    *
    *  \param   x base
    *  \param   n exponent
@@ -180,8 +183,8 @@ namespace LAMMPS_NS::MathSpecial {
   {
     if (n == 0.0) return 1.0;
     if (x == 0.0) return 0.0;
-    const double rounded = std::round(n);
-    if (n == rounded) return powint(x, static_cast<int>(rounded));
+    if ((std::fabs(n) < 65536.0) && (n == static_cast<int>(n)))
+      return powint(x, static_cast<int>(n));
     return std::pow(x, n);
   }
 

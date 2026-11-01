@@ -32,7 +32,7 @@ Windows.  This is mostly facilitated by using the
 :doc:`Developer_platform` in the ``platform`` namespace and CMake.
 
 Before trying to build LAMMPS on Windows yourself, please consider the
-`pre-compiled Windows installer packages <https://packages.lammps.org/windows.html>`_
+`pre-compiled Windows installer packages <https://download.lammps.org/packages/windows/>`_
 and see if they are sufficient for your needs.
 
 .. _linux:

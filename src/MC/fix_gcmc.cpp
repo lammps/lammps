@@ -1441,11 +1441,13 @@ void FixGCMC::attempt_molecule_insertion()
     }
   }
 
+  // Sample a uniform 3d orientation using a unit quaternion.
+  // Quaternion component order: (w, x, y, z).
+  double rotmat[3][3],quat[4];
+  /*
   // generate point in unit cube
   // then restrict to unit sphere
-
-  double rotmat[3][3],quat[4];
-  /*double r[3], rsq = 1.1;
+  double r[3], rsq = 1.1;
   while (rsq > 1.0) {
     r[0] = 2.0*random_equal->uniform() - 1.0;
     r[1] = 2.0*random_equal->uniform() - 1.0;
@@ -1457,7 +1459,6 @@ void FixGCMC::attempt_molecule_insertion()
   MathExtra::norm3(r);
   MathExtra::axisangle_to_quat(r,theta,quat);
   */
- // LAMMPS quaternion order: (w, x, y, z)
   const double u1 = random_equal->uniform();
   const double u2 = random_equal->uniform();
   const double u3 = random_equal->uniform();
@@ -2303,11 +2304,14 @@ void FixGCMC::attempt_molecule_insertion_full()
 
   }
 
+  // Sample a uniform 3d orientation using a unit quaternion.
+  // Quaternion component order: (w, x, y, z).
+  double rotmat[3][3],quat[4];
+  /*
   // generate point in unit cube
   // then restrict to unit sphere
 
-  double rotmat[3][3],quat[4];
-  /*double r[3],rsq = 1.1;
+  double r[3],rsq = 1.1;
   while (rsq > 1.0) {
     r[0] = 2.0*random_equal->uniform() - 1.0;
     r[1] = 2.0*random_equal->uniform() - 1.0;
@@ -2320,7 +2324,6 @@ void FixGCMC::attempt_molecule_insertion_full()
   MathExtra::axisangle_to_quat(r,theta,quat);
   MathExtra::quat_to_mat(quat,rotmat);
   */
-  // LAMMPS quaternion order: (w, x, y, z)
   const double u1 = random_equal->uniform();
   const double u2 = random_equal->uniform();
   const double u3 = random_equal->uniform();

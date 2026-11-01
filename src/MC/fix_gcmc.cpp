@@ -44,6 +44,8 @@
 #include "suffix.h"
 #include "update.h"
 
+#include <fstream>
+#include <iomanip>
 #include <cmath>
 #include <cstring>
 #include <exception>
@@ -1444,32 +1446,8 @@ void FixGCMC::attempt_molecule_insertion()
   // Sample a uniform 3d orientation using a unit quaternion.
   // Quaternion component order: (w, x, y, z).
   double rotmat[3][3],quat[4];
-  /*
-  // generate point in unit cube
-  // then restrict to unit sphere
-  double r[3], rsq = 1.1;
-  while (rsq > 1.0) {
-    r[0] = 2.0*random_equal->uniform() - 1.0;
-    r[1] = 2.0*random_equal->uniform() - 1.0;
-    r[2] = 2.0*random_equal->uniform() - 1.0;
-    rsq = MathExtra::dot3(r, r);
-  }
-
-  double theta = random_equal->uniform() * MY_2PI;
-  MathExtra::norm3(r);
-  MathExtra::axisangle_to_quat(r,theta,quat);
-  */
-  const double u1 = random_equal->uniform();
-  const double u2 = random_equal->uniform();
-  const double u3 = random_equal->uniform();
-
-  const double a = std::sqrt(1.0 - u1);
-  const double b = std::sqrt(u1);
-
-  quat[0] = b * std::cos(MY_2PI * u3);
-  quat[1] = a * std::sin(MY_2PI * u2);
-  quat[2] = a * std::cos(MY_2PI * u2);
-  quat[3] = b * std::sin(MY_2PI * u3);
+  //sample_insertion_quaternion_legacy(quat);
+  sample_insertion_quaternion_uniform(quat);
   MathExtra::quat_to_mat(quat,rotmat);
 
   double insertion_energy = 0.0;
@@ -2307,36 +2285,9 @@ void FixGCMC::attempt_molecule_insertion_full()
   // Sample a uniform 3d orientation using a unit quaternion.
   // Quaternion component order: (w, x, y, z).
   double rotmat[3][3],quat[4];
-  /*
-  // generate point in unit cube
-  // then restrict to unit sphere
-
-  double r[3],rsq = 1.1;
-  while (rsq > 1.0) {
-    r[0] = 2.0*random_equal->uniform() - 1.0;
-    r[1] = 2.0*random_equal->uniform() - 1.0;
-    r[2] = 2.0*random_equal->uniform() - 1.0;
-    rsq = MathExtra::dot3(r, r);
-  }
-
-  double theta = random_equal->uniform() * MY_2PI;
-  MathExtra::norm3(r);
-  MathExtra::axisangle_to_quat(r,theta,quat);
-  MathExtra::quat_to_mat(quat,rotmat);
-  */
-  const double u1 = random_equal->uniform();
-  const double u2 = random_equal->uniform();
-  const double u3 = random_equal->uniform();
-
-  const double a = std::sqrt(1.0 - u1);
-  const double b = std::sqrt(u1);
-
-  quat[0] = b * std::cos(MY_2PI * u3);
-  quat[1] = a * std::sin(MY_2PI * u2);
-  quat[2] = a * std::cos(MY_2PI * u2);
-  quat[3] = b * std::sin(MY_2PI * u3);
+  //sample_insertion_quaternion_legacy(quat);
+  sample_insertion_quaternion_uniform(quat);
   MathExtra::quat_to_mat(quat, rotmat);
-
 
 
   double vnew[3];
@@ -2931,4 +2882,42 @@ void *FixGCMC::extract(const char *name, int &dim)
     return (void *) &exclusion_group;
   }
   return nullptr;
+}
+/* ----------------------------------------------------------------------
+------------------------------------------------------------------------- */
+
+void FixGCMC::sample_insertion_quaternion_legacy(double *quat)
+{
+  double axis[3];
+  double rsq;
+
+  do {
+    axis[0] = 2.0 * random_equal->uniform() - 1.0;
+    axis[1] = 2.0 * random_equal->uniform() - 1.0;
+    axis[2] = 2.0 * random_equal->uniform() - 1.0;
+    rsq = MathExtra::dot3(axis, axis);
+  } while (rsq > 1.0 || rsq == 0.0);
+
+  const double theta = MY_2PI * random_equal->uniform();
+  MathExtra::norm3(axis);
+  MathExtra::axisangle_to_quat(axis, theta, quat);
+}
+
+/* ----------------------------------------------------------------------
+------------------------------------------------------------------------- */
+
+void FixGCMC::sample_insertion_quaternion_uniform(double *quat)
+{
+  const double u1 = random_equal->uniform();
+  const double u2 = random_equal->uniform();
+  const double u3 = random_equal->uniform();
+
+  const double a = std::sqrt(1.0 - u1);
+  const double b = std::sqrt(u1);
+
+  // Uniform orientation; quaternion order: (w, x, y, z).
+  quat[0] = b * std::cos(MY_2PI * u3);
+  quat[1] = a * std::sin(MY_2PI * u2);
+  quat[2] = a * std::cos(MY_2PI * u2);
+  quat[3] = b * std::sin(MY_2PI * u3);
 }

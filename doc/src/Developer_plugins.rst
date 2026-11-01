@@ -321,9 +321,17 @@ required to build the plugin are also available under a less restrictive
 license).  This will automatically set the required environment variable
 and launching a (compatible) LAMMPS binary will load and register the
 plugin and the ML-PACE package can then be used as it was linked into
-LAMMPS.
+LAMMPS.  The same currently exists for the MBX and PLUMED packages.
+
+Plugins for the pre-compiled LAMMPS packages for Windows may only use
+classes from the LAMMPS core and from packages other than KOKKOS.  A
+Windows DLL can make at most 65535 functions and variables available to
+other programs, and the LAMMPS DLL in those packages would exceed this
+limit with all included packages.  Thus the functions and variables of
+the KOKKOS package are not made available.
 
 ---------
 
 You can find additional LAMMPS plugins in the `LAMMPS plugins source
 code repository on GitHub <https://github.com/lammps/lammps-plugins>`_
+

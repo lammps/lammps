@@ -229,7 +229,7 @@ if revflag == 'stable' or revflag == 'release' or rev2.match(revflag):
     verseq = verexp.match(vertxt).groups()
     version = "".join(verseq)
 elif revflag == 'develop' or revflag == 'maintenance':
-    version = time.strftime('%Y-%m-%d')
+    version = system("git describe HEAD").strip()
 
 if not pythonflag and not guiflag:
   print("Configuring pace plugin build with CMake")

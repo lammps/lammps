@@ -1444,8 +1444,8 @@ void FixGCMC::attempt_molecule_insertion()
   // generate point in unit cube
   // then restrict to unit sphere
 
-  double r[3],rotmat[3][3],quat[4];
-  double rsq = 1.1;
+  double rotmat[3][3],quat[4];
+  /*double r[3], rsq = 1.1;
   while (rsq > 1.0) {
     r[0] = 2.0*random_equal->uniform() - 1.0;
     r[1] = 2.0*random_equal->uniform() - 1.0;
@@ -1456,6 +1456,19 @@ void FixGCMC::attempt_molecule_insertion()
   double theta = random_equal->uniform() * MY_2PI;
   MathExtra::norm3(r);
   MathExtra::axisangle_to_quat(r,theta,quat);
+  */
+ // LAMMPS quaternion order: (w, x, y, z)
+  const double u1 = random_equal->uniform();
+  const double u2 = random_equal->uniform();
+  const double u3 = random_equal->uniform();
+
+  const double a = std::sqrt(1.0 - u1);
+  const double b = std::sqrt(u1);
+
+  quat[0] = b * std::cos(MY_2PI * u3);
+  quat[1] = a * std::sin(MY_2PI * u2);
+  quat[2] = a * std::cos(MY_2PI * u2);
+  quat[3] = b * std::sin(MY_2PI * u3);
   MathExtra::quat_to_mat(quat,rotmat);
 
   double insertion_energy = 0.0;
@@ -2293,8 +2306,8 @@ void FixGCMC::attempt_molecule_insertion_full()
   // generate point in unit cube
   // then restrict to unit sphere
 
-  double r[3],rotmat[3][3],quat[4];
-  double rsq = 1.1;
+  double rotmat[3][3],quat[4];
+  /*double r[3],rsq = 1.1;
   while (rsq > 1.0) {
     r[0] = 2.0*random_equal->uniform() - 1.0;
     r[1] = 2.0*random_equal->uniform() - 1.0;
@@ -2306,6 +2319,22 @@ void FixGCMC::attempt_molecule_insertion_full()
   MathExtra::norm3(r);
   MathExtra::axisangle_to_quat(r,theta,quat);
   MathExtra::quat_to_mat(quat,rotmat);
+  */
+  // LAMMPS quaternion order: (w, x, y, z)
+  const double u1 = random_equal->uniform();
+  const double u2 = random_equal->uniform();
+  const double u3 = random_equal->uniform();
+
+  const double a = std::sqrt(1.0 - u1);
+  const double b = std::sqrt(u1);
+
+  quat[0] = b * std::cos(MY_2PI * u3);
+  quat[1] = a * std::sin(MY_2PI * u2);
+  quat[2] = a * std::cos(MY_2PI * u2);
+  quat[3] = b * std::sin(MY_2PI * u3);
+  MathExtra::quat_to_mat(quat, rotmat);
+
+
 
   double vnew[3];
   vnew[0] = random_equal->gaussian()*sigma;

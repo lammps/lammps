@@ -70,7 +70,7 @@ if((CMAKE_SYSTEM_NAME STREQUAL "Windows") AND (CMAKE_CROSSCOMPILING))
     PATCH_COMMAND ${CMAKE_COMMAND} -D SOURCE_DIR=<SOURCE_DIR> -P ${CMAKE_SOURCE_DIR}/AutotoolsTouch.cmake
     CONFIGURE_COMMAND ${CROSS_CONFIGURE} --disable-shared --disable-bsymbolic --disable-dlopen
                                          --disable-python --enable-cxx=${PLUMED_CXX_STANDARD}
-                                         --enable-modules=-adjmat:-dimred:+drr:+eds:-fisst:+funnel:+logmfd:+manyrestraints:+maze:+opes:+multicolvar:-pamm:-piv:+s2cm:-sasa:-ves
+                                         --enable-modules=-adjmat:-dimred:+drr:+eds:-fisst:+funnel:+logmfd:+maze:+opes:+multicolvar:-pamm:-piv:+s2cm:-sasa:-ves
                                          ${PLUMED_CONFIG_OMP}
                                          ${PLUMED_CONFIG_MPI}
                                          CXX=${PLUMED_CONFIG_CXX}

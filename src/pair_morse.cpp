@@ -66,8 +66,8 @@ void PairMorse::compute(int eflag, int vflag)
   evdwl = 0.0;
   ev_init(eflag, vflag);
 
-  double **x = atom->x;
-  double **f = atom->f;
+  const double (*const x)[3] = (const double (*)[3]) atom->x[0];
+  double (*const f)[3] = (double (*)[3]) atom->f[0];
   int *type = atom->type;
   int nlocal = atom->nlocal;
   double *special_lj = force->special_lj;

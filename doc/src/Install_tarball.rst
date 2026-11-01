@@ -59,13 +59,16 @@ downloaded files and type:
 This prints the name of each downloaded file that is in the list
 followed by either "OK" or "FAILED".  On macOS, please use ``shasum -a
 256`` instead of ``sha256sum``.  On Windows, you can print the checksum
-of a file in a PowerShell window with a command like the following and
-compare it with the corresponding line of the ``SHA256SUMS`` file
-(Windows prints the checksum with upper case letters):
+of a file in a Command Prompt or PowerShell window with a command like
+the following and compare it with the corresponding line of the
+``SHA256SUMS`` file:
 
 .. code-block:: text
 
-   Get-FileHash LAMMPS-Win10-x64-GUI-30Sep2026_update1.exe
+   certutil -hashfile LAMMPS-Win10-x64-GUI-30Sep2026_update1.exe SHA256
+
+In a PowerShell window, ``Get-FileHash`` followed by the file name
+prints the checksum as well (with upper case letters).
 
 On the `LAMMPS GitHub releases page <git_>`_, the SHA-256 checksum of
 each file is shown next to its name (after ``sha256:``), so that you can

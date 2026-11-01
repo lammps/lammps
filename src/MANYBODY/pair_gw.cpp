@@ -56,6 +56,9 @@ PairGW::PairGW(LAMMPS *lmp) :
   unit_convert_flag = utils::get_supported_conversions(utils::ENERGY);
 
   params = nullptr;
+  maxshort = 10;
+  neighshort = nullptr;
+  memory->create(neighshort,maxshort,"pair:neighshort");
 }
 
 /* ----------------------------------------------------------------------
@@ -68,6 +71,7 @@ PairGW::~PairGW()
 
   memory->destroy(params);
   memory->destroy(elem3param);
+  memory->destroy(neighshort);
 
   if (allocated) {
     memory->destroy(setflag);
@@ -85,7 +89,7 @@ void PairGW::compute(int eflag, int vflag)
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
   double fxtmp,fytmp,fztmp,fjxtmp,fjytmp,fjztmp;
   double rsq,rsq1,rsq2;
-  double delr1[3],delr2[3],fi[3],fj[3],fk[3];
+  double fi[3],fj[3],fk[3];
   double zeta_ij, prefactor;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
@@ -98,6 +102,7 @@ void PairGW::compute(int eflag, int vflag)
   int *type = atom->type;
   int nlocal = atom->nlocal;
   int newton_pair = force->newton_pair;
+  const double cutshortsq = cutmax*cutmax;
 
   inum = list->inum;
   ilist = list->ilist;
@@ -119,10 +124,33 @@ void PairGW::compute(int eflag, int vflag)
 
     jlist = firstneigh[i];
     jnum = numneigh[i];
+    int numshort = 0;
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
       j &= NEIGHMASK;
+
+      delx = xtmp - x[j][0];
+      dely = ytmp - x[j][1];
+      delz = ztmp - x[j][2];
+      rsq = delx*delx + dely*dely + delz*delz;
+
+      // collect the neighbors within the largest cutoff for the three-body terms
+
+      if (rsq <= cutshortsq) {
+        ShortNeigh &s = neighshort[numshort++];
+        s.del[0] = -delx;
+        s.del[1] = -dely;
+        s.del[2] = -delz;
+        s.rsq = rsq;
+        s.j = j;
+        s.jtype = map[type[j]];
+        if (numshort >= maxshort) {
+          maxshort += maxshort/2;
+          memory->grow(neighshort,maxshort,"pair:neighshort");
+        }
+      }
+
       jtag = tag[j];
 
       if (itag > jtag) {
@@ -136,12 +164,6 @@ void PairGW::compute(int eflag, int vflag)
       }
 
       jtype = map[type[j]];
-
-      delx = xtmp - x[j][0];
-      dely = ytmp - x[j][1];
-      delz = ztmp - x[j][2];
-      rsq = delx*delx + dely*dely + delz*delz;
-
       iparam_ij = elem3param[itype][jtype][jtype];
       if (rsq > params[iparam_ij].cutsq) continue;
 
@@ -161,16 +183,14 @@ void PairGW::compute(int eflag, int vflag)
     // three-body interactions
     // skip immediately if I-J is not within cutoff
 
-    for (jj = 0; jj < jnum; jj++) {
-      j = jlist[jj];
-      j &= NEIGHMASK;
-      jtype = map[type[j]];
+    for (jj = 0; jj < numshort; jj++) {
+      ShortNeigh &s1 = neighshort[jj];
+      j = s1.j;
+      jtype = s1.jtype;
       iparam_ij = elem3param[itype][jtype][jtype];
 
-      delr1[0] = x[j][0] - xtmp;
-      delr1[1] = x[j][1] - ytmp;
-      delr1[2] = x[j][2] - ztmp;
-      rsq1 = delr1[0]*delr1[0] + delr1[1]*delr1[1] + delr1[2]*delr1[2];
+      double *const delr1 = s1.del;
+      rsq1 = s1.rsq;
       if (rsq1 > params[iparam_ij].cutsq) continue;
       fjxtmp = fjytmp = fjztmp = 0.0;
 
@@ -178,17 +198,15 @@ void PairGW::compute(int eflag, int vflag)
 
       zeta_ij = 1.0;
 
-      for (kk = 0; kk < jnum; kk++) {
+      for (kk = 0; kk < numshort; kk++) {
         if (jj == kk) continue;
-        k = jlist[kk];
-        k &= NEIGHMASK;
-        ktype = map[type[k]];
+        ShortNeigh &s2 = neighshort[kk];
+        k = s2.j;
+        ktype = s2.jtype;
         iparam_ijk = elem3param[itype][jtype][ktype];
 
-        delr2[0] = x[k][0] - xtmp;
-        delr2[1] = x[k][1] - ytmp;
-        delr2[2] = x[k][2] - ztmp;
-        rsq2 = delr2[0]*delr2[0] + delr2[1]*delr2[1] + delr2[2]*delr2[2];
+        double *const delr2 = s2.del;
+        rsq2 = s2.rsq;
         if (rsq2 > params[iparam_ijk].cutsq) continue;
 
         zeta_ij += zeta(&params[iparam_ijk],rsq1,rsq2,delr1,delr2);
@@ -210,17 +228,15 @@ void PairGW::compute(int eflag, int vflag)
 
       // attractive term via loop over k
 
-      for (kk = 0; kk < jnum; kk++) {
+      for (kk = 0; kk < numshort; kk++) {
         if (jj == kk) continue;
-        k = jlist[kk];
-        k &= NEIGHMASK;
-        ktype = map[type[k]];
+        ShortNeigh &s2 = neighshort[kk];
+        k = s2.j;
+        ktype = s2.jtype;
         iparam_ijk = elem3param[itype][jtype][ktype];
 
-        delr2[0] = x[k][0] - xtmp;
-        delr2[1] = x[k][1] - ytmp;
-        delr2[2] = x[k][2] - ztmp;
-        rsq2 = delr2[0]*delr2[0] + delr2[1]*delr2[1] + delr2[2]*delr2[2];
+        double *const delr2 = s2.del;
+        rsq2 = s2.rsq;
         if (rsq2 > params[iparam_ijk].cutsq) continue;
 
         attractive(&params[iparam_ijk],prefactor,

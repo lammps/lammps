@@ -28,6 +28,27 @@ unicode, which have been demonstrated as a vector to obfuscate and hide
 malicious changes to the source code, all LAMMPS submissions are checked
 for unicode characters and only all-ASCII source code is accepted.
 
+# Reporting a Vulnerability
+
+If you have found a problem that could be used to harm other LAMMPS
+users or the LAMMPS project, please do **not** report it in a public
+issue.  Examples for such problems are ways to get malicious changes
+into the LAMMPS source code, into the libraries that are downloaded
+when compiling LAMMPS, or into the pre-compiled LAMMPS packages, and
+also passwords or access keys that have become public by accident.
+Please report those problems privately in one of these two ways:
+
+- with the "Report a vulnerability" button on the [Security
+  page](https://github.com/lammps/lammps/security) of the LAMMPS
+  repository on GitHub
+- with an email to developers@lammps.org which is forwarded to the
+  LAMMPS core developers
+
+Please include which version of LAMMPS is affected and how the problem
+can be reproduced.  You can expect a first response within one week.
+The LAMMPS developers will then work with you to confirm and correct the
+problem and will agree with you on when and how it is made public.
+
 # Version Updates
 
 LAMMPS follows a continuous release development model.  We aim to keep

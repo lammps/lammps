@@ -95,18 +95,8 @@ void NPairBinOmp<HALF, NEWTON, TRI, SIZE, ATOMONLY>::build(NeighList *list)
   const int * _noalias const atom2bin = this->atom2bin;
   const int nstencil = this->nstencil;
 
-  // cache whether type t has identical neighbor cutoffs to all types
-  // covers models up to 63 atom types on stack; larger counts fall back safely
-  const int ntypes = atom->ntypes;
-  bool ucut_type[64];
-  if (!SIZE && !exclude && ntypes < 64) {
-    for (int t = 1; t <= ntypes; t++) {
-      bool u = true;
-      for (int t2 = 2; u && t2 <= ntypes; t2++)
-        if (cutneighsq[t][t2] != cutneighsq[t][1]) u = false;
-      ucut_type[t] = u;
-    }
-  }
+  // whether type t has the same neighbor cutoff to all types, see copy_neighbor_info()
+  const int *const ucut_type = this->ucut_type;
 
   // each thread has its own page allocator
   MyPage<int> &ipage = list->ipage[tid];
@@ -138,7 +128,7 @@ void NPairBinOmp<HALF, NEWTON, TRI, SIZE, ATOMONLY>::build(NeighList *list)
     ibin = atom2bin[i];
     const double * _noalias const cutneighsq_i = cutneighsq[itype];
     const double cutsq_u = cutneighsq_i[1];
-    const bool uniform_cut = (!SIZE && !exclude && ntypes < 64) ? ucut_type[itype] : false;
+    const bool uniform_cut = (!SIZE && !exclude) ? (ucut_type[itype] != 0) : false;
 
     for (k = 0; k < nstencil; k++) {
       bin_start = binhead[ibin + stencil[k]];

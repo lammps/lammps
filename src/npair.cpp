@@ -38,6 +38,7 @@ NPair::NPair(LAMMPS *lmp) :
   flag_same_multi = nullptr;
   flag_half_multi = nullptr;
   mycutneighsq = nullptr;
+  ucut_type = nullptr;
   molecular = atom->molecular;
   copymode = 0;
   cutoff_custom = 0.0;
@@ -87,6 +88,7 @@ NPair::~NPair()
   if (copymode) return;
 
   memory->destroy(mycutneighsq);
+  memory->destroy(ucut_type);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -156,6 +158,23 @@ void NPair::copy_neighbor_info()
       for (j = 1; j <= n; j++)
         mycutneighsq[i][j] = cutoff_custom * cutoff_custom;
     cutneighsq = mycutneighsq;
+  }
+
+  // flag the atom types whose neighbor cutoff is the same for all types,
+  // so that binned builds can skip looking up the type of each neighbor
+
+  memory->destroy(ucut_type);
+  if (cutneighsq) {
+    const int ntypes = atom->ntypes;
+    memory->create(ucut_type, ntypes + 1, "npair:ucut_type");
+    for (int t = 1; t <= ntypes; t++) {
+      ucut_type[t] = 1;
+      for (int t2 = 2; t2 <= ntypes; t2++)
+        if (cutneighsq[t][t2] != cutneighsq[t][1]) {
+          ucut_type[t] = 0;
+          break;
+        }
+    }
   }
 }
 

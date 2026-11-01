@@ -46,6 +46,7 @@ class NPair : protected Pointers {
   double skin;
   double **cutneighsq;
   double **cutneighghostsq;
+  int *ucut_type;    // 1 if all neighbor cutoffs of a type are the same, else 0
   double cut_inner_sq;
   double cut_middle_sq;
   double cut_middle_inside_sq;

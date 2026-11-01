@@ -61,6 +61,10 @@ void FixRigidNHOMP::initial_integrate(int vflag)
 {
   double scale_r,scale_t[3],scale_v[3];
 
+  // advance the barostat to the half step before scaling particle momenta
+
+  if (pstat_flag) nh_epsilon_dot(0);
+
   // compute scale variables
 
   scale_t[0] = scale_t[1] = scale_t[2] = 1.0;
@@ -80,7 +84,7 @@ void FixRigidNHOMP::initial_integrate(int vflag)
     scale_t[0] *= exp(-dtq * (epsilon_dot[0] + mtk_term2));
     scale_t[1] *= exp(-dtq * (epsilon_dot[1] + mtk_term2));
     scale_t[2] *= exp(-dtq * (epsilon_dot[2] + mtk_term2));
-    scale_r *= exp(-dtq * (pdim * mtk_term2));
+    scale_r *= exp(-dtq * mtk_term2);
 
     double tmp = dtq * epsilon_dot[0];
     scale_v[0] = dtv * exp(tmp) * maclaurin_series(tmp);
@@ -452,7 +456,7 @@ void FixRigidNHOMP::final_integrate()
     scale_t[0] *= exp(-dtq * (epsilon_dot[0] + mtk_term2));
     scale_t[1] *= exp(-dtq * (epsilon_dot[1] + mtk_term2));
     scale_t[2] *= exp(-dtq * (epsilon_dot[2] + mtk_term2));
-    scale_r *= exp(-dtq * (pdim * mtk_term2));
+    scale_r *= exp(-dtq * mtk_term2);
 
     akin_t = akin_r = 0.0;
   }
@@ -576,7 +580,7 @@ void FixRigidNHOMP::final_integrate()
 
     compute_press_target();
 
-    nh_epsilon_dot();
+    nh_epsilon_dot(1);
   }
 }
 

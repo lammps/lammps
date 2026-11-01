@@ -164,7 +164,7 @@ template <class DeviceType> class FixRigidNHSmallKokkos : public FixRigidSmallKo
 
   virtual void compute_temp_target();
   void compute_press_target();
-  void nh_epsilon_dot();
+  void nh_epsilon_dot(int);
   void compute_dof();
 
   void allocate_chain();

@@ -76,7 +76,7 @@ class FixRigidNH : public FixRigid {
 
   virtual void compute_temp_target();
   void compute_press_target();
-  void nh_epsilon_dot();
+  void nh_epsilon_dot(int);
 
   void allocate_chain();
   void allocate_order();

@@ -239,8 +239,8 @@ void NPairBin<HALF, NEWTON, TRI, SIZE, ATOMONLY>::build(NeighList *list)
             } else if (rsq <= cutsq_ij)
               n++;
           } else {
-            if (molecular != Atom::ATOMIC) {
-              if (rsq <= cutsq_ij) {
+            if (rsq <= cutsq_ij) {
+              if (molecular != Atom::ATOMIC) {
                 if (!moltemplate)
                   which = find_special(special[i], nspecial[i], tag[j]);
                 else if ((imol >= 0) && onemols[imol]->special)
@@ -254,13 +254,8 @@ void NPairBin<HALF, NEWTON, TRI, SIZE, ATOMONLY>::build(NeighList *list)
                   neighptr[n++] = j;
                 else if (which > 0)
                   neighptr[n++] = j ^ (which << SBBITS);
-              }
-            } else {
-              if (n < oneatom) {
-                neighptr[n] = j;
-                n += (rsq <= cutsq_ij);
-              } else if (rsq <= cutsq_ij)
-                n++;
+              } else
+                neighptr[n++] = j;
             }
           }
         }

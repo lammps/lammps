@@ -65,7 +65,7 @@ PairBuck::~PairBuck()
 void PairBuck::compute(int eflag, int vflag)
 {
   int i,j,ii,jj,inum,jnum,itype,jtype;
-  double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
+  double xtmp,ytmp,ztmp,fxtmp,fytmp,fztmp,delx,dely,delz,evdwl,fpair;
   double rsq,r2inv,r6inv,forcebuck,factor_lj;
   double r,rexp;
   int *ilist,*jlist,*numneigh,**firstneigh;
@@ -95,6 +95,7 @@ void PairBuck::compute(int eflag, int vflag)
     itype = type[i];
     jlist = firstneigh[i];
     jnum = numneigh[i];
+    fxtmp = fytmp = fztmp = 0.0;
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
@@ -115,9 +116,9 @@ void PairBuck::compute(int eflag, int vflag)
         forcebuck = buck1[itype][jtype]*r*rexp - buck2[itype][jtype]*r6inv;
         fpair = factor_lj*forcebuck*r2inv;
 
-        f[i][0] += delx*fpair;
-        f[i][1] += dely*fpair;
-        f[i][2] += delz*fpair;
+        fxtmp += delx*fpair;
+        fytmp += dely*fpair;
+        fztmp += delz*fpair;
         if (newton_pair || j < nlocal) {
           f[j][0] -= delx*fpair;
           f[j][1] -= dely*fpair;
@@ -134,6 +135,9 @@ void PairBuck::compute(int eflag, int vflag)
                              evdwl,0.0,fpair,delx,dely,delz);
       }
     }
+    f[i][0] += fxtmp;
+    f[i][1] += fytmp;
+    f[i][2] += fztmp;
   }
 
   if (vflag_fdotr) virial_fdotr_compute();

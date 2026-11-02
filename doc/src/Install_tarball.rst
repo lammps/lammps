@@ -48,9 +48,8 @@ Check downloaded files
 You can check that a downloaded file is complete and has not been
 modified by comparing its SHA-256 checksum with the published checksum.
 For files from the LAMMPS download server, download the file
-``SHA256SUMS`` (in some folders ``SHA256SUM``) from the same web page
-(for example from `this page <older_>`_) into the folder with the
-downloaded files and type:
+``SHA256SUMS`` from the same web page (for example from `this page
+<older_>`_) into the folder with the downloaded files and type:
 
 .. code-block:: bash
 

@@ -133,6 +133,20 @@ void RanPark::reset(int ibase, double *coord)
   save = 0;
 }
 
+/* ----------------------------------------------------------------------
+   reset the seed for a sequence unique to MPI rank, ibase = caller seed
+   hash seed and rank since the sequences for seeds like seed + rank are
+   correlated for this generator: the n-th number for rank k is the one
+   for rank 0 plus k times the same offset (mod 1), tiny for the first one
+   the sequence also differs from the one of a generator seeded with ibase
+------------------------------------------------------------------------- */
+
+void RanPark::reset_rank(int ibase, int rank)
+{
+  double coord[3] = {static_cast<double>(rank), 0.0, 0.0};
+  reset(ibase, coord);
+}
+
 /* ---------------------------------------------------------------------- */
 
 int RanPark::state()

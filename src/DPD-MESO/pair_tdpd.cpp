@@ -246,12 +246,14 @@ void PairTDPD::settings(int narg, char **arg)
   // create a positive seed based on the system clock, if requested.
 
   if (seed <= 0) {
-    constexpr double LARGE_NUM = 2<<30;
+    constexpr double LARGE_NUM = 1<<29;
     seed = int(fmod(platform::walltime() * LARGE_NUM, LARGE_NUM)) + 1;
   }
 
+  // keep the processor-unique seed within the valid range of RanMars
+
   delete random;
-  random = new RanMars(lmp,(seed + comm->me) % 900000000);
+  random = new RanMars(lmp, (int) (((bigint) seed + comm->me - 1) % 900000000 + 1));
 
   // reset cutoffs that have been explicitly set
 
@@ -464,7 +466,7 @@ void PairTDPD::read_restart_settings(FILE *fp)
   // same seed that pair_style command initially specified
 
   delete random;
-  random = new RanMars(lmp,seed + comm->me);
+  random = new RanMars(lmp, (int) (((bigint) seed + comm->me - 1) % 900000000 + 1));
 }
 
 /* ----------------------------------------------------------------------

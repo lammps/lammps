@@ -145,7 +145,7 @@ void PairCoulDielOMP::eval(int iifrom, int iito, ThrData * const thr)
         }
 
         if (EFLAG) {
-          ecoul = (qqrd2e*qtmp*q[j]*((eps_s/epsr) -1.)/r) - offset[itype][jtype];
+          ecoul = qqrd2e*qtmp*q[j]*((eps_s/epsr) -1.)/r;
           ecoul *= factor_coul;
         }
 

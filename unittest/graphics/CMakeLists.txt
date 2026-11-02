@@ -80,7 +80,7 @@ foreach(TEST ${GRAPHICS_TESTS})
   if(TEST_NPROCS GREATER 1)
     if(BUILD_MPI AND MPIEXEC_EXECUTABLE)
       add_test(NAME ${TNAME}
-               COMMAND ${MPIEXEC_EXECUTABLE} ${MPIEXEC_NUMPROC_FLAG} ${TEST_NPROCS}
+               COMMAND ${LAMMPS_TEST_LAUNCHER} ${MPIEXEC_EXECUTABLE} ${MPIEXEC_NUMPROC_FLAG} ${TEST_NPROCS}
                        $<TARGET_FILE:test_dump_image> ${TEST})
     else()
       continue()

@@ -49,8 +49,8 @@ affect particles. Instead, one should use the *sph/e* attribute.
 The status variable uses bit-masking to track various properties of a particle
 such as its current state of matter (fluid or solid) and its location relative
 to a surface. Some of these properties (and others) can be accessed using
-:doc:`compute rheo/property/atom <compute_rheo_property_atom>`. The *status*
-attribute in :doc:`the set command <set>` only allows control over the first bit
+:doc:`compute rheo/property/atom <compute_rheo_property_atom>`. The *rheo/status*
+keyword of :doc:`the set command <set>` only allows control over the first bit
 which sets the state of matter, 0 is fluid and 1 is solid.
 
 Fluid interactions, including pressure forces, viscous forces, and heat exchange,

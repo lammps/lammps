@@ -29,16 +29,16 @@ These examples assume one or more 16-core nodes.
 .. code-block:: bash
 
    # 1 MPI task, 16 threads according to OMP_NUM_THREADS
-   env OMP_NUM_THREADS=16 lmp_omp -sf omp -in in.script
+   env OMP_NUM_THREADS=16 lmp -sf omp -in in.script
 
    # 1 MPI task, no threads, optimized kernels
-   lmp_mpi -sf omp -in in.script
+   lmp -sf omp -in in.script
 
    # 4 MPI tasks, 4 threads/task
-   mpirun -np 4 lmp_omp -sf omp -pk omp 4 -in in.script
+   mpirun -np 4 lmp -sf omp -pk omp 4 -in in.script
 
    # 8 nodes, 4 MPI tasks/node, 4 threads/task
-   mpirun -np 32 -ppn 4 lmp_omp -sf omp -pk omp 4 -in in.script
+   mpirun -np 32 -ppn 4 lmp -sf omp -pk omp 4 -in in.script
 
 The ``mpirun`` or ``mpiexec`` command sets the total number of MPI tasks
 used by LAMMPS (one or multiple per compute node) and the number of MPI

@@ -1,0 +1,131 @@
+LAMMPS (30 Sep 2026 - Development - patch_30Sep2026-78-g569400085c-modified)
+  using 1 OpenMP thread(s) per MPI task
+# two LJ particles
+
+units real
+boundary p p p
+
+atom_style charge
+pair_style lj/cut/coul/long/soft 1.0 0.0 0.0 12.0 12.0
+
+region box block -15.0 15.0 -15.0 15.0 -15.0 15.0
+create_box 2 box
+Created orthogonal box = (-15 -15 -15) to (15 15 15)
+  1 by 1 by 1 MPI processor grid
+
+# just two atoms...
+#create_atoms 1 single  0.0 0.0 0.0
+## create_atoms 2 single  3.36738 0.0 0.0
+#create_atoms 2 single  6.0 0.0 0.0
+
+# ...or a few on a lattice
+lattice bcc 5.0
+Lattice spacing in x,y,z = 5 5 5
+create_atoms 1 box basis 1 1 basis 2 2
+Created 432 atoms
+  using lattice units in orthogonal box = (-15 -15 -15) to (15 15 15)
+  create_atoms CPU = 0.000 seconds
+
+
+mass   1  12.011
+mass   2  12.011
+
+pair_coeff   1   1   0.1   3.0  1.0
+pair_coeff   1   2   0.1   3.0  1.0
+pair_coeff   2   2   0.1   3.0  1.0
+
+set type 1 charge  0.1
+Setting atom values ...
+  216 settings made for charge
+set type 2 charge -0.1
+Setting atom values ...
+  216 settings made for charge
+
+kspace_style pppm 1.0e-5
+
+timestep 2.0
+
+velocity all create 300.0 12345 loop geom
+
+fix INTEG all nvt temp 300.0 300.0 $(100.0*dt)
+fix INTEG all nvt temp 300.0 300.0 200
+
+variable lam equal ramp(1.0,0.0)
+variable q1 equal  0.1*v_lam
+variable q2 equal -0.1*v_lam
+
+fix ADAPT all adapt/fep 200   pair lj/cut/coul/long/soft lambda * * v_lam   atom charge 1 v_q1 atom charge 2 v_q2
+
+thermo_style custom step etotal ke pe epair evdwl ecoul elong temp press v_lam v_q1 v_q2
+thermo 200
+
+#dump TRAJ all custom 20 dump.lammpstrj id type element xu yu zu
+#dump_modify TRAJ element C N
+
+run 2000
+PPPM initialization ...
+  using 12-bit tables for long-range coulomb
+  G vector (1/distance) = 0.18385633
+  grid = 8 8 8
+  stencil order = 5
+  estimated absolute RMS force accuracy = 0.0026371085
+  estimated relative force accuracy = 7.9415739e-06
+  using double precision FFTW3
+  3d grid and FFT values/proc = 2197 512
+Generated 0 of 1 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 14
+  ghost atom cutoff = 14
+  binsize = 7, bins = 5 5 5
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cut/coul/long/soft, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 3.832 | 3.832 | 3.832 Mbytes
+   Step         TotEng         KinEng         PotEng         E_pair         E_vdwl         E_coul         E_long          Temp          Press          v_lam           v_q1           v_q2     
+         0  -12.26816       385.41874     -397.6869      -397.6869      -104.94426     -143.9636      -148.77903      300           -85.376499      1              0.1           -0.1          
+       200   98.136894      355.64643     -257.50954     -257.50954     -74.82582      -70.881524     -111.8022       276.82601      874.84546      0.9            0.09          -0.09         
+       400   213.1739       399.55317     -186.37928     -186.37928     -51.555923     -47.494251     -87.329102      311.00188      1122.0047      0.8            0.08          -0.08         
+       600   225.16811      374.8987      -149.73059     -149.73059     -51.670352     -31.5565       -66.503738      291.81147      933.37939      0.7            0.07          -0.07         
+       800   292.44734      388.66668     -96.219341     -96.219341     -32.760792     -15.63078      -47.827769      302.52811      1100.8393      0.6            0.06          -0.06         
+      1000   321.24709      386.18626     -64.939162     -64.939162     -25.628508     -7.0663665     -32.244288      300.59741      1048.6126      0.5            0.05          -0.05         
+      1200   351.64724      389.45451     -37.807277     -37.807277     -15.149057     -3.3577387     -19.300481      303.14134      1047.6661      0.4            0.04          -0.04         
+      1400   376.86394      390.10512     -13.241184     -13.241184     -1.0041283     -1.1804668     -11.056589      303.64776      1090.5607      0.3            0.03          -0.03         
+      1600   375.3199       377.03818     -1.718283      -1.718283       2.6881808     -0.28528099    -4.1211829      293.47679      972.13987      0.2            0.02          -0.02         
+      1800   401.13757      397.01202      4.1255494      4.1255494      5.017018      -0.020238687   -0.87122996     309.02391      878.47617      0.1            0.01          -0.01         
+WARNING: Using kspace solver on system with no charge (src/kspace.cpp:317)
+      2000   381.31875      381.31875      0              0              0              0              0              296.80867      645.59067      0              0              0            
+Loop time of 1.30678 on 1 procs for 2000 steps with 432 atoms
+
+Performance: 264.467 ns/day, 0.091 hours/ns, 1530.481 timesteps/s, 661.168 katom-step/s
+99.6% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 1.0656     | 1.0656     | 1.0656     |   0.0 | 81.55
+Kspace  | 0.16853    | 0.16853    | 0.16853    |   0.0 | 12.90
+Neigh   | 0.048004   | 0.048004   | 0.048004   |   0.0 |  3.67
+Comm    | 0.013102   | 0.013102   | 0.013102   |   0.0 |  1.00
+Output  | 0.00018455 | 0.00018455 | 0.00018455 |   0.0 |  0.01
+Modify  | 0.00877    | 0.00877    | 0.00877    |   0.0 |  0.67
+Other   |            | 0.002566   |            |       |  0.20
+
+Nlocal:            432 ave         432 max         432 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:           2736 ave        2736 max        2736 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:          39463 ave       39463 max       39463 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 39463
+Ave neighs/atom = 91.349537
+Neighbor list builds = 70
+Dangerous builds = 0
+
+#write_data data.*.lmp
+Total wall time: 0:00:01

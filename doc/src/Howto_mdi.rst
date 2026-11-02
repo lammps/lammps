@@ -126,8 +126,8 @@ as a plugin library.
 
 -------------
 
-As of March 2023, these are quantum codes with MDI support provided via
-Python wrapper scripts included in the LAMMPS distribution.  These can
+These are quantum codes with MDI support provided via Python wrapper
+scripts included in the LAMMPS distribution.  These can
 be used with the fix mdi/qm and fix mdi/qmmm commands to perform QM
 calculations of an entire system (e.g. AIMD) or QM/MM simulations.  See
 the ``examples/QUANTUM`` sub-directories for more details:

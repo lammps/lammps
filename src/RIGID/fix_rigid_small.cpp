@@ -91,7 +91,7 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
   orient = nullptr;
   dorient = nullptr;
   FixRigidSmall::grow_arrays(atom->nmax);
-  atom->add_callback(Atom::GROW);
+  atom->add_callback(this, Atom::GROW);
 
   // parse args for rigid body specification
 
@@ -484,7 +484,7 @@ FixRigidSmall::~FixRigidSmall()
 
   // unregister callbacks to this fix from Atom class
 
-  if (modify->get_fix_by_id(id)) atom->delete_callback(id,Atom::GROW);
+  if (modify->get_fix_by_id(id)) atom->delete_callback(this, Atom::GROW);
 
   // delete locally stored arrays
 

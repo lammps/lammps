@@ -109,8 +109,9 @@ method, which document the flag values.
 
 At various points of the timestep, fixes are invoked,
 e.g. ``fix->initial_integrate()``.  In the code, this is actually done
-via the Modify class, which stores all the Fix objects and lists of which
-should be invoked at what point in the timestep.  Fixes are the LAMMPS
+via the Modify class, which stores all the Fix objects together with a
+mask of the stages of the timestep at which each of them is invoked, as
+set by the ``setmask()`` method of the fix.  Fixes are the LAMMPS
 mechanism for tailoring the operations of a timestep for a particular
 simulation.  As described elsewhere, each fix has one or more methods,
 each of which is invoked at a specific stage of the timestep, as show in

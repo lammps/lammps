@@ -322,7 +322,7 @@ indicate the cause directly, and requiring no further lookup. This is
 aided by either the `{fmt} library <https://fmt.dev>`_ or the `C++
 format library
 <https://cppreference.com/cpp/utility/format>`_ (for C++20
-and later) enabling :cpp:class:`LAMMPS_NS::Error` class methods that
+and later) enabling :cpp:class:`!LAMMPS_NS::Error` class methods that
 take a variable number of arguments and an error text that will be
 treated like a `C++ format string
 <https://cppreference.com/cpp/utility/format/spec>`_. Error

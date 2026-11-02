@@ -492,9 +492,9 @@ information will be dumped:
 * atomic velocities, which can be disabled with :doc:`dump_modify vel no <dump_modify>`
 * atomic masses, if enabled with :doc:`dump_modify mass yes <dump_modify>`
 
-Dump style *extxyz* requires either that a :doc:`type label map for atoms types
-<labelmap>` is defined or :doc:`dump_modify element <dump_modify>` is used to
-set up an atom type number to atom name mapping.
+Dump style *extxyz* requires either that a :doc:`type label map for atom
+types <labelmap>` is defined or :doc:`dump_modify element <dump_modify>`
+is used to set up an atom type number to atom name mapping.
 
 .. versionadded:: 22Dec2022
 
@@ -1059,9 +1059,9 @@ to effectively specify multiple values.
 Restrictions
 """"""""""""
 
-To write compressed dump files, you must either compile LAMMPS with the
-``-DLAMMPS_GZIP`` option or use the styles from the COMPRESS package.
-See the :doc:`Build settings <Build_settings>` page for details.
+To write compressed dump files, either the corresponding compression
+program must be installed or the styles from the COMPRESS package must
+be used.  See the :ref:`Build settings <gzip>` page for details.
 
 To create images or movies, you must install the GRAPHICS package.
 See the :doc:`Build extras <Build_extras>` page for details.

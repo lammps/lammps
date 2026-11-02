@@ -35,8 +35,7 @@ using namespace MathConst;
    In the low-Reynolds limit this reduces to Stokes drag 6 pi mu_f r v_rel.
 ------------------------------------------------------------------------- */
 
-FixViscousNonlinear::FixViscousNonlinear(LAMMPS *lmp, int narg, char **arg) :
-    Fix(lmp, narg, arg)
+FixViscousNonlinear::FixViscousNonlinear(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 {
   dynamic_group_allow = 1;
 
@@ -89,8 +88,7 @@ int FixViscousNonlinear::setmask()
 
 void FixViscousNonlinear::init()
 {
-  if (!atom->radius_flag)
-    error->all(FLERR, "Fix viscous/nonlinear requires atom attribute radius");
+  if (!atom->radius_flag) error->all(FLERR, "Fix viscous/nonlinear requires atom attribute radius");
 
   int max_respa = 0;
 

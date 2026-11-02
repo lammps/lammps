@@ -127,6 +127,7 @@ FixGCMC::FixGCMC(LAMMPS *lmp, int narg, char **arg) :
   // random number generator, not the same for all procs
 
   random_unequal = new RanPark(lmp, seed);
+  random_unequal->reset_rank(seed, comm->me);
 
   // error checks on region and its extent being inside simulation box
 
@@ -603,7 +604,7 @@ void FixGCMC::init()
     int *mask = atom->mask;
     int flag = 0;
     for (int i = 0; i < atom->nlocal; i++)
-      if (mask[i] == groupbit)
+      if (mask[i] & groupbit)
         if (molecule[i] == 0) flag = 1;
     int flagall;
     MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
@@ -721,7 +722,7 @@ void FixGCMC::init()
 
     int flag = 0;
     for (int i = 0; i < atom->nlocal; i++)
-      if ((mask[i] == groupbit) && (mask[i] && firstgroupbit)) flag = 1;
+      if ((mask[i] & groupbit) && (mask[i] & firstgroupbit)) flag = 1;
 
     int flagall;
     MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
@@ -1112,6 +1113,7 @@ void FixGCMC::attempt_atomic_insertion()
       atom->v[m][1] = random_unequal->gaussian()*sigma;
       atom->v[m][2] = random_unequal->gaussian()*sigma;
       random_unequal->gaussian(); // this ensures exact restart
+      if (charge_flag) atom->q[m] = charge;
       modify->create_attribute(m);
 
       success = 1;
@@ -2508,7 +2510,7 @@ double FixGCMC::energy_full()
   atom->nghost = 0;
   comm->borders();
   if (triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
-  if (modify->n_pre_neighbor) modify->pre_neighbor();
+  if (modify->has_fixes(FixConst::PRE_NEIGHBOR)) modify->pre_neighbor();
   neighbor->build(1);
 
   // flag that we only need to compute the global energy
@@ -2554,7 +2556,7 @@ double FixGCMC::energy_full()
   size_t nbytes = sizeof(double) * (atom->nlocal + atom->nghost);
   if (nbytes) memset(&atom->f[0][0],0,3*nbytes);
 
-  if (modify->n_pre_force) modify->pre_force(vflag);
+  if (modify->has_fixes(FixConst::PRE_FORCE)) modify->pre_force(vflag);
 
   if (force->pair) force->pair->compute(eflag,vflag);
 
@@ -2567,7 +2569,7 @@ double FixGCMC::energy_full()
 
   if (force->kspace) force->kspace->compute(eflag,vflag);
 
-  if (modify->n_post_force_any) modify->post_force(vflag);
+  if (modify->has_fixes(FixConst::POST_FORCE_ANY)) modify->post_force(vflag);
 
   // NOTE: all fixes with energy_global_flag set and which
   //   operate at pre_force() or post_force()
@@ -2859,12 +2861,16 @@ void FixGCMC::restart(char *buf)
     error->all(FLERR,"Must not reset timestep when restarting fix gcmc");
 
   // read stored state of RNG unique to this process
-  // if nprocs changed, use state of proc 0
+  // if nprocs changed, derive a unique state from the state of proc 0
 
   auto nlocalvals = (int) list[n++];
-  if (nlocalvals == comm->nprocs) n += comm->me;
-  seed = static_cast<int>(list[n]);
-  random_unequal->reset(seed);
+  if (nlocalvals == comm->nprocs) {
+    seed = static_cast<int>(list[n + comm->me]);
+    random_unequal->reset(seed);
+  } else {
+    seed = static_cast<int>(list[n]);
+    random_unequal->reset_rank(seed, comm->me);
+  }
 }
 
 void FixGCMC::grow_molecule_arrays(int nmolatoms) {

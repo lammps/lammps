@@ -394,6 +394,8 @@ void PPPMDispTIP4POMP::particle_map_c(double dxinv, double dyinv,
       flag++;
   }
 
+  error_thr();
+
   int flag_all;
   MPI_Allreduce(&flag,&flag_all,1,MPI_INT,MPI_SUM,world);
   if (flag_all)
@@ -566,6 +568,8 @@ void PPPMDispTIP4POMP::make_rho_c()
       }
     }
   }
+
+  error_thr();
 }
 
 
@@ -875,6 +879,8 @@ void PPPMDispTIP4POMP::fieldforce_c_ik()
       }
     }
   } // end of parallel region
+
+  error_thr();
 }
 
 /* ----------------------------------------------------------------------
@@ -1002,6 +1008,8 @@ void PPPMDispTIP4POMP::fieldforce_c_ad()
       }
     }
   } // end of parallel region
+
+  error_thr();
 }
 
 /* ----------------------------------------------------------------------
@@ -1852,9 +1860,19 @@ void PPPMDispTIP4POMP::find_M_thr(int i, int &iH1, int &iH2, dbl3_t &xM)
   iH1 = atom->map(atom->tag[i] + 1);
   iH2 = atom->map(atom->tag[i] + 2);
 
-  if (iH1 == -1 || iH2 == -1) error->one(FLERR,"TIP4P hydrogen is missing");
-  if (atom->type[iH1] != typeH || atom->type[iH2] != typeH)
-    error->one(FLERR,"TIP4P hydrogen has incorrect atom type");
+  // this function is called from threaded regions, so the errors must be deferred.
+  // use the oxygen as M site, so that the calling code can complete safely. the error
+  // is then reported by error_thr() after the threaded region.
+
+  if (check_error_thr((iH1 == -1) || (iH2 == -1), 0, FLERR, "TIP4P hydrogen is missing") ||
+      check_error_thr((atom->type[iH1] != typeH) || (atom->type[iH2] != typeH), 0, FLERR,
+                      "TIP4P hydrogen has incorrect atom type")) {
+    iH1 = iH2 = i;
+    xM.x = x[i][0];
+    xM.y = x[i][1];
+    xM.z = x[i][2];
+    return;
+  }
 
   if (triclinic) {
 

@@ -39,6 +39,7 @@
 #include "pair_spin.h"
 #include "update.h"
 
+#include <cmath>
 #include <cstring>
 
 using namespace LAMMPS_NS;
@@ -509,35 +510,11 @@ void FixNVESpin::ComputeInteractionsSpin(int i)
 
 /* ----------------------------------------------------------------------
    divide each domain into 8 sectors
+   for triclinic boxes, the sectors are defined in lamda coordinates
 ---------------------------------------------------------------------- */
 
 void FixNVESpin::sectoring()
 {
-  int sec[3];
-  double sublo[3],subhi[3];
-
-  if (domain->triclinic == 1){
-     double* sublotmp = domain->sublo_lamda;
-     double* subhitmp = domain->subhi_lamda;
-     for (int dim = 0 ; dim < 3 ; dim++) {
-       sublo[dim]=sublotmp[dim]*domain->boxhi[dim];
-       subhi[dim]=subhitmp[dim]*domain->boxhi[dim];
-     }
-  }
-
-  else {
-     double* sublotmp = domain->sublo;
-     double* subhitmp = domain->subhi;
-     for (int dim = 0 ; dim < 3 ; dim++) {
-       sublo[dim]=sublotmp[dim];
-       subhi[dim]=subhitmp[dim];
-     }
-  }
-
-  const double rsx = subhi[0] - sublo[0];
-  const double rsy = subhi[1] - sublo[1];
-  const double rsz = subhi[2] - sublo[2];
-
   // extract larger cutoff from PairSpin styles
 
   double rv, cutoff;
@@ -552,16 +529,28 @@ void FixNVESpin::sectoring()
    error->all(FLERR, Error::NOLASTLINE,
               "No suitable cutoff found for sectoring operation: rv = {}", rv);
 
-  double rax = rsx/rv;
-  double ray = rsy/rv;
-  double raz = rsz/rv;
+  // extent of the subdomain and cutoff in each direction
+  // for triclinic boxes, convert the cutoff to the lamda distance
+  //   between parallel faces of the box, same as for the ghost cutoff in Comm
 
-  sec[0] = 1;
-  sec[1] = 1;
-  sec[2] = 1;
-  if (rax >= 2.0) sec[0] = 2;
-  if (ray >= 2.0) sec[1] = 2;
-  if (raz >= 2.0) sec[2] = 2;
+  double rs[3], rcut[3];
+  if (domain->triclinic) {
+    const double *h_inv = domain->h_inv;
+    for (int d = 0; d < 3; d++) rs[d] = domain->subhi_lamda[d] - domain->sublo_lamda[d];
+    rcut[0] = rv * sqrt(h_inv[0] * h_inv[0] + h_inv[5] * h_inv[5] + h_inv[4] * h_inv[4]);
+    rcut[1] = rv * sqrt(h_inv[1] * h_inv[1] + h_inv[3] * h_inv[3]);
+    rcut[2] = rv * h_inv[2];
+  } else {
+    for (int d = 0; d < 3; d++) {
+      rs[d] = domain->subhi[d] - domain->sublo[d];
+      rcut[d] = rv;
+    }
+  }
+
+  // split a direction in two sectors only if each is at least as wide as the cutoff
+
+  int sec[3];
+  for (int d = 0; d < 3; d++) sec[d] = (rs[d] >= 2.0 * rcut[d]) ? 2 : 1;
 
   nsectors = sec[0]*sec[1]*sec[2];
 
@@ -569,13 +558,7 @@ void FixNVESpin::sectoring()
     error->all(FLERR, Error::NOLASTLINE,
                "Illegal sectoring operation resulting in {} sectors instead of 8", nsectors);
 
-  rsec[0] = rsx;
-  rsec[1] = rsy;
-  rsec[2] = rsz;
-  if (sec[0] == 2) rsec[0] = rsx/2.0;
-  if (sec[1] == 2) rsec[1] = rsy/2.0;
-  if (sec[2] == 2) rsec[2] = rsz/2.0;
-
+  for (int d = 0; d < 3; d++) rsec[d] = rs[d] / sec[d];
 }
 
 /* ----------------------------------------------------------------------
@@ -584,21 +567,22 @@ void FixNVESpin::sectoring()
 
 int FixNVESpin::coords2sector(double *x)
 {
-  int nseci;
-  int seci[3];
-  double sublo[3];
-  double* sublotmp = domain->sublo;
-  for (int dim = 0 ; dim<3 ; dim++) {
-    sublo[dim]=sublotmp[dim];
+  double lamda[3];
+  double *xs = x;
+  double *sublo = domain->sublo;
+
+  if (domain->triclinic) {
+    domain->x2lamda(x, lamda);
+    xs = lamda;
+    sublo = domain->sublo_lamda;
   }
 
-  seci[0] = x[0] > (sublo[0] + rsec[0]);
-  seci[1] = x[1] > (sublo[1] + rsec[1]);
-  seci[2] = x[2] > (sublo[2] + rsec[2]);
+  int seci[3];
+  seci[0] = xs[0] > (sublo[0] + rsec[0]);
+  seci[1] = xs[1] > (sublo[1] + rsec[1]);
+  seci[2] = xs[2] > (sublo[2] + rsec[2]);
 
-  nseci = (seci[0] + 2*seci[1] + 4*seci[2]);
-
-  return nseci;
+  return (seci[0] + 2*seci[1] + 4*seci[2]);
 }
 
 /* ----------------------------------------------------------------------

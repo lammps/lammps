@@ -314,9 +314,8 @@ file is created, else a `PPM (aka NETPBM) format <ppm_format_>`_ file is
 created.  The JPEG, PNG, and TGA files are binary; PPM has a text mode
 header followed by binary data. JPEG images have lossy compression, PNG
 and TGA have lossless compression, and PPM files are uncompressed but can
-be compressed with a supported compression program, if LAMMPS has been
-compiled with :ref:`compression support <gzip>` and a supported suffix
-is used.
+be compressed with a :ref:`supported compression program <gzip>`, if
+that program is installed and a supported suffix is used.
 
 .. _jpeg_format: https://jpeg.org/jpeg/
 .. _png_format: https://en.wikipedia.org/wiki/Portable_Network_Graphics
@@ -333,9 +332,8 @@ described below.
 
 To write out JPEG and PNG format files, you must build LAMMPS with
 support for the corresponding JPEG or PNG library.  To convert images
-into movies, LAMMPS has to be compiled with the ``-DLAMMPS_FFMPEG``
-flag. See the :doc:`Build settings <Build_settings>` page for
-details.
+into movies, the ``ffmpeg`` program must be installed in a folder listed
+in the ``PATH`` environment variable.
 
 .. note::
 
@@ -1547,16 +1545,20 @@ graphics libraries must have been compiled and linked into LAMMPS.
 Please see the :ref:`instructions for building LAMMPS with the
 GRAPHICS package <graphics>` for more information on how to do that.
 
-To write *movie* dumps, you must use the -DLAMMPS_FFMPEG switch when
-building LAMMPS and have the FFmpeg executable available on the
-machine where LAMMPS is being run.  Typically its name is lowercase
-(i.e., "ffmpeg").
+.. versionchanged:: TBD
 
-Note that since FFmpeg is run as an external program via a pipe,
-LAMMPS has limited control over its execution and no knowledge about
-errors and warnings printed by it. Those warnings and error messages
-will be printed to the screen only. Due to the way image data are
-communicated to FFmpeg, it will often print the message
+To write *movie* dumps, an FFmpeg executable must be available on the
+machine where LAMMPS is being run.  It must be called ``ffmpeg`` (or
+``ffmpeg.exe`` on Windows) and must be in a folder listed in the
+``PATH`` environment variable of the process with MPI rank 0.  LAMMPS
+checks for it when the dump command is issued and stops with an error,
+if it cannot be found.
+
+Note that since FFmpeg is run as an external program via a pipe, LAMMPS
+has limited control over its execution and no knowledge about errors and
+warnings printed by it.  Those warnings and error messages will be
+printed to the screen only.  Due to the way image data are communicated
+to FFmpeg, it will often print the message
 
 .. parsed-literal::
 

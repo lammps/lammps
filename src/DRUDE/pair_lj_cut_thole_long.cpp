@@ -60,6 +60,7 @@ PairLJCutTholeLong::PairLJCutTholeLong(LAMMPS *lmp) :
   writedata = 1;
   ftable = nullptr;
   qdist = 0.0;
+  cut_global = 0.0;
   fix_drude = nullptr;
 }
 
@@ -135,7 +136,7 @@ void PairLJCutTholeLong::compute(int eflag, int vflag)
 
     if (drudetype[type[i]] != NOPOL_TYPE) {
       di = atom->map(drudeid[i]);
-      if (di < 0) error->all(FLERR, "Drude partner not found");
+      if (di < 0) error->one(FLERR, "Drude partner not found");
       di_closest = domain->closest_image(i, di);
       if (drudetype[type[i]] == CORE_TYPE)
         dqi = -q[di];
@@ -198,6 +199,7 @@ void PairLJCutTholeLong::compute(int eflag, int vflag)
             if (j != di_closest) {
               if (drudetype[type[j]] == CORE_TYPE) {
                 dj = atom->map(drudeid[j]);
+                if (dj < 0) error->one(FLERR, "Drude partner not found");
                 dqj = -q[dj];
               } else dqj = qj;
               asr = ascreen[type[i]][type[j]] * r;

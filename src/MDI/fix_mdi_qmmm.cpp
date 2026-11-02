@@ -23,6 +23,7 @@
 #include "kspace.h"
 #include "memory.h"
 #include "min.h"
+#include "modify.h"
 #include "pair.h"
 #include "update.h"
 
@@ -838,10 +839,14 @@ void FixMDIQMMM::pre_force(int vflag)
   }
 
   // reset LAMMPS forces to zero
-  // NOTE: what about check in force_clear() for external_force_clear = OPENMP ?
+  // with the OPENMP package, the force_clear() functions of the integrators do
+  // nothing and fix omp clears the regular and the per-thread force arrays instead
   // NOTE: what will whichflag be for single snapshot compute of QMMM forces ?
 
-  if (update->whichflag == 1)
+  auto *fixomp = modify->get_fix_by_id("package_omp");
+  if (fixomp)
+    fixomp->pre_force(0);
+  else if (update->whichflag == 1)
     update->integrate->force_clear();
   else if (update->whichflag == 2)
     update->minimize->force_clear();
@@ -1830,7 +1835,7 @@ void FixMDIQMMM::send_types_mm()
 {
   int ierr = MDI_Send_command(">LATTICE_TYPES", mdicomm);
   if (ierr) error->all(FLERR, "MDI: >LATTICE_TYPES command");
-  ierr = MDI_Send(tqm, nqm, MDI_INT, mdicomm);
+  ierr = MDI_Send(tmm, nmm, MDI_INT, mdicomm);
   if (ierr) error->all(FLERR, "MDI: >LATTICE_TYPES data");
 }
 

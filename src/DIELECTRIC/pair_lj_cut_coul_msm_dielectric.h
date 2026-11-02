@@ -37,7 +37,8 @@ class PairLJCutCoulMSMDielectric : public PairLJCutCoulLong {
 
  protected:
   class AtomVecDielectric *avec;
-  int nmax;
+  int nmax;         // allocated size of efield
+  int nmax_ftmp;    // allocated size of ftmp
   double **ftmp;
 };
 

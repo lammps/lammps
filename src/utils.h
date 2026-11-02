@@ -210,7 +210,8 @@ template <typename TYPE> inline const TYPE &sprintf_arg(const TYPE &arg)
 }
 // NOLINTEND
 
-/*! \overload converts a std::string argument to a C-style string */
+/*! converts a std::string argument to a C-style string
+ * \overload */
 
 inline const char *sprintf_arg(const std::string &arg)
 {
@@ -817,7 +818,7 @@ std::string trim_comment(const std::string &line);
  * If there is no '*' character in the string, return the original string.
  * If the number requires more characters than the value of the *pad*
  * argument, do not add zeros; otherwise add as many zeroes as needed to
- * the left to make the the number representation *pad* characters wide.
+ * the left to make the number representation *pad* characters wide.
  *
  * \param name  string with file containing a '*' (or not)
  * \param step  step number to replace the (first) '*'
@@ -876,6 +877,8 @@ inline bool has_utf8(const std::string &line)
 /*! Replace known UTF-8 characters with ASCII equivalents
  *
 \verbatim embed:rst
+
+Characters without a known ASCII equivalent are kept unchanged.
 
 *See also*
    :cpp:func:`utils::has_utf8`

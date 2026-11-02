@@ -104,7 +104,7 @@ where N is the number of LAMMPS atom types:
 * N element names = mapping of Tersoff/MOD elements to atom types
 
 As an example, imagine the Si.tersoff_mod file has Tersoff values for Si.
-If your LAMMPS simulation has 3 Si atoms types, you would use the following
+If your LAMMPS simulation has 3 Si atom types, you would use the following
 pair_coeff command:
 
 .. code-block:: LAMMPS

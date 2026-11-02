@@ -34,10 +34,13 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
+namespace {
 enum { SCALAR, VECTOR };
 enum { SAMPLE, ALL };
 enum { NOSCALE, ATOM };
 enum { ONE, RUNNING, WINDOW };
+const char *const ave_string[] = {"one", "running", "window"};
+}    // namespace
 
 /* ---------------------------------------------------------------------- */
 
@@ -320,7 +323,8 @@ FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
   if (fp && comm->me == 0) {
     clearerr(fp);
     if (title1) fprintf(fp,"%s\n",title1);
-    else fprintf(fp,"# Chunk-averaged data for fix %s and group %s\n", id, group);
+    else fprintf(fp,"# Chunk-averaged data for fix %s and group %s ave %s version %d\n",
+                 id, group, ave_string[ave], lmp->num_ver);
     if (title2) fprintf(fp,"%s\n",title2);
     else fprintf(fp,"# Timestep Number-of-chunks Total-count\n");
     if (title3) fprintf(fp,"%s\n",title3);

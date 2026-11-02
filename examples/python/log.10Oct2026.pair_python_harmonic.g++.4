@@ -1,0 +1,231 @@
+LAMMPS (30 Sep 2026 - Development - patch_30Sep2026-370-gf4fad8ee3a-modified)
+  using 1 OpenMP thread(s) per MPI task
+# 3d soft repulsive particles
+
+units           real
+atom_style      atomic
+
+lattice         fcc 5.0 origin 0.1 0.1 0.1
+Lattice spacing in x,y,z = 5 5 5
+region          box block -5 5 -5 5 -5 5
+create_box      2 box
+Created orthogonal box = (-25 -25 -25) to (25 25 25)
+  1 by 2 by 2 MPI processor grid
+create_atoms    1 box
+Created 4000 atoms
+  using lattice units in orthogonal box = (-25 -25 -25) to (25 25 25)
+  create_atoms CPU = 0.001 seconds
+set type 1 type/fraction 2 0.5 424662346
+Setting atom values ...
+  2016 settings made for type/fraction
+mass            * 1.0
+
+velocity        all create 3.0 87287 loop geom
+
+pair_style      python 9.0
+pair_coeff      * * py_pot.Harmonic A B
+
+neighbor        1.0 bin
+neigh_modify    every 2 delay 4 check yes
+
+fix             1 all nve
+
+thermo          50
+run             250 post no
+Generated 0 of 1 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 2 steps, delay = 4 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 10
+  ghost atom cutoff = 10
+  binsize = 5, bins = 10 10 10
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair python, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 3.225 | 3.225 | 3.225 Mbytes
+   Step          Temp          E_pair         E_mol          TotEng         Press     
+         0   3              425046.56      0              425082.32      249987.55    
+        50   81.100502      424114.26      0              425081         249765.72    
+       100   107.27178      423802.88      0              425081.59      251442.36    
+       150   134.48693      423478.05      0              425081.17      252646.93    
+       200   121.47406      423633.69      0              425081.69      252799.34    
+       250   133.47481      423490.15      0              425081.2       252797.25    
+Loop time of 2.19392 on 4 procs for 250 steps with 4000 atoms
+
+
+write_restart   repulsive.restart
+System init for write_restart ...
+Generated 0 of 1 mixed pair_coeff terms from geometric mixing rule
+
+clear
+  using 1 OpenMP thread(s) per MPI task
+
+read_restart    repulsive.restart
+Reading restart file ...
+  restart file = 30 Sep 2026, LAMMPS = 30 Sep 2026
+  restoring atom style atomic from restart
+  orthogonal box = (-25 -25 -25) to (25 25 25)
+  1 by 2 by 2 MPI processor grid
+  pair style python stores no restart info
+  4000 atoms
+  read_restart CPU = 0.000 seconds
+
+pair_style      python 10.0
+pair_coeff      * * py_pot.Harmonic A B
+
+shell rm -f python.dat
+pair_write 1 1 1000 rsq 0.1 10.0 python.dat PYTH_A_A
+Creating table file python.dat with DATE: 2026-10-10
+Generated 0 of 1 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 12
+  ghost atom cutoff = 12
+  binsize = 6, bins = 9 9 9
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair python, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d
+      bin: standard
+pair_write 2 2 1000 rsq 0.1 10.0 python.dat PYTH_B_B
+Appending to table file python.dat with DATE: 2026-10-10
+Generated 0 of 1 mixed pair_coeff terms from geometric mixing rule
+pair_write 1 2 1000 rsq 0.1 10.0 python.dat PYTH_A_B
+Appending to table file python.dat with DATE: 2026-10-10
+Generated 0 of 1 mixed pair_coeff terms from geometric mixing rule
+
+fix             1 all nve
+
+thermo          50
+run             250 post no
+Generated 0 of 1 mixed pair_coeff terms from geometric mixing rule
+Per MPI rank memory allocation (min/avg/max) = 3.667 | 3.668 | 3.668 Mbytes
+   Step          Temp          E_pair         E_mol          TotEng         Press     
+       250   133.47481      423490.15      0              425081.2       252797.25    
+       300   123.37825      423610.88      0              425081.58      252747.21    
+       350   127.29797      423563.97      0              425081.4       252738.63    
+       400   124.61249      423596.09      0              425081.5       252782.08    
+       450   126.39456      423574.84      0              425081.5       252688.68    
+       500   130.70163      423523.43      0              425081.43      252683.43    
+Loop time of 2.93014 on 4 procs for 250 steps with 4000 atoms
+
+
+clear
+  using 1 OpenMP thread(s) per MPI task
+
+read_restart    repulsive.restart
+Reading restart file ...
+  restart file = 30 Sep 2026, LAMMPS = 30 Sep 2026
+  restoring atom style atomic from restart
+  orthogonal box = (-25 -25 -25) to (25 25 25)
+  1 by 2 by 2 MPI processor grid
+  pair style python stores no restart info
+  4000 atoms
+  read_restart CPU = 0.000 seconds
+
+pair_style      harmonic/cut
+pair_coeff      1 1 0.2 9.0
+pair_coeff      2 2 0.4 9.0
+
+shell rm -f harmonic.dat
+pair_write 1 1 1000 rsq 0.1 10.0 harmonic.dat HARM_1_1
+Creating table file harmonic.dat with DATE: 2026-10-10
+Generated 1 of 1 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 11
+  ghost atom cutoff = 11
+  binsize = 5.5, bins = 10 10 10
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair harmonic/cut, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d
+      bin: standard
+pair_write 2 2 1000 rsq 0.1 10.0 harmonic.dat HARM_2_2
+Appending to table file harmonic.dat with DATE: 2026-10-10
+Generated 1 of 1 mixed pair_coeff terms from geometric mixing rule
+pair_write 1 2 1000 rsq 0.1 10.0 harmonic.dat HARM_1_2
+Appending to table file harmonic.dat with DATE: 2026-10-10
+Generated 1 of 1 mixed pair_coeff terms from geometric mixing rule
+
+neighbor        1.0 bin
+neigh_modify    every 2 delay 4 check yes
+
+fix             1 all nve
+
+thermo          50
+run             250 post no
+Generated 1 of 1 mixed pair_coeff terms from geometric mixing rule
+Per MPI rank memory allocation (min/avg/max) = 3.225 | 3.225 | 3.225 Mbytes
+   Step          Temp          E_pair         E_mol          TotEng         Press     
+       250   133.47481      423490.15      0              425081.2       252797.25    
+       300   123.37825      423610.88      0              425081.58      252747.21    
+       350   127.29797      423563.97      0              425081.4       252738.63    
+       400   124.61249      423596.09      0              425081.5       252782.08    
+       450   126.39456      423574.84      0              425081.5       252688.68    
+       500   130.70163      423523.43      0              425081.43      252683.43    
+Loop time of 0.13595 on 4 procs for 250 steps with 4000 atoms
+
+
+clear
+  using 1 OpenMP thread(s) per MPI task
+
+read_restart    repulsive.restart
+Reading restart file ...
+  restart file = 30 Sep 2026, LAMMPS = 30 Sep 2026
+  restoring atom style atomic from restart
+  orthogonal box = (-25 -25 -25) to (25 25 25)
+  1 by 2 by 2 MPI processor grid
+  pair style python stores no restart info
+  4000 atoms
+  read_restart CPU = 0.000 seconds
+
+pair_style      table spline 1000
+pair_coeff      1 1 python.dat PYTH_A_A
+Reading pair table potential file python.dat with DATE: 2026-10-10
+pair_coeff      1 2 python.dat PYTH_A_B
+Reading pair table potential file python.dat with DATE: 2026-10-10
+pair_coeff      2 2 python.dat PYTH_B_B
+Reading pair table potential file python.dat with DATE: 2026-10-10
+
+neighbor        1.0 bin
+neigh_modify    every 2 delay 4 check yes
+
+fix             1 all nve
+
+thermo          50
+run             250 post no
+Generated 0 of 1 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 2 steps, delay = 4 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 11
+  ghost atom cutoff = 11
+  binsize = 5.5, bins = 10 10 10
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair table, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 3.483 | 3.483 | 3.484 Mbytes
+   Step          Temp          E_pair         E_mol          TotEng         Press     
+       250   133.47481      423490.15      0              425081.2       252797.22    
+       300   123.37829      423610.88      0              425081.58      252747.19    
+       350   127.29802      423563.97      0              425081.4       252738.61    
+       400   124.61251      423596.09      0              425081.5       252782.07    
+       450   126.3946       423574.84      0              425081.5       252688.67    
+       500   130.70181      423523.43      0              425081.43      252683.42    
+Loop time of 0.248818 on 4 procs for 250 steps with 4000 atoms
+
+
+# remove temporary files
+shell rm repulsive.restart harmonic.dat python.dat
+Total wall time: 0:00:05

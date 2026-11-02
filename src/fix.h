@@ -341,7 +341,15 @@ namespace FixConst {
     MIN_PRE_FORCE = 1 << 19,
     MIN_PRE_REVERSE = 1 << 20,
     MIN_POST_FORCE = 1 << 21,
-    MIN_ENERGY = 1 << 22
+    MIN_ENERGY = 1 << 22,
+    // bits set by Modify, not by Fix::setmask()
+    POST_FORCE_GROUP = 1 << 24,    // fix GROUP instance, invoked first in post_force()
+    ENERGY_COUPLE = 1 << 25,       // contributes to the thermostat coupling energy
+    ENERGY_GLOBAL = 1 << 26,       // contributes to the global energy (fix_modify energy yes)
+    ENERGY_ATOM = 1 << 27,         // contributes to the per-atom energy (fix_modify energy yes)
+    // combinations for Modify::has_fixes()
+    POST_FORCE_ANY = POST_FORCE | POST_FORCE_GROUP,
+    POST_FORCE_RESPA_ANY = POST_FORCE_RESPA | POST_FORCE_GROUP
   };
 }
 

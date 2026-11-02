@@ -707,7 +707,9 @@ void NEBSpin::open(char *file)
   compressed = 0;
   if (platform::has_compress_extension(file)) {
     fp = platform::compressed_read(file);
-    if (!fp) error->one(FLERR,"Cannot open compressed file");
+    if (!fp)
+      error->one(FLERR, "Cannot open compressed file {}: {}", file,
+                 platform::compressed_open_error(file));
   } else fp = fopen(file,"r");
 
   if (fp == nullptr)

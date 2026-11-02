@@ -165,12 +165,17 @@ void PairLCBOPOMP::SR_neigh_thr()
       SR_firstneigh[i] = neighptr;
       SR_numneigh[i] = n;
       ipg.vgot(n);
-      if (ipg.status())
-        error->one(FLERR, Error::NOLASTLINE,
-                   "Neighbor list overflow, boost neigh_modify one" + utils::errorurl(36));
+      if (ipg.status()) {
+        // errors must be deferred until the end of the threaded region
+        check_error_thr(true, tid, FLERR,
+                        "Neighbor list overflow, boost neigh_modify one" + utils::errorurl(36));
+        break;
+      }
     }
   }
   // implicit OpenMP barrier after first parallel region
+
+  error_thr();
 
   // Second pass: compute M[i] = sum_j f_C_ij*F(N_j - f_C_ij).
   // Reads N[] (now complete) and writes M[i] (no overlap between threads).

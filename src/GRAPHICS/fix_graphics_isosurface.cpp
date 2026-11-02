@@ -1001,7 +1001,7 @@ void FixGraphicsIsosurface::end_of_step()
       auto *filecurrent = utils::strdup(utils::star_subst(filename, update->ntimestep, pad));
       if (platform::has_compress_extension(filename)) {
         if (binary)
-          error->one(FLERR, Error::NOLASTLINE, "Connot use compression with binary output: {}",
+          error->one(FLERR, Error::NOLASTLINE, "Cannot use compression with binary output: {}",
                      filename);
         fp.set_pclose();
         fp = platform::compressed_write(filecurrent);
@@ -1012,7 +1012,10 @@ void FixGraphicsIsosurface::end_of_step()
       }
       if (fp == nullptr)
         error->one(FLERR, Error::NOLASTLINE, "Cannot open STL output file {} for writing: {}",
-                   filecurrent, utils::getsyserror());
+                   filecurrent,
+                   platform::has_compress_extension(filename)
+                       ? platform::compressed_open_error(filecurrent)
+                       : utils::getsyserror());
 
       auto title = fmt::format("STL isosurface from fix {} graphics/isosurface on step {}", id,
                                update->ntimestep);

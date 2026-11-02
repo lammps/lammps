@@ -290,13 +290,17 @@ void FixWallTable::compute_table(Table &tb)
   // de,df values = delta values of e,f
   // r,e,f are N in length so de,df arrays can compute difference
 
+  // the spline interpolation also reads entry itable+1 in the last bin, where its
+  // weight is zero up to rounding, so e, f, e2, f2 carry one extra zero entry
+
   memory->create(tb.r, tablength, "wall:r");
-  memory->create(tb.e, tablength, "wall:e");
+  memory->create(tb.e, tablength + 1, "wall:e");
   memory->create(tb.de, tablength, "wall:de");
-  memory->create(tb.f, tablength, "wall:f");
+  memory->create(tb.f, tablength + 1, "wall:f");
   memory->create(tb.df, tablength, "wall:df");
-  memory->create(tb.e2, tablength, "wall:e2");
-  memory->create(tb.f2, tablength, "wall:f2");
+  memory->create(tb.e2, tablength + 1, "wall:e2");
+  memory->create(tb.f2, tablength + 1, "wall:f2");
+  tb.e[tablength] = tb.f[tablength] = tb.e2[tablength] = tb.f2[tablength] = 0.0;
 
   double a;
   for (int i = 0; i < tablength; i++) {

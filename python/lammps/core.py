@@ -1184,7 +1184,7 @@ class lammps:
     :param name: name of the property
     :type name:  string
     :return: value of the property or list of values or None
-    :rtype: float, list of float, list of list of floats, or NoneType
+    :rtype: float, list of float, list of list of float, or NoneType
     """
 
     if name:
@@ -2293,8 +2293,8 @@ class lammps:
 
   @property
   def has_gzip_support(self):
-    """ Report whether the LAMMPS shared library was compiled with support
-    for reading and writing compressed files through ``gzip``.
+    """ Report whether the ``gzip`` program is available for reading
+    and writing compressed files.
 
     This is a wrapper around the :cpp:func:`lammps_config_has_gzip_support`
     function of the library interface.
@@ -2338,7 +2338,7 @@ class lammps:
 
   @property
   def has_ffmpeg_support(self):
-    """ State of support for writing movies with ``ffmpeg`` in the LAMMPS shared library
+    """ Report whether the ``ffmpeg`` program is available for writing movies.
 
     This is a wrapper around the :cpp:func:`lammps_config_has_ffmpeg_support`
     function of the library interface.
@@ -2826,6 +2826,9 @@ class lammps:
 
   def get_neighlist_element_neighbors(self, idx, element):
     """Return data of neighbor list entry
+
+    The neighbor indices may have bits set for special neighbors that need
+    to be removed before using them as local atom indices; see :doc:`Python_neighbor`.
 
     :param element: neighbor list index
     :type  element: int

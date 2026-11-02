@@ -4,7 +4,7 @@
 # (c) 2017,2018,2019,2020,2021,2022,2023,2024,2025,2026 Axel Kohlmeyer <akohlmey@gmail.com>
 
 from __future__ import print_function
-import sys,os,shutil,glob,re,subprocess,tarfile,gzip,time,inspect
+import sys,os,shutil,glob,re,subprocess,tarfile,gzip,time,inspect,hashlib
 try: from urllib.request import urlretrieve as geturl
 except: from urllib import urlretrieve as geturl
 
@@ -32,9 +32,20 @@ def getbool(arg,keyword):
 def fullpath(path):
     return os.path.abspath(os.path.expanduser(path))
 
-def getexe(url,name):
+def sha256sum(name):
+    checksum = hashlib.sha256()
+    with open(name,'rb') as f:
+        for chunk in iter(lambda: f.read(1048576), b''):
+            checksum.update(chunk)
+    return checksum.hexdigest()
+
+# download and uncompress an executable. stop if the download does not have the expected checksum
+def getexe(url,name,sha256):
     gzname = name + ".gz"
     geturl(url,gzname)
+    if sha256sum(gzname) != sha256:
+        os.remove(gzname)
+        error("Checksum of file downloaded from %s does not match" % url)
     with gzip.open(gzname,'rb') as gz_in:
       with open(name,'wb') as f_out:
         shutil.copyfileobj(gz_in,f_out)
@@ -175,11 +186,14 @@ os.chdir(builddir)
 
 # download what is not automatically downloaded by CMake
 print("Downloading third party tools")
-url='http://download.lammps.org/thirdparty'
-print("FFMpeg")
-getexe("%s/ffmpeg-win64.exe.gz" % url,"ffmpeg.exe")
+# when updating a file on the server, its SHA256 checksum must be updated here, too
+url='https://download.lammps.org/thirdparty'
+print("FFmpeg")
+getexe("%s/ffmpeg-win64.exe.gz" % url,"ffmpeg.exe",
+       "fb9def874bc467edba48591a30f7ec7c19ae292b9a00a7e9867e7a26e9f47b00")
 print("gzip")
-getexe("%s/gzip.exe.gz" % url,"gzip.exe")
+getexe("%s/gzip.exe.gz" % url,"gzip.exe",
+       "d6f0563baf23981c5f24930358308840a8cfccea3db7571a4d712a6ee31d2dcd")
 
 if parflag == "mpi" or parflag == "ms":
     mpiflag = "on"
@@ -195,8 +209,7 @@ if parflag == 'ms':
   cmd += " -DUSE_MSMPI=on"
 if guiflag:
   cmd += " -DBUILD_LAMMPS_GUI=on -DDOWNLOAD_POTENTIALS=off -DQt6_DIR=/usr/x86_64-w64-mingw32/sys-root/mingw/lib/cmake/Qt6"
-cmd += " -DWITH_GZIP=on -DWITH_FFMPEG=on -DLAMMPS_EXCEPTIONS=on"
-cmd += " -DPKG_INTEL=no -DBUILD_LAMMPS_SHELL=on"
+cmd += " -DPKG_INTEL=no"
 cmd += " -DCMAKE_CXX_COMPILER_LAUNCHER=ccache"
 cmd += " -DPKG_PLUGIN=yes"
 cmd += " -DCMAKE_CXX_STANDARD=20"
@@ -274,33 +287,6 @@ if not pythonflag and not guiflag:
     shutil.move(exe,os.path.join('..',os.path.basename(exe)))
   print("Done")
 
-  print("Cloning lammps-plugin package")
-  if revflag == 'stable' or revflag == 'release' or rev2.match(revflag):
-      txt = system("git clone -b %s --depth 1 git@github.com:lammps/lammps-plugins.git" % revflag)
-  else:
-      txt = system("git clone -b develop --depth 1 git@github.com:lammps/lammps-plugins.git")
-  if verbose: print(txt)
-  print("Configuring LAMMPS plugin collection build with CMake")
-  cmd = "mingw64-cmake -D CMAKE_BUILD_TYPE=Release"
-  cmd += " -S lammps-plugins -B build_plugins"
-  cmd += " -DBUILD_SHARED_LIBS=on -DBUILD_MPI=%s -DBUILD_OMP=ON" % mpiflag
-  cmd += " -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DLAMMPS_SOURCE_DIR=%s/src" % gitdir
-  cmd += " -DLAMMPS_VERSION=%s" % version
-  if parflag == 'ms': cmd += " -DUSE_MSMPI=on"
-  cmd += " -DCMAKE_CXX_STANDARD=20"
-
-  print("Running: ",cmd)
-  txt = system(cmd)
-  if verbose: print(txt)
-  print("Done")
-
-  print("Compiling and building installer")
-  txt = system("cmake --build build_plugins --target package")
-  if verbose: print(txt)
-  for exe in glob.glob('build_plugins/LAMMPS*plugin*.exe'):
-    shutil.move(exe,os.path.join('..',os.path.basename(exe)))
-  print("Done")
-
 print("Building PDF manual")
 os.chdir(os.path.join(gitdir,"doc"))
 txt = system("make upgrade")
@@ -323,13 +309,6 @@ shutil.copy(os.path.join(gitdir,"LICENSE"),os.path.join(builddir,"LICENSE.txt"))
 shutil.copy(os.path.join(gitdir,"doc","src","PDF","colvars-refman-lammps.pdf"),os.path.join(builddir,"Colvars-Manual.pdf"))
 shutil.copy(os.path.join(gitdir,"tools","createatoms","Manual.pdf"),os.path.join(builddir,"CreateAtoms-Manual.pdf"))
 shutil.copy(os.path.join(gitdir,"doc","src","PDF","kspace.pdf"),os.path.join(builddir,"Kspace-Extra-Info.pdf"))
-shutil.copy(os.path.join(gitdir,"doc","src","PDF","pair_gayberne_extra.pdf"),os.path.join(builddir,"PairGayBerne-Manual.pdf"))
-shutil.copy(os.path.join(gitdir,"doc","src","PDF","pair_resquared_extra.pdf"),os.path.join(builddir,"PairReSquared-Manual.pdf"))
-shutil.copy(os.path.join(gitdir,"doc","src","PDF","PDLammps_overview.pdf"),os.path.join(builddir,"PDLAMMPS-Overview.pdf"))
-shutil.copy(os.path.join(gitdir,"doc","src","PDF","PDLammps_EPS.pdf"),os.path.join(builddir,"PDLAMMPS-EPS.pdf"))
-shutil.copy(os.path.join(gitdir,"doc","src","PDF","PDLammps_VES.pdf"),os.path.join(builddir,"PDLAMMPS-VES.pdf"))
-shutil.copy(os.path.join(gitdir,"doc","src","PDF","SPH_LAMMPS_userguide.pdf"),os.path.join(builddir,"SPH-Manual.pdf"))
-shutil.copy(os.path.join(gitdir,"doc","src","PDF","MACHDYN_LAMMPS_userguide.pdf"),os.path.join(builddir,"MACHDYN-Manual.pdf"))
 shutil.copy(os.path.join(gitdir,"doc","src","PDF","CG-DNA.pdf"),os.path.join(builddir,"CG-DNA-Manual.pdf"))
 
 # prune outdated inputs, too large files, or examples of packages we don't bundle

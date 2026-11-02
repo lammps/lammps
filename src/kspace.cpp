@@ -302,9 +302,10 @@ void KSpace::qsum_qsq(int warning_flag)
   const int nlocal = atom->nlocal;
   double qsum_local(0.0), qsqsum_local(0.0);
 
-#if defined(_OPENMP)
-#pragma omp parallel for default(shared) reduction(+:qsum_local,qsqsum_local)
-#endif
+  // do not use a threaded reduction here, since the summation order and thus the
+  // result would depend on the number of threads.  this would propagate to the
+  // estimated g_ewald and the energy, even when no styles with OpenMP support are used.
+
   for (int i = 0; i < nlocal; i++) {
     qsum_local += q[i];
     qsqsum_local += q[i]*q[i];

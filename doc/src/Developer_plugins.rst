@@ -321,9 +321,4 @@ required to build the plugin are also available under a less restrictive
 license).  This will automatically set the required environment variable
 and launching a (compatible) LAMMPS binary will load and register the
 plugin and the ML-PACE package can then be used as it was linked into
-LAMMPS.
-
----------
-
-You can find additional LAMMPS plugins in the `LAMMPS plugins source
-code repository on GitHub <https://github.com/lammps/lammps-plugins>`_
+LAMMPS.  The same currently exists for the MBX and PLUMED packages.

@@ -47,7 +47,7 @@ post-processed into a movie using commands described on the dump image
 doc page.
 
 If you uncomment the dump movie command in the input script, and
-assuming you have built LAMMPS with the FFMPEG library, an MPG movie
+assuming the ffmpeg program is installed and in your PATH, an MPG movie
 will be produced when the simulation runs.  The movie file can be
 played using various viewers, such as mplayer or QuickTime.
 

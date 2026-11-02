@@ -87,6 +87,8 @@ void PairTersoffTableOMP::compute(int eflag, int vflag)
     thr->timer(Timer::PAIR);
     reduce_thr(this, eflag, vflag, thr);
   } // end of omp parallel region
+
+  error_thr();
 }
 
 template <int EVFLAG, int VFLAG_EITHER>

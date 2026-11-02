@@ -70,8 +70,8 @@ void FixWallRegionKokkos<DeviceType>::init()
   // without this check a region w/o KOKKOS support was silently ignored:
   // no wall forces and undefined energy/virial contributions
 
-  if (!dynamic_cast<RegBlockKokkos<DeviceType>*>(region) &&
-      !dynamic_cast<RegSphereKokkos<DeviceType>*>(region))
+  if (!RegBlockKokkos<DeviceType>::cast(region) &&
+      !RegSphereKokkos<DeviceType>::cast(region))
     error->all(FLERR,"Fix wall/region/kk requires region style block/kk or sphere/kk");
 }
 
@@ -127,10 +127,10 @@ void FixWallRegionKokkos<DeviceType>::post_force(int vflag)
   copymode = 1;
   region->copymode = 1;
 
-  if(auto *regionKK = dynamic_cast<RegBlockKokkos<DeviceType>*>(region)) {
+  if (auto *regionKK = RegBlockKokkos<DeviceType>::cast(region)) {
     FixWallRegionKokkosFunctor<DeviceType,class RegBlockKokkos<DeviceType>> functor(this,regionKK);
     Kokkos::parallel_reduce(nlocal,functor,result);
-  } else if (auto *regionKK = dynamic_cast<RegSphereKokkos<DeviceType>*>(region)){
+  } else if (auto *regionKK = RegSphereKokkos<DeviceType>::cast(region)){
     FixWallRegionKokkosFunctor<DeviceType,class RegSphereKokkos<DeviceType>> functor(this,regionKK);
     Kokkos::parallel_reduce(nlocal,functor,result);
   }

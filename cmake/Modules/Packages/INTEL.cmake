@@ -87,6 +87,16 @@ elseif(CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM")
       target_compile_options(lammps PRIVATE ${_FLAG})
     endif()
   endforeach()
+  # the "-fp-model precise" flag (set in cmake/CMakeLists.txt) also keeps icpx from
+  # setting the CPU to flush subnormal numbers to zero when LAMMPS starts.  this is
+  # done by code that the compiler adds to main(), and without it some INTEL package
+  # styles become much slower when they produce subnormal numbers (e.g. sw in mixed
+  # precision), so it is requested explicitly for the LAMMPS executable.  -ftz must
+  # come after -fp-model precise, which is the case for target specific options
+  check_cxx_compiler_flag(-ftz COMPILER_SUPPORTS-ftz)
+  if(COMPILER_SUPPORTS-ftz)
+    target_compile_options(lmp PRIVATE -ftz)
+  endif()
 endif()
 
 # collect sources

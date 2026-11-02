@@ -42,7 +42,9 @@ void Reader::open_file(const std::string &file)
   if (platform::has_compress_extension(file)) {
     fp.set_pclose();
     fp = platform::compressed_read(file);
-    if (!fp) error->one(FLERR, "Cannot open compressed file for reading");
+    if (!fp)
+      error->one(FLERR, "Cannot open compressed file {} for reading: {}", file,
+                 platform::compressed_open_error(file));
   } else {
     if (utils::strmatch(file, "\\.bin$")) {
       binary = true;

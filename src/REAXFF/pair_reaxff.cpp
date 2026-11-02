@@ -784,10 +784,13 @@ void PairReaxFF::FindBond()
       bo_tmp = bo_ij->bo_data.BO;
 
       if (bo_tmp >= bo_cut) {
+        if (nj >= MAXSPECBOND)
+          error->one(FLERR, Error::NOLASTLINE,
+                     "Atom {} has more than {} bonds for ReaxFF species analysis; "
+                     "increase MAXSPECBOND in reaxff_defs.h", atom->tag[i], MAXSPECBOND);
         tmpid[i][nj] = j;
         tmpbo[i][nj] = bo_tmp;
         nj ++;
-        if (nj > MAXSPECBOND) error->all(FLERR,"Increase MAXSPECBOND in reaxff_defs.h");
       }
     }
   }

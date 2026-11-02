@@ -586,8 +586,8 @@ void Dump::openfile()
     }
 
     if (fp == nullptr) {
-      error->one(FLERR, Error::NOLASTLINE, "Cannot open dump file {}: {}",
-                 filecurrent, utils::getsyserror());
+      error->one(FLERR, Error::NOLASTLINE, "Cannot open dump file {}: {}", filecurrent,
+                 compressed ? platform::compressed_open_error(filecurrent) : utils::getsyserror());
     }
   }
 

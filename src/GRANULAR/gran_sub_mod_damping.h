@@ -16,86 +16,84 @@
 
 #include "gran_sub_mod.h"
 
-
 namespace LAMMPS_NS::Granular_NS {
 
-  class GranSubModDamping : public GranSubMod {
-   public:
-    GranSubModDamping(class GranularModel *, class LAMMPS *);
-    void init() override;
-    virtual double calculate_forces() = 0;
-    [[nodiscard]] double get_damp_prefactor() const { return damp_prefactor; }
+class GranSubModDamping : public GranSubMod {
+ public:
+  GranSubModDamping(class GranularModel *, class LAMMPS *);
+  void init() override;
+  virtual double calculate_forces() = 0;
+  [[nodiscard]] double get_damp_prefactor() const { return damp_prefactor; }
 
-   protected:
-    double damp_prefactor;
-    double damp;
-  };
+ protected:
+  double damp_prefactor;
+  double damp;
+};
 
-  /* ---------------------------------------------------------------------- */
+/* ---------------------------------------------------------------------- */
 
-  class GranSubModDampingNone : public GranSubModDamping {
-   public:
-    GranSubModDampingNone(class GranularModel *, class LAMMPS *);
-    double calculate_forces() override;
-  };
+class GranSubModDampingNone : public GranSubModDamping {
+ public:
+  GranSubModDampingNone(class GranularModel *, class LAMMPS *);
+  double calculate_forces() override;
+};
 
-  /* ---------------------------------------------------------------------- */
+/* ---------------------------------------------------------------------- */
 
-  class GranSubModDampingVelocity : public GranSubModDamping {
-   public:
-    GranSubModDampingVelocity(class GranularModel *, class LAMMPS *);
-    double calculate_forces() override;
-  };
+class GranSubModDampingVelocity : public GranSubModDamping {
+ public:
+  GranSubModDampingVelocity(class GranularModel *, class LAMMPS *);
+  double calculate_forces() override;
+};
 
-  /* ---------------------------------------------------------------------- */
+/* ---------------------------------------------------------------------- */
 
-  class GranSubModDampingMassVelocity : public GranSubModDamping {
-   public:
-    GranSubModDampingMassVelocity(class GranularModel *, class LAMMPS *);
-    double calculate_forces() override;
-  };
+class GranSubModDampingMassVelocity : public GranSubModDamping {
+ public:
+  GranSubModDampingMassVelocity(class GranularModel *, class LAMMPS *);
+  double calculate_forces() override;
+};
 
-  /* ---------------------------------------------------------------------- */
+/* ---------------------------------------------------------------------- */
 
-  class GranSubModDampingViscoelastic : public GranSubModDamping {
-   public:
-    GranSubModDampingViscoelastic(class GranularModel *, class LAMMPS *);
-    double calculate_forces() override;
-  };
+class GranSubModDampingViscoelastic : public GranSubModDamping {
+ public:
+  GranSubModDampingViscoelastic(class GranularModel *, class LAMMPS *);
+  double calculate_forces() override;
+};
 
-  /* ---------------------------------------------------------------------- */
+/* ---------------------------------------------------------------------- */
 
-  class GranSubModDampingTsuji : public GranSubModDamping {
-   public:
-    GranSubModDampingTsuji(class GranularModel *, class LAMMPS *);
-    void init() override;
-    double calculate_forces() override;
-  };
+class GranSubModDampingTsuji : public GranSubModDamping {
+ public:
+  GranSubModDampingTsuji(class GranularModel *, class LAMMPS *);
+  void init() override;
+  double calculate_forces() override;
+};
 
-  /* ---------------------------------------------------------------------- */
+/* ---------------------------------------------------------------------- */
 
-  class GranSubModDampingCoeffRestitution : public GranSubModDampingTsuji {
-   public:
-    GranSubModDampingCoeffRestitution(class GranularModel *, class LAMMPS *);
-    void init() override;
-  };
+class GranSubModDampingCoeffRestitution : public GranSubModDampingTsuji {
+ public:
+  GranSubModDampingCoeffRestitution(class GranularModel *, class LAMMPS *);
+  void init() override;
+};
 
-  /* ---------------------------------------------------------------------- */
+/* ---------------------------------------------------------------------- */
 
-  class GranSubModDampingMDR : public GranSubModDamping {
-   public:
-    GranSubModDampingMDR(class GranularModel *, class LAMMPS *);
-    void coeffs_to_local() override;
-    void init() override;
-    double calculate_forces() override;
+class GranSubModDampingMDR : public GranSubModDamping {
+ public:
+  GranSubModDampingMDR(class GranularModel *, class LAMMPS *);
+  void coeffs_to_local() override;
+  void init() override;
+  double calculate_forces() override;
 
-   protected:
-    int damp_type;
-  };
+ protected:
+  int damp_type;
+};
 
-  /* ---------------------------------------------------------------------- */
+/* ---------------------------------------------------------------------- */
 
-} // namespace LAMMPS_NS::Granular_NS
-
+}    // namespace LAMMPS_NS::Granular_NS
 
 #endif /*GRAN_SUB_MOD_DAMPING_H */

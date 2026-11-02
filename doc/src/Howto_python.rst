@@ -13,7 +13,7 @@ The :py:class:`lammps <lammps.lammps>` Python module is a wrapper class for the
 LAMMPS :ref:`C language library interface API <lammps_c_api>` which is written using
 `Python ctypes <ctypes_>`_.  The design choice of this wrapper class is to
 follow the C language API closely with only small changes related to Python
-specific requirements and to better accommodate object oriented programming.
+specific requirements and to better accommodate object-oriented programming.
 
 In addition to this flat `ctypes <ctypes_>`_ interface, the
 :py:class:`lammps <lammps.lammps>` wrapper class exposes a discoverable
@@ -33,6 +33,13 @@ visualization output from :doc:`dump style image <dump_image>`.
 Quick Start
 -----------
 
+.. note::
+
+   If you only want to *use* LAMMPS from Python and do not need to
+   compile it yourself, you can also install a pre-compiled LAMMPS
+   package that includes the Python module :doc:`via conda
+   <Install_conda>`.
+
 System-wide or User Installation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -42,7 +49,7 @@ Step 1: Building LAMMPS as a shared library
 To use LAMMPS inside of Python it has to be compiled as shared library.
 This library is then loaded by the Python interface.  In this example we
 enable the :ref:`MOLECULE package <PKG-MOLECULE>` and compile LAMMPS
-with :ref:`PNG, JPEG and FFMPEG output support <graphics>` enabled.
+with :ref:`PNG and JPEG output support <graphics>` enabled.
 
 .. tabs::
 
@@ -50,12 +57,12 @@ with :ref:`PNG, JPEG and FFMPEG output support <graphics>` enabled.
 
       .. code-block:: bash
 
-         mkdir $LAMMPS_DIR/build-shared
-         cd  $LAMMPS_DIR/build-shared
+         cd $LAMMPS_DIR
 
-         # MPI, PNG, Jpeg, FFMPEG are auto-detected
-         cmake ../cmake -DPKG_MOLECULE=yes -DPKG_PYTHON=on -DBUILD_SHARED_LIBS=yes
-         make
+         # MPI, PNG, JPEG, and FFMPEG support are auto-detected
+         cmake -S cmake -B build-shared -D PKG_MOLECULE=on -D PKG_PYTHON=on \
+               -D PKG_GRAPHICS=on -D BUILD_SHARED_LIBS=on
+         cmake --build build-shared
 
    .. tab:: Traditional make
 
@@ -66,22 +73,33 @@ with :ref:`PNG, JPEG and FFMPEG output support <graphics>` enabled.
          # add LAMMPS packages if necessary
          make yes-MOLECULE
          make yes-PYTHON
+         make yes-GRAPHICS
 
          # compile shared library using Makefile
-         make mpi mode=shlib LMP_INC="-DLAMMPS_PNG -DLAMMPS_JPEG -DLAMMPS_FFMPEG" JPG_LIB="-lpng -ljpeg"
+         make mpi mode=shlib LMP_INC="-DLAMMPS_PNG -DLAMMPS_JPEG" JPG_LIB="-lpng -ljpeg"
 
 Step 2: Installing the LAMMPS Python module
 """""""""""""""""""""""""""""""""""""""""""
 
 Next install the LAMMPS Python module into your current Python installation with:
 
-.. code-block:: bash
+.. tabs::
 
-   make install-python
+   .. tab:: CMake build
+
+      .. code-block:: bash
+
+         cmake --build build-shared --target install-python
+
+   .. tab:: Traditional make
+
+      .. code-block:: bash
+
+         make install-python
 
 This will create a so-called `"wheel"
 <https://packaging.python.org/en/latest/discussions/package-formats/#what-is-a-wheel>`_
-and then install the LAMMPS Python module from that "wheel" into either
+and then install the LAMMPS Python module from that "wheel" either
 into a system folder (provided the command is executed with root
 privileges) or into your personal Python module folder.
 
@@ -98,12 +116,12 @@ privileges) or into your personal Python module folder.
    Some Python installations made through Linux distributions
    (e.g. Ubuntu 24.04LTS or later) will prevent installing the LAMMPS
    Python module into a system folder or a corresponding folder of the
-   individual user as attempted by ``make install-python`` with an error
-   stating that an *externally managed* python installation must be only
-   managed by the same package package management tool.  This is an
-   optional setting, so not all Linux distributions follow it currently
-   (Spring 2025).  The reasoning and explanations for this error can be
-   found in the `Python Packaging User Guide
+   individual user as attempted by the ``install-python`` target with an
+   error stating that an *externally managed* python installation must
+   be only managed by the same package management tool.  This is an
+   optional setting, so not all Linux distributions follow it.  The
+   reasoning and explanations for this error can be found in the `Python
+   Packaging User Guide
    <https://packaging.python.org/en/latest/specifications/externally-managed-environments/>`_
 
    These guidelines suggest to create a virtual environment and install
@@ -119,22 +137,22 @@ Installation inside of a virtual environment
 You can use virtual environments to create a custom Python environment
 specifically tuned for your workflow.
 
-Benefits of using a virtualenv
-""""""""""""""""""""""""""""""
+Benefits of using a virtual environment
+"""""""""""""""""""""""""""""""""""""""
 
 * isolation of your system Python installation from your development installation
 * installation can happen in your user directory without root access (useful for HPC clusters)
-* installing packages through pip allows you to get newer versions of packages than e.g., through apt-get or yum package managers (and without root access)
+* installing packages through pip allows you to get newer versions of packages than e.g., through the apt or dnf package managers (and without root access)
 * you can even install specific old versions of a package if necessary
 
 **Prerequisite (e.g. on Ubuntu)**
 
 .. code-block:: bash
 
-   apt-get install python-venv
+   sudo apt install python3-venv
 
-Creating a virtualenv with lammps installed
-"""""""""""""""""""""""""""""""""""""""""""
+Creating a virtual environment with LAMMPS installed
+""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 .. code-block:: bash
 
@@ -144,25 +162,33 @@ Creating a virtualenv with lammps installed
    # activate 'testing' environment
    source $HOME/python/testing/bin/activate
 
-Now configure and compile the LAMMPS shared library as outlined above.
-When using CMake and the shared library has already been build, you
-need to re-run CMake to update the location of the python executable
-to the location in the virtual environment with:
+Now configure and compile the LAMMPS shared library as outlined above
+with the virtual environment active.  CMake will then use the Python
+interpreter of the virtual environment.  If the shared library has
+already been configured before the virtual environment was activated,
+you need to re-run CMake to update the location of the Python
+executable to the location in the virtual environment with:
 
 .. code-block:: bash
 
-   cmake . -DPython_EXECUTABLE=$(which python)
+   cmake -S cmake -B build-shared -D Python_EXECUTABLE=$(which python)
 
-   # install LAMMPS package in virtualenv
-   (testing) make install-python
+Then install the LAMMPS Python module (for the traditional make build
+use ``make install-python`` in the ``src`` folder instead) and other
+useful packages into the virtual environment:
+
+.. code-block:: bash
+
+   # install LAMMPS package in virtual environment
+   cmake --build build-shared --target install-python
 
    # install other useful packages
-   (testing) pip install matplotlib jupyter mpi4py pandas
+   pip install matplotlib jupyterlab mpi4py pandas
 
-   ...
+   # ... use LAMMPS from Python ...
 
-   # return to original shell
-   (testing) deactivate
+   # return to the original shell environment
+   deactivate
 
 -------
 
@@ -180,6 +206,17 @@ module. By using the default constructor, a new :py:class:`lammps
 
 See the :doc:`LAMMPS Python documentation <Python_create>` for how to customize
 the instance creation with optional arguments.
+
+When the instance is no longer needed, it can be deleted with
+``L.close()``.  Alternatively, the instance can be created in a ``with``
+statement, and then it will be closed automatically at the end of the
+block:
+
+.. code-block:: python
+
+   with lammps() as L:
+       L.command("units real")
+       # ... more LAMMPS commands ...
 
 -----
 
@@ -241,20 +278,20 @@ Accessing atom data
 
 All per-atom properties that are part of the :doc:`atom style
 <atom_style>` in the current simulation can be accessed using the
-:py:meth:`extract_atoms() <lammps.lammps.extract_atoms()>` method.  This
+:py:meth:`extract_atom() <lammps.lammps.extract_atom()>` method.  This
 can be retrieved as ctypes objects or as NumPy arrays through the
-lammps.numpy module.  Those represent the *local* atoms of the
-individual sub-domain for the current MPI process and may contain
-information for the local ghost atoms or not depending on the property.
-Both can be accessed as lists, but for the ctypes list object the size
-is not known and has to be retrieved first to avoid out-of-bounds
-accesses.
+``numpy`` property of the lammps object.  Those represent the *local*
+atoms of the individual sub-domain for the current MPI process and may
+contain information for the local ghost atoms or not depending on the
+property.  Both can be accessed as lists, but for the ctypes list object
+the size is not known and has to be retrieved first to avoid
+out-of-bounds accesses.
 
 .. code-block:: python
 
    nlocal = L.extract_setting("nlocal")
    nall = L.extract_setting("nall")
-   print("Number of local atoms ", nlocal, "  Number of local and ghost atoms ", nall);
+   print("Number of local atoms ", nlocal, "  Number of local and ghost atoms ", nall)
 
    # access via ctypes directly
    atom_id = L.extract_atom("id")
@@ -300,17 +337,37 @@ method.
    result = L.get_thermo("ke") # kinetic energy
    result = L.get_thermo("pe") # potential energy
 
+   # value of an equal-style variable named "t"
    result = L.extract_variable("t") / 2.0
 
 Error handling
 --------------
 
-We are using C++ exceptions in LAMMPS for errors and the C language
-library interface captures and records them.  This allows checking
-whether errors have happened in Python during a call into LAMMPS and
-then re-throw the error as a Python exception.  This way you can handle
-LAMMPS errors in the conventional way through the Python exception
-handling mechanism.
+LAMMPS uses C++ exceptions for errors, and the C language library
+interface captures and records them.  The Python module checks for
+errors after each call into LAMMPS and then re-throws them as a Python
+exception.  This way you can handle LAMMPS errors in the conventional
+way through the Python exception handling mechanism:
+
+.. code-block:: python
+
+   from lammps import lammps, MPIAbortException
+
+   L = lammps()
+   try:
+       L.command("unknown_command")
+   except MPIAbortException as e:
+       # error on only some of the MPI processes; LAMMPS cannot continue
+       print("Fatal LAMMPS error:", e)
+       raise
+   except Exception as e:
+       # error on all MPI processes
+       print("LAMMPS error:", e)
+
+An ``MPIAbortException`` signals an error that happened on only some of
+the MPI processes, where LAMMPS would otherwise call ``MPI_Abort()`` to
+terminate all processes.  Please see :doc:`Python_error` for more
+details.
 
 .. warning::
 
@@ -328,7 +385,7 @@ notebook inside of Jupyter. Jupyter is a powerful integrated development
 environment (IDE) for many dynamic languages like Python, Julia and
 others, which operates inside of any web browser.  Besides
 auto-completion and syntax highlighting it allows you to create
-formatted documents using Markup, mathematical formulas, graphics and
+formatted documents using Markdown, mathematical formulas, graphics and
 animations intermixed with executable Python code.  It is a great format
 for tutorials and showcasing your latest research.
 
@@ -337,29 +394,33 @@ Python environment (this assumes you followed the Quick Start instructions):
 
 .. code-block:: bash
 
-   jupyter notebook
+   jupyter lab
 
 Interactive Python Examples
 ---------------------------
 
 Examples of IPython notebooks can be found in the ``python/examples/ipython``
-subdirectory. To open these notebooks launch ``jupyter notebook`` inside this
-directory and navigate to one of them. If you compiled and installed
-a LAMMPS shared library with PNG, JPEG and FFMPEG support
-you should be able to rerun all of these notebooks.
+subdirectory. To open these notebooks launch ``jupyter lab`` inside this
+directory and navigate to one of them.  The ``README.md`` file in this
+directory describes how to set up a suitable virtual environment.  If
+you compiled and installed a LAMMPS shared library with the GRAPHICS
+package with PNG and JPEG support and have FFmpeg installed, you should be
+able to rerun all of these notebooks.  The notebooks run LAMMPS in serial,
+so the per-atom data of the local MPI process contains all atoms.
 
 Validating a dihedral potential
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-This example showcases how an IPython Notebook can be used to compare a simple
-LAMMPS simulation of a harmonic dihedral potential to its analytical solution.
-Four atoms are placed in the simulation and the dihedral potential is applied on
-them using a datafile. Then one of the atoms is rotated along the central axis by
+This example (``dihedrals/dihedral.ipynb``) showcases how an IPython
+Notebook can be used to compare a simple LAMMPS simulation of a harmonic
+dihedral potential to its analytical solution.  Four atoms are placed in
+the simulation and the dihedral potential is applied on them using a
+datafile. Then one of the atoms is rotated along the central axis by
 setting its position from Python, which changes the dihedral angle.
 
 .. code-block:: python
 
-   phi = [d \* math.pi / 180 for d in range(360)]
+   phi = [d * math.pi / 180 for d in range(360)]
 
    pos = [(1.0, math.cos(p), math.sin(p)) for p in phi]
 
@@ -382,9 +443,10 @@ plot inside the IPython notebook.
 Running a Monte Carlo relaxation
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-This second example shows how to use the `lammps` Python interface to create a
-2D Monte Carlo Relaxation simulation, computing and plotting energy terms and
-even embedding video output.
+This second example (``montecarlo/mc.ipynb``) shows how to use the
+`lammps` Python interface to create a 2D Monte Carlo Relaxation
+simulation, computing and plotting energy terms and even embedding video
+output.
 
 Initially, a 2D system is created in a state with minimal energy.
 
@@ -397,14 +459,13 @@ It is then disordered by moving each atom by a random delta.
 
    random.seed(27848)
    deltaperturb = 0.2
-   x = L.numpy.extract_atom("x")
-   natoms = x.shape[0]
 
-   for i in range(natoms):
-       dx = deltaperturb \* random.uniform(-1, 1)
-       dy = deltaperturb \* random.uniform(-1, 1)
-       x[i][0] += dx
-       x[i][1] += dy
+   pos = L.numpy.extract_atom("x")
+   for i in range(len(pos)):
+       x, y = pos[i][0], pos[i][1]
+       dx = deltaperturb * random.uniform(-1, 1)
+       dy = deltaperturb * random.uniform(-1, 1)
+       pos[i] = (x+dx, y+dy, 0)
 
    L.cmd.run(0, "post", "no")
 
@@ -426,20 +487,19 @@ moves random atoms by a random delta and only accepts certain moves.
    deltamove = 0.1
    kT = 0.05
 
+   natoms = L.extract_global("natoms")
+
    for i in range(niterations):
-       x = L.numpy.extract_atom("x")
-       natoms = x.shape[0]
+       pos = L.numpy.extract_atom("x")
        iatom = random.randrange(0, natoms)
-       current_atom = x[iatom]
+       current_atom = pos[iatom]
 
-       x0 = current_atom[0]
-       y0 = current_atom[1]
+       x0, y0 = current_atom[0], current_atom[1]
 
-       dx = deltamove \* random.uniform(-1, 1)
-       dy = deltamove \* random.uniform(-1, 1)
+       dx = deltamove * random.uniform(-1, 1)
+       dy = deltamove * random.uniform(-1, 1)
 
-       current_atom[0] = x0 + dx
-       current_atom[1] = y0 + dy
+       pos[iatom] = (x0+dx, y0+dy, 0)
 
        L.cmd.run(1, "pre no post no")
 
@@ -449,12 +509,11 @@ moves random atoms by a random delta and only accepts certain moves.
        if e <= elast:
            naccept += 1
            elast = e
-       elif random.random() <= math.exp(natoms\*(elast-e)/kT):
+       elif random.random() <= math.exp(natoms*(elast-e)/kT):
            naccept += 1
            elast = e
        else:
-           current_atom[0] = x0
-           current_atom[1] = y0
+           pos[iatom] = (x0, y0, 0)
 
 The energies of each iteration are collected in a Python list and finally plotted using matplotlib.
 

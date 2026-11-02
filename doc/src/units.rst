@@ -171,13 +171,16 @@ For style *electron*, these are the units:
 * distance = Bohr
 * time = femtoseconds
 * energy = Hartrees
-* velocity = Bohr/atomic time units [1.03275e-15 seconds]
+* velocity = Bohr/femtoseconds
 * force = Hartrees/Bohr
+* torque = Hartrees
 * temperature = Kelvin
 * pressure = Pascals
+* dynamic viscosity = Pascal\*second
 * charge = multiple of electron charge (1.0 is a proton)
 * dipole moment = Debye
 * electric field = volts/cm
+* density = atomic mass units/Bohr\^dim
 
 For style *micro*, these are the units:
 

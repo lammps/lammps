@@ -5,7 +5,10 @@
 #
 # unit system: GPa / mm / ms
 #
+# the default number of steps is short for testing, use "-var nsteps 5000" for the full example
+#
 ####################################################################################################
+variable        nsteps index 2000
 
 ####################################################################################################
 # MATERIAL PARAMETERS
@@ -107,7 +110,8 @@ variable        etot equal c_alleint+ke+pe
 #dump            viz all image ${dumpFreq} rubber_rings-*.ppm element type size 800 400 &
 #                zoom 4.0 shiny 0.2 fsaa yes view 0 90 box no 0.01 center s 0.467762 0.43547 0.353422 &
 #                fix iso type 1 2
-#dump_modify     viz pad 6 backcolor black backcolor2 white ftrans iso 0.75 adiam * 0.8 element Fe Fe
+#dump_modify     viz pad 6 backcolor black backcolor2 white ftrans iso 0.75 adiam * 0.8 element Fe Fe &
+#                color cblue 0.165 0.471 0.839 color corange 0.922 0.408 0.204 acolor 1 cblue acolor 2 corange
 
 ####################################################################################################
 # STATUS OUTPUT
@@ -118,4 +122,4 @@ thermo_style    custom step dt f_dtfix ke pe c_alleint v_etot
 ####################################################################################################
 # PERFORM INITIAL LOAD BALANCING AND RUN SIMULATION
 ####################################################################################################
-run             5000
+run             ${nsteps}

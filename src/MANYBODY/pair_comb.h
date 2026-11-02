@@ -59,6 +59,7 @@ class PairComb : public Pair {
     double coulcut, lcut, lcutsq, hfocor;
     int ielement, jelement, kelement;
     int powermint;
+    int cuo_pending, cuo_reduced;    // status of the Cu-O cutoff reduction
   };
 
   double cutmax;    // max cutoff for all elements
@@ -83,6 +84,7 @@ class PairComb : public Pair {
   void allocate();
   virtual void read_file(char *);
   void setup_params();
+  void reduce_cuo_cutoff();
   virtual void repulsive(Param *, double, double &, int, double &, double, double);
   double zeta(Param *, double, double, double *, double *);
   void force_zeta(Param *, int, int, int, double, double, double, double, double &, double &,

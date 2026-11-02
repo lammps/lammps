@@ -76,14 +76,14 @@ build system in comparison to the traditional make build.
 
       .. code-block:: csh
 
-         -D PKG_NAME=value          # yes or no (default)
+         -D PKG_NAME=value          # on or off (default)
 
       Examples:
 
       .. code-block:: csh
 
-         -D PKG_MANYBODY=yes
-         -D PKG_INTEL=yes
+         -D PKG_MANYBODY=on
+         -D PKG_INTEL=on
 
       All packages are included the same way.  See the shortcut section
       below for how to install many packages at once with CMake.
@@ -176,52 +176,70 @@ make a copy of one of them and modify it to suit your needs.
 .. code-block:: bash
 
     # enable just a few core packages (MOLECULE, KSPACE, MANYBODY, RIGID, GRAPHICS)
-    cmake -C ../cmake/presets/basic.cmake    [OPTIONS] ../cmake
+    cmake -S cmake -B build -C cmake/presets/basic.cmake    [OPTIONS]
 
     # enable most packages
-    cmake -C ../cmake/presets/most.cmake     [OPTIONS] ../cmake
+    cmake -S cmake -B build -C cmake/presets/most.cmake     [OPTIONS]
 
     # enable packages which download sources or potential files
-    cmake -C ../cmake/presets/download.cmake [OPTIONS] ../cmake
+    cmake -S cmake -B build -C cmake/presets/download.cmake [OPTIONS]
 
     # disable packages that do require extra libraries or tools
-    cmake -C ../cmake/presets/nolib.cmake    [OPTIONS] ../cmake
+    cmake -S cmake -B build -C cmake/presets/nolib.cmake    [OPTIONS]
 
     # change settings to use the Clang compilers by default
-    cmake -C ../cmake/presets/clang.cmake    [OPTIONS] ../cmake
+    cmake -S cmake -B build -C cmake/presets/clang.cmake    [OPTIONS]
 
     # change settings to use the GNU compilers by default
-    cmake -C ../cmake/presets/gcc.cmake      [OPTIONS] ../cmake
+    cmake -S cmake -B build -C cmake/presets/gcc.cmake      [OPTIONS]
+
+    # like gcc.cmake but with additional compiler warnings enabled
+    # (useful during development)
+    cmake -S cmake -B build -C cmake/presets/pedantic.cmake [OPTIONS]
 
     # change settings to use the Intel compilers by default
     cmake -C ../cmake/presets/intel.cmake    [OPTIONS] ../cmake
 
     # change settings to use the PGI compilers by default
-    cmake -C ../cmake/presets/pgi.cmake      [OPTIONS] ../cmake
+    cmake -S cmake -B build -C cmake/presets/pgi.cmake      [OPTIONS]
+
+    # change settings to use the NVIDIA HPC compilers by default
+    cmake -S cmake -B build -C cmake/presets/nvhpc.cmake    [OPTIONS]
 
     # enable all packages
-    cmake -C ../cmake/presets/all_on.cmake   [OPTIONS] ../cmake
+    cmake -S cmake -B build -C cmake/presets/all_on.cmake   [OPTIONS]
 
     # disable all packages
-    cmake -C ../cmake/presets/all_off.cmake  [OPTIONS] ../cmake
+    cmake -S cmake -B build -C cmake/presets/all_off.cmake  [OPTIONS]
+
+    # enable all packages that contain styles with KOKKOS support
+    cmake -S cmake -B build -C cmake/presets/kokkos-packages.cmake [OPTIONS]
+
+    # enable all packages that contain styles with GPU package support
+    cmake -S cmake -B build -C cmake/presets/gpu-packages.cmake [OPTIONS]
 
     #  compile with MinGW cross-compilers
-    mingw64-cmake -C ../cmake/presets/mingw-cross.cmake [OPTIONS] ../cmake
+    mingw64-cmake -S cmake -B build -C cmake/presets/mingw-cross.cmake [OPTIONS]
 
     # compile serial multi-arch binaries on macOS
-    cmake -C ../cmake/presets/macos-multiarch.cmake [OPTIONS] ../cmake
+    cmake -S cmake -B build -C cmake/presets/macos-multiarch.cmake [OPTIONS]
 
 Presets that have names starting with "windows" are specifically for
-compiling LAMMPS :doc:`natively on Windows <Build_windows>` and
-presets that have names starting with "kokkos" are specifically for
-selecting configurations for compiling LAMMPS with :ref:`KOKKOS <kokkos>`.
+compiling LAMMPS :doc:`natively on Windows <Build_windows>`, presets
+that have names starting with "kokkos" are specifically for selecting
+configurations for compiling LAMMPS with :ref:`KOKKOS <kokkos>`, and
+presets that have names starting with "gpu" are specifically for
+compiling LAMMPS with the :ref:`GPU package <gpu>`.  The
+``kokkos-packages.cmake`` and ``gpu-packages.cmake`` presets only
+select packages; they do *not* enable the KOKKOS or GPU package itself
+and are meant to be combined with other presets or settings that do.
 
 .. note::
 
-   Running cmake this way manipulates the CMake settings cache in your
-   current build directory.  You can combine multiple presets and options
-   in a single cmake run, or change settings incrementally by running
-   cmake with new flags.  If you use a present for selecting a set of
+   Running cmake this way manipulates the CMake settings cache in the
+   build folder.  You can combine multiple presets and options in a
+   single cmake run, or change settings incrementally by running cmake
+   with new flags.  If you use a preset for selecting a set of
    compilers, it will reset all settings from previous CMake runs.
 
 
@@ -232,18 +250,16 @@ Example
 
    # build LAMMPS with most commonly used packages, but then remove
    # those requiring additional library or tools, but still enable
-   # GPU package and configure it for using CUDA. You can run.
-   mkdir build
-   cd build
-   cmake -C ../cmake/presets/most.cmake -C ../cmake/presets/nolib.cmake \
-         -D PKG_GPU=on -D GPU_API=cuda ../cmake
+   # GPU package and configure it for using CUDA. You can run:
+   cmake -S cmake -B build -C cmake/presets/most.cmake -C cmake/presets/nolib.cmake \
+         -D PKG_GPU=on -D GPU_API=cuda
 
    # to add another package, say BODY to the previous configuration you can run:
-   cmake -D PKG_BODY=on .
+   cmake -S cmake -B build -D PKG_BODY=on
 
    # to reset the package selection from above to the default of no packages
    # but leaving all other settings untouched. You can run:
-   cmake -C ../cmake/presets/all_off.cmake .
+   cmake -S cmake -B build -C cmake/presets/all_off.cmake
 
 ----------
 

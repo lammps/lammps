@@ -1,7 +1,10 @@
 .. index:: pair_style bpm/spring
+.. index:: pair_style bpm/spring/omp
 
 pair_style bpm/spring command
 =============================
+
+Accelerator Variants: *bpm/spring/omp*
 
 Syntax
 """"""
@@ -93,6 +96,8 @@ must be provided:
 * :math:`k_a`           (force/distance\^3 units)
 
 ----------
+
+.. include:: accel_styles.rst
 
 Mixing, shift, table, tail correction, restart, rRESPA info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""

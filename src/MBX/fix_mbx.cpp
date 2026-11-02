@@ -423,8 +423,8 @@ FixMBX::FixMBX(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   // MRR Call function to fill up arrays
   mbx_fill_system_information_from_atom();
 
-  atom->add_callback(0);
-  atom->add_callback(1);
+  atom->add_callback(this, Atom::GROW);
+  atom->add_callback(this, Atom::RESTART);
 
   mbx_num_atoms = 0;
   mbx_num_ext = 0;
@@ -525,8 +525,8 @@ FixMBX::~FixMBX()
 
   // unregister callbacks to this fix from Atom class
 
-  atom->delete_callback(id, 0);
-  atom->delete_callback(id, 1);
+  atom->delete_callback(this, Atom::GROW);
+  atom->delete_callback(this, Atom::RESTART);
 
   memory->destroy(mol_local);
   memory->destroy(mol_type);

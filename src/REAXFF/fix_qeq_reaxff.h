@@ -20,12 +20,18 @@
    H. M. Aktulga, J. C. Fogarty, S. A. Pandit, A. Y. Grama,
    "Parallel Reactive Molecular Dynamics: Numerical Methods and
    Algorithmic Techniques", Parallel Computing, in press.
+
+   QTPIE and QEq with relative electric potentials (fix qtpie/reaxff and
+   fix qeq/rel/reaxff): Efstratios M Kritikos (Caltech) and
+   Navraj S Lalli (Imperial College London)
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
 // clang-format off
 FixStyle(qeq/reaxff,FixQEqReaxFF);
 FixStyle(qeq/reax,FixQEqReaxFF);
+FixStyle(qtpie/reaxff,FixQEqReaxFF);
+FixStyle(qeq/rel/reaxff,FixQEqReaxFF);
 // clang-format on
 #else
 
@@ -33,6 +39,7 @@ FixStyle(qeq/reax,FixQEqReaxFF);
 #define LMP_FIX_QEQ_REAXFF_H
 
 #include "fix.h"
+#include "xl_qeq.h"
 
 namespace LAMMPS_NS {
 
@@ -57,6 +64,13 @@ class FixQEqReaxFF : public Fix {
   double compute_scalar() override;
 
  protected:
+  // how the electronegativities in the charge equilibration are determined:
+  // per atom type (qeq/reaxff), or as effective electronegativities from
+  // overlap-weighted averages (qtpie/reaxff), or with relative potentials of
+  // an external electric field (qeq/rel/reaxff)
+  enum { QEQ, QTPIE, QEQREL };
+  int chi_mode;
+
   int nevery, reaxflag;
   int matvecs;
   int nn, m_fill;
@@ -65,6 +79,7 @@ class FixQEqReaxFF : public Fix {
   int nlevels_respa;
   int matrix_free;    // kokkos backend; whether or not to use the matrix-free form
   class NeighList *list;
+  class NeighList *list_olap;    // full list for the overlap integrals (QTPIE and QEQREL)
   class PairReaxFF *reaxff;
   class FixEfield *efield;
   int *ilist, *jlist, *numneigh, **firstneigh;
@@ -82,6 +97,13 @@ class FixQEqReaxFF : public Fix {
   double **s_hist, **t_hist;
   int nprev;
 
+  // extended-Lagrangian (XL) propagation of the fictitious charges
+
+  XLQEq xl;                         // settings and warm-up state
+  int xl_active;                    // 1 if the current solve is seeded from the XL history
+  double **xls_hist, **xlt_hist;    // auxiliary variable trajectories, newest first
+  virtual void xl_update();
+
   // NOLINTBEGIN
   typedef struct {
     int n, m;
@@ -97,13 +119,23 @@ class FixQEqReaxFF : public Fix {
   double *b_s, *b_t;
   double *b_prc, *b_prm;
   double *chi_field;
+  double *chi_eff;    // effective electronegativities for the QTPIE and QEQREL modes
 
   //CG storage
   double *p, *q, *r, *d;
   int imax, maxwarn;
 
   char *pertype_option;    // argument to determine how per-type info is obtained
+  char *gauss_file;        // file with gaussian orbital exponents (QTPIE and QEQREL modes)
+  double *gauss_exp;       // gaussian orbital exponents for each atom type
+  double **prefactor;      // factor used in computation of overlap integrals
+  double **expfactor;      // factor used in exponential term of overlap integrals
+  double dist_cutoff_sq;   // squared distance beyond which overlap integrals are neglected
+  double scale;            // scaling factor for electric polarization effects
+
   virtual void pertype_parameters(char *);
+  void read_gauss_file();
+  void init_olap();
   void init_shielding();
   void init_taper();
   virtual void allocate_storage();
@@ -116,11 +148,16 @@ class FixQEqReaxFF : public Fix {
   virtual void init_matvec();
   void init_H();
   virtual void compute_H();
+  void compute_H_offsets();
+  void compute_H_row(int);
   double calculate_H(double, double);
   virtual void calculate_Q();
 
   virtual int CG(double *, double *);
   virtual void sparse_matvec(sparse_matrix *, double *, double *);
+  virtual void solve_st();
+
+  double rhs_s(int) const;
 
  public:
   int pack_forward_comm(int, int *, double *, int, int *) override;
@@ -130,6 +167,7 @@ class FixQEqReaxFF : public Fix {
   double memory_usage() override;
   void grow_arrays(int) override;
   void copy_arrays(int, int, int) override;
+  void set_arrays(int) override;
   int pack_exchange(int, double *) override;
   int unpack_exchange(int, double *) override;
 
@@ -142,10 +180,24 @@ class FixQEqReaxFF : public Fix {
   virtual void vector_add(double *, double, double *, int);
 
   virtual void get_chi_field();
+  virtual void update_chi();
+  virtual void calc_chi_eff();
+  void prepare_efield_phi();
+  void set_efield_phi();
+  bool efield_has_variables() const;
+  double efield_phi(int) const;
+  double chi_eff_one(int) const;
+
+  // settings of the external electric potential for the effective electronegativities
+  double phi_ex, phi_ey, phi_ez;
+  bool phi_atomstyle;
 
   // dual CG support
   int dual_enabled;            // 0: Original, separate s & t optimization; 1: dual optimization
+  int dual_supported;          // 1 if this variant supports the dual CG optimization
   int matvecs_s, matvecs_t;    // Iteration count for each system
+  double cg_resid;             // relative residual at the end of the last CG solve
+  double xl_resid;             // larger relative residual of the last s and t solves
 };
 
 }    // namespace LAMMPS_NS

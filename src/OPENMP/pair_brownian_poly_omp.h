@@ -35,6 +35,7 @@ class PairBrownianPolyOMP : public PairBrownianPoly, public ThrOMP {
   PairBrownianPolyOMP(class LAMMPS *);
   ~PairBrownianPolyOMP() override;
 
+  void settings(int, char **) override;
   void compute(int, int) override;
   double memory_usage() override;
 

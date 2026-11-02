@@ -60,6 +60,8 @@ PairTIP4PLongSoft::PairTIP4PLongSoft(LAMMPS *lmp) : PairCoulLongSoft(lmp)
 
 PairTIP4PLongSoft::~PairTIP4PLongSoft()
 {
+  if (copymode) return;
+
   memory->destroy(hneigh);
   memory->destroy(newsite);
 }
@@ -381,7 +383,10 @@ void PairTIP4PLongSoft::compute(int eflag, int vflag)
 
 void PairTIP4PLongSoft::settings(int narg, char **arg)
 {
-  if (narg != 8) error->all(FLERR,"Illegal pair_style command");
+  if (narg < 8)
+    utils::missing_cmd_args(FLERR, "pair_style tip4p/long/soft", error);
+  if (narg > 8)
+    error->all(FLERR, 9, "Too many arguments in pair_style tip4p/long/soft command");
 
   typeO_str = arg[0];
   typeH_str = arg[1];
@@ -390,7 +395,12 @@ void PairTIP4PLongSoft::settings(int narg, char **arg)
   qdist = utils::numeric(FLERR, arg[4], false, lmp);
 
   nlambda = utils::numeric(FLERR, arg[5], false, lmp);
+  if (nlambda <= 0.0)
+    error->all(FLERR, 6, "Pair style tip4p/long/soft requires n > 0, but n = {}", nlambda);
   alphac  = utils::numeric(FLERR, arg[6], false, lmp);
+  if (alphac < 0.0)
+    error->all(FLERR, 7, "Pair style tip4p/long/soft requires alpha_C >= 0, but alpha_C = {}",
+               alphac);
 
   cut_coul = utils::numeric(FLERR, arg[7], false, lmp);
 }

@@ -1,7 +1,10 @@
 .. index:: pair_style rheo/solid
+.. index:: pair_style rheo/solid/omp
 
 pair_style rheo/solid command
 =============================
+
+Accelerator Variants: *rheo/solid/omp*
 
 Syntax
 """"""
@@ -66,6 +69,8 @@ commands, or by mixing as described below:
 
 
 ----------
+
+.. include:: accel_styles.rst
 
 Mixing, shift, table, tail correction, restart, rRESPA info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""

@@ -138,6 +138,15 @@ No information about this fix is written to :doc:`binary restart files
 <restart>`.  None of the :doc:`fix_modify <fix_modify>` options are
 relevant to this fix.
 
+Since the two partitions represent different systems, restart files
+written with the :doc:`restart <restart>` or :doc:`write_restart
+<write_restart>` command need a different file name on each partition,
+e.g. using the world-style variable from the example above:
+
+.. code-block:: LAMMPS
+
+   write_restart alchemy-${name}.restart
+
 This fix stores a global scalar (the current value of :math:`\lambda_R`)
 and a global vector of length 3 which contains the potential energy of
 the first partition, the second partition and the combined value,

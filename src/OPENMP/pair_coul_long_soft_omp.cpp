@@ -138,7 +138,8 @@ void PairCoulLongSoftOMP::eval(int iifrom, int iito, ThrData * const thr)
         erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
 
         denc = sqrt(lam2[itype][jtype] + rsq);
-        prefactor = qqrd2e * lam1[itype][jtype] * qtmp*q[j] / (denc*denc*denc);
+        prefactor = qqrd2e * scale[itype][jtype] * lam1[itype][jtype] * qtmp*q[j] /
+          (denc*denc*denc);
 
         // the soft core replaces only the 1/r factor, while the Ewald damping
 
@@ -162,7 +163,7 @@ void PairCoulLongSoftOMP::eval(int iifrom, int iito, ThrData * const thr)
         }
 
         if (EFLAG) {
-          prefactor = qqrd2e * lam1[itype][jtype] * qtmp*q[j] / denc;
+          prefactor = qqrd2e * scale[itype][jtype] * lam1[itype][jtype] * qtmp*q[j] / denc;
           ecoul = prefactor*erfc;
           if (factor_coul < 1.0) ecoul -= (1.0-factor_coul)*prefactor;
         }

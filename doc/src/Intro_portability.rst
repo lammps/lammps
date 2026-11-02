@@ -33,7 +33,7 @@ Build systems
 ^^^^^^^^^^^^^
 
 LAMMPS can be compiled from source code using the cross-platform CMake
-system.  CMake must be at least version 3.20.  Alternatively, using a
+system.  CMake must be at least version 3.27.  Alternatively, using a
 (traditional) build system based on shell scripts, a few shell utilities
 (grep, sed, cat, tr) and the GNU make program.  This requires running
 within a Bourne shell (``/bin/sh`` or ``/bin/bash``).

@@ -36,7 +36,7 @@ enum { ADD, LINEAR, QUARTIC };
 /* ---------------------------------------------------------------------- */
 
 FixAddHeat::FixAddHeat(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), varstr(nullptr), vatom(nullptr)
+    Fix(lmp, narg, arg), varstr(nullptr), vatom(nullptr)
 {
   if (narg < 5) utils::missing_cmd_args(FLERR, "fix add/heat", error);
   dynamic_group_allow = 1;
@@ -141,8 +141,7 @@ void FixAddHeat::post_force(int /*vflag*/)
 
   if (overwrite_flag)
     for (int i = 0; i < atom->nlocal; i++)
-      if (mask[i] & groupbit)
-        heatflow[i] = 0.0;
+      if (mask[i] & groupbit) heatflow[i] = 0.0;
 
   double vtmp = 0.0;
   if (vstyle == CONSTANT) vtmp = value;

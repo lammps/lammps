@@ -14,7 +14,6 @@ is created by one of these commands:
 * :doc:`create_box <create_box>`
 * :doc:`read_data <read_data>`
 * :doc:`read_restart <read_restart>`
-* :doc:`read_dump <read_dump>`
 
 Internally, LAMMPS defines box size parameters lx,ly,lz where lx =
 xhi-xlo, and similarly in the y and z dimensions.  The 6 parameters, as
@@ -52,7 +51,7 @@ factors as a simulation runs.  This is discussed in the :doc:`Howto
 NEMD <Howto_nemd>` doc page on non-equilibrium MD (NEMD) simulations.
 
 Conceptually, a triclinic parallelepiped is defined with an "origin"
-at (xlo,ylo,zhi) and 3 edge vectors **A** = (ax,ay,az), **B** =
+at (xlo,ylo,zlo) and 3 edge vectors **A** = (ax,ay,az), **B** =
 (bx,by,bz), **C** = (cx,cy,cz) which can be arbitrary vectors, so long
 as they are non-zero, distinct, and not co-planar.  In addition, they
 must define a right-handed system, such that (**A** cross **B**)
@@ -60,7 +59,7 @@ points in the direction of **C**.  Note that a left-handed system can
 be converted to a right-handed system by simply swapping the order of
 any pair of the **A**, **B**, **C** vectors.
 
-The 4 commands listed above for defining orthogonal simulation boxes
+The 3 commands listed above for defining orthogonal simulation boxes
 have triclinic options which allow for specification of the origin and
 edge vectors **A**, **B**, **C**.  For each command, this can be done
 in one of two ways, for what LAMMPS calls a *general* triclinic box or
@@ -105,7 +104,7 @@ For restricted triclinic boxes there are 9 thermo keywords for
 (xlo,ylo,zlo), (xhi,yhi,zhi), and the (xy,xz,yz) tilt factors.
 
 For general triclinic boxes there are 12 thermo keywords for
-(xlo,ylo,zhi) and the components of the **A**, **B**, **C** edge
+(xlo,ylo,zlo) and the components of the **A**, **B**, **C** edge
 vectors, namely (avecx,avecy,avecz), (bvecx,bvecy,bvecz), and
 (cvecx,cvecy,cvecz),
 
@@ -180,7 +179,7 @@ This is the list of commands which have general triclinic options:
   general triclinic format
 * :doc:`thermo_modify triclinic/general <thermo_modify>` - select general triclinic format for thermo output
 * :doc:`read_restart <read_restart>` - read a restart file for a general triclinic system
-* :doc:`write_restart <read_restart>` - write a restart file for a general triclinic system
+* :doc:`write_restart <write_restart>` - write a restart file for a general triclinic system
 
 ----------
 
@@ -340,22 +339,25 @@ simulation box from orthogonal to restricted triclinic and vice versa.
    also lose atoms and generate an error.
 
 LAMMPS will issue a warning if you define a restricted triclinic box
-with a tilt factor which skews the box more than half the distance of
-the parallel box length, which is the first dimension in the tilt
-factor (e.g. x for xz).
+that is strongly skewed.  This is the case when (for a periodic
+dimension) the magnitude of the xy tilt factor is larger than half the
+box length in y, or the sum of the magnitudes of the xz and yz tilt
+factors is larger than half the box length in z.
 
-For example, if xlo = 2 and xhi = 12, then the x box length is 10 and
+For example, if ylo = 2 and yhi = 12, then the y box length is 10 and
 the xy tilt factor should be between -5 and 5 to avoid the warning.
-Similarly, both xz and yz should be between -(xhi-xlo)/2 and
-+(yhi-ylo)/2.  Note that these are not limitations, since if the
-maximum tilt factor is 5 (as in this example), then simulations boxes
-and atom configurations with tilt = ..., -15, -5, 5, 15, 25, ... are
-all geometrically equivalent.
+Similarly, the sum of the absolute values of xz and yz should be less
+than (zhi-zlo)/2.  Note that a tilt factor can be shifted by a multiple
+of the box length of the first dimension in the tilt factor (e.g. x for
+xy) without changing the geometry of a periodic system: with an x box
+length of 10, simulation boxes and atom configurations with tilt = ...,
+-15, -5, 5, 15, 25, ... are all geometrically equivalent.
 
 If the box tilt exceeds this limit during a dynamics run (e.g. due to
 the :doc:`fix deform <fix_deform>` command), then by default the box
-is "flipped" to an equivalent shape with a tilt factor within the
-warning bounds, and the run continues.  See the :doc:`fix deform
+is "flipped" to an equivalent shape with a tilt factor of at most half
+the box length of the first dimension in the tilt factor (e.g. x for
+xy), and the run continues.  See the :doc:`fix deform
 <fix_deform>` page for further details.  Box flips that would normally
 occur using the :doc:`fix deform <fix_deform>` or :doc:`fix npt
 <fix_nh>` commands can be suppressed using the *flip no* option with

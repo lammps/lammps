@@ -91,7 +91,7 @@ class NeighborShared {
 
   // ----------------------------- Kernels
   UCL_Program *nbor_program, *build_program;
-  UCL_Kernel k_nbor, k_cell_id, k_cell_counts, k_build_nbor;
+  UCL_Kernel k_nbor, k_build_nbor;
   UCL_Kernel k_transpose, k_special;
 
  private:

@@ -45,6 +45,14 @@ class Improper : protected Pointers {
                        // value of 1: central atom
                        // values >1: additional atoms of symmetry
 
+  // return index (0 to 3) of the central atom, or -1 if there is none
+  [[nodiscard]] int central_atom() const
+  {
+    for (int i = 0; i < 4; ++i)
+      if (symmatoms[i] == 1) return i;
+    return -1;
+  }
+
   // KOKKOS host/device flag and data masks
 
   ExecutionSpace execution_space;

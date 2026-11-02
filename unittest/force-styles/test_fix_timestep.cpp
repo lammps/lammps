@@ -95,12 +95,17 @@ LAMMPS *init_lammps(LAMMPS::argv &args, const TestConfig &cfg, const bool use_re
     // check if prerequisite styles are available
     Info *info = new Info(lmp);
     int nfail  = 0;
+    // with the OPENMP package, the plain prerequisite styles are sufficient.
+    // LAMMPS falls back to the plain variant of styles without an /omp variant,
+    // and testing those in combination with threaded styles and fix omp is
+    // useful, too (e.g. hybrid pair styles, fixes, or extra per-atom forces).
+    const bool omp_suffix = lmp->suffix_enable && (std::string(lmp->suffix) == "omp");
     for (const auto &prerequisite : cfg.prerequisites) {
         std::string style = prerequisite.second;
 
-        // this is a test for fix styles, so if the suffixed
-        // version is not available, there is no reason to test.
-        if (prerequisite.first == "fix") {
+        if (!omp_suffix && (prerequisite.first == "fix")) {
+            // this is a test for fix styles, so if the suffixed
+            // version is not available, there is no reason to test.
             if (lmp->suffix_enable) {
                 style += "/";
                 style += lmp->suffix;
@@ -690,7 +695,9 @@ TEST(FixTimestep, omp)
     const int nlocal = lmp->atom->nlocal;
     ASSERT_EQ(lmp->atom->natoms, nlocal);
 
-    double epsilon = test_config.epsilon;
+    // relax error a bit for OPENMP package. the threaded force styles
+    // accumulate forces in a different order than the plain styles
+    double epsilon = 5.0 * test_config.epsilon;
     // relax test precision when using pppm and single precision FFTs
 #if defined(FFT_SINGLE)
     if (lmp->force->kspace && utils::strmatch(lmp->force->kspace_style, "^pppm")) epsilon *= 2.0e8;

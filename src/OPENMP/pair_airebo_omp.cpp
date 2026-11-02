@@ -173,10 +173,15 @@ void PairAIREBOOMP::REBO_neigh_thr()
       REBO_firstneigh[i] = neighptr;
       REBO_numneigh[i] = n;
       ipg.vgot(n);
-      if (ipg.status())
-        error->one(FLERR, Error::NOLASTLINE, "REBO list overflow, boost neigh_modify one" + utils::errorurl(36));
+      if (ipg.status()) {
+        // errors must be deferred until the end of the threaded region
+        check_error_thr(true, tid, FLERR, "REBO list overflow, boost neigh_modify one" + utils::errorurl(36));
+        break;
+      }
     }
   }
+
+  error_thr();
 }
 
 /* ----------------------------------------------------------------------

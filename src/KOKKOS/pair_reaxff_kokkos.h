@@ -136,6 +136,9 @@ class PairReaxFFKokkos : public PairReaxFF {
   void PackReducedBondBuffer(DAT::tdual_double_1d, int &, bool);
   void FindBondSpecies();
 
+  // make the bonds for the species analysis current on the host
+  void sync_species_host() { k_tmpbo.sync_host(); k_tmpid.sync_host(); }
+
   template<int NEIGHFLAG>
 // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION

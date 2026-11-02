@@ -32,8 +32,8 @@ time step.  This calculation is performed automatically in the
 relevant SPH pair styles and this compute only serves to make the
 stable time increment accessible for output purposes.
 
-See `this PDF guide <PDF/MACHDYN_LAMMPS_userguide.pdf>`_ to using Smooth
-Mach Dynamics in LAMMPS.
+See the :doc:`Howto machdyn <Howto_machdyn>` page for an introduction
+to using Smooth Mach Dynamics in LAMMPS.
 
 Output info
 """""""""""

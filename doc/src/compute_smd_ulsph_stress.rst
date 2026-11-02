@@ -25,8 +25,8 @@ Description
 
 Define a computation that outputs the Cauchy stress tensor.
 
-See `this PDF guide <PDF/MACHDYN_LAMMPS_userguide.pdf>`_ to using Smooth
-Mach Dynamics in LAMMPS.
+See the :doc:`Howto machdyn <Howto_machdyn>` page for an introduction
+to using Smooth Mach Dynamics in LAMMPS.
 
 Output info
 """""""""""

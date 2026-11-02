@@ -3,6 +3,7 @@
 .. index:: pair_style lj/class2/kk
 .. index:: pair_style lj/class2/omp
 .. index:: pair_style lj/class2/coul/cut
+.. index:: pair_style lj/class2/coul/cut/gpu
 .. index:: pair_style lj/class2/coul/cut/kk
 .. index:: pair_style lj/class2/coul/cut/omp
 .. index:: pair_style lj/class2/coul/long
@@ -18,7 +19,7 @@ Accelerator Variants: *lj/class2/gpu*, *lj/class2/kk*, *lj/class2/omp*
 pair_style lj/class2/coul/cut command
 =====================================
 
-Accelerator Variants: *lj/class2/coul/cut/kk*, *lj/class2/coul/cut/omp*
+Accelerator Variants: *lj/class2/coul/cut/gpu*, *lj/class2/coul/cut/kk*, *lj/class2/coul/cut/omp*
 
 pair_style lj/class2/coul/long command
 ======================================

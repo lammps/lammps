@@ -907,7 +907,9 @@ they are independent of the number of atoms in the simulation.
 
 No parameter of these fixes can be used with the *start/stop* keywords
 of the :doc:`run <run>` command.  These fixes are not invoked during
-:doc:`energy minimization <minimize>`.
+:doc:`energy minimization <minimize>`.  The :doc:`minimize <minimize>`
+page explains how to relax a system with rigid bodies with damped
+dynamics instead.
 
 ----------
 

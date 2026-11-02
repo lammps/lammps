@@ -29,8 +29,6 @@ class KSpace : protected Pointers {
     REVERSE_RHO_ARITH,
     REVERSE_RHO_NONE,
     REVERSE_RHO_GPU,
-    REVERSE_RHO_G,
-    REVERSE_RHO_A,
     REVERSE_AD,
     REVERSE_AD_PERATOM,
     REVERSE_MU,
@@ -55,15 +53,7 @@ class KSpace : protected Pointers {
     FORWARD_IK_NONE,
     FORWARD_AD_NONE,
     FORWARD_IK_PERATOM_NONE,
-    FORWARD_AD_PERATOM_NONE,
-    FORWARD_IK_G,
-    FORWARD_AD_G,
-    FORWARD_IK_PERATOM_G,
-    FORWARD_AD_PERATOM_G,
-    FORWARD_IK_A,
-    FORWARD_AD_A,
-    FORWARD_IK_PERATOM_A,
-    FORWARD_AD_PERATOM_A
+    FORWARD_AD_PERATOM_NONE
   };
 
   double energy;    // accumulated energies

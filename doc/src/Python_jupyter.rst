@@ -31,7 +31,7 @@ Interactive Python Examples
 
 Examples of IPython notebooks can be found in the ``python/examples/ipython``
 subdirectory. They require LAMMPS to be compiled as shared library with PYTHON,
-PNG, JPEG and FFMPEG support.
+PNG and JPEG support.  Also, FFmpeg must be installed.
 
 To open these notebooks launch ``jupyter notebook index.ipynb`` inside this
 directory. The opened file provides an overview of the available examples.

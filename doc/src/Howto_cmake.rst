@@ -1,18 +1,17 @@
 Using CMake with LAMMPS
 =======================
 
-The support for building LAMMPS with CMake is a recent addition to
-LAMMPS thanks to the efforts of Christoph Junghans (LANL) and Richard
-Berger (LANL).  One of the key strengths of CMake is that it is not
-tied to a specific platform or build system. Instead it generates the
-files necessary to build and develop for different build systems and on
-different platforms.  Note, that this applies to the build system itself
-not the LAMMPS code. In other words, without additional porting effort,
-it is not possible - for example - to compile LAMMPS with Visual C++ on
-Windows.  The build system output can also include support files
-necessary to program LAMMPS as a project in integrated development
-environments (IDE) like Eclipse, Visual Studio, QtCreator, Xcode,
-CodeBlocks, Kate and others.
+CMake is the recommended way of building LAMMPS, and it has been
+supported since 2018 thanks to the efforts of Christoph Junghans (LANL)
+and Richard Berger (LANL).  The :doc:`legacy build system <Build_make>`
+based on GNU make is slated for retirement.  One of the key strengths of
+CMake is that it is not tied to a specific platform or build system.
+Instead it generates the files necessary to build and develop for
+different build systems and on different platforms, e.g. makefiles for
+the ``make`` program, files for the faster ``ninja`` build tool, or
+project files for integrated development environments (IDE) like Visual
+Studio or Xcode.  Several other IDEs, e.g. Visual Studio Code, Qt
+Creator, or CLion, can read the CMake configuration files directly.
 
 A second important feature of CMake is that it can detect and validate
 available libraries, optimal settings, available support tools and so
@@ -27,15 +26,14 @@ selected examples.  Please see the chapter about :doc:`building LAMMPS
 <Build>` for descriptions of specific flags and options for LAMMPS in
 general and for specific packages.
 
-.. versionchanged:: 10Sep2025
+.. versionchanged:: TBD
 
 CMake can be used through either the command-line interface (CLI)
-program ``cmake`` (or ``cmake3``), a text mode interactive user
-interface (TUI) program ``ccmake`` (or ``ccmake3``), or a graphical user
-interface (GUI) program ``cmake-gui``.  All of them are portable
-software available on all supported platforms and can be used
-interchangeably.  Since LAMMPS version 10Sep2025, the minimum
-required CMake version is 3.20.
+program ``cmake``, a text mode interactive user interface (TUI)
+program ``ccmake``, or a graphical user interface (GUI) program
+``cmake-gui``.  All of them are portable software available on
+all supported platforms and can be used interchangeably.
+The minimum required CMake version is currently 3.27.
 
 All details about features and settings for CMake are in the `CMake
 online documentation <https://cmake.org/documentation/>`_. We focus
@@ -54,32 +52,37 @@ using a shell like Bash or Zsh.
 
 .. note::
 
-   It is also possible to use CMake on Windows 10 or 11 through either the Microsoft
-   Visual Studio IDE with the bundled CMake or from the Windows command prompt using
-   a separately installed CMake package, both using the native Microsoft Visual C++
-   compilers and (optionally) the Microsoft MPI SDK.  This tutorial, however, only
-   covers unix-like command-line interfaces.
+   It is also possible to use CMake on Windows 10 or 11 through either
+   the Microsoft Visual Studio IDE with the bundled CMake or from the
+   Windows command prompt using a separately installed CMake package,
+   both using the native Microsoft Visual C++ compilers and (optionally)
+   the Microsoft MPI SDK.  Please see the page on :doc:`building LAMMPS
+   on Windows <Build_windows>` for details.  This tutorial, however,
+   only covers Unix-like command-line interfaces.
 
-We also assume that you have downloaded and unpacked a recent LAMMPS source code package
-or used Git to create a clone of the LAMMPS sources on your compilation machine.
+We also assume that you have downloaded and unpacked a recent LAMMPS
+source code package or used Git to create a clone of the LAMMPS sources
+on your compilation machine.
 
-You should change into the top level directory of the LAMMPS source tree all
-paths mentioned in the tutorial are relative to that.  Immediately after downloading
-it should look like this:
+You should change into the top-level folder of the LAMMPS source tree;
+all paths mentioned in the tutorial are relative to that.  Immediately
+after downloading it should look like this:
 
 .. code-block:: console
 
-    $ ls
-    bench  doc       lib      potentials  README  tools
-    cmake  examples  LICENSE  python      src
+   $ ls
+   AGENTS.md     codemeta.json  lib         README       tools
+   bench         doc            LICENSE     SECURITY.md  unittest
+   CITATION.cff  examples       potentials  src          update-codemeta.sh
+   cmake         fortran        python      third_party
 
-Build versus source directory
------------------------------
+Build versus source folder
+--------------------------
 
 When using CMake the build procedure is separated into multiple distinct phases:
 
   #. **Configuration:** detect or define which features and settings
-     should be enable and used and how LAMMPS should be compiled
+     should be enabled and used and how LAMMPS should be compiled
   #. **Compilation:** generate and compile all necessary source files
      and build libraries and executables.
   #. **Installation:** copy selected files from the compilation into
@@ -87,20 +90,20 @@ When using CMake the build procedure is separated into multiple distinct phases:
      source and build tree around.
 
 The configuration and compilation of LAMMPS has to happen in a dedicated
-*build directory* which must be different from the source directory.
-Also the source directory (``src``) must remain pristine, so it is not
-allowed to "install" packages using the traditional make process and
-after an compilation attempt all created source files must be removed.
-This can be achieved with ``make no-all purge``.
+*build folder* which must be different from the source folder.  Also
+the source folder (``src``) must remain pristine, so it is not allowed
+to "install" packages using the traditional make process and after a
+compilation attempt all created source files must be removed.  This can
+be achieved with ``make no-all purge`` in the ``src`` folder.
 
-You can pick **any** folder outside the source tree. We recommend to
-create a folder ``build`` in the top-level directory, or multiple
-folders in case you want to have separate builds of LAMMPS with
-different options (``build-parallel``, ``build-serial``) or with
-different compilers (``build-gnu``, ``build-clang``, ``build-intel``)
-and so on.  All the auxiliary files created by one build process
-(executable, object files, log files, etc) are stored in this directory
-or subdirectories within it that CMake creates.
+You can pick **any** folder outside the ``src`` folder.  We recommend to
+use a folder ``build`` in the top-level folder, or multiple folders in
+case you want to have separate builds of LAMMPS with different options
+(``build-parallel``, ``build-serial``) or with different compilers
+(``build-gnu``, ``build-clang``, ``build-intel``) and so on.  CMake will
+create the build folder, if needed.  All the auxiliary files created by
+one build process (executable, object files, log files, etc) are stored
+in this folder or in folders within it that CMake creates.
 
 
 Running CMake
@@ -109,26 +112,33 @@ Running CMake
 CLI version
 ^^^^^^^^^^^
 
-In the (empty) ``build`` directory, we now run the command ``cmake
-../cmake``, which will start the configuration phase and you will see
-the progress of the configuration printed to the screen followed by a
-summary of the enabled features, options and compiler settings. A typical
-summary screen will look like this:
+From the top-level folder, we now run the command ``cmake -S cmake -B
+build``.  The ``-S`` flag points to the folder with the CMake scripts
+for LAMMPS (the ``cmake`` folder) and the ``-B`` flag selects the build
+folder.  This will start the configuration phase and you will see the
+progress of the configuration printed to the screen followed by a
+summary of the enabled features, options and compiler settings. A
+typical summary screen will look like this:
 
 .. code-block:: console
 
-   $ cmake ../cmake/
-   -- The CXX compiler identification is GNU 8.2.0
-   -- Check for working CXX compiler: /opt/tools/gcc-8.2.0/bin/c++
-   -- Check for working CXX compiler: /opt/tools/gcc-8.2.0/bin/c++ - works
+   $ cmake -S cmake -B build
+   -- The CXX compiler identification is GNU 15.3.1
+   -- The C compiler identification is GNU 15.3.1
    -- Detecting CXX compiler ABI info
    -- Detecting CXX compiler ABI info - done
+   -- Check for working CXX compiler: /usr/bin/c++ - skipped
    -- Detecting CXX compile features
    -- Detecting CXX compile features - done
-   -- Found Git: /usr/bin/git (found version "2.25.2")
+   -- Detecting C compiler ABI info
+   -- Detecting C compiler ABI info - done
+   -- Check for working C compiler: /usr/bin/cc - skipped
+   -- Detecting C compile features
+   -- Detecting C compile features - done
    -- Running check for auto-generated files from make-based build system
-   -- Found MPI_CXX: /usr/lib64/mpich/lib/libmpicxx.so (found version "3.1")
-   -- Found MPI: TRUE (found version "3.1")
+   -- Found ZLIB: /usr/lib64/libz.so (found version "1.3.1")
+   -- Found MPI_CXX: /usr/lib64/mpich/lib/libmpicxx.so (found version "4.1")
+   -- Found MPI: TRUE (found version "4.1") found components: CXX
    -- Looking for C++ include omp.h
    -- Looking for C++ include omp.h - found
    -- Found OpenMP_CXX: -fopenmp (found version "4.5")
@@ -136,8 +146,6 @@ summary screen will look like this:
    -- Found JPEG: /usr/lib64/libjpeg.so (found version "62")
    -- Found PNG: /usr/lib64/libpng.so (found version "1.6.37")
    -- Found ZLIB: /usr/lib64/libz.so (found version "1.2.11")
-   -- Found GZIP: /usr/bin/gzip
-   -- Found FFMPEG: /usr/bin/ffmpeg
    -- Performing Test COMPILER_SUPPORTS-ffast-math
    -- Performing Test COMPILER_SUPPORTS-ffast-math - Success
    -- Performing Test COMPILER_SUPPORTS-march=native
@@ -147,134 +155,217 @@ summary screen will look like this:
    -- Generating style headers...
    -- Generating style source files...
    -- Generating package registry...
-   [...]
    -- Generating lmpinstalledpkgs.h...
+   -- Found Git: /usr/bin/git (found version "2.55.0")
+   -- Found Python3: /usr/bin/python3.14 (found version "3.14.7") found components: Interpreter
    -- The following tools and libraries have been found and configured:
-    * Git
+    * ZLIB
     * MPI
     * OpenMP
-    * JPEG
-    * PNG
-    * ZLIB
+    * Git
+    * Python3
 
    -- <<< Build configuration >>>
+      LAMMPS Version:   2026.9.30.99 patch_30Sep2026-29-g9a2b245af5
+      Operating System: Linux Fedora 43
+      CMake Version:    3.31.11
       Build type:       RelWithDebInfo
-      Install path:     /home/akohlmey/.local
+      Install path:     /home/user/.local
       Generator:        Unix Makefiles using /usr/bin/gmake
+   -- Enabled packages: <None>
    -- <<< Compilers and Flags: >>>
-   -- C++ Compiler:     /opt/tools/gcc-8.2.0/bin/c++
+   -- C++ Compiler:     /usr/bin/c++
          Type:          GNU
-         Version:       8.2.0
+         Version:       15.3.1
+         C++ Standard:  17
          C++ Flags:     -O2 -g -DNDEBUG
-         Defines:       LAMMPS_SMALLBIG;LAMMPS_MEMALIGN=64;LAMMPS_JPEG;LAMMPS_PNG;LAMMPS_GZIP;LAMMPS_FFMPEG
+         Defines:       LAMMPS_SMALLBIG;LAMMPS_MEMALIGN=64;LAMMPS_JPEG;LAMMPS_PNG
          Options:       -ffast-math;-march=native
    -- <<< Linker flags: >>>
    -- Executable name:  lmp
    -- Static library flags:
    -- <<< MPI flags >>>
+   -- MPI_defines:      MPICH_SKIP_MPICXX;OMPI_SKIP_MPICXX;_MPICC_H
    -- MPI includes:     /usr/include/mpich-x86_64
    -- MPI libraries:    /usr/lib64/mpich/lib/libmpicxx.so;/usr/lib64/mpich/lib/libmpi.so;
-   -- Configuring done
-   -- Generating done
-   -- Build files have been written to: /home/akohlmey/compile/lammps/build
+   -- Configuring done (2.2s)
+   -- Generating done (0.0s)
+   -- Build files have been written to: /home/user/lammps/build
 
-The ``cmake`` command has one mandatory argument, and that is a folder
-with either the file ``CMakeLists.txt`` or ``CMakeCache.txt``. The
-``CMakeCache.txt`` file is created during the CMake configuration run
-and contains all active settings, thus after a first run of CMake
-all future runs in the build folder can use the folder ``.`` and CMake
-will know where to find the CMake scripts and reload the settings
-from the previous step.  This means, that one can modify an existing
-configuration by re-running CMake, but only needs to provide flags
-indicating the desired change, everything else will be retained. One
-can also mix compilation and configuration, i.e. start with a minimal
-configuration and then, if needed, enable additional features and
-recompile.
+Running ``cmake`` again with the same ``-S`` and ``-B`` flags will
+reload the settings from the previous run, which are stored in the file
+``CMakeCache.txt`` in the build folder.  This means, that one can modify
+an existing configuration by re-running CMake, but only needs to provide
+flags indicating the desired change, everything else will be retained.
+One can also mix compilation and configuration, i.e. start with a
+minimal configuration and then, if needed, enable additional features
+and recompile.
 
-The steps above **will NOT compile the code**\ . The compilation can be
-started in a portable fashion with ``cmake --build .``, or you use the
-selected built tool, e.g. ``make``.
+.. note::
+
+   Using only ``-B build`` without ``-S cmake`` will *not* work for
+   LAMMPS, since CMake then assumes the current working directory to be
+   the source folder, and the top-level LAMMPS folder has no
+   ``CMakeLists.txt`` file.  Alternatively, CMake can be given the path
+   to an existing build folder as its only argument, e.g. ``cmake
+   build``.
+
+The steps above **will NOT compile the code**\ . The compilation is
+started in a portable fashion with ``cmake --build build`` (see
+:ref:`below <cmake_build_targets>`).
 
 TUI version
 ^^^^^^^^^^^
 
 For the text mode UI CMake program the basic principle is the same.
-You start the command ``ccmake ../cmake`` in the ``build`` folder.
+You start the command ``ccmake -S cmake -B build`` in the top-level
+folder.  This will show you the initial screen with the empty
+configuration cache:
 
-.. list-table::
+.. code-block:: text
 
-   * - .. figure:: JPG/ccmake-initial.png
-          :scale: 33%
-          :align: center
+                                                        Page 0 of 1
+    EMPTY CACHE
 
-          Initial ``ccmake`` screen
 
-     - .. figure:: JPG/ccmake-config.png
-          :scale: 33%
-          :align: center
 
-          Configure output of ``ccmake``
+   EMPTY CACHE:
+   Keys: [enter] Edit an entry [d] Delete an entry             CMake Version 3.31.8
+         [l] Show log output   [c] Configure
+         [h] Help              [q] Quit without generating
+         [t] Toggle advanced mode (currently off)
 
-     - .. figure:: JPG/ccmake-options.png
-          :scale: 33%
-          :align: center
+Now you type the 'c' key to run the configuration step.  That will do a
+first configuration run and show the output with the summary at the end
+(you can scroll up and down with the arrow keys):
 
-          Options screen of ``ccmake``
+.. code-block:: text
 
-This will show you the initial screen (left image) with the empty
-configuration cache. Now you type the 'c' key to run the configuration
-step. That will do a first configuration run and show the summary
-(center image). You exit the summary screen with 'e' and see now the
-main screen with detected options and settings. You can now make changes
-by moving and down with the arrow keys of the keyboard and modify
-entries. For on/off settings, the enter key will toggle the state.
-For others, hitting enter will allow you to modify the value and
-you commit the change by hitting the enter key again or cancel using
-the escape key.  All "new" settings will be marked with a star '\*'
-and for as long as one setting is marked like this, you have to
-re-run the configuration by hitting the 'c' key again, sometimes
-multiple times unless the TUI shows the word "generate" next to the
-letter 'g' and by hitting the 'g' key the build files will be written
-to the folder and the TUI exits.  You can quit without generating
-build files by hitting 'q'.
+       Generator:        Unix Makefiles using /usr/bin/gmake
+    Enabled packages: <None>
+    <<< Compilers and Flags: >>>
+    -- C++ Compiler:     /usr/bin/c++
+          Type:          GNU
+          Version:       11.5.0
+          C++ Standard:  17
+          C++ Flags:     -O2 -g -DNDEBUG
+          Defines:
+    LAMMPS_ZLIB;LAMMPS_SMALLBIG;LAMMPS_MEMALIGN=64;LAMMPS_OMP_COMPAT=4;LAMMPS_GZIP
+
+    C compiler:       /usr/bin/cc
+          Type:          GNU
+          Version:       11.5.0
+          C Flags:       -O2 -g -DNDEBUG
+    <<< Linker flags: >>>
+    Executable name:  lmp
+    Static library flags:
+    <<< MPI flags >>>
+    -- MPI_defines:      MPICH_SKIP_MPICXX;OMPI_SKIP_MPICXX;_MPICC_H
+    -- MPI includes:     /usr/include/mpich-x86_64
+    -- MPI libraries:
+    /usr/lib64/mpich/lib/libmpicxx.so;/usr/lib64/mpich/lib/libmpi.so;
+    Configuring done (2.5s)
+
+   Configure produced the following output
+                                                               CMake Version 3.31.8
+   Press [e] to exit screen
+
+You exit the summary screen with 'e' and now see the main screen with
+detected options and settings:
+
+.. code-block:: text
+
+                                                        Page 1 of 6
+    BUILD_DOC                       *OFF
+    BUILD_LAMMPS_GUI                *OFF
+    BUILD_MPI                       *ON
+    BUILD_OMP                       *ON
+    BUILD_SHARED_LIBS               *OFF
+    BUILD_TOOLS                     *OFF
+    CMAKE_BUILD_TYPE                *RelWithDebInfo
+    CMAKE_CXX_EXTENSIONS            *OFF
+    CMAKE_INSTALL_PREFIX            */home/user/.local
+    CMAKE_POSITION_INDEPENDENT_COD  *ON
+    ENABLE_TESTING                  *OFF
+    FLATPAK_BUILDER                 *FLATPAK_BUILDER-NOTFOUND
+    FLATPAK_COMMAND                 */usr/bin/flatpak
+    GZIP_EXECUTABLE                 */usr/bin/gzip
+    LAMMPS_CXX_COMPILER_NAME        *c++
+    LAMMPS_INSTALL_RPATH            *OFF
+    LAMMPS_LONGLONG_TO_LONG         *OFF
+    LAMMPS_MEMALIGN                 *64
+    LAMMPS_SIZES                    *smallbig
+    MINGW_CMAKE                     *MINGW_CMAKE-NOTFOUND
+    MINGW_CXX                       *MINGW_CXX-NOTFOUND
+    PKG_ADIOS                       *OFF
+    PKG_AMOEBA                      *OFF
+
+   BUILD_DOC: Build LAMMPS HTML documentation
+   Keys: [enter] Edit an entry [d] Delete an entry             CMake Version 3.31.8
+         [l] Show log output   [c] Configure
+         [h] Help              [q] Quit without generating
+         [t] Toggle advanced mode (currently off)
+
+You can now make changes by moving up and down with the arrow keys of
+the keyboard and modify entries.  For on/off settings, the enter key
+will toggle the state.  For others, hitting enter will allow you to
+modify the value and you commit the change by hitting the enter key
+again or cancel using the escape key.  All "new" settings will be marked
+with a star '\*' and for as long as one setting is marked like this,
+you have to re-run the configuration by hitting the 'c' key again,
+sometimes multiple times unless the TUI shows the word "generate" next
+to the letter 'g' and by hitting the 'g' key the build files will be
+written to the folder and the TUI exits.  You can quit without
+generating build files by hitting 'q'.
 
 GUI version
 ^^^^^^^^^^^
 
 For the graphical CMake program the steps are similar to the TUI
-version.  You can type the command ``cmake-gui ../cmake`` in the
-``build`` folder.  In this case the path to the CMake script folder is
-not required, it can also be entered from the GUI.
+version.  You can type the command ``cmake-gui -S cmake -B build`` in
+the top-level folder.  The program will then start with an empty
+configuration cache:
 
-.. list-table::
+.. figure:: JPG/cmake-gui-initial.png
+   :scale: 75%
+   :align: center
 
-   * - .. figure:: JPG/cmake-gui-initial.png
-          :scale: 40%
-          :align: center
+   Initial ``cmake-gui`` screen
 
-          Initial ``cmake-gui`` screen
+On this initial screen, the source folder (1) and the build folder (2)
+are already set from the command line; they can also be changed by typing in the path or with the
+"Browse Source..." and "Browse Build..." buttons.  Now click on the
+"Configure" button (3) to start the configuration step.  For the very
+first configuration in a folder, a dialog will appear:
 
-     - .. figure:: JPG/cmake-gui-popup.png
-          :scale: 60%
-          :align: center
+.. figure:: JPG/cmake-gui-popup.png
+   :scale: 75%
+   :align: center
 
-          Generator selection in ``cmake-gui``
+   Generator selection in ``cmake-gui``
 
-     - .. figure:: JPG/cmake-gui-options.png
-          :scale: 40%
-          :align: center
+In this generator selection dialog, you can select the desired build
+tool from a drop-down list (1),
+e.g. "Unix Makefiles" for using ``make`` or "Ninja" for using the
+:ref:`Ninja build tool <ninja_ccache>`, and how the compilers are
+selected (2).  Stick with the default "Use default native compilers" and
+click on "Finish" (3).  When the configuration is complete, you will see
+the options screen with all new settings highlighted in red:
 
-          Options screen of ``cmake-gui``
+.. figure:: JPG/cmake-gui-options.png
+   :scale: 75%
+   :align: center
 
-Again, you start with an empty configuration cache (left image) and need
-to start the configuration step.  For the very first configuration in a
-folder, you will have a pop-up dialog (center image) asking to select
-the desired build tool and some configuration settings (stick with the
-default) and then you get the option screen with all new settings
-highlighted in red.  You can modify them (or not) and click on the
-"configure" button again until satisfied and click on the "generate"
-button to write out the build files. You can exit the GUI from the
-"File" menu or hit "ctrl-q".
+   Options screen of ``cmake-gui``
+
+On the options screen, you can type part of a name into the "Search"
+field (1) to show only matching settings, e.g. ``PKG_`` to list the settings for all optional
+packages.  Settings are changed by clicking on a check box (2) for
+on/off settings, or by double-clicking on a value to edit it.  Click on
+"Configure" (3) again after making changes, until no more settings are
+highlighted in red, and then click on "Generate" (4) to write out the
+build files.  You can exit the GUI from the "File" menu or hit
+"ctrl-q".
 
 
 Setting options
@@ -283,9 +374,7 @@ Setting options
 Options that enable, disable or modify settings are modified by setting
 the value of CMake variables. This is done on the command-line with the
 *-D* flag in the format ``-D VARIABLE=value``, e.g. ``-D
-CMAKE_BUILD_TYPE=Release`` or ``-D BUILD_MPI=on``.  There is one quirk:
-when used before the CMake directory, there may be a space between the
-*-D* flag and the variable, after it must not be. Such CMake variables
+CMAKE_BUILD_TYPE=Release`` or ``-D BUILD_MPI=on``.  Such CMake variables
 can have boolean values (on/off, yes/no, or 1/0 are all valid) or are
 strings representing a choice, or a path, or are free format. If the
 string would contain whitespace, it must be put in quotes, for example
@@ -308,9 +397,9 @@ Some common CMake variables
    * - Variable
      - Description
    * - ``CMAKE_INSTALL_PREFIX``
-     - root directory of install location for ``make install``  (default: ``$HOME/.local``)
+     - root folder of the install location for ``cmake --install build``  (default: ``$HOME/.local``)
    * - ``LAMMPS_INSTALL_RPATH``
-     - set or remove runtime path setting from binaries for ``make install`` (default: ``off``)
+     - set or remove runtime path setting from binaries for ``cmake --install build`` (default: ``off``)
    * - ``CMAKE_BUILD_TYPE``
      - controls compilation options:
        one of ``RelWithDebInfo`` (default), ``Release``, ``Debug``, ``MinSizeRel``
@@ -326,8 +415,10 @@ Some common CMake variables
      - C++ compiler to be used for compilation (default: system specific, ``g++`` on Linux)
    * - ``CMAKE_Fortran_COMPILER``
      - Fortran compiler to be used for compilation (default: system specific, ``gfortran`` on Linux)
-   * - ``CXX_COMPILER_LAUNCHER``
-     - tool to launch the C++ compiler, e.g. ``ccache`` or ``distcc`` for faster compilation (default: empty)
+   * - ``CMAKE_CXX_COMPILER_LAUNCHER``
+     - tool to launch the C++ compiler, e.g. ``ccache`` for :ref:`faster re-compilation <ninja_ccache>` (default: empty)
+   * - ``CMAKE_EXPORT_COMPILE_COMMANDS``
+     - if set to ``on`` write a ``compile_commands.json`` file for use with code analysis tools (default: ``off``)
 
 Some common LAMMPS specific variables
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -345,24 +436,26 @@ Some common LAMMPS specific variables
      - compile some additional executables from the ``tools`` folder (default: ``off``)
    * - ``BUILD_DOC``
      - include building the HTML format documentation for packaging/installing (default: ``off``)
+   * - ``ENABLE_TESTING``
+     - compile and enable the :doc:`unit tests <Build_development>` (default: ``off``)
+   * - ``DOWNLOAD_POTENTIALS``
+     - download large potential files that are not included in the source distribution (default: ``on``)
    * - ``LAMMPS_MACHINE``
      - when set to ``name`` the LAMMPS executable and library will be called ``lmp_name`` and ``liblammps_name.a``
    * - ``FFT``
-     - select which FFT library to use: ``FFTW3``, ``MKL``, ``KISS`` (default, unless FFTW3 is found)
+     - select which FFT library to use: ``FFTW3``, ``MKL``, ``NVPL``, ``KISS`` (default, unless FFTW3 is found)
    * - ``FFT_KOKKOS``
-     - select which FFT library to use in Kokkos-enabled styles: ``FFTW3``, ``MKL``, ``HIPFFT``, ``CUFFT``, ``MKL_GPU``, ``KISS`` (default)
+     - select which FFT library to use in KOKKOS package styles: ``FFTW3``, ``MKL``, ``NVPL``, ``HIPFFT``, ``CUFFT``, ``MKL_GPU``, ``KISS`` (default)
    * - ``FFT_SINGLE``
      - select whether to use single precision FFTs (default: ``off``)
    * - ``WITH_JPEG``
-     - whether to support JPEG format in :doc:`dump image <dump_image>` (default: ``on`` if found)
+     - whether to support JPEG format in :doc:`dump image <dump_image>` (default: ``on`` if found, requires the GRAPHICS package)
    * - ``WITH_PNG``
-     - whether to support PNG format in  :doc:`dump image <dump_image>` (default: ``on`` if found)
+     - whether to support PNG format in :doc:`dump image <dump_image>` (default: ``on`` if found, requires the GRAPHICS package)
+   * - ``WITH_FFMPEG``
+     - whether to support generating movies with :doc:`dump movie <dump_image>` (default: ``on`` if found, requires the GRAPHICS package)
    * - ``WITH_ZLIB``
      - whether to use the zlib library for compression (default: ``on`` if found)
-   * - ``WITH_GZIP``
-     - whether to support reading and writing compressed files (default: ``on`` if found)
-   * - ``WITH_FFMPEG``
-     - whether to support generating movies with :doc:`dump movie <dump_image>` (default: ``on`` if found)
 
 Enabling or disabling LAMMPS packages
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -393,26 +486,26 @@ change some variables later with additional *-D* flags.  A few examples:
 
 .. code-block:: bash
 
-   cmake -C ../cmake/presets/basic.cmake -D PKG_MISC=on ../cmake
-   cmake -C ../cmake/presets/clang.cmake -C ../cmake/presets/most.cmake ../cmake
-   cmake -C ../cmake/presets/basic.cmake -D BUILD_MPI=off ../cmake
+   cmake -S cmake -B build -C cmake/presets/basic.cmake -D PKG_MISC=on
+   cmake -S cmake -B build -C cmake/presets/clang.cmake -C cmake/presets/most.cmake
+   cmake -S cmake -B build -C cmake/presets/basic.cmake -D BUILD_MPI=off
 
-The first command will install the packages ``KSPACE``, ``MANYBODY``,
-``MOLECULE``, ``RIGID``, ``GRAPHICS``, and ``MISC``; the first five from
-the preset file and the sixth from the explicit variable definition.
-The second command will first switch the compiler tool chain to use the
-Clang compilers and install a large number of packages that are not
-depending on any special external libraries or tools and are not very
-unusual.  The third command will enable the first four packages like
-above and then enforce compiling LAMMPS as a serial program (using the
+The first command will install the packages ``GRAPHICS``, ``KSPACE``,
+``MANYBODY``, ``MOLECULE``, and ``RIGID`` from the preset file and the
+``MISC`` package from the explicit variable definition.  The second
+command will first switch the compiler tool chain to use the Clang
+compilers and install a large number of packages that are not depending
+on any special external libraries or tools and are not very unusual.
+The third command will enable the same five packages as the first
+command and then enforce compiling LAMMPS as a serial program (using the
 MPI STUBS library).
 
 It is also possible to do this incrementally.
 
 .. code-block:: bash
 
-   cmake -C ../cmake/presets/basic.cmake ../cmake
-   cmake -D PKG_MISC=on .
+   cmake -S cmake -B build -C cmake/presets/basic.cmake
+   cmake -S cmake -B build -D PKG_MISC=on
 
 will achieve the same final configuration as in the first example above.
 In this scenario it is particularly convenient to do the second
@@ -422,26 +515,30 @@ interface (``ccmake`` or ``cmake-gui``).
 .. note::
 
    Using a preset to select a compiler package (``clang.cmake``,
-   ``gcc.cmake``, ``intel.cmake``, ``oneapi.cmake``, or ``pgi.cmake``)
-   are an exception to the mechanism of updating the configuration
-   incrementally, as they will trigger a reset of cached internal CMake
-   settings and thus reset settings to their default values.
+   ``gcc.cmake``, ``intel.cmake``, ``oneapi.cmake``, ``nvhpc.cmake``, or
+   ``pgi.cmake``) is an exception to the mechanism of updating the
+   configuration incrementally, as they will trigger a reset of cached
+   internal CMake settings and thus reset settings to their default
+   values.
+
+.. _cmake_build_targets:
 
 Compilation and build targets
 -----------------------------
 
 The actual compilation will be started by running the selected build
 command (on Linux this is by default ``make``, see below how to select
-alternatives).  You can also use the portable command ``cmake --build .``
-which will adapt to whatever the selected build command is.
-This is particularly convenient, if you have set a custom build command
-via the ``CMAKE_MAKE_PROGRAM`` variable.
+alternatives).  The portable command ``cmake --build build`` will adapt
+to whatever the selected build command is.  By default, ``make``
+compiles only one source file at a time; to compile multiple files in
+parallel, append ``-j N`` (or ``--parallel N``) with *N* being the
+number of concurrent compilation tasks.  The Ninja build tool (see
+below) uses all available CPU cores by default.
 
 When calling the build program, you can also select which "target" is to
-be build through appending the ``--target`` flag and the name of the target
-to the build command.  When using ``make`` as build tool, you can just append
-the target name to the command. Example: ``cmake --build . --target all`` or
-``make all``.  The following abstract targets are available:
+be built through appending the ``--target`` flag and the name of the
+target to the build command.  Example: ``cmake --build build --target
+lmp``.  The following abstract targets are available:
 
 .. list-table::
    :header-rows: 1
@@ -451,15 +548,22 @@ the target name to the command. Example: ``cmake --build . --target all`` or
    * - ``all``
      - build "everything" (default)
    * - ``lammps``
-     - build the LAMMPS library and executable
+     - build the LAMMPS library
+   * - ``lmp``
+     - build the LAMMPS executable (and the library, if needed)
    * - ``doc``
      - build the HTML documentation (if configured)
    * - ``install``
      - install all target files into folders in ``CMAKE_INSTALL_PREFIX``
    * - ``test``
-     - run some tests (if configured with ``-D ENABLE_TESTING=on``)
+     - run the unit tests (if configured with ``-D ENABLE_TESTING=on``)
    * - ``clean``
      - remove all generated files
+
+Instead of the ``install`` and ``test`` targets, you can also use the
+commands ``cmake --install build`` and ``ctest --test-dir build``,
+respectively.  The ``ctest`` command offers more options to select which
+tests to run and how to report the results.
 
 
 Choosing generators
@@ -469,40 +573,46 @@ While CMake usually defaults to creating makefiles to compile software
 with the ``make`` program, it supports multiple alternate build tools
 (e.g. ``ninja-build`` which tends to be faster and more efficient in
 parallelizing builds than ``make``) and can generate project files for
-integrated development environments (IDEs) like VisualStudio, Eclipse or
-CodeBlocks.  This is specific to how the local CMake version was
-configured and compiled. The list of available options can be seen at
-the end of the output of ``cmake --help``. Example on Fedora 31 this is:
+some integrated development environments (IDEs) like Visual Studio or
+Xcode.  This is selected with the *-G* flag when a build folder is
+configured for the first time, e.g. ``-G Ninja``; see the section on
+:ref:`faster compilation with Ninja and ccache <ninja_ccache>` for more
+details.  The list of available options can be seen at the end of the
+output of ``cmake --help``.  For example, on Linux the main generators
+are:
 
-.. code-block::
+.. code-block:: text
 
    Generators
 
    The following generators are available on this platform (* marks default):
-   * Unix Makefiles               = Generates standard UNIX makefiles.
      Green Hills MULTI            = Generates Green Hills MULTI files
                                     (experimental, work-in-progress).
+   * Unix Makefiles               = Generates standard UNIX makefiles.
      Ninja                        = Generates build.ninja files.
      Ninja Multi-Config           = Generates build-<Config>.ninja files.
      Watcom WMake                 = Generates Watcom WMake makefiles.
-     CodeBlocks - Ninja           = Generates CodeBlocks project files.
-     CodeBlocks - Unix Makefiles  = Generates CodeBlocks project files.
-     CodeLite - Ninja             = Generates CodeLite project files.
-     CodeLite - Unix Makefiles    = Generates CodeLite project files.
-     Sublime Text 2 - Ninja       = Generates Sublime Text 2 project files.
-     Sublime Text 2 - Unix Makefiles
-                                  = Generates Sublime Text 2 project files.
-     Kate - Ninja                 = Generates Kate project files.
-     Kate - Unix Makefiles        = Generates Kate project files.
-     Eclipse CDT4 - Ninja         = Generates Eclipse CDT 4.0 project files.
-     Eclipse CDT4 - Unix Makefiles= Generates Eclipse CDT 4.0 project files.
 
-Below is a screenshot of using the CodeBlocks IDE with the ninja build tool
-after running CMake as follows:
+The list also contains entries like "CodeBlocks - Ninja" or "Eclipse CDT4
+- Unix Makefiles" that generate project files for some other IDEs.
+These "extra generators" are marked as deprecated since CMake version
+3.27 and should not be used anymore.
 
-.. code-block:: bash
+Instead, many current IDEs and code editors can use the CMake
+configuration directly:
 
-   cmake -G 'CodeBlocks - Ninja' ../cmake/presets/most.cmake ../cmake/
+- `Visual Studio Code <https://code.visualstudio.com/>`_ with the
+  "CMake Tools" extension: open the top-level LAMMPS folder and set the
+  ``cmake.sourceDirectory`` setting to ``${workspaceFolder}/cmake``,
+  since the ``CMakeLists.txt`` file is not in the top-level folder.
+- `Qt Creator <https://www.qt.io/product/development-tools>`_: open the
+  file ``cmake/CMakeLists.txt`` as a project.
+- `CLion <https://www.jetbrains.com/clion/>`_: open the file
+  ``cmake/CMakeLists.txt`` as a project.
+- Visual Studio: see the page on :doc:`building LAMMPS on Windows
+  <Build_windows>`.
 
-.. image:: JPG/cmake-codeblocks.png
-   :align: center
+Code editors that support the language server protocol (e.g. through
+the ``clangd`` program) can provide code navigation and completion
+based on a ``compile_commands.json`` file, which is written to the build
+folder when configuring with ``-D CMAKE_EXPORT_COMPILE_COMMANDS=on``.

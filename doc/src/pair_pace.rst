@@ -1,12 +1,13 @@
 .. index:: pair_style pace
 .. index:: pair_style pace/kk
+.. index:: pair_style pace/omp
 .. index:: pair_style pace/extrapolation
 .. index:: pair_style pace/extrapolation/kk
 
 pair_style pace command
 =======================
 
-Accelerator Variants: *pace/kk*
+Accelerator Variants: *pace/kk*, *pace/omp*
 
 pair_style pace/extrapolation command
 =====================================

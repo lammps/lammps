@@ -330,9 +330,12 @@ label and a bold key.
 The in-text reference then uses ``:ref:`(Bomont) <Bomont>```.  Citation
 anchor labels must be **unique across all** ``.rst`` files, so a
 distinctive label (often including a number or the style name) is
-needed; ``make anchor_check`` reports duplicate labels.  See the bottom
-of ``doc/fix_nh.rst`` for more elaborate examples of citation
-formatting.
+needed; ``make anchor_check`` reports duplicate labels.  It also lists
+all labels that are never referenced, together with the file name and
+line number where they are defined (for example, a citation that is not
+linked from the text).  This list is for information only and does not
+cause the check to fail.  See the bottom of ``doc/fix_nh.rst`` for more
+elaborate examples of citation formatting.
 
 Integrating a new style into the command lists
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -479,7 +482,7 @@ Before submitting, build and proofread the documentation from within the
 
    make html          # build the HTML manual; there should be no warnings
    make spelling      # run the spell checker
-   make anchor_check  # check for duplicate anchors and labels
+   make anchor_check  # check for duplicate and unused anchor labels
    make style_check   # check completeness of style tables and index entries
    make check         # run all consistency checks at once
 

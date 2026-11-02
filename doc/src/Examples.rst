@@ -192,8 +192,7 @@ Here is how you can run and visualize one of the sample problems:
 .. code-block:: bash
 
    cd indent
-   cp ../../src/lmp_mpi .           # copy LAMMPS executable to this dir
-   lmp_mpi -in in.indent            # run the problem
+   ../../build/lmp -in in.indent    # run the problem with the executable in the "build" folder
 
 Running the simulation produces the files *dump.indent* and
 *log.lammps*\ .  You can visualize the dump file of snapshots with a

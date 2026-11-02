@@ -1,11 +1,17 @@
 .. index:: pair_style smatb
+.. index:: pair_style smatb/omp
 .. index:: pair_style smatb/single
+.. index:: pair_style smatb/single/omp
 
 pair_style smatb command
 ========================
 
+Accelerator Variants: *smatb/omp*
+
 pair_style smatb/single command
 ===============================
+
+Accelerator Variants: *smatb/single/omp*
 
 Syntax
 """"""
@@ -72,10 +78,11 @@ The *smatb/single* style is an optimization when using only a single atom type.
 Coefficients
 """"""""""""
 
-The following coefficients must be defined for each pair of atoms types via the
-:doc:`pair_coeff <pair_coeff>` command as in the examples above, or in the data
-file or restart files read by the :doc:`read_data <read_data>` or
-:doc:`read_restart <read_restart>` commands, or by mixing as described below:
+The following coefficients must be defined for each pair of atom types
+via the :doc:`pair_coeff <pair_coeff>` command as in the examples above,
+or in the data file or restart files read by the :doc:`read_data
+<read_data>` or :doc:`read_restart <read_restart>` commands, or by
+mixing as described below:
 
 * :math:`R_{0}` (distance units)
 * :math:`p` (dimensionless)
@@ -90,6 +97,10 @@ Note that: :math:`R_{0}` is the nearest neighbor distance, usually coincides
 with the diameter of the atoms
 
 See the :doc:`run_style <run_style>` command for details.
+
+----------
+
+.. include:: accel_styles.rst
 
 ----------
 

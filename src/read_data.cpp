@@ -1465,25 +1465,25 @@ void ReadData::header(int firstpass)
       xz = utils::numeric(FLERR, words[1], false, lmp);
       yz = utils::numeric(FLERR, words[2], false, lmp);
 
-    } else if (utils::strmatch(line, R"(^\s*\f+\s+\f+\s+\f+\s+\avec\s)")) {
+    } else if (utils::strmatch(line, R"(^\s*\f+\s+\f+\s+\f+\s+avec\s)")) {
       avec_flag = 1;
       avec[0] = utils::numeric(FLERR, words[0], false, lmp);
       avec[1] = utils::numeric(FLERR, words[1], false, lmp);
       avec[2] = utils::numeric(FLERR, words[2], false, lmp);
 
-    } else if (utils::strmatch(line, R"(^\s*\f+\s+\f+\s+\f+\s+\bvec\s)")) {
+    } else if (utils::strmatch(line, R"(^\s*\f+\s+\f+\s+\f+\s+bvec\s)")) {
       bvec_flag = 1;
       bvec[0] = utils::numeric(FLERR, words[0], false, lmp);
       bvec[1] = utils::numeric(FLERR, words[1], false, lmp);
       bvec[2] = utils::numeric(FLERR, words[2], false, lmp);
 
-    } else if (utils::strmatch(line, R"(^\s*\f+\s+\f+\s+\f+\s+\cvec\s)")) {
+    } else if (utils::strmatch(line, R"(^\s*\f+\s+\f+\s+\f+\s+cvec\s)")) {
       cvec_flag = 1;
       cvec[0] = utils::numeric(FLERR, words[0], false, lmp);
       cvec[1] = utils::numeric(FLERR, words[1], false, lmp);
       cvec[2] = utils::numeric(FLERR, words[2], false, lmp);
 
-    } else if (utils::strmatch(line, R"(^\s*\f+\s+\f+\s+\f+\s+\abc\s+origin\s)")) {
+    } else if (utils::strmatch(line, R"(^\s*\f+\s+\f+\s+\f+\s+abc\s+origin\s)")) {
       abc_origin_flag = 1;
       abc_origin[0] = utils::numeric(FLERR, words[0], false, lmp);
       abc_origin[1] = utils::numeric(FLERR, words[1], false, lmp);
@@ -2462,7 +2462,9 @@ void ReadData::open(const std::string &file)
   if (platform::has_compress_extension(path)) {
     fp.set_pclose();
     fp = platform::compressed_read(path);
-    if (!fp) error->one(FLERR, "Cannot open compressed file {}", file);
+    if (!fp)
+      error->one(FLERR, "Cannot open compressed file {}: {}", file,
+                 platform::compressed_open_error(path));
   } else {
     fp = fopen(path.c_str(), "r");
     if (!fp) error->one(FLERR, "Cannot open file {}: {}", file, utils::getsyserror());

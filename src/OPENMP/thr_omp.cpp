@@ -43,7 +43,8 @@ using MathConst::THIRD;
 
 /* ---------------------------------------------------------------------- */
 
-ThrOMP::ThrOMP(LAMMPS *ptr, int style) : lmp(ptr), fix(nullptr), thr_style(style), thr_error(0)
+ThrOMP::ThrOMP(LAMMPS *ptr, int style) :
+    lmp(ptr), fix(nullptr), thr_style(style), thr_error(0), thr_errline(0), thr_errfile(nullptr)
 {
   // register fix omp with this class
   fix = static_cast<FixOMP *>(lmp->modify->get_fix_by_id("package_omp"));
@@ -63,7 +64,6 @@ void ThrOMP::ev_setup_thr(int eflag, int vflag, int nall, double *eatom,
                           double **vatom, double **cvatom, ThrData *thr)
 {
   const int tid = thr->get_tid();
-  if (tid == 0) thr_error = 0;
 
   if (thr_style & THR_PAIR) {
     if (eflag & ENERGY_ATOM) {
@@ -204,7 +204,7 @@ void ThrOMP::reduce_thr(void *style, const int eflag, const int vflag,
           // pair_style hybrid will compute fdotr for us
           // but we first need to reduce the forces
           data_reduce_thr(&(f[0][0]), nall, nthreads, 3, tid);
-          fix->did_reduce();
+          if (tid == 0) fix->did_reduce();
           need_force_reduce = 0;
         }
       }
@@ -498,11 +498,24 @@ void ThrOMP::reduce_thr(void *style, const int eflag, const int vflag,
   if (style == fix->last_omp_style) {
     if (need_force_reduce) {
       data_reduce_thr(&(f[0][0]), nall, nthreads, 3, tid);
-      fix->did_reduce();
+      if (tid == 0) fix->did_reduce();
     }
 
     if (lmp->atom->torque)
       data_reduce_thr(&(lmp->atom->torque[0][0]), nall, nthreads, 3, tid);
+
+    // fold back the per-thread copies of the other force-like per-atom
+    // properties that pair styles accumulate for some atom styles.
+    // the conditions depend only on the atom style, so all threads
+    // reach the barrier inside data_reduce_thr() the same number of times.
+
+    Atom *const atom = lmp->atom;
+    if (atom->erforce) data_reduce_thr(atom->erforce, nall, nthreads, 1, tid);
+    if (atom->desph) data_reduce_thr(atom->desph, nall, nthreads, 1, tid);
+    if (atom->drho) data_reduce_thr(atom->drho, nall, nthreads, 1, tid);
+    if (atom->edpd_flux) data_reduce_thr(atom->edpd_flux, nall, nthreads, 1, tid);
+    if (atom->cc_flux && (atom->cc_species > 0))
+      data_reduce_thr(&(atom->cc_flux[0][0]), nall, nthreads, atom->cc_species, tid);
   }
   thr->timer(Timer::COMM);
 }

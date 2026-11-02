@@ -107,7 +107,7 @@ PairLJCharmmfswCoulLong::~PairLJCharmmfswCoulLong()
 void PairLJCharmmfswCoulLong::compute(int eflag, int vflag)
 {
   int i,j,ii,jj,inum,jnum,itype,jtype,itable;
-  double qtmp,xtmp,ytmp,ztmp,fxtmp,fytmp,fztmp,delx,dely,delz,evdwl,evdwl12,evdwl6,ecoul,fpair;
+  double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,evdwl,evdwl12,evdwl6,ecoul,fpair;
   double fraction,table;
   double r,rinv,r2inv,r3inv,r6inv,rsq,forcecoul,forcelj,factor_coul,factor_lj;
   double grij,expm2,prefactor,t,erfc;
@@ -143,7 +143,6 @@ void PairLJCharmmfswCoulLong::compute(int eflag, int vflag)
     itype = type[i];
     jlist = firstneigh[i];
     jnum = numneigh[i];
-    fxtmp = fytmp = fztmp = 0.0;
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
@@ -198,9 +197,9 @@ void PairLJCharmmfswCoulLong::compute(int eflag, int vflag)
 
         fpair = (forcecoul + factor_lj*forcelj) * r2inv;
 
-        fxtmp += delx*fpair;
-        fytmp += dely*fpair;
-        fztmp += delz*fpair;
+        f[i][0] += delx*fpair;
+        f[i][1] += dely*fpair;
+        f[i][2] += delz*fpair;
         if (newton_pair || j < nlocal) {
           f[j][0] -= delx*fpair;
           f[j][1] -= dely*fpair;
@@ -243,9 +242,6 @@ void PairLJCharmmfswCoulLong::compute(int eflag, int vflag)
                              evdwl,ecoul,fpair,delx,dely,delz);
       }
     }
-    f[i][0] += fxtmp;
-    f[i][1] += fytmp;
-    f[i][2] += fztmp;
   }
 
   if (vflag_fdotr) virial_fdotr_compute();

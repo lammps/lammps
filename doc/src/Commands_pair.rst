@@ -40,8 +40,8 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`body/rounded/polygon (o) <pair_body_rounded_polygon>`
    * :doc:`body/rounded/polyhedron (o) <pair_body_rounded_polyhedron>`
    * :doc:`body/rounded/polyhedron/granular (o) <pair_body_rounded_polyhedron_granular>`
-   * :doc:`bondval (k) <pair_bondval>`
-   * :doc:`bondval/vec (k) <pair_bondval>`
+   * :doc:`bondval (ko) <pair_bondval>`
+   * :doc:`bondval/vec (ko) <pair_bondval>`
    * :doc:`bop <pair_bop>`
    * :doc:`born (gko) <pair_born>`
    * :doc:`born/coul/dsf (gko) <pair_born>`

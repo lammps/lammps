@@ -187,7 +187,6 @@ void PairGWOMP::eval(int iifrom, int iito, ThrData *const thr)
       for (int kk = 0; kk < numshort; kk++) {
         if (jj == kk) continue;
         ShortNeigh &s2 = neighshort_thr[kk];
-        const int k = s2.j;
         const int ktype = s2.jtype;
         const int iparam_ijk = elem3param[itype][jtype][ktype];
 

@@ -35,7 +35,7 @@ using namespace LAMMPS_GPU;
 
 /* ---------------------------------------------------------------------- */
 
-PairBuckGPU::PairBuckGPU(LAMMPS *lmp) : PairBuck(lmp), gpu_mode(GPU_FORCE)
+PairBuckGPU::PairBuckGPU(LAMMPS *lmp) : PairBuck(lmp), gpu_mode(GPU_FORCE), update_coeffs(false)
 {
   respa_enable = 0;
   suffix_flag |= Suffix::GPU;
@@ -56,6 +56,11 @@ PairBuckGPU::~PairBuckGPU()
 void PairBuckGPU::compute(int eflag, int vflag)
 {
   ev_init(eflag, vflag);
+
+  if (update_coeffs) {
+    buck_gpu_reinit(atom->ntypes + 1, cutsq, rhoinv, buck1, buck2, a, c, offset);
+    update_coeffs = false;
+  }
 
   int nall = atom->nlocal + atom->nghost;
   int inum;
@@ -131,11 +136,13 @@ void PairBuckGPU::init_style()
 
 /* ---------------------------------------------------------------------- */
 
-void PairBuckGPU::reinit()
+double PairBuckGPU::init_one(int i, int j)
 {
-  Pair::reinit();
+  // the parameters may have been changed, e.g. by fix adapt,
+  // so copy them to the GPU again before the next compute()
 
-  buck_gpu_reinit(atom->ntypes + 1, cutsq, rhoinv, buck1, buck2, a, c, offset);
+  update_coeffs = true;
+  return PairBuck::init_one(i, j);
 }
 
 /* ---------------------------------------------------------------------- */

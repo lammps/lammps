@@ -26,23 +26,16 @@ discussion, note that users can also :doc:`add their own computes and
 fixes to LAMMPS <Modify>` which can generate values that can then be
 output with these commands.
 
+----
+
 The following subsections discuss different LAMMPS commands related
 to output and the kind of data they operate on and produce:
 
-* :ref:`Global/per-atom/local/per-grid data <global>`
-* :ref:`Scalar/vector/array data <scalar>`
-* :ref:`Disambiguation <disambiguation>`
-* :ref:`Thermodynamic output <thermo>`
-* :ref:`Dump file output <dump>`
-* :ref:`Fixes that write output files <fixoutput>`
-* :ref:`Computes that process output quantities <computeoutput>`
-* :ref:`Fixes that process output quantities <fixprocoutput>`
-* :ref:`Computes that generate values to output <compute>`
-* :ref:`Fixes that generate values to output <fix>`
-* :ref:`Variables that generate values to output <variable>`
-* :ref:`Summary table of output options and data flow between commands <table>`
+.. contents::
+   :local:
+   :depth: 1
 
-.. _global:
+----
 
 Global/per-atom/local/per-grid data
 -----------------------------------
@@ -60,8 +53,6 @@ overlays the simulation domain.  Similar to atoms and per-atom data,
 the grid cells and the data they store are distributed across
 processors; each processor owns the grid cells whose center points
 fall within its subdomain.
-
-.. _scalar:
 
 Scalar/vector/array data
 ------------------------
@@ -129,8 +120,6 @@ defines names for each grid and for each data set, so that all of them
 can be accessed by other commands.  See the :doc:`Howto grid
 <Howto_grid>` doc page for more details.
 
-.. _disambiguation:
-
 Disambiguation
 --------------
 
@@ -166,8 +155,6 @@ ID 245.  While you cannot use that reference directly in the
 equal-style variable formula, and then reference the variable in
 thermodynamic output.
 
-.. _thermo:
-
 Thermodynamic output
 --------------------
 
@@ -192,8 +179,6 @@ pages for details.  :doc:`Equal-style variables <variable>` produce only
 intensive values; you can include a division by "natoms" in the
 formula if desired, to make an extensive calculation produce an
 intensive result.
-
-.. _dump:
 
 Dump file output
 ----------------
@@ -223,8 +208,6 @@ command.
 There is also a :doc:`dump grid <dump>` format where the user
 specifies what per-grid values to output from computes or fixes that
 generate per-grid data.
-
-.. _fixoutput:
 
 Fixes that write output files
 -----------------------------
@@ -286,8 +269,6 @@ for a specific atom.  Thus the :doc:`fix print <fix_print>` command is
 a means to output a wide variety of quantities separate from normal
 thermodynamic or dump file output.
 
-.. _computeoutput:
-
 Computes that process output quantities
 ---------------------------------------
 
@@ -326,8 +307,6 @@ takes a list of one or more pre-defined chunk attributes (id, count,
 coords for spatial bins) and stores the values in a global vector or
 array.  These are produced as output values which can be used as input
 to other output commands.
-
-.. _fixprocoutput:
 
 Fixes that process output quantities
 ------------------------------------
@@ -376,8 +355,6 @@ For per-grid data, the :doc:`fix ave/grid <fix_ave_grid>` command
 takes inputs for grid data produced by other computes or fixes and
 averages the values for each grid point over time.
 
-.. _compute:
-
 Computes that generate values to output
 ---------------------------------------
 
@@ -390,8 +367,6 @@ per-grid values have the word "atom" or "local" or "grid" as the last
 word in their style name.  Computes without the word "atom" or "local"
 or "grid" produce global values.
 
-.. _fix:
-
 Fixes that generate values to output
 ------------------------------------
 
@@ -402,7 +377,7 @@ can be output using the other commands described in this section.  The
 page for each fix command tells whether it produces any output
 quantities and describes them.
 
-.. _variable:
+.. _variable_output:
 
 Variables that generate values to output
 ----------------------------------------
@@ -418,8 +393,6 @@ variables can be used as input to and thus output by the other
 commands described in this section.
 
 Per-grid variables have not (yet) been implemented.
-
-.. _table:
 
 Summary table of output options and data flow between commands
 --------------------------------------------------------------

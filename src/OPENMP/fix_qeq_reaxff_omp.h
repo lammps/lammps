@@ -15,6 +15,8 @@
 // clang-format off
 FixStyle(qeq/reaxff/omp,FixQEqReaxFFOMP);
 FixStyle(qeq/reax/omp,FixQEqReaxFFOMP);
+FixStyle(qtpie/reaxff/omp,FixQEqReaxFFOMP);
+FixStyle(qeq/rel/reaxff/omp,FixQEqReaxFFOMP);
 // clang-format on
 #else
 
@@ -30,19 +32,11 @@ class FixQEqReaxFFOMP : public FixQEqReaxFF {
  public:
   FixQEqReaxFFOMP(class LAMMPS *, int, char **);
   ~FixQEqReaxFFOMP() override;
-  void init() override;
   void init_storage() override;
-  void pre_force(int) override;
-  void post_constructor() override;
   double memory_usage() override;
 
  protected:
   double **b_temp;
-
-  int do_aspc;
-  int aspc_order, aspc_order_max;
-  double aspc_omega;
-  double *aspc_b;
 
   void allocate_storage() override;
   void deallocate_storage() override;
@@ -51,7 +45,10 @@ class FixQEqReaxFFOMP : public FixQEqReaxFF {
 
   int CG(double *, double *) override;
   void sparse_matvec(sparse_matrix *, double *, double *) override;
+  void solve_st() override;
   void calculate_Q() override;
+  void calc_chi_eff() override;
+  void xl_update() override;
 
   void vector_sum(double *, double, double *, double, double *, int) override;
   void vector_add(double *, double, double *, int) override;

@@ -24,6 +24,7 @@
 #include "compute.h"
 #include "domain.h"
 #include "error.h"
+#include "fix.h"
 #include "force.h"
 #include "group.h"
 #include "input.h"
@@ -108,7 +109,8 @@ FixGEMC::FixGEMC(LAMMPS *lmp, int narg, char **arg) :
 
   // unique to proc and world
 
-  random_proc = new RanPark(lmp,seed+3*(myworld+1)+7*(me+1));
+  random_proc = new RanPark(lmp,seed);
+  random_proc->reset_rank(seed, universe->me);
 
   // unique to world, sync between procs
 
@@ -464,7 +466,7 @@ double FixGEMC::energy_full()
   atom->nghost = 0;
   comm->borders();
   if (triclinic_flag) domain->lamda2x(atom->nlocal+atom->nghost);
-  if (modify->n_pre_neighbor) modify->pre_neighbor();
+  if (modify->has_fixes(FixConst::PRE_NEIGHBOR)) modify->pre_neighbor();
   neighbor->build(1);
   int eflag = 1;
   int vflag = 0;
@@ -475,7 +477,7 @@ double FixGEMC::energy_full()
   size_t nbytes = sizeof(double) * (atom->nlocal + atom->nghost);
   if (nbytes) memset(&atom->f[0][0],0,3*nbytes);
 
-  if (modify->n_pre_force) modify->pre_force(vflag);
+  if (modify->has_fixes(FixConst::PRE_FORCE)) modify->pre_force(vflag);
 
   if (force->pair) force->pair->compute(eflag,vflag);
 
@@ -488,7 +490,7 @@ double FixGEMC::energy_full()
 
   if (force->kspace) force->kspace->compute(eflag,vflag);
 
-  if (modify->n_post_force_any) modify->post_force(vflag);
+  if (modify->has_fixes(FixConst::POST_FORCE_ANY)) modify->post_force(vflag);
 
   // NOTE: all fixes with energy_global_flag set and which
   //   operate at pre_force() or post_force()
@@ -507,9 +509,11 @@ double FixGEMC::energy_full()
 
 void FixGEMC::write_restart(FILE *fp)
 {
+  int nglobalvals = 13;
+  int nlocalvals = nprocs;
+  int ntotalvals = nglobalvals + nlocalvals;
+  std::vector<double> list(ntotalvals);
   int n = 0;
-  double list[13];
-  list[n++] = random_proc->state();
   list[n++] = random_world->state();
   list[n++] = random_universe->state();
   list[n++] = ubuf(next_reneighbor).d;
@@ -522,11 +526,15 @@ void FixGEMC::write_restart(FILE *fp)
   list[n++] = nvolume_attempts;
   list[n++] = nvolume_successes;
   list[n++] = ubuf(update->ntimestep).d;
+  list[n++] = nlocalvals;
+
+  double state = random_proc->state();
+  MPI_Gather(&state, 1, MPI_DOUBLE, &list[n], 1, MPI_DOUBLE, 0, world);
 
   if (comm->me == 0) {
-    int size = n * sizeof(double);
+    int size = ntotalvals * sizeof(double);
     fwrite(&size, sizeof(int), 1, fp);
-    fwrite(list, sizeof(double), n, fp);
+    fwrite(list.data(), sizeof(double), ntotalvals, fp);
   }
 }
 
@@ -538,9 +546,6 @@ void FixGEMC::restart(char *buf)
 {
   int n = 0;
   auto *list = (double *) buf;
-
-  seed = static_cast<int> (list[n++]);
-  random_proc->reset(seed);
 
   seed = static_cast<int> (list[n++]);
   random_world->reset(seed);
@@ -562,6 +567,18 @@ void FixGEMC::restart(char *buf)
   bigint ntimestep_restart = (bigint) ubuf(list[n++]).i;
   if (ntimestep_restart != update->ntimestep)
     error->all(FLERR,"Must not reset timestep when restarting fix gemc");
+
+  // read stored state of RNG unique to this process
+  // if nprocs changed, derive a unique state from the state of proc 0
+
+  auto nlocalvals = (int) list[n++];
+  if (nlocalvals == nprocs) {
+    seed = static_cast<int>(list[n + me]);
+    random_proc->reset(seed);
+  } else {
+    seed = static_cast<int>(list[n]);
+    random_proc->reset_rank(seed, universe->me);
+  }
 }
 
 /* ----------------------------------------------------------------------

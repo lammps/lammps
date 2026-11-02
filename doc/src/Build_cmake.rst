@@ -56,8 +56,6 @@ software or for people that want to modify or extend LAMMPS.
   or `Homebrew <https://brew.sh/>`_.
 - Integration of automated unit and regression testing.
 
-.. _cmake_build:
-
 Getting started
 ^^^^^^^^^^^^^^^
 
@@ -202,8 +200,6 @@ defaults to ``${HOME}/.local``.
       [100%] Linking CXX executable simpleCC
       [100%] Built target simpleCC
 
-.. _cmake_options:
-
 Configuration and build options
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -241,8 +237,6 @@ tool <ninja_ccache>`) or project files for IDEs like Xcode or Visual
 Studio can be selected using the ``-G`` command-line flag.  A list of
 available generator settings for your specific CMake version is given
 when running ``cmake --help``.
-
-.. _cmake_targets:
 
 Build targets
 ^^^^^^^^^^^^^

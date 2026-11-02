@@ -79,13 +79,15 @@ jobs:
         ccache -s
 
     # FFT3D also matches FFT3DKokkos, the unit tests for the KOKKOS FFT
-    # classes used by the KOKKOS KSpace styles.  DumpKokkos matches the dump
-    # tests that only make sense with the KOKKOS package and are therefore
+    # classes used by the KOKKOS KSpace styles.  Kokkos anywhere in the name
+    # matches the <Name>Kokkos runs of the command, format, and C++ class
+    # tests added by add_kokkos_test() and DumpKokkosTriclinicPbc, the dump
+    # test that only makes sense with the KOKKOS package and is therefore
     # not built by the workflows that run the full test suite.
     - name: Run Tests
       working-directory: build
       shell: bash
-      run: ctest --output-on-failure -R '^(MolPairStyle|AtomicPairStyle|ManybodyPairStyle|EllipsoidPairStyle|KSpaceStyle|BondStyle|AngleStyle|DihedralStyle|ImproperStyle|FixTimestep|Library|FFT3D|Kokkos)' --output-junit junit-kokkos-${{ matrix.backend }}-${{ matrix.precision }}.xml
+      run: ctest --output-on-failure -R '^(MolPairStyle|AtomicPairStyle|ManybodyPairStyle|EllipsoidPairStyle|KSpaceStyle|BondStyle|AngleStyle|DihedralStyle|ImproperStyle|FixTimestep|Library|FFT3D)|Kokkos' --output-junit junit-kokkos-${{ matrix.backend }}-${{ matrix.precision }}.xml
 
     # test results from pull request branches are only for the submitters,
     # only post-merge results are published for downstream reporting

@@ -1,0 +1,5 @@
+{
+  "_comment": "space group P-1: inversion through the origin of the box",
+  "group_name": "P-1",
+  "ops": [ "x,y,z", "-x,-y,-z" ]
+}

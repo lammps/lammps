@@ -1,17 +1,19 @@
 .. index:: pair_style gw
+.. index:: pair_style gw/kk
 .. index:: pair_style gw/omp
 .. index:: pair_style gw/zbl
+.. index:: pair_style gw/zbl/kk
 .. index:: pair_style gw/zbl/omp
 
 pair_style gw command
 =====================
 
-Accelerator Variants: *gw/omp*
+Accelerator Variants: *gw/kk*, *gw/omp*
 
 pair_style gw/zbl command
 =========================
 
-Accelerator Variants: *gw/zbl/omp*
+Accelerator Variants: *gw/zbl/kk*, *gw/zbl/omp*
 
 Syntax
 """"""

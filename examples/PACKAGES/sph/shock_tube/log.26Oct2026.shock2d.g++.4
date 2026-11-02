@@ -1,0 +1,152 @@
+LAMMPS (30 Sep 2026 - Development - patch_30Sep2026-523-gdbc38a263e-modified)
+  using 1 OpenMP thread(s) per MPI task
+atom_style         sph
+dimension          2
+boundary           s p p
+
+region             box block -100 150 -4 4 -0.1 0.1 units box
+create_box         2 box
+Created orthogonal box = (-100 -4 -0.1) to (150 4 0.1)
+  4 by 1 by 1 MPI processor grid
+lattice            sq 1.0
+Lattice spacing in x,y,z = 1 1 1
+create_atoms       1 box
+Created 2008 atoms
+  using lattice units in orthogonal box = (-100.025 -4 -0.1) to (150.025 4 0.1)
+  create_atoms CPU = 0.000 seconds
+
+region             left block EDGE 0.0 EDGE EDGE EDGE EDGE units box
+region             right block 1 EDGE EDGE EDGE EDGE EDGE units box
+set                region right type 2
+Setting atom values ...
+  1200 settings made for type
+
+mass               1 1
+mass               2 0.25
+set                type 1 sph/e 2.5 # internal energy corresponding to p=1, rho=1
+Setting atom values ...
+  808 settings made for sph/e
+set                type 2 sph/e 0.625 # internal energy corresponding to p=0.25, rho=0.25
+Setting atom values ...
+  1200 settings made for sph/e
+set                type 1 sph/rho 1.0
+Setting atom values ...
+  808 settings made for sph/rho
+set                type 2 sph/rho 0.25
+Setting atom values ...
+  1200 settings made for sph/rho
+
+pair_style         hybrid/overlay sph/rhosum 1 sph/idealgas
+pair_coeff         * * sph/rhosum 4.0
+pair_coeff         * * sph/idealgas 0.75 4.0
+
+compute            rhoatom all sph/rho/atom
+compute            ieatom all sph/e/atom
+compute            esph all reduce sum c_ieatom # total internal energy
+compute            ke all ke
+variable           etot equal c_ke+c_esph # total energy
+
+# dump positions and local density
+dump               dump_id all custom 100 dump.2d id type x z y c_rhoatom
+dump_modify        dump_id first yes
+
+neighbor           0.5 bin
+neigh_modify       every 5 delay 0 check yes
+thermo             10
+thermo_style       custom step c_ke c_esph v_etot press
+thermo_modify      norm no
+
+fix                integration_fix all sph
+fix                1 all setforce NULL 0.0 0.0 # treat as a quasi 1d problem
+timestep           0.05
+run                400 # run for t=20
+Generated 0 of 1 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 5 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 4.5
+  ghost atom cutoff = 4.5
+  binsize = 2.25, bins = 112 4 1
+  2 neighbor lists, perpetual/occasional/extra = 2 0 0
+  (1) pair sph/rhosum, perpetual
+      attributes: full, newton on
+      pair build: full/bin/atomonly
+      stencil: full/bin/2d
+      bin: standard
+  (2) pair sph/idealgas, perpetual, half/full from (1)
+      attributes: half, newton on
+      pair build: halffull/newton
+      stencil: none
+      bin: none
+Per MPI rank memory allocation (min/avg/max) = 4.889 | 4.893 | 4.896 Mbytes
+   Step          c_ke          c_esph         v_etot         Press     
+         0   0              2770           2770           0.5535723    
+        10   1.1118997      2768.8879      2769.9998      0.55428943   
+        20   4.1681853      2765.8312      2769.9994      0.55398534   
+        30   8.4534223      2761.5455      2769.9989      0.55367999   
+        40   13.138181      2756.8603      2769.9985      0.55258506   
+        50   17.597793      2752.4004      2769.9982      0.55064165   
+        60   21.64651       2748.3518      2769.9983      0.54778217   
+        70   25.366876      2744.6315      2769.9984      0.54445993   
+        80   29.119923      2740.8784      2769.9983      0.54147958   
+        90   33.046173      2736.952       2769.9982      0.53891157   
+       100   37.086145      2732.912       2769.9981      0.53646871   
+       110   41.119772      2728.8783      2769.9981      0.5337855    
+       120   45.130954      2724.8671      2769.9981      0.53105249   
+       130   49.172711      2720.8253      2769.9981      0.52849237   
+       140   53.247736      2716.7503      2769.998       0.52596475   
+       150   57.273745      2712.7242      2769.998       0.5232987    
+       160   61.235542      2708.7625      2769.998       0.52059811   
+       170   65.202891      2704.7951      2769.998       0.5180758    
+       180   69.23279       2700.7652      2769.998       0.51570722   
+       190   73.294117      2696.7038      2769.9979      0.51331768   
+       200   77.341874      2692.6561      2769.9979      0.51087447   
+       210   81.378662      2688.6193      2769.9979      0.50848556   
+       220   85.42241       2684.5755      2769.9979      0.50612673   
+       230   89.451539      2680.5464      2769.9979      0.50376978   
+       240   93.446032      2676.5519      2769.9979      0.50136533   
+       250   97.436517      2672.5614      2769.9979      0.49903749   
+       260   101.47291      2668.525       2769.9979      0.49683664   
+       270   105.54459      2664.4533      2769.9979      0.49467262   
+       280   109.59874      2660.3991      2769.9979      0.49245724   
+       290   113.61665      2656.3812      2769.9979      0.49021857   
+       300   117.62969      2652.3682      2769.9979      0.48803522   
+       310   121.65679      2648.3411      2769.9979      0.48589776   
+       320   125.68143      2644.3165      2769.9979      0.48378319   
+       330   129.69769      2640.3002      2769.9979      0.48167305   
+       340   133.73369      2636.2642      2769.9979      0.47962432   
+       350   137.79931      2632.1986      2769.9979      0.4776069    
+       360   141.85545      2628.1424      2769.9979      0.47558639   
+       370   145.87158      2624.1263      2769.9979      0.47352676   
+       380   149.87281      2620.1251      2769.9979      0.4715142    
+       390   153.90216      2616.0958      2769.9979      0.46957775   
+       400   157.95295      2612.0449      2769.9979      0.46766903   
+Loop time of 0.157516 on 4 procs for 400 steps with 2008 atoms
+
+Performance: 10970317.783 tau/day, 2539.425 timesteps/s, 5.099 Matom-step/s
+99.0% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.086347   | 0.10714    | 0.11945    |   4.1 | 68.02
+Neigh   | 0.016846   | 0.020262   | 0.026458   |   2.7 | 12.86
+Comm    | 0.0063884  | 0.023908   | 0.047051   |  10.5 | 15.18
+Output  | 0.0021138  | 0.0027195  | 0.0033841  |   0.9 |  1.73
+Modify  | 0.0019513  | 0.0022084  | 0.0024626  |   0.5 |  1.40
+Other   |            | 0.001282   |            |       |  0.81
+
+Nlocal:            502 ave         664 max         376 min
+Histogram: 2 0 0 0 0 0 0 1 0 1
+Nghost:         700.75 ave         951 max         491 min
+Histogram: 2 0 0 0 0 0 0 0 1 1
+Neighs:        15749.5 ave       23888 max        9408 min
+Histogram: 2 0 0 0 0 0 0 1 0 1
+FullNghs:        31499 ave       47888 max       18896 min
+Histogram: 2 0 0 0 0 0 0 1 0 1
+
+Total # of neighbors = 125996
+Ave neighs/atom = 62.747012
+Neighbor list builds = 76
+Dangerous builds = 74
+Total wall time: 0:00:00

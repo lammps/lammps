@@ -155,8 +155,8 @@ FixWallBodyPolygon::FixWallBodyPolygon(LAMMPS *lmp, int narg, char **arg) :
     restart_peratom = 1;
     create_attribute = 1;
     FixWallBodyPolygon::grow_arrays(atom->nmax);
-    atom->add_callback(Atom::GROW);
-    atom->add_callback(Atom::RESTART);
+    atom->add_callback(this, Atom::GROW);
+    atom->add_callback(this, Atom::RESTART);
     maxexchange = NHISTORY;
     for (int i = 0; i < atom->nlocal; i++)
       for (int k = 0; k < NHISTORY; k++) history_one[i][k] = 0.0;
@@ -198,8 +198,8 @@ FixWallBodyPolygon::FixWallBodyPolygon(LAMMPS *lmp, int narg, char **arg) :
 FixWallBodyPolygon::~FixWallBodyPolygon()
 {
   if (history && atom) {
-    atom->delete_callback(id,Atom::GROW);
-    atom->delete_callback(id,Atom::RESTART);
+    atom->delete_callback(this, Atom::GROW);
+    atom->delete_callback(this, Atom::RESTART);
   }
   memory->destroy(history_one);
 

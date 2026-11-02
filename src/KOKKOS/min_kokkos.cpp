@@ -33,6 +33,7 @@
 #include "improper.h"
 #include "kokkos.h"
 #include "kspace.h"
+#include "fix.h"
 #include "modify.h"
 #include "neighbor.h"
 #include "output.h"
@@ -421,7 +422,7 @@ double MinKokkos::energy_force(int resetflag)
     comm->forward_comm();
     timer->stamp(Timer::COMM);
   } else {
-    if (modify->n_min_pre_exchange) {
+    if (modify->has_fixes(FixConst::MIN_PRE_EXCHANGE)) {
       timer->stamp();
       modify->min_pre_exchange();
       timer->stamp(Timer::MODIFY);
@@ -440,13 +441,13 @@ double MinKokkos::energy_force(int resetflag)
     comm->borders();
     if (triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
     timer->stamp(Timer::COMM);
-    if (modify->n_min_pre_neighbor) {
+    if (modify->has_fixes(FixConst::MIN_PRE_NEIGHBOR)) {
       modify->min_pre_neighbor();
       timer->stamp(Timer::MODIFY);
     }
     neighbor->build(1);
     timer->stamp(Timer::NEIGH);
-    if (modify->n_min_post_neighbor) {
+    if (modify->has_fixes(FixConst::MIN_POST_NEIGHBOR)) {
       modify->min_post_neighbor();
       timer->stamp(Timer::MODIFY);
     }
@@ -457,7 +458,7 @@ double MinKokkos::energy_force(int resetflag)
 
   timer->stamp();
 
-  if (modify->n_min_pre_force) {
+  if (modify->has_fixes(FixConst::MIN_PRE_FORCE)) {
     modify->min_pre_force(vflag);
     timer->stamp(Timer::MODIFY);
   }
@@ -523,7 +524,7 @@ double MinKokkos::energy_force(int resetflag)
     timer->stamp(Timer::KSPACE);
   }
 
-  if (modify->n_min_pre_reverse) {
+  if (modify->has_fixes(FixConst::MIN_PRE_REVERSE)) {
     modify->min_pre_reverse(eflag,vflag);
     timer->stamp(Timer::MODIFY);
   }
@@ -542,7 +543,7 @@ double MinKokkos::energy_force(int resetflag)
 
   // fixes that affect minimization
 
-  if (modify->n_min_post_force) {
+  if (modify->has_fixes(FixConst::MIN_POST_FORCE)) {
      timer->stamp();
      modify->min_post_force(vflag);
      atomKK->sync(Device,F_MASK);

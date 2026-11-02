@@ -46,7 +46,7 @@ int dpd_coul_slater_long_gpu_init(const int ntypes, double **host_cutsq, double 
   int gpu_rank=DPDCMF.device->gpu_rank();
   int procs_per_gpu=DPDCMF.device->procs_per_gpu();
 
-  DPDCMF.device->init_message(screen,"dpd",first_gpu,last_gpu);
+  DPDCMF.device->init_message(screen,"dpd/coul/slater/long",first_gpu,last_gpu);
 
   bool message=false;
   if (DPDCMF.device->replica_me()==0 && screen)

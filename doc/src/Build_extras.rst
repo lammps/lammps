@@ -318,6 +318,10 @@ supported ``GPU_ARCH`` setting for different GPU hardware are as follows:
 * ``all`` for including support all GPU architectures supported by the CUDA toolkit
 * a single number or a list of numbers of individual GPU architectures, e.g. ``60;70;75;80;90``.
 
+Settings in the format of earlier LAMMPS versions, e.g. ``sm_75``, are
+still accepted (also in the CMake cache of an existing build folder),
+but they are deprecated and converted to the new format with a warning.
+
 When compiling for CUDA or HIP with CUDA, version 12.0 or later of the
 CUDA toolkit is required and a GPU architecture of Pascal (60) or later,
 which must *also* be supported by the CUDA toolkit (e.g. the Pascal (60)
@@ -850,7 +854,7 @@ This list was last updated for version 5.2.1 of the Kokkos library.
          -D BUILD_OMP=on
 
       Please note that enabling OpenMP for KOKKOS requires that OpenMP is
-      also :ref:`enabled for the rest of LAMMPS <serial>`.
+      also :ref:`enabled for the rest of LAMMPS <build_serial>`.
 
       For Intel KNLs using OpenMP, set these variables:
 
@@ -1850,7 +1854,11 @@ code when using features from the INTEL package.
       adds the flags ``-xHost`` and ``-qopt-zmm-usage=high`` and compiles
       the INTEL package sources with ``-fp-model=fast=2``.  The ``-xHost``
       flag is omitted when a target architecture is already selected in
-      ``CMAKE_CXX_FLAGS``, e.g. when compiling for a different CPU.
+      ``CMAKE_CXX_FLAGS``, e.g. when compiling for a different CPU.  The
+      main program of the LAMMPS executable is compiled with ``-ftz``, so
+      that very small floating-point numbers (subnormals) are flushed to
+      zero, which avoids a large slowdown of some INTEL package styles in
+      mixed precision.
 
    .. tab:: Traditional make
 

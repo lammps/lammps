@@ -142,17 +142,19 @@ means anything. Those cases are recognized and reported rather than counted as f
       another code (or drive it from one), so they cannot be tested standalone, and
       several of them are not even LAMMPS input scripts
     + with --preflight-only the "-skiprun" run is the whole test: every input script
-      runs with the configured MPI setup, but the loops of all run and minimize
-      commands end after one step. This tests that the input script parses, that
-      every style exists, that the setup (reading files, building neighbor lists,
-      domain decomposition and initial communication) works, and that one step runs
-      without crashing, at a small fraction of the cost of the full runs and without
-      any numerical checks. Runs that complete are recorded with the "runtest"
-      category (see REPORTING.md). Post-run analysis in some inputs (e.g. variables
-      dividing by averages accumulated over the full run) cannot work with runs cut
-      short: failures whose error message shows that are recorded as skipped rather
-      than failed, and inputs that cannot work with -skiprun for other reasons are
-      listed in the skip list of config_skiprun.yaml with the reasons documented
+      runs with the configured MPI setup, but run and minimize commands are skipped
+      entirely (before their setup, so there are no neighbor lists, no force
+      computation, and no time steps). This tests that the input script parses, that
+      every style exists, and that all other commands (reading data and potential
+      files, creating atoms and topology, defining styles and their settings, domain
+      decomposition) work without crashing, at a small fraction of the cost of the
+      full runs and without any numerical checks. Commands that run their own loops
+      (e.g. hyper or prd) are not shortened. Runs that complete are recorded with the
+      "runtest" category (see REPORTING.md). Post-run analysis in some inputs (e.g.
+      variables dividing by averages accumulated over the full run) cannot work with
+      skipped runs: failures whose error message shows that are recorded as skipped
+      rather than failed, and inputs that cannot work with -skiprun for other reasons
+      are listed in the skip list of config_skiprun.yaml with the reasons documented
       there. The check-examples.yml workflow runs this over the whole examples tree.
     + input scripts without a reference log file cannot be checked against anything, so
       they are run with their run commands shortened to "smoke_steps" steps, which only

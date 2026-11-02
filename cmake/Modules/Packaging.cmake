@@ -129,7 +129,7 @@ if(BUILD_LAMMPS_GUI)
   # When building LAMMPS-GUI with LAMMPS we don't support plugin mode and don't include docs.
   ExternalProject_Add(lammps-gui_build
     GIT_REPOSITORY https://github.com/lammps/lammps-gui.git
-    GIT_TAG v3.1.1
+    GIT_TAG v3.1.2
     GIT_SHALLOW TRUE
     GIT_PROGRESS TRUE
     LIST_SEPARATOR ,
@@ -213,6 +213,7 @@ if(BUILD_LAMMPS_GUI)
         COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_BINARY_DIR}/binary2txt ${APP_CONTENTS}/bin/
         COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_BINARY_DIR}/stl_bin2txt ${APP_CONTENTS}/bin/
         COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_BINARY_DIR}/phana ${APP_CONTENTS}/bin/
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_BINARY_DIR}/find-symmetry ${APP_CONTENTS}/bin/
         COMMAND ${CMAKE_COMMAND} -E create_symlink ../MacOS/lammps-gui ${APP_CONTENTS}/bin/lammps-gui
         COMMAND ${CMAKE_COMMAND} -E make_directory ${APP_CONTENTS}/Resources
         COMMAND ${CMAKE_COMMAND} -E copy_if_different ${LAMMPS_PACKAGING_DIR}/README.macos ${APP_CONTENTS}/Resources/README.txt

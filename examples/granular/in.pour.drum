@@ -69,6 +69,7 @@ fix             4 all wall/gran/region granular hertz/material 1e5 0.1 0.3 tange
 
 thermo_style    custom step atoms ke v_theta
 thermo_modify   lost warn
+compute_modify  thermo_temp dynamic/dof yes
 thermo          100
 
 timestep        0.001

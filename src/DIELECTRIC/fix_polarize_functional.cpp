@@ -128,7 +128,7 @@ FixPolarizeFunctional::FixPolarizeFunctional(LAMMPS *_lmp, int narg, char **arg)
   cg_A = nullptr;
 
   FixPolarizeFunctional::grow_arrays(atom->nmax);
-  atom->add_callback(0);    // to ensure to work with atom->sort()
+  atom->add_callback(this, Atom::GROW);    // to ensure to work with atom->sort()
 }
 
 /* ---------------------------------------------------------------------- */
@@ -148,7 +148,7 @@ FixPolarizeFunctional::~FixPolarizeFunctional()
   memory->destroy(buffer2);
 
   if (allocated) deallocate();
-  atom->delete_callback(id, 0);
+  atom->delete_callback(this, Atom::GROW);
 }
 
 /* ---------------------------------------------------------------------- */

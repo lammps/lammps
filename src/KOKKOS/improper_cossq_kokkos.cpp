@@ -188,16 +188,23 @@ void ImproperCossqKokkos<DeviceType>::operator()(TagImproperCossqCompute<NEWTON_
   if (cosphi > static_cast<KK_FLOAT>(1.0 + TOLERANCE) || cosphi < static_cast<KK_FLOAT>(-1.0 - TOLERANCE))
     d_warning_flag() = 1;
 
-  if (cosphi > static_cast<KK_FLOAT>(1.0))  cosphi -= static_cast<KK_FLOAT>(SMALL);
-  if (cosphi < static_cast<KK_FLOAT>(-1.0)) cosphi += static_cast<KK_FLOAT>(SMALL);
+  if (cosphi > static_cast<KK_FLOAT>(1.0)) cosphi = static_cast<KK_FLOAT>(1.0);
+  if (cosphi < static_cast<KK_FLOAT>(-1.0)) cosphi = static_cast<KK_FLOAT>(-1.0);
 
   const KK_FLOAT torangle = Kokkos::acos(cosphi);
+
+  // sin(phi - chi)/sin(phi) = cos(chi) - cos(phi)*sin(chi)/sin(phi), needed
+  // for the derivative of the energy with respect to cos(phi)
+
+  KK_FLOAT sinphi = Kokkos::sqrt(static_cast<KK_FLOAT>(1.0) - cosphi*cosphi);
+  if (sinphi < static_cast<KK_FLOAT>(SMALL)) sinphi = static_cast<KK_FLOAT>(SMALL);
+  const KK_FLOAT sinratio = Kokkos::cos(d_chi[type]) - cosphi * Kokkos::sin(d_chi[type]) / sinphi;
   cosphi = Kokkos::cos(torangle - d_chi[type]);
 
   KK_FLOAT eimproper = static_cast<KK_FLOAT>(0.0);
   if (EVFLAG && eflag) eimproper = static_cast<KK_FLOAT>(0.5) * d_k[type] * cosphi * cosphi;
 
-  const KK_FLOAT angfac = -d_k[type] * cosphi;
+  const KK_FLOAT angfac = -d_k[type] * cosphi * sinratio;
 
   const KK_FLOAT cjiji = rjisq;
   const KK_FLOAT clklk = rlksq;

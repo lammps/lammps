@@ -1,10 +1,11 @@
 .. index:: pair_style mesomem/dipole
+.. index:: pair_style mesomem/dipole/kk
 .. index:: pair_style mesomem/dipole/omp
 
 pair_style mesomem/dipole command
 =================================
 
-Accelerator Variants: *mesomem/dipole/omp*
+Accelerator Variants: *mesomem/dipole/kk*, *mesomem/dipole/omp*
 
 Syntax
 """"""

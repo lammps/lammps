@@ -114,13 +114,13 @@ FixHMC::FixHMC(LAMMPS *lmp, int narg, char **arg) :
   // random = different RNG on each processor
   // random_equal = same RNG on each processor
 
-  random = new RanPark(lmp, seed + comm->me);
-  for (int i = 0; i < 100; i++) random->uniform();
+  random = new RanPark(lmp, seed);
+  random->reset_rank(seed, comm->me);
   random_equal = new RanPark(lmp, seed);
 
   // register callback
 
-  atom->add_callback(0);
+  atom->add_callback(this, Atom::GROW);
 
   // add new computes for global and per-atom properties
 
@@ -156,7 +156,7 @@ FixHMC::FixHMC(LAMMPS *lmp, int narg, char **arg) :
 
 FixHMC::~FixHMC()
 {
-  atom->delete_callback(id, 0);
+  atom->delete_callback(this, Atom::GROW);
 
   memory->destroy(eglobal);
   memory->destroy(vglobal);

@@ -309,13 +309,6 @@ shutil.copy(os.path.join(gitdir,"LICENSE"),os.path.join(builddir,"LICENSE.txt"))
 shutil.copy(os.path.join(gitdir,"doc","src","PDF","colvars-refman-lammps.pdf"),os.path.join(builddir,"Colvars-Manual.pdf"))
 shutil.copy(os.path.join(gitdir,"tools","createatoms","Manual.pdf"),os.path.join(builddir,"CreateAtoms-Manual.pdf"))
 shutil.copy(os.path.join(gitdir,"doc","src","PDF","kspace.pdf"),os.path.join(builddir,"Kspace-Extra-Info.pdf"))
-shutil.copy(os.path.join(gitdir,"doc","src","PDF","pair_gayberne_extra.pdf"),os.path.join(builddir,"PairGayBerne-Manual.pdf"))
-shutil.copy(os.path.join(gitdir,"doc","src","PDF","pair_resquared_extra.pdf"),os.path.join(builddir,"PairReSquared-Manual.pdf"))
-shutil.copy(os.path.join(gitdir,"doc","src","PDF","PDLammps_overview.pdf"),os.path.join(builddir,"PDLAMMPS-Overview.pdf"))
-shutil.copy(os.path.join(gitdir,"doc","src","PDF","PDLammps_EPS.pdf"),os.path.join(builddir,"PDLAMMPS-EPS.pdf"))
-shutil.copy(os.path.join(gitdir,"doc","src","PDF","PDLammps_VES.pdf"),os.path.join(builddir,"PDLAMMPS-VES.pdf"))
-shutil.copy(os.path.join(gitdir,"doc","src","PDF","SPH_LAMMPS_userguide.pdf"),os.path.join(builddir,"SPH-Manual.pdf"))
-shutil.copy(os.path.join(gitdir,"doc","src","PDF","MACHDYN_LAMMPS_userguide.pdf"),os.path.join(builddir,"MACHDYN-Manual.pdf"))
 shutil.copy(os.path.join(gitdir,"doc","src","PDF","CG-DNA.pdf"),os.path.join(builddir,"CG-DNA-Manual.pdf"))
 
 # prune outdated inputs, too large files, or examples of packages we don't bundle

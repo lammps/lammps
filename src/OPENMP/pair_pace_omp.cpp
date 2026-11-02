@@ -1,3 +1,16 @@
+/* ----------------------------------------------------------------------
+   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
+   https://www.lammps.org/, Sandia National Laboratories
+   LAMMPS development team: developers@lammps.org
+
+   Copyright (2003) Sandia Corporation.  Under the terms of Contract
+   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
+   certain rights in this software.  This software is distributed under
+   the GNU General Public License.
+
+   See the README file in the top-level LAMMPS directory.
+------------------------------------------------------------------------- */
+
 #include "pair_pace_omp.h"
 
 #include "atom.h"
@@ -20,16 +33,30 @@
 #include "ace-evaluator/ace_version.h"
 #include "ace/ace_b_basis.h"
 
+#include "ace_impl.h"
+
 namespace LAMMPS_NS {
-struct ACEImpl {
-  ACEImpl() : basis_set(nullptr), ace(nullptr) {}
-  ~ACEImpl()
+struct ACEImplThr {
+  ACEImplThr() = delete;
+  ACEImplThr(int nthreads)
   {
-    delete basis_set;
-    delete ace;
+    ace.resize(nthreads, nullptr);
+    basis_set.resize(nthreads, nullptr);
   }
-  ACECTildeBasisSet *basis_set;
-  ACERecursiveEvaluator *ace;
+
+  ~ACEImplThr()
+  {
+    // Clean up resources PairPACEOMP owns
+    for (auto *ptr : ace) { delete ptr; }
+    ace.clear();
+    for (auto *ptr : basis_set) { delete ptr; }
+    basis_set.clear();
+  }
+
+  // One ACE evaluator per thread
+  std::vector<ACERecursiveEvaluator *> ace;
+  // One basis per thread
+  std::vector<ACECTildeBasisSet *> basis_set;
 };
 }    // namespace LAMMPS_NS
 
@@ -41,26 +68,19 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-PairPACEOMP::PairPACEOMP(LAMMPS *lmp) : PairPACE(lmp), ThrOMP(lmp, THR_PAIR), ace_thr()
+PairPACEOMP::PairPACEOMP(LAMMPS *lmp) : PairPACE(lmp), ThrOMP(lmp, THR_PAIR), ace_thr(nullptr)
 {
   suffix_flag |= Suffix::OMP;
 
   // Create and resize vector of per-thread ACE evaluators
-  const int nthreads = comm->nthreads;
-  ace_thr.resize(nthreads, nullptr);
-  basis_thr.resize(nthreads, nullptr);
+  ace_thr = new ACEImplThr(comm->nthreads);
 }
 
 /* ---------------------------------------------------------------------- */
 
 PairPACEOMP::~PairPACEOMP()
 {
-
-  // Clean up resources PairPACEOMP owns
-  for (ACERecursiveEvaluator *ptr : ace_thr) { delete ptr; }
-  ace_thr.clear();
-  for (ACECTildeBasisSet *ptr : basis_thr) { delete ptr; }
-  basis_thr.clear();
+  delete ace_thr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -80,26 +100,20 @@ void PairPACEOMP::build_thread_evaluators()
   const int nthreads = comm->nthreads;
 
   // Clean up any existing evaluators
-  for (ACERecursiveEvaluator *&ptr : ace_thr) {
-    delete ptr;
-    ptr = nullptr;
-  }
+  for (auto *ptr : ace_thr->ace) { delete ptr; }
   // Clean up existing basis
-  for (ACECTildeBasisSet *&ptr : basis_thr) {
-    delete ptr;
-    ptr = nullptr;
-  }
+  for (auto *ptr : ace_thr->basis_set) { delete ptr; }
 
   // Copy configuration from the base ACERecursiveEvaluator
   // Need a copy of both the evaluator and the basis to ensure no memory is shared across threads
   for (int t = 0; t < nthreads; ++t) {
     auto *ace = new ACERecursiveEvaluator();
-    ACECTildeBasisSet *basis = new ACECTildeBasisSet(*aceimpl->basis_set);
+    auto *basis = new ACECTildeBasisSet(*aceimpl->basis_set);
     ace->set_recursive(recursive);
     ace->set_basis(*basis, 1);
     ace->element_type_mapping = aceimpl->ace->element_type_mapping;
-    ace_thr[t] = ace;
-    basis_thr[t] = basis;
+    ace_thr->ace[t] = ace;
+    ace_thr->basis_set[t] = basis;
   }
 }
 
@@ -107,10 +121,7 @@ void PairPACEOMP::build_thread_evaluators()
 
 void PairPACEOMP::compute(int eflag, int vflag)
 {
-  if (copymode)
-    ev_init(eflag, vflag, 0);
-  else
-    ev_init(eflag, vflag, 1);
+  ev_init(eflag, vflag);
 
   int i, ii, inum, jnum;
   int *ilist, *numneigh, **firstneigh;
@@ -153,10 +164,10 @@ void PairPACEOMP::compute(int eflag, int vflag)
   }
 
 #if defined(_OPENMP)
-#pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(                                               \
-    eflag, eflag_either, vflag, vflag_either, eatom, vatom, x, type, nlocal, nall, newton_pair, \
-    inum, ilist, numneigh, firstneigh, max_jnum, fix, ace_thr, scale, flag_corerep_factor,      \
-    corerep_factor, nthreads)
+#pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(                                          \
+        eflag, eflag_either, vflag, vflag_either, eatom, vatom, x, type, nlocal, nall,     \
+            newton_pair, inum, ilist, numneigh, firstneigh, max_jnum, fix, ace_thr, scale, \
+            flag_corerep_factor, corerep_factor, nthreads)
 #endif
   {
 
@@ -178,7 +189,7 @@ void PairPACEOMP::compute(int eflag, int vflag)
     double *const *const f_thr = thr->get_f();
 
     // per-thread ACE evaluator with its own basis
-    ACERecursiveEvaluator *ace = ace_thr[tid];
+    ACERecursiveEvaluator *ace = ace_thr->ace[tid];
 
     // per-thread memory resize
     ace->resize_neighbours_cache(max_jnum);

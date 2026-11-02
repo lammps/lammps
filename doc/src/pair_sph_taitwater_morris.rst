@@ -1,7 +1,10 @@
 .. index:: pair_style sph/taitwater/morris
+.. index:: pair_style sph/taitwater/morris/omp
 
 pair_style sph/taitwater/morris command
 =======================================
+
+Accelerator Variants: *sph/taitwater/morris/omp*
 
 Syntax
 """"""
@@ -34,14 +37,8 @@ speed of sound.
 
 This pair style also computes laminar viscosity :ref:`(Morris) <Morris>`.
 
-See `this PDF guide <PDF/SPH_LAMMPS_userguide.pdf>`_ to using SPH in
-LAMMPS.
-
-.. note::
-
-   Please note that the SPH PDF guide file has not been updated for
-   many years and thus does not reflect the current *syntax* of the
-   SPH package commands. For that please refer to the LAMMPS manual.
+See the :doc:`Howto sph <Howto_sph>` page for an introduction to
+using SPH in LAMMPS.
 
 The following coefficients must be defined for each pair of atoms
 types via the :doc:`pair_coeff <pair_coeff>` command as in the examples
@@ -51,6 +48,10 @@ above.
 * :math:`c_0` reference soundspeed (distance/time units)
 * :math:`\nu` dynamic viscosity (mass\*distance/time units)
 * h kernel function cutoff (distance units)
+
+----------
+
+.. include:: accel_styles.rst
 
 ----------
 

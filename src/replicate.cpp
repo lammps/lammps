@@ -109,7 +109,7 @@ void Replicate::command(int narg, char **arg)
       error->warning(FLERR,"Replicating in a non-periodic dimension");
   }
 
-  if (atom->nextra_grow || atom->nextra_restart || atom->nextra_store)
+  if (!atom->extra_grow.empty() || !atom->extra_restart.empty() || atom->nextra_store)
     error->all(FLERR,"Cannot replicate with fixes that store per-atom quantities");
 
   // record wall time for atom replication
@@ -538,6 +538,10 @@ void Replicate::replicate_by_proc(int nx, int ny, int nz,
               atom->tag[i] += atom_offset;
               atom->image[i] = image;
 
+              // CG-DNA package: the per-atom 3'/5' partner IDs of oxDNA must be offset too
+              if (atom->id3p && atom->id3p[i] >= 0) atom->id3p[i] += atom_offset;
+              if (atom->id5p && atom->id5p[i] >= 0) atom->id5p[i] += atom_offset;
+
               if (atom->molecular != Atom::ATOMIC) {
                 if (atom->molecule[i] > 0)
                   atom->molecule[i] += mol_offset;
@@ -882,6 +886,16 @@ void Replicate::replicate_by_bbox(int nx, int ny, int nz,
               atom0tag = atom->tag[i];
               atom->tag[i] += atom_offset;
               atom->image[i] = image;
+
+              // CG-DNA package: the per-atom 3'/5' partner IDs of oxDNA must be offset too
+              if (atom->id3p && atom->id3p[i] >= 0) {
+                if (bond_flag) newtag(atom0tag,atom->id3p[i]);
+                else atom->id3p[i] += atom_offset;
+              }
+              if (atom->id5p && atom->id5p[i] >= 0) {
+                if (bond_flag) newtag(atom0tag,atom->id5p[i]);
+                else atom->id5p[i] += atom_offset;
+              }
 
               if (atom->molecular != Atom::ATOMIC) {
                 if (atom->molecule[i] > 0)

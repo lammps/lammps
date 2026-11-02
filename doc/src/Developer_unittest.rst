@@ -1030,12 +1030,13 @@ time-resolved trajectories of small, analytically tractable granular
 systems.  These tests are only enabled if the :ref:`GRANULAR
 package<PKG-GRANULAR>` is enabled.
 
-There are 15 test programs, ``test_dem_01`` through ``test_dem_15``,
+There are 16 test programs, ``test_dem_01`` through ``test_dem_16``,
 covering particle-impact-level benchmarks: two-sphere and sphere-wall
 collisions, oblique and spinning-sphere impacts, rolling and slipping
 contact, cohesive pull-off, settling under fluid drag, exact ballistic
 integration and static multi-contact compression, region walls,
-superellipsoid contact, twisting friction, and granular heat conduction.  These follow
+superellipsoid contact, twisting friction, granular heat conduction, and
+the transfer of the contact history at neighbor list rebuilds.  These follow
 the software-agnostic DEM benchmark of :ref:`Mohajeri et al.
 <dem_Mohajeri2024>` (rolling resistance and cohesion), the
 particle-impact benchmark of :ref:`Chung and Ooi <dem_Chung2011>`
@@ -1094,6 +1095,10 @@ velocity under drag).  The test programs are:
    * - ``test_dem_15``
      - oblique impact of two spheres (gross sliding)
      - ``oblique_impact_pair``
+   * - ``test_dem_16``
+     - contact history transfer at neighbor list rebuilds (rolling and
+       twisting friction, mixed per-type-pair models)
+     - none (newton on and off must reproduce the reference trajectory)
 
 Every test program shares the same driver logic, implemented in
 ``unittest/granular/test_dem_common.cpp`` and compiled into the

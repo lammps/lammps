@@ -50,6 +50,8 @@ class RegBlockKokkos : public RegBlock, public KokkosBase  {
   static constexpr int MAXCONTACT = 6;
 
   RegBlockKokkos(class LAMMPS *, int, char **);
+  // checked conversion from a base class pointer, see the .cpp file
+  static RegBlockKokkos<DeviceType> *cast(class Region *);
 
   void match_all_kokkos(int, DAT::tdual_int_1d) override;
 

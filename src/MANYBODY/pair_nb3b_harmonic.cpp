@@ -61,6 +61,8 @@ PairNb3bHarmonic::PairNb3bHarmonic(LAMMPS *lmp) : Pair(lmp), params(nullptr)
 
 PairNb3bHarmonic::~PairNb3bHarmonic()
 {
+  if (copymode) return;
+
   memory->destroy(params);
   memory->destroy(elem3param);
 

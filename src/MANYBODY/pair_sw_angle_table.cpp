@@ -67,7 +67,7 @@ PairSWAngleTable::~PairSWAngleTable()
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);
-    memory->destroy(neighshort);
+    memory->destroy(shortleg);
   }
 }
 
@@ -76,11 +76,11 @@ PairSWAngleTable::~PairSWAngleTable()
 void PairSWAngleTable::compute(int eflag, int vflag)
 {
   int i,j,k,ii,jj,kk,inum,jnum,jnumm1;
-  int itype,jtype,ktype,ijparam,ikparam,ijkparam;
+  int itype,jtype,ktype,ijparam,ijkparam;
   tagint itag,jtag;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
-  double rsq,rsq1,rsq2;
-  double delr1[3],delr2[3],fj[3],fk[3];
+  double rsq;
+  double fj[3],fk[3];
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   evdwl = 0.0;
@@ -131,10 +131,11 @@ void PairSWAngleTable::compute(int eflag, int vflag)
       if (rsq >= params[ijparam].cutsq) {
         continue;
       } else {
-        neighshort[numshort++] = j;
+        fill_shortleg(&params[ijparam],rsq,x[j][0] - xtmp,x[j][1] - ytmp,x[j][2] - ztmp,
+                      j,jtype,shortleg[numshort++]);
         if (numshort >= maxshort) {
           maxshort += maxshort/2;
-          memory->grow(neighshort,maxshort,"pair:neighshort");
+          memory->grow(shortleg,maxshort,"pair:shortleg");
         }
       }
 
@@ -165,30 +166,20 @@ void PairSWAngleTable::compute(int eflag, int vflag)
     jnumm1 = numshort - 1;
 
     for (jj = 0; jj < jnumm1; jj++) {
-      j = neighshort[jj];
-      jtype = map[type[j]];
-      ijparam = elem3param[itype][jtype][jtype];
-      delr1[0] = x[j][0] - xtmp;
-      delr1[1] = x[j][1] - ytmp;
-      delr1[2] = x[j][2] - ztmp;
-      rsq1 = delr1[0]*delr1[0] + delr1[1]*delr1[1] + delr1[2]*delr1[2];
+      ShortLeg &s1 = shortleg[jj];
+      j = s1.j;
+      jtype = s1.jtype;
 
       double fjxtmp,fjytmp,fjztmp;
       fjxtmp = fjytmp = fjztmp = 0.0;
 
       for (kk = jj+1; kk < numshort; kk++) {
-        k = neighshort[kk];
-        ktype = map[type[k]];
-        ikparam = elem3param[itype][ktype][ktype];
+        ShortLeg &s2 = shortleg[kk];
+        k = s2.j;
+        ktype = s2.jtype;
         ijkparam = elem3param[itype][jtype][ktype];
 
-        delr2[0] = x[k][0] - xtmp;
-        delr2[1] = x[k][1] - ytmp;
-        delr2[2] = x[k][2] - ztmp;
-        rsq2 = delr2[0]*delr2[0] + delr2[1]*delr2[1] + delr2[2]*delr2[2];
-
-        threebody_table(&params[ijparam],&params[ikparam],&table_params[ijkparam],
-                        rsq1,rsq2,delr1,delr2,fj,fk,eflag,evdwl);
+        threebody_table(&table_params[ijkparam],s1,s2,fj,fk,eflag,evdwl);
 
         fxtmp -= fj[0] + fk[0];
         fytmp -= fj[1] + fk[1];
@@ -200,7 +191,7 @@ void PairSWAngleTable::compute(int eflag, int vflag)
         f[k][1] += fk[1];
         f[k][2] += fk[2];
 
-        if (evflag) ev_tally3(i,j,k,evdwl,0.0,fj,fk,delr1,delr2);
+        if (evflag) ev_tally3(i,j,k,evdwl,0.0,fj,fk,s1.del,s2.del);
       }
       f[j][0] += fjxtmp;
       f[j][1] += fjytmp;
@@ -374,34 +365,18 @@ void PairSWAngleTable::read_file(char *file)
 
 /* ---------------------------------------------------------------------- */
 
-void PairSWAngleTable::threebody_table(Param *paramij, Param *paramik, ParamTable *table_paramijk,
-                                    double rsq1, double rsq2, double *delr1, double *delr2,
-                                    double *fj, double *fk, int eflag, double &eng)
+void PairSWAngleTable::threebody_table(ParamTable *table_paramijk, const ShortLeg &s1,
+                                       const ShortLeg &s2, double *fj, double *fk, int eflag,
+                                       double &eng)
 {
-  double r1,rinvsq1,rainv1,gsrainv1,gsrainvsq1,expgsrainv1;
-  double r2,rinvsq2,rainv2,gsrainv2,gsrainvsq2,expgsrainv2;
   double rinv12,cs,facexp;
   double ftheta,facradtable,frad1table,frad2table,var;
   double acosprime,gradj1,gradj2,gradk1,gradk2,fprimetheta;
 
-  r1 = sqrt(rsq1);
-  rinvsq1 = 1.0/rsq1;
-  rainv1 = 1.0/(r1 - paramij->cut);
-  gsrainv1 = paramij->sigma_gamma * rainv1;
-  gsrainvsq1 = gsrainv1*rainv1/r1;
-  expgsrainv1 = exp(gsrainv1);
+  facexp = s1.expgsrainv*s2.expgsrainv;
 
-  r2 = sqrt(rsq2);
-  rinvsq2 = 1.0/rsq2;
-  rainv2 = 1.0/(r2 - paramik->cut);
-  gsrainv2 = paramik->sigma_gamma * rainv2;
-  gsrainvsq2 = gsrainv2*rainv2/r2;
-  expgsrainv2 = exp(gsrainv2);
-
-  facexp = expgsrainv1*expgsrainv2;
-
-  rinv12 = 1.0/(r1*r2);
-  cs = (delr1[0]*delr2[0] + delr1[1]*delr2[1] + delr1[2]*delr2[2]) * rinv12;
+  rinv12 = 1.0/(s1.r*s2.r);
+  cs = (s1.del[0]*s2.del[0] + s1.del[1]*s2.del[1] + s1.del[2]*s2.del[2]) * rinv12;
   cs = MAX(-1.0,MIN(cs,1.0));
 
   // look up energy (f(theta), ftheta) and force (df(theta)/dtheta, fprimetheta) at
@@ -416,20 +391,20 @@ void PairSWAngleTable::threebody_table(Param *paramij, Param *paramik, ParamTabl
     acosprime = 0.0;
 
   facradtable = facexp*ftheta;
-  frad1table = facradtable*gsrainvsq1;
-  frad2table = facradtable*gsrainvsq2;
-  gradj1 = acosprime * cs * rinvsq1  * facexp * fprimetheta;
+  frad1table = facradtable*s1.gsrainvsq;
+  frad2table = facradtable*s2.gsrainvsq;
+  gradj1 = acosprime * cs * s1.rinvsq  * facexp * fprimetheta;
   gradj2 = acosprime * rinv12 * facexp * fprimetheta;
-  gradk1 = acosprime * cs * rinvsq2  * facexp * fprimetheta;
+  gradk1 = acosprime * cs * s2.rinvsq  * facexp * fprimetheta;
   gradk2 = acosprime * rinv12 * facexp * fprimetheta;
 
-  fj[0] = delr1[0]*(frad1table+gradj1)-delr2[0]*gradj2;
-  fj[1] = delr1[1]*(frad1table+gradj1)-delr2[1]*gradj2;
-  fj[2] = delr1[2]*(frad1table+gradj1)-delr2[2]*gradj2;
+  fj[0] = s1.del[0]*(frad1table+gradj1)-s2.del[0]*gradj2;
+  fj[1] = s1.del[1]*(frad1table+gradj1)-s2.del[1]*gradj2;
+  fj[2] = s1.del[2]*(frad1table+gradj1)-s2.del[2]*gradj2;
 
-  fk[0] = delr2[0]*(frad2table+gradk1)-delr1[0]*gradk2;
-  fk[1] = delr2[1]*(frad2table+gradk1)-delr1[1]*gradk2;
-  fk[2] = delr2[2]*(frad2table+gradk1)-delr1[2]*gradk2;
+  fk[0] = s2.del[0]*(frad2table+gradk1)-s1.del[0]*gradk2;
+  fk[1] = s2.del[1]*(frad2table+gradk1)-s1.del[1]*gradk2;
+  fk[2] = s2.del[2]*(frad2table+gradk1)-s1.del[2]*gradk2;
 
   if (eflag) eng = facradtable;
 }

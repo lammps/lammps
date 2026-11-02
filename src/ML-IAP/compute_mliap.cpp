@@ -150,7 +150,9 @@ ComputeMLIAP::ComputeMLIAP(LAMMPS *lmp, int narg, char **arg) :
 
 ComputeMLIAP::~ComputeMLIAP()
 {
-  modify->delete_compute(id_virial);
+  // the compute for the reference virial tensor exists only after init()
+
+  if (modify->get_compute_by_id(id_virial)) modify->delete_compute(id_virial);
 
   memory->destroy(mliaparray);
   memory->destroy(mliaparrayall);
@@ -191,6 +193,8 @@ void ComputeMLIAP::init()
 
   // allocate memory for global array
 
+  memory->destroy(mliaparray);
+  memory->destroy(mliaparrayall);
   memory->create(mliaparray,size_array_rows,size_array_cols, "compute_mliap:mliaparray");
   memory->create(mliaparrayall,size_array_rows,size_array_cols, "compute_mliap:mliaparrayall");
   array = mliaparrayall;
@@ -200,10 +204,11 @@ void ComputeMLIAP::init()
   c_pe = modify->get_compute_by_id("thermo_pe");
   if (!c_pe) error->all(FLERR,"Compute thermo_pe does not exist.");
 
-  // add compute for reference virial tensor
+  // add compute for reference virial tensor, unless it exists from a previous run
 
-  id_virial = id + std::string("_press");
-  c_virial = modify->add_compute(id_virial + " all pressure NULL virial");
+  id_virial = id + std::string("_press") + std::to_string(instance_me);
+  c_virial = modify->get_compute_by_id(id_virial);
+  if (!c_virial) c_virial = modify->add_compute(id_virial + " all pressure NULL virial");
 }
 
 

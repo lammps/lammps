@@ -102,7 +102,7 @@ FixAmoebaBiTorsion::FixAmoebaBiTorsion(LAMMPS *lmp, int narg, char **arg) :
   // comm_border = max # of bonds per atom + 1 for count
 
   comm_border = 7;
-  atom->add_callback(Atom::BORDER);
+  atom->add_callback(this, Atom::BORDER);
 
   // perform initial allocation of atom-based arrays
 
@@ -118,8 +118,8 @@ FixAmoebaBiTorsion::FixAmoebaBiTorsion(LAMMPS *lmp, int narg, char **arg) :
 
   nmax_previous = 0;
   FixAmoebaBiTorsion::grow_arrays(atom->nmax);
-  atom->add_callback(Atom::GROW);
-  atom->add_callback(Atom::RESTART);
+  atom->add_callback(this, Atom::GROW);
+  atom->add_callback(this, Atom::RESTART);
 
   // list of all bitorsions to compute on this proc
 
@@ -138,8 +138,8 @@ FixAmoebaBiTorsion::~FixAmoebaBiTorsion()
 {
   // unregister callbacks to this fix from Atom class
 
-  atom->delete_callback(id,Atom::GROW);
-  atom->delete_callback(id,Atom::RESTART);
+  atom->delete_callback(this, Atom::GROW);
+  atom->delete_callback(this, Atom::RESTART);
 
   // per-atom data
 

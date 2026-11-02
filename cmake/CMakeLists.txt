@@ -824,8 +824,8 @@ add_custom_target(gitversion COMMAND ${CMAKE_COMMAND}
   -D GIT_EXECUTABLE="${GIT_EXECUTABLE}"
   -D GIT_FOUND="${GIT_FOUND}"
   -D LAMMPS_STYLE_HEADERS_DIR="${LAMMPS_STYLE_HEADERS_DIR}"
-  -P ${CMAKE_CURRENT_SOURCE_DIR}/Modules/generate_lmpgitversion.cmake)
-set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES ${LAMMPS_STYLE_HEADERS_DIR}/gitversion.h)
+  -P "${CMAKE_CURRENT_SOURCE_DIR}/Modules/generate_lmpgitversion.cmake"
+  BYPRODUCTS "${LAMMPS_STYLE_HEADERS_DIR}/lmpgitversion.h")
 add_dependencies(lammps gitversion)
 
 ###########################################

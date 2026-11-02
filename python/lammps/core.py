@@ -2827,6 +2827,9 @@ class lammps:
   def get_neighlist_element_neighbors(self, idx, element):
     """Return data of neighbor list entry
 
+    The neighbor indices may have bits set for special neighbors that need
+    to be removed before using them as local atom indices; see :doc:`Python_neighbor`.
+
     :param element: neighbor list index
     :type  element: int
     :param element: neighbor list element index

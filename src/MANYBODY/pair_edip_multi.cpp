@@ -95,6 +95,8 @@ PairEDIPMulti::PairEDIPMulti(LAMMPS *lmp) : Pair(lmp), preForceCoord(nullptr)
 
 PairEDIPMulti::~PairEDIPMulti()
 {
+  if (copymode) return;
+
   memory->destroy(params);
   memory->destroy(elem3param);
 

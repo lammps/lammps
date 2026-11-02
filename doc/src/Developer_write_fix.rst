@@ -169,11 +169,11 @@ to the constructor:
    {
    //...
      memory->create(xold, atom->nmax, 3, "FixSavePos:x");
-     atom->add_callback(0);
+     atom->add_callback(this, Atom::GROW);
    }
 
    FixSavePos::~FixSavePos() {
-     atom->delete_callback(id, 0);
+     atom->delete_callback(this, Atom::GROW);
      memory->destroy(xold);
    }
 
@@ -237,8 +237,9 @@ files then these additional settings and functions are needed:
 
 - a fix flag indicating this needs to be set ``restart_peratom = 1;``
 - ``atom->add_callback()`` and ``atom->delete_callback()`` must be called
-  a second time with the final argument set to 1 instead of 0 (indicating
-  restart processing instead of per-atom data memory management).
+  a second time with the final argument set to ``Atom::RESTART`` instead
+  of ``Atom::GROW`` (indicating restart processing instead of per-atom
+  data memory management).
 - the functions ``void pack_restart(int i, double *buf)`` and
   ``void unpack_restart(int nlocal, int nth)`` need to be implemented
 

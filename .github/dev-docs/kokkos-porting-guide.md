@@ -4,7 +4,7 @@ How-to reference for porting LAMMPS pair, fix, and compute styles to the KOKKOS 
 template skeletons plus the accumulated lessons from past porting work, by theme. The
 always-on rules (copymode guard, virtual allocate, `AT::` vs `DAT::`, datamask/sync,
 full-ports-only, doc checklist) live in `.github/instructions/kokkos.instructions.md` and
-are not repeated here; remaining work is in `.github/dev-docs/kokkos-porting-backlog.md`.
+are not repeated here; remaining work is in `.github/dev-docs/accelerator-porting-backlog.md`.
 
 ## Porting a pair style
 

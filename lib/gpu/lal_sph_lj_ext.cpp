@@ -43,7 +43,7 @@ int sph_lj_gpu_init(const int ntypes, double **cutsq, double** host_cut,
   int gpu_rank=SPHLJMF.device->gpu_rank();
   int procs_per_gpu=SPHLJMF.device->procs_per_gpu();
 
-  SPHLJMF.device->init_message(screen,"sph_lj",first_gpu,last_gpu);
+  SPHLJMF.device->init_message(screen,"sph/lj",first_gpu,last_gpu);
 
   bool message=false;
   if (SPHLJMF.device->replica_me()==0 && screen)

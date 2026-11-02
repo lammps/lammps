@@ -1,9 +1,140 @@
 # LAMMPS Release Steps
 
 The following notes chronicle the current steps for preparing and
-publishing LAMMPS releases.  For definitions of LAMMPS versions and
-releases, please refer to [the corresponding section in the LAMMPS
+publishing LAMMPS and LAMMPS-GUI releases on the build server at Temple
+U (a server called `rstudio` for historical reasons).
+
+For definitions of LAMMPS versions and releases, please refer to [the
+corresponding section in the LAMMPS
 manual](https://docs.lammps.org/Manual_version.html).
+
+## Current setup of build server:
+
+- Dell PowerEdge R640 rackmounted server
+- 2x Intel Xeon Gold 6248 @ 3.2GHz max, 20 cores each with SMT enabled
+- 384GB RAM, 2x 450GiB SATA SSD: 1GB RAID-1 -> /boot, 880 GiB RAID-9 /
+- Rocky Linux 10.2 with EPEL as host operating system
+- AlmaLinux 9 container via podman/toolbox, for Linux tar.gz, liblammps.so.0
+- Fedora 44 container via podman/toolbox, for MinGW64 cross-compiler, flatpak, static binary
+- macOS 12 Monterey virtual machine via quickemu using qemu/kvm, headless
+  must *launch* from within Fedora44 container
+  can enter *directly* with ssh to localhost on port 22230 from `rstudio`
+  via public key (`ssh hackintosh`), also from ws01 via proxyjump.
+
+## Directory structure
+
+### LAMMPS
+
+Use a checkout of LAMMPS created on Rocky 10 with a 'lammps' folder for
+regular work, a worktree 'lammps-release' for feature releases, and a
+worktree 'lammps-maintenance' for stable releases and updates.  A build
+without a suitable release tag will build packages using the current
+state of the 'lammps' checkcout and will only copy results to
+`${HOME}/results` but not to the webserver's testing folder.  Checkout
+and worktrees are shared across the containers.  As a virtual machine,
+macOS requires its own checkout and worktrees but follows the same
+scheme.
+
+Build folders: | Used for:
+---|---
+*build-lib*    | for liblammps shared lib for use with LAMMPS-GUI
+*build-mingw*  | for liblamms.dll using direct config and installers wiqth nsis target
+*build-gui*    | for LAMMPS + LAMMPS-GUI and building tar.gz and dmg package
+*build-static* | for fully static LAMMPS Linux binary package
+
+Install folders: | Used for:
+---|---
+*lammps-static* | for the directory tree with the static LAMMPS binaries
+
+### LAMMPS-GUI
+
+Use a checkout of LAMMPS-GUI created on Rocky 10 with 'lammps-gui' folder for
+regular work, and a worktree 'lammps-gui-release' for releases.  Git
+checkout and worktrees are shared across the containers.  As a virtual
+machine, macOS requires its own checkout and worktrees but follows the
+same scheme.
+
+Build folders: | Used for:
+---|---
+*build*       |  for creating flatpak, source tarball, and manual as PDF
+*build-mingw* |  for creating Windows installer package, plugin mode
+*build-gui*   |  for creating tar.gz installer and dmg installer, plugin mode
+
+## Collecting release assets
+
+Release assets are collected in $HOME/release before uploading them to
+GitHub with `gh release upload`. They are also copied with `scp` to
+`publish@www.lammps.org:/var/www/lammps/download/testing` so they can be
+downloaded from https://download.lammps.org/testing/
+
+## Scripts for building and uploading release assets
+
+The [lammps-release GitHub repository](https://github.com/lammps/lammps-release)
+contains the scripts used for preparing and uploading the tarballs, binaries and
+installer packages on the build machine. The `${HOME}/release/` folder on the
+build machine is a clone of that repository.  Thus the scripts are also the
+documentation for the sequence of commands required to perform the steps for
+creating all release assets and with the information included in this document
+should describe the process completely and largely automate it, too.  If things
+are not well explained or details are missing please submit and issue.
+
+Due to the sensitive nature of those scripts revealing details of the internal
+setup, the repository is private and access is limited to the members of the
+LAMMPS organization.
+
+The scripts for the Linux containers use /bin/bash syntax, the
+scripts for macOS /bin/zsh (which is largely compatible).
+
+### Makefile
+
+Target | Purpose
+---|---
+check  |  run "shellcheck" on script files
+spell  |  run "codespell" on script files
+clean  |  delete editor and git backups and temporary files
+purge  |  clean and also delete all release asset files
+
+### Creating and maintaininer virtual machine and containers
+
+TODO.
+
+### Launching and stopping virtual machine and containers
+
+The ./boot-build.sh will activate all required containers and launch the
+macOS virtual machine and apply a 2 minute delay to wait until the
+virtual machine has booted to the point where one can enter it with ssh.
+As last step of the boot, all scripts for macOS are synchronized with
+the release folder of the virtual machine.  There is no git checkout
+since no development of the build scripts is planned to be done there.
+
+### macOS virtual machine
+
+``` console
+toolbox enter fedora-toolbox-44
+./quickemu/macos-monterey.conf
+exit
+```
+
+This will launch the container and virtual machine within the container.
+They will keep running after `exit`.  Wait about 5 mins until macOS is
+fully booted.  Then you can log in passwordless with `ssh hackintosh`.
+
+### Fedora 44 container
+
+``` console
+toolbox enter fedora-toolbox-44
+```
+
+This launches the container and it will keep running.  Launching the
+macOS virtual machine will achieve that.  The container has a passwordless
+sudo configuration for software installation and updates.
+
+### AlmaLinux 9 container
+
+``` console
+toolbox enter
+```
+
 
 ## LAMMPS Feature Release
 
@@ -362,43 +493,69 @@ At this point it should be possible to do a fast-forward merge of
 
 ## LAMMPS Stable Update Release
 
-After making a stable release, bugfixes from the 'develop' branch
-are selectively backported to the 'maintenance' branch.  This is
-done with "git cherry-pick \<commit hash\>' wherever possible.
-The LAMMPS\_UPDATE define in "src/version.h" is set to "Maintenance".
+After making a stable release, bugfixes from the 'develop' branch are
+selectively backported to the 'maintenance' branch.  This is done with
+"git cherry-pick \<commit hash\>' wherever possible.  When fixing bugs
+with the help of an AI coding assistant, the backport is usually also
+requested, if the fix applies.  The LAMMPS\_UPDATE define in
+"src/version.h" is usually set to "Maintenance" for the 'maintenance'
+branch to signal its provenance, similar to "Development" for 'develop'.
 
 ### Prerequesites
 
-When a sufficient number of bugfixes has accumulated or an urgent
-or important bugfix needs to be distributed a new stable update
-release is made.  To make this publicly visible a pull request
-is submitted that will merge 'maintenance' into 'stable'.  Before
-merging, set LAMMPS\_UPDATE in "src/version.h" to "Update #" with
-"#" indicating the update count (1, 2, and so on).
-Also draft suitable release notes under https://github.com/lammps/lammps/releases
+When a sufficient number of bugfixes has accumulated or an urgent or
+important bugfix needs to be distributed a new stable update release is
+made.  Since the 'stable' branch is protected, we need to submit a pull
+request merging 'maintenance' into 'stable'.  Before merging, set
+LAMMPS\_UPDATE in "src/version.h" to "Update #" with "#" indicating the
+update count (1, 2, and so on).  Also draft suitable release notes under
+https://github.com/lammps/lammps/releases. These can usually be transferred
+from the pull request description.
 
-### Fast-forward merge of 'maintenance' into 'stable', apply tag, and publish
+Before that step, several checks need to be performed and changes applied
+to the 'maintenance' branch:
+- LAMMPS\_UPDATE define in "src/version.h" is changed to "Update #"
+- make -C src check-version has to be clean, otherwise TBD entries are
+  renamed to <stable version>-backport (e.g. `.. versionchanged:: 30Sep2026-backport`)
+- ensure that GIT\_TAG for the LAMMPS-GUI external target points to the last
+  stable release (e.g. v3.1.2 for LAMMPS version 30Sep2026 Update 1).
+- ensure that `cmake/packaging/org.lammps.lammps-gui.yml` uses `branch: stable`
 
-Do a fast-forward merge of 'maintenance' to 'stable' and then
-apply the stable\_DMmmYYYY\_update# tag and push branch and tag
-to GitHub. The corresponding pull request will be automatically
-closed.   Example:
+If some last minute changes or fixes turn up before the release is
+complete, the release process is aborted, the release tag deleted
+(it is protected only after the release is final).
+
+### Merge pull request of 'maintenance' into 'stable', apply tag, and publish
+
+The release process begins with merging the pull request, after the
+sufficient approval was obtained.  In the local worktree for the
+maintenance branch, update both, 'maintenance' and 'stable', the
+stable\_DMmmYYYY\_update# tag to the head of 'stable', switch to
+'maintenance' and merge 'stable' (should be a fast-forward) and revert
+the LAMMPS\_UPDATE define in "src/version.h" back to "Maintenance".
+Commit push 'maintenance', 'stable' and the tag to the github remote and
+our fork.  Example:
 
 ```
-git checkout maintenance
-git pull
 git checkout stable
 git pull
-git merge --ff-only maintenance
-git tag -s -m 'Update 2 for Stable LAMMPS version 29 August 2024' stable_29Aug2024_update2
-git verify-tag stable_29Aug2024_update2
+git tag -s -m "Update 1 for Stable LAMMPS version 30 September 2026" stable_30Sep2026_update1
+git checkout maintenance
+git pull
+git merge stable
+git verify-tag stable_30Sep2026_update1
 git push git@github.com:lammps/lammps.git --tags maintenance stable
 ```
 
-Associate draft release notes with new tag and prepare and upload
-various source and binary packages. Publish as "latest release"
-only when all uploads are complete as they cannot be changed after
-they are published since we are creating "immutable" releases now.
+Associate draft release notes with the new tag, select "latest release",
+and save the draft.  Saving as a draft is required because we need
+to use the tag for uploading release assets with `gh release upload`.
+The `git verify-tag` command should show that the tag was properly
+GPG signed.  Do not publish until everything is complete and the SHA256SUMS
+with a corresponding GPG signature using the release GPG key have been
+uploaded.  After the release is started the it becomes "immutable"
+and the release tag protected.  So it can only be updated by withdrawing
+it and creating a new release using a different version tag.
 
 ### Build and upload binary packages and source tarball to GitHub
 

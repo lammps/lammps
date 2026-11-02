@@ -17,6 +17,7 @@
 #include "compute.h"
 #include "fix.h"
 #include "kokkos.h"
+#include "label_map.h"
 #include "update.h"
 
 using namespace LAMMPS_NS;
@@ -113,6 +114,10 @@ void ModifyKokkos::setup(int vflag)
       sync_call(fixes[i], [vflag](Fix *ifix) {
         ifix->min_setup(vflag);
       });
+
+  // runtime check for type label self-consistency
+
+  if (atom->labelmapflag && atom->lmap->checkflag) atom->lmap->check_labels();
 }
 
 /* ----------------------------------------------------------------------

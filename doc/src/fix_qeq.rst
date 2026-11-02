@@ -92,6 +92,7 @@ Syntax
        *xlcg* value = number of conjugate gradient iterations per step (\ *xlmd* styles only)
        *xldamp* value = order of the dissipation term for the auxiliary variables, 0 or 3 to 9 (\ *xlmd* styles only)
        *xlkappa* value = coupling constant :math:`\kappa = \omega^2 \delta t^2` of the undamped propagation (\ *xlmd* styles only)
+       *xlguard* value = relative residual of the truncated solves above which the extended-Lagrangian propagation is restarted, <= 0 disables (\ *xlmd* styles only)
 
 Examples
 """"""""
@@ -109,7 +110,7 @@ Examples
    fix 1 qeq qeq/dynamic 1 12 1.0e-3 100 my_qeq
    fix 1 all qeq/fire 1 10 1.0e-3 100 my_qeq qdamp 0.2 qstep 0.1
    fix 1 all qeq/shielded/xlmd 1 10 1.0e-6 400 reaxff
-   fix 1 all qeq/shielded/xlmd 1 10 1.0e-6 400 reaxff xlcg 3
+   fix 1 all qeq/shielded/xlmd 1 10 1.0e-6 400 reaxff xlcg 4 xlguard 2.0e-3
    fix 1 all qeq/point/xlmd 1 10 1.0e-6 200 param.qeq1 xldamp 0 xlkappa 2.0
 
 Description
@@ -285,6 +286,15 @@ parameters and *Nevery*, *cutoff*, and *tolerance* are the same.
 Style *qeq/point* is typically faster, *qeq/dynamic* scales better on
 larger sizes, and *qeq/fire* is faster than *qeq/dynamic*\ .
 
+.. versionchanged:: TBD
+
+If the fix group does not contain all atoms, only the charges of the
+atoms in the fix group are equilibrated.  The charges of all other atoms
+are not changed, but they still contribute to the electrostatic
+potential at the atoms in the fix group, i.e. they act as fixed external
+charges.  All accelerated variants of these fixes follow the same
+convention.
+
 .. note::
 
    In order to solve the self-consistent equations for electronegativity
@@ -321,9 +331,9 @@ backward compatibility, the default taper width is zero.
 .. versionadded:: TBD
 
 The *qeq/point/xlmd*, *qeq/shielded/xlmd*, and *qeq/slater/xlmd* styles
-use the same charge models as their parent styles, but employ the
-extended-Lagrangian scheme of :ref:`(Nomura) <Nomura2015>` instead of
-iterating the charges to self-consistency on every step.  Auxiliary
+use the same charge models as their parent styles, but employ an
+extended-Lagrangian scheme based on :ref:`(Nomura) <Nomura2015>` instead
+of iterating the charges to self-consistency on every step.  Auxiliary
 per-atom variables, which follow the self-consistent solution through a
 harmonic coupling, are propagated time-reversibly by a Verlet
 integrator alongside the atoms.  On each timestep they provide the
@@ -333,25 +343,55 @@ fixed number of conjugate gradient iterations (keyword *xlcg*, default
 charge equilibration several-fold (typically 5x to 8x) while conserving
 the total energy far better than simply truncating or loosening the
 converged solve, which can heat up the system or become unstable within
-a few hundred steps.
+a few hundred steps.  Unlike the published scheme, which propagates one
+auxiliary variable per atom for the charge, applies a single conjugate
+gradient iteration without preconditioning, and uses no dissipation,
+these styles propagate auxiliary variables for both sets of linear
+equations that are solved to obtain the charges (as in :ref:`(Leven)
+<Leven2019>`), use diagonal preconditioning, and include a dissipation
+term by default.
 
 By default, the auxiliary variables are propagated including a weak
 dissipation term of order 5 following :ref:`(Niklasson) <Niklasson2009>`.
 The order can be changed with the *xldamp* keyword: higher orders damp
 more weakly (and thus perturb the time-reversible dynamics less), lower
 orders damp more strongly (and thus bias the charges more).  A value of
-0 selects the original, fully time-reversible scheme of :ref:`(Nomura)
-<Nomura2015>` without dissipation; in this case the *xlkappa* keyword
-may be used to change the coupling constant :math:`\kappa = \omega^2
-\delta t^2` from its default value of 2.0.  The undamped propagation
+0 selects the fully time-reversible Verlet propagation without
+dissipation as used by :ref:`(Nomura) <Nomura2015>`; in this case the
+*xlkappa* keyword may be used to change the coupling constant
+:math:`\kappa = \omega^2 \delta t^2` from its default value of 2.0.
+The undamped propagation
 slowly accumulates numerical noise in the auxiliary variables, which
 makes long simulations (more than a few thousand steps) unstable, so
 *xldamp* 0 is mainly useful for validation studies.  With the default
 settings the energy conservation was close to that of fully converged
-solves in our tests.  Reducing *xlcg* to 1 reproduces the setting of
-:ref:`(Nomura) <Nomura2015>` and further reduces the cost, but with a
-smaller stability margin: deviations may accumulate unnoticed over
-many picoseconds before degrading the dynamics.
+solves in our tests.  Reducing *xlcg* to 1 uses the same number of
+iterations as :ref:`(Nomura) <Nomura2015>` and further reduces the cost,
+but in our tests *xlcg* values of 1 and 3 were much less stable than the
+default.
+Values of 4 or 5 were more stable than the default and conserved the
+energy better, at a higher cost per step.
+
+Even with the default settings, the extended-Lagrangian propagation
+occasionally becomes unstable: within a few dozen steps the charges
+deviate strongly from the converged solution, the total energy jumps,
+and the system may heat up rapidly.  Such instabilities are a known
+property of extended-Lagrangian schemes that use a truncated iterative
+solver :ref:`(Niklasson) <Niklasson2009>`, :ref:`(Leven) <Leven2019>`.
+In tests with a small (105 atoms)
+mixture of pentane and oxygen molecules this happened on average once
+in about 500,000 timesteps, independent of the timestep size; in larger
+systems (210 to 840 atoms) it did not happen in more than 5 million
+timesteps.  Such events are detected from the relative residual of the
+truncated solve, which is typically about 1.0e-4 and grows quickly at
+the onset of an instability.  When it exceeds the value set with the
+*xlguard* keyword (default 1.0e-3), the solve is completed to
+*tolerance*, a warning is printed, and the extended-Lagrangian
+propagation is restarted from the converged charges after a new
+warm-up.  In the tests above, this prevented all instabilities with a
+few restarts per 20 ps of simulated time, without changing the energy
+conservation otherwise.  A value of *xlguard* <= 0 disables this
+safeguard.
 
 The extended-Lagrangian propagation requires a valid history of
 previous solutions.  Whenever such a history is not available -- at the
@@ -362,23 +402,22 @@ always uses fully converged solves) -- the charges are equilibrated to
 propagation switches on automatically after the first few steps.
 Because the auxiliary dynamics is tied to the timestep, these styles
 require *Nevery* = 1.  The charges obtained from the truncated solves
-are not exactly at the energy minimum; the deviations remain small and
-bounded, but it is recommended to verify energy conservation against a
+are not exactly at the energy minimum; the deviations are usually
+small, but it is recommended to verify energy conservation against a
 fully converged reference run when applying these styles to a new
 system.  The average number of solver iterations reported by the fix
 (see below) shows the warm-up and the savings directly.
 
 .. note::
 
-   For charge equilibration with :doc:`pair_style reaxff <pair_reaxff>`
-   the recommended combination is *checkqeq no* in the pair style and
-   ``fix qeq/shielded/xlmd 1 10.0 1.0e-6 400 reaxff``, which extracts
-   the QEq parameters directly from the pair style.  This is the
-   extended-Lagrangian replacement for :doc:`fix qeq/reaxff
-   <fix_qeq_reaxff>` requested in issue `#507
-   <https://github.com/lammps/lammps/issues/507>`_.  Note that,
-   different from fix qeq/reaxff, the QEQ package fixes ignore
-   :doc:`fix efield <fix_efield>`.
+   For charge equilibration with :doc:`pair_style reaxff <pair_reaxff>`,
+   the extended-Lagrangian propagation is also available with the
+   *xlmd* keyword of :doc:`fix qeq/reaxff <fix_qeq_reaxff>`, which
+   also works with its OPENMP and KOKKOS versions and supports
+   :doc:`fix efield <fix_efield>`.  Alternatively, *checkqeq no* in the pair style can
+   be combined with ``fix qeq/shielded/xlmd 1 10.0 1.0e-6 400 reaxff``,
+   which extracts the QEq parameters directly from the pair style.
+   Note that the QEQ package fixes ignore fix efield.
 
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
@@ -416,7 +455,7 @@ Related commands
 Default
 """""""
 
-warn yes; for the *xlmd* styles additionally: xlcg 2, xldamp 5, xlkappa 2.0
+warn yes; for the *xlmd* styles additionally: xlcg 2, xldamp 5, xlkappa 2.0, xlguard 1.0e-3
 
 ----------
 
@@ -469,6 +508,11 @@ Physical Chemistry, 105, 9396-9049 (2001)
 
 **(Nomura)** K. Nomura, P. E. Small, R. K. Kalia, A. Nakano, P. Vashishta,
 Computer Physics Communications, 192, 91-96 (2015).
+
+.. _Leven2019:
+
+**(Leven)** I. Leven, T. Head-Gordon, Physical Chemistry Chemical Physics, 21,
+18652-18659 (2019).
 
 .. _Niklasson2009:
 

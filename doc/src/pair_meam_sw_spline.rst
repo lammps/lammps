@@ -1,7 +1,10 @@
 .. index:: pair_style meam/sw/spline
+.. index:: pair_style meam/sw/spline/omp
 
 pair_style meam/sw/spline command
 =================================
+
+Accelerator Variants: *meam/sw/spline/omp*
 
 Syntax
 """"""
@@ -94,6 +97,10 @@ potentials.
 
 Example input scripts that use this pair style are provided
 in the examples/PACKAGES/meam_sw_spline directory.
+
+----------
+
+.. include:: accel_styles.rst
 
 ----------
 

@@ -198,6 +198,13 @@ if(PKG_REAXFF)
                   ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR}")
 endif()
 
+if(PKG_REAXFF OR PKG_QEQ)
+  add_executable(test_qeq_subgroup test_qeq_subgroup.cpp)
+  target_link_libraries(test_qeq_subgroup PRIVATE lammps GTest::GMock)
+  add_test(NAME QEqSubgroup COMMAND test_qeq_subgroup)
+  add_kokkos_test(NAME QEqSubgroup COMMAND test_qeq_subgroup)
+endif()
+
 add_executable(test_mpi_load_balancing test_mpi_load_balancing.cpp)
 target_link_libraries(test_mpi_load_balancing PRIVATE lammps GTest::GMock)
 add_mpi_test(NAME MPILoadBalancing NUM_PROCS 4 COMMAND $<TARGET_FILE:test_mpi_load_balancing>)

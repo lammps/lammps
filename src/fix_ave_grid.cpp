@@ -46,9 +46,8 @@ static constexpr int OFFSET = 16384;
 
 FixAveGrid::FixAveGrid(LAMMPS *lmp, int narg, char **arg) :
     Fix(lmp, narg, arg), id_bias(nullptr), which(nullptr), argindex(nullptr), ids(nullptr),
-    value2index(nullptr), value2grid(nullptr), value2data(nullptr), value2compute(nullptr),
-    value2fix(nullptr), grid2d(nullptr),
-    grid3d(nullptr), grid_buf1(nullptr), grid_buf2(nullptr), grid_output(nullptr),
+    value2grid(nullptr), value2data(nullptr), value2compute(nullptr), value2fix(nullptr),
+    grid2d(nullptr), grid3d(nullptr), grid_buf1(nullptr), grid_buf2(nullptr), grid_output(nullptr),
     grid_sample(nullptr), grid_nfreq(nullptr), grid_running(nullptr), grid_window(nullptr),
     grid2d_previous(nullptr), grid3d_previous(nullptr), grid_sample_previous(nullptr),
     grid_nfreq_previous(nullptr), grid_running_previous(nullptr), grid_window_previous(nullptr),
@@ -95,7 +94,6 @@ FixAveGrid::FixAveGrid(LAMMPS *lmp, int narg, char **arg) :
   argindex = new int[nargnew];
   iarg_orig = new int[nargnew];
   ids = new char *[nargnew];
-  value2index = new int[nargnew];
   value2compute = new Compute *[nargnew];
   value2fix = new Fix *[nargnew];
   value2grid = new int[nargnew];
@@ -403,7 +401,6 @@ FixAveGrid::~FixAveGrid()
   for (int m = 0; m < nvalues; m++) delete[] ids[m];
   delete[] ids;
   delete[] id_bias;
-  delete[] value2index;
   delete[] value2compute;
   delete[] value2fix;
   delete[] value2grid;
@@ -462,7 +459,6 @@ void FixAveGrid::init()
   for (int m = 0; m < nvalues; m++) {
     value2compute[m] = nullptr;
     value2fix[m] = nullptr;
-    value2index[m] = -1;
     if (which[m] == ArgInfo::COMPUTE) {
       value2compute[m] = modify->get_compute_by_id(ids[m]);
       if (!value2compute[m])
@@ -474,10 +470,8 @@ void FixAveGrid::init()
         error->all(FLERR, Error::NOLASTLINE, "Fix {} for fix ave/grid does not exist", ids[m]);
 
     } else if (which[m] == ArgInfo::VARIABLE) {
-      int ivariable = input->variable->find(ids[m]);
-      if (ivariable < 0)
-        error->all(FLERR, Error::NOLASTLINE, "Variable name for fix ave/grid does not exist");
-      value2index[m] = ivariable;
+      if (input->variable->find(ids[m]) < 0)
+        error->all(FLERR, Error::NOLASTLINE, "Variable name {} for fix ave/grid does not exist", ids[m]);
     }
   }
 
@@ -883,7 +877,6 @@ void FixAveGrid::atom2grid()
   // loop over user-specified values
 
   for (m = 0; m < nvalues; m++) {
-    n = value2index[m];
     j = argindex[m];
 
     // V,F adds velocity,force to value
@@ -1128,7 +1121,7 @@ void FixAveGrid::atom2grid()
 
 void FixAveGrid::grid2grid()
 {
-  int j,m,n,ix,iy,iz;
+  int j,m,ix,iy,iz;
 
   double **vec2d = grid_sample->vec2d;
   double ***array2d = grid_sample->array2d;
@@ -1138,7 +1131,6 @@ void FixAveGrid::grid2grid()
   // loop over user-specified values
 
   for (m = 0; m < nvalues; m++) {
-    n = value2index[m];
     j = argindex[m];
     int idata = value2data[m];
 

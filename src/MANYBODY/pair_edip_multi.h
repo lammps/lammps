@@ -37,7 +37,6 @@ class PairEDIPMulti : public Pair {
 
   static constexpr int NPARAMS_PER_LINE = 20;
 
- protected:
   struct Param {
     double A, B;              // coefficients for pair interaction I-J
     double cutoffA;           // cut-off distance for pair interaction I-J
@@ -54,6 +53,7 @@ class PairEDIPMulti : public Pair {
     int ielement, jelement, kelement, dummy;    // dummy added for better alignment
   };
 
+ protected:
   double *preForceCoord;
 
   double cutmax;    // max cutoff for all elements

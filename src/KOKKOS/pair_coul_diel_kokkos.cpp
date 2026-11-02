@@ -191,12 +191,11 @@ compute_ecoul(const KK_FLOAT& rsq, const int& /*i*/, const int& j,
   const KK_FLOAT r         = Kokkos::sqrt(rsq);
   const KK_FLOAT sigmae_ij = STACKPARAMS ? m_params[itype][jtype].sigmae : params(itype,jtype).sigmae;
   const KK_FLOAT rme_ij    = STACKPARAMS ? m_params[itype][jtype].rme    : params(itype,jtype).rme;
-  const KK_FLOAT offset_ij = STACKPARAMS ? m_params[itype][jtype].offset : params(itype,jtype).offset;
   const KK_FLOAT rarg      = (r - rme_ij) / sigmae_ij;
   const KK_FLOAT th        = Kokkos::tanh(rarg);
   const KK_FLOAT epsr      = m_a_eps + m_b_eps * th;
   const KK_FLOAT ecoul     = qqrd2e * qtmp * q(j) *
-    (m_eps_s / epsr - static_cast<KK_FLOAT>(1.0)) / r - offset_ij;
+    (m_eps_s / epsr - static_cast<KK_FLOAT>(1.0)) / r;
   return factor_coul * ecoul;
 }
 
@@ -262,7 +261,6 @@ double PairCoulDielKokkos<DeviceType>::init_one(int i, int j)
 
   k_params.view_host()(i,j).sigmae = static_cast<KK_FLOAT>(sigmae[i][j]);
   k_params.view_host()(i,j).rme    = static_cast<KK_FLOAT>(rme[i][j]);
-  k_params.view_host()(i,j).offset = static_cast<KK_FLOAT>(offset[i][j]);
   k_params.view_host()(i,j).cutsq  = static_cast<KK_FLOAT>(cutsqm);
 
   k_params.view_host()(j,i) = k_params.view_host()(i,j);

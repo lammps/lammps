@@ -39,6 +39,12 @@ class FixAveAtom : public Fix {
   int pack_exchange(int, double *) override;
   int unpack_exchange(int, double *) override;
 
+  // true if an average over all Nrepeat samples was completed on this timestep
+  [[nodiscard]] bool average_completed(bigint ntimestep) const
+  {
+    return (nvalid_last == ntimestep) && (irepeat == 0);
+  }
+
  private:
   struct value_t {
     int which;         // type of data: COMPUTE, FIX, VARIABLE

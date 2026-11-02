@@ -716,6 +716,15 @@ If no GPU is found, no file is written and the tests are run without
 resource allocation.  Setting ``LAMMPS_TEST_RESOURCE_SPEC_FILE`` to an
 empty string also disables this feature.
 
+If the ``CUDA_VISIBLE_DEVICES`` environment variable is already set
+when running ``ctest``, the tests stay on the GPUs listed there: the GPU
+assigned by CTest then selects the entries of that list in turn, and
+CUDA interprets them as usual (i.e. in the order set by
+``CUDA_DEVICE_ORDER``).  When that list has fewer entries than the
+resource file has slots, concurrent tests may share a GPU.  To avoid
+this, use a resource file that lists only the desired GPUs, e.g. with
+``ctest --resource-spec-file <file>``.
+
 Tests for other components and utility functions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 

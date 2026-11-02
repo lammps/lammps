@@ -98,7 +98,7 @@ class PairEDIP : public Pair {
   double cutmax;    // max cutoff for all elements
   Param *params;    // parameter set for an I-J-K interaction
 
-  void allocate();
+  virtual void allocate();
   void allocatePreLoops();
   void deallocatePreLoops();
   void allocateGrids();

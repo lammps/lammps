@@ -39,6 +39,8 @@ static int warn_single = 0;
 
 PairLJSFDipoleSF::~PairLJSFDipoleSF()
 {
+  if (copymode) return;
+
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);

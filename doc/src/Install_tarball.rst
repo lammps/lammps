@@ -13,8 +13,8 @@ You have two choices of tarballs, either the most recent stable release
 or the most recent feature release.  Stable releases occur a few times
 per year, and undergo more testing before release.  Also, between stable
 releases bug fixes from the feature releases are back-ported and the
-tarball occasionally updated.  Feature releases occur every 4 to 8
-weeks.  The new contents in all feature releases are listed in the
+tarball occasionally updated.  Feature releases occur every 6 weeks to
+2 months.  The new contents in all feature releases are listed in the
 `release notes <git_>`_ of the LAMMPS GitHub page.
 
 Tarballs of older LAMMPS versions can also be downloaded from `this page
@@ -48,9 +48,8 @@ Check downloaded files
 You can check that a downloaded file is complete and has not been
 modified by comparing its SHA-256 checksum with the published checksum.
 For files from the LAMMPS download server, download the file
-``SHA256SUMS`` (in some folders ``SHA256SUM``) from the same web page
-(for example from `this page <older_>`_) into the folder with the
-downloaded files and type:
+``SHA256SUMS`` from the same web page (for example from `this page
+<older_>`_) into the folder with the downloaded files and type:
 
 .. code-block:: bash
 

@@ -94,8 +94,8 @@ upgrade to a current version.
 # Integrity of Downloaded Archives
 
 For *all* files that can be downloaded from the "lammps.org" web server
-we provide SHA-256 checksum data in files named SHA256SUMS or SHA256SUM.
-These checksums can be used to validate the integrity of the downloaded
+we provide SHA-256 checksum data in files named SHA256SUMS.  These
+checksums can be used to validate the integrity of the downloaded
 archives.  Please note that we also use symbolic links to point to the
 latest or stable releases and the checksums for those files *will*
 change (and so their checksums) because the symbolic links will be

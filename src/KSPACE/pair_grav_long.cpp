@@ -12,6 +12,9 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
+----------------------------------
+   Contributing author: Joel Clemmer (SNL)
+
    Real-space part of the Ewald sum for Newtonian gravity,
    E = -G m_i m_j erfc(g_ewald r) / r, to be used with kspace_style ewald/grav.
    Adapted from pair style coul/long.

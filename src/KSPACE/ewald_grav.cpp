@@ -12,6 +12,9 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
+----------------------------------
+   Contributing author: Joel Clemmer (SNL)
+
    Ewald summation for Newtonian gravity in fully periodic systems.
 
    Point masses interact like charges of a one-component plasma: the

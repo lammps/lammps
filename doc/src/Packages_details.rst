@@ -1508,6 +1508,7 @@ options for your LAMMPS build.
 * :doc:`Howto tip4p <Howto_tip4p>`
 * :doc:`Howto spc <Howto_spc>`
 * :doc:`pair_style coul <pair_coul>`
+* :doc:`pair_style grav/long <pair_grav_long>`
 * Search the :doc:`pair style <Commands_pair>` page for styles with "long" or "msm" in name
 * ``examples/peptide``
 * bench/in.rhodo

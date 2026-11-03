@@ -211,6 +211,7 @@ accelerated styles exist.
 * :doc:`gran/hertz/history <pair_gran>` - granular potential with Hertzian interactions
 * :doc:`gran/hooke <pair_gran>` - granular potential without history effects
 * :doc:`gran/hooke/history <pair_gran>` - granular potential with history effects
+* :doc:`grav/long <pair_grav_long>` - Newtonian gravity, real-space part of the Ewald sum
 * :doc:`gw <pair_gw>` - Gao-Weber potential
 * :doc:`gw/zbl <pair_gw>` - Gao-Weber potential with a repulsive ZBL core
 * :doc:`harmonic/cut <pair_harmonic_cut>` - repulsive-only harmonic potential

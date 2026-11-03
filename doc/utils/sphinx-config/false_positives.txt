@@ -147,6 +147,7 @@ anysize
 api
 apip
 APIP
+ApJS
 apolar
 Apoorva
 Appl
@@ -410,6 +411,7 @@ bosonic
 bosons
 Botero
 Botu
+Bouchet
 Bouguet
 Bourasseau
 Bourne
@@ -612,6 +614,7 @@ cna
 cnp
 cnr
 coaxstk
+CODATA
 codebase
 coeff
 Coeff
@@ -638,6 +641,7 @@ Colvars
 COLVARS
 comID
 Commun
+comoving
 compositing
 compressibility
 compressive
@@ -1636,6 +1640,7 @@ hbond
 hcp
 hdnnp
 HDNNP
+Hernquist
 hg
 Iglesias
 inviscid
@@ -4095,6 +4100,7 @@ surfactant
 surfactants
 Suter
 Sutmann
+Suto
 Suzen
 sve
 svn

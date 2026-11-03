@@ -1,6 +1,6 @@
 ---
 lammps_version: 30 Sep 2026
-tags: no_respa generated
+tags: no_respa
 date_generated: Tue Nov  3 09:37:31 2026
 epsilon: 6.5e-13
 skip_tests:

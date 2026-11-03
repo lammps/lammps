@@ -11,16 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-// Regression test for GitHub issue #1933: the pairwise lubrication force of
-// pair style lubricate/poly must obey Newton's third law (be equal and
-// opposite) also for *polydisperse* particles.  The near-field resistance
-// functions (Jeffrey & Onishi, 1984) are expansions in the symmetric gap
-// xi = 2*gap/(radi+radj); an earlier implementation used the per-particle
-// h_sep = gap/radi in the log-order terms and dropped a beta0 = radj/radi
-// factor in the squeeze term, so the force computed on particle i (using its
-// own radius as the reference length) did not match minus the force computed
-// on particle j.  These tests assert pairwise/global force balance, which the
-// buggy version violated by ~50% for strongly unequal radii.
+// the pairwise lubrication forces of pair style lubricate/poly must be equal and
+// opposite also for particles of different size
 
 #include "lammps.h"
 
@@ -33,6 +25,7 @@
 #include "gtest/gtest.h"
 
 #include <cmath>
+#include <cstring>
 
 // whether to print verbose output (i.e. not capturing LAMMPS screen output).
 bool verbose = false;
@@ -40,17 +33,12 @@ bool verbose = false;
 namespace LAMMPS_NS {
 class LubricatePolyTest : public LAMMPSTest {
 protected:
-    Atom *atom;
-
     void SetUp() override
     {
         testbinary = "LubricatePolyTest";
         LAMMPSTest::SetUp();
         if (!info->has_style("pair", "lubricate/poly")) GTEST_SKIP() << "COLLOID package not enabled";
-        atom = lmp->atom;
     }
-
-    void TearDown() override { LAMMPSTest::TearDown(); }
 
     void make_box()
     {
@@ -66,22 +54,28 @@ protected:
         END_HIDE_OUTPUT();
     }
 
-    // net force summed over all (local) atoms; pure pairwise interactions
-    // (flagfld = 0) must conserve linear momentum, i.e. sum to zero.
+    // force on the atom with ID "id" (on any MPI rank)
+    void get_force(tagint id, double *val)
+    {
+        double tmp[3] = {0.0, 0.0, 0.0};
+        const int i   = lmp->atom->map(id);
+        if ((i >= 0) && (i < lmp->atom->nlocal))
+            for (int k = 0; k < 3; ++k) tmp[k] = lmp->atom->f[i][k];
+        MPI_Allreduce(tmp, val, 3, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+    }
+
+    // net force on all atoms
     void net_force(double *fnet)
     {
-        fnet[0] = fnet[1] = fnet[2] = 0.0;
-        double **f = atom->f;
-        for (int i = 0; i < atom->nlocal; ++i) {
-            fnet[0] += f[i][0];
-            fnet[1] += f[i][1];
-            fnet[2] += f[i][2];
-        }
+        double tmp[3] = {0.0, 0.0, 0.0};
+        double **f    = lmp->atom->f;
+        for (int i = 0; i < lmp->atom->nlocal; ++i)
+            for (int k = 0; k < 3; ++k) tmp[k] += f[i][k];
+        MPI_Allreduce(tmp, fnet, 3, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
     }
 };
 
-// Two unequal spheres, general relative translation + spin, in the regular
-// (unclamped) lubrication regime.  The force on each must be exactly opposite.
+// two spheres of unequal size with relative translation and rotation
 TEST_F(LubricatePolyTest, Newton3rdLawTwoSpheres)
 {
     make_box();
@@ -100,18 +94,14 @@ TEST_F(LubricatePolyTest, Newton3rdLawTwoSpheres)
     command("run 0 post no");
     END_HIDE_OUTPUT();
 
-    const int i1 = atom->map(1);
-    const int i2 = atom->map(2);
-    ASSERT_GE(i1, 0);
-    ASSERT_GE(i2, 0);
-    double **f = atom->f;
-    // forces are O(20); the fixed code balances to ~1e-14, the bug to ~1e-1
-    for (int k = 0; k < 3; ++k)
-        EXPECT_NEAR(f[i1][k] + f[i2][k], 0.0, 1.0e-8) << "force component " << k;
+    double f1[3], f2[3];
+    get_force(1, f1);
+    get_force(2, f2);
+    EXPECT_GT(fabs(f1[0]), 1.0);
+    for (int k = 0; k < 3; ++k) EXPECT_NEAR(f1[k] + f2[k], 0.0, 1.0e-12) << "component " << k;
 }
 
-// Same, but with the centers inside cutinner so the gap is clamped.  This is
-// the parameter regime of the original bug report and must be symmetric too.
+// same with the centers inside cutinner, so that the minimum gap is used
 TEST_F(LubricatePolyTest, Newton3rdLawClampedGap)
 {
     make_box();
@@ -128,17 +118,14 @@ TEST_F(LubricatePolyTest, Newton3rdLawClampedGap)
     command("run 0 post no");
     END_HIDE_OUTPUT();
 
-    const int i1 = atom->map(1);
-    const int i2 = atom->map(2);
-    ASSERT_GE(i1, 0);
-    ASSERT_GE(i2, 0);
-    double **f = atom->f;
-    for (int k = 0; k < 3; ++k)
-        EXPECT_NEAR(f[i1][k] + f[i2][k], 0.0, 1.0e-8) << "force component " << k;
+    double f1[3], f2[3];
+    get_force(1, f1);
+    get_force(2, f2);
+    EXPECT_GT(fabs(f1[0]), 1.0);
+    for (int k = 0; k < 3; ++k) EXPECT_NEAR(f1[k] + f2[k], 0.0, 1.0e-12) << "component " << k;
 }
 
-// A cluster of several polydisperse spheres: total linear momentum input from
-// the pairwise lubrication forces must vanish.
+// cluster of polydisperse spheres: the net force must vanish
 TEST_F(LubricatePolyTest, Newton3rdLawCluster)
 {
     make_box();
@@ -161,7 +148,7 @@ TEST_F(LubricatePolyTest, Newton3rdLawCluster)
 
     double fnet[3];
     net_force(fnet);
-    for (int k = 0; k < 3; ++k) EXPECT_NEAR(fnet[k], 0.0, 1.0e-8) << "net force component " << k;
+    for (int k = 0; k < 3; ++k) EXPECT_NEAR(fnet[k], 0.0, 1.0e-12) << "component " << k;
 }
 } // namespace LAMMPS_NS
 

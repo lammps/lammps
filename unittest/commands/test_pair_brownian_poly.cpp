@@ -11,18 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-// Regression test for GitHub issue #2933: the pairwise *random* Brownian force
-// of pair style brownian/poly must obey Newton's third law (be equal and
-// opposite) so that linear momentum is conserved and the system is not heated
-// spuriously.  The original implementation ran with "newton off" on a full
-// neighbor list and applied the force only to the local atom i, drawing an
-// *independent* random number for the (i,j) and (j,i) visits.  The two random
-// forces were therefore unrelated rather than equal and opposite, injecting
-// net momentum (and kinetic energy) every step.  The fix draws each pair's
-// random force from a deterministic, order- and MPI-rank-independent RNG keyed
-// on the unordered atom-tag pair and the timestep, and applies it equal and
-// opposite to the two particles.  These tests assert pairwise/global force
-// balance, which the buggy version violated by O(1).
+// the pairwise random forces of pair style brownian/poly must be equal and opposite
+// and must not depend on the number of MPI ranks or OpenMP threads
 
 #include "lammps.h"
 
@@ -35,6 +25,7 @@
 #include "gtest/gtest.h"
 
 #include <cmath>
+#include <cstring>
 
 // whether to print verbose output (i.e. not capturing LAMMPS screen output).
 bool verbose = false;
@@ -42,17 +33,12 @@ bool verbose = false;
 namespace LAMMPS_NS {
 class BrownianPolyTest : public LAMMPSTest {
 protected:
-    Atom *atom;
-
     void SetUp() override
     {
         testbinary = "BrownianPolyTest";
         LAMMPSTest::SetUp();
         if (!info->has_style("pair", "brownian/poly")) GTEST_SKIP() << "COLLOID package not enabled";
-        atom = lmp->atom;
     }
-
-    void TearDown() override { LAMMPSTest::TearDown(); }
 
     void make_box()
     {
@@ -68,83 +54,81 @@ protected:
         END_HIDE_OUTPUT();
     }
 
-    // net force summed over all (local) atoms; the pure pairwise Brownian force
-    // (flagfld = 0) must conserve linear momentum, i.e. sum to zero.
+    // two spheres of unequal size close to contact across the periodic boundary
+    void make_pair()
+    {
+        BEGIN_HIDE_OUTPUT();
+        command("create_atoms 1 single 19.5 0.3 -0.4");
+        command("create_atoms 1 single -17.0 2.1 1.9");
+        command("set atom 1 diameter 2.0 density 1.0");
+        command("set atom 2 diameter 6.0 density 1.0");
+        END_HIDE_OUTPUT();
+    }
+
+    // per-atom vector of the atom with ID "id" (on any MPI rank)
+    void get_atom_vec(double **vec, tagint id, double *val)
+    {
+        double tmp[3] = {0.0, 0.0, 0.0};
+        const int i   = lmp->atom->map(id);
+        if ((i >= 0) && (i < lmp->atom->nlocal))
+            for (int k = 0; k < 3; ++k) tmp[k] = vec[i][k];
+        MPI_Allreduce(tmp, val, 3, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+    }
+
+    // net force on all atoms
     void net_force(double *fnet)
     {
-        fnet[0] = fnet[1] = fnet[2] = 0.0;
-        double **f = atom->f;
-        for (int i = 0; i < atom->nlocal; ++i) {
-            fnet[0] += f[i][0];
-            fnet[1] += f[i][1];
-            fnet[2] += f[i][2];
-        }
+        double tmp[3] = {0.0, 0.0, 0.0};
+        double **f    = lmp->atom->f;
+        for (int i = 0; i < lmp->atom->nlocal; ++i)
+            for (int k = 0; k < 3; ++k) tmp[k] += f[i][k];
+        MPI_Allreduce(tmp, fnet, 3, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
     }
 };
 
-// Two unequal spheres, log (full) resistance terms enabled, pure pairwise
-// (flagfld = 0).  The random force on each must be exactly opposite, at every
-// timestep (the RNG seed includes the timestep).
+// forces must be equal and opposite at every timestep
 TEST_F(BrownianPolyTest, Newton3rdLawTwoSpheres)
 {
     make_box();
+    make_pair();
     BEGIN_HIDE_OUTPUT();
-    command("create_atoms 1 single 0.0 0.0 0.0");
-    command("create_atoms 1 single 4.5 0.0 0.0");
-    command("set atom 1 diameter 2.0 density 1.0");
-    command("set atom 2 diameter 6.0 density 1.0");
-    // mu flaglog flagfld(=0 -> pure pairwise) cutinner cutoff t_target seed
+    // mu flaglog flagfld cutinner cutoff t_target seed flagHI flagVF
     command("pair_style brownian/poly 1.0 1 0 4.1 6.0 1.0 5827 1 0");
     command("pair_coeff * *");
     END_HIDE_OUTPUT();
 
-    double **f = atom->f;
+    double f1[3], f2[3];
     for (int step = 0; step < 5; ++step) {
         BEGIN_HIDE_OUTPUT();
         command("run 1 post no");
         END_HIDE_OUTPUT();
-        const int i1 = atom->map(1);
-        const int i2 = atom->map(2);
-        ASSERT_GE(i1, 0);
-        ASSERT_GE(i2, 0);
-        // forces are O(100); the bug leaves a net force of the same order
+        get_atom_vec(lmp->atom->f, 1, f1);
+        get_atom_vec(lmp->atom->f, 2, f2);
+        EXPECT_GT(fabs(f1[0]), 1.0e-3);
         for (int k = 0; k < 3; ++k)
-            EXPECT_NEAR(f[i1][k] + f[i2][k], 0.0, 1.0e-8)
-                << "step " << step << " force component " << k;
+            EXPECT_NEAR(f1[k] + f2[k], 0.0, 1.0e-12) << "step " << step << " component " << k;
     }
 }
 
-// Same, but with the centers inside cutinner so the gap is clamped to the
-// minimum.  This is the parameter regime of the original bug report.
+// same with the centers inside cutinner, so that the minimum gap is used
 TEST_F(BrownianPolyTest, Newton3rdLawClampedGap)
 {
     make_box();
+    make_pair();
     BEGIN_HIDE_OUTPUT();
-    command("create_atoms 1 single 0.0 0.0 0.0");
-    command("create_atoms 1 single 4.5 0.0 0.0");
-    command("set atom 1 diameter 2.0 density 1.0");
-    command("set atom 2 diameter 6.0 density 1.0");
-    // cutinner = 5.5 > r = 4.5 -> the h_sep clamp branch is exercised
     command("pair_style brownian/poly 1.0 1 0 5.5 6.0 1.0 91237 1 0");
     command("pair_coeff * *");
-    command("run 1 post no");
+    command("run 0 post no");
     END_HIDE_OUTPUT();
 
-    const int i1 = atom->map(1);
-    const int i2 = atom->map(2);
-    ASSERT_GE(i1, 0);
-    ASSERT_GE(i2, 0);
-    double **f = atom->f;
-    for (int k = 0; k < 3; ++k)
-        EXPECT_NEAR(f[i1][k] + f[i2][k], 0.0, 1.0e-8) << "force component " << k;
+    double f1[3], f2[3];
+    get_atom_vec(lmp->atom->f, 1, f1);
+    get_atom_vec(lmp->atom->f, 2, f2);
+    for (int k = 0; k < 3; ++k) EXPECT_NEAR(f1[k] + f2[k], 0.0, 1.0e-12) << "component " << k;
 }
 
-// A cluster of polydisperse spheres: total linear momentum input from the
-// pairwise random Brownian forces must vanish.  The near-field lubrication
-// resistance is only physical close to contact (a_sq < 0 for large gaps, where
-// the sqrt in the Brownian amplitude is undefined), so the particles are placed
-// in a compact square near contact and the cutoff (3.0) excludes the longer
-// diagonal pairs.
+// cluster of polydisperse spheres near contact: the net force must vanish.  the
+// cutoff excludes the diagonal pairs, where the lubrication resistances are negative
 TEST_F(BrownianPolyTest, Newton3rdLawCluster)
 {
     make_box();
@@ -159,12 +143,64 @@ TEST_F(BrownianPolyTest, Newton3rdLawCluster)
     command("set atom 4 diameter 2.3 density 1.0");
     command("pair_style brownian/poly 1.0 1 0 0.5 3.0 1.0 40591 1 0");
     command("pair_coeff * *");
-    command("run 1 post no");
+    command("run 0 post no");
     END_HIDE_OUTPUT();
 
     double fnet[3];
     net_force(fnet);
-    for (int k = 0; k < 3; ++k) EXPECT_NEAR(fnet[k], 0.0, 1.0e-8) << "net force component " << k;
+    for (int k = 0; k < 3; ++k) EXPECT_NEAR(fnet[k], 0.0, 1.0e-12) << "component " << k;
+}
+
+// the random numbers depend only on the atom IDs, the timestep, and the seed.
+// compare to reference data, so that a dependence on the number of MPI ranks
+// or OpenMP threads is detected when the test is run in parallel
+TEST_F(BrownianPolyTest, ReferenceForces)
+{
+    make_box();
+    make_pair();
+    BEGIN_HIDE_OUTPUT();
+    command("pair_style brownian/poly 1.0 1 0 4.1 6.0 1.0 5827 1 0");
+    command("pair_coeff * *");
+    command("reset_timestep 100");
+    command("run 0 post no");
+    END_HIDE_OUTPUT();
+
+    const double f1_ref[3] = {-131.709970930346, -44.1376642992628, 53.3527990497969};
+    const double t1_ref[3] = {-24.6292226024889, -15.9034629414138, 49.9254401753286};
+    const double t2_ref[3] = {308.637940484353, -562.772959289939, -29.2354195536285};
+    double f1[3], t1[3], t2[3];
+    get_atom_vec(lmp->atom->f, 1, f1);
+    get_atom_vec(lmp->atom->torque, 1, t1);
+    get_atom_vec(lmp->atom->torque, 2, t2);
+    for (int k = 0; k < 3; ++k) {
+        EXPECT_NEAR(f1[k], f1_ref[k], 1.0e-10 * fabs(f1_ref[k])) << "force component " << k;
+        EXPECT_NEAR(t1[k], t1_ref[k], 1.0e-10 * fabs(t1_ref[k])) << "torque component " << k;
+        EXPECT_NEAR(t2[k], t2_ref[k], 1.0e-10 * fabs(t2_ref[k])) << "torque component " << k;
+    }
+}
+
+// the volume fraction correction must be the same whether it is computed
+// once during setup or on every step because of fix deform
+TEST_F(BrownianPolyTest, VolumeFractionDeform)
+{
+    double fref[3], fdef[3];
+    for (int pass = 0; pass < 2; ++pass) {
+        BEGIN_HIDE_OUTPUT();
+        command("clear");
+        END_HIDE_OUTPUT();
+        make_box();
+        make_pair();
+        BEGIN_HIDE_OUTPUT();
+        // isotropic terms only, with volume fraction correction
+        command("pair_style brownian/poly 1.0 1 1 4.1 6.0 1.0 5827 0 1");
+        command("pair_coeff * *");
+        if (pass == 1) command("fix 1 all deform 1 x final -20.0 20.0 remap v");
+        command("run 0 post no");
+        END_HIDE_OUTPUT();
+        get_atom_vec(lmp->atom->f, 1, (pass == 0) ? fref : fdef);
+    }
+    EXPECT_GT(fabs(fref[0]), 1.0e-3);
+    for (int k = 0; k < 3; ++k) EXPECT_DOUBLE_EQ(fdef[k], fref[k]) << "component " << k;
 }
 } // namespace LAMMPS_NS
 

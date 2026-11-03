@@ -930,6 +930,8 @@
 /ewald_dipole_spin.h
 /ewald_disp.cpp
 /ewald_disp.h
+/ewald_grav.cpp
+/ewald_grav.h
 /ewald_n.cpp
 /ewald_n.h
 /fft3d.cpp
@@ -1450,6 +1452,8 @@
 /pair_gran_hooke.h
 /pair_gran_hooke_history.cpp
 /pair_gran_hooke_history.h
+/pair_grav_long.cpp
+/pair_grav_long.h
 /pair_surf_granular.cpp
 /pair_surf_granular.h
 /pair_gw.cpp

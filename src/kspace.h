@@ -153,7 +153,7 @@ class KSpace : protected Pointers {
 
   KSpace(class LAMMPS *);
   ~KSpace() override;
-  void two_charge();
+  virtual void two_charge();
   void triclinic_check();
   void modify_params(int, char **);
   void *extract(const char *);
@@ -254,6 +254,10 @@ class KSpace : protected Pointers {
   bigint natoms_original;
   double scale, qqrd2e;
   double qsum, qsqsum, q2;
+  int require_q;    // 1 if style needs the per-atom charge attribute q
+
+  // per-atom source strength of the long-range field (charge by default)
+  virtual double *source_array();
   double **gcons, **dgcons;    // accumulated per-atom energy/virial
 
   int evflag, evflag_atom;

@@ -918,6 +918,14 @@ void CommBrick::forward_comm(Pair *pair, int size)
 
   for (iswap = 0; iswap < nswap; iswap++) {
 
+    // grow buffers if this communication is wider than the one the buffers
+    // were sized for in borders(): a pair style may set comm_forward only
+    // when it communicates (pair mliap/kk forwards model features of a width
+    // known only at run time), after Comm::init() recorded maxforward
+
+    if (nsize*sendnum[iswap] > maxsend) grow_send(nsize*sendnum[iswap],0);
+    if (nsize*recvnum[iswap] > maxrecv) grow_recv(nsize*recvnum[iswap]);
+
     // pack buffer
 
     n = pair->pack_forward_comm(sendnum[iswap],sendlist[iswap],buf_send,pbc_flag[iswap],pbc[iswap]);
@@ -959,6 +967,12 @@ void CommBrick::reverse_comm(Pair *pair, int size)
   else nsize = MAX(pair->comm_reverse,pair->comm_reverse_off);
 
   for (iswap = nswap-1; iswap >= 0; iswap--) {
+
+    // grow buffers if this communication is wider than the one the buffers
+    // were sized for in borders() (see forward_comm(Pair *) above)
+
+    if (nsize*recvnum[iswap] > maxsend) grow_send(nsize*recvnum[iswap],0);
+    if (nsize*sendnum[iswap] > maxrecv) grow_recv(nsize*sendnum[iswap]);
 
     // pack buffer
 

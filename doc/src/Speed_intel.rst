@@ -136,8 +136,6 @@ AVX-512:
 Required hardware/software
 """"""""""""""""""""""""""
 
-When using Intel compilers version 16.0 or later is required.
-
 Although any compiler can be used with the INTEL package,
 currently, vectorization directives are disabled by default when
 not using Intel compilers due to lack of standard support and

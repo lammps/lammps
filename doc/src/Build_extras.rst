@@ -1831,10 +1831,10 @@ also typically :ref:`install the OPENMP package <openmp>`, as it can be
 used in tandem with the INTEL package to good effect, as explained
 on the :doc:`Speed_intel` page.
 
-When using Intel compilers version 16.0 or later is required.  You can
-also use the GNU or Clang compilers and they will provide performance
-improvements over regular styles and OPENMP styles, but less so than
-with the Intel compilers.  Please also note, that some compilers have
+You can also use the GNU or Clang compilers instead of the Intel
+compilers and they will provide performance improvements over regular
+styles and OPENMP styles, but less so than with the Intel compilers.
+Please also note, that some compilers have
 been found to apply memory alignment constraints incompletely or
 incorrectly and thus can cause segmentation faults in otherwise correct
 code when using features from the INTEL package.

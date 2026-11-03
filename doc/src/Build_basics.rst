@@ -236,9 +236,6 @@ LAMMPS.
          # Building with GNU Compilers:
          cmake -S cmake -B build -D CMAKE_C_COMPILER=gcc \
                -D CMAKE_CXX_COMPILER=g++ -D CMAKE_Fortran_COMPILER=gfortran
-         # Building with Intel Classic Compilers:
-         cmake -S cmake -B build -D CMAKE_C_COMPILER=icc \
-               -D CMAKE_CXX_COMPILER=icpc -D CMAKE_Fortran_COMPILER=ifort
          # Building with Intel oneAPI Compilers:
          cmake -S cmake -B build -D CMAKE_C_COMPILER=icx \
                -D CMAKE_CXX_COMPILER=icpx -D CMAKE_Fortran_COMPILER=ifx
@@ -255,9 +252,8 @@ LAMMPS.
       For compiling with the Clang/LLVM compilers a CMake preset is
       provided that can be loaded with
       ``-C cmake/presets/clang.cmake``.  Similarly,
-      ``-C cmake/presets/intel.cmake`` should switch the compiler
-      tool chain to the legacy Intel compilers, ``-C cmake/presets/oneapi.cmake``
-      will switch to the LLVM based oneAPI Intel compilers,
+      ``-C cmake/presets/oneapi.cmake`` will switch to the LLVM based
+      oneAPI Intel compilers,
       ``-C cmake/presets/pgi.cmake`` will switch the compiler to the PGI compilers,
       and ``-C cmake/presets/nvhpc.cmake`` will switch to the NVHPC compilers.
 

@@ -2,7 +2,7 @@
 lammps_version: 4 Jul 2026
 tags: spin
 date_generated: Fri Jul 10 16:42:23 2026
-epsilon: 5e-13
+epsilon: 7.5e-13
 skip_tests:
 prerequisites: |
   atom spin

@@ -31,7 +31,6 @@ class PairBrownianPoly : public PairBrownian {
   void compute(int, int) override;
   double init_one(int, int) override;
   void init_style() override;
-  void settings(int, char **) override;
 
  protected:
   static uint64_t pair_key(tagint, tagint, bigint, int);

@@ -116,14 +116,15 @@ void PairBrownianPolyOMP::compute(int eflag, int vflag)
       }
       double vol_T = dims[0]*dims[1]*dims[2];
       double vol_f = vol_P/vol_T;
+
+      // R0 and RT0 are multiplied by the radius of each particle (cubed for RT0)
+
       if (flaglog == 0) {
-        R0  = 6*MY_PI*mu*rad*(1.0 + 2.16*vol_f);
-        RT0 = 8*MY_PI*mu*cube(rad);
-        //RS0 = 20.0/3.0*MY_PI*mu*pow(rad,3)*(1.0 + 3.33*vol_f + 2.80*vol_f*vol_f);
+        R0  = 6*MY_PI*mu*(1.0 + 2.16*vol_f);
+        RT0 = 8*MY_PI*mu;
       } else {
-        R0  = 6*MY_PI*mu*rad*(1.0 + 2.725*vol_f - 6.583*vol_f*vol_f);
-        RT0 = 8*MY_PI*mu*cube(rad)*(1.0 + 0.749*vol_f - 2.469*vol_f*vol_f);
-        //RS0 = 20.0/3.0*MY_PI*mu*pow(rad,3)*(1.0 + 3.64*vol_f - 6.95*vol_f*vol_f);
+        R0  = 6*MY_PI*mu*(1.0 + 2.725*vol_f - 6.583*vol_f*vol_f);
+        RT0 = 8*MY_PI*mu*(1.0 + 0.749*vol_f - 2.469*vol_f*vol_f);
       }
     }
 

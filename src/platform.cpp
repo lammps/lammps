@@ -360,8 +360,17 @@ std::string platform::compiler_info()
 {
   std::string buf = "(Unknown)";
 #if defined(__INTEL_LLVM_COMPILER)
-  double version = static_cast<double>(__INTEL_LLVM_COMPILER) * 0.01;
-  buf = fmt::format("Intel LLVM C++ {:.1f} / {}", version, __VERSION__);
+  // __INTEL_LLVM_COMPILER is VVVVRP before version 2021.2.0 and VVVVRRPP since
+#if __INTEL_LLVM_COMPILER < 1000000L
+  constexpr int major = __INTEL_LLVM_COMPILER / 100;
+  constexpr int minor = (__INTEL_LLVM_COMPILER / 10) % 10;
+  constexpr int patch = __INTEL_LLVM_COMPILER % 10;
+#else
+  constexpr int major = __INTEL_LLVM_COMPILER / 10000;
+  constexpr int minor = (__INTEL_LLVM_COMPILER / 100) % 100;
+  constexpr int patch = __INTEL_LLVM_COMPILER % 100;
+#endif
+  buf = fmt::format("Intel LLVM C++ {}.{}.{} / {}", major, minor, patch, __VERSION__);
 #elif defined(__ibmxl__)
   buf = fmt::format("IBM XL C/C++ (Clang) {}.{}.{}", __ibmxl_version__, __ibmxl_release__,
                     __ibmxl_modification__);

@@ -66,13 +66,8 @@ namespace ip_simd {
     inline int & operator[](const int i) { return ((int *)&(v))[i]; }
     inline const int & operator[](const int i) const
       { return ((int *)&(v))[i]; }
-#ifdef __INTEL_LLVM_COMPILER
     inline SIMD256_int operator&=(const int i)
       { v=_mm256_and_epi32(v, _mm256_set1_epi32(i)); return *this; };
-#else
-    inline SIMD256_int operator&=(const int i)
-      { v=_mm256_and_si256(v, _mm256_set1_epi32(i)); return *this; };
-#endif
     inline SIMD256_int operator+=(const int i)
       { v=_mm256_add_epi32(v, _mm256_set1_epi32(i)); return *this; };
     operator __m256i() const { return v;}

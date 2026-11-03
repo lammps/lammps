@@ -1027,12 +1027,6 @@ void PairSWIntel::init_style()
     pack_force_const(force_const_single, fix->get_single_buffers());
     fix->get_single_buffers()->need_tag(1);
   }
-
-
-  #if defined(__INTEL_COMPILER)
-  if (__INTEL_COMPILER_BUILD_DATE < 20141023)
-    error->all(FLERR, "Intel compiler versions before 15 Update 1 not supported for sw/intel");
-  #endif
 }
 
 /* ---------------------------------------------------------------------- */

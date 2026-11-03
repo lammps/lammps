@@ -19,7 +19,7 @@
 #define LMP_SNA_INTEL_H
 
 #if defined(__AVX512F__)
-#if defined(__INTEL_COMPILER) || defined(__INTEL_LLVM_COMPILER)
+#if defined(__INTEL_LLVM_COMPILER)
 
 #include "pointers.h"
 #include "intel_buffers.h"

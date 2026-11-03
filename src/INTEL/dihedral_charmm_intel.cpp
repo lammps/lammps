@@ -33,9 +33,7 @@
 #include "omp_compat.h"
 
 #ifdef LMP_USE_AVXCD
-#if (__INTEL_COMPILER_BUILD_DATE > 20160414)
 #define LMP_USE_AVXCD_DHC
-#endif
 #endif
 
 #ifdef LMP_USE_AVXCD_DHC

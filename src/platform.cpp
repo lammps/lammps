@@ -369,13 +369,6 @@ std::string platform::compiler_info()
   buf = fmt::format("Clang C++ {}", __VERSION__);
 #elif defined(__PGI)
   buf = fmt::format("PGI C++ {}.{}", __PGIC__, __PGIC_MINOR__);
-#elif defined(__INTEL_COMPILER)
-#if !defined(__VERSION__)
-#define __VERSION__ __INTEL_COMPILER_BUILD_DATE
-#endif
-  double version = static_cast<double>(__INTEL_COMPILER) * 0.01;
-  buf = fmt::format("Intel Classic C++ {:.2f}.{} / {}", version, __INTEL_COMPILER_UPDATE,
-                    __VERSION__);
 #elif defined(__MINGW64__)
   buf = fmt::format("MinGW-w64 64bit {}.{} / GNU C++ {}", __MINGW64_VERSION_MAJOR,
                     __MINGW64_VERSION_MINOR, __VERSION__);

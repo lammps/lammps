@@ -151,7 +151,7 @@ FixIntel::FixIntel(LAMMPS *lmp, int narg, char **arg) :  Fix(lmp, narg, arg)
   // nomp is user setting, default = 0
 
   #if defined(_OPENMP)
-  #if defined(__INTEL_COMPILER) || defined(__INTEL_LLVM_COMPILER)
+  #if defined(__INTEL_LLVM_COMPILER)
   kmp_set_blocktime(0);
   #endif
   if (nomp != 0) {

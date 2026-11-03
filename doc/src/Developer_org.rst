@@ -36,12 +36,12 @@ corresponding package is installed.
 LAMMPS C++ source files almost always come in pairs, such as
 ``src/run.cpp`` (implementation file) and ``src/run.h`` (header file).
 Each pair of files defines a C++ class, for example the
-:cpp:class:`LAMMPS_NS::Run` class, which contains the code invoked by
+:cpp:class:`!LAMMPS_NS::Run` class, which contains the code invoked by
 the :doc:`run <run>` command in a LAMMPS input script.  As this example
 illustrates, source file and class names often have a one-to-one
 correspondence with a command used in a LAMMPS input script.  Some
 source files and classes do not have a corresponding input script
-command, for example ``src/force.cpp`` and the :cpp:class:`LAMMPS_NS::Force`
+command, for example ``src/force.cpp`` and the :cpp:class:`!LAMMPS_NS::Force`
 class.  They are discussed in the next section.
 
 The names of all source files are in lower case and may use the
@@ -59,8 +59,8 @@ Though LAMMPS has a lot of source files and classes, its class topology
 is not very deep, which can be seen from the :ref:`class-topology`
 figure.  In that figure, each name refers to a class and has a pair of
 associated source files in the ``src`` folder, for example the class
-:cpp:class:`LAMMPS_NS::Memory` corresponds to the files ``memory.cpp``
-and ``memory.h``, or the class :cpp:class:`LAMMPS_NS::AtomVec`
+:cpp:class:`!LAMMPS_NS::Memory` corresponds to the files ``memory.cpp``
+and ``memory.h``, or the class :cpp:class:`!LAMMPS_NS::AtomVec`
 corresponds to the files ``atom_vec.cpp`` and ``atom_vec.h``.  Full
 lines in the figure represent compositing: that is, the class at the
 base of the arrow holds a pointer to an instance of the class at the

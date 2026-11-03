@@ -1,6 +1,6 @@
 ---
 lammps_version: 7 Feb 2024
-tags:
+tags: no_respa
 date_generated: Thu Apr  4 21:27:12 2024
 epsilon: 5e-13
 skip_tests:
@@ -12,6 +12,7 @@ post_commands: ! |
   fix test all rigid/npt group 2 solute solvent aniso 1.0 1.0 100.0 temp 50.0 ${t_target} 1.0
   fix_modify test virial yes
 input_file: in.fourmol
+input_coeffs: coeffs.fourmol
 natoms: 29
 run_stress: ! |-
   -1.6326314448662429e+03 -1.4727331978532245e+03 -3.8557370515929042e+03  5.5052891601619581e+02  4.7346742977256520e+02 -6.2035591882208064e+02

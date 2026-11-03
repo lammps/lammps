@@ -23,7 +23,7 @@ acceleration.
 LAMMPS is written in C++ and currently requires a compiler that is at
 least compatible with the C++-11 standard.  Earlier versions were
 written in F77, F90, and C++-98.  See the `History page
-<https://www.lammps.org/history.html>`_ of the website for details.  All
+<https://www.lammps.org/about/history/>`_ of the website for details.  All
 versions can be downloaded as source code from the `LAMMPS website
 <lws_>`_.
 

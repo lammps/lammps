@@ -15,6 +15,8 @@
  *
  ***************************************************************************/
 
+// NOLINTBEGIN
+
 /** @file
  * API for C extensions to define a way to load structure, coordinate,
  * trajectory, and volumetric data files
@@ -987,3 +989,5 @@ typedef struct {
 } molfile_plugin_t;
 
 #endif
+
+// NOLINTEND

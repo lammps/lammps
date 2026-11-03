@@ -30,16 +30,14 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairBondValVec::PairBondValVec(LAMMPS *lmp) : Pair(lmp)
+PairBondValVec::PairBondValVec(LAMMPS *lmp) :
+    Pair(lmp), cut(nullptr), r0(nullptr), alpha(nullptr), fp(nullptr), bvvsparam(nullptr),
+    bvvv0(nullptr), s0x(nullptr), s0y(nullptr), s0z(nullptr), Dix(nullptr), Diy(nullptr),
+    Diz(nullptr), s0temp(nullptr), fpx(nullptr), fpy(nullptr), fpz(nullptr), offset(nullptr),
+    cut_respa(nullptr)
 {
   restartinfo = 0;
   nmax = 0;
-  s0x = nullptr;
-  s0y = nullptr;
-  s0z = nullptr;
-  Dix = nullptr;
-  Diy = nullptr;
-  Diz = nullptr;
   comm_forward = 3;
   comm_reverse = 3;
   single_enable = 0;
@@ -60,6 +58,7 @@ PairBondValVec::~PairBondValVec()
     memory->destroy(setflag);
     memory->destroy(cutsq);
     memory->destroy(cut);
+    memory->destroy(r0);
     memory->destroy(alpha);
     memory->destroy(bvvsparam);
     memory->destroy(bvvv0);
@@ -304,7 +303,6 @@ void PairBondValVec::coeff(int narg, char **arg)
   utils::bounds(FLERR, arg[0], 1, atom->ntypes, ilo, ihi, error);
   utils::bounds(FLERR, arg[1], 1, atom->ntypes, jlo, jhi, error);
 
-  /*  double epsilon_one = atof(arg[2]);*/
   double r0_one = utils::numeric(FLERR, arg[2], false, lmp);
   double alpha_one = utils::numeric(FLERR, arg[3], false, lmp);
   double bvvs_one = utils::numeric(FLERR, arg[4], false, lmp);

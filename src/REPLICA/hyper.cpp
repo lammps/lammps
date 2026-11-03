@@ -38,7 +38,9 @@ enum{NOHYPER,GLOBAL,LOCAL};
 
 /* ---------------------------------------------------------------------- */
 
-Hyper::Hyper(LAMMPS *_lmp) : Command(_lmp) {}
+Hyper::Hyper(LAMMPS *_lmp) :
+    Command(_lmp), fix_hyper(nullptr), fix_event(nullptr), compute_event(nullptr), finish(nullptr)
+{}
 
 /* ----------------------------------------------------------------------
    perform hyperdynamics simulation
@@ -421,8 +423,8 @@ void Hyper::quench(int flag)
   update->restrict_output = 0;
   update->ntimestep = ntimestep_hold;
   update->endstep = update->laststep = endstep_hold;
-  for (int i = 0; i < modify->ncompute; i++)
-    if (modify->compute[i]->timeflag) modify->compute[i]->clearstep();
+  for (const auto &icompute : modify->get_compute_list())
+    if (icompute->timeflag) icompute->clearstep();
 }
 
 /* ----------------------------------------------------------------------

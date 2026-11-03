@@ -43,7 +43,7 @@ Examples
 Description
 """""""""""
 
-.. versionadded:: TBD
+.. versionadded:: 4Jul2026
 
 This fix generates graphics objects from chunks of atoms defined by the
 :doc:`compute chunk/atom <compute_chunk_atom>` command.  For each chunk

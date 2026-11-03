@@ -40,7 +40,7 @@ the angle between atoms J, I, and K centered on atom I. The five
 functions :math:`\phi, U, \rho, f,` and *g* are represented by cubic splines.
 
 The *meam/spline* style also supports a new style multicomponent
-modified embedded-atom method (MEAM) potential :ref:`(Zhang) <Zhang4>`, where
+modified embedded-atom method (MEAM) potential :ref:`(Zhang5) <Zhang4>`, where
 the total energy E is given by
 
 .. math::
@@ -168,4 +168,4 @@ Kress, Modelling Simulation Materials Science Engineering, 8, 825
 
 .. _Zhang4:
 
-**(Zhang)** Zhang and Trinkle, Computational Materials Science, 124, 204-210 (2016).
+**(Zhang5)** Zhang and Trinkle, Computational Materials Science, 124, 204-210 (2016).

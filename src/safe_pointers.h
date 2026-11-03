@@ -57,7 +57,10 @@ Below are some usage examples:
   } else {
     fp = fopen(filename, "w");
   }
-  if (!fp) error->one(FLERR, "Failed to open file {}: {}", filename, utils::getsyserror());
+  if (!fp)
+    error->one(FLERR, "Failed to open file {}: {}", filename,
+               platform::has_compress_extension(filename) ? platform::compressed_open_error(filename)
+                                                          : utils::getsyserror());
 
   // reading or writing works without needing to change the source code
   fputs("write text to file\n", fp);

@@ -45,18 +45,21 @@ Platform information functions
 .. doxygenfunction:: compress_info
    :project: progguide
 
+.. doxygenfunction:: is_superuser
+   :project: progguide
+
 
 File and path functions and global constants
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Since we are requiring C++17 to compile LAMMPS, you can also make use of
 the functionality of the `C++ filesystem library
-<https://cppreference.com/w/cpp/filesystem.html>`_.  The following
+<https://cppreference.com/cpp/filesystem>`_.  The following
 functions are in part convenience functions or emulate the behavior of
 similar Python functions or Unix shell commands.  Please note that the
 you need to use the ``string()`` member function of the
 `std::filesystem::path class
-<https://cppreference.com/w/cpp/filesystem/path.html>`_ to get access
+<https://cppreference.com/cpp/filesystem/path>`_ to get access
 to the path as a C++ string class instance.
 
 .. doxygenvariable:: filepathsep
@@ -83,10 +86,16 @@ to the path as a C++ string class instance.
 .. doxygenfunction:: file_is_writable
    :project: progguide
 
+.. doxygenfunction:: file_is_executable
+   :project: progguide
+
 .. doxygenfunction:: file_redirect
    :project: progguide
 
 .. doxygenfunction:: is_console
+   :project: progguide
+
+.. doxygenfunction:: terminal_width
    :project: progguide
 
 .. doxygenfunction:: disk_free
@@ -168,4 +177,7 @@ Compressed file I/O functions
    :project: progguide
 
 .. doxygenfunction:: compressed_write
+   :project: progguide
+
+.. doxygenfunction:: compressed_open_error
    :project: progguide

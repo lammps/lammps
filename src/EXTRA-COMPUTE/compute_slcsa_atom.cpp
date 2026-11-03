@@ -112,10 +112,11 @@ ComputeSLCSAAtom::ComputeSLCSAAtom(LAMMPS *lmp, int narg, char **arg) :
 
   if ((val.which == ArgInfo::FIX) || (val.which == ArgInfo::VARIABLE) ||
       (val.which == ArgInfo::UNKNOWN) || (val.which == ArgInfo::NONE) || (argi.get_dim() > 1))
-    error->all(FLERR, 10, "Invalid compute slcsa/atom argument: {}", arg[0]);
+    error->all(FLERR, 10, "Invalid compute slcsa/atom argument: {}", arg[10]);
 
   val.val.c = modify->get_compute_by_id(val.id);
-  if (!val.val.c) error->all(FLERR, 10, "Compute ID {} for fix slcsa/atom does not exist", val.id);
+  if (!val.val.c)
+    error->all(FLERR, 10, "Compute ID {} for compute slcsa/atom does not exist", val.id);
   if (val.val.c->peratom_flag == 0)
     error->all(FLERR, 10, "Compute slcsa/atom compute {} does not calculate per-atom values",
                val.id);
@@ -141,9 +142,8 @@ ComputeSLCSAAtom::ComputeSLCSAAtom(LAMMPS *lmp, int narg, char **arg) :
   if (comm->me == 0) {
 
     if (strcmp(database_mean_descriptor_file, "NULL") == 0) {
-      error->one(FLERR, Error::NOLASTLINE,
-                 "Cannot open database mean descriptor file {}: ", database_mean_descriptor_file,
-                 utils::getsyserror());
+      error->one(FLERR, Error::NOLASTLINE, "Cannot open database mean descriptor file {}",
+                 database_mean_descriptor_file);
     } else {
       PotentialFileReader reader(lmp, database_mean_descriptor_file,
                                  "database mean descriptor file");
@@ -157,7 +157,7 @@ ComputeSLCSAAtom::ComputeSLCSAAtom(LAMMPS *lmp, int narg, char **arg) :
 
     if (strcmp(lda_scalings_file, "NULL") == 0) {
       error->one(FLERR, Error::NOLASTLINE, "Cannot open database linear discriminant analysis "
-                 "scalings file {}: ", lda_scalings_file, utils::getsyserror());
+                 "scalings file {}", lda_scalings_file);
     } else {
       PotentialFileReader reader(lmp, lda_scalings_file, "lda scalings file");
       int nread = 0;
@@ -171,8 +171,8 @@ ComputeSLCSAAtom::ComputeSLCSAAtom(LAMMPS *lmp, int narg, char **arg) :
     }
 
     if (strcmp(lr_decision_file, "NULL") == 0) {
-      error->one(FLERR, Error::NOLASTLINE, "Cannot open logistic regression decision file {}: ",
-                 lr_decision_file, utils::getsyserror());
+      error->one(FLERR, Error::NOLASTLINE, "Cannot open logistic regression decision file {}",
+                 lr_decision_file);
     } else {
       PotentialFileReader reader(lmp, lr_decision_file, "lr decision file");
       int nread = 0;
@@ -186,8 +186,8 @@ ComputeSLCSAAtom::ComputeSLCSAAtom(LAMMPS *lmp, int narg, char **arg) :
     }
 
     if (strcmp(lr_bias_file, "NULL") == 0) {
-      error->one(FLERR, Error::NOLASTLINE, "Cannot open logistic regression bias file {}: ",
-                 lr_bias_file, utils::getsyserror());
+      error->one(FLERR, Error::NOLASTLINE, "Cannot open logistic regression bias file {}",
+                 lr_bias_file);
     } else {
       PotentialFileReader reader(lmp, lr_bias_file, "lr bias file");
       auto values = reader.next_values(nclasses);
@@ -198,8 +198,7 @@ ComputeSLCSAAtom::ComputeSLCSAAtom(LAMMPS *lmp, int narg, char **arg) :
     }
 
     if (strcmp(maha_file, "NULL") == 0) {
-      error->one(FLERR, Error::NOLASTLINE, "Cannot open mahalanobis stats file {}: ", maha_file,
-                 utils::getsyserror());
+      error->one(FLERR, Error::NOLASTLINE, "Cannot open mahalanobis stats file {}", maha_file);
     } else {
       PotentialFileReader reader(lmp, maha_file, "mahalanobis stats file");
       int nvalues = nclasses * ((nclasses - 1) * (nclasses - 1) + nclasses);
@@ -267,8 +266,8 @@ ComputeSLCSAAtom::~ComputeSLCSAAtom()
 void ComputeSLCSAAtom::init()
 {
 
-  if (modify->get_compute_by_style(style).size() > 1)
-    if (comm->me == 0) error->warning(FLERR, "More than one compute {}", style);
+  if ((comm->me == 0) && (modify->get_compute_by_style("^slcsa/atom").size() > 1))
+    error->warning(FLERR, "More than one compute {}", style);
 }
 
 /* ---------------------------------------------------------------------- */

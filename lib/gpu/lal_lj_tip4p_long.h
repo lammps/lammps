@@ -29,7 +29,6 @@ public:
   /// Clear any previous data and set up for a new LAMMPS run
   /** \param max_nbors initial number of rows in the neighbor matrix
     * \param cell_size cutoff + skin
-    * \param gpu_split fraction of particles handled by device
     *
     * Returns:
     * -  0 if successful
@@ -44,7 +43,7 @@ public:
            const double alpha, const double qdist,
            const int nall, const int max_nbors,
            const int maxspecial, const double cell_size,
-           const double gpu_split, FILE *screen,
+           FILE *screen,
            double **host_cut_ljsq,
            const double host_cut_coulsq, const double host_cut_coulsqplus,
            double *host_special_coul, const double qqrd2e,
@@ -68,8 +67,8 @@ public:
   void compute(const int f_ago, const int inum_full, const int nall,
                double **host_x, int *host_type, int *ilist, int *numj,
                int **firstneigh, const bool eflag, const bool vflag,
-               const bool eatom, const bool vatom, int &host_start,
-               const double cpu_time, bool &success, double *charge,
+               const bool eatom, const bool vatom,
+               bool &success, double *charge,
                const int nlocal, double *boxlo, double *prd);
 
   /// Reimplement BaseCharge pair loop with device neighboring
@@ -78,8 +77,8 @@ public:
                 tagint *tag,int *map_array, int map_size, int *sametag,
                 int max_same, int **nspecial, tagint **special,
                 const bool eflag, const bool vflag, const bool eatom,
-                const bool vatom, int &host_start, int **ilist, int **numj,
-                const double cpu_time, bool &success, double *charge,
+                const bool vatom, int **ilist, int **numj,
+                bool &success, double *charge,
                 double *boxlo, double *prd, int *periodicity);
 
 
@@ -108,13 +107,15 @@ public:
   UCL_D_Vec<int> hneight;
   UCL_D_Vec<numtyp4> m; // position and charge of virtual particle
   UCL_D_Vec<acctyp4> ansO; // force applied to virtual particle
+  // atom index -> neighbor list row + 1, zero if the atom is not in the list
+  UCL_D_Vec<int> nbor_row;
   // UCL_D_Vec<acctyp4> force_comp;
 
   UCL_D_Vec<tagint> tag;
   UCL_D_Vec<int> map_array;
   UCL_D_Vec<int> atom_sametag;
 
-  UCL_Kernel k_pair_distrib, k_pair_reneigh, k_pair_newsite;
+  UCL_Kernel k_pair_distrib, k_pair_reneigh, k_pair_newsite, k_pair_rowmap;
   UCL_Kernel k_pair_distrib_noev, *k_pair_dt_sel;
 
  private:

@@ -39,7 +39,8 @@ static constexpr double EPSILON = 1.0e-10;
 
 /* ---------------------------------------------------------------------- */
 
-PairDPDfdtEnergy::PairDPDfdtEnergy(LAMMPS *lmp) : Pair(lmp)
+PairDPDfdtEnergy::PairDPDfdtEnergy(LAMMPS *lmp) :
+    Pair(lmp), cut(nullptr), a0(nullptr), sigma(nullptr), kappa(nullptr), alpha(nullptr)
 {
   random = nullptr;
   duCond = nullptr;
@@ -70,7 +71,7 @@ PairDPDfdtEnergy::~PairDPDfdtEnergy()
     memory->destroy(duMech);
   }
 
-  if (random) delete random;
+  delete random;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -401,22 +402,16 @@ void PairDPDfdtEnergy::init_style()
   if (comm->ghost_velocity == 0)
     error->all(FLERR,"Pair dpd/fdt/energy requires ghost atoms store velocity");
 
-  splitFDT_flag = false;
+  splitFDT_flag = !modify->get_fix_by_style("^shardlow").empty();
   neighbor->add_request(this);
-  for (int i = 0; i < modify->nfix; i++)
-    if (utils::strmatch(modify->fix[i]->style,"^shardlow")) {
-      splitFDT_flag = true;
-    }
 
   // if newton off, forces between atoms ij will be double computed
   // using different random numbers if splitFDT_flag is false
   if (!splitFDT_flag && (force->newton_pair == 0) && (comm->me == 0)) error->warning(FLERR,
       "Pair dpd/fdt/energy requires newton pair on if not also using fix shardlow");
 
-  bool eos_flag = false;
-  for (int i = 0; i < modify->nfix; i++)
-    if (utils::strmatch(modify->fix[i]->style,"^eos")) eos_flag = true;
-  if (!eos_flag) error->all(FLERR,"pair_style dpd/fdt/energy requires an EOS fix to be specified");
+  if (modify->get_fix_by_style("^eos").empty())
+    error->all(FLERR,"pair_style dpd/fdt/energy requires an EOS fix to be specified");
 }
 
 /* ----------------------------------------------------------------------
@@ -522,7 +517,7 @@ void PairDPDfdtEnergy::read_restart_settings(FILE *fp)
   // initialize Marsaglia RNG with processor-unique seed
   // same seed that pair_style command initially specified
 
-  if (random) delete random;
+  delete random;
   random = new RanMars(lmp,seed + comm->me);
 }
 

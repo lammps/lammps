@@ -57,7 +57,7 @@ this paper :ref:`(Lysogorskiy21) <Lysogorskiy20211_2>`.
 
 The potential energy :math:`E_i` of an atom :math:`i` of an adaptive-precision
 interatomic potential (APIP) according to
-:ref:`(Immel25) <Immel2025_7>` is given by
+:ref:`(Immel) <Immel2025_7>` is given by
 
 .. math::
 
@@ -144,4 +144,4 @@ See :doc:`pair_style pace <pair_pace>`.
 
 .. _Immel2025_7:
 
-**(Immel25)** Immel, Drautz and Sutmann, J Chem Phys, 162, 114119 (2025)
+**(Immel)** Immel, Drautz and Sutmann, J Chem Phys, 162, 114119 (2025)

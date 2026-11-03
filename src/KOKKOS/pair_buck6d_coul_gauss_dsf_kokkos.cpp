@@ -17,7 +17,6 @@
 #include "atom_kokkos.h"
 #include "atom_masks.h"
 #include "error.h"
-#include "ewald_const.h"
 #include "force.h"
 #include "kokkos.h"
 #include "math_const.h"
@@ -29,7 +28,6 @@
 #include "update.h"
 
 using namespace LAMMPS_NS;
-using namespace EwaldConst;
 using MathConst::MY_PIS;
 
 /* ---------------------------------------------------------------------- */
@@ -99,15 +97,15 @@ void PairBuck6dCoulGaussDSFKokkos<DeviceType>::compute(int eflag_in, int vflag_i
   type = atomKK->k_type.view<DeviceType>();
   nlocal = atom->nlocal;
   nall = atom->nlocal + atom->nghost;
-  special_lj[0] = force->special_lj[0];
-  special_lj[1] = force->special_lj[1];
-  special_lj[2] = force->special_lj[2];
-  special_lj[3] = force->special_lj[3];
-  special_coul[0] = force->special_coul[0];
-  special_coul[1] = force->special_coul[1];
-  special_coul[2] = force->special_coul[2];
-  special_coul[3] = force->special_coul[3];
-  qqrd2e = force->qqrd2e;
+  special_lj[0] = static_cast<KK_FLOAT>(force->special_lj[0]);
+  special_lj[1] = static_cast<KK_FLOAT>(force->special_lj[1]);
+  special_lj[2] = static_cast<KK_FLOAT>(force->special_lj[2]);
+  special_lj[3] = static_cast<KK_FLOAT>(force->special_lj[3]);
+  special_coul[0] = static_cast<KK_FLOAT>(force->special_coul[0]);
+  special_coul[1] = static_cast<KK_FLOAT>(force->special_coul[1]);
+  special_coul[2] = static_cast<KK_FLOAT>(force->special_coul[2]);
+  special_coul[3] = static_cast<KK_FLOAT>(force->special_coul[3]);
+  qqrd2e = static_cast<KK_FLOAT>(force->qqrd2e);
   newton_pair = force->newton_pair;
 
   EV_FLOAT ev;
@@ -118,16 +116,16 @@ void PairBuck6dCoulGaussDSFKokkos<DeviceType>::compute(int eflag_in, int vflag_i
     (this,(NeighListKokkos<DeviceType>*)list);
 
   if (eflag) {
-    eng_vdwl += ev.evdwl;
-    eng_coul += ev.ecoul;
+    eng_vdwl += static_cast<double>(ev.evdwl);
+    eng_coul += static_cast<double>(ev.ecoul);
   }
   if (vflag_global) {
-    virial[0] += ev.v[0];
-    virial[1] += ev.v[1];
-    virial[2] += ev.v[2];
-    virial[3] += ev.v[3];
-    virial[4] += ev.v[4];
-    virial[5] += ev.v[5];
+    virial[0] += static_cast<double>(ev.v[0]);
+    virial[1] += static_cast<double>(ev.v[1]);
+    virial[2] += static_cast<double>(ev.v[2]);
+    virial[3] += static_cast<double>(ev.v[3]);
+    virial[4] += static_cast<double>(ev.v[4]);
+    virial[5] += static_cast<double>(ev.v[5]);
   }
 
   if (eflag_atom) {
@@ -158,7 +156,7 @@ compute_fpair(const KK_FLOAT& rsq, const int& /*i*/, const int& /*j*/,
               const int& itype, const int& jtype) const
 {
   const KK_FLOAT r = Kokkos::sqrt(rsq);
-  const KK_FLOAT r2inv = 1.0/rsq;
+  const KK_FLOAT r2inv = static_cast<KK_FLOAT>(1.0)/rsq;
   const KK_FLOAT r6inv = r2inv*r2inv*r2inv;
   const KK_FLOAT r14inv = r6inv*r6inv*r2inv;
 
@@ -171,10 +169,10 @@ compute_fpair(const KK_FLOAT& rsq, const int& /*i*/, const int& /*j*/,
   const KK_FLOAT term1 = b3*r6inv;
   const KK_FLOAT term2 = b4*r14inv;
   const KK_FLOAT term3 = term2*term2;
-  const KK_FLOAT term4 = 1.0/(1.0 + term2);
-  const KK_FLOAT term5 = 1.0/(1.0 + 2.0*term2 + term3);
+  const KK_FLOAT term4 = static_cast<KK_FLOAT>(1.0)/(static_cast<KK_FLOAT>(1.0) + term2);
+  const KK_FLOAT term5 = static_cast<KK_FLOAT>(1.0)/(static_cast<KK_FLOAT>(1.0) + static_cast<KK_FLOAT>(2.0)*term2 + term3);
   KK_FLOAT forcebuck6d = b1*b2*r*rexp;
-  forcebuck6d -= term1*(6.0*term4 - term5*14.0*term2);
+  forcebuck6d -= term1*(static_cast<KK_FLOAT>(6.0)*term4 - term5*static_cast<KK_FLOAT>(14.0)*term2);
   KK_FLOAT ebuck6d = b1*rexp - term1*term4;
 
   // optional polynomial smoothing near cutoff
@@ -189,7 +187,7 @@ compute_fpair(const KK_FLOAT& rsq, const int& /*i*/, const int& /*j*/,
     const KK_FLOAT c4v = STACKPARAMS ? m_params[itype][jtype].c4 : params(itype,jtype).c4;
     const KK_FLOAT c5v = STACKPARAMS ? m_params[itype][jtype].c5 : params(itype,jtype).c5;
     const KK_FLOAT sme = c5v*rqu*r + c4v*rqu + c3v*rcu + c2v*rsq + c1v*r + c0v;
-    const KK_FLOAT smf = 5.0*c5v*rqu + 4.0*c4v*rcu + 3.0*c3v*rsq + 2.0*c2v*r + c1v;
+    const KK_FLOAT smf = static_cast<KK_FLOAT>(5.0)*c5v*rqu + static_cast<KK_FLOAT>(4.0)*c4v*rcu + static_cast<KK_FLOAT>(3.0)*c3v*rsq + static_cast<KK_FLOAT>(2.0)*c2v*r + c1v;
     forcebuck6d = forcebuck6d*sme - ebuck6d*smf*r;
     // ebuck6d *= sme;  // not needed for force path
   }
@@ -211,19 +209,20 @@ compute_fcoul(const KK_FLOAT& rsq, const int& /*i*/, const int& j,
               const int& itype, const int& jtype,
               const KK_FLOAT& factor_coul, const KK_FLOAT& qtmp) const
 {
-  const KK_FLOAT r2inv = 1.0/rsq;
+  const KK_FLOAT r2inv = static_cast<KK_FLOAT>(1.0)/rsq;
   const KK_FLOAT r = Kokkos::sqrt(rsq);
   const KK_FLOAT alpha = STACKPARAMS ? m_params[itype][jtype].alpha_ij : params(itype,jtype).alpha_ij;
   const KK_FLOAT f_sh  = STACKPARAMS ? m_params[itype][jtype].f_shift_ij : params(itype,jtype).f_shift_ij;
-  const KK_FLOAT prefactor = factor_coul * qqrd2e * qtmp * q(j);
+  const KK_FLOAT prefactor = qqrd2e * qtmp * q(j);
   const KK_FLOAT arg = alpha * r;
   const KK_FLOAT erfcd = Kokkos::exp(-arg*arg);
-  // use polynomial approximation for erfc, then erf = 1 - erfc
-  const KK_FLOAT t = 1.0 / (1.0 + EWALD_P*arg);
-  const KK_FLOAT erfcc = 1.0 - t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * erfcd;
+  const KK_FLOAT erfcc = Kokkos::erf(arg);
   // force: erf(alpha*r)/r -> d/dr = -erf/r^2 + 2*alpha*erfcd/(sqrt(pi)*r)
   // so fpair = prefactor * (erfcc/r - 2*alpha/MY_PIS*erfcd + r*f_shift) / rsq
-  return prefactor * (erfcc/r - 2.0*alpha/MY_PIS * erfcd + r*f_sh) * r2inv;
+  KK_FLOAT forcecoul = prefactor * (erfcc/r - static_cast<KK_FLOAT>(2.0)*alpha/static_cast<KK_FLOAT>(MY_PIS) * erfcd + r*f_sh);
+  // special bonds scaling removes only the undamped 1/r Coulomb part
+  if (factor_coul < static_cast<KK_FLOAT>(1.0)) forcecoul -= (static_cast<KK_FLOAT>(1.0)-factor_coul)*prefactor/r;
+  return forcecoul * r2inv;
 }
 
 /* ----------------------------------------------------------------------
@@ -239,7 +238,7 @@ compute_evdwl(const KK_FLOAT& rsq, const int& /*i*/, const int& /*j*/,
                const int& itype, const int& jtype) const
 {
   const KK_FLOAT r = Kokkos::sqrt(rsq);
-  const KK_FLOAT r2inv = 1.0/rsq;
+  const KK_FLOAT r2inv = static_cast<KK_FLOAT>(1.0)/rsq;
   const KK_FLOAT r6inv = r2inv*r2inv*r2inv;
   const KK_FLOAT r14inv = r6inv*r6inv*r2inv;
 
@@ -252,7 +251,7 @@ compute_evdwl(const KK_FLOAT& rsq, const int& /*i*/, const int& /*j*/,
   const KK_FLOAT rexp = Kokkos::exp(-r*b2);
   const KK_FLOAT term1 = b3*r6inv;
   const KK_FLOAT term2 = b4*r14inv;
-  const KK_FLOAT term4 = 1.0/(1.0 + term2);
+  const KK_FLOAT term4 = static_cast<KK_FLOAT>(1.0)/(static_cast<KK_FLOAT>(1.0) + term2);
   KK_FLOAT ebuck6d = b1*rexp - term1*term4;
 
   const KK_FLOAT rsmooth_sq_val = STACKPARAMS ? m_params[itype][jtype].rsmooth_sq : params(itype,jtype).rsmooth_sq;
@@ -290,12 +289,13 @@ compute_ecoul(const KK_FLOAT& rsq, const int& /*i*/, const int& j,
   const KK_FLOAT alpha = STACKPARAMS ? m_params[itype][jtype].alpha_ij : params(itype,jtype).alpha_ij;
   const KK_FLOAT e_sh  = STACKPARAMS ? m_params[itype][jtype].e_shift_ij : params(itype,jtype).e_shift_ij;
   const KK_FLOAT f_sh  = STACKPARAMS ? m_params[itype][jtype].f_shift_ij : params(itype,jtype).f_shift_ij;
-  const KK_FLOAT prefactor = factor_coul * qqrd2e * qtmp * q(j);
+  const KK_FLOAT prefactor = qqrd2e * qtmp * q(j) / r;
   const KK_FLOAT arg = alpha * r;
-  const KK_FLOAT erfcd = Kokkos::exp(-arg*arg);
-  const KK_FLOAT t = 1.0 / (1.0 + EWALD_P*arg);
-  const KK_FLOAT erfcc = 1.0 - t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * erfcd;
-  return prefactor * (erfcc - r*e_sh - rsq*f_sh) / r;
+  const KK_FLOAT erfcc = Kokkos::erf(arg);
+  KK_FLOAT ecoul = prefactor * (erfcc - r*e_sh - rsq*f_sh);
+  // special bonds scaling removes only the undamped 1/r Coulomb part
+  if (factor_coul < static_cast<KK_FLOAT>(1.0)) ecoul -= (static_cast<KK_FLOAT>(1.0)-factor_coul)*prefactor;
+  return ecoul;
 }
 
 /* ----------------------------------------------------------------------
@@ -333,7 +333,7 @@ void PairBuck6dCoulGaussDSFKokkos<DeviceType>::init_style()
 {
   PairBuck6dCoulGaussDSF::init_style();
 
-  Kokkos::deep_copy(d_cut_coulsq,cut_coulsq);
+  Kokkos::deep_copy(d_cut_coulsq,static_cast<KK_FLOAT>(cut_coulsq));
 
   if (update->whichflag == 1 && utils::strmatch(update->integrate_style,"^respa")) {
     int respa = 0;
@@ -382,9 +382,9 @@ double PairBuck6dCoulGaussDSFKokkos<DeviceType>::init_one(int i, int j)
   k_params.view_host()(j,i) = k_params.view_host()(i,j);
   if (i<MAX_TYPES_STACKPARAMS+1 && j<MAX_TYPES_STACKPARAMS+1) {
     m_params[i][j] = m_params[j][i] = k_params.view_host()(i,j);
-    m_cutsq[j][i] = m_cutsq[i][j] = cutone*cutone;
-    m_cut_ljsq[j][i] = m_cut_ljsq[i][j] = cut_ljsqm;
-    m_cut_coulsq[j][i] = m_cut_coulsq[i][j] = cut_coulsq;
+    m_cutsq[j][i] = m_cutsq[i][j] = static_cast<KK_FLOAT>(cutone*cutone);
+    m_cut_ljsq[j][i] = m_cut_ljsq[i][j] = static_cast<KK_FLOAT>(cut_ljsqm);
+    m_cut_coulsq[j][i] = m_cut_coulsq[i][j] = static_cast<KK_FLOAT>(cut_coulsq);
   }
 
   k_cutsq.view_host()(i,j) = k_cutsq.view_host()(j,i) = cutone*cutone;

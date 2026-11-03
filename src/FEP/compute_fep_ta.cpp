@@ -19,6 +19,7 @@
 
 #include "angle.h"
 #include "atom.h"
+#include "atom_masks.h"
 #include "bond.h"
 #include "comm.h"
 #include "dihedral.h"
@@ -54,7 +55,7 @@ ComputeFEPTA::ComputeFEPTA(LAMMPS *lmp, int narg, char **arg) : Compute(lmp, nar
 
   vector = new double[size_vector];
 
-  fepinitflag = 0;    // avoid init to run entirely when called by write_data
+  fepinitflag = 0;    // print settings only at the first init()
 
   temp_fep = utils::numeric(FLERR, arg[3], false, lmp);
 
@@ -89,14 +90,13 @@ ComputeFEPTA::ComputeFEPTA(LAMMPS *lmp, int narg, char **arg) : Compute(lmp, nar
       error->all(FLERR, "Illegal optional keyword in compute fep/ta");
   }
 
-  // allocate space for position, force, energy, virial arrays
+  // position, force, energy, virial per-atom arrays are allocated in init()
 
+  nmax = 0;
   x_orig = nullptr;
   f_orig = nullptr;
   peatom_orig = keatom_orig = nullptr;
   pvatom_orig = kvatom_orig = nullptr;
-
-  allocate_storage();
 
   fixgpu = nullptr;
 }
@@ -114,12 +114,8 @@ ComputeFEPTA::~ComputeFEPTA()
 
 void ComputeFEPTA::init()
 {
-  if (!fepinitflag)    // avoid init to run entirely when called by write_data
-    fepinitflag = 1;
-  else
-    return;
-
-  // setup and error checks
+  // setup and error checks, repeated at every init() since the pair style
+  // or kspace style may have been changed or added since the previous run
 
   if (domain->dimension == 2) { error->all(FLERR, "Cannot compute fep/ta in 2d simulation"); }
 
@@ -130,17 +126,25 @@ void ComputeFEPTA::init()
                  "compute tail corrections");
   }
 
+  // (re-)allocate per-atom storage, the kspace arrays depend on force->kspace
+
+  deallocate_storage();
+  allocate_storage();
+
   // detect if package gpu is present
 
   fixgpu = modify->get_fix_by_id("package_gpu");
 
-  if (comm->me == 0)
+  // print settings only once and not again when called by write_data or later runs
+
+  if ((comm->me == 0) && !fepinitflag)
     utils::logmesg(lmp,
                    "FEP/TA settings ...\n"
                    "  temperature = {:f}\n"
                    "  scale factor = {:f}\n"
                    "  tail {}\n",
                    temp_fep, scale_factor, tailflag ? "yes" : "no");
+  fepinitflag = 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -262,6 +266,11 @@ double ComputeFEPTA::compute_pe()
 void ComputeFEPTA::change_box()
 {
   int i;
+
+  // rescaled through the host pointers ahead of a KOKKOS force evaluation
+
+  atom->sync_host_arrays(X_MASK);
+
   double **x = atom->x;
   int natom = atom->nlocal + atom->nghost;
 
@@ -279,6 +288,8 @@ void ComputeFEPTA::change_box()
 
   // remap atom position
   for (i = 0; i < natom; i++) domain->lamda2x(x[i], x[i]);
+
+  atom->modified_host_arrays(X_MASK);
 
   if (force->kspace) force->kspace->setup();
 }
@@ -355,6 +366,10 @@ void ComputeFEPTA::deallocate_storage()
 void ComputeFEPTA::backup_xfev()
 {
   int i;
+
+  // sync the host copies, the arrays are read below through the host pointers
+
+  atom->sync_host_arrays(X_MASK | F_MASK);
 
   int natom = atom->nlocal + atom->nghost;
 
@@ -438,6 +453,10 @@ void ComputeFEPTA::restore_xfev()
 {
   int i;
 
+  // written back through the host pointers, then handed to the device
+
+  atom->sync_host_arrays(X_MASK | F_MASK);
+
   int natom = atom->nlocal + atom->nghost;
 
   double **x = atom->x;
@@ -512,6 +531,8 @@ void ComputeFEPTA::restore_xfev()
       }
     }
   }
+
+  atom->modified_host_arrays(X_MASK | F_MASK);
 }
 
 /* ---------------------------------------------------------------------- */

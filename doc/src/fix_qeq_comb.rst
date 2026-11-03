@@ -37,7 +37,7 @@ Description
 
 Perform charge equilibration (QeQ) in conjunction with the COMB
 (Charge-Optimized Many-Body) potential as described in
-:ref:`(COMB_1) <COMB_1>` and :ref:`(COMB_2) <COMB_2>`.  It performs the charge
+:ref:`(COMB_1) <COMB_1>` and :ref:`(COMB) <COMB_2>`.  It performs the charge
 equilibration portion of the calculation using the so-called QEq
 method, whereby the charge on each atom is adjusted to minimize the
 energy of the system.  This fix can only be used with the COMB
@@ -50,8 +50,8 @@ per-atom electronegativity (effective force on the charges).  An
 electronegativity equalization calculation (or QEq) is performed in an
 iterative fashion, which in parallel requires communication at each
 iteration for processors to exchange charge information about nearby
-atoms with each other.  See :ref:`Rappe_and_Goddard <Rappe_and_Goddard>` and
-:ref:`Rick_and_Stuart <Rick_and_Stuart>` for details.
+atoms with each other.  See :ref:`Rappe <Rappe_and_Goddard>` and
+:ref:`Rick <Rick_and_Stuart>` for details.
 
 During a run, charge equilibration is performed every *Nevery* time
 steps.  Charge equilibration is also always enforced on the first step
@@ -120,15 +120,15 @@ No file output is performed.
 
 .. _COMB_2:
 
-**(COMB_2)** T.-R. Shan, B. D. Devine, T. W. Kemper, S. B. Sinnott, S. R.
+**(COMB)** T.-R. Shan, B. D. Devine, T. W. Kemper, S. B. Sinnott, S. R.
 Phillpot, Phys Rev B, 81, 125328 (2010).
 
 .. _Rappe_and_Goddard:
 
-**(Rappe_and_Goddard)** A. K. Rappe, W. A. Goddard, J Phys Chem 95, 3358
+**(Rappe)** A. K. Rappe, W. A. Goddard, J Phys Chem 95, 3358
 (1991).
 
 .. _Rick_and_Stuart:
 
-**(Rick_and_Stuart)** S. W. Rick, S. J. Stuart, B. J. Berne, J Chem Phys
+**(Rick)** S. W. Rick, S. J. Stuart, B. J. Berne, J Chem Phys
 101, 16141 (1994).

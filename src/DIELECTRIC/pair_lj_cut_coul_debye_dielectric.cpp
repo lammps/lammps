@@ -35,7 +35,8 @@ static constexpr double EPSILON = 1.0e-6;
 
 /* ---------------------------------------------------------------------- */
 
-PairLJCutCoulDebyeDielectric::PairLJCutCoulDebyeDielectric(LAMMPS *_lmp) : PairLJCutCoulDebye(_lmp)
+PairLJCutCoulDebyeDielectric::PairLJCutCoulDebyeDielectric(LAMMPS *_lmp) :
+    PairLJCutCoulDebye(_lmp), avec(nullptr)
 {
   efield = nullptr;
   epot = nullptr;
@@ -159,7 +160,7 @@ void PairLJCutCoulDebyeDielectric::compute(int eflag, int vflag)
         epot[i] += epot_i;
 
         if (eflag) {
-          if (rsq < cut_coulsq[itype][jtype]) {
+          if (rsq < cut_coulsq[itype][jtype] && rsq > EPSILON) {
             ecoul = factor_coul * qqrd2e * qtmp * q[j] * 0.5 * (etmp + eps[j]) * rinv * screening;
           } else
             ecoul = 0.0;

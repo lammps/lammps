@@ -49,13 +49,13 @@ int LJDSFT::init(const int ntypes, double **host_cutsq, double **host_lj1,
                  double **host_offset,  double *host_special_lj,
                  const int nlocal, const int nall, const int max_nbors,
                  const int maxspecial, const double cell_size,
-                 const double gpu_split, FILE *_screen,
+                           FILE *_screen,
                  double **host_cut_ljsq, const double host_cut_coulsq,
                  double *host_special_coul, const double qqrd2e,
                  const double e_shift, const double f_shift,
                  const double alpha) {
   int success;
-  success=this->init_atomic(nlocal,nall,max_nbors,maxspecial,cell_size,gpu_split,
+  success=this->init_atomic(nlocal,nall,max_nbors,maxspecial,cell_size,
                             _screen,lj_dsf,"k_lj_dsf");
   if (success!=0)
     return success;

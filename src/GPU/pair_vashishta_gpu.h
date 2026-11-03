@@ -38,7 +38,6 @@ class PairVashishtaGPU : public PairVashishta {
   void allocate();
   int gpu_allocated;
   int gpu_mode;
-  double cpu_time;
 };
 
 }    // namespace LAMMPS_NS

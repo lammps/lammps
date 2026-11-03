@@ -129,6 +129,30 @@ manner:
    available in doc/Tools (in brief) and as a README file in tools/replica
    (in detail).
 
+To continue a tempering run later, each replica must write its own
+restart file, since each replica has a different configuration.  As for
+the dump files, this is done by including the replica number in the file
+name for the :doc:`write_restart <write_restart>` or :doc:`restart
+<restart>` command, and then reading the same file name with the
+:doc:`read_restart <read_restart>` command in the input that continues
+the run:
+
+.. code-block:: LAMMPS
+
+   variable rep world 0 1 2 3 4 5 6 7
+   # at the end of the first input
+   write_restart restart.temper.${rep}
+   # at the beginning of the input that continues the run
+   read_restart restart.temper.${rep}
+
+.. warning::
+
+   If the file name is the same for all replicas, all replicas write to
+   the same file at the same time.  The resulting file may contain the
+   state of just one of the replicas or a garbled mix of data from
+   several replicas.  When continuing the run, all replicas would then
+   start from the same and possibly corrupted configuration.
+
 The last argument *index* in the temper command is optional and is
 used when restarting a tempering run from a set of restart files (one
 for each replica) which had previously swapped to new temperatures.
@@ -137,8 +161,14 @@ identifies which temperature the replica was simulating on the
 timestep the restart files were written.  Obviously, this argument
 must be a variable so that each partition has the correct value.  Set
 the variable to the *N* values listed in the log file for the previous
-run for the replica temperatures at that timestep.  For example if the
-log file listed the following for a simulation with 5 replicas:
+run for the replica temperatures at that timestep.  If the restart files
+were written with :doc:`write_restart <write_restart>` after the temper
+command finished, these are the values in the last line.  If they were
+written by the :doc:`restart <restart>` command during the run, use the
+last line with a timestep *smaller* than the timestep of the restart
+files, since a restart file is written before the swap attempt on the
+same timestep.  For example if the log file listed the following for a
+simulation with 5 replicas:
 
 .. parsed-literal::
 
@@ -151,7 +181,10 @@ then a setting of
    variable w world 2 4 0 1 3
 
 would be used to restart the run with a tempering command like the
-example above with $w as the last argument.
+example above with $w as the last argument.  Unlike the *index*
+variable, the variable with the replica number (*rep* in the examples
+above) stays the same, so it should be used in the names of restart and
+dump files.
 
 ----------
 

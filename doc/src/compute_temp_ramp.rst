@@ -1,7 +1,10 @@
 .. index:: compute temp/ramp
+.. index:: compute temp/ramp/kk
 
 compute temp/ramp command
 =========================
+
+Accelerator Variant: *temp/ramp/kk*
 
 Syntax
 """"""
@@ -65,7 +68,7 @@ command must have been previously used to define the lattice spacing.
 
 A symmetric tensor, stored as a six-element vector, is also calculated
 by this compute for use in the computation of a pressure tensor by the
-:doc:`compute pressue <compute_pressure>` command.  The formula for
+:doc:`compute pressure <compute_pressure>` command.  The formula for
 the components of the tensor is the same as the above expression for
 :math:`E_\mathrm{kin}`, except that the 1/2 factor is NOT included and
 the :math:`v_i^2` is replaced by :math:`v_{i,x} v_{i,y}` for the
@@ -116,6 +119,10 @@ vector values are "extensive".
 
 The scalar value is in temperature :doc:`units <units>`.  The vector
 values are in energy :doc:`units <units>`.
+
+----------
+
+.. include:: accel_styles.rst
 
 Restrictions
 """"""""""""

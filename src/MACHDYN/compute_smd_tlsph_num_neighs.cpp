@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
  *
  *                    *** Smooth Mach Dynamics ***
@@ -9,7 +8,6 @@
  * Eckerstrasse 4, D-79104 Freiburg i.Br, Germany.
  *
  * ----------------------------------------------------------------------- */
-
 
 /* ----------------------------------------------------------------------
  LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
@@ -24,85 +22,88 @@
  See the README file in the top-level LAMMPS directory.
  ------------------------------------------------------------------------- */
 
-#include <cstring>
 #include "compute_smd_tlsph_num_neighs.h"
+
 #include "atom.h"
-#include "update.h"
-#include "modify.h"
 #include "comm.h"
+#include "error.h"
 #include "force.h"
 #include "memory.h"
-#include "error.h"
+#include "modify.h"
 #include "pair.h"
+#include "update.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
 ComputeSMDTLSPHNumNeighs::ComputeSMDTLSPHNumNeighs(LAMMPS *lmp, int narg, char **arg) :
-        Compute(lmp, narg, arg) {
-    if (narg != 3)
-        error->all(FLERR, "Illegal compute smd/tlsph_num_neighs command");
+    Compute(lmp, narg, arg)
+{
+  if (narg != 3) error->all(FLERR, 2, "Illegal compute smd/tlsph/num/neighs command");
 
-    peratom_flag = 1;
-    size_peratom_cols = 0;
+  peratom_flag = 1;
+  size_peratom_cols = 0;
 
-    nmax = 0;
-    numNeighsRefConfigOutput = nullptr;
+  nmax = 0;
+  numNeighsRefConfigOutput = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
 
-ComputeSMDTLSPHNumNeighs::~ComputeSMDTLSPHNumNeighs() {
+ComputeSMDTLSPHNumNeighs::~ComputeSMDTLSPHNumNeighs()
+{
+  memory->destroy(numNeighsRefConfigOutput);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void ComputeSMDTLSPHNumNeighs::init()
+{
+  if ((comm->me == 0) && (modify->get_compute_by_style("^smd/tlsph/num/neighs").size() > 1))
+    error->warning(FLERR, "More than one compute {}", style);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void ComputeSMDTLSPHNumNeighs::compute_peratom()
+{
+  invoked_peratom = update->ntimestep;
+
+  if (atom->nmax > nmax) {
     memory->destroy(numNeighsRefConfigOutput);
-}
+    nmax = atom->nmax;
+    memory->create(numNeighsRefConfigOutput, nmax, "smd/tlsph/num/neighs:numNeighsRefConfigOutput");
+    vector_atom = numNeighsRefConfigOutput;
+  }
 
-/* ---------------------------------------------------------------------- */
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
 
-void ComputeSMDTLSPHNumNeighs::init() {
-    int count = 0;
-    for (int i = 0; i < modify->ncompute; i++)
-        if (strcmp(modify->compute[i]->style, "smd/tlsph_num_neighs") == 0)
-            count++;
-    if (count > 1 && comm->me == 0)
-        error->warning(FLERR, "More than one compute smd/tlsph_num_neighs");
-}
+  int itmp = 0;
+  int *numNeighsRefConfig = (int *) force->pair->extract("smd/tlsph/numNeighsRefConfig_ptr", itmp);
+  if (numNeighsRefConfig == nullptr) {
+    error->all(FLERR, Error::NOLASTLINE,
+               "compute smd/tlsph/num/neighs failed to access numNeighsRefConfig array");
+  }
 
-/* ---------------------------------------------------------------------- */
-
-void ComputeSMDTLSPHNumNeighs::compute_peratom() {
-    invoked_peratom = update->ntimestep;
-
-    if (atom->nmax > nmax) {
-        memory->destroy(numNeighsRefConfigOutput);
-        nmax = atom->nmax;
-        memory->create(numNeighsRefConfigOutput, nmax, "tlsph/num_neighs:numNeighsRefConfigOutput");
-        vector_atom = numNeighsRefConfigOutput;
+  for (int i = 0; i < nlocal; i++) {
+    if (mask[i] & groupbit) {
+      numNeighsRefConfigOutput[i] = numNeighsRefConfig[i];
+    } else {
+      numNeighsRefConfigOutput[i] = 0.0;
     }
-
-    int *mask = atom->mask;
-    int nlocal = atom->nlocal;
-
-    int itmp = 0;
-    int *numNeighsRefConfig = (int *) force->pair->extract("smd/tlsph/numNeighsRefConfig_ptr", itmp);
-    if (numNeighsRefConfig == nullptr) {
-        error->all(FLERR, "compute smd/tlsph_num_neighs failed to access numNeighsRefConfig array");
-    }
-
-    for (int i = 0; i < nlocal; i++) {
-        if (mask[i] & groupbit) {
-            numNeighsRefConfigOutput[i] = numNeighsRefConfig[i];
-        } else {
-            numNeighsRefConfigOutput[i] = 0.0;
-        }
-    }
+  }
 }
 
 /* ----------------------------------------------------------------------
  memory usage of local atom-based array
  ------------------------------------------------------------------------- */
 
-double ComputeSMDTLSPHNumNeighs::memory_usage() {
-    double bytes = (double)nmax * sizeof(double);
-    return bytes;
+double ComputeSMDTLSPHNumNeighs::memory_usage()
+{
+  double bytes = (double) nmax * sizeof(double);
+  return bytes;
 }

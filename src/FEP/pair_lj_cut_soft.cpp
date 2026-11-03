@@ -38,7 +38,9 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-PairLJCutSoft::PairLJCutSoft(LAMMPS *lmp) : Pair(lmp)
+PairLJCutSoft::PairLJCutSoft(LAMMPS *lmp) :
+    Pair(lmp), cut(nullptr), epsilon(nullptr), sigma(nullptr), lambda(nullptr), lj1(nullptr),
+    lj2(nullptr), lj3(nullptr), offset(nullptr), cut_respa(nullptr)
 {
   respa_enable = 1;
   writedata = 1;
@@ -50,6 +52,8 @@ PairLJCutSoft::PairLJCutSoft(LAMMPS *lmp) : Pair(lmp)
 
 PairLJCutSoft::~PairLJCutSoft()
 {
+  if (copymode) return;
+
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);
@@ -447,10 +451,18 @@ void PairLJCutSoft::allocate()
 
 void PairLJCutSoft::settings(int narg, char **arg)
 {
-  if (narg != 3) error->all(FLERR,"Illegal pair_style command");
+  if (narg < 3)
+    utils::missing_cmd_args(FLERR, "pair_style lj/cut/soft", error);
+  if (narg > 3)
+    error->all(FLERR, 4, "Too many arguments in pair_style lj/cut/soft command");
 
   nlambda = utils::numeric(FLERR,arg[0],false,lmp);
+  if (nlambda <= 0.0)
+    error->all(FLERR, 1, "Pair style lj/cut/soft requires n > 0, but n = {}", nlambda);
   alphalj = utils::numeric(FLERR,arg[1],false,lmp);
+  if (alphalj < 0.0)
+    error->all(FLERR, 2, "Pair style lj/cut/soft requires alpha_LJ >= 0, but alpha_LJ = {}",
+               alphalj);
 
   cut_global = utils::numeric(FLERR,arg[2],false,lmp);
 

@@ -43,6 +43,7 @@ KSpace::KSpace(LAMMPS *lmp) :
 
   triclinic_support = 1;
   ewaldflag = pppmflag = espflag = msmflag = dispersionflag = tip4pflag = dipoleflag = spinflag = rk_flag = 0;
+  xtbflag = 0;
   compute_flag = 1;
   group_group_enable = 0;
   stagger_flag = 0;
@@ -98,6 +99,7 @@ KSpace::KSpace(LAMMPS *lmp) :
   datamask_read = ALL_MASK;
   datamask_modify = ALL_MASK;
   copymode = 0;
+  kokkosable = 0;
 
   memory->create(gcons,7,7,"kspace:gcons");
   gcons[2][0] = 15.0 / 8.0;
@@ -300,9 +302,10 @@ void KSpace::qsum_qsq(int warning_flag)
   const int nlocal = atom->nlocal;
   double qsum_local(0.0), qsqsum_local(0.0);
 
-#if defined(_OPENMP)
-#pragma omp parallel for default(shared) reduction(+:qsum_local,qsqsum_local)
-#endif
+  // do not use a threaded reduction here, since the summation order and thus the
+  // result would depend on the number of threads.  this would propagate to the
+  // estimated g_ewald and the energy, even when no styles with OpenMP support are used.
+
   for (int i = 0; i < nlocal; i++) {
     qsum_local += q[i];
     qsqsum_local += q[i]*q[i];
@@ -383,6 +386,17 @@ void KSpace::x2lamdaT(double *v, double *lamda)
   lamda_tmp[0] = h_inv[0]*v[0];
   lamda_tmp[1] = h_inv[5]*v[0] + h_inv[1]*v[1];
   lamda_tmp[2] = h_inv[4]*v[0] + h_inv[3]*v[1] + h_inv[2]*v[2];
+
+  // EW3DC slab correction: the reciprocal-space sum is evaluated on a cell
+  // whose z dimension is extended by slab_volfactor (vacuum insertion).  The
+  // slab normal must be the Cartesian z axis, which requires xz == yz == 0
+  // (enforced by the kspace styles' init() guards; xy tilt is allowed).  With
+  // xz == yz == 0, extending the box z (h[2] -> h[2]*slab_volfactor) scales
+  // only the third column of h_inv by 1/slab_volfactor, i.e. the z component
+  // of the transposed-transformed reciprocal vector scales by 1/slab_volfactor.
+  // This is a no-op (slab_volfactor == 1.0) for all non-slab calculations.
+
+  if (slabflag == 1) lamda_tmp[2] /= slab_volfactor;
 
   lamda[0] = lamda_tmp[0];
   lamda[1] = lamda_tmp[1];

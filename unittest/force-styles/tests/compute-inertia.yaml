@@ -1,0 +1,27 @@
+---
+lammps_version: 2 Sep 2026
+tags:
+date_generated: Thu Sep  3 22:53:36 2026
+epsilon: 1e-08
+timestep: 0.001
+skip_tests:
+prerequisites: |
+  atom sphere
+  compute inertia
+pre_commands: |
+  variable atom_style delete
+  variable atom_style index sphere
+  variable pair_style delete
+  variable pair_style index 'zero 4.0'
+post_commands: |
+  pair_coeff * *
+  set group all diameter 3.0
+  set atom 1*8 diameter 5.0
+  set atom 20*27 diameter 0.0
+  set group all density 2.0
+  compute test all inertia
+input_file: in.colloid
+natoms: 27
+global_vector: |-
+  6  6.6570439741307418e+04  6.0263076187745297e+04  5.5798761902774473e+04  1.3819001881348519e+04 -3.3976932397737137e+03  1.6127390413375433e+03
+...

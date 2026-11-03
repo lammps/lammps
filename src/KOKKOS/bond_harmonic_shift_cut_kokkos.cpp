@@ -85,6 +85,12 @@ void BondHarmonicShiftCutKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   k_r0.template sync<DeviceType>();
   k_r1.template sync<DeviceType>();
 
+  // sync and claim here too: the MC fixes call this outside run_style verlet/kk
+
+  atomKK->sync(execution_space,datamask_read);
+  if (eflag || vflag) atomKK->modified(execution_space,datamask_modify);
+  else atomKK->modified(execution_space,F_MASK);
+
   x = atomKK->k_x.template view<DeviceType>();
   f = atomKK->k_f.template view<DeviceType>();
   neighborKK->k_bondlist.template sync<DeviceType>();
@@ -151,7 +157,7 @@ void BondHarmonicShiftCutKokkos<DeviceType>::operator()(TagBondHarmonicShiftCutC
   const KK_FLOAT delz = x(i1,2) - x(i2,2);
 
   const KK_FLOAT rsq = delx*delx + dely*dely + delz*delz;
-  const KK_FLOAT r = sqrt(rsq);
+  const KK_FLOAT r = Kokkos::sqrt(rsq);
 
   // cutoff check
   if (r > d_r1[type]) return;
@@ -162,7 +168,7 @@ void BondHarmonicShiftCutKokkos<DeviceType>::operator()(TagBondHarmonicShiftCutC
   // force & energy
 
   KK_FLOAT fbond = 0.0;
-  if (r > 0.0) fbond = -static_cast<KK_FLOAT>(2.0) * rk / r;
+  if (r > static_cast<KK_FLOAT>(0.0)) fbond = -static_cast<KK_FLOAT>(2.0) * rk / r;
 
   KK_FLOAT ebond = 0.0;
   if (eflag) {

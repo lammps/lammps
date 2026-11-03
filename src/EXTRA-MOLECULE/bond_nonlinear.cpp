@@ -28,7 +28,8 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-BondNonlinear::BondNonlinear(LAMMPS *lmp) : Bond(lmp)
+BondNonlinear::BondNonlinear(LAMMPS *lmp) :
+    Bond(lmp), epsilon(nullptr), r0(nullptr), lamda(nullptr)
 {
   born_matrix_enable = 1;
 }

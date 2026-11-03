@@ -10,7 +10,7 @@ newton          on off
 comm_modify     vel yes cutoff 2.6
 lattice         fcc 1.41
 region          box block 0 20 -1 41 -5 5 units box
-create_box      4 box bond/types 4 extra/bond/per/atom 20 extra/special/per/atom 50
+create_box      4 box bond/types 4 extra/bond/per/atom 20
 mass            * 1.0
 
 # Create initial disordered geometry somewhat near jamming
@@ -19,7 +19,7 @@ region          cantilever block 3.0 12.0 0 40 -2.5 2.5 units box
 region          cantileverw block 2.0 13.0 -1 41 -3.5 3.5 units box
 create_atoms    1 region cantilever
 
-velocity        all create 0.1 345910
+velocity        all create 0.1 345910 loop geom
 
 pair_style      bpm/spring
 pair_coeff      * * 1.0 1.0 1.0

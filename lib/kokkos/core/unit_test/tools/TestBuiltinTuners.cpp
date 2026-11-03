@@ -11,10 +11,15 @@ import kokkos.core;
 
 #include <gtest/gtest.h>
 
+#include <type_traits>
+
 namespace {
 
 using ExecSpace  = Kokkos::DefaultHostExecutionSpace;
 using TeamMember = Kokkos::TeamPolicy<ExecSpace>::member_type;
+
+static_assert(std::is_default_constructible_v<
+              Kokkos::Tools::Experimental::MDRangeTuner<1>>);
 
 struct TestTeamFunctor {
   KOKKOS_FUNCTION void operator()(TeamMember) const {}
@@ -76,6 +81,17 @@ TEST(kokkosp, builtin_tuner) {
   EXPECT_EQ(std::get<0>(begin_point), 1);
   auto end_point = new_team_tuner.get_point(0.9, 0.0, 0.0);
   EXPECT_EQ(std::get<0>(end_point), 5);
+  // Test boundary: fractions near or at 1.0 must clamp to last element, not
+  // go out of bounds. A tuning tool could return such values due to
+  // floating-point rounding.
+  auto near_boundary_point =
+      new_team_tuner.get_point(0.999999999999999, 0.0, 0.0);
+  EXPECT_EQ(std::get<0>(near_boundary_point), 5);
+  auto boundary_point = new_team_tuner.get_point(1.0, 0.0, 0.0);
+  EXPECT_EQ(std::get<0>(boundary_point), 5);
+  // Value slightly over 1.0
+  auto over_boundary_point = new_team_tuner.get_point(1.01, 0.0, 0.0);
+  EXPECT_EQ(std::get<0>(over_boundary_point), 5);
   for (int x = 0; x < 10000; ++x) {
     auto config                 = new_team_tuner.begin();
     [[maybe_unused]] int option = std::get<0>(config);

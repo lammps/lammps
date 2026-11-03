@@ -36,12 +36,14 @@ class FixStoreState : public Fix {
   double memory_usage() override;
   void grow_arrays(int) override;
   void copy_arrays(int, int, int) override;
+  void set_arrays(int) override;
   int pack_exchange(int, double *) override;
   int unpack_exchange(int, double *) override;
   int pack_restart(int, double *) override;
   void unpack_restart(int, int) override;
   int size_restart(int) override;
   int maxsize_restart() override;
+  void *extract(const char *, int &) override;
 
  private:
   struct value_t {
@@ -61,6 +63,21 @@ class FixStoreState : public Fix {
 
   double **avalues;    // archived atom properties
   double *vbuf;        // 1d ptr to values
+
+  // history of archived atom properties (Nrepeat frames)
+
+  int historyflag;         // 1 if history frames are stored
+  int nevery_history;      // store a history frame once every Nevery steps
+  int nrepeat_history;     // # of history frames to store
+  int nfreq_history;       // enable output of stored history on these steps
+  int count_history;       // number of currently stored history frames
+  bigint most_recent_step; // timestep for most recent history frame
+  int most_recent_index;   // index of most recent frame in avalues_history
+  int vsize;               // number of values (needed for extract())
+
+  double ***avalues_history;  // storage for up to Nrepeat history frames
+
+  // COM info
 
   int comflag;
   double cm[3];    // center of mass

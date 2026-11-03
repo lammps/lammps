@@ -20,7 +20,7 @@ Syntax
 * Nfreq = calculate average bond-order every this many timesteps
 * filename = name of output file
 * zero or more keyword/value pairs may be appended
-* keyword = *cutoff* or *element* or *position* or *delete* or *delete_rate_limit*
+* keyword = *cutoff* or *element* or *position* or *delete* or *delete_rate_limit* or *delete_subgroup*
 
   .. parsed-literal::
 
@@ -138,7 +138,7 @@ value.  For example, AuO.pos.\* becomes AuO.pos.0, AuO.pos.1000, etc.
 .. versionadded:: 3Aug2022
 
 The optional keyword *delete* enables the periodic removal of molecules
-from the system :ref:`(Gissinger) <Delete>`.  Criteria for deletion can
+from the system :ref:`(Gissinger2) <Delete>`.  Criteria for deletion can
 be either a list of specific chemical formulae or a range of molecular
 weights.  Molecules are deleted every *Nfreq* timesteps, and bond
 connectivity is determined using the *Nevery* and *Nrepeat* keywords.  The
@@ -297,9 +297,15 @@ The "fix reaxff/species" requires that :doc:`pair_style reaxff <pair_reaxff>` is
 This fix is part of the REAXFF package.  It is only enabled if LAMMPS was built with that
 package.  See the :doc:`Build package <Build_package>` page for more info.
 
-To write compressed species files, you must compile LAMMPS with the
-``-DLAMMPS_GZIP`` option.  See the :doc:`Build settings <Build_settings>`
-doc page for details.
+.. versionchanged:: TBD
+
+The species analysis is skipped with a warning on timesteps for which no
+bond-order data averaged over all *Nrepeat* samples is available yet,
+e.g. on the first timestep of the first run when *Nrepeat* > 1.
+
+To write compressed species files, the corresponding compression
+program must be installed.  See the :ref:`Build settings <gzip>` page
+for details.
 
 Related commands
 """"""""""""""""
@@ -315,4 +321,4 @@ Position files are not written by default.
 
 .. _Delete:
 
-**(Gissinger)** Jacob R. Gissinger, Scott R. Zavada, Joseph G. Smith, Josh Kemppainen, Ivan Gallegos, Gregory M. Odegard, Emilie J. Siochi, and Kristopher E. Wise, Carbon, 202, 336-347 (2023).
+**(Gissinger2)** Jacob R. Gissinger, Scott R. Zavada, Joseph G. Smith, Josh Kemppainen, Ivan Gallegos, Gregory M. Odegard, Emilie J. Siochi, and Kristopher E. Wise, Carbon, 202, 336-347 (2023).

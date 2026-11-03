@@ -143,9 +143,16 @@ void Region::prematch()
 
 int Region::match(double x, double y, double z)
 {
-  if (dynamic) inverse_transform(x, y, z);
+  // Remap into the box if periodic, not all subclasses/methods treat region extending beyond periodic edge
+  double xremap[3];
+  xremap[0] = x;
+  xremap[1] = y;
+  xremap[2] = z;
+  domain->remap(xremap);
+
+  if (dynamic) inverse_transform(xremap[0], xremap[1], xremap[2]);
   if (openflag) return 1;
-  return !(inside(x, y, z) ^ interior);
+  return !(inside(xremap[0], xremap[1], xremap[2]) ^ interior);
 }
 
 /* ----------------------------------------------------------------------
@@ -164,18 +171,20 @@ int Region::surface(double x, double y, double z, double cutoff)
 {
   int ncontact;
   double xs, ys, zs;
-  double xnear[3], xorig[3];
+  double xremap[3], xnear[3], xorig[3];
+
+  // Remap into the box if periodic, not all subclasses/methods treat region extending beyond periodic edge
+  xremap[0] = x;
+  xremap[1] = y;
+  xremap[2] = z;
+  domain->remap(xremap);
 
   if (dynamic) {
-    xorig[0] = x;
-    xorig[1] = y;
-    xorig[2] = z;
-    inverse_transform(x, y, z);
+    MathExtra::copy3(xremap, xorig);
+    inverse_transform(xremap[0], xremap[1], xremap[2]);
   }
 
-  xnear[0] = x;
-  xnear[1] = y;
-  xnear[2] = z;
+  MathExtra::copy3(xremap, xnear);
 
   if (!openflag) {
     if (interior)
@@ -183,9 +192,12 @@ int Region::surface(double x, double y, double z, double cutoff)
     else
       ncontact = surface_exterior(xnear, cutoff);
   } else {
-    // one of surface_int/ext() will return 0
-    // so no need to worry about offset of contact indices
-    ncontact = surface_exterior(xnear, cutoff) + surface_interior(xnear, cutoff);
+    // most of the time, one of surface_int/ext() will return 0
+    //   however, when exactly on top of a periodic boundary
+    //   both could return 1, so run exterior then interior
+    ncontact = surface_exterior(xnear, cutoff);
+    if (ncontact == 0)
+      ncontact = surface_interior(xnear, cutoff);
   }
 
   if (rotateflag && ncontact) {

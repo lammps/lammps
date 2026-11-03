@@ -36,7 +36,8 @@ using MathConst::MY_PIS;
 
 /* ---------------------------------------------------------------------- */
 
-PairCoulLongDielectric::PairCoulLongDielectric(LAMMPS *_lmp) : PairCoulLong(_lmp), efield(nullptr)
+PairCoulLongDielectric::PairCoulLongDielectric(LAMMPS *_lmp) :
+    PairCoulLong(_lmp), efield(nullptr), avec(nullptr)
 {
   nmax = 0;
   single_enable = 0;

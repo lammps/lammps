@@ -1,0 +1,5 @@
+LAMMPS shock physics example problems
+
+hugoniostat: Hugoniostat shock dynamics
+msst:        MSST shock dynamics
+nemd:     NEMD simulation of strong shock in Lennard-Jones fluid

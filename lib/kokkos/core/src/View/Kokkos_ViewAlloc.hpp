@@ -84,9 +84,11 @@ struct ViewValueFunctor {
 
   template <typename Tag>
   void parallel_for_implementation() {
+    // Use a 64-bit index range: allocations can exceed what the execution
+    // space default index_type (e.g. 32-bit on CUDA/HIP) can represent.
     using PolicyType =
-        Kokkos::RangePolicy<ExecSpace, Kokkos::IndexType<int64_t>, Tag>;
-    PolicyType policy(space, 0, n);
+        Kokkos::RangePolicy<ExecSpace, Kokkos::IndexType<size_t>, Tag>;
+    PolicyType policy(space, size_t(0), n);
     uint64_t kpID = 0;
     if (Kokkos::Profiling::profileLibraryLoaded()) {
       const std::string functor_name =

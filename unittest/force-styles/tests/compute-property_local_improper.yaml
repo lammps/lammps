@@ -1,0 +1,20 @@
+---
+lammps_version: 4 Jul 2026
+tags:
+date_generated: Sun Aug 23 12:37:09 2026
+epsilon: 1e-08
+timestep: 0.25
+skip_tests:
+prerequisites: |
+  atom full
+  compute property/local
+pre_commands: ""
+post_commands: |
+  compute test all property/local iatom1 iatom2 iatom3 iatom4 itype
+input_file: in.fourmol
+input_coeffs: coeffs.fourmol
+natoms: 29
+local_data: |2
+   6.0000000000000000e+00  3.0000000000000000e+00  8.0000000000000000e+00  7.0000000000000000e+00  1.0000000000000000e+00
+   8.0000000000000000e+00  6.0000000000000000e+00  1.0000000000000000e+01  9.0000000000000000e+00  2.0000000000000000e+00
+...

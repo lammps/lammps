@@ -31,7 +31,7 @@ class colvarbias_abf : public colvarbias {
 public:
 
   /// Constructor for ABF bias
-  colvarbias_abf(char const *key);
+  colvarbias_abf(colvarmodule *cvmodule_in, char const *key);
   /// Initializer for ABF bias
   int init(std::string const &conf) override;
   /// Default destructor for ABF bias

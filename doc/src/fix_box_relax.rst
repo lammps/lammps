@@ -206,7 +206,7 @@ function then is:
 where *U* is the system potential energy, :math:`P_t` is the desired
 hydrostatic pressure, :math:`V` and :math:`V_0` are the system and reference
 volumes, respectively.  :math:`E_{strain}` is the strain energy expression
-proposed by Parrinello and Rahman :ref:`(Parrinello1981) <Parrinello1981>`.
+proposed by Parrinello and Rahman :ref:`(Parrinello) <Parrinello1981>`.
 Taking derivatives of *E* w.r.t. the box dimensions, and setting these
 to zero, we find that at the minimum of the objective function, the
 global system stress tensor **P** will satisfy the relation:
@@ -378,4 +378,4 @@ The keyword defaults are dilate = all, vmax = 0.0001, nreset = 0.
 
 .. _Parrinello1981:
 
-**(Parrinello1981)** Parrinello and Rahman, J Appl Phys, 52, 7182 (1981).
+**(Parrinello)** Parrinello and Rahman, J Appl Phys, 52, 7182 (1981).

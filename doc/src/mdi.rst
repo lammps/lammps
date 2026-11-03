@@ -24,7 +24,7 @@ Syntax
        keywords = *mdi* or *infile* or *extra* or *command*
          *mdi* value = args passed to MDI for driver to operate with plugins (required)
          *infile* value = filename the engine will read at start-up (optional)
-         *extra* value = aditional command-line args to pass to engine library when loaded (optional)
+         *extra* value = additional command-line args to pass to engine library when loaded (optional)
          *command* value = a LAMMPS input script command to execute (required)
      *connect* args = none
      *exit* args = none

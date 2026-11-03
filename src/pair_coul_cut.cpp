@@ -28,7 +28,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairCoulCut::PairCoulCut(LAMMPS *lmp) : Pair(lmp)
+PairCoulCut::PairCoulCut(LAMMPS *lmp) : Pair(lmp), cut(nullptr), scale(nullptr)
 {
   born_matrix_enable = 1;
   writedata = 1;

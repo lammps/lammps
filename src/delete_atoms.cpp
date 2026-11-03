@@ -237,6 +237,13 @@ void DeleteAtoms::command(int narg, char **arg)
       // overwrite tags with condensed values
       for (int i = 0; i < nlocal; ++i) tag[i] = newtags[i];
 
+      // tagproc is only needed by the settags() callback above
+      // newtags points to mynewtags and thus must not be deleted
+
+      delete[] tagproc;
+      tagproc = nullptr;
+      newtags = nullptr;
+
       // update atom map since we changed the tags
       atom->map_tag_max = -1;
       atom->map_style_set();

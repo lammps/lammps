@@ -30,7 +30,10 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairLJCutDipoleCut::PairLJCutDipoleCut(LAMMPS *lmp) : Pair(lmp)
+PairLJCutDipoleCut::PairLJCutDipoleCut(LAMMPS *lmp) :
+    Pair(lmp), cut_lj(nullptr), cut_ljsq(nullptr), cut_coul(nullptr), cut_coulsq(nullptr),
+    epsilon(nullptr), sigma(nullptr), lj1(nullptr), lj2(nullptr), lj3(nullptr), lj4(nullptr),
+    offset(nullptr)
 {
   single_enable = 0;
 }

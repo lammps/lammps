@@ -136,6 +136,7 @@ FixChargeRegulation::FixChargeRegulation(LAMMPS *lmp, int narg, char **arg) :
   next_reneighbor = update->ntimestep + 1;
   random_equal = new RanPark(lmp, seed);
   random_unequal = new RanPark(lmp, seed);
+  random_unequal->reset_rank(seed, comm->me);
   nacid_attempts = 0;
   nacid_successes = 0;
   nbase_attempts = 0;
@@ -161,7 +162,7 @@ FixChargeRegulation::~FixChargeRegulation() {
   //   when LAMMPS exits
 
   if (exclusion_group_bit && group) {
-    auto group_id = std::string("FixChargeRegulation:gcmc_exclusion_group:") + id;
+    auto group_id = std::string("FixChargeRegulation:exclusion_group:") + id;
     try {
       group->assign(group_id + " delete");
     } catch (std::exception &e) {
@@ -170,9 +171,10 @@ FixChargeRegulation::~FixChargeRegulation() {
     }
   }
 
-  if (group) {
+  if (exclusion_group_bit && group && neighbor) {
     int igroupall = group->find("all");
     neighbor->exclusion_group_group_delete(exclusion_group, igroupall);
+    neighbor->exclusion_group_group_delete(exclusion_group, exclusion_group);
   }
 
   if (ngroups > 0) {
@@ -202,6 +204,8 @@ void FixChargeRegulation::init() {
     error->all(FLERR, Error::NOLASTLINE, "Fix {} is not compatible with /intel pair styles", style);
 
   triclinic = domain->triclinic;
+  if (triclinic)
+    error->all(FLERR, Error::NOLASTLINE, "Fix charge/regulation does not support triclinic boxes");
   c_pe = modify->get_compute_by_id("thermo_pe");
 
   if (pHstr) {
@@ -246,20 +250,24 @@ void FixChargeRegulation::init() {
 
     // neighbor list exclusion setup
     // turn off interactions between group all and the exclusion group
+    // and between atoms in the exclusion group, since those are not in group all
 
     neighbor->modify_params(fmt::format("exclude group {} all",group_id));
+    neighbor->modify_params(fmt::format("exclude group {} {}",group_id,group_id));
   }
 
-  // check that no deletable atoms are in atom->firstgroup
-  // deleting such an atom would not leave firstgroup atoms first
+  // check that no free ions are in atom->firstgroup
+  // they can be deleted, and deleting such an atom would not leave firstgroup atoms first
 
   if (atom->firstgroup >= 0) {
     int *mask = atom->mask;
+    int *type = atom->type;
     int firstgroupbit = group->bitmask[atom->firstgroup];
 
     int flag = 0;
     for (int i = 0; i < atom->nlocal; i++)
-      if ((mask[i] == groupbit) && (mask[i] && firstgroupbit)) flag = 1;
+      if (((type[i] == cation_type) || (type[i] == anion_type)) && (mask[i] & firstgroupbit))
+        flag = 1;
 
     int flagall;
     MPI_Allreduce(&flag, &flagall, 1, MPI_INT, MPI_SUM, world);
@@ -510,7 +518,7 @@ void FixChargeRegulation::backward_acid() {
               (c10pH * nacid_charged * npart_xrd);
 
       if (force->kspace) force->kspace->qsum_qsq();
-      if (force->pair->tail_flag) force->pair->reinit();
+      tail_reinit(&m2, 1);
       double energy_after = energy_full();
 
       if (energy_after < MAXENERGYTEST &&
@@ -645,7 +653,7 @@ void FixChargeRegulation::backward_base() {
               (c10pOH * nbase_charged * npart_xrd);
 
       if (force->kspace) force->kspace->qsum_qsq();
-      if (force->pair->tail_flag) force->pair->reinit();
+      tail_reinit(&m2, 1);
       double energy_after = energy_full();
 
       if (energy_after < MAXENERGYTEST &&
@@ -751,7 +759,8 @@ void FixChargeRegulation::backward_ions() {
       factor = volume_rx * volume_rx * c10pI_plus * c10pI_minus / (ncation * nanion);
 
       if (force->kspace) force->kspace->qsum_qsq();
-      if (force->pair->tail_flag) force->pair->reinit();
+      const int mdel[2] = {m1, m2};
+      tail_reinit(mdel, 2);
       double energy_after = energy_full();
       if (energy_after < MAXENERGYTEST &&
           random_equal->uniform() < (1.0 / factor) * exp(beta * (energy_before - energy_after))) {
@@ -931,7 +940,7 @@ void FixChargeRegulation::backward_ions_multival() {
   // attempt deletion
 
   if (force->kspace) force->kspace->qsum_qsq();
-  if (force->pair->tail_flag) force->pair->reinit();
+  tail_reinit(mm.get(), salt_charge_ratio + 1);
   double energy_after = energy_full();
   if (energy_after < MAXENERGYTEST &&
       random_equal->uniform() < (1.0 / factor) * exp(beta * (energy_before - energy_after))) {
@@ -1135,7 +1144,7 @@ double FixChargeRegulation::energy_full() {
   atom->nghost = 0;
   comm->borders();
   if (triclinic) domain->lamda2x(atom->nlocal + atom->nghost);
-  if (modify->n_pre_neighbor) modify->pre_neighbor();
+  if (modify->has_fixes(FixConst::PRE_NEIGHBOR)) modify->pre_neighbor();
   neighbor->build(1);
 
   if (overlap_flag) {
@@ -1165,7 +1174,7 @@ double FixChargeRegulation::energy_full() {
   size_t nbytes = sizeof(double) * (atom->nlocal + atom->nghost);
   if (nbytes) memset(&atom->f[0][0], 0, 3 * nbytes);
 
-  if (modify->n_pre_force) modify->pre_force(vflag);
+  if (modify->has_fixes(FixConst::PRE_FORCE)) modify->pre_force(vflag);
 
   if (force->pair) force->pair->compute(eflag, vflag);
 
@@ -1178,12 +1187,29 @@ double FixChargeRegulation::energy_full() {
 
   if (force->kspace) force->kspace->compute(eflag, vflag);
 
-  if (modify->n_pre_reverse) modify->pre_reverse(eflag,vflag);
-  if (modify->n_post_force_any) modify->post_force(vflag);
+  if (modify->has_fixes(FixConst::PRE_REVERSE)) modify->pre_reverse(eflag,vflag);
+  if (modify->has_fixes(FixConst::POST_FORCE_ANY)) modify->post_force(vflag);
 
   update->eflag_global = update->ntimestep;
   double total_energy = c_pe->compute_scalar();
   return total_energy;
+}
+
+/* ----------------------------------------------------------------------
+   update the tail correction without the local atoms in mlist, which are
+   to be deleted.  the atoms are not removed until the deletion is accepted,
+   so their types are negated to exclude them from the per-type atom counts.
+------------------------------------------------------------------------- */
+
+void FixChargeRegulation::tail_reinit(const int *mlist, int n) {
+  if (!force->pair->tail_flag) return;
+
+  int *type = atom->type;
+  for (int k = 0; k < n; k++)
+    if (mlist[k] >= 0) type[mlist[k]] = -type[mlist[k]];
+  force->pair->reinit();
+  for (int k = 0; k < n; k++)
+    if (mlist[k] >= 0) type[mlist[k]] = -type[mlist[k]];
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1261,10 +1287,12 @@ double FixChargeRegulation::compute_vector(int n) {
 
 void FixChargeRegulation::write_restart(FILE *fp)
 {
+  int nglobalvals = 10;
+  int nlocalvals = comm->nprocs;
+  int ntotalvals = nglobalvals + nlocalvals;
+  std::vector<double> list(ntotalvals);
   int n = 0;
-  double list[10];
   list[n++] = random_equal->state();
-  list[n++] = random_unequal->state();
   list[n++] = nacid_attempts;
   list[n++] = nacid_successes;
   list[n++] = nbase_attempts;
@@ -1273,11 +1301,15 @@ void FixChargeRegulation::write_restart(FILE *fp)
   list[n++] = nsalt_successes;
   list[n++] = ubuf(next_reneighbor).d;
   list[n++] = ubuf(update->ntimestep).d;
+  list[n++] = nlocalvals;
+
+  double state = random_unequal->state();
+  MPI_Gather(&state, 1, MPI_DOUBLE, &list[n], 1, MPI_DOUBLE, 0, world);
 
   if (comm->me == 0) {
-    int size = (int) sizeof(list);
-    fwrite(&size,sizeof(int),1,fp);
-    fwrite(list,sizeof(list),1,fp);
+    int size = ntotalvals * sizeof(double);
+    fwrite(&size, sizeof(int), 1, fp);
+    fwrite(list.data(), sizeof(double), ntotalvals, fp);
   }
 }
 
@@ -1293,8 +1325,6 @@ void FixChargeRegulation::restart(char *buf)
   seed = static_cast<int>(list[n++]);
   random_equal->reset(seed);
 
-  seed = static_cast<int>(list[n++]);
-  random_unequal->reset(seed);
   // NOLINTBEGIN
   nacid_attempts  = list[n++];
   nacid_successes = list[n++];
@@ -1306,7 +1336,19 @@ void FixChargeRegulation::restart(char *buf)
   next_reneighbor = (bigint) ubuf(list[n++]).i;
   bigint ntimestep_restart = (bigint) ubuf(list[n++]).i;
   if (ntimestep_restart != update->ntimestep)
-    error->all(FLERR,"Must not reset timestep when restarting fix gcmc");
+    error->all(FLERR,"Must not reset timestep when restarting fix charge/regulation");
+
+  // read stored state of RNG unique to this process
+  // if nprocs changed, derive a unique state from the state of proc 0
+
+  auto nlocalvals = (int) list[n++];
+  if (nlocalvals == comm->nprocs) {
+    seed = static_cast<int>(list[n + comm->me]);
+    random_unequal->reset(seed);
+  } else {
+    seed = static_cast<int>(list[n]);
+    random_unequal->reset_rank(seed, comm->me);
+  }
 }
 
 /* ---------------------------------------------------------------------- */

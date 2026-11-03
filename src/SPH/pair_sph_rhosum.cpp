@@ -28,7 +28,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairSPHRhoSum::PairSPHRhoSum(LAMMPS *lmp) : Pair(lmp)
+PairSPHRhoSum::PairSPHRhoSum(LAMMPS *lmp) : Pair(lmp), cut(nullptr)
 {
   if (atom->rho_flag != 1)
     error->all(FLERR, Error::NOLASTLINE,
@@ -101,19 +101,9 @@ void PairSPHRhoSum::compute(int eflag, int vflag)
 
         h = cut[itype][itype];
         if (domain->dimension == 3) {
-          /*
-          // Lucy kernel, 3d
-          wf = 2.0889086280811262819e0 / (h * h * h);
-          */
-
           // quadric kernel, 3d
           wf = 2.1541870227086614782 / (h * h * h);
         } else {
-          /*
-          // Lucy kernel, 2d
-          wf = 1.5915494309189533576e0 / (h * h);
-          */
-
           // quadric kernel, 2d
           wf = 1.5915494309189533576e0 / (h * h);
         }
@@ -147,24 +137,12 @@ void PairSPHRhoSum::compute(int eflag, int vflag)
             ihsq = ih * ih;
 
             if (domain->dimension == 3) {
-              /*
-              // Lucy kernel, 3d
-              r = sqrt(rsq);
-              wf = (h - r) * ihsq;
-              wf =  2.0889086280811262819e0 * (h + 3. * r) * wf * wf * wf * ih;
-              */
-
               // quadric kernel, 3d
               wf = 1.0 - rsq * ihsq;
               wf = wf * wf;
               wf = wf * wf;
               wf = 2.1541870227086614782e0 * wf * ihsq * ih;
             } else {
-              // Lucy kernel, 2d
-              //r = sqrt(rsq);
-              //wf = (h - r) * ihsq;
-              //wf = 1.5915494309189533576e0 * (h + 3. * r) * wf * wf * wf;
-
               // quadric kernel, 2d
               wf = 1.0 - rsq * ihsq;
               wf = wf * wf;

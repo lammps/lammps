@@ -39,7 +39,7 @@ class AngleHybridKokkos : public AngleHybrid {
   void init_style() override;
   double memory_usage() override;
 
- private:
+ protected:
   int maxangle_all;
 
   class NeighborKokkos *neighborKK;

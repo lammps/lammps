@@ -465,7 +465,7 @@ void FixWall::post_force(int vflag)
 {
   // virial setup
 
-  v_init(vflag);
+  v_setup_peratom(vflag);
 
   // energy intialize.
   // eflag is used to track whether wall energies have been communicated.

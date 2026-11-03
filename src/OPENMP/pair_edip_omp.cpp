@@ -19,6 +19,8 @@
 #include "neigh_list.h"
 #include "suffix.h"
 
+#include "fmt/format.h"
+
 #include <cmath>
 
 #include "omp_compat.h"
@@ -78,6 +80,8 @@ void PairEDIPOMP::compute(int eflag, int vflag)
     thr->timer(Timer::PAIR);
     reduce_thr(this, eflag, vflag, thr);
   }    // end of omp parallel region
+
+  error_thr();
 }
 
 template <int EVFLAG, int EFLAG, int VFLAG_ATOM>
@@ -149,7 +153,7 @@ void PairEDIPOMP::eval(int iifrom, int iito, ThrData *const thr)
   double *pre_thrExp2B_ij = preExp2B_ij + tid * leadDimInteractionList;
   double *pre_thrExp2BDerived_ij = preExp2BDerived_ij + tid * leadDimInteractionList;
   double *pre_thrPow2B_ij = prePow2B_ij + tid * leadDimInteractionList;
-  double *pre_thrForceCoord = preForceCoord + tid * leadDimInteractionList;
+  double *pre_thrForceCoord = preForceCoord + 5 * tid * leadDimInteractionList;
 
   const auto *_noalias const x = (dbl3_t *) atom->x[0];
   auto *_noalias const f = (dbl3_t *) thr->get_f()[0];
@@ -174,6 +178,13 @@ void PairEDIPOMP::eval(int iifrom, int iito, ThrData *const thr)
 
     jlist = firstneigh[i];
     jnum = numneigh[i];
+
+    // the per-neighbor scratch arrays have a fixed size
+
+    if (check_error_thr((jnum > leadDimInteractionList), tid, FLERR,
+                        fmt::format("Pair style edip supports at most {} neighbors per atom; "
+                                    "atom {} has {}", leadDimInteractionList, atom->tag[i], jnum)))
+      return;
 
     // pre-loop to compute environment coordination f(Z)
 

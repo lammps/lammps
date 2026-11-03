@@ -1,0 +1,21 @@
+include         common_lj.mod
+fix             1 all nve
+group           half type 1
+compute         ke1 all ke
+compute         ke2 half ke
+compute         com1 all com
+compute         com2 half com
+compute         in1 all inertia
+compute         gy1 all gyration
+compute         gyt half gyration
+compute         ce1 all centro/atom fcc
+compute         ce2 all centro/atom fcc axes yes
+compute         hx1 all hexorder/atom
+compute         en1 all entropy/atom 0.1 2.0
+compute         sce all reduce sum c_ce1
+compute         shx all reduce sum c_hx1[1]
+compute         sen all reduce sum c_en1
+thermo_style    custom step c_ke1 c_ke2 c_com1[1] c_com2[3] c_in1[1] c_in1[4] &
+                c_gy1 c_gyt[1] c_sce c_shx c_sen
+thermo          5
+run             20 post no

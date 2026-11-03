@@ -1,0 +1,36 @@
+variable        tdir index ../../../unittest/force-styles/tests
+units           real
+atom_style      full
+atom_modify     map array
+pair_style      zero 10.0
+bond_style      zero
+angle_style     zero
+dihedral_style  zero
+improper_style  zero
+read_data       ${tdir}/data.fourmol
+pair_style      lj/cut 8.0
+pair_coeff      * * 0.02 3.0
+variable        ts index linear
+bond_style      table ${ts} 1000
+bond_coeff      1 ${tdir}/bond_table.txt harmonic_1
+bond_coeff      2 ${tdir}/bond_table.txt harmonic_2
+bond_coeff      3 ${tdir}/bond_table.txt harmonic_3
+bond_coeff      4 ${tdir}/bond_table.txt harmonic_4
+bond_coeff      5 ${tdir}/bond_table.txt harmonic_5
+angle_style     table ${ts} 1000
+angle_coeff     1 ${tdir}/angle_table.txt harmonic_1
+angle_coeff     2 ${tdir}/angle_table.txt harmonic_2
+angle_coeff     3 ${tdir}/angle_table.txt harmonic_3
+angle_coeff     4 ${tdir}/angle_table.txt harmonic_4
+dihedral_style  table ${ts} 3600
+dihedral_coeff  1 ${tdir}/harmonic_dihedral.txt HARMONIC_1
+dihedral_coeff  2 ${tdir}/harmonic_dihedral.txt HARMONIC_2
+dihedral_coeff  3 ${tdir}/harmonic_dihedral.txt HARMONIC_3
+dihedral_coeff  4 ${tdir}/harmonic_dihedral.txt HARMONIC_4
+dihedral_coeff  5 ${tdir}/harmonic_dihedral.txt HARMONIC_5
+neighbor        2.0 bin
+neigh_modify    delay 0 every 1 check yes
+fix             1 all nve
+thermo_style    custom step temp pe ebond eangle edihed press
+thermo          5
+run             20 post no

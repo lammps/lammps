@@ -32,6 +32,7 @@ class FixDeformKokkos : public FixDeform {
   FixDeformKokkos(class LAMMPS *, int, char **);
 
   void pre_exchange() override;
+  void migrate_atoms() override;
   void update_box() override;
 
 };

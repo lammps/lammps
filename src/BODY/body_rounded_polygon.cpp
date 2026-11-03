@@ -183,6 +183,10 @@ void BodyRoundedPolygon::data_body(int ibonus, int ninteger, int ndouble,
   bonus->dvalue = dcp->get(bonus->ndouble,bonus->dindex);
 
   // diagonalize inertia tensor
+  // do not sort the eigenvalues: for a planar body only the xy-block is rotated,
+  //   so the z-axis remains the 3rd principal axis and the orientation is a pure
+  //   rotation around z.  sorting would make z the 1st axis (largest moment) and
+  //   the quaternion a 90 degree tilt that leaks roundoff out of the xy-plane.
 
   double tensor[3][3];
   tensor[0][0] = dfile[0];
@@ -194,8 +198,8 @@ void BodyRoundedPolygon::data_body(int ibonus, int ninteger, int ndouble,
 
   double *inertia = bonus->inertia;
   double evectors[3][3];
-  int ierror = MathEigen::jacobi3(tensor,inertia,evectors);
-  if (ierror) error->one(FLERR,"Insufficient Jacobi rotations for body nparticle");
+  int ierror = MathEigen::jacobi3(tensor,inertia,evectors,0);
+  if (ierror) error->one(FLERR,"Insufficient Jacobi rotations for body rounded/polygon");
 
   // if any principal moment < scaled EPSILON, set to 0.0
 

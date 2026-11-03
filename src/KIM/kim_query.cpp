@@ -339,7 +339,7 @@ char *do_query(const std::string &qfunction, const std::string &mname,
             val = val.substr(n + 1);
             n = val.find(",");
           }
-          if (val.size()) {
+          if (!val.empty()) {
             query += (val.front() == '"' && val.back() == '"')
               ? fmt::format("{}]", val)
               : fmt::format("\"{}\"]", val);

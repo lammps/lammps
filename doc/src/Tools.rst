@@ -6,8 +6,8 @@ molecular dynamics computations.  Additional pre- and post-processing
 steps are often necessary to setup and analyze a simulation.  A list
 of such tools can be found on the `LAMMPS webpage <lws_>`_ at these links:
 
-* `Pre/Post processing <https://www.lammps.org/prepost.html>`_
-* `External LAMMPS packages & tools <https://www.lammps.org/external.html>`_
+* `Pre/Post processing <https://www.lammps.org/ecosystem/prepost/>`_
+* `External LAMMPS packages & tools <https://www.lammps.org/ecosystem/tools/>`_
 * `Pizza.py toolkit <pizza_>`_
 
 The last link for `Pizza.py <pizza_>`_ is a Python-based tool developed at
@@ -15,7 +15,7 @@ Sandia which provides tools for doing setup, analysis, plotting, and
 visualization for LAMMPS simulations.
 
 .. _lws: https://www.lammps.org
-.. _pizza: https://lammps.github.io/pizza/
+.. _pizza: https://sjplimp.github.io/pizza/
 .. _python: https://www.python.org
 
 Additional tools included in the LAMMPS distribution are described on
@@ -50,6 +50,7 @@ Pre-processing tools
    * :ref:`eam database <eamdb>`
    * :ref:`eam generate <eamgn>`
    * :ref:`eff <eff>`
+   * :ref:`find-symmetry <findsym>`
    * :ref:`ipp <ipp>`
    * :ref:`micelle2d <micelle>`
    * :ref:`moltemplate <moltemplate>`
@@ -358,6 +359,43 @@ See README file in the tools/fep directory.
 
 ----------
 
+.. _findsym:
+
+find-symmetry tool
+------------------
+
+.. versionadded:: TBD
+
+The tools/symmetry directory contains the *find-symmetry* program,
+which writes symmetry files for the :doc:`fix symmetry <fix_symmetry>`
+command.  It uses the `spglib library <https://spglib.readthedocs.io/>`_
+and is compiled with CMake when ``-D BUILD_TOOLS=on`` is used, unless
+``-D USE_SPGLIB=off`` is also given.
+
+It has two modes.  Given a LAMMPS data file, e.g. written by the
+:doc:`write_data <write_data>` command, it determines the space group of
+the atoms in the simulation box and writes its operators.  When the box
+consists of several unit cells, the operators of one unit cell are
+written with a "supercell" entry, which keeps the file short.  It also
+reports by how much the positions deviate from exact symmetry, if that
+requires a larger *tol* setting for the fix.
+
+.. code-block:: bash
+
+   find-symmetry -o crystal.json data.crystal
+
+With the ``-g`` flag and a space group number, it writes the operators
+of that space group in its standard setting, e.g. for a box of 2 x 2 x 1
+conventional unit cells of a monoclinic crystal in space group P2_1/c:
+
+.. code-block:: bash
+
+   find-symmetry -g 14 -s 2 2 1 -o p21c.json
+
+Run ``find-symmetry -h`` for a list of all options.
+
+----------
+
 .. _ipi:
 
 i-PI tool
@@ -470,6 +508,20 @@ files even if the LAMMPS sources are not locally available. Example:
 
    check-jsonschema --schemafile https://download.lammps.org/json/molecule-schema.json tip3p.json
 
+Because YAML is a superset of JSON, the same tool and mechanism can also
+validate YAML files against a JSON schema.  This is used for the force-style
+regression test reference files in the ``unittest/force-styles`` folder, which
+are described by ``force-style-test-schema.json``.  For example, to validate
+all of them:
+
+.. code-block:: sh
+
+   check-jsonschema --schemafile force-style-test-schema.json \
+       unittest/force-styles/tests/*.yaml
+
+See the :doc:`unit test developer documentation <Developer_unittest>` for a
+description of the available keys in these reference files.
+
 JSON file format normalization
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -520,10 +572,10 @@ LAMMPS-GUI is a graphical text editor customized for editing LAMMPS
 input files that is linked to the :ref:`LAMMPS C-library
 <lammps_c_api>`.  It used to be included with LAMMPS in the
 ``tools/lammps-gui`` folder, but it is now hosted in its own git
-repository at https://github.com/akohlmey/lammps-gui/ and the online
+repository at https://github.com/lammps/lammps-gui/ and the online
 documentation is at https://lammps-gui.lammps.org/
 
-It is still possible to compile :ref:`LAMMPS-GUI together with LAMMPS <tools>`.
+It is still possible to compile :ref:`LAMMPS-GUI together with LAMMPS <build_tools>`.
 
 ----------
 
@@ -762,10 +814,10 @@ dependencies and redirects the download to the local cache.
    # export LAMMPS_CACHING_DIR=path/to/folder
    source tools/offline/use_caches.sh
 
-   mkdir build
-   cd build
-   cmake -D LAMMPS_DOWNLOADS_URL=${HTTP_CACHE_URL} -C "${LAMMPS_HTTP_CACHE_CONFIG}" -C ../cmake/presets/most.cmake -D DOWNLOAD_POTENTIALS=off ../cmake
-   make -j 8
+   cmake -S cmake -B build -D LAMMPS_DOWNLOADS_URL=${HTTP_CACHE_URL} \
+         -C "${LAMMPS_HTTP_CACHE_CONFIG}" -C cmake/presets/most.cmake \
+         -D DOWNLOAD_POTENTIALS=off
+   cmake --build build
 
    deactivate_caches
 

@@ -113,7 +113,7 @@ ComputeBondLocal::ComputeBondLocal(LAMMPS *lmp, int narg, char **arg) :
       vstr[nvar] = utils::strdup(&arg[iarg][2]);
       nvar++;
     } else if (utils::strmatch(arg[iarg], R"(^b\d+$)")) {    // b1, b2, b3, ... bN
-      int n = std::stoi(&arg[iarg][1]);
+      int n = utils::inumeric(FLERR, &arg[iarg][1], false, lmp);
       if (n <= 0)
         error->all(FLERR, iarg, "Invalid keyword {} in compute bond/local command", arg[iarg]);
       bstyle[nvalues] = BN;

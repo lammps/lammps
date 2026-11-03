@@ -1,7 +1,10 @@
 .. index:: fix nve/asphere/noforce
+.. index:: fix nve/asphere/noforce/kk
 
 fix nve/asphere/noforce command
 ===============================
+
+Accelerator Variants: *nve/asphere/noforce/kk*
 
 Syntax
 """"""
@@ -32,6 +35,10 @@ angular momenta are used to update their positions and orientation.
 This is useful as an implicit time integrator for Fast Lubrication
 Dynamics, since the velocity and angular momentum are updated by the
 :doc:`pair_style lubricuteU <pair_lubricateU>` command.
+
+----------
+
+.. include:: accel_styles.rst
 
 ----------
 

@@ -52,7 +52,6 @@ class FixEOStableRX : public Fix {
   int ntables;
   Table *tables, *tables2;
 
-  void allocate();
   void null_table(Table *);
   void free_table(Table *);
   void read_table(Table *, Table *, char *, char *);
@@ -65,6 +64,7 @@ class FixEOStableRX : public Fix {
   double splint(double *, double *, double *, int, double);
 
   int nspecies;
+  class FixRX *rx_fix;
 
   void read_file(char *);
 

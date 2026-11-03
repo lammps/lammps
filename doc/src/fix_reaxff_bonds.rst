@@ -86,6 +86,10 @@ computed by the :doc:`ReaxFF pair style <pair_reaxff>` to *dump image*
 so that they can be included in the rendered image.  Only bonds where
 *both* atoms are within the fix group generate graphics objects that are
 displayed in the dumped images.  That group may be a dynamic group.
+This requires an atom map, which is not created by default for the atom
+styles commonly used with ReaxFF (e.g. atom style *charge*).  Use
+:doc:`atom_modify map yes <atom_modify>` to create one; otherwise
+LAMMPS stops with an error when writing the first image.
 
 The color of the bonds is by default that of the atoms when using color
 styles "type" or "element".  With color style "const" the default value
@@ -126,9 +130,9 @@ The fix reaxff/bonds command requires that the :doc:`pair_style reaxff
 is only enabled if LAMMPS was built with that package.  See the
 :doc:`Build package <Build_package>` page for more info.
 
-To write compressed bond files, you must compile LAMMPS with the
-``-DLAMMPS_GZIP`` option.  See the :doc:`Build settings <Build_settings>`
-doc page for details.
+To write compressed bond files, the corresponding compression program
+must be installed.  See the :ref:`Build settings <gzip>` page for
+details.
 
 Related commands
 """"""""""""""""

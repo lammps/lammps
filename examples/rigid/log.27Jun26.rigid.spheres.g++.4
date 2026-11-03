@@ -1,0 +1,105 @@
+LAMMPS (30 Mar 2026 - Development - c0111598fe-modified)
+  using 1 OpenMP thread(s) per MPI task
+# Rigid bodies built from finite-size (sphere) particles -- exercises the
+# extended-particle (SPHERE) path of fix rigid/small/kk: per-step omega is set
+# from the body rotation and eflags migrate in the device exchange.
+#   lmp -in in.rigid.spheres
+#   lmp -k on -sf kk -pk kokkos comm device sort device -in in.rigid.spheres
+
+units           lj
+atom_style      sphere
+atom_modify     map array
+
+lattice         sc 0.06
+Lattice spacing in x,y,z = 2.5543648 2.5543648 2.5543648
+region          box block 0 4 0 4 0 4
+create_box      1 box
+Created orthogonal box = (0 0 0) to (10.217459 10.217459 10.217459)
+  1 by 2 by 2 MPI processor grid
+
+fix             prop all property/atom mol ghost yes
+molecule        mymol mol.sphere4
+Read molecule template mymol:
+# 4 finite spheres in a tetrahedral rigid cluster
+  1 molecules
+  0 fragments
+  0 bodies
+  4 atoms with max type 1
+  0 bonds with max type 0
+  0 angles with max type 0
+  0 dihedrals with max type 0
+  0 impropers with max type 0
+create_atoms    0 region box mol mymol 39847
+Created 256 atoms
+  using lattice units in orthogonal box = (0 0 0) to (10.217459 10.217459 10.217459)
+  create_atoms CPU = 0.001 seconds
+
+
+pair_style      lj/cut 2.5
+pair_coeff      1 1 1.0 1.0
+neigh_modify    exclude molecule/intra all
+
+fix             1 all rigid/small molecule
+Fix rigid/small setup ...
+  create bodies CPU = 0.000 seconds
+  64 rigid bodies with 256 atoms
+  1.6970563 = max distance from body owner to body atom
+
+compute         erot all erotate/sphere
+thermo_style    custom step pe f_1 c_erot
+thermo          200
+timestep        0.0005
+run             2000
+Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 2.8
+  ghost atom cutoff = 2.8
+  binsize = 1.4, bins = 8 8 8
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cut, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 9.624 | 9.625 | 9.625 Mbytes
+   Step         PotEng          f_1           c_erot    
+         0   4.438232       0              0            
+       200  -0.33209704     6.3303928      0.21432622   
+       400  -0.5161156      6.5716235      0.32913395   
+       600  -0.74232893     6.8696665      0.24808845   
+       800  -0.57185375     6.637166       0.29088711   
+      1000  -0.64137158     6.7210224      0.35481556   
+      1200  -0.82957119     6.9655919      0.37256533   
+      1400  -0.82474155     6.9521683      0.40009097   
+      1600  -0.76419357     6.8688611      0.40386267   
+      1800  -0.76707299     6.8745133      0.43665163   
+      2000  -0.69902172     6.7863093      0.40858029   
+Loop time of 0.166061 on 4 procs for 2000 steps with 256 atoms
+
+Performance: 520290.632 tau/day, 12043.765 timesteps/s, 3.083 Matom-step/s
+88.8% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.0072462  | 0.0077881  | 0.0084441  |   0.5 |  4.69
+Neigh   | 0.0064105  | 0.0068729  | 0.0075224  |   0.5 |  4.14
+Comm    | 0.052793   | 0.054552   | 0.056139   |   0.6 | 32.85
+Output  | 0.00011407 | 0.0001911  | 0.00039433 |   0.0 |  0.12
+Modify  | 0.076344   | 0.083495   | 0.091306   |   2.2 | 50.28
+Other   |            | 0.01316    |            |       |  7.93
+
+Nlocal:             64 ave          71 max          59 min
+Histogram: 1 1 0 0 0 1 0 0 0 1
+Nghost:         361.25 ave         366 max         356 min
+Histogram: 1 0 0 0 1 0 0 1 0 1
+Neighs:          657.5 ave         682 max         617 min
+Histogram: 1 0 0 0 0 1 0 0 0 2
+
+Total # of neighbors = 2630
+Ave neighs/atom = 10.273438
+Neighbor list builds = 116
+Dangerous builds = 0
+Total wall time: 0:00:00

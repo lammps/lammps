@@ -24,16 +24,14 @@ PairStyle(eam/opt,PairEAMOpt);
 
 namespace LAMMPS_NS {
 
-// use virtual public since this class is parent in multiple inheritance
-
-class PairEAMOpt : virtual public PairEAM {
+class PairEAMOpt : public PairEAM {
  public:
   PairEAMOpt(class LAMMPS *);
 
   void compute(int, int) override;
 
  private:
-  template <int EVFLAG, int EFLAG, int NEWTON_PAIR> void eval();
+  template <int EVFLAG, int EFLAG, int NEWTON_PAIR, int HE> void eval();
 };
 
 }    // namespace LAMMPS_NS

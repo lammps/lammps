@@ -60,6 +60,8 @@ PairTIP4PLongSoft::PairTIP4PLongSoft(LAMMPS *lmp) : PairCoulLongSoft(lmp)
 
 PairTIP4PLongSoft::~PairTIP4PLongSoft()
 {
+  if (copymode) return;
+
   memory->destroy(hneigh);
   memory->destroy(newsite);
 }
@@ -223,7 +225,14 @@ void PairTIP4PLongSoft::compute(int eflag, int vflag)
           denc = sqrt(lam2[itype][jtype] + rsq);
           prefactor = qqrd2e * lam1[itype][jtype] * qtmp*q[j] / (denc*denc*denc);
 
-          forcecoul = prefactor * (erfc + EWALD_F*grij*expm2);
+          // the soft core replaces only the 1/r factor, while the Ewald damping
+
+          // keeps the true distance, so differentiating erfc(g*r)/denc leaves the
+
+          // exponential term scaled by denc^2/r^2 against a plain 1/r kernel
+
+
+          forcecoul = prefactor * (erfc + EWALD_F*grij*expm2*denc*denc/rsq);
           if (factor_coul < 1.0) {
             forcecoul -= (1.0-factor_coul)*prefactor;
           }
@@ -374,7 +383,10 @@ void PairTIP4PLongSoft::compute(int eflag, int vflag)
 
 void PairTIP4PLongSoft::settings(int narg, char **arg)
 {
-  if (narg != 8) error->all(FLERR,"Illegal pair_style command");
+  if (narg < 8)
+    utils::missing_cmd_args(FLERR, "pair_style tip4p/long/soft", error);
+  if (narg > 8)
+    error->all(FLERR, 9, "Too many arguments in pair_style tip4p/long/soft command");
 
   typeO_str = arg[0];
   typeH_str = arg[1];
@@ -383,7 +395,12 @@ void PairTIP4PLongSoft::settings(int narg, char **arg)
   qdist = utils::numeric(FLERR, arg[4], false, lmp);
 
   nlambda = utils::numeric(FLERR, arg[5], false, lmp);
+  if (nlambda <= 0.0)
+    error->all(FLERR, 6, "Pair style tip4p/long/soft requires n > 0, but n = {}", nlambda);
   alphac  = utils::numeric(FLERR, arg[6], false, lmp);
+  if (alphac < 0.0)
+    error->all(FLERR, 7, "Pair style tip4p/long/soft requires alpha_C >= 0, but alpha_C = {}",
+               alphac);
 
   cut_coul = utils::numeric(FLERR, arg[7], false, lmp);
 }
@@ -397,7 +414,7 @@ void PairTIP4PLongSoft::coeff(int narg, char **arg)
   // set atom types from pair_style command unless we were restarted
   // and the types are already set and the strings are empty.
 
-  if (typeO_str.size() > 0) {
+  if (!typeO_str.empty()) {
     typeO = utils::expand_type_int(FLERR, typeO_str, Atom::ATOM, lmp, true);
     typeH = utils::expand_type_int(FLERR, typeH_str, Atom::ATOM, lmp, true);
     typeB = utils::expand_type_int(FLERR, typeB_str, Atom::BOND, lmp, true);

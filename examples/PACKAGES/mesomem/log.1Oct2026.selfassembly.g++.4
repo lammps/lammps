@@ -1,0 +1,159 @@
+LAMMPS (30 Sep 2026)
+  using 1 OpenMP thread(s) per MPI task
+# Self-assembly of a one-particle-thick fluid membrane with pair style
+# mesomem/dipole.  The dipole vector of each particle represents the
+# local membrane normal.  See: P. Sillano, S. J. Marrink, T. Idema,
+# Phys. Rev. E 114, 034412 (2026).
+#
+# The initial configuration in data.selfassembly was obtained by placing
+# 1500 particles with random positions and random dipole orientations in
+# a cubic box of edge length 28 (create_atoms random, set dipole/random)
+# and running for 20000 steps with the settings below.  At this point the
+# particles have condensed into small aggregates.  During the following
+# run they grow into flat membrane patches.  This is monitored with the
+# number of clusters (including single particles), the size of the largest
+# cluster, and the number of free particles in the thermo output.
+# Merging of the patches continues over several 100000 steps.
+
+variable eps    index 1.0
+variable rcut   index 2.5
+variable ktilt  index 15.0
+variable ksplay index 1.0
+variable wc     index 2.0
+variable zeta   index 5.0
+variable c0     index 0.0
+variable T      index 0.2
+
+units           lj
+atom_style      hybrid sphere dipole
+WARNING: Atom style hybrid defines both, per-type and per-atom masses; both must be set, but only per-atom masses will be used (src/atom_vec_hybrid.cpp:134)
+
+# the particles have diameter 4.0 and mass 1.0 (set via diameter and density
+# in the data file). This increases their moment of inertia and stabilizes the
+# rotational dynamics.  The diameter does not enter the pair interaction.
+# The data file also contains the pair coefficients (written with
+# "write_data ... pair ij"), so the pair style must be defined before
+# reading it.  The pair_coeff command below sets the same values.
+
+pair_style      mesomem/dipole
+read_data       data.selfassembly
+Reading data file ...
+  orthogonal box = (-14 -14 -14) to (14 14 14)
+  1 by 2 by 2 MPI processor grid
+  reading atoms ...
+  1500 atoms
+  reading velocities ...
+  1500 velocities
+  read_data CPU = 0.006 seconds
+
+#               i j sigma eps    ktilt    ksplay    r_c     w_c   zeta    C0
+pair_coeff      1 1 1.0   ${eps} ${ktilt} ${ksplay} ${rcut} ${wc} ${zeta} ${c0}
+pair_coeff      1 1 1.0   1.0 ${ktilt} ${ksplay} ${rcut} ${wc} ${zeta} ${c0}
+pair_coeff      1 1 1.0   1.0 15.0 ${ksplay} ${rcut} ${wc} ${zeta} ${c0}
+pair_coeff      1 1 1.0   1.0 15.0 1.0 ${rcut} ${wc} ${zeta} ${c0}
+pair_coeff      1 1 1.0   1.0 15.0 1.0 2.5 ${wc} ${zeta} ${c0}
+pair_coeff      1 1 1.0   1.0 15.0 1.0 2.5 2.0 ${zeta} ${c0}
+pair_coeff      1 1 1.0   1.0 15.0 1.0 2.5 2.0 5.0 ${c0}
+pair_coeff      1 1 1.0   1.0 15.0 1.0 2.5 2.0 5.0 0.0
+
+neighbor        1.0 bin
+neigh_modify    delay 0 every 1 check yes
+
+# temperature including the rotational degrees of freedom
+compute         Tall all temp/sphere dof all
+
+# cluster analysis: two particles closer than 1.5 belong to the same cluster
+compute         clus all cluster/atom 1.5
+compute         cnum all chunk/atom c_clus nchunk every compress yes
+compute         csize all property/chunk cnum count
+variable        maxclus equal max(c_csize)
+variable        isfree vector c_csize==1
+variable        nfree equal sum(v_isfree)
+
+timestep        0.01
+fix             integrate all nve/sphere update dipole
+fix             thermostat all langevin ${T} ${T} 1.0 48279 zero yes omega yes
+fix             thermostat all langevin 0.2 ${T} 1.0 48279 zero yes omega yes
+fix             thermostat all langevin 0.2 0.2 1.0 48279 zero yes omega yes
+fix_modify      thermostat temp Tall
+
+thermo_style    custom step temp c_Tall pe press c_cnum v_maxclus v_nfree
+thermo_modify   colname c_Tall T_sphere colname c_cnum Nclusters                 colname v_maxclus MaxCluster colname v_nfree Nfree
+thermo          500
+
+# uncomment to write snapshot images and/or a trajectory for visualization
+#dump            img all image 1000 image.*.png type type adiam 1.0 #                view 60 30 zoom 1.4 ssao yes 4539 0.6 box yes 0.01
+#dump_modify     img pad 6
+#dump            traj all custom 1000 selfassembly.lammpstrj id type x y z mux muy muz
+
+run             10000
+Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 3.5
+  ghost atom cutoff = 3.5
+  binsize = 1.75, bins = 16 16 16
+  2 neighbor lists, perpetual/occasional/extra = 1 1 0
+  (1) pair mesomem/dipole, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d
+      bin: standard
+  (2) compute cluster/atom, occasional
+      attributes: full, newton on
+      pair build: full/bin/atomonly
+      stencil: full/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 5.754 | 5.763 | 5.772 Mbytes
+   Step          Temp         T_sphere        PotEng         Press        Nclusters      MaxCluster       Nfree     
+         0   0.20088207     0.19976898    -1.6008598      0.0038830879   249            104            171          
+       500   0.2006619      0.2017851     -1.6294067      0.0036456407   248            89             168          
+      1000   0.20278299     0.20187113    -1.6431446      0.00022917613  237            104            161          
+      1500   0.19864504     0.1980273     -1.6855718      0.0013430751   226            120            153          
+      2000   0.20071778     0.20190572    -1.6931012      0.0036212174   206            120            139          
+      2500   0.20065907     0.1999212     -1.6974822      0.0034536567   216            120            151          
+      3000   0.19256016     0.19305396    -1.7364104      0.0013732745   210            162            146          
+      3500   0.20723274     0.20468267    -1.739155       0.0018965867   202            238            128          
+      4000   0.19774694     0.20117278    -1.7555438      0.00064018979  194            163            122          
+      4500   0.20173391     0.20137184    -1.7786013      0.0028517561   188            166            123          
+      5000   0.20188749     0.20122942    -1.7982346      0.0025630591   198            168            137          
+      5500   0.19935416     0.20008686    -1.8111969      0.0014350457   203            146            141          
+      6000   0.20537033     0.20123048    -1.8228605      0.0013416486   195            217            139          
+      6500   0.20252982     0.2023706     -1.851758       0.0024967224   181            219            127          
+      7000   0.19276167     0.19541331    -1.8492231      0.0012411537   195            220            141          
+      7500   0.19741        0.20176653    -1.8409303      0.0005904821   189            222            138          
+      8000   0.1990173      0.19925862    -1.8655518      0.0023863082   178            250            128          
+      8500   0.20607066     0.20350556    -1.8974036      0.0027980947   190            148            145          
+      9000   0.20148505     0.19823649    -1.9057894     -0.00059327144  180            255            135          
+      9500   0.19456682     0.19607816    -1.9406905      0.0022159664   172            225            131          
+     10000   0.19916671     0.2006068     -1.9557862      4.6030086e-06  162            256            124          
+Loop time of 2.06295 on 4 procs for 10000 steps with 1500 atoms
+
+Performance: 4188169.873 tau/day, 4847.419 timesteps/s, 7.271 Matom-step/s
+98.9% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 1.0905     | 1.2884     | 1.4742     |  12.9 | 62.46
+Neigh   | 0.02946    | 0.03484    | 0.03774    |   1.8 |  1.69
+Comm    | 0.15193    | 0.33822    | 0.54189    |  25.6 | 16.39
+Output  | 0.01071    | 0.010759   | 0.010856   |   0.1 |  0.52
+Modify  | 0.34289    | 0.35984    | 0.37466    |   2.0 | 17.44
+Other   |            | 0.03088    |            |       |  1.50
+
+Nlocal:            375 ave         430 max         329 min
+Histogram: 1 1 0 0 0 0 0 1 0 1
+Nghost:         656.75 ave         831 max         534 min
+Histogram: 1 0 1 1 0 0 0 0 0 1
+Neighs:        5548.25 ave        6703 max        4481 min
+Histogram: 1 1 0 0 0 0 0 0 1 1
+FullNghs:      11094.5 ave       13450 max        8673 min
+Histogram: 1 0 0 1 0 0 1 0 0 1
+
+Total # of neighbors = 44378
+Ave neighs/atom = 29.585333
+Neighbor list builds = 329
+Dangerous builds = 0
+Total wall time: 0:00:02

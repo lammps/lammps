@@ -24,9 +24,10 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-NBin::NBin(LAMMPS *lmp) : Pointers(lmp)
+NBin::NBin(LAMMPS *lmp) : Pointers(lmp), bboxlo(nullptr), bboxhi(nullptr), cutcollectionsq(nullptr)
 {
   last_bin = -1;
+  copymode = 0;
   mbins = maxbin = maxatom = 0;
   binhead = nullptr;
   bins = nullptr;
@@ -60,6 +61,9 @@ NBin::NBin(LAMMPS *lmp) : Pointers(lmp)
 
 NBin::~NBin()
 {
+  // a copy made for a device functor must not free what the original owns
+  if (copymode) return;
+
   memory->destroy(binhead);
   memory->destroy(bins);
   memory->destroy(atom2bin);

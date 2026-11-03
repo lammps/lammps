@@ -45,7 +45,7 @@ int SWT::bytes_per_atom(const int max_nbors) const {
 template <class numtyp, class acctyp>
 int SWT::init(const int ntypes, const int nlocal, const int nall,
               const int max_nbors, const double cell_size,
-              const double gpu_split, FILE *_screen, double **ncutsq,
+                           FILE *_screen, double **ncutsq,
               double **ncut, double **sigma, double **powerp, double **powerq,
               double **sigma_gamma, double **c1, double **c2, double **c3,
               double **c4, double **c5, double **c6, double ***lambda_epsilon,
@@ -83,8 +83,8 @@ int SWT::init(const int ntypes, const int nlocal, const int nall,
   #endif
 
   int success;
-  success=this->init_three(nlocal,nall,max_nbors,0,cell_size,gpu_split,
-                           _screen,sw,"k_sw","k_sw_three_center",
+  success=this->init_three(nlocal,nall,max_nbors,0,cell_size,
+                            _screen,sw,"k_sw","k_sw_three_center",
                            "k_sw_three_end","k_sw_short_nbor",onetype,
                            onetype3,spq);
   if (success!=0)

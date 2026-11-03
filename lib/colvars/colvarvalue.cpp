@@ -74,7 +74,7 @@ colvarvalue::colvarvalue(cvm::vector1d<cvm::real> const &v,
   : real_value(0.0)
 {
   if ((vti != type_vector) && (v.size() != num_dimensions(vti))) {
-    cvm::error("Error: trying to initialize a variable of type \""+type_desc(vti)+
+    cvm::error_static("Error: trying to initialize a variable of type \""+type_desc(vti)+
                "\" using a vector of size "+cvm::to_str(v.size())+
                ".\n");
     value_type = type_notset;
@@ -291,7 +291,7 @@ void colvarvalue::is_derivative()
 void colvarvalue::add_elem(colvarvalue const &x)
 {
   if (this->value_type != type_vector) {
-    cvm::error("Error: trying to set an element for a variable that is not set to be a vector.\n");
+    cvm::error_static("Error: trying to set an element for a variable that is not set to be a vector.\n");
     return;
   }
   size_t const n = vector1d_value.size();
@@ -310,7 +310,7 @@ colvarvalue const colvarvalue::get_elem(int const i_begin, int const i_end, Type
     cvm::vector1d<cvm::real> const v(vector1d_value.slice(i_begin, i_end));
     return colvarvalue(v, vt);
   } else {
-    cvm::error("Error: trying to get an element from a variable that is not a vector.\n");
+    cvm::error_static("Error: trying to get an element from a variable that is not a vector.\n");
     return colvarvalue(type_notset);
   }
 }
@@ -321,7 +321,7 @@ void colvarvalue::set_elem(int const i_begin, int const i_end, colvarvalue const
   if (vector1d_value.size() > 0) {
     vector1d_value.sliceassign(i_begin, i_end, x.as_vector());
   } else {
-    cvm::error("Error: trying to set an element for a variable that is not a vector.\n");
+    cvm::error_static("Error: trying to set an element for a variable that is not a vector.\n");
   }
 }
 
@@ -332,7 +332,7 @@ colvarvalue const colvarvalue::get_elem(int const icv) const
     return get_elem(elem_indices[icv], elem_indices[icv] + elem_sizes[icv],
                     elem_types[icv]);
   } else {
-    cvm::error("Error: trying to get a colvarvalue element from a vector colvarvalue that was initialized as a plain array.\n");
+    cvm::error_static("Error: trying to get a colvarvalue element from a vector colvarvalue that was initialized as a plain array.\n");
     return colvarvalue(type_notset);
   }
 }
@@ -344,7 +344,7 @@ void colvarvalue::set_elem(int const icv, colvarvalue const &x)
     check_types_assign(elem_types[icv], x.value_type);
     set_elem(elem_indices[icv], elem_indices[icv] + elem_sizes[icv], x);
   } else {
-    cvm::error("Error: trying to set a colvarvalue element for a colvarvalue that was initialized as a plain array.\n");
+    cvm::error_static("Error: trying to set a colvarvalue element for a colvarvalue that was initialized as a plain array.\n");
   }
 }
 
@@ -354,25 +354,25 @@ void colvarvalue::set_random()
   size_t ic;
   switch (this->type()) {
   case colvarvalue::type_scalar:
-    this->real_value = cvm::rand_gaussian();
+    this->real_value = cvm::main()->rand_gaussian();
     break;
   case colvarvalue::type_3vector:
   case colvarvalue::type_unit3vector:
   case colvarvalue::type_unit3vectorderiv:
-    this->rvector_value.x = cvm::rand_gaussian();
-    this->rvector_value.y = cvm::rand_gaussian();
-    this->rvector_value.z = cvm::rand_gaussian();
+    this->rvector_value.x = cvm::main()->rand_gaussian();
+    this->rvector_value.y = cvm::main()->rand_gaussian();
+    this->rvector_value.z = cvm::main()->rand_gaussian();
     break;
   case colvarvalue::type_quaternion:
   case colvarvalue::type_quaternionderiv:
-    this->quaternion_value.q0 = cvm::rand_gaussian();
-    this->quaternion_value.q1 = cvm::rand_gaussian();
-    this->quaternion_value.q2 = cvm::rand_gaussian();
-    this->quaternion_value.q3 = cvm::rand_gaussian();
+    this->quaternion_value.q0 = cvm::main()->rand_gaussian();
+    this->quaternion_value.q1 = cvm::main()->rand_gaussian();
+    this->quaternion_value.q2 = cvm::main()->rand_gaussian();
+    this->quaternion_value.q3 = cvm::main()->rand_gaussian();
     break;
   case colvarvalue::type_vector:
     for (ic = 0; ic < this->vector1d_value.size(); ic++) {
-      this->vector1d_value[ic] = cvm::rand_gaussian();
+      this->vector1d_value[ic] = cvm::main()->rand_gaussian();
     }
     break;
   case colvarvalue::type_notset:
@@ -419,7 +419,7 @@ void colvarvalue::set_ones(cvm::real assigned_value)
 
 void colvarvalue::undef_op() const
 {
-  cvm::error("Error: Undefined operation on a colvar of type \""+
+  cvm::error_static("Error: Undefined operation on a colvar of type \""+
              type_desc(this->type())+"\".\n");
 }
 
@@ -646,7 +646,7 @@ cvm::real colvarvalue::dist2(colvarvalue const &x2) const
     return (this->vector1d_value - x2.vector1d_value).norm2();
   case colvarvalue::type_unit3vectorderiv:
   case colvarvalue::type_quaternionderiv:
-    cvm::error("Error: computing a squared-distance between two variables of type \"" +
+    cvm::error_static("Error: computing a squared-distance between two variables of type \"" +
                    type_desc(this->type()) + "\", for which it is not defined.\n",
                COLVARS_BUG_ERROR);
   case colvarvalue::type_notset:
@@ -684,7 +684,7 @@ colvarvalue colvarvalue::dist2_grad(colvarvalue const &x2) const
     break;
   case colvarvalue::type_unit3vectorderiv:
   case colvarvalue::type_quaternionderiv:
-    cvm::error("Error: computing a squared-distance gradient between two variables of type \"" +
+    cvm::error_static("Error: computing a squared-distance gradient between two variables of type \"" +
                    type_desc(this->type()) + "\", for which it is not defined.\n",
                COLVARS_BUG_ERROR);
   case colvarvalue::type_notset:
@@ -706,7 +706,7 @@ colvarvalue const colvarvalue::interpolate(colvarvalue const &x1,
   colvarvalue::check_types(x1, x2);
 
   if ((lambda < 0.0) || (lambda > 1.0)) {
-    cvm::error("Error: trying to interpolate between two colvarvalues with a "
+    cvm::error_static("Error: trying to interpolate between two colvarvalues with a "
                "lamdba outside [0:1].\n", COLVARS_BUG_ERROR);
   }
 
@@ -724,7 +724,7 @@ colvarvalue const colvarvalue::interpolate(colvarvalue const &x1,
   case colvarvalue::type_unit3vector:
   case colvarvalue::type_quaternion:
     if (interp.norm()/cvm::sqrt(d2) < 1.0e-6) {
-      cvm::error("Error: interpolation between "+cvm::to_str(x1)+" and "+
+      cvm::error_static("Error: interpolation between "+cvm::to_str(x1)+" and "+
                  cvm::to_str(x2)+" with lambda = "+cvm::to_str(lambda)+
                  " is undefined: result = "+cvm::to_str(interp)+"\n",
                  COLVARS_INPUT_ERROR);
@@ -745,7 +745,7 @@ std::string colvarvalue::to_simple_string() const
 {
   switch (type()) {
   case colvarvalue::type_scalar:
-    return cvm::to_str(real_value, 0, cvm::cv_prec);
+    return cvm::to_str(real_value, 0, cvm::main()->cv_prec);
     break;
   case colvarvalue::type_3vector:
   case colvarvalue::type_unit3vector:
@@ -849,7 +849,7 @@ std::ostream & operator << (std::ostream &os, std::vector<colvarvalue> const &v)
 template <typename IST> void colvarvalue::read_from_stream_template_(IST &is)
 {
   if (type() == colvarvalue::type_notset) {
-    cvm::error("Trying to read from a stream a colvarvalue, "
+    cvm::error_static("Trying to read from a stream a colvarvalue, "
                "which has not yet been assigned a data type.\n");
   }
 
@@ -1012,7 +1012,7 @@ void colvarvalue::p2leg_opt(colvarvalue const                        &x,
 
   switch (x.value_type) {
   case colvarvalue::type_scalar:
-    cvm::error("Error: cannot calculate Legendre polynomials "
+    cvm::error_static("Error: cannot calculate Legendre polynomials "
                "for scalar variables.\n");
     return;
     break;
@@ -1067,7 +1067,7 @@ void colvarvalue::p2leg_opt(colvarvalue const                        &x,
 
   switch (x.value_type) {
   case colvarvalue::type_scalar:
-    cvm::error("Error: cannot calculate Legendre polynomials "
+    cvm::error_static("Error: cannot calculate Legendre polynomials "
                "for scalar variables.\n");
     break;
   case colvarvalue::type_3vector:

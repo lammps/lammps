@@ -16,6 +16,8 @@
 
 #include "pointers.h"
 
+#include "creator_registry.h"
+
 #include <map>
 
 namespace LAMMPS_NS {
@@ -64,8 +66,9 @@ class Input : protected Pointers {
 
  public:
   using CommandCreator = Command *(*) (LAMMPS *);
-  using CommandCreatorMap = std::map<std::string, CommandCreator>;
-  CommandCreatorMap *command_map;
+
+  // global registry of command style factory functions
+  static CreatorRegistry<CommandCreator> &command_styles();
 
  protected:
   void parse();                            // parse an input text line

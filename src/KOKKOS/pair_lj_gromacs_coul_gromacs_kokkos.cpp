@@ -101,15 +101,15 @@ void PairLJGromacsCoulGromacsKokkos<DeviceType>::compute(int eflag_in, int vflag
   type = atomKK->k_type.view<DeviceType>();
   nlocal = atom->nlocal;
   nall = atom->nlocal + atom->nghost;
-  special_lj[0] = force->special_lj[0];
-  special_lj[1] = force->special_lj[1];
-  special_lj[2] = force->special_lj[2];
-  special_lj[3] = force->special_lj[3];
-  special_coul[0] = force->special_coul[0];
-  special_coul[1] = force->special_coul[1];
-  special_coul[2] = force->special_coul[2];
-  special_coul[3] = force->special_coul[3];
-  qqrd2e = force->qqrd2e;
+  special_lj[0] = static_cast<KK_FLOAT>(force->special_lj[0]);
+  special_lj[1] = static_cast<KK_FLOAT>(force->special_lj[1]);
+  special_lj[2] = static_cast<KK_FLOAT>(force->special_lj[2]);
+  special_lj[3] = static_cast<KK_FLOAT>(force->special_lj[3]);
+  special_coul[0] = static_cast<KK_FLOAT>(force->special_coul[0]);
+  special_coul[1] = static_cast<KK_FLOAT>(force->special_coul[1]);
+  special_coul[2] = static_cast<KK_FLOAT>(force->special_coul[2]);
+  special_coul[3] = static_cast<KK_FLOAT>(force->special_coul[3]);
+  qqrd2e = static_cast<KK_FLOAT>(force->qqrd2e);
   newton_pair = force->newton_pair;
 
   // loop over neighbors of my atoms
@@ -126,16 +126,16 @@ void PairLJGromacsCoulGromacsKokkos<DeviceType>::compute(int eflag_in, int vflag
 
 
   if (eflag) {
-    eng_vdwl += ev.evdwl;
-    eng_coul += ev.ecoul;
+    eng_vdwl += static_cast<double>(ev.evdwl);
+    eng_coul += static_cast<double>(ev.ecoul);
   }
   if (vflag_global) {
-    virial[0] += ev.v[0];
-    virial[1] += ev.v[1];
-    virial[2] += ev.v[2];
-    virial[3] += ev.v[3];
-    virial[4] += ev.v[4];
-    virial[5] += ev.v[5];
+    virial[0] += static_cast<double>(ev.v[0]);
+    virial[1] += static_cast<double>(ev.v[1]);
+    virial[2] += static_cast<double>(ev.v[2]);
+    virial[3] += static_cast<double>(ev.v[3]);
+    virial[4] += static_cast<double>(ev.v[4]);
+    virial[5] += static_cast<double>(ev.v[5]);
   }
 
   if (eflag_atom) {
@@ -164,15 +164,17 @@ KK_FLOAT PairLJGromacsCoulGromacsKokkos<DeviceType>::
 compute_fpair(const KK_FLOAT& rsq, const int& /*i*/, const int& /*j*/,
               const int& itype, const int& jtype) const {
 
-  const KK_FLOAT r2inv = 1.0/rsq;
+  const KK_FLOAT cut_lj_innersq_kk = static_cast<KK_FLOAT>(cut_lj_innersq);
+  const KK_FLOAT cut_lj_inner_kk = static_cast<KK_FLOAT>(cut_lj_inner);
+  const KK_FLOAT r2inv = static_cast<KK_FLOAT>(1.0)/rsq;
   const KK_FLOAT r6inv = r2inv*r2inv*r2inv;
   KK_FLOAT forcelj = r6inv *
     ((STACKPARAMS?m_params[itype][jtype].lj1:params(itype,jtype).lj1)*r6inv -
      (STACKPARAMS?m_params[itype][jtype].lj2:params(itype,jtype).lj2));
 
-  if (rsq > cut_lj_innersq) {
-    const KK_FLOAT r = sqrt(rsq);
-    const KK_FLOAT tlj = r - cut_lj_inner;
+  if (rsq > cut_lj_innersq_kk) {
+    const KK_FLOAT r = Kokkos::sqrt(rsq);
+    const KK_FLOAT tlj = r - cut_lj_inner_kk;
     const KK_FLOAT fswitch = r*tlj*tlj*
             ((STACKPARAMS?m_params[itype][jtype].ljsw1:params(itype,jtype).ljsw1) +
              (STACKPARAMS?m_params[itype][jtype].ljsw2:params(itype,jtype).ljsw2)*tlj);
@@ -192,16 +194,18 @@ KK_FLOAT PairLJGromacsCoulGromacsKokkos<DeviceType>::
 compute_evdwl(const KK_FLOAT& rsq, const int& /*i*/, const int& /*j*/,
               const int& itype, const int& jtype) const {
 
-  const KK_FLOAT r2inv = 1.0/rsq;
+  const KK_FLOAT cut_lj_innersq_kk = static_cast<KK_FLOAT>(cut_lj_innersq);
+  const KK_FLOAT cut_lj_inner_kk = static_cast<KK_FLOAT>(cut_lj_inner);
+  const KK_FLOAT r2inv = static_cast<KK_FLOAT>(1.0)/rsq;
   const KK_FLOAT r6inv = r2inv*r2inv*r2inv;
   KK_FLOAT englj = r6inv *
     ((STACKPARAMS?m_params[itype][jtype].lj3:params(itype,jtype).lj3)*r6inv -
      (STACKPARAMS?m_params[itype][jtype].lj4:params(itype,jtype).lj4));
   englj += (STACKPARAMS?m_params[itype][jtype].ljsw5:params(itype,jtype).ljsw5);
 
-  if (rsq > cut_lj_innersq) {
-    const KK_FLOAT r = sqrt(rsq);
-    const KK_FLOAT tlj = r - cut_lj_inner;
+  if (rsq > cut_lj_innersq_kk) {
+    const KK_FLOAT r = Kokkos::sqrt(rsq);
+    const KK_FLOAT tlj = r - cut_lj_inner_kk;
     const KK_FLOAT eswitch = tlj*tlj*tlj *
             ((STACKPARAMS?m_params[itype][jtype].ljsw3:params(itype,jtype).ljsw3) +
              (STACKPARAMS?m_params[itype][jtype].ljsw4:params(itype,jtype).ljsw4)*tlj);
@@ -222,14 +226,18 @@ compute_fcoul(const KK_FLOAT& rsq, const int& /*i*/, const int&j,
               const int& /*itype*/, const int& /*jtype*/,
               const KK_FLOAT& factor_coul, const KK_FLOAT& qtmp) const {
 
-  const KK_FLOAT r2inv = 1.0/rsq;
-  const KK_FLOAT rinv = sqrt(r2inv);
+  const KK_FLOAT cut_coul_innersq_kk = static_cast<KK_FLOAT>(cut_coul_innersq);
+  const KK_FLOAT cut_coul_inner_kk = static_cast<KK_FLOAT>(cut_coul_inner);
+  const KK_FLOAT coulsw1_kk = static_cast<KK_FLOAT>(coulsw1);
+  const KK_FLOAT coulsw2_kk = static_cast<KK_FLOAT>(coulsw2);
+  const KK_FLOAT r2inv = static_cast<KK_FLOAT>(1.0)/rsq;
+  const KK_FLOAT rinv = Kokkos::sqrt(r2inv);
   KK_FLOAT forcecoul = qqrd2e*qtmp*q(j) *rinv;
 
-  if (rsq > cut_coul_innersq) {
-    const KK_FLOAT r = 1.0/rinv;
-    const KK_FLOAT tc = r - cut_coul_inner;
-    const KK_FLOAT fcoulswitch = qqrd2e * qtmp*q(j)*r*tc*tc*(coulsw1 + coulsw2*tc);
+  if (rsq > cut_coul_innersq_kk) {
+    const KK_FLOAT r = static_cast<KK_FLOAT>(1.0)/rinv;
+    const KK_FLOAT tc = r - cut_coul_inner_kk;
+    const KK_FLOAT fcoulswitch = qqrd2e * qtmp*q(j)*r*tc*tc*(coulsw1_kk + coulsw2_kk*tc);
     forcecoul += fcoulswitch;
   }
   return forcecoul * r2inv * factor_coul;
@@ -247,14 +255,19 @@ compute_ecoul(const KK_FLOAT& rsq, const int& /*i*/, const int&j,
               const int& /*itype*/, const int& /*jtype*/,
               const KK_FLOAT& factor_coul, const KK_FLOAT& qtmp) const {
 
-  const KK_FLOAT r2inv = 1.0/rsq;
-  const KK_FLOAT rinv = sqrt(r2inv);
-  KK_FLOAT ecoul = qqrd2e * qtmp * q(j) * (rinv-coulsw5);
+  const KK_FLOAT cut_coul_innersq_kk = static_cast<KK_FLOAT>(cut_coul_innersq);
+  const KK_FLOAT cut_coul_inner_kk = static_cast<KK_FLOAT>(cut_coul_inner);
+  const KK_FLOAT coulsw3_kk = static_cast<KK_FLOAT>(coulsw3);
+  const KK_FLOAT coulsw4_kk = static_cast<KK_FLOAT>(coulsw4);
+  const KK_FLOAT coulsw5_kk = static_cast<KK_FLOAT>(coulsw5);
+  const KK_FLOAT r2inv = static_cast<KK_FLOAT>(1.0)/rsq;
+  const KK_FLOAT rinv = Kokkos::sqrt(r2inv);
+  KK_FLOAT ecoul = qqrd2e * qtmp * q(j) * (rinv-coulsw5_kk);
 
-  if (rsq > cut_coul_innersq) {
-    const KK_FLOAT r = 1.0/rinv;
-    const KK_FLOAT tc = r - cut_coul_inner;
-    const KK_FLOAT ecoulswitch = tc*tc*tc * (coulsw3 + coulsw4*tc);
+  if (rsq > cut_coul_innersq_kk) {
+    const KK_FLOAT r = static_cast<KK_FLOAT>(1.0)/rinv;
+    const KK_FLOAT tc = r - cut_coul_inner_kk;
+    const KK_FLOAT ecoulswitch = tc*tc*tc * (coulsw3_kk + coulsw4_kk*tc);
     ecoul += qqrd2e*qtmp*q(j)*ecoulswitch;
   }
   return ecoul * factor_coul;
@@ -300,7 +313,7 @@ void PairLJGromacsCoulGromacsKokkos<DeviceType>::init_tables(double cut_coul, do
   host_table_type h_table("HostTable",ntable);
   table_type d_table("DeviceTable",ntable);
   for (int i = 0; i < ntable; i++) {
-    h_table(i) = rtable[i];
+    h_table(i) = static_cast<KK_FLOAT>(rtable[i]);
   }
   Kokkos::deep_copy(d_table,h_table);
   d_rtable = d_table;
@@ -310,7 +323,7 @@ void PairLJGromacsCoulGromacsKokkos<DeviceType>::init_tables(double cut_coul, do
   host_table_type h_table("HostTable",ntable);
   table_type d_table("DeviceTable",ntable);
   for (int i = 0; i < ntable; i++) {
-    h_table(i) = drtable[i];
+    h_table(i) = static_cast<KK_FLOAT>(drtable[i]);
   }
   Kokkos::deep_copy(d_table,h_table);
   d_drtable = d_table;
@@ -322,7 +335,7 @@ void PairLJGromacsCoulGromacsKokkos<DeviceType>::init_tables(double cut_coul, do
 
   // Copy ftable and dftable
   for (int i = 0; i < ntable; i++) {
-    h_table(i) = ftable[i];
+    h_table(i) = static_cast<KK_FLOAT>(ftable[i]);
   }
   Kokkos::deep_copy(d_table,h_table);
   d_ftable = d_table;
@@ -333,7 +346,7 @@ void PairLJGromacsCoulGromacsKokkos<DeviceType>::init_tables(double cut_coul, do
   table_type d_table("DeviceTable",ntable);
 
   for (int i = 0; i < ntable; i++) {
-    h_table(i) = dftable[i];
+    h_table(i) = static_cast<KK_FLOAT>(dftable[i]);
   }
   Kokkos::deep_copy(d_table,h_table);
   d_dftable = d_table;
@@ -345,7 +358,7 @@ void PairLJGromacsCoulGromacsKokkos<DeviceType>::init_tables(double cut_coul, do
 
   // Copy ctable and dctable
   for (int i = 0; i < ntable; i++) {
-    h_table(i) = ctable[i];
+    h_table(i) = static_cast<KK_FLOAT>(ctable[i]);
   }
   Kokkos::deep_copy(d_table,h_table);
   d_ctable = d_table;
@@ -356,7 +369,7 @@ void PairLJGromacsCoulGromacsKokkos<DeviceType>::init_tables(double cut_coul, do
   table_type d_table("DeviceTable",ntable);
 
   for (int i = 0; i < ntable; i++) {
-    h_table(i) = dctable[i];
+    h_table(i) = static_cast<KK_FLOAT>(dctable[i]);
   }
   Kokkos::deep_copy(d_table,h_table);
   d_dctable = d_table;
@@ -368,7 +381,7 @@ void PairLJGromacsCoulGromacsKokkos<DeviceType>::init_tables(double cut_coul, do
 
   // Copy etable and detable
   for (int i = 0; i < ntable; i++) {
-    h_table(i) = etable[i];
+    h_table(i) = static_cast<KK_FLOAT>(etable[i]);
   }
   Kokkos::deep_copy(d_table,h_table);
   d_etable = d_table;
@@ -379,7 +392,7 @@ void PairLJGromacsCoulGromacsKokkos<DeviceType>::init_tables(double cut_coul, do
   table_type d_table("DeviceTable",ntable);
 
   for (int i = 0; i < ntable; i++) {
-    h_table(i) = detable[i];
+    h_table(i) = static_cast<KK_FLOAT>(detable[i]);
   }
   Kokkos::deep_copy(d_table,h_table);
   d_detable = d_table;
@@ -395,8 +408,8 @@ void PairLJGromacsCoulGromacsKokkos<DeviceType>::init_style()
 {
   PairLJGromacsCoulGromacs::init_style();
 
-  Kokkos::deep_copy(d_cut_ljsq,cut_ljsq);
-  Kokkos::deep_copy(d_cut_coulsq,cut_coulsq);
+  Kokkos::deep_copy(d_cut_ljsq,static_cast<KK_FLOAT>(cut_ljsq));
+  Kokkos::deep_copy(d_cut_coulsq,static_cast<KK_FLOAT>(cut_coulsq));
 
   // error if rRESPA with inner levels
 
@@ -429,24 +442,24 @@ double PairLJGromacsCoulGromacsKokkos<DeviceType>::init_one(int i, int j)
   double cut_ljsqm = cut_ljsq;
   double cut_coulsqm = cut_coulsq;
 
-  k_params.view_host()(i,j).lj1 = lj1[i][j];
-  k_params.view_host()(i,j).lj2 = lj2[i][j];
-  k_params.view_host()(i,j).lj3 = lj3[i][j];
-  k_params.view_host()(i,j).lj4 = lj4[i][j];
-  k_params.view_host()(i,j).ljsw1 = ljsw1[i][j];
-  k_params.view_host()(i,j).ljsw2 = ljsw2[i][j];
-  k_params.view_host()(i,j).ljsw3 = ljsw3[i][j];
-  k_params.view_host()(i,j).ljsw4 = ljsw4[i][j];
-  k_params.view_host()(i,j).ljsw5 = ljsw5[i][j];
-  k_params.view_host()(i,j).cut_ljsq = cut_ljsqm;
-  k_params.view_host()(i,j).cut_coulsq = cut_coulsqm;
+  k_params.view_host()(i,j).lj1 = static_cast<KK_FLOAT>(lj1[i][j]);
+  k_params.view_host()(i,j).lj2 = static_cast<KK_FLOAT>(lj2[i][j]);
+  k_params.view_host()(i,j).lj3 = static_cast<KK_FLOAT>(lj3[i][j]);
+  k_params.view_host()(i,j).lj4 = static_cast<KK_FLOAT>(lj4[i][j]);
+  k_params.view_host()(i,j).ljsw1 = static_cast<KK_FLOAT>(ljsw1[i][j]);
+  k_params.view_host()(i,j).ljsw2 = static_cast<KK_FLOAT>(ljsw2[i][j]);
+  k_params.view_host()(i,j).ljsw3 = static_cast<KK_FLOAT>(ljsw3[i][j]);
+  k_params.view_host()(i,j).ljsw4 = static_cast<KK_FLOAT>(ljsw4[i][j]);
+  k_params.view_host()(i,j).ljsw5 = static_cast<KK_FLOAT>(ljsw5[i][j]);
+  k_params.view_host()(i,j).cut_ljsq = static_cast<KK_FLOAT>(cut_ljsqm);
+  k_params.view_host()(i,j).cut_coulsq = static_cast<KK_FLOAT>(cut_coulsqm);
 
   k_params.view_host()(j,i) = k_params.view_host()(i,j);
   if (i<MAX_TYPES_STACKPARAMS+1 && j<MAX_TYPES_STACKPARAMS+1) {
     m_params[i][j] = m_params[j][i] = k_params.view_host()(i,j);
-    m_cutsq[j][i] = m_cutsq[i][j] = cutone*cutone;
-    m_cut_ljsq[j][i] = m_cut_ljsq[i][j] = cut_ljsqm;
-    m_cut_coulsq[j][i] = m_cut_coulsq[i][j] = cut_coulsqm;
+    m_cutsq[j][i] = m_cutsq[i][j] = static_cast<KK_FLOAT>(cutone*cutone);
+    m_cut_ljsq[j][i] = m_cut_ljsq[i][j] = static_cast<KK_FLOAT>(cut_ljsqm);
+    m_cut_coulsq[j][i] = m_cut_coulsq[i][j] = static_cast<KK_FLOAT>(cut_coulsqm);
   }
 
   k_cutsq.view_host()(i,j) = k_cutsq.view_host()(j,i) = cutone*cutone;

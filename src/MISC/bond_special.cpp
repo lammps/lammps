@@ -28,7 +28,8 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-BondSpecial::BondSpecial(LAMMPS *lmp) : Bond(lmp) {}
+BondSpecial::BondSpecial(LAMMPS *lmp) : Bond(lmp), factor_lj(nullptr), factor_coul(nullptr)
+{}
 
 /* ---------------------------------------------------------------------- */
 

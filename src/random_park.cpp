@@ -93,7 +93,13 @@ void RanPark::reset(int ibase, double *coord)
 {
   int i;
 
-  auto *str = (char *) &ibase;
+  // hash the bytes of the seed and the coordinates.  the bytes must be treated
+  // as signed values on all platforms so that the same seed is generated on
+  // platforms where "char" is signed (x86, Apple ARM) and where it is unsigned
+  // (Linux on ARM64, PowerPC); otherwise commands using coordinate based
+  // seeding (velocity loop geom, displace_atoms random) give different results.
+
+  auto *str = (signed char *) &ibase;
   int n = sizeof(int);
 
   unsigned int hash = 0;
@@ -103,7 +109,7 @@ void RanPark::reset(int ibase, double *coord)
     hash ^= (hash >> 6);
   }
 
-  str = (char *) coord;
+  str = (signed char *) coord;
   n = 3 * sizeof(double);
   for (i = 0; i < n; i++) {
     hash += str[i];
@@ -125,6 +131,20 @@ void RanPark::reset(int ibase, double *coord)
 
   for (i = 0; i < 5; i++) uniform();
   save = 0;
+}
+
+/* ----------------------------------------------------------------------
+   reset the seed for a sequence unique to MPI rank, ibase = caller seed
+   hash seed and rank since the sequences for seeds like seed + rank are
+   correlated for this generator: the n-th number for rank k is the one
+   for rank 0 plus k times the same offset (mod 1), tiny for the first one
+   the sequence also differs from the one of a generator seeded with ibase
+------------------------------------------------------------------------- */
+
+void RanPark::reset_rank(int ibase, int rank)
+{
+  double coord[3] = {static_cast<double>(rank), 0.0, 0.0};
+  reset(ibase, coord);
 }
 
 /* ---------------------------------------------------------------------- */

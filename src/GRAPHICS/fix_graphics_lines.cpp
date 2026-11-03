@@ -87,18 +87,18 @@ void FixGraphicsLines::post_constructor()
 
   // turn off automatic end_of_step() processing for fix ave/atom.
   // We call it manually instead to ensure it is called *before* we access its data
-  int ifave = modify->find_fix(id_fave);
-  if (ifave < 0) error->all(FLERR, Error::NOLASTLINE, "Internal fix information corrupted");
-  modify->fmask[ifave] &= ~END_OF_STEP;
+  Fix *ifave = modify->get_fix_by_id(id_fave);
+  if (!ifave) error->all(FLERR, Error::NOLASTLINE, "Internal fix information corrupted");
+  modify->clear_fix_mask(ifave, END_OF_STEP);
 }
 
 /* ---------------------------------------------------------------------- */
 
 FixGraphicsLines::~FixGraphicsLines()
 {
-  if (modify->ncompute && modify->get_compute_by_id(id_cprop)) modify->delete_compute(id_cprop);
-  if (modify->nfix && modify->get_fix_by_id(id_fave)) modify->delete_fix(id_fave);
-  if (modify->nfix && modify->get_fix_by_id(id_fstore)) modify->delete_fix(id_fstore);
+  if (modify->get_compute_by_id(id_cprop)) modify->delete_compute(id_cprop);
+  if (modify->get_fix_by_id(id_fave)) modify->delete_fix(id_fave);
+  if (modify->get_fix_by_id(id_fstore)) modify->delete_fix(id_fstore);
   delete[] id_cprop;
   delete[] id_fave;
   delete[] id_fstore;

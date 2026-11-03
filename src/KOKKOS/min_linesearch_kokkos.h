@@ -19,8 +19,13 @@
 
 namespace LAMMPS_NS {
 
+  // the two accumulators must stay double: this is a sum over all local
+  // degrees of freedom, and the force tolerance test and the Polak-Ribiere
+  // beta are computed from it, so a float sum in a single- or mixed-precision
+  // build would decide convergence
+
   struct s_KK_double2 {
-    KK_FLOAT d0, d1;
+    double d0, d1;
 // NOLINTNEXTLINE
     KOKKOS_INLINE_FUNCTION
     s_KK_double2() {

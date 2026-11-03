@@ -371,15 +371,15 @@ different CG studies and are listed below:
 
 .. _DeLyser1:
 
-**(DeLyser)** DeLyser, Noid. "Extending Pressure-Matching to Inhomogeneous Systems via Local-Density Potentials." The Journal of Chemical Physics, 147, no. 13: 134111 (2017)
+**(DeLyser2)** DeLyser, Noid. "Extending Pressure-Matching to Inhomogeneous Systems via Local-Density Potentials." The Journal of Chemical Physics, 147, no. 13: 134111 (2017)
 
 .. _DeLyser2:
 
-**(DeLyser)** DeLyser, Noid. "Analysis of local density potentials." The Journal of Chemical Physics, 151, no. 22:224106 (2019)
+**(DeLyser3)** DeLyser, Noid. "Analysis of local density potentials." The Journal of Chemical Physics, 151, no. 22:224106 (2019)
 
 .. _DeLyser3:
 
-**(DeLyser)** DeLyser, Noid "Bottom-up coarse-grained models for external fields and interfaces" The Journal of Chemical Physics 153, 224103 (2020)
+**(DeLyser4)** DeLyser, Noid "Bottom-up coarse-grained models for external fields and interfaces" The Journal of Chemical Physics 153, 224103 (2020)
 
 .. _DeLyser4:
 
@@ -399,4 +399,4 @@ different CG studies and are listed below:
 
 .. _Lesniewski2:
 
-**(Lesniewski)** Lesniewski, DeLyser, W. G. Noid "Progress toward a better BOCS: systematic coarse-graining with local density potentials" In Prep 2026
+**(Lesniewski2)** Lesniewski, DeLyser, W. G. Noid "Progress toward a better BOCS: systematic coarse-graining with local density potentials" In Prep 2026

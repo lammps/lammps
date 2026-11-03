@@ -199,6 +199,8 @@ void PairAmoeba::read_prmfile(char *filename)
 
             // append to line if next line starts with a number
             if (utils::is_double(utils::strfind(trimmed, R"(^\S+)"))) {
+              if (strlen(line) + trimmed.size() + 2 > MAXLINE)
+                error->one(FLERR, "Force field file {} line {} is too long", filename, nline);
               strcat(line, " ");
               strcat(line, trimmed.c_str());
               has_next = false;

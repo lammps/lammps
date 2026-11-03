@@ -1,0 +1,10 @@
+variable        ps index lj/expand/sphere
+variable        dia index 0.2
+variable        den index 239.0
+include         common_sphere.mod
+pair_style      ${ps} 2.5
+pair_coeff      * * 1.0 1.0
+fix             1 all nve/sphere
+thermo_style    custom step temp pe evdwl press
+thermo          5
+run             20 post no

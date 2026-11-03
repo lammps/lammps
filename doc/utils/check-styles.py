@@ -93,6 +93,7 @@ def require_accel_include(path):
                 if intel.match(line): needs = True
                 if opt.match(line): needs = True
                 if path == "src/fix_colvars.rst": needs = False
+                if path == "src/Commands_removed.rst": needs = False
             m = cmd_pattern.match(line)
             if m:
                 if gpu.match(line): needs = True

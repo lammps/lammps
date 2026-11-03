@@ -26,7 +26,6 @@
 #include "irregular.h"
 #include "memory.h"
 #include "reader.h"
-#include "style_reader.h"    // IWYU pragma: keep
 #include "update.h"
 
 #include <cstring>
@@ -36,6 +35,18 @@ using namespace LAMMPS_NS;
 static constexpr int CHUNK = 16384;
 
 enum { NOADD, YESADD, KEEPADD };
+
+/* ----------------------------------------------------------------------
+   process-global registry of reader style factory functions.  Shared by all
+   LAMMPS instances and persistent across the "clear" command.  Built-in styles
+   are registered once by the generated register_reader_styles().
+------------------------------------------------------------------------- */
+
+CreatorRegistry<ReadDump::ReaderCreator> &ReadDump::reader_styles()
+{
+  static CreatorRegistry<ReadDump::ReaderCreator> registry;
+  return registry;
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -219,20 +230,9 @@ void ReadDump::setup_reader(int narg, char **arg)
   // create Nreader reader classes per reader
   // match readerstyle to options in style_reader.h
 
-  if (false) {     // NOLINT
-    return;        // dummy line to enable else-if macro expansion
-
-#define READER_CLASS
-#define ReaderStyle(key,Class) \
-  } else if (strcmp(readerstyle,#key) == 0) { \
-    for (int i = 0; i < nreader; i++) { \
-      readers[i] = new Class(lmp); \
-    }
-#include "style_reader.h"       // IWYU pragma: keep
-#undef READER_CLASS
-
-  // unrecognized style
-
+  ReaderCreator reader_creator = reader_styles().find(readerstyle);
+  if (reader_creator) {
+    for (int i = 0; i < nreader; i++) readers[i] = reader_creator(lmp);
   } else error->all(FLERR, utils::check_packages_for_style("reader", readerstyle, lmp));
 
   if (utils::strmatch(readerstyle, "^adios")) {

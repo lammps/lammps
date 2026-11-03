@@ -46,12 +46,12 @@ int CoulDSFT::bytes_per_atom(const int max_nbors) const {
 template <class numtyp, class acctyp>
 int CoulDSFT::init(const int ntypes, const int nlocal, const int nall,
                    const int max_nbors, const int maxspecial,
-                   const double cell_size, const double gpu_split, FILE *_screen,
+                   const double cell_size, FILE *_screen,
                    const double host_cut_coulsq, double *host_special_coul,
                    const double qqrd2e, const double e_shift, const double f_shift,
                    const double alpha) {
   int success;
-  success=this->init_atomic(nlocal,nall,max_nbors,maxspecial,cell_size,gpu_split,
+  success=this->init_atomic(nlocal,nall,max_nbors,maxspecial,cell_size,
                             _screen,coul_dsf,"k_coul_dsf");
   if (success!=0)
     return success;

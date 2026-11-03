@@ -29,7 +29,6 @@ class PairLJSPICAGPU : public PairLJSPICA {
  public:
   PairLJSPICAGPU(LAMMPS *lmp);
   ~PairLJSPICAGPU() override;
-  template <int, int> void cpu_compute(int, int, int *, int *, int **);
   void compute(int, int) override;
   void init_style() override;
   double memory_usage() override;
@@ -38,7 +37,6 @@ class PairLJSPICAGPU : public PairLJSPICA {
 
  private:
   int gpu_mode;
-  double cpu_time;
 };
 
 }    // namespace LAMMPS_NS

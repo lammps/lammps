@@ -1,0 +1,135 @@
+LAMMPS (30 Sep 2026 - Development - patch_30Sep2026-584-g503edac323-modified)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread.
+  using 1 OpenMP thread(s) per MPI task
+# Charge regulation lammps for a polymer chain
+units           lj
+atom_style      full
+neighbor        3.0 bin
+read_data       data.chreg-polymer
+Reading data file ...
+  orthogonal box = (-50 -50 -50) to (50 50 50)
+  1 by 2 by 2 MPI processor grid
+  reading atoms ...
+  160 atoms
+  scanning bonds ...
+  1 = max bonds/atom
+  orthogonal box = (-50 -50 -50) to (50 50 50)
+  1 by 2 by 2 MPI processor grid
+  reading bonds ...
+  79 bonds
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0        0        0       
+  special bond factors coul:  0        0        0       
+     2 = max # of 1-2 neighbors
+     2 = max # of 1-3 neighbors
+     4 = max # of 1-4 neighbors
+     6 = max # of special neighbors
+  special bonds CPU = 0.000 seconds
+  read_data CPU = 0.005 seconds
+
+bond_style      harmonic
+bond_coeff      1 100 1.122462 # K R0
+velocity        all create 1.0 8008 loop geom
+
+pair_style      lj/cut/coul/long/soft 2 0.5 10.0  1.122462 20
+pair_coeff      * *  1.0 1.0 1.122462 # charges
+kspace_style    pppm 1.0e-3
+pair_modify     shift yes
+dielectric      1.0
+
+#########  VERLET INTEGRATION WITH LANGEVIN THERMOSTAT  ###########
+fix             fnve all nve
+compute         dtemp all temp
+compute_modify  dtemp dynamic/dof yes
+fix             fT all langevin 1.0 1.0 1.0 123
+fix_modify      fT temp dtemp
+
+fix chareg1 all charge/regulation 2 3 acid_type 1 pH 7.0 pKa 6.5 pIp 3.0 pIm 3.0 temp 1.0 nmc 40 seed 2345
+fix chareg2 all charge/regulation 4 5 acid_type 1 pH 7.0 pKa 6.5 pIp 7.0 pIm 7.0 temp 1.0 nmc 40 seed 2345
+fix chareg3 all charge/regulation 4 3 pIp 7.0 pIm 3.0 temp 1.0 nmc 20 seed 2345
+
+thermo          100
+#               print: step, potential energy, temperature, neutral acids, charged acids, salt cations, salt anions, H+ ions, OH- ions
+thermo_style    custom step pe c_dtemp f_chareg1[3] f_chareg1[4] f_chareg1[7] f_chareg1[8] f_chareg2[7] f_chareg2[8]
+
+timestep        0.005
+run             2000
+PPPM initialization ...
+  using 12-bit tables for long-range coulomb
+  G vector (1/distance) = 0.077106934
+  grid = 8 8 8
+  stencil order = 5
+  estimated absolute RMS force accuracy = 0.00074388331
+  estimated relative force accuracy = 0.00074388331
+  using double precision FFTW3
+  3d grid and FFT values/proc = 1053 128
+Generated 0 of 10 mixed pair_coeff terms from geometric mixing rule
+0 atoms in group FixChargeRegulation:exclusion_group:chareg1
+0 atoms in group FixChargeRegulation:exclusion_group:chareg2
+0 atoms in group FixChargeRegulation:exclusion_group:chareg3
+WARNING: Neighbor exclusions used with KSpace solver may give inconsistent Coulombic energies (src/neighbor.cpp:668)
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 23
+  ghost atom cutoff = 23
+  binsize = 11.5, bins = 9 9 9
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cut/coul/long/soft, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 6.878 | 6.935 | 6.992 Mbytes
+   Step         PotEng        c_dtemp      f_chareg1[3]   f_chareg1[4]   f_chareg1[7]   f_chareg1[8]   f_chareg2[7]   f_chareg2[8] 
+         0   0.53802474     1              0              80             80             0              0              0            
+       100   0.603513       0.8951091      13             67             75             8              0              0            
+       200   0.5614311      0.93635659     18             62             78             16             0              0            
+       300   0.47721632     0.87548517     22             58             84             26             0              0            
+       400   0.41347755     0.95592458     24             56             91             35             0              0            
+       500   0.3602921      0.95636081     29             51             95             44             0              0            
+       600   0.34377393     1.0192632      26             54             111            57             0              0            
+       700   0.30483407     1.0942981      26             54             122            68             0              0            
+       800   0.26320995     1.0401627      27             53             127            74             0              0            
+       900   0.2308307      1.0706458      28             52             133            81             0              0            
+      1000   0.25333372     1.0472457      32             48             133            85             0              0            
+      1100   0.23951779     0.97688526     30             50             147            97             0              0            
+      1200   0.2006684      0.93477942     33             47             155            108            0              0            
+      1300   0.19476697     0.97698647     33             47             161            115            1              0            
+      1400   0.15405351     0.94720443     34             46             165            119            0              0            
+      1500   0.16704597     0.9459454      36             44             173            129            0              0            
+      1600   0.12969794     1.0165817      40             40             168            128            0              0            
+      1700   0.15949995     0.90572353     38             42             168            126            0              0            
+      1800   0.12349665     0.90374207     40             40             169            129            0              0            
+      1900   0.16469673     0.9262175      30             50             177            127            0              0            
+      2000   0.098903275    1.005566       33             47             178            131            0              0            
+Loop time of 0.324015 on 4 procs for 2000 steps with 389 atoms
+
+Performance: 2666542.232 tau/day, 6172.551 timesteps/s, 2.401 Matom-step/s
+97.7% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.015779   | 0.023272   | 0.038487   |   5.9 |  7.18
+Bond    | 0.00018862 | 0.00029921 | 0.00044755 |   0.0 |  0.09
+Kspace  | 0.061121   | 0.073082   | 0.079798   |   2.6 | 22.56
+Neigh   | 0.0022372  | 0.0022429  | 0.0022485  |   0.0 |  0.69
+Comm    | 0.009423   | 0.012524   | 0.014597   |   1.7 |  3.87
+Output  | 0.00028571 | 0.00029204 | 0.00030161 |   0.0 |  0.09
+Modify  | 0.20868    | 0.20956    | 0.2108     |   0.2 | 64.67
+Other   |            | 0.002747   |            |       |  0.85
+
+Nlocal:          97.25 ave         124 max          84 min
+Histogram: 1 1 1 0 0 0 0 0 0 1
+Nghost:         394.25 ave         401 max         379 min
+Histogram: 1 0 0 0 0 0 0 1 0 2
+Neighs:        1321.25 ave        2159 max         913 min
+Histogram: 2 0 1 0 0 0 0 0 0 1
+
+Total # of neighbors = 5285
+Ave neighs/atom = 13.586118
+Ave special neighs/atom = 1.2030848
+Neighbor list builds = 1496
+Dangerous builds = 0
+Total wall time: 0:00:00

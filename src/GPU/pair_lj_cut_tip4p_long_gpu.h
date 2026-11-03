@@ -40,7 +40,6 @@ class PairLJCutTIP4PLongGPU : public PairLJCutTIP4PLong {
 
  private:
   int gpu_mode;
-  double cpu_time;
 };
 
 }    // namespace LAMMPS_NS

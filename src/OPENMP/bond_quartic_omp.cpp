@@ -194,8 +194,16 @@ void BondQuarticOMP::eval(int nfrom, int nto, ThrData * const thr)
         f[i2][2] -= delz*fpair;
       }
 
-      if (EVFLAG) ev_tally_thr(force->pair,i1,i2,nlocal,NEWTON_BOND,
-                               evdwl,0.0,fpair,delx,dely,delz,thr);
+      // the per-thread accumulators of this style were set up for the bond
+      // style only, so the pair style has no per-thread per-atom arrays here.
+      // tally directly into the pair style instead, serialized across threads
+
+      if (EVFLAG) {
+#if defined(_OPENMP)
+#pragma omp critical
+#endif
+        force->pair->ev_tally(i1,i2,nlocal,NEWTON_BOND,evdwl,0.0,fpair,delx,dely,delz);
+      }
     }
   }
 }

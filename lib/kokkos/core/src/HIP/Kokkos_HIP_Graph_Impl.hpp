@@ -19,10 +19,7 @@ namespace Impl {
 template <>
 class GraphImpl<Kokkos::HIP> {
  public:
-  using node_details_t = GraphNodeBackendSpecificDetails<Kokkos::HIP>;
-  using root_node_impl_t =
-      GraphNodeImpl<Kokkos::HIP, Kokkos::Experimental::TypeErasedTag,
-                    Kokkos::Experimental::TypeErasedTag>;
+  using node_details_t   = GraphNodeBackendSpecificDetails<Kokkos::HIP>;
   using aggregate_impl_t = HIPGraphNodeAggregate;
   using aggregate_node_impl_t =
       GraphNodeImpl<Kokkos::HIP, aggregate_impl_t,
@@ -221,8 +218,8 @@ inline auto GraphImpl<Kokkos::HIP>::get_device_handle() const noexcept
 inline auto GraphImpl<Kokkos::HIP>::create_root_node_ptr() {
   KOKKOS_EXPECTS(m_graph);
   KOKKOS_EXPECTS(!m_graph_exec);
-  auto rv = std::make_shared<root_node_impl_t>(m_device_handle,
-                                               _graph_node_is_root_ctor_tag{});
+  auto rv = std::make_shared<root_impl_t<Kokkos::HIP>>(
+      m_device_handle, _graph_node_is_root_ctor_tag{});
   KOKKOS_IMPL_HIP_SAFE_CALL(
       m_device_handle.m_exec.impl_internal_space_instance()
           ->hip_graph_add_empty_node_wrapper(&(rv->node_details_t::node),

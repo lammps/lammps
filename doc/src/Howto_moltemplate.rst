@@ -14,6 +14,21 @@ of the LAMMPS source code distribution.
 
 Many more examples can be found here: https://moltemplate.org/examples.html
 
+Moltemplate is not included with LAMMPS.  It is distributed as a Python
+package and can be installed, e.g. into a Python virtual environment,
+with:
+
+.. code-block:: bash
+
+   python3 -m venv $HOME/moltemplate-env
+   source $HOME/moltemplate-env/bin/activate
+   pip install moltemplate
+
+This provides the ``moltemplate.sh`` and ``cleanup_moltemplate.sh``
+commands used below, as well as the force field files like
+``oplsaa2024.lt``, which moltemplate finds automatically when they are
+imported.
+
 
 Simulating an organic solvent
 """""""""""""""""""""""""""""
@@ -44,7 +59,7 @@ The resulting file (``formamide.lt``) follows:
 
 .. code-block:: bash
 
-   import /usr/local/moltemplate/moltemplate/force_fields/oplsaa2024.lt  # defines OPLSAA
+   import "oplsaa2024.lt"  # defines OPLSAA
 
    _FAM inherits OPLSAA {
 
@@ -153,10 +168,10 @@ See the Moltemplate documentation to learn more about the syntax. As
 the sample was created from scratch, we also specify the simulation box
 size in the "Data Boundary" section.
 
-The LAMMPS setting for the force field are specified in the file
-``oplsaa2024.lt`` and are written automatically in the input deck. We also
-specify the boundary conditions and a set of variables in
-the "In Init" section.
+The LAMMPS settings for the force field are specified in the file
+``oplsaa2024.lt`` and are written automatically to the input deck.  This
+example uses the default (periodic) boundary conditions, so it does not
+need an "In Init" section (the third example below has one).
 
 The remaining commands to run an NPT simulation
 are written in the "In Run" section. Note that in this script, LAMMPS
@@ -164,12 +179,13 @@ variables are protected with the escape character ``\`` to distinguish
 them from Moltemplate variables, e.g. ``\$\{run\}`` is a LAMMPS
 variable that is written in the input deck as ``${run}``.
 
-(Note: Moltemplate can be slow to run, so you need to change you run
-settings frequently, I recommended moving those commands (from "In Run")
-out of your .lt files and into a separate file.  Moltemplate creates a
-file named ``run.in.EXAMPLE`` for this purpose.  You can put your run
-settings and fixes that file and then invoke LAMMPS using
-``mpirun -np 4 lmp -in run.in.EXAMPLE`` instead.)
+(Note: Moltemplate can be slow to run, so if you need to change your
+run settings frequently, it is recommended to move those commands out of
+your .lt files, i.e. to omit the "In Run" section.  Moltemplate then
+creates a file named ``run.in.EXAMPLE``, which reads all generated files.
+You can add your run settings and fixes to (a copy of) that file and
+then invoke LAMMPS using ``mpirun -np 4 lmp -in run.in.EXAMPLE``
+instead.)
 
 
 Compile the master file with:
@@ -195,22 +211,23 @@ Then execute the simulation with the following:
    :figclass: align-center
 
    Snapshot of the sample at the beginning and end of the simulation.
-   Rendered with Ovito.
+   Rendered with OVITO.
 
 
 Building a simple polymer
 """""""""""""""""""""""""
 Moltemplate is particularly useful for building polymers (and other molecules
-with sub-units).  As an simple example, consider butane:
+with sub-units).  As a simple example, consider butane:
 
 .. figure:: JPG/butane.jpg
 
-The ``butane.lt`` file below defines Butane as a polymer containing
-4 monomers (of type ``CH3``, ``CH2``, ``CH2``, ``CH3``).
+The ``butane.lt`` file below (also included in the ``tutorial-files``
+folder) defines Butane as a polymer containing 4 monomers (of type
+``CH3``, ``CH2``, ``CH2``, ``CH3``).
 
 .. code-block:: bash
 
-   import /usr/local/moltemplate/moltemplate/force_fields/oplsaa2024.lt  # defines OPLSAA
+   import "oplsaa2024.lt"  # defines OPLSAA
 
    CH3 inherits OPLSAA {
 
@@ -280,34 +297,24 @@ You can add bonds between specific butane molecules or use ``Butane`` as a
 sub-unit to define even larger molecules.  See the moltemplate manual for details.)
 
 
-
-
-
-
-How to build a complex polymer
-""""""""""""""""""""""""""""""""""""""""""
-A similar procedure can be used to create more complicated polymers,
-such as the NIPAM polymer example shown below.  For details, see:
-
-https://github.com/jewettaij/moltemplate/tree/master/examples/all_atom/force_field_OPLSAA/NIPAM_polymer+water+ions
-
-
-
-
 Mapping an existing structure
 """""""""""""""""""""""""""""
 
 Another helpful way to use Moltemplate is mapping an existing molecular
 sample to a force field. This is useful when a complex sample is assembled
 from different simulations or created with specialized software (e.g. PACKMOL).
-(Note: The previous link shows how to build this entire system from scratch
-using only moltemplate.  However here we will assume instead that we obtained
-a PDB file for this system using PACKMOL.)
+In this example, the sample contains a short NIPAM polymer, which is
+defined with moltemplate in the same way as the butane molecule above,
+together with water molecules and ions.  We assume that the coordinates
+of this sample were created with PACKMOL and exported to a PDB file.
+(How to build this entire system from scratch using only moltemplate is
+shown in the `NIPAM polymer example
+<https://github.com/jewettaij/moltemplate/tree/master/examples/all_atom/force_field_OPLSAA/NIPAM_polymer+water+ions>`_
+of the moltemplate distribution.)
 
 As in the previous examples, all molecular species in the sample
-are defined using single-molecule Moltemplate objects.
-For this example, we use a short polymer in a box containing
-water molecules and ions in the PDB file ``model.pdb``.
+are defined using single-molecule Moltemplate objects, while the
+coordinates are taken from the PDB file ``model.pdb``.
 
 It is essential to understand that the order of atoms in the PDB file
 and in the Moltemplate master script must match, as we are using the
@@ -364,7 +371,7 @@ The resulting master LT file defining short annealing at a fixed volume
 .. code-block:: bash
 
    # Use the OPLS-AA force field for all species.
-   import /usr/local/moltemplate/moltemplate/force_fields/oplsaa2024.lt
+   import "oplsaa2024.lt"
    import PolyNIPAM.lt
 
    # Define the SPC water and ions as in the OPLS-AA
@@ -479,7 +486,7 @@ And execute the simulation with the following:
    :figwidth: 50%
    :figclass: align-center
 
-   Sample visualized with Ovito loading the trajectory into the DATA
+   Sample visualized with OVITO loading the trajectory into the DATA
    file written after minimization.
 
 

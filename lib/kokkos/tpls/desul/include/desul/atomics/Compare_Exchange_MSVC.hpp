@@ -10,6 +10,7 @@ SPDX-License-Identifier: (BSD-3-Clause)
 #define DESUL_ATOMICS_COMPARE_EXCHANGE_MSVC_HPP_
 
 #include <desul/atomics/Common.hpp>
+#include <desul/atomics/Lock_Free_Types_MSVC.hpp>
 #include <desul/atomics/Thread_Fence_MSVC.hpp>
 #include <type_traits>
 
@@ -125,13 +126,6 @@ std::enable_if_t<sizeof(T) == 16, T> host_atomic_compare_exchange(
                                        (reinterpret_cast<__int64*>(&compare)));
   return compare;
 }
-
-template <class T>
-inline constexpr bool host_atomic_always_lock_free<T, void> = (sizeof(T) == 1) ||
-                                                              (sizeof(T) == 2) ||
-                                                              (sizeof(T) == 4) ||
-                                                              (sizeof(T) == 8) ||
-                                                              (sizeof(T) == 16);
 
 template <class T, class MemoryOrder, class MemoryScope>
 std::enable_if_t<!host_atomic_always_lock_free<T>, T> host_atomic_compare_exchange(

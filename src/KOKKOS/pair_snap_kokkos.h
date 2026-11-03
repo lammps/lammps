@@ -364,6 +364,11 @@ class PairSNAPKokkos : public PairSNAP {
   template <bool chemsnap> KOKKOS_INLINE_FUNCTION
   void operator() (TagPairSNAPComputeBi<chemsnap>, const int& iatom) const;
 
+  // central atom elements of the `yi_batch` atoms ComputeBi processes together
+// NOLINTNEXTLINE
+  KOKKOS_INLINE_FUNCTION
+  Kokkos::Array<int, yi_batch> get_ielem_batch(const int&) const;
+
 // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator() (TagPairSNAPComputeBetaLinear, const int& iatom_mod, const int& idxb, const int& iatom_div) const;
@@ -501,14 +506,18 @@ class PairSNAPKokkos : public PairSNAP {
   Kokkos::View<real_type*, DeviceType> d_sinnerelem;           // element inner cutoff midpoint
   Kokkos::View<real_type*, DeviceType> d_dinnerelem;           // element inner cutoff half-width
   Kokkos::View<T_INT*, DeviceType> d_map;                    // mapping from atom types to elements
-  Kokkos::View<T_INT*, DeviceType> d_ninside;                // ninside for all atoms in list
-  typename SNAKokkos<DeviceType, real_type, accum_type, vector_length>::t_sna_2d d_beta;                // betas for all atoms in list
+  Kokkos::View<T_INT*, DeviceType> d_ninside;                // ninside for the atoms in the current chunk
+  typename SNAKokkos<DeviceType, real_type, accum_type, vector_length>::t_sna_2d d_beta;                // betas for the atoms in the current chunk
 
   typedef Kokkos::DualView<double**, DeviceType> tdual_fparams;
   tdual_fparams k_cutsq;
+  // the scale factor of fix adapt, mirrored on the device.  self allocated, so
+  // DAT:: is safe here, and refreshed every step because fix adapt rewrites it
+  tdual_fparams k_scale;
   typedef Kokkos::View<const double**, DeviceType,
       Kokkos::MemoryTraits<Kokkos::RandomAccess> > t_fparams_rnd;
   t_fparams_rnd rnd_cutsq;
+  t_fparams_rnd rnd_scale;
 
   typename AT::t_kkfloat_1d_3_lr_randomread x;
   typename AT::t_kkacc_1d_3 f;

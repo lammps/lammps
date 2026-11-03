@@ -50,6 +50,7 @@ class FixPolarizeBEMICC : public Fix {
   int torqueflag, extraflag;
 
   void force_clear();
+  void update_efield();
 
  private:
   int iterations;             // actual number of iterations

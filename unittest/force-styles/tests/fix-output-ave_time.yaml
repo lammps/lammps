@@ -1,0 +1,20 @@
+---
+lammps_version: 4 Jul 2026
+tags:
+date_generated: Thu Jul  9 16:21:50 2026
+epsilon: 1e-08
+timestep: 0.25
+skip_tests:
+prerequisites: |
+  atom full
+  fix ave/time
+  compute gyration
+pre_commands: ""
+post_commands: |
+  compute gyr all gyration
+  fix test all ave/time 1 10 10 c_gyr mode scalar
+input_file: in.fourmol
+input_coeffs: coeffs.fourmol
+natoms: 29
+global_scalar: 3.8528674535190732
+...

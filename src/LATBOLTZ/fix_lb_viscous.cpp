@@ -38,7 +38,7 @@ FixLbViscous::FixLbViscous(LAMMPS *lmp, int narg, char **arg) :
   int groupbit_lb_fluid = 0;
 
   auto ifix = modify->get_fix_by_style("lb/fluid");
-  if (ifix.size() > 0) {
+  if (!ifix.empty()) {
     fix_lb_fluid = (FixLbFluid *) ifix[0];
     groupbit_lb_fluid = group->bitmask[ifix[0]->igroup];
   } else {

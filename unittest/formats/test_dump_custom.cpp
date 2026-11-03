@@ -12,9 +12,12 @@
 ------------------------------------------------------------------------- */
 
 #include "../testing/core.h"
+#include <algorithm>
+#include <cmath>
 #include "../testing/systems/melt.h"
 #include "../testing/utils.h"
 #include "fmt/format.h"
+#include "library.h"
 #include "output.h"
 #include "thermo.h"
 #include "utils.h"
@@ -131,7 +134,9 @@ TEST_F(DumpCustomTest, thresh_run0)
     auto dump_file     = dump_filename("thresh_run0");
     const auto *fields = "id type x y z";
 
-    generate_dump(dump_file, fields, "units yes thresh x < 1 thresh y < 1 thresh z < 1", 0);
+    // the thresholds select the 4 atoms of the first fcc unit cell
+
+    generate_dump(dump_file, fields, "units yes thresh x < 1.5 thresh y < 1.5 thresh z < 1.5", 0);
 
     ASSERT_FILE_EXISTS(dump_file);
     auto lines = read_lines(dump_file);
@@ -348,13 +353,13 @@ TEST_F(DumpCustomTest, rerun)
         command(fmt::format("rerun {} first 1 last 1 every 1 post no dump x y z", dump_file));
     });
     lmp->output->thermo->evaluate_keyword("pe", &pe_rerun);
-    ASSERT_DOUBLE_EQ(pe_1, pe_rerun);
+    ASSERT_NEAR(pe_1, pe_rerun, prec_tol(pe_1, 1.0e-14));
 
     HIDE_OUTPUT([&] {
         command(fmt::format("rerun {} first 2 last 2 every 1 post yes dump x y z", dump_file));
     });
     lmp->output->thermo->evaluate_keyword("pe", &pe_rerun);
-    ASSERT_DOUBLE_EQ(pe_2, pe_rerun);
+    ASSERT_NEAR(pe_2, pe_rerun, prec_tol(pe_2, 1.0e-14));
     delete_file(dump_file);
 }
 
@@ -378,12 +383,12 @@ TEST_F(DumpCustomTest, rerun_bin)
         command(fmt::format("rerun {} first 1 last 1 every 1 post no dump x y z", dump_file));
     });
     lmp->output->thermo->evaluate_keyword("pe", &pe_rerun);
-    ASSERT_NEAR(pe_1, pe_rerun, 1.0e-14);
+    ASSERT_NEAR(pe_1, pe_rerun, prec_tol(pe_1, 1.0e-14));
     HIDE_OUTPUT([&] {
         command(fmt::format("rerun {} first 2 last 2 every 1 post yes dump x y z", dump_file));
     });
     lmp->output->thermo->evaluate_keyword("pe", &pe_rerun);
-    ASSERT_NEAR(pe_2, pe_rerun, 1.0e-14);
+    ASSERT_NEAR(pe_2, pe_rerun, prec_tol(pe_2, 1.0e-14));
     delete_file(dump_file);
 }
 } // namespace LAMMPS_NS
@@ -407,6 +412,13 @@ int main(int argc, char **argv)
     if ((argc > 1) && (strcmp(argv[1], "-v") == 0)) verbose = true;
 
     int rv = RUN_ALL_TESTS();
+
+    // finalize the KOKKOS package explicitly: otherwise Kokkos is torn down by
+    // static destructors at program exit, leading to segfaults in some cases
+    // same workaround as the force-style and FFT3d test drivers
+
+    lammps_kokkos_finalize();
+
     MPI_Finalize();
     return rv;
 }

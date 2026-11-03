@@ -1,0 +1,203 @@
+LAMMPS (2 Sep 2026)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread.
+  using 1 OpenMP thread(s) per MPI task
+# GCMC for CO2 molecular fluid, rigid/small dynamics
+# Rigid CO2 TraPPE model
+# [Potoff and J.I. Siepmann, Vapor-liquid equilibria of
+# mixtures containing alkanes, carbon dioxide and
+# nitrogen AIChE J., 47,1676-1682 (2001)].
+
+# variables available on command line
+
+variable        mu index -8.1
+variable        disp index 0.5
+variable        temp index 338.0
+variable        lbox index 10.0
+variable        spacing index 5.0
+
+# global model settings
+
+units           real
+atom_style      full
+boundary        p p p
+pair_style      lj/cut/coul/long  14
+pair_modify     mix arithmetic tail yes
+kspace_style    ewald 0.0001
+bond_style      harmonic
+angle_style     harmonic
+
+# box, start molecules on simple cubic lattice
+
+lattice         sc ${spacing}
+lattice         sc 5.0
+Lattice spacing in x,y,z = 5 5 5
+region          box block 0 ${lbox} 0 ${lbox} 0 ${lbox} units box
+region          box block 0 10.0 0 ${lbox} 0 ${lbox} units box
+region          box block 0 10.0 0 10.0 0 ${lbox} units box
+region          box block 0 10.0 0 10.0 0 10.0 units box
+create_box      2 box                                       bond/types 1                                angle/types 1                               extra/bond/per/atom 2                       extra/angle/per/atom 1                      extra/special/per/atom 2
+Created orthogonal box = (0 0 0) to (10 10 10)
+  1 by 2 by 2 MPI processor grid
+molecule        co2mol CO2.txt
+Read molecule template co2mol:
+# CO2 molecule file. TraPPE model.
+  1 molecules
+  0 fragments
+  0 bodies
+  3 atoms with max type 2
+  2 bonds with max type 1
+  1 angles with max type 1
+  0 dihedrals with max type 0
+  0 impropers with max type 0
+create_atoms    0 box mol co2mol 464563 units box
+Created 24 atoms
+  using box units in orthogonal box = (0 0 0) to (10 10 10)
+  create_atoms CPU = 0.001 seconds
+
+# rigid CO2 TraPPE model
+
+pair_coeff      1   1  0.053649   2.8
+pair_coeff      2   2  0.156973   3.05
+bond_coeff      1       0       1.16
+angle_coeff     1       0       180
+
+# masses
+
+mass 1 12.0107
+mass 2 15.9994
+
+# MD settings
+
+group           co2 type 1 2
+24 atoms in group co2
+neighbor        2.0 bin
+neigh_modify    every 1 delay 10 check yes
+velocity        all create ${temp} 54654
+velocity        all create 338.0 54654
+timestep        1.0
+
+# rigid constraints with thermostat
+
+fix             myrigid co2 rigid/small molecule mol co2mol
+Fix rigid/small setup ...
+  create bodies CPU = 0.000 seconds
+  8 rigid bodies with 24 atoms
+  1.16 = max distance from body owner to body atom
+
+# dynamically update  fix rigid/nvt/small temperature ndof
+fix_modify      myrigid dynamic/dof yes
+
+# gcmc
+
+variable        tfac equal 5.0/3.0 # (3 trans + 2 rot)/(3 trans)
+fix             mygcmc co2 gcmc 100 100 0 0 54341 ${temp} ${mu} ${disp} mol                 co2mol tfac_insert ${tfac} group co2 rigid myrigid
+fix             mygcmc co2 gcmc 100 100 0 0 54341 338.0 ${mu} ${disp} mol                 co2mol tfac_insert ${tfac} group co2 rigid myrigid
+fix             mygcmc co2 gcmc 100 100 0 0 54341 338.0 -8.1 ${disp} mol                 co2mol tfac_insert ${tfac} group co2 rigid myrigid
+fix             mygcmc co2 gcmc 100 100 0 0 54341 338.0 -8.1 0.5 mol                 co2mol tfac_insert ${tfac} group co2 rigid myrigid
+fix             mygcmc co2 gcmc 100 100 0 0 54341 338.0 -8.1 0.5 mol                 co2mol tfac_insert 1.66666666666667 group co2 rigid myrigid
+
+# atom counts
+
+variable        carbon atom "type==1"
+variable        oxygen atom "type==2"
+group           carbon dynamic co2 var carbon
+dynamic group carbon defined
+group           oxygen dynamic co2 var oxygen
+dynamic group oxygen defined
+variable        nC equal count(carbon)
+variable        nO equal count(oxygen)
+
+# output
+
+variable        tacc equal f_mygcmc[2]/(f_mygcmc[1]+0.1)
+variable        iacc equal f_mygcmc[4]/(f_mygcmc[3]+0.1)
+variable        dacc equal f_mygcmc[6]/(f_mygcmc[5]+0.1)
+variable        racc equal f_mygcmc[8]/(f_mygcmc[7]+0.1)
+
+# dynamically update default temperature ndof
+compute_modify  thermo_temp dynamic/dof yes
+
+thermo_style    custom step temp press pe ke density atoms v_iacc v_dacc v_tacc v_racc v_nC v_nO
+thermo          1000
+
+# run
+
+run             20000
+Ewald initialization ...
+  using 12-bit tables for long-range coulomb
+  G vector (1/distance) = 0.16463644
+  estimated absolute RMS force accuracy = 0.033206372
+  estimated relative force accuracy = 0.0001
+  KSpace vectors: actual max1d max3d = 16 2 62
+                  kxmax kymax kzmax  = 2 2 2
+Generated 1 of 1 mixed pair_coeff terms from arithmetic mixing rule
+WARNING: Fix gcmc using full_energy option (src/MC/fix_gcmc.cpp:548)
+0 atoms in group FixGCMC:gcmc_exclusion_group:mygcmc
+0 atoms in group FixGCMC:rotation_gas_atoms:mygcmc
+WARNING: Neighbor exclusions used with KSpace solver may give inconsistent Coulombic energies (src/neighbor.cpp:668)
+Neighbor list info ...
+  update: every = 1 steps, delay = 10 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 16
+  ghost atom cutoff = 16
+  binsize = 8, bins = 2 2 2
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cut/coul/long, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 15.98 | 15.98 | 15.98 Mbytes
+   Step          Temp          Press          PotEng         KinEng        Density        Atoms        v_iacc         v_dacc         v_tacc         v_racc          v_nC           v_nO     
+         0   386.52184      23582.466     -3.243336       14.209828      0.5846359             24   0              0              0              0              8              16           
+      1000   330.19614      1414.4192     -31.951441      20.341207      0.95003334            39   0.041575926    0.032316704    0              0              13             26           
+      2000   339.51436      376.78343     -36.536883      22.601954      1.0231128             42   0.025429763    0.018680562    0              0              14             28           
+      3000   322.52354      8.1571289     -9.672236       8.6524328      0.43847693            18   0.043562764    0.044426762    0              0              6              12           
+      4000   398.53651      26.707093     -19.284224      18.611399      0.73079488            30   0.071858712    0.069166543    0              0              10             20           
+      5000   365.38018     -718.72753     -18.070925      15.247805      0.65771539            27   0.074976946    0.074218906    0              0              9              18           
+      6000   337.86771      392.02731     -10.64007       10.742608      0.51155641            21   0.096073934    0.096921894    0              0              7              14           
+      7000   286.53754      515.4633      -19.744163      14.804642      0.80387436            33   0.10403343     0.10424744     0              0              11             22           
+      8000   254.46037      3284.1574     -33.501723      16.939789      1.0231128             42   0.094525012    0.093967488    0              0              14             28           
+      9000   279.82685      57.685327     -24.009905      14.457918      0.80387436            33   0.085864525    0.085464379    0              0              11             22           
+     10000   605.72155      33.346915     -0.081802672    1.2036939      0.073079488            3   0.093007508    0.095197927    0              0              1              2            
+     11000   518.08567      504.61896     -5.4110986      11.324976      0.36539744            15   0.10497548     0.10648207     0              0              5              10           
+     12000   423.90753      673.69774     -26.651621      24.008169      0.87695385            36   0.10365178     0.10468653     0              0              12             24           
+     13000   238.63698      310.7222      -10.069107      8.7730887      0.5846359             24   0.097589241    0.099346486    0              0              8              16           
+     14000   161.27772     -57.778989     -1.834389       1.9229529      0.21923846             9   0.10691851     0.1092385      0              0              3              6            
+     15000   402.96028      97.101354     -8.8616697      12.812246      0.51155641            21   0.11100673     0.11287137     0              0              7              14           
+     16000   406.47063      857.53371     -18.178018      18.981917      0.73079488            30   0.10744588     0.10983032     0              0              10             20           
+     17000   385.00765     -257.57012     -17.152482      16.066885      0.65771539            27   0.10488819     0.10701419     0              0              9              18           
+     18000   354.37377      6.702368      -17.500119      16.549027      0.73079488            30   0.10125219     0.10321088     0              0              10             20           
+     19000   469.94131     -471.44741     -18.78743       21.945957      0.73079488            30   0.10488965     0.10713411     0              0              10             20           
+     20000   308.6775      -107.53303     -27.543854      17.482071      0.87695385            36   0.10225938     0.10456881     0              0              12             24           
+Loop time of 7.13935 on 4 procs for 20000 steps with 36 atoms
+
+Performance: 242.039 ns/day, 0.099 hours/ns, 2801.377 timesteps/s, 100.850 katom-step/s
+98.1% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.30862    | 0.4013     | 0.4803     |  10.0 |  5.62
+Bond    | 0.0067943  | 0.0068933  | 0.007053   |   0.1 |  0.10
+Kspace  | 0.12818    | 0.20667    | 0.29872    |  13.8 |  2.89
+Neigh   | 0.019119   | 0.019221   | 0.019328   |   0.1 |  0.27
+Comm    | 0.38104    | 0.38343    | 0.3866     |   0.3 |  5.37
+Output  | 0.0009423  | 0.00097843 | 0.0010774  |   0.0 |  0.01
+Modify  | 6.0802     | 6.0838     | 6.0873     |   0.1 | 85.22
+Other   |            | 0.03704    |            |       |  0.52
+
+Nlocal:              9 ave          11 max           6 min
+Histogram: 1 0 0 0 1 0 0 0 0 2
+Nghost:         2024.5 ave        2068 max        1982 min
+Histogram: 2 0 0 0 0 0 0 0 1 1
+Neighs:        2781.25 ave        3254 max        2358 min
+Histogram: 1 0 0 1 0 1 0 0 0 1
+
+Total # of neighbors = 11125
+Ave neighs/atom = 309.02778
+Ave special neighs/atom = 2
+Neighbor list builds = 20368
+Dangerous builds = 0
+
+Total wall time: 0:00:07

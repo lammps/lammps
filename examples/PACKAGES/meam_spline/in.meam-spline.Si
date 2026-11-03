@@ -13,7 +13,7 @@ pair_style      meam/spline
 pair_coeff      * * Si_1.meam.spline Si
 mass            * 28.085
 
-velocity        all create 500.0 44226611
+velocity        all create 500.0 44226611 loop geom
 
 fix             1 all nvt temp 500.0 500.0 1.0
 

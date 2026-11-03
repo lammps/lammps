@@ -1,0 +1,17 @@
+variable  newton_pair     index  on
+variable  newton_bond     index  on
+variable  units           index  lj
+variable  input_dir       index  .
+variable  data_file       index ${input_dir}/data.mdpd
+variable  pair_style      index 'zero 2.0'
+
+atom_style       mdpd
+atom_modify      map array
+neigh_modify     delay 2 every 2 check no
+units            ${units}
+timestep         0.005
+newton           ${newton_pair} ${newton_bond}
+comm_modify      vel yes
+
+pair_style       ${pair_style}
+read_data        ${data_file}

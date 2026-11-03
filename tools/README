@@ -25,6 +25,7 @@ eam_generate           2nd tool to generate EAM alloy potential files
 eff                    scripts for working with the eFF (electron force field)
 emacs                  add-ons to EMACS editor for editing LAMMPS input scripts
 fep                    scripts for free-energy perturbation with FEP pkg
+granular_surfaces      scripts for working with surfaces of tris/lines (3d/2d)
 i-pi                   Python wrapper for performing path-integral MD (PIMD)
 ipp                    input pre-processor Perl tool for creating input scripts
 json                   tools and files for using JSON files in LAMMPS
@@ -48,6 +49,7 @@ smd                    convert Smooth Mach Dynamics triangles to VTK
 spin                   perform a cubic polynomial interpolation of a GNEB MEP
 stl_bin2txt            convert binary STL files to ASCII
 swig                   Interface file and demo scripts for SWIG wrappers for the LAMMPS C library interface
+symmetry               find space group operators for the fix symmetry command with spglib
 tabulate               Python scripts to generate tabulated potential files for LAMMPS
 tinker2lmp.py          convert Tinker input files to LAMMPS input files
 valgrind               suppression files for use with valgrind's memcheck tool

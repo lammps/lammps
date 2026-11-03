@@ -28,14 +28,14 @@
 // clang-format off
 namespace Kokkos {
 // BEGIN macro definitions
-#if defined(KOKKOS_HALF_T_IS_FLOAT) && !KOKKOS_HALF_T_IS_FLOAT
+#if !KOKKOS_HALF_T_IS_FLOAT
   #define KOKKOS_IMPL_MATH_H_FUNC_WRAPPER(MACRO, FUNC, /*MAYBE_RET*/...) \
     MACRO(FUNC, Kokkos::Experimental::half_t __VA_OPT__(,) __VA_ARGS__)
 #else
   #define KOKKOS_IMPL_MATH_H_FUNC_WRAPPER(MACRO, FUNC, ...)
 #endif
 
-#if defined(KOKKOS_BHALF_T_IS_FLOAT) && !KOKKOS_BHALF_T_IS_FLOAT
+#if !KOKKOS_BHALF_T_IS_FLOAT
   #define KOKKOS_IMPL_MATH_B_FUNC_WRAPPER(MACRO, FUNC, /*MAYBE_RET*/...) \
     MACRO(FUNC, Kokkos::Experimental::bhalf_t __VA_OPT__(,) __VA_ARGS__)
 #else
@@ -266,7 +266,7 @@ KOKKOS_IMPL_MATH_HALF_FUNC_WRAPPER(KOKKOS_IMPL_MATH_BINARY_FUNCTION_HALF, copysi
 // Classification and comparison functions
 // fpclassify
 
-#if defined(KOKKOS_HALF_T_IS_FLOAT) && !KOKKOS_HALF_T_IS_FLOAT
+#if !KOKKOS_HALF_T_IS_FLOAT
 namespace Impl {
 template <bool fallback = true>
 KOKKOS_INLINE_FUNCTION bool impl_isfinite(Kokkos::Experimental::half_t x) {
@@ -283,7 +283,7 @@ KOKKOS_INLINE_FUNCTION bool isfinite(Kokkos::Experimental::half_t x) {
 }
 #endif
 
-#if defined(KOKKOS_BHALF_T_IS_FLOAT) && !KOKKOS_BHALF_T_IS_FLOAT
+#if !KOKKOS_BHALF_T_IS_FLOAT
 namespace Impl {
 template <bool fallback = true>
 KOKKOS_INLINE_FUNCTION bool impl_isfinite(Kokkos::Experimental::bhalf_t x) {
@@ -300,7 +300,7 @@ KOKKOS_INLINE_FUNCTION bool isfinite(Kokkos::Experimental::bhalf_t x) {
 }
 #endif
 
-#if defined(KOKKOS_HALF_T_IS_FLOAT) && !KOKKOS_HALF_T_IS_FLOAT
+#if !KOKKOS_HALF_T_IS_FLOAT
 namespace Impl {
 template <bool fallback = true>
 KOKKOS_INLINE_FUNCTION bool impl_isinf(Kokkos::Experimental::half_t x) {
@@ -320,7 +320,7 @@ KOKKOS_INLINE_FUNCTION bool isinf(Kokkos::Experimental::half_t x) {
 }
 #endif
 
-#if defined(KOKKOS_BHALF_T_IS_FLOAT) && !KOKKOS_BHALF_T_IS_FLOAT
+#if !KOKKOS_BHALF_T_IS_FLOAT
 namespace Impl {
 template <bool fallback = true>
 KOKKOS_INLINE_FUNCTION bool impl_isinf(Kokkos::Experimental::bhalf_t x) {
@@ -340,7 +340,7 @@ KOKKOS_INLINE_FUNCTION bool isinf(Kokkos::Experimental::bhalf_t x) {
 }
 #endif
 
-#if defined(KOKKOS_HALF_T_IS_FLOAT) && !KOKKOS_HALF_T_IS_FLOAT
+#if !KOKKOS_HALF_T_IS_FLOAT
 namespace Impl {
 template <bool fallback = true>
 KOKKOS_INLINE_FUNCTION bool impl_isnan(Kokkos::Experimental::half_t x) {
@@ -360,7 +360,7 @@ KOKKOS_INLINE_FUNCTION bool isnan(Kokkos::Experimental::half_t x) {
 }
 #endif
 
-#if defined(KOKKOS_BHALF_T_IS_FLOAT) && !KOKKOS_BHALF_T_IS_FLOAT
+#if !KOKKOS_BHALF_T_IS_FLOAT
 namespace Impl {
 template <bool fallback = true>
 KOKKOS_INLINE_FUNCTION bool impl_isnan(Kokkos::Experimental::bhalf_t x) {
@@ -393,7 +393,7 @@ KOKKOS_INLINE_FUNCTION fp16_t nextafter_half_helper(fp16_t from, fp16_t to) {
 
    // Handle Nans
    if (isnan(from) || isnan(to)) {
-     return Kokkos::Experimental::quiet_NaN<fp16_t>::value;
+     return Kokkos::quiet_NaN<fp16_t>::value;
    }
 
    // Handle equality
@@ -448,14 +448,14 @@ KOKKOS_INLINE_FUNCTION fp16_t nextafter_half_helper(fp16_t from, fp16_t to) {
 }
 } // namespace Impl
 
-#if defined(KOKKOS_HALF_T_IS_FLOAT) && !KOKKOS_HALF_T_IS_FLOAT
+#if !KOKKOS_HALF_T_IS_FLOAT
 KOKKOS_INLINE_FUNCTION Kokkos::Experimental::half_t nextafter(Kokkos::Experimental::half_t from,
                                                               Kokkos::Experimental::half_t to) {
   return Impl::nextafter_half_helper(from, to);
 }
 #endif
 
-#if defined(KOKKOS_BHALF_T_IS_FLOAT) && !KOKKOS_BHALF_T_IS_FLOAT
+#if !KOKKOS_BHALF_T_IS_FLOAT
 KOKKOS_INLINE_FUNCTION Kokkos::Experimental::bhalf_t nextafter(Kokkos::Experimental::bhalf_t from,
                                                                Kokkos::Experimental::bhalf_t to) {
   return Impl::nextafter_half_helper(from, to);
@@ -463,7 +463,7 @@ KOKKOS_INLINE_FUNCTION Kokkos::Experimental::bhalf_t nextafter(Kokkos::Experimen
 #endif
 #endif  // !(defined(KOKKOS_ENABLE_CUDA) && defined(KOKKOS_COMPILER_MSVC))
 
-#if defined(KOKKOS_HALF_T_IS_FLOAT) && !KOKKOS_HALF_T_IS_FLOAT
+#if !KOKKOS_HALF_T_IS_FLOAT
 KOKKOS_INLINE_FUNCTION bool isnormal(Kokkos::Experimental::half_t x) {
 #if defined(KOKKOS_ENABLE_HIP)
     // FIXME_HIP
@@ -471,12 +471,12 @@ KOKKOS_INLINE_FUNCTION bool isnormal(Kokkos::Experimental::half_t x) {
     if (x != x) { return false; }
 #endif
     auto abs = Kokkos::abs(x);
-    return (abs >= Kokkos::Experimental::norm_min_v<Kokkos::Experimental::half_t>)&&(
-      abs <= Kokkos::Experimental::finite_max_v<Kokkos::Experimental::half_t>);
+    return (abs >= Kokkos::norm_min_v<Kokkos::Experimental::half_t>) &&
+           (abs <= Kokkos::finite_max_v<Kokkos::Experimental::half_t>);
 }
 #endif
 
-#if defined(KOKKOS_BHALF_T_IS_FLOAT) && !KOKKOS_BHALF_T_IS_FLOAT
+#if !KOKKOS_BHALF_T_IS_FLOAT
 KOKKOS_INLINE_FUNCTION bool isnormal(Kokkos::Experimental::bhalf_t x) {
 #if defined(KOKKOS_ENABLE_HIP)
     // FIXME_HIP
@@ -484,8 +484,8 @@ KOKKOS_INLINE_FUNCTION bool isnormal(Kokkos::Experimental::bhalf_t x) {
     if (x != x) { return false; }
 #endif
     auto abs = Kokkos::abs(x);
-    return (abs >= Kokkos::Experimental::norm_min_v<Kokkos::Experimental::bhalf_t>)&&(
-      abs <= Kokkos::Experimental::finite_max_v<Kokkos::Experimental::bhalf_t>);
+    return (abs >= Kokkos::norm_min_v<Kokkos::Experimental::bhalf_t>) &&
+           (abs <= Kokkos::finite_max_v<Kokkos::Experimental::bhalf_t>);
 }
 #endif
 
@@ -495,32 +495,32 @@ KOKKOS_INLINE_FUNCTION bool isnormal(Kokkos::Experimental::bhalf_t x) {
       return FP_NAN;                                                       \
     } else if (x == 0) {                                                   \
       return FP_ZERO;                                                      \
-    } else if (Kokkos::abs(x) < Kokkos::Experimental::norm_min_v<TYPE>) {  \
+    } else if (Kokkos::abs(x) < Kokkos::norm_min_v<TYPE>) {  \
       return FP_SUBNORMAL;                                                 \
-    } else if (Kokkos::abs(x) == Kokkos::Experimental::infinity_v<TYPE>) { \
+    } else if (Kokkos::abs(x) == Kokkos::infinity_v<TYPE>) { \
       return FP_INFINITE;                                                  \
     } else {                                                               \
       return FP_NORMAL;                                                    \
     }                                                                      \
   }
 
-#if defined(KOKKOS_HALF_T_IS_FLOAT) && !KOKKOS_HALF_T_IS_FLOAT
+#if !KOKKOS_HALF_T_IS_FLOAT
 KOKKOS_IMPL_HALF_MATH_FPCLASSIFY(Kokkos::Experimental::half_t)
 #endif
 
-#if defined(KOKKOS_BHALF_T_IS_FLOAT) && !KOKKOS_BHALF_T_IS_FLOAT
+#if !KOKKOS_BHALF_T_IS_FLOAT
 KOKKOS_IMPL_HALF_MATH_FPCLASSIFY(Kokkos::Experimental::bhalf_t)
 #endif
 
 #undef KOKKOS_IMPL_HALF_MATH_FPCLASSIFY
 
-#if defined(KOKKOS_HALF_T_IS_FLOAT) && !KOKKOS_HALF_T_IS_FLOAT
+#if !KOKKOS_HALF_T_IS_FLOAT
 KOKKOS_INLINE_FUNCTION bool signbit(Kokkos::Experimental::half_t x) {
   constexpr std::uint16_t sign_mask = 1u<<15;
   return (Kokkos::bit_cast<std::uint16_t>(x) & sign_mask) != 0;
 }
 #endif
-#if defined(KOKKOS_BHALF_T_IS_FLOAT) && !KOKKOS_BHALF_T_IS_FLOAT
+#if !KOKKOS_BHALF_T_IS_FLOAT
 KOKKOS_INLINE_FUNCTION bool signbit(Kokkos::Experimental::bhalf_t x) {
   constexpr std::uint16_t sign_mask = 1u<<15;
   return (Kokkos::bit_cast<std::uint16_t>(x) & sign_mask) != 0;

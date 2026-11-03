@@ -53,7 +53,7 @@ PID controller continuously adjusts the control variable based on the
 difference between the process variable and the target.
 
 Here are examples of ways in which this fix can be used.  The
-examples/pid directory contains a script that implements the simple
+``examples/controller/in.controller.temp`` script implements the simple
 thermostat.
 
 +-----------------------------------------+---------------------+---------------------+

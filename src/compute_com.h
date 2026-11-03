@@ -31,7 +31,7 @@ class ComputeCOM : public Compute {
   void init() override;
   void compute_vector() override;
 
- private:
+ protected:
   double masstotal;
 };
 

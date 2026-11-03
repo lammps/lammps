@@ -108,7 +108,9 @@ ComputePACE::ComputePACE(LAMMPS *lmp, int narg, char **arg) :
 
 ComputePACE::~ComputePACE()
 {
-  modify->delete_compute(id_virial);
+  // the compute for the reference virial tensor exists only after init()
+
+  if (modify->get_compute_by_id(id_virial)) modify->delete_compute(id_virial);
 
   delete acecimpl;
   memory->destroy(pace);
@@ -135,6 +137,8 @@ void ComputePACE::init()
     error->warning(FLERR,"More than one compute pace");
 
   // allocate memory for global array
+  memory->destroy(pace);
+  memory->destroy(paceall);
   memory->create(pace,size_array_rows,size_array_cols, "pace:pace");
   memory->create(paceall,size_array_rows,size_array_cols, "pace:paceall");
   array = paceall;
@@ -144,10 +148,11 @@ void ComputePACE::init()
   c_pe = modify->get_compute_by_id("thermo_pe");
   if (!c_pe) error->all(FLERR,"Compute thermo_pe does not exist.");
 
-  // add compute for reference virial tensor
+  // add compute for reference virial tensor, unless it exists from a previous run
 
-  id_virial = id + std::string("_press");
-  c_virial = modify->add_compute(id_virial + " all pressure NULL virial");
+  id_virial = id + std::string("_press") + std::to_string(instance_me);
+  c_virial = modify->get_compute_by_id(id_virial);
+  if (!c_virial) c_virial = modify->add_compute(id_virial + " all pressure NULL virial");
 }
 
 /* ---------------------------------------------------------------------- */

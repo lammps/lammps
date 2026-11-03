@@ -1,0 +1,31 @@
+# Mix of rigid 8-atom cubes and free (non-rigid) atoms
+# Exercises the path where not all atoms belong to a rigid body
+# (atom2body == -1 / bodytag == 0) in fix rigid/small(/kk).
+#   lmp -in in.rigid.cubes.partial
+#   lmp -k on -sf kk -in in.rigid.cubes.partial
+
+units           lj
+atom_style      molecular
+atom_modify     map array
+
+# data file contains rigid cubes (molecule > 0) and free atoms (molecule 0)
+# generated with: python3 gen_cubes.py 5 data.rigid.cubes.partial --partial
+read_data       data.rigid.cubes.partial
+
+pair_style      lj/cut 2.5
+pair_coeff      1 1 1.0 1.0
+
+neigh_modify    exclude molecule/intra all
+
+group           rigidbodies molecule > 0
+group           freeatoms    molecule 0
+
+velocity        all create 1.5 4928459 mom yes rot yes
+
+fix             1 rigidbodies rigid/small molecule
+fix             2 freeatoms   nve
+
+thermo_style    custom step temp pe ke etotal
+thermo          200
+timestep        0.0005
+run             2000

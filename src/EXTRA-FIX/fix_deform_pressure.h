@@ -36,7 +36,7 @@ class FixDeformPressure : public FixDeform {
 
  protected:
   int pcouple;
-  double max_h_rate;
+  double max_strain_rate;        // cap on |engineering strain rate| (1/time), 0 = no cap
   int strain_flag;               // 1 if strain-based option is used, 0 if not
   int pressure_flag;             // 1 if pressure tensor used, 0 if not
   int volume_flag;               // 1 if VOLUME option is used, 0 if not

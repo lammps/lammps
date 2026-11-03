@@ -49,8 +49,8 @@ class CudaSpace {
   using memory_space    = CudaSpace;
   using execution_space = Kokkos::Cuda;
   using device_type     = Kokkos::Device<execution_space, memory_space>;
-
-  using size_type = unsigned int;
+  using size_type       = unsigned int;
+  using index_type      = std::make_signed_t<size_type>;
 
   /*--------------------------------*/
 
@@ -139,6 +139,7 @@ class CudaUVMSpace {
   using execution_space = Cuda;
   using device_type     = Kokkos::Device<execution_space, memory_space>;
   using size_type       = unsigned int;
+  using index_type      = std::make_signed_t<size_type>;
 
   /*--------------------------------*/
 
@@ -227,6 +228,7 @@ class CudaHostPinnedSpace {
   using memory_space    = CudaHostPinnedSpace;
   using device_type     = Kokkos::Device<execution_space, memory_space>;
   using size_type       = unsigned int;
+  using index_type      = std::make_signed_t<size_type>;
 
   /*--------------------------------*/
 
@@ -322,7 +324,6 @@ struct MemorySpaceAccess<Kokkos::HostSpace, Kokkos::CudaSpace> {
 #else
   enum : bool { accessible = true };
 #endif
-  enum : bool { deepcopy = true };
 };
 
 template <>
@@ -330,7 +331,6 @@ struct MemorySpaceAccess<Kokkos::HostSpace, Kokkos::CudaUVMSpace> {
   // HostSpace::execution_space != CudaUVMSpace::execution_space
   enum : bool { assignable = false };
   enum : bool { accessible = true };
-  enum : bool { deepcopy = true };
 };
 
 template <>
@@ -338,7 +338,6 @@ struct MemorySpaceAccess<Kokkos::HostSpace, Kokkos::CudaHostPinnedSpace> {
   // HostSpace::execution_space == CudaHostPinnedSpace::execution_space
   enum : bool { assignable = true };
   enum : bool { accessible = true };
-  enum : bool { deepcopy = true };
 };
 
 //----------------------------------------
@@ -347,7 +346,6 @@ template <>
 struct MemorySpaceAccess<Kokkos::CudaSpace, Kokkos::HostSpace> {
   enum : bool { assignable = false };
   enum : bool { accessible = false };
-  enum : bool { deepcopy = true };
 };
 
 template <>
@@ -355,7 +353,6 @@ struct MemorySpaceAccess<Kokkos::CudaSpace, Kokkos::CudaUVMSpace> {
   // CudaSpace::execution_space == CudaUVMSpace::execution_space
   enum : bool { assignable = true };
   enum : bool { accessible = true };
-  enum : bool { deepcopy = true };
 };
 
 template <>
@@ -363,7 +360,6 @@ struct MemorySpaceAccess<Kokkos::CudaSpace, Kokkos::CudaHostPinnedSpace> {
   // CudaSpace::execution_space != CudaHostPinnedSpace::execution_space
   enum : bool { assignable = false };
   enum : bool { accessible = true };  // CudaSpace::execution_space
-  enum : bool { deepcopy = true };
 };
 
 //----------------------------------------
@@ -374,7 +370,6 @@ template <>
 struct MemorySpaceAccess<Kokkos::CudaUVMSpace, Kokkos::HostSpace> {
   enum : bool { assignable = false };
   enum : bool { accessible = false };  // Cuda cannot access HostSpace
-  enum : bool { deepcopy = true };
 };
 
 template <>
@@ -385,7 +380,6 @@ struct MemorySpaceAccess<Kokkos::CudaUVMSpace, Kokkos::CudaSpace> {
 
   // CudaUVMSpace::execution_space can access CudaSpace
   enum : bool { accessible = true };
-  enum : bool { deepcopy = true };
 };
 
 template <>
@@ -393,7 +387,6 @@ struct MemorySpaceAccess<Kokkos::CudaUVMSpace, Kokkos::CudaHostPinnedSpace> {
   // CudaUVMSpace::execution_space != CudaHostPinnedSpace::execution_space
   enum : bool { assignable = false };
   enum : bool { accessible = true };  // CudaUVMSpace::execution_space
-  enum : bool { deepcopy = true };
 };
 
 //----------------------------------------
@@ -404,21 +397,18 @@ template <>
 struct MemorySpaceAccess<Kokkos::CudaHostPinnedSpace, Kokkos::HostSpace> {
   enum : bool { assignable = false };  // Cannot access from Cuda
   enum : bool { accessible = true };   // CudaHostPinnedSpace::execution_space
-  enum : bool { deepcopy = true };
 };
 
 template <>
 struct MemorySpaceAccess<Kokkos::CudaHostPinnedSpace, Kokkos::CudaSpace> {
   enum : bool { assignable = false };  // Cannot access from Host
   enum : bool { accessible = false };
-  enum : bool { deepcopy = true };
 };
 
 template <>
 struct MemorySpaceAccess<Kokkos::CudaHostPinnedSpace, Kokkos::CudaUVMSpace> {
   enum : bool { assignable = false };  // different execution_space
   enum : bool { accessible = true };   // same accessibility
-  enum : bool { deepcopy = true };
 };
 
 //----------------------------------------

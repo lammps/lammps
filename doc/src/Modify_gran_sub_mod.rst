@@ -97,12 +97,6 @@ set of files ``gran_sub_mod_custom.h``:
 
 .. code-block:: c++
 
-   #ifdef GRAN_SUB_MOD_CLASS
-   // clang-format off
-   GranSubModStyle(hooke/piecewise,GranSubModNormalHookePiecewise,NORMAL);
-   // clang-format on
-   #else
-
    #ifndef GRAN_SUB_MOD_CUSTOM_H
    #define GRAN_SUB_MOD_CUSTOM_H
 
@@ -123,7 +117,6 @@ set of files ``gran_sub_mod_custom.h``:
    }    // namespace LAMMPS_NS
 
    #endif /*GRAN_SUB_MOD_CUSTOM_H */
-   #endif /*GRAN_SUB_MOD_CLASS_H */
 
 
 and ``gran_sub_mod_custom.cpp``
@@ -165,4 +158,25 @@ and ``gran_sub_mod_custom.cpp``
      }
      return Fne;
    }
+
+Finally, the new sub-model has to be registered so that it can be selected by
+keyword from the input script.  Unlike the name-keyed styles (pair, fix,
+compute, ...), granular sub-models cannot be loaded as plugins, so they are
+registered through a checked-in table in the file
+``src/GRANULAR/gran_sub_mod_register.cpp`` rather than through an auto-generated
+style header.  Add an ``#include`` for the new header and one row to the
+``gran_sub_mod_table[]`` array in that file:
+
+.. code-block:: c++
+
+   // in the 1st customization section
+   #include "gran_sub_mod_custom.h"
+
+   // in the 2nd customization section, among the normal models
+   { "hooke/piecewise", &creator<GranSubModNormalHookePiecewise>, NORMAL },
+
+The keyword (here ``hooke/piecewise``) is what selects the sub-model in the
+:doc:`pair_style granular <pair_granular>` and :doc:`fix wall/gran <fix_wall_gran>`
+commands.  The same keyword may be reused for different sub-model types; the
+type column (the last entry) selects the correct one.
 

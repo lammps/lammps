@@ -105,15 +105,16 @@ void FixSpringRG::post_force(int /*vflag*/)
   // compute current Rg and center-of-mass
 
   double xcm[3];
-  if (group->dynamic[igroup])
-    masstotal = group->mass(igroup);
+  if (group->dynamic[igroup]) masstotal = group->mass(igroup);
   group->xcm(igroup,masstotal,xcm);
   double rg = group->gyration(igroup,masstotal,xcm);
 
-  // apply restoring force to atoms in group
-  // f = -k*(r-r0)*mass/masstotal
+  // rg == 0 means that either there are no atoms in the group or that
+  //         they are exactly on top of each other. nothing to do then
 
-  double dx,dy,dz,term1;
+  if ((rg == 0.0) || (masstotal == 0.0)) return;
+
+  // apply restoring force to atoms in group
 
   double **f = atom->f;
   double **x = atom->x;
@@ -124,25 +125,25 @@ void FixSpringRG::post_force(int /*vflag*/)
   double *rmass = atom->rmass;
   int nlocal = atom->nlocal;
 
+  double dx,dy,dz;
   double massfrac;
   double unwrap[3];
 
-  for (int i = 0; i < nlocal; i++)
+  const double term1 = 2.0 * k * (1.0 - rg0/rg);
+  for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
       domain->unmap(x[i],image[i],unwrap);
       dx = unwrap[0] - xcm[0];
       dy = unwrap[1] - xcm[1];
       dz = unwrap[2] - xcm[2];
-      term1 = 2.0 * k * (1.0 - rg0/rg);
-      if (masstotal > 0.0) {
-        if (rmass) massfrac = rmass[i]/masstotal;
-        else  massfrac = mass[type[i]]/masstotal;
+      if (rmass) massfrac = rmass[i]/masstotal;
+      else  massfrac = mass[type[i]]/masstotal;
 
-        f[i][0] -= term1*dx*massfrac;
-        f[i][1] -= term1*dy*massfrac;
-        f[i][2] -= term1*dz*massfrac;
-      }
+      f[i][0] -= term1*dx*massfrac;
+      f[i][1] -= term1*dy*massfrac;
+      f[i][2] -= term1*dz*massfrac;
     }
+  }
 }
 
 /* ---------------------------------------------------------------------- */

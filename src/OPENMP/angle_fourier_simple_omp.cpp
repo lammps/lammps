@@ -140,9 +140,9 @@ void AngleFourierSimpleOMP::eval(int nfrom, int nto, ThrData *const thr)
 
     if (EFLAG) eangle = term;
 
-    // handle sin(n th)/sin(th) singulatiries
+    // handle sin(n th)/sin(th) singularities at th = 0 and th = pi
 
-    if (fabs(c) - 1.0 > SMALL) {
+    if (1.0 - fabs(c) > SMALL) {
       a = k[type] * C[type] * N[type] * sin(nth) / sin(th);
     } else {
       if (c >= 0.0) {

@@ -48,7 +48,7 @@ public:
     multiple_replicas
   };
   /// Constructor
-  colvarbias_opes(char const *key);
+  colvarbias_opes(colvarmodule *cvmodule_in, char const *key);
   /// Initializer
   int init(std::string const &conf) override;
   /// Per-timestep update

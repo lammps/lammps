@@ -11,6 +11,7 @@ post_commands: ! |
   fix all solute nve
   fix test solute temp/berendsen 50.0 ${t_target} 1.0
 input_file: in.fourmol
+input_coeffs: coeffs.fourmol
 natoms: 29
 global_scalar: 140.50039990152794
 run_pos: ! |2

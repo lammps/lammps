@@ -135,7 +135,11 @@ void PairLJClass2CoulLongSoftOMP::eval(int iifrom, int iito, ThrData * const thr
           erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
           denc = sqrt(lj4[itype][jtype] + rsq);
           prefactor = qqrd2e * lj1[itype][jtype] * qtmp*q[j] / (denc*denc*denc);
-          forcecoul = prefactor * (erfc + EWALD_F*grij*expm2);
+          // the soft core replaces only the 1/r factor, while the Ewald damping
+          // keeps the true distance, so differentiating erfc(g*r)/denc leaves the
+          // exponential term scaled by denc^2/r^2 against a plain 1/r kernel
+
+          forcecoul = prefactor * (erfc + EWALD_F*grij*expm2*denc*denc/rsq);
           if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor;
         } else forcecoul = 0.0;
 
@@ -143,7 +147,7 @@ void PairLJClass2CoulLongSoftOMP::eval(int iifrom, int iito, ThrData * const thr
           r4sig6 = rsq*rsq / lj2[itype][jtype];
           denlj = lj3[itype][jtype] + rsq*r4sig6;
           forcelj = lj1[itype][jtype] * epsilon[itype][jtype] *
-            (18.0*r4sig6*pow(denlj, -2.5) - 18.0*r4sig6*pow(denlj, -2));
+            18.0*r4sig6*(1.0/sqrt(denlj) - 1.0)/(denlj*denlj);
         } else forcelj = 0.0;
 
         fpair = forcecoul + factor_lj*forcelj;
@@ -164,9 +168,7 @@ void PairLJClass2CoulLongSoftOMP::eval(int iifrom, int iito, ThrData * const thr
             if (factor_coul < 1.0) ecoul -= (1.0-factor_coul)*prefactor;
           } else ecoul = 0.0;
           if (rsq < cut_ljsq[itype][jtype]) {
-            r4sig6 = rsq*rsq / lj2[itype][jtype];
-            denlj = lj3[itype][jtype] + rsq*r4sig6;
-            evdwl = lj1[itype][jtype] * epsilon[itype][jtype] * (2.0/(denlj*sqrt(denlj)) - 3.0/denlj) -
+            evdwl = lj1[itype][jtype] * epsilon[itype][jtype] * (2.0/sqrt(denlj) - 3.0)/denlj -
               offset[itype][jtype];
             evdwl *= factor_lj;
           } else evdwl = 0.0;

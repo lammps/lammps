@@ -42,7 +42,8 @@ static constexpr int DELTA = 4;
 
 /* ---------------------------------------------------------------------- */
 
-PairGW::PairGW(LAMMPS *lmp) : Pair(lmp)
+PairGW::PairGW(LAMMPS *lmp) :
+    Pair(lmp), pages(nullptr), GW_numneigh(nullptr), GW_firstneigh(nullptr)
 {
   single_enable = 0;
   restartinfo = 0;
@@ -60,6 +61,8 @@ PairGW::PairGW(LAMMPS *lmp) : Pair(lmp)
 
 PairGW::~PairGW()
 {
+  if (copymode) return;
+
   memory->destroy(params);
   memory->destroy(elem3param);
 

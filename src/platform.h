@@ -118,6 +118,17 @@ std::string mpi_info(int &major, int &minor);
 
 std::string compress_info();
 
+/*! Check if the current process has superuser or administrator privileges
+ *
+ * On Unix-like operating systems this checks whether the effective user ID
+ * of the process is that of the superuser ("root").  On Windows this checks
+ * whether the process is running with elevated privileges, i.e. what one
+ * gets from using "Run as administrator".
+ *
+ *  \return  true if the process has superuser or administrator privileges */
+
+bool is_superuser();
+
 /*! Add variable to the environment
  *
  * \param  vardef  variable name or variable definition (NAME=value)
@@ -218,6 +229,18 @@ const char *guesspath(FILE *fp, char *buf, int len);
 
 bool is_console(FILE *fp);
 
+/*! Determine the width (number of columns) of the terminal connected to a file pointer
+ *
+ * This queries the terminal connected to the given file pointer for its current
+ * width in characters.  It returns 0 when the file pointer is not connected to a
+ * terminal (e.g. when output is redirected to a file or a pipe), so callers can
+ * fall back to a fixed default width for reproducible non-interactive output.
+ *
+ * \param  fp file pointer
+ * \return number of terminal columns, or 0 if *fp* is not a terminal */
+
+int terminal_width(FILE *fp);
+
 /*! Get list of entries in a directory
  *
  * This provides a list of strings of the entries in the directory
@@ -232,8 +255,9 @@ std::vector<std::string> list_directory(const std::string &dir);
  *
  * This function will traverse the list of directories in the PATH
  * environment variable and look for the executable *cmd*.  If the
- * file exists and is executable the full path is returned as string,
- * otherwise an empty string is returned.
+ * file exists, is not a directory, and is executable (as determined by
+ * file_is_executable()), the full path is returned as string, otherwise
+ * an empty string is returned.
  *
  * On Windows the *cmd* string must not include an extension as
  * this function will automatically append the extensions ".exe",
@@ -245,7 +269,7 @@ std::vector<std::string> list_directory(const std::string &dir);
  * built-in command or aliases.
  *
  * \param   cmd  name of command
- * \return  vector with strings of all directory entries */
+ * \return  full path to the executable or an empty string */
 
 std::string find_exe_path(const std::string &cmd);
 
@@ -258,7 +282,7 @@ int chdir(const std::string &path);
 
 /*! Create a directory or directory path
  *
- * Unlike the the ``mkdir()`` or ``_mkdir()`` functions of the C library, this
+ * Unlike the ``mkdir()`` or ``_mkdir()`` functions of the C library, this
  * function will also try to create non-existing sub-directories in case they
  * don't exist, and thus it behaves like the ``mkdir -p`` command rather than
  * plain ``mkdir`` or ``md`` in a Unix or Windows shell, respectively.
@@ -270,7 +294,7 @@ int mkdir(const std::string &path);
 
 /*! Delete a directory
  *
- * Unlike the the ``rmdir()`` or ``_rmdir()`` functions of the
+ * Unlike the ``rmdir()`` or ``_rmdir()`` functions of the
  * C library, this function will check for the contents of the
  * folder and recurse into any sub-folders, if necessary, and
  * delete all contained folders and their contents before
@@ -370,6 +394,17 @@ bool file_is_readable(const std::string &path);
 
 bool file_is_writable(const std::string &path);
 
+/*! Check if file exists, is not a directory, and can be executed
+ *
+ * Since files on Windows have no execute permission, a regular file is
+ * considered executable there, if its name ends in one of the extensions
+ * ".exe", ".com", ".bat", or ".cmd".
+ *
+ * \param path file path
+ * \return true if file exists and can be executed */
+
+bool file_is_executable(const std::string &path);
+
 /*! Return target path if the file is a 'redirect file'
  *
  * Git uses 'redirect files' instead of symbolic links on Windows since
@@ -428,9 +463,22 @@ FILE *compressed_read(const std::string &file);
 /*! Open pipe to compressed text file for writing
  *
  *  \param  file  name of the file to open
- *  \return  FILE pointer to pipe using for reading the compressed file. */
+ *  \return  FILE pointer to pipe using for writing the compressed file. */
 
 FILE *compressed_write(const std::string &file);
+
+/*! Return text explaining why a compressed file could not be opened
+ *
+\verbatim embed:rst
+If the program required for the compression format of the file
+cannot be found, the text names the missing program.  Otherwise,
+the text describes the last system error like :cpp:func:`utils::getsyserror()`.
+\endverbatim
+ *
+ *  \param  file  name of the file that could not be opened
+ *  \return  text explaining the failure */
+
+std::string compressed_open_error(const std::string &file);
 
 }    // namespace LAMMPS_NS::platform
 #endif

@@ -16,7 +16,8 @@ namespace Impl {
 
 class SYCLInternal {
  public:
-  using size_type = unsigned int;
+  using size_type  = unsigned int;
+  using index_type = std::make_signed_t<size_type>;
 
   static HostSharedPtr<SYCLInternal> default_instance;
 

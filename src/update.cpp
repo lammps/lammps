@@ -13,9 +13,6 @@
 
 #include "update.h"
 
-#include "style_integrate.h"    // IWYU pragma: keep
-#include "style_minimize.h"     // IWYU pragma: keep
-
 #include "comm.h"
 #include "compute.h"
 #include "error.h"
@@ -31,24 +28,30 @@
 
 using namespace LAMMPS_NS;
 
-// template for factory functions:
-// there will be one instance for each style keyword in the respective style_xxx.h files
+/* ----------------------------------------------------------------------
+   process-global registries of integrate and minimize style factory
+   functions.  Shared by all LAMMPS instances and persistent across "clear".
+   Built-in styles are registered once by the generated register_*_styles()
+   functions; plugins add/override entries at runtime.
+------------------------------------------------------------------------- */
 
-template <typename T> static Integrate *integrate_creator(LAMMPS *lmp, int narg, char **arg)
+CreatorRegistry<Update::IntegrateCreator> &Update::integrate_styles()
 {
-  return new T(lmp, narg, arg);
+  static CreatorRegistry<Update::IntegrateCreator> registry;
+  return registry;
 }
 
-template <typename T> static Min *minimize_creator(LAMMPS *lmp)
+CreatorRegistry<Update::MinimizeCreator> &Update::minimize_styles()
 {
-  return new T(lmp);
+  static CreatorRegistry<Update::MinimizeCreator> registry;
+  return registry;
 }
 
 /* ---------------------------------------------------------------------- */
 
 Update::Update(LAMMPS *lmp) :
     Pointers(lmp), unit_style(nullptr), integrate(nullptr), integrate_style(nullptr),
-    minimize(nullptr), minimize_style(nullptr), integrate_map(nullptr), minimize_map(nullptr)
+    minimize(nullptr), minimize_style(nullptr)
 {
   char *str;
 
@@ -71,22 +74,6 @@ Update::Update(LAMMPS *lmp) :
   dt_default = 1;
   dt = 0.0;
   set_units("lj");
-
-  integrate_map = new IntegrateCreatorMap();
-
-#define INTEGRATE_CLASS
-#define IntegrateStyle(key, Class) (*integrate_map)[#key] = &integrate_creator<Class>;
-#include "style_integrate.h"    // IWYU pragma: keep
-#undef IntegrateStyle
-#undef INTEGRATE_CLASS
-
-  minimize_map = new MinimizeCreatorMap();
-
-#define MINIMIZE_CLASS
-#define MinimizeStyle(key, Class) (*minimize_map)[#key] = &minimize_creator<Class>;
-#include "style_minimize.h"    // IWYU pragma: keep
-#undef MinimizeStyle
-#undef MINIMIZE_CLASS
 
   str = (char *) "verlet";
   create_integrate(1, &str, 1);
@@ -113,9 +100,6 @@ Update::~Update()
 
   delete[] minimize_style;
   delete minimize;
-
-  delete integrate_map;
-  delete minimize_map;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -372,8 +356,8 @@ void Update::new_integrate(char *style, int narg, char **arg, int trysuffix, int
     if (lmp->non_pair_suffix()) {
       sflag = 1 + 2 * lmp->pair_only_flag;
       std::string estyle = style + std::string("/") + lmp->non_pair_suffix();
-      if (integrate_map->find(estyle) != integrate_map->end()) {
-        IntegrateCreator &integrate_creator = (*integrate_map)[estyle];
+      IntegrateCreator integrate_creator = integrate_styles().find(estyle);
+      if (integrate_creator) {
         integrate = integrate_creator(lmp, narg, arg);
         return;
       }
@@ -382,8 +366,8 @@ void Update::new_integrate(char *style, int narg, char **arg, int trysuffix, int
     if (lmp->suffix2) {
       sflag = 2;
       std::string estyle = style + std::string("/") + lmp->suffix2;
-      if (integrate_map->find(estyle) != integrate_map->end()) {
-        IntegrateCreator &integrate_creator = (*integrate_map)[estyle];
+      IntegrateCreator integrate_creator = integrate_styles().find(estyle);
+      if (integrate_creator) {
         integrate = integrate_creator(lmp, narg, arg);
         return;
       }
@@ -391,8 +375,7 @@ void Update::new_integrate(char *style, int narg, char **arg, int trysuffix, int
   }
 
   sflag = 0;
-  if (integrate_map->find(style) != integrate_map->end()) {
-    IntegrateCreator &integrate_creator = (*integrate_map)[style];
+  if (IntegrateCreator integrate_creator = integrate_styles().find(style)) {
     integrate = integrate_creator(lmp, narg, arg);
     return;
   }
@@ -439,8 +422,8 @@ void Update::new_minimize(char *style, int /* narg */, char ** /* arg */, int tr
     if (lmp->non_pair_suffix()) {
       sflag = 1 + 2 * lmp->pair_only_flag;
       std::string estyle = style + std::string("/") + lmp->non_pair_suffix();
-      if (minimize_map->find(estyle) != minimize_map->end()) {
-        MinimizeCreator &minimize_creator = (*minimize_map)[estyle];
+      MinimizeCreator minimize_creator = minimize_styles().find(estyle);
+      if (minimize_creator) {
         minimize = minimize_creator(lmp);
         return;
       }
@@ -449,8 +432,8 @@ void Update::new_minimize(char *style, int /* narg */, char ** /* arg */, int tr
     if (lmp->suffix2) {
       sflag = 2;
       std::string estyle = style + std::string("/") + lmp->suffix2;
-      if (minimize_map->find(estyle) != minimize_map->end()) {
-        MinimizeCreator &minimize_creator = (*minimize_map)[estyle];
+      MinimizeCreator minimize_creator = minimize_styles().find(estyle);
+      if (minimize_creator) {
         minimize = minimize_creator(lmp);
         return;
       }
@@ -458,8 +441,7 @@ void Update::new_minimize(char *style, int /* narg */, char ** /* arg */, int tr
   }
 
   sflag = 0;
-  if (minimize_map->find(style) != minimize_map->end()) {
-    MinimizeCreator &minimize_creator = (*minimize_map)[style];
+  if (MinimizeCreator minimize_creator = minimize_styles().find(style)) {
     minimize = minimize_creator(lmp);
     return;
   }

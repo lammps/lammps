@@ -1130,7 +1130,7 @@ void PPPMElectrodeIntel::allocate_peratom()
 
 void PPPMElectrodeIntel::deallocate()
 {
-  if (boundcorr != nullptr) delete boundcorr;
+  delete boundcorr;
   // duplicated to always deallocate u_brick
   memory->destroy3d_offset(density_brick, nzlo_out, nylo_out, nxlo_out);
   memory->destroy3d_offset(u_brick, nzlo_out, nylo_out, nxlo_out);

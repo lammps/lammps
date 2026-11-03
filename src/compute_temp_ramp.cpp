@@ -107,6 +107,7 @@ ComputeTempRamp::ComputeTempRamp(LAMMPS *lmp, int narg, char **arg) :
 
 ComputeTempRamp::~ComputeTempRamp()
 {
+  if (copymode) return;
   memory->destroy(vbiasall);
   delete [] vector;
 }

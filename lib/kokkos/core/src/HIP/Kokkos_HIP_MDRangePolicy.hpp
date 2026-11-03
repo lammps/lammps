@@ -32,7 +32,9 @@ struct TileSizeRecommended<Kokkos::HIP> {
     using tile_type = typename Policy::tile_type;
 
     if constexpr (InnerDirection == Iterate::Left) {
-      if constexpr (Rank == 2) {
+      if constexpr (Rank == 1) {
+        return tile_type{256};
+      } else if constexpr (Rank == 2) {
         return tile_type{64, 4};
       } else if constexpr (Rank == 3) {
         return tile_type{32, 2, 4};
@@ -50,7 +52,9 @@ struct TileSizeRecommended<Kokkos::HIP> {
       tile_sizes[0] = 16;
       return tile_sizes;
     } else {
-      if constexpr (Rank == 2) {
+      if constexpr (Rank == 1) {
+        return tile_type{256};
+      } else if constexpr (Rank == 2) {
         return tile_type{4, 64};
       } else if constexpr (Rank == 3) {
         return tile_type{4, 2, 32};

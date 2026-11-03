@@ -30,6 +30,14 @@ Zero out the z-dimension velocity and force on each atom in the group.
 This is useful when running a 2d simulation to ensure that atoms do
 not move from their initial z coordinate.
 
+.. note::
+
+   Fixes are applied in the order in which they are defined.  If another
+   fix that adds forces or torques (e.g. a wall fix or :doc:`fix addforce
+   <fix_addforce>`) is defined *after* fix enforce2d, it may add
+   out-of-plane force components again after they were set to zero.
+   Thus fix enforce2d should be defined after all such fixes.
+
 ----------
 
 .. include:: accel_styles.rst

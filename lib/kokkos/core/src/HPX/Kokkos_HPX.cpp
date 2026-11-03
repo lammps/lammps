@@ -6,16 +6,13 @@
 #endif
 
 #include <Kokkos_Macros.hpp>
-#ifdef KOKKOS_ENABLE_EXPERIMENTAL_CXX20_MODULES
-import kokkos.core;
-#else
 #include <Kokkos_Core.hpp>
-#endif
 
 #ifdef KOKKOS_ENABLE_HPX
 #include <HPX/Kokkos_HPX.hpp>
 
 #include <impl/Kokkos_ExecSpaceManager.hpp>
+#include <impl/Kokkos_Error.hpp>
 
 #include <hpx/condition_variable.hpp>
 #include <hpx/init.hpp>
@@ -78,7 +75,7 @@ std::atomic<uint32_t> HPX::m_next_instance_id{HPX::impl_default_instance_id() +
 uint32_t HPX::m_active_parallel_region_count{0};
 hpx::spinlock HPX::m_active_parallel_region_count_mutex;
 hpx::condition_variable_any HPX::m_active_parallel_region_count_cond;
-HPX::instance_data HPX::m_default_instance_data;
+Kokkos::Impl::HostSharedPtr<HPX::instance_data> HPX::m_default_instance_data;
 
 void HPX::print_configuration(std::ostream &os, const bool) const {
   os << "Host Parallel Execution Space\n";
@@ -123,9 +120,9 @@ void HPX::impl_static_fence(const std::string &name) {
       Kokkos::Tools::Experimental::SpecialSynchronizationCases::
           GlobalDeviceSynchronization,
       [&]() {
-        auto &s = HPX().impl_get_sender();
-
-        std::unique_lock<hpx::spinlock> l(HPX().impl_get_sender_mutex());
+        auto &s = m_default_instance_data->m_sender;
+        std::unique_lock<hpx::spinlock> l(
+            m_default_instance_data->m_sender_mutex);
 
         // This is a loose fence. Any work scheduled before this will be waited
         // for, but work scheduled while waiting may also be waited for.
@@ -160,8 +157,21 @@ void HPX::impl_initialize(InitializationSettings const &settings) {
   if (rt == nullptr) {
     hpx::init_params i;
     if (settings.has_num_threads()) {
-      i.cfg.emplace_back("hpx.os_threads=" +
-                         std::to_string(settings.get_num_threads()));
+      // HPX throws if asked to oversubscribe beyond available processing units.
+      // KOKKOS_NUM_THREADS can be larger than what HPX allows, so clamp.
+      const int requested = settings.get_num_threads();
+      const int available = hpx::threads::hardware_concurrency();
+      const int clamped   = (requested > 0 && available > 0)
+                                ? std::min(requested, available)
+                                : requested;
+      if (clamped != requested) {
+        Kokkos::Impl::log_warning("Requested " + std::to_string(requested) +
+                                  " threads, but HPX only allows " +
+                                  std::to_string(available) +
+                                  "; Setting the number of threads to " +
+                                  std::to_string(clamped) + ".");
+      }
+      i.cfg.emplace_back("hpx.os_threads=" + std::to_string(clamped));
     }
     int argc_hpx     = 1;
     char name[]      = "kokkos_hpx";
@@ -170,9 +180,18 @@ void HPX::impl_initialize(InitializationSettings const &settings) {
 
     m_hpx_initialized = true;
   }
+
+  // Create the default instance data.
+  m_default_instance_data = Kokkos::Impl::HostSharedPtr(new instance_data());
 }
 
 void HPX::impl_finalize() {
+  m_default_instance_data->fence(
+      "Kokkos::Experimental::HPX: fence "
+      "to drain internal sender on finalize");
+
+  m_default_instance_data = nullptr;
+
   if (m_hpx_initialized) {
     hpx::runtime *rt = hpx::get_runtime_ptr();
     if (rt != nullptr) {
@@ -182,11 +201,8 @@ void HPX::impl_finalize() {
       hpx::apply([]() { hpx::finalize(); });
 #endif
       hpx::stop();
-    } else {
-      Kokkos::abort(
-          "Kokkos::Experimental::HPX::impl_finalize: Kokkos started "
-          "HPX but something else already stopped HPX\n");
     }
+    m_hpx_initialized = false;
   }
 }
 

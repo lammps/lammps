@@ -15,12 +15,6 @@
     Contributed by Michael R. DeLyser, mrd5285@psu.edu
     The Pennsylvania State University
    ------------------------------------------------------ */
-#ifdef LDD_POTENTIAL_CLASS
-// clang-format off
-LddPotentialStyle(table/spline,LddPotentialTableSpline);
-// clang-format on
-#else
-
 #ifndef LDD_POTENTIAL_TABLESPLINE
 #define LDD_POTENTIAL_TABLESPLINE
 
@@ -45,5 +39,4 @@ class LddPotentialTableSpline : public LddPotential {
 };
 }    // namespace LAMMPS_NS
 
-#endif
 #endif

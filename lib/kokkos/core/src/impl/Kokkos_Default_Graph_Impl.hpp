@@ -28,10 +28,6 @@ template <class ExecutionSpace>
 struct GraphImpl
     : private InstanceStorage<Kokkos::Impl::DeviceHandle<ExecutionSpace>> {
  public:
-  using root_node_impl_t =
-      GraphNodeImpl<ExecutionSpace, Kokkos::Experimental::TypeErasedTag,
-                    Kokkos::Experimental::TypeErasedTag>;
-
   using aggregate_impl_t = GraphNodeAggregateDefaultImpl<ExecutionSpace>;
 
  private:
@@ -118,8 +114,9 @@ struct GraphImpl
   }
 
   auto create_root_node_ptr() {
-    auto rv = Kokkos::Impl::GraphAccess::make_node_shared_ptr<root_node_impl_t>(
-        get_device_handle(), _graph_node_is_root_ctor_tag{});
+    auto rv = Kokkos::Impl::GraphAccess::make_node_shared_ptr<
+        root_impl_t<ExecutionSpace>>(get_device_handle(),
+                                     _graph_node_is_root_ctor_tag{});
     m_sinks.insert(rv);
     return rv;
   }

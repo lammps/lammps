@@ -141,13 +141,14 @@ LAMMPS Python API
 =================
 
 The LAMMPS Python module enables calling the LAMMPS C library API from
-Python by dynamically loading functions in the LAMMPS shared library through
-the `Python ctypes module <https://docs.python.org/3/library/ctypes.html>`_.
-Because of the dynamic loading, it is **required** that LAMMPS is compiled
-in :ref:`"shared" mode <exe>`.  The Python interface is object-oriented, but
-otherwise tries to be very similar to the C library API.
-More information on this is in the :doc:`Python_head`
-section of the manual.  Use of the LAMMPS Python module is described in
+Python by dynamically loading functions in the LAMMPS shared library
+through the `Python ctypes module
+<https://docs.python.org/3/library/ctypes.html>`_.  Because of the
+dynamic loading, it is **required** that LAMMPS is compiled in
+:ref:`"shared" mode <build_exe>`.  The Python interface is
+object-oriented, but otherwise tries to be very similar to the C library
+API.  More information on this is in the :doc:`Python_head` section of
+the manual.  Use of the LAMMPS Python module is described in
 :doc:`Python_module`.
 
 -------------------

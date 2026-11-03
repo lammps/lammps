@@ -65,9 +65,7 @@ void host_check_math_op_one_loader(BinaryOp binary_op,
   for (size_type i = 0; i < n; i += width) {
     const size_type nremaining = n - i;
     const size_type nlanes     = Kokkos::min(nremaining, width);
-    if ((std::is_same_v<BinaryOp, divides> ||
-         std::is_same_v<BinaryOp, divides_eq>)&&nremaining < width)
-      continue;
+
     simd_type first_arg;
     bool const loaded_first_arg =
         loader.host_load(first_args + i, nlanes, first_arg);
@@ -165,15 +163,6 @@ template <typename Abi, typename DataType, size_t n>
 inline void host_check_all_math_ops(const DataType (&first_args)[n],
                                     const DataType (&second_args)[n],
                                     const DataType (&third_args)[n]) {
-  host_check_math_op_all_loaders<Abi>(plus(), n, first_args, second_args);
-  host_check_math_op_all_loaders<Abi>(plus_eq(), n, first_args, second_args);
-  host_check_math_op_all_loaders<Abi>(minus(), n, first_args, second_args);
-  host_check_math_op_all_loaders<Abi>(minus_eq(), n, first_args, second_args);
-  host_check_math_op_all_loaders<Abi>(multiplies(), n, first_args, second_args);
-  host_check_math_op_all_loaders<Abi>(multiplies_eq(), n, first_args,
-                                      second_args);
-  host_check_math_op_all_loaders<Abi>(divides(), n, first_args, second_args);
-  host_check_math_op_all_loaders<Abi>(divides_eq(), n, first_args, second_args);
   host_check_math_op_all_loaders<Abi>(absolutes(), n, first_args);
 
   host_check_math_op_all_loaders<Abi>(floors(), n, first_args);
@@ -331,9 +320,7 @@ KOKKOS_INLINE_FUNCTION void device_check_math_op_one_loader(
   for (size_type i = 0; i < n; i += width) {
     const size_type nremaining = n - i;
     const size_type nlanes     = Kokkos::min(nremaining, width);
-    if ((std::is_same_v<BinaryOp, divides> ||
-         std::is_same_v<BinaryOp, divides_eq>)&&nremaining < width)
-      continue;
+
     simd_type first_arg;
     bool const loaded_first_arg =
         loader.device_load(first_args + i, nlanes, first_arg);
@@ -420,17 +407,6 @@ template <typename Abi, typename DataType, size_t n>
 KOKKOS_INLINE_FUNCTION void device_check_all_math_ops(
     const DataType (&first_args)[n], const DataType (&second_args)[n],
     const DataType (&third_args)[n]) {
-  device_check_math_op_all_loaders<Abi>(plus(), n, first_args, second_args);
-  device_check_math_op_all_loaders<Abi>(plus_eq(), n, first_args, second_args);
-  device_check_math_op_all_loaders<Abi>(minus(), n, first_args, second_args);
-  device_check_math_op_all_loaders<Abi>(minus_eq(), n, first_args, second_args);
-  device_check_math_op_all_loaders<Abi>(multiplies(), n, first_args,
-                                        second_args);
-  device_check_math_op_all_loaders<Abi>(multiplies_eq(), n, first_args,
-                                        second_args);
-  device_check_math_op_all_loaders<Abi>(divides(), n, first_args, second_args);
-  device_check_math_op_all_loaders<Abi>(divides_eq(), n, first_args,
-                                        second_args);
   device_check_math_op_all_loaders<Abi>(absolutes(), n, first_args);
 
   device_check_math_op_all_loaders<Abi>(floors(), n, first_args);

@@ -38,6 +38,8 @@ class NBinSSAKokkos : public NBinStandard {
   typedef ArrayTypes<DeviceType> AT;
 
   NBinSSAKokkos(class LAMMPS *);
+  // checked conversion from a base class pointer, see the .cpp file
+  static NBinSSAKokkos<DeviceType> *cast(class NBin *);
 
   void bin_atoms_setup(int) override;
   void bin_atoms() override;
@@ -180,9 +182,7 @@ struct NPairSSAKokkosBinAtomsFunctor {
 
   const NBinSSAKokkos<DeviceType> c;
 
-  NPairSSAKokkosBinAtomsFunctor(const NBinSSAKokkos<DeviceType> &_c):
-    c(_c) {};
-  ~NPairSSAKokkosBinAtomsFunctor() {}
+  NPairSSAKokkosBinAtomsFunctor(const NBinSSAKokkos<DeviceType> &_c): c(_c) {};
 // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator() (const int & i) const {
@@ -197,9 +197,7 @@ struct NPairSSAKokkosBinIDAtomsFunctor {
 
   const NBinSSAKokkos<DeviceType> c;
 
-  NPairSSAKokkosBinIDAtomsFunctor(const NBinSSAKokkos<DeviceType> &_c):
-    c(_c) {};
-  ~NPairSSAKokkosBinIDAtomsFunctor() {}
+  NPairSSAKokkosBinIDAtomsFunctor(const NBinSSAKokkos<DeviceType> &_c): c(_c) {};
 // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator() (const int & i, value_type& update) const {
@@ -227,9 +225,8 @@ struct NPairSSAKokkosBinIDGhostsFunctor {
 
   const NBinSSAKokkos<DeviceType> c;
 
-  NPairSSAKokkosBinIDGhostsFunctor(const NBinSSAKokkos<DeviceType> &_c):
-    c(_c) {};
-  ~NPairSSAKokkosBinIDGhostsFunctor() {}
+  NPairSSAKokkosBinIDGhostsFunctor(const NBinSSAKokkos<DeviceType> &_c): c(_c) {};
+
 // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator() (const int & i, value_type& update) const {

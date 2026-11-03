@@ -68,7 +68,7 @@ FixVector::FixVector(LAMMPS *lmp, int narg, char **arg) :
     if (strcmp(arg[iarg], "nmax") == 0) {
       if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "fix vector nmax", error);
       nmaxval = utils::bnumeric(FLERR, arg[iarg + 1], false, lmp);
-      if (nmaxval < 1) error->all(FLERR, "Invalid nmax value");
+      if ((nmaxval < 1) || (nmaxval > MAXSMALLINT)) error->all(FLERR, "Invalid nmax value");
       iarg += 2;
     } else {
       error->all(FLERR, "Unknown fix vector keyword: {}", arg[iarg]);
@@ -80,7 +80,7 @@ FixVector::FixVector(LAMMPS *lmp, int narg, char **arg) :
   // this fix produces either a global vector or array
   // intensive/extensive flags set by compute,fix,variable that produces value
 
-  int value, finalvalue;
+  int value = 0, finalvalue;
   bool first = true;
   for (auto &val : values) {
     if (val.which == ArgInfo::COMPUTE) {
@@ -226,13 +226,22 @@ void FixVector::init()
 
   bigint finalstep = update->endstep / nevery * nevery;
   if (finalstep > update->endstep) finalstep -= nevery;
+  const bigint oldmax = (vector || array) ? ncountmax : 0;
   ncountmax = (finalstep - initialstep) / nevery + 1;
   if (ncountmax <= 0) ncountmax = 1;
   if (ncountmax > nmaxval) ncountmax = nmaxval;
-  if (values.size() == 1)
+
+  // zero out only newly added storage: init() runs before every run and
+  // values stored in previous runs must be kept
+
+  if (values.size() == 1) {
     memory->grow(vector, ncountmax, "vector:vector");
-  else
+    if (ncountmax > oldmax) memset(&vector[oldmax], 0, (ncountmax-oldmax)*sizeof(double));
+  } else {
     memory->grow(array, ncountmax, values.size(), "vector:array");
+    if (ncountmax > oldmax)
+      memset(&array[oldmax][0], 0, (ncountmax-oldmax)*values.size()*sizeof(double));
+  }
 }
 
 /* ----------------------------------------------------------------------

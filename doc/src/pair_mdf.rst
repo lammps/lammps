@@ -103,7 +103,7 @@ standard 12-6 Lennard-Jones written in the epsilon/sigma form:
                             \left(\frac{\sigma}{r}\right)^6 \right]
 
 Either the first two or all of the following coefficients must be
-defined for each pair of atoms types via the pair_coeff command as in
+defined for each pair of atom types via the pair_coeff command as in
 the examples above, or in the data file read by the :doc:`read_data
 <read_data>`. The two cutoffs default to the global values and
 :math:`\epsilon` and :math:`\sigma` can also be determined by mixing as

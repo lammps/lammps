@@ -26,7 +26,11 @@ namespace LAMMPS_NS {
 
 class PairSpinMagelec : public PairSpin {
  public:
-  PairSpinMagelec(LAMMPS *lmp) : PairSpin(lmp) {}
+  PairSpinMagelec(LAMMPS *lmp) :
+      PairSpin(lmp), ME(nullptr), ME_mech(nullptr), v_mex(nullptr), v_mey(nullptr), v_mez(nullptr),
+      cut_spin_magelec(nullptr)
+  {
+  }
   ~PairSpinMagelec() override;
   void settings(int, char **) override;
   void coeff(int, char **) override;

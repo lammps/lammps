@@ -12,7 +12,7 @@ CLASS2 packages.  The latter is only needed for the CNT example.
 These scripts are tiny examples which illustrate both kinds of
 systems.  Each produces a series of images which can be visualized.
 If the 3 lines for a dump movie command are uncommented, a MPG movie
-is produced, assuming LAMMPS is build with FFMPEG support.
+is produced, assuming the ffmpeg program is installed and in your PATH.
 
 in.replicate.bond.x    # linear chains in x direction, bond loop in x
 in.replcate.bond.x.y   # 2d grid of bonded atoms, bond loops in x and y

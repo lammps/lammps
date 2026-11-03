@@ -53,7 +53,20 @@ static constexpr int DELTASTACK = 16;
 
 /* ---------------------------------------------------------------------- */
 
-PairAmoeba::PairAmoeba(LAMMPS *lmp) : Pair(lmp)
+PairAmoeba::PairAmoeba(LAMMPS *lmp) :
+    Pair(lmp), amtype_defined(nullptr), amclass_defined(nullptr), amtype2class(nullptr),
+    amtype(nullptr), amgroup(nullptr), fixpole(nullptr), fixudalt(nullptr), fixupalt(nullptr),
+    atomic_num(nullptr), valence(nullptr), am_mass(nullptr), am_q(nullptr), am_mu(nullptr),
+    polarity(nullptr), pdamp(nullptr), thole(nullptr), dirdamp(nullptr), npolgroup(nullptr),
+    polgroup(nullptr), sizpr(nullptr), dmppr(nullptr), elepr(nullptr), nmultiframe(nullptr),
+    mpaxis(nullptr), xpole(nullptr), ypole(nullptr), zpole(nullptr), fpole(nullptr),
+    vdwl_eps(nullptr), vdwl_sigma(nullptr), kred(nullptr), csix(nullptr), adisp(nullptr),
+    chgct(nullptr), dmpct(nullptr), pcore(nullptr), palpha(nullptr), vdwl_class_pair(nullptr),
+    vdwl_eps_pair(nullptr), vdwl_sigma_pair(nullptr), copt(nullptr), copm(nullptr), gear(nullptr),
+    aspc(nullptr), a_ualt(nullptr), ap_ualt(nullptr), b_ualt(nullptr), bp_ualt(nullptr),
+    c_ualt(nullptr), cp_ualt(nullptr), bpred(nullptr), bpredp(nullptr), bpreds(nullptr),
+    bpredps(nullptr), radmin(nullptr), epsilon(nullptr), radmin4(nullptr), epsilon4(nullptr),
+    uad(nullptr), uap(nullptr), ubd(nullptr), ubp(nullptr), fp_uind(nullptr)
 {
   amoeba = true;
   mystyle = "amoeba";
@@ -169,13 +182,9 @@ PairAmoeba::~PairAmoeba()
 {
   delete[] pvector;
 
-  // check nfix in case all fixes have already been deleted
-
-  if (modify->nfix) {
-    if (id_pole) modify->delete_fix(id_pole);
-    if (id_udalt) modify->delete_fix(id_udalt);
-    if (id_upalt) modify->delete_fix(id_upalt);
-  }
+  if (id_pole) modify->delete_fix(id_pole);
+  if (id_udalt) modify->delete_fix(id_udalt);
+  if (id_upalt) modify->delete_fix(id_upalt);
 
   delete[] id_pole;
   delete[] id_udalt;
@@ -848,7 +857,7 @@ void PairAmoeba::init_style()
     else if (flag_check[i] != flag) err = "has the wrong type";
     else if (cols_check[i] != cols) err = "has the wrong number of columns";
     else if (ghost_check[i] && !ghost) err = "must be set by fix property/atom with ghost yes";
-    if (err != "")
+    if (!err.empty())
       error->all(FLERR,"Pair {} per-atom variable {} {}", mystyle, names[i], err);
   }
 

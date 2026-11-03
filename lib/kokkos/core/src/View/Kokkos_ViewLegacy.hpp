@@ -374,41 +374,6 @@ class View : public ViewTraits<DataType, Properties...> {
            m_map.dimension_6() * m_map.dimension_7();
   }
 
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
-  KOKKOS_DEPRECATED_WITH_COMMENT("Use stride(0) instead")
-  KOKKOS_INLINE_FUNCTION constexpr size_t stride_0() const {
-    return m_map.stride_0();
-  }
-  KOKKOS_DEPRECATED_WITH_COMMENT("Use stride(1) instead")
-  KOKKOS_INLINE_FUNCTION constexpr size_t stride_1() const {
-    return m_map.stride_1();
-  }
-  KOKKOS_DEPRECATED_WITH_COMMENT("Use stride(2) instead")
-  KOKKOS_INLINE_FUNCTION constexpr size_t stride_2() const {
-    return m_map.stride_2();
-  }
-  KOKKOS_DEPRECATED_WITH_COMMENT("Use stride(3) instead")
-  KOKKOS_INLINE_FUNCTION constexpr size_t stride_3() const {
-    return m_map.stride_3();
-  }
-  KOKKOS_DEPRECATED_WITH_COMMENT("Use stride(4) instead")
-  KOKKOS_INLINE_FUNCTION constexpr size_t stride_4() const {
-    return m_map.stride_4();
-  }
-  KOKKOS_DEPRECATED_WITH_COMMENT("Use stride(5) instead")
-  KOKKOS_INLINE_FUNCTION constexpr size_t stride_5() const {
-    return m_map.stride_5();
-  }
-  KOKKOS_DEPRECATED_WITH_COMMENT("Use stride(6) instead")
-  KOKKOS_INLINE_FUNCTION constexpr size_t stride_6() const {
-    return m_map.stride_6();
-  }
-  KOKKOS_DEPRECATED_WITH_COMMENT("Use stride(7) instead")
-  KOKKOS_INLINE_FUNCTION constexpr size_t stride_7() const {
-    return m_map.stride_7();
-  }
-#endif
-
   template <typename iType>
   KOKKOS_INLINE_FUNCTION constexpr std::enable_if_t<std::is_integral_v<iType>,
                                                     size_t>

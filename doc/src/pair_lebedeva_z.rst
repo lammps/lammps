@@ -1,7 +1,10 @@
 .. index:: pair_style lebedeva/z
+.. index:: pair_style lebedeva/z/omp
 
 pair_style lebedeva/z command
 =============================
+
+Accelerator Variants: *lebedeva/z/omp*
 
 Syntax
 """"""
@@ -66,6 +69,10 @@ The provided parameter file (CC.Lebedeva) contains two sets of parameters.
 
 Both sets contain an additional parameter, *S*, that can be used to
 facilitate scaling of energies and is set to 1.0 by default.
+
+----------
+
+.. include:: accel_styles.rst
 
 Restrictions
 """"""""""""

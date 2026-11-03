@@ -16,6 +16,7 @@ post_commands: ! |
   kspace_style pppm 1.0e-5
   fix test solute adapt 1 pair coul/long scale * * v_scale kspace v_scale scale no
 input_file: in.fourmol
+input_coeffs: coeffs.fourmol
 natoms: 29
 run_pos: ! |2
     1 -2.7585387888961094e-01  2.4721267521215400e+00 -1.7590741141127092e-01

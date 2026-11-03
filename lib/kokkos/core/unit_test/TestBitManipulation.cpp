@@ -28,8 +28,8 @@ constexpr auto test_rotl(UInt x) -> decltype(Kokkos::rotl(x, 0)) {
   static_assert(noexcept(rotl(x, 0)));
   static_assert(std::is_same_v<decltype(rotl(x, 0)), UInt>);
 
-  constexpr auto dig = Kokkos::Experimental::digits_v<UInt>;
-  constexpr auto max = Kokkos::Experimental::finite_max_v<UInt>;
+  constexpr auto dig = Kokkos::digits_v<UInt>;
+  constexpr auto max = Kokkos::finite_max_v<UInt>;
 
   static_assert(rotl(UInt(0), 0) == 0);
   static_assert(rotl(UInt(0), 1) == 0);
@@ -76,8 +76,8 @@ constexpr auto test_rotr(UInt x) -> decltype(Kokkos::rotr(x, 0)) {
   static_assert(noexcept(rotr(x, 0)));
   static_assert(std::is_same_v<decltype(rotr(x, 0)), UInt>);
 
-  constexpr auto dig     = Kokkos::Experimental::digits_v<UInt>;
-  constexpr auto max     = Kokkos::Experimental::finite_max_v<UInt>;
+  constexpr auto dig     = Kokkos::digits_v<UInt>;
+  constexpr auto max     = Kokkos::finite_max_v<UInt>;
   constexpr auto highbit = rotr(UInt(1), 1);
 
   static_assert(rotr(UInt(0), 0) == 0);
@@ -127,8 +127,8 @@ constexpr auto test_countl_zero(UInt x) -> decltype(Kokkos::countl_zero(x)) {
   static_assert(noexcept(countl_zero(x)));
   static_assert(std::is_same_v<decltype(countl_zero(x)), int>);
 
-  constexpr auto dig = Kokkos::Experimental::digits_v<UInt>;
-  constexpr auto max = Kokkos::Experimental::finite_max_v<UInt>;
+  constexpr auto dig = Kokkos::digits_v<UInt>;
+  constexpr auto max = Kokkos::finite_max_v<UInt>;
 
   static_assert(countl_zero(UInt(0)) == dig);
   static_assert(countl_zero(UInt(1)) == dig - 1);
@@ -156,8 +156,8 @@ constexpr auto test_countl_one(UInt x) -> decltype(Kokkos::countl_one(x)) {
   static_assert(noexcept(countl_one(x)));
   static_assert(std::is_same_v<decltype(countl_one(x)), int>);
 
-  constexpr auto dig = Kokkos::Experimental::digits_v<UInt>;
-  constexpr auto max = Kokkos::Experimental::finite_max_v<UInt>;
+  constexpr auto dig = Kokkos::digits_v<UInt>;
+  constexpr auto max = Kokkos::finite_max_v<UInt>;
 
   static_assert(countl_one(UInt(0)) == 0);
   static_assert(countl_one(UInt(1)) == 0);
@@ -200,8 +200,8 @@ constexpr auto test_countr_zero(UInt x) -> decltype(Kokkos::countr_zero(x)) {
   static_assert(noexcept(countr_zero(x)));
   static_assert(std::is_same_v<decltype(countr_zero(x)), int>);
 
-  constexpr auto dig = Kokkos::Experimental::digits_v<UInt>;
-  constexpr auto max = Kokkos::Experimental::finite_max_v<UInt>;
+  constexpr auto dig = Kokkos::digits_v<UInt>;
+  constexpr auto max = Kokkos::finite_max_v<UInt>;
 
   static_assert(countr_zero(UInt(0)) == dig);
   static_assert(countr_zero(UInt(1)) == 0);
@@ -232,8 +232,8 @@ constexpr auto test_countr_one(UInt x) -> decltype(Kokkos::countr_one(x)) {
   static_assert(noexcept(countr_one(x)));
   static_assert(std::is_same_v<decltype(countr_one(x)), int>);
 
-  constexpr auto dig = Kokkos::Experimental::digits_v<UInt>;
-  constexpr auto max = Kokkos::Experimental::finite_max_v<UInt>;
+  constexpr auto dig = Kokkos::digits_v<UInt>;
+  constexpr auto max = Kokkos::finite_max_v<UInt>;
 
   static_assert(countr_one(UInt(0)) == 0);
   static_assert(countr_one(UInt(1)) == 1);
@@ -263,8 +263,8 @@ constexpr auto test_popcount(UInt x) -> decltype(Kokkos::popcount(x)) {
   static_assert(noexcept(popcount(x)));
   static_assert(std::is_same_v<decltype(popcount(x)), int>);
 
-  constexpr auto dig = Kokkos::Experimental::digits_v<UInt>;
-  constexpr auto max = Kokkos::Experimental::finite_max_v<UInt>;
+  constexpr auto dig = Kokkos::digits_v<UInt>;
+  constexpr auto max = Kokkos::finite_max_v<UInt>;
 
   static_assert(popcount(UInt(0)) == 0);
   static_assert(popcount(UInt(1)) == 1);
@@ -306,7 +306,7 @@ constexpr auto test_has_single_bit(UInt x)
   static_assert(has_single_bit(UInt(8)));
   static_assert(!has_single_bit(UInt(9)));
 
-  constexpr auto max = Kokkos::Experimental::finite_max_v<UInt>;
+  constexpr auto max = Kokkos::finite_max_v<UInt>;
   static_assert(!has_single_bit(max));
   constexpr UInt one = 1;
   static_assert(has_single_bit(UInt(one << 0)));
@@ -330,7 +330,7 @@ constexpr auto test_bit_floor(UInt x) -> decltype(Kokkos::bit_floor(x)) {
   static_assert(noexcept(bit_floor(x)));
   static_assert(std::is_same_v<decltype(bit_floor(x)), UInt>);
 
-  constexpr auto max = Kokkos::Experimental::finite_max_v<UInt>;
+  constexpr auto max = Kokkos::finite_max_v<UInt>;
 
   static_assert(bit_floor(UInt(0)) == 0);
   static_assert(bit_floor(UInt(1)) == 1);
@@ -394,8 +394,8 @@ constexpr auto test_bit_width(UInt x) -> decltype(Kokkos::bit_width(x)) {
   static_assert(noexcept(bit_width(x)));
   static_assert(std::is_same_v<decltype(bit_width(x)), int>);
 
-  constexpr auto dig = Kokkos::Experimental::digits_v<UInt>;
-  constexpr auto max = Kokkos::Experimental::finite_max_v<UInt>;
+  constexpr auto dig = Kokkos::digits_v<UInt>;
+  constexpr auto max = Kokkos::finite_max_v<UInt>;
 
   static_assert(bit_width(UInt(0)) == 0);
   static_assert(bit_width(UInt(1)) == 1);

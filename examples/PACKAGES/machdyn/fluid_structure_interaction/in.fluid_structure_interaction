@@ -12,9 +12,12 @@
 # Total Lagrangian formalism. Contact forces between container, solid bodies, and water prevent
 # mutual penetration of these physical entities.
 #
-# unit system: GPa / mm / ms
+# unit system: SI (kg / m / s)
+#
+# the default number of steps is short for testing, use "-var nsteps 10000" for the full example
 #
 ####################################################################################################
+variable        nsteps index 4000
 
 ####################################################################################################
 # MATERIAL PARAMETERS
@@ -132,10 +135,10 @@ compute         epl solids smd/plastic/strain
 compute         vol all smd/vol
 compute         rho all smd/rho
 
-dump            dump_id all custom 100 dump.LAMMPS id type x y &
-                fx fy vx vy c_eint c_contact_radius mol &
-                c_S[1] c_S[2] c_S[4] mass radius c_epl c_vol c_rho c_nn proc
-dump_modify     dump_id first yes
+#dump            dump_id all custom 100 dump.LAMMPS id type x y &
+#                fx fy vx vy c_eint c_contact_radius mol &
+#                c_S[1] c_S[2] c_S[4] mass radius c_epl c_vol c_rho c_nn proc
+#dump_modify     dump_id first yes
 
 
 ####################################################################################################
@@ -151,4 +154,4 @@ thermo_modify   lost ignore
 # RUN SIMULATION
 ####################################################################################################
 fix             balance_fix all balance 500 0.9 rcb # load balancing for MPI
-run             10000
+run             ${nsteps}

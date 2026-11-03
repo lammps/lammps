@@ -47,9 +47,9 @@ NPairNsq<HALF, NEWTON, TRI, SIZE>::NPairNsq(LAMMPS *lmp) : NPair(lmp) {}
      every pair stored exactly once by some processor
      decision on ghost atoms based on itag, jtag tests
    Half + Newton + Tri:
-     use itag/jtap comparision to eliminate half the interactions
+     use itag/jtap comparison to eliminate half the interactions
      for triclinic, must use delta to eliminate half the I/J interactions
-     cannot use I/J exact coord comparision as for orthog
+     cannot use I/J exact coord comparison as for orthog
      b/c transforming orthog -> lambda -> orthog for ghost atoms
      with an added PBC offset can shift all 3 coords by epsilon
 ------------------------------------------------------------------------- */

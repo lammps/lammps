@@ -92,6 +92,8 @@ FixDampingCundall::FixDampingCundall(LAMMPS *_lmp, int narg, char **arg) :
 
 FixDampingCundall::~FixDampingCundall()
 {
+  if (copymode) return;
+
   memory->destroy(scaleval);
   delete[] scalegamma;
   delete[] scalevarid;

@@ -23,8 +23,8 @@ using namespace FixConst;
 
 FixTGNPTDrude::FixTGNPTDrude(LAMMPS *lmp, int narg, char **arg) : FixTGNHDrude(lmp, narg, arg)
 {
-  if (!tstat_flag) error->all(FLERR, "Temperature control must be used with fix npt");
-  if (!pstat_flag) error->all(FLERR, "Pressure control must be used with fix npt");
+  if (!tstat_flag) error->all(FLERR, "Temperature control must be used with fix {}", style);
+  if (!pstat_flag) error->all(FLERR, "Pressure control must be used with fix {}", style);
 
   // create a new compute temp style
   // id = fix-ID + temp

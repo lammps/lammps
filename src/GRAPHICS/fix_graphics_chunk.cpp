@@ -416,7 +416,7 @@ void FixGraphicsChunk::end_of_step()
 
     // if number of atoms in cluster is maxreplace or smaller we replace the atom
     // positions with vectices from an icosahedron scaled to radius.
-    if ((int)natoms <= maxreplace) {
+    if ((int) natoms <= maxreplace) {
       num_points = NUM_POINTS;
       pts.reserve(num_points * natoms);
       for (const auto i : iatoms) {

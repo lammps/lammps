@@ -1,15 +1,15 @@
 # Pour granular particles into chute container, then induce flow
 
-atom_style	sphere
-boundary	p p fm
-newton		off
-comm_modify	vel yes
+atom_style      sphere
+boundary        p p fm
+newton          off
+comm_modify     vel yes
 
-region		reg block -10 10 -10 10 -0.5 16 units box
-create_box	1 reg
+region          reg block -10 10 -10 10 -0.5 16 units box
+create_box      1 reg
 
-neighbor	0.2 bin
-neigh_modify	delay 0
+neighbor        0.2 bin
+neigh_modify    delay 0
 
 # IMPORTANT NOTE: these values of stiffness (2000) and timestep (0.001)
 # are used in this example file to produce a quick simulation and movie.
@@ -17,36 +17,45 @@ neigh_modify	delay 0
 # k = 2.0e5 and dt = 0.0001, as in bench/in.chute.
 
 pair_style      gran/hooke/history 2000.0 NULL 50.0 NULL 0.5 0
-pair_coeff	* *
+pair_coeff      * *
 
-timestep	0.001
+timestep        0.001
 
-fix		1 all nve/sphere
-fix		2 all gravity 1.0 spherical 0.0 -180.0
-fix		zlower all wall/gran hooke/history 2000.0 NULL 50.0 NULL 0.5 0 &
-		zplane 0.0 2000.0 
+fix             1 all nve/sphere
+fix             2 all gravity 1.0 spherical 0.0 -180.0
+fix             zlower all wall/gran hooke/history 2000.0 NULL 50.0 NULL 0.5 0 &
+                zplane 0.0 2000.0
 
-region		slab block -9.0 9.0 -9.0 9.0 10.0 15.0 units box
-fix		ins all pour 3000 1 300719 vol 0.13 50 region slab
+region          slab block -9.0 9.0 -9.0 9.0 10.0 15.0 units box
+fix             ins all pour 3000 1 300719 vol 0.13 50 region slab
 
-compute		1 all erotate/sphere
-thermo_style	custom step atoms ke c_1 vol
-thermo		1000
-thermo_modify	lost ignore norm no
-compute_modify	thermo_temp dynamic/dof yes
+compute         1 all erotate/sphere
+thermo_style    custom step atoms ke c_1 vol
+thermo          1000
+thermo_modify   lost ignore norm no
+compute_modify  thermo_temp dynamic/dof yes
 
-#dump		id all atom 1000 dump.pour
+#dump           id all atom 1000 dump.pour
 
-#dump		2 all image 1000 image.*.jpg type type &
-#		axes yes 0.8 0.02 view 80 -30
-#dump_modify	2 pad 5
+#dump           2 all image 1000 image.*.jpg type type &
+#               axes yes 0.8 0.02 view 80 -30
+#dump_modify    2 pad 5
 
-#dump		3 all movie 1000 movie.mpg type type &
-#		axes yes 0.8 0.02 view 80 -30
-#dump_modify	3 pad 5
+#dump           3 all movie 1000 movie.mpg type type &
+#               axes yes 0.8 0.02 view 80 -30
+#dump_modify    3 pad 5
 
-run		25000
+#variable        dumpfreq index 200
+#fix             grav all graphics/objects ${dumpfreq} arrow 1 -8 0 12 8 0 12 0.5 0.2
+#dump            viz all image 200 pour-*.png type type size 800 600 zoom 1.6 view 80 -30 &
+#                shiny 0.2 fsaa yes ssao yes 453983 0.6 box yes 0.025 axes yes 0.5 0.05 &
+#                center s 0.5 0.4 0.5 fix grav const 0.0 0.0
+#dump_modify     viz pad 6 color brown 0.596002 0.416007 0.267002 fcolor grav orange &
+#                acolor 1 brown boxcolor slategray backcolor2 white ftrans grav 0
 
-unfix		ins
-fix		2 all gravity 1.0 chute 26.0
-run		25000
+run             25000
+
+unfix           ins
+fix             2 all gravity 1.0 chute 26.0
+#dump_modify     viz ftrans grav 1.0
+run             25000

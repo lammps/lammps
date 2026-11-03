@@ -22,7 +22,7 @@ C++ standard.
 Most of the Python code in LAMMPS is written to be compatible with Python
 3.6 and later.
 
-.. deprecated:: 2Apr2025
+.. versionremoved:: 2Apr2025
 
 Python 2.x is no longer supported and trying to use it, e.g. for the
 LAMMPS Python module should result in an error.  If you come across
@@ -33,7 +33,7 @@ Build systems
 ^^^^^^^^^^^^^
 
 LAMMPS can be compiled from source code using the cross-platform CMake
-system.  CMake must be at least version 3.20.  Alternatively, using a
+system.  CMake must be at least version 3.27.  Alternatively, using a
 (traditional) build system based on shell scripts, a few shell utilities
 (grep, sed, cat, tr) and the GNU make program.  This requires running
 within a Bourne shell (``/bin/sh`` or ``/bin/bash``).

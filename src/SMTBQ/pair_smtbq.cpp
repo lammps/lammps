@@ -79,7 +79,10 @@ static constexpr char SMTBQ_SEPARATORS[] = "' \t\n\r";
 
 /* ---------------------------------------------------------------------- */
 
-PairSMTBQ::PairSMTBQ(LAMMPS *lmp) : Pair(lmp)
+PairSMTBQ::PairSMTBQ(LAMMPS *lmp) :
+    Pair(lmp), esm(nullptr), fafbOxOxSurf(nullptr), dfafbOxOxSurf(nullptr), fafbTiOxSurf(nullptr),
+    dfafbTiOxSurf(nullptr), Zsm(nullptr), fafbOxOxBB(nullptr), dfafbOxOxBB(nullptr),
+    fafbTiOxBB(nullptr), dfafbTiOxBB(nullptr), NCo(nullptr), hybrid(nullptr), pages(nullptr)
 {
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nproc);
@@ -1142,7 +1145,7 @@ void PairSMTBQ::compute(int eflag, int vflag)
       if (fichierE) fichierE<< setprecision(9) <<" "<<gp<<" "<<nmol[gp]
                             <<" "<<tmpAll[gp][2]<<" "<<tmpAll[gp][3]<<" "<<tmpAll[gp][4]+tmpAll[gp][5];
     }
-    if (fichierE) fichierE<<endl;
+    if (fichierE) fichierE<< "\n";
     if (fichierE) fichierE.close();
   }
   // ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -1313,7 +1316,7 @@ void PairSMTBQ::tabqeq()
 
   mu = erfc(alf*rc)/rc ;
 
-  //if (fichier) fichier <<" r  -  potqn " <<endl ;
+  //if (fichier) fichier <<" r  -  potqn\n";
 
   //-------------------------
   for (k=0; k < kmax+5; k++)
@@ -1378,7 +1381,7 @@ void PairSMTBQ::tabqeq()
       ra = params[i].R;
       rb = params[j].R;
 
-      ii = 0 ; nang =cang= 5.0 ;
+      ii = 0 ; nang =cang= 5.0 ; aCoeff = bCoeff = 0.0 ;
       // --------------------------
       for (k = 0; k < kmax+5; k++)
         // --------------------------
@@ -1433,7 +1436,7 @@ void PairSMTBQ::tabqeq()
           rb = ROxSurf;
           zb = (2.0*params[j].ne + 1.0)/(4.0*rb); }
 
-        ii = 0 ; nang =cang= 5.0 ;
+        ii = 0 ; nang =cang= 5.0 ; aCoeff = bCoeff = 0.0 ;
         // --------------------------
         for (k = 0; k < kmax+5; k++)
           // --------------------------
@@ -1499,7 +1502,7 @@ void PairSMTBQ::tabqeq()
           zb = (2.0*params[j].ne + 1.0)/(4.0*rb); }
 
 
-        ii = 0 ; nang =cang= 5.0 ;
+        ii = 0 ; nang =cang= 5.0 ; aCoeff = bCoeff = 0.0 ;
         // --------------------------
         for (k = 0; k < kmax+5; k++)
           // --------------------------
@@ -2718,7 +2721,7 @@ void PairSMTBQ::Charge()
 
       if (fichierpot) fichierpot<< setprecision(9) <<i <<" "<<itype<<" "<<x[i][0]<<" "<<x[i][1]
                                 <<" "<<x[i][2]<<" "<<q[i]<<" "<<potself[i] + potmad[i]<<" "<<potcov[i]
-                                <<" "<<sbcov[i]<<" "<<TransfAll[gp]<<endl;
+                                <<" "<<sbcov[i]<<" "<<TransfAll[gp]<<"\n";
 
     }
     if (fichierpot) fichierpot.close() ;

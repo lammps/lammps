@@ -44,11 +44,13 @@ public:
 
   PairMLIAPKokkos(class LAMMPS*);
   ~PairMLIAPKokkos() override;
+  // checked conversion from a base class pointer, see the .cpp file
+  static PairMLIAPKokkos<DeviceType> *cast(class PairMLIAP *);
   void settings(int narg, char ** arg) override;
   void init_style() override;
 
   void compute(int, int) override;
-  void e_tally(MLIAPData* data);
+  void e_tally(MLIAPData* data) override;
 
   void allocate() override;
 

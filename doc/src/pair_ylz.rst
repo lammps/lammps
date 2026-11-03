@@ -67,7 +67,7 @@ is the length unit.
 
 This pair style is suited for solvent-free coarse-grained simulations of
 biological systems involving lipid bilayer membranes, such as vesicle
-shape transformations :ref:`(Yuan2010b) <Yuan>`, nanoparticle
+shape transformations :ref:`(Yuan2010b) <Yuan2>`, nanoparticle
 endocytosis :ref:`(Huang) <Huang>`, modeling of red blood cell membranes
 :ref:`(Fu) <Fu>`, :ref:`(Appshaw) <Appshaw>`, and modeling of cell
 elasticity :ref:`(Becton) <Becton>`.
@@ -78,7 +78,7 @@ order to integrate particle rotation.  Additionally, :doc:`atom_style
 ellipsoid <atom_style>` should be used since it defines the rotational
 state of each particle.
 
-The following coefficients must be defined for each pair of atoms types
+The following coefficients must be defined for each pair of atom types
 via the :doc:`pair_coeff <pair_coeff>` command as in the examples above,
 or in the data file or restart files read by the :doc:`read_data
 <read_data>` or :doc:`read_restart <read_restart>` commands, or by
@@ -166,6 +166,8 @@ none
 .. _Yuan:
 
 **(Yuan2010a)** Yuan, Huang, Li, Lykotrafitis, Zhang, Phys. Rev. E, 82, 011905(2010).
+
+.. _Yuan2:
 
 **(Yuan2010b)** Yuan, Huang, Zhang, Soft. Matter, 6, 4571(2010).
 

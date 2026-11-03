@@ -26,6 +26,7 @@
 #include "domain.h"
 #include "error.h"
 #include "finish.h"
+#include "fix.h"
 #include "force.h"
 #include "group.h"
 #include "improper.h"
@@ -48,7 +49,9 @@ enum{REGULAR,ESKM};
 
 /* ---------------------------------------------------------------------- */
 
-ThirdOrder::ThirdOrder(LAMMPS *lmp) : Command(lmp), fp(nullptr)
+ThirdOrder::ThirdOrder(LAMMPS *lmp) :
+    Command(lmp), groupmap(nullptr), list(nullptr), ijnum(nullptr), neighbortags(nullptr),
+    fp(nullptr)
 {
   external_force_clear = 1;
 }
@@ -210,7 +213,7 @@ void ThirdOrder::options(int narg, char **arg)
 {
   if (narg < 0) error->all(FLERR,"Illegal Third Order command");
   int iarg = 0;
-  const char *filename = "Third Order.dat";
+  const char *filename = "third_order.dat";
 
   while (iarg < narg) {
     if (strcmp(arg[iarg],"binary") == 0) {
@@ -236,9 +239,10 @@ void ThirdOrder::options(int narg, char **arg)
       iarg += 2;
     } else error->all(FLERR,"Illegal Third Order command");
   }
-  if (file_flag == 1 && me == 0) {
-    openfile(filename);
-  }
+  // always open the output file (documented default name unless changed
+  // with the file keyword); without it rank 0 wrote to a null FILE pointer
+
+  openfile(filename);
 }
 
 /* ----------------------------------------------------------------------
@@ -255,8 +259,11 @@ void ThirdOrder::openfile(const char* filename)
 
   if (me == 0) {
     if (compressed) {
-      fp = platform::compressed_write(std::string(filename)+".gz");
-      if (!fp) error->one(FLERR,"Cannot open compressed file");
+      std::string gzfile = std::string(filename) + ".gz";
+      fp = platform::compressed_write(gzfile);
+      if (!fp)
+        error->one(FLERR, "Cannot open compressed file {}: {}", gzfile,
+                   platform::compressed_open_error(gzfile));
     } else if (binaryflag) {
       fp = fopen(filename,"wb");
     } else {
@@ -264,7 +271,6 @@ void ThirdOrder::openfile(const char* filename)
     }
     if (!fp) error->one(FLERR,"Cannot open third_order file: {}", utils::getsyserror());
   }
-
 
   file_opened = 1;
 }
@@ -412,6 +418,9 @@ void ThirdOrder::calculateMatrix()
   delete [] dynmat;
   delete [] fdynmat;
 
+  memory->destroy(neighbortags);
+  memory->destroy(ijnum);
+
   if (screen && me == 0)
     fprintf(screen,"Finished Calculating Third Order Tensor\n");
 }
@@ -449,7 +458,7 @@ void ThirdOrder::writeMatrix(double *dynmat, bigint i, int a, bigint j, int b)
     clearerr(fp);
     fwrite(&dynmat[0], sizeof(double), dynlen, fp);
   }
-  if (ferror(fp)) error->one(FLERR,"Error writing to file");
+  if (fp && ferror(fp)) error->one(FLERR,"Error writing to file");
 
 }
 
@@ -486,11 +495,8 @@ void ThirdOrder::update_force()
   neighbor->ago = 0;
   if (modify->get_fix_by_id("package_intel")) neighbor->decide();
   force_clear();
-  int n_post_force = modify->n_post_force_any;
-  int n_pre_force = modify->n_pre_force;
-  int n_pre_reverse = modify->n_pre_reverse;
 
-  if (n_pre_force) {
+  if (modify->has_fixes(FixConst::PRE_FORCE)) {
     modify->pre_force(vflag);
     timer->stamp(Timer::MODIFY);
   }
@@ -510,7 +516,7 @@ void ThirdOrder::update_force()
     force->kspace->compute(eflag,vflag);
     timer->stamp(Timer::KSPACE);
   }
-  if (n_pre_reverse) {
+  if (modify->has_fixes(FixConst::PRE_REVERSE)) {
     modify->pre_reverse(eflag,vflag);
     timer->stamp(Timer::MODIFY);
   }
@@ -521,7 +527,7 @@ void ThirdOrder::update_force()
 
   // force modifications
 
-  if (n_post_force) {
+  if (modify->has_fixes(FixConst::POST_FORCE_ANY)) {
     modify->post_force(vflag);
     timer->stamp(Timer::MODIFY);
   }
@@ -769,23 +775,11 @@ void ThirdOrder::getNeighbortags() {
     ijnum[i] = sum;
   }
 
-  sum = 0;
-  for (bigint i=0; i<=natoms-1; i++) {
-    sum += ijnum[i];
-  }
-
-  free (neighbortags);
-  nbytes = ((bigint) sizeof(bigint)) * sum;
-  datarecv = (bigint *) memory->smalloc(nbytes, "thirdorder:firsttags");
-  nbytes = ((bigint) sizeof(bigint *)) * natoms;
-  neighbortags = (bigint **) memory->smalloc(nbytes, "thirdorder:neighbortags");
-  memset(&datarecv[0],0,sum*sizeof(bigint));
-
-  n = 0;
-  for (bigint i = 0; i < natoms; i++) {
-    neighbortags[i] = &datarecv[n];
-    n += ijnum[i];
-  }
+  memory->sfree(neighbortags);
+  memory->sfree(datarecv);
+  memory->create_ragged(neighbortags, natoms, ijnum, "thirdorder:neighbortags");
+  for (bigint i = 0; i < natoms; i++)
+    memset(neighbortags[i], 0, ijnum[i]*sizeof(bigint));
 
   for (bigint i = 0; i < natoms; i++) {
     int m = 0;
@@ -809,7 +803,8 @@ void ThirdOrder::getNeighbortags() {
     }
   }
 
-  free (firsttags);
+  memory->sfree(data);
+  memory->sfree(firsttags);
   free (ijnumproc);
   free (temptags);
 }

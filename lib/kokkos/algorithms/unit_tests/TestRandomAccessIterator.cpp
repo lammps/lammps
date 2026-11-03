@@ -2,8 +2,11 @@
 // SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #include <TestStdAlgorithmsCommon.hpp>
+#include <Kokkos_Macros.hpp>
 #ifdef KOKKOS_ENABLE_EXPERIMENTAL_CXX20_MODULES
-#include <std_algorithms/impl/Kokkos_RandomAccessIterator.hpp>
+import kokkos.core_impl;
+#else
+#include <Kokkos_Iterator.hpp>
 #endif
 
 namespace KE = Kokkos::Experimental;

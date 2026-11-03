@@ -35,8 +35,11 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
+namespace {
 enum { ONE, RUNNING };
+const char *const ave_string[] = {"one", "running"};
 enum { AUTO, UPPER, LOWER, AUTOUPPER, AUTOLOWER, FULL, FIRST };
+}    // namespace
 
 /* ---------------------------------------------------------------------- */
 
@@ -227,7 +230,8 @@ FixAveCorrelate::FixAveCorrelate(LAMMPS *lmp, int narg, char **arg) :
   if (fp && comm->me == 0) {
     clearerr(fp);
     if (title1) fprintf(fp,"%s\n",title1);
-    else fprintf(fp,"# Time-correlated data for fix %s\n",id);
+    else fprintf(fp,"# Time-correlated data for fix %s ave %s version %d\n",
+                 id,ave_string[ave],lmp->num_ver);
     if (title2) fprintf(fp,"%s\n",title2);
     else fprintf(fp,"# Timestep Number-of-time-windows\n");
     if (title3) fprintf(fp,"%s\n",title3);
@@ -242,7 +246,7 @@ FixAveCorrelate::FixAveCorrelate(LAMMPS *lmp, int narg, char **arg) :
             fprintf(fp," %s*%s",earg[i],earg[j]);
       else if (type == LOWER)
         for (int i = 0; i < nvalues; i++)
-          for (int j = 0; j < i-1; j++)
+          for (int j = 0; j < i; j++)
             fprintf(fp," %s*%s",earg[i],earg[j]);
       else if (type == AUTOUPPER)
         for (int i = 0; i < nvalues; i++)
@@ -250,7 +254,7 @@ FixAveCorrelate::FixAveCorrelate(LAMMPS *lmp, int narg, char **arg) :
             fprintf(fp," %s*%s",earg[i],earg[j]);
       else if (type == AUTOLOWER)
         for (int i = 0; i < nvalues; i++)
-          for (int j = 0; j < i; j++)
+          for (int j = 0; j <= i; j++)
             fprintf(fp," %s*%s",earg[i],earg[j]);
       else if (type == FULL)
         for (int i = 0; i < nvalues; i++)

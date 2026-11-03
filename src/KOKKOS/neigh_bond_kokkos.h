@@ -90,6 +90,7 @@ class NeighBondKokkos : protected Pointers  {
 
   int maxbond,maxangle,maxdihedral,maximproper;   // size of bond lists
   int me,nprocs;
+  int copymode;                                   // 1 while a Kokkos loop holds a copy
 
  private:
   int map_style;

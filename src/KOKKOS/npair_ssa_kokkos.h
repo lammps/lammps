@@ -59,6 +59,8 @@ class NPairSSAKokkos : public NPair {
   typename AT::t_int_2d ssa_gitemLen;
 
   NPairSSAKokkos(class LAMMPS *);
+  // checked conversion from a base class pointer, see the .cpp file
+  static NPairSSAKokkos<DeviceType> *cast(class NPair *);
   void copy_neighbor_info() override;
   void copy_bin_info() override;
   void copy_stencil_info() override;
@@ -172,7 +174,7 @@ class NPairSSAKokkosExecute
   HAT::t_int_scalar h_new_maxneighs;
 
   const int xperiodic, yperiodic, zperiodic;
-  const int xprd_half, yprd_half, zprd_half;
+  const double xprd_half, yprd_half, zprd_half;
 
   // SSA Work plan data structures
   int ssa_phaseCt;
@@ -234,7 +236,7 @@ class NPairSSAKokkosExecute
         const typename AT::t_int_1d_const & _ex_mol_intra,
         const double *_bboxhi, const double* _bboxlo,
         const int & _xperiodic, const int & _yperiodic, const int & _zperiodic,
-        const int & _xprd_half, const int & _yprd_half, const int & _zprd_half):
+        const double & _xprd_half, const double & _yprd_half, const double & _zprd_half):
     neigh_list(_neigh_list), cutneighsq(_cutneighsq),
     exclude(_exclude),nex_type(_nex_type),
     ex1_type(_ex1_type),ex2_type(_ex2_type),ex_type(_ex_type),

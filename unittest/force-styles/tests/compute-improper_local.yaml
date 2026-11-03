@@ -1,0 +1,20 @@
+---
+lammps_version: 4 Jul 2026
+tags:
+date_generated: Thu Jul  9 16:34:22 2026
+epsilon: 1e-08
+timestep: 0.25
+skip_tests:
+prerequisites: |
+  atom full
+  compute improper/local
+pre_commands: ""
+post_commands: |
+  compute test all improper/local chi
+input_file: in.fourmol
+input_coeffs: coeffs.fourmol
+natoms: 29
+local_data: |2
+   1.7634279879702712e+00
+   5.6733407421975537e+00
+...

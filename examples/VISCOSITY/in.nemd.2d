@@ -2,15 +2,23 @@
 # NEMD via fix deform and fix nvt/sllod
 
 # settings
+# (index-style variables can be overridden from the command line or a wrapper
+# input for abbreviated runs, e.g. by the tests in the unittest tree)
 
-variable	x equal 20
-variable	y equal 20
+variable	x index 20
+variable	y index 20
 
 variable	rho equal 0.6
 variable        t equal 1.0
 variable	rc equal 2.5
 
 variable	srate equal 2.7 # velocity of top edge
+
+variable	nequil index 5000
+variable	nsteady index 50000
+variable	nprod index 50000
+variable	crepeat index 250
+variable	cfreq index 5000
 
 # problem setup
 
@@ -39,7 +47,7 @@ fix	        3 all enforce2d
 # equilibration run
 
 thermo          1000
-run	        5000
+run	        ${nequil}
 
 unfix  	        1
 unfix		2
@@ -56,7 +64,7 @@ fix		1 all nvt/sllod temp $t $t 0.1
 fix		2 all deform 0 xy erate ${xyrate} remap v
 
 compute         layers all chunk/atom bin/1d y center 0.05 units reduced
-fix		4 all ave/chunk 20 250 5000 layers vx file profile.nemd.2d
+fix		4 all ave/chunk 20 ${crepeat} ${cfreq} layers vx file profile.nemd.2d
 
 compute		usual all temp
 compute		tilt all temp/deform
@@ -64,12 +72,12 @@ compute		tilt all temp/deform
 thermo          1000
 thermo_style	custom step temp c_usual epair etotal press pxy
 thermo_modify	temp tilt
-run		50000
+run		${nsteady}
 
 # data gathering run
 
 variable	visc equal -pxy/(v_srate/ly)
-fix		vave all ave/time 10 100 1000 v_visc ave running start 56000
+fix		vave all ave/time 10 100 1000 v_visc ave running start $(v_nequil+v_nsteady+1000)
 
 thermo_style	custom step temp press pxy v_visc f_vave
 thermo_modify	temp tilt
@@ -83,4 +91,4 @@ thermo_modify	temp tilt
 #dump		2 all image 50 image.*.jpg vx type zoom 1.2 adiam 1.2
 #dump_modify	2 pad 5 amap 0.0 ${srate} ca 0.0 2 min blue max red
 
-run		50000
+run		${nprod}

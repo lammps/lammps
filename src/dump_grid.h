@@ -22,6 +22,8 @@ DumpStyle(grid,DumpGrid);
 
 #include "dump.h"
 
+#include <vector>
+
 namespace LAMMPS_NS {
 
 class DumpGrid : public Dump {
@@ -43,7 +45,7 @@ class DumpGrid : public Dump {
   char **earg;       // field names with wildcard expansion
   int nargnew;       // size of earg
                      //
-  int *vtype;        // type of each vector (INT, DOUBLE)
+  std::vector<int> vtype;   // type of each vector (INT, DOUBLE)
   char **vformat;    // format string for each vector element
                      //
   char *columns;     // column labels
@@ -57,11 +59,11 @@ class DumpGrid : public Dump {
   int ioptional;    // index of start of optional args
 
   // per field info
-  int *field2index;     // which compute/fix
-  int *field2source;    // COMPUTE or FIX
-  int *field2grid;      // index of grid within compute/fix
-  int *field2data;      // index of data within compute/fix
-  int *argindex;        // index into compute,fix,custom per-atom data
+  std::vector<int> field2index;     // which compute/fix
+  std::vector<int> field2source;    // COMPUTE or FIX
+  std::vector<int> field2grid;      // index of grid within compute/fix
+  std::vector<int> field2data;      // index of data within compute/fix
+  std::vector<int> argindex;        // index into compute,fix,custom per-atom data
                         // 0 for per-atom vector, 1-N for cols of per-atom array
 
   int ncompute;                            // # of Computes accessed by dump
@@ -115,7 +117,7 @@ class DumpGrid : public Dump {
   // customize by adding a method prototype
 
   using FnPtrPack = void (DumpGrid::*)(int);
-  FnPtrPack *pack_choice;    // ptrs to pack functions
+  std::vector<FnPtrPack> pack_choice;    // ptrs to pack functions
 
   void pack_grid2d(int);
   void pack_grid3d(int);

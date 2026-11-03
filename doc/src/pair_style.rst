@@ -112,11 +112,12 @@ accelerated styles exist.
 * :doc:`hybrid/overlay <pair_hybrid>` - multiple styles of superposed pairwise interactions
 * :doc:`hybrid/scaled <pair_hybrid>` - multiple styles of scaled superposed pairwise interactions
 * :doc:`zero <pair_zero>` - neighbor list but no interactions
+* :doc:`zero/coul <pair_zero>` - like *zero*, but presents itself as a Coulombic pair style
 
 * :doc:`adp <pair_adp>` - angular dependent potential (ADP) of Mishin
-* :doc:`agni <pair_agni>` - AGNI machine-learning potential
 * :doc:`aip/water/2dm <pair_aip_water_2dm>` - anisotropic interfacial potential for water in 2d geometries
 * :doc:`airebo <pair_airebo>` - AIREBO potential of Stuart
+* :doc:`airebo/bc <pair_airebo>` - AIREBO with bond-centric P_CC (Hur and Stuart)
 * :doc:`airebo/morse <pair_airebo>` - AIREBO with Morse instead of LJ
 * :doc:`amoeba <pair_amoeba>` -
 * :doc:`atm <pair_atm>` - Axilrod-Teller-Muto potential
@@ -136,6 +137,7 @@ accelerated styles exist.
 * :doc:`born/coul/wolf <pair_born>` - Born with Wolf potential for Coulomb
 * :doc:`born/coul/wolf/cs <pair_cs>` - Born with Wolf potential for Coulomb and core/shell model
 * :doc:`born/gauss <pair_born_gauss>` - Born-Mayer / Gaussian potential
+* :doc:`bpm/peri <pair_bpm_peri>` - short-range contact force for the BPM peridynamics model
 * :doc:`bpm/spring <pair_bpm_spring>` - repulsive harmonic force with damping
 * :doc:`brownian <pair_brownian>` - Brownian potential for Fast Lubrication Dynamics
 * :doc:`brownian/poly <pair_brownian>` - Brownian potential for Fast Lubrication Dynamics with polydispersity
@@ -245,15 +247,18 @@ accelerated styles exist.
 * :doc:`lj/class2 <pair_class2>` - COMPASS (class 2) force field without Coulomb
 * :doc:`lj/class2/coul/cut <pair_class2>` - COMPASS with cutoff Coulomb
 * :doc:`lj/class2/coul/cut/soft <pair_fep_soft>` - COMPASS with cutoff Coulomb with a soft core
+* :doc:`lj/class2/coul/cut/soft/gapsys <pair_fep_soft>` - COMPASS (class 2) force field with short-range Coulomb and a soft core with continuous force and first derivative of force
 * :doc:`lj/class2/coul/long <pair_class2>` - COMPASS with long-range Coulomb
 * :doc:`lj/class2/coul/long/cs <pair_cs>` - COMPASS with long-range Coulomb with core/shell adjustments
 * :doc:`lj/class2/coul/long/soft <pair_fep_soft>` - COMPASS with long-range Coulomb with a soft core
 * :doc:`lj/class2/soft <pair_fep_soft>` - COMPASS (class 2) force field with no Coulomb with a soft core
+* :doc:`lj/class2/soft/gapsys <pair_fep_soft>` - COMPASS (class 2) force field with a soft core with continuous force and first derivative of force
 * :doc:`lj/cubic <pair_lj_cubic>` - LJ with cubic after inflection point
 * :doc:`lj/cut <pair_lj>` - cutoff Lennard-Jones potential without Coulomb
 * :doc:`lj/cut/coul/cut <pair_lj_cut_coul>` - LJ with cutoff Coulomb
 * :doc:`lj/cut/coul/cut/dielectric <pair_dielectric>` -
 * :doc:`lj/cut/coul/cut/soft <pair_fep_soft>` - LJ with cutoff Coulomb with a soft core
+* :doc:`lj/cut/coul/cut/soft/gapsys <pair_fep_soft>` - LJ with cutoff Coulomb and a soft core with continuous force and first derivative of force
 * :doc:`lj/cut/coul/debye <pair_lj_cut_coul>` - LJ with Debye screening added to Coulomb
 * :doc:`lj/cut/coul/debye/dielectric <pair_dielectric>` -
 * :doc:`lj/cut/coul/dsf <pair_lj_cut_coul>` - LJ with Coulomb via damped shifted forces
@@ -308,6 +313,7 @@ accelerated styles exist.
 * :doc:`meam/sw/spline <pair_meam_sw_spline>` - Splined version of MEAM with a Stillinger-Weber term
 * :doc:`mesocnt <pair_mesocnt>` - Mesoscopic vdW potential for (carbon) nanotubes
 * :doc:`mesocnt/viscous <pair_mesocnt>` - Mesoscopic vdW potential for (carbon) nanotubes with friction
+* :doc:`mesomem/dipole <pair_mesomem_dipole>` - MesoMem model for one-particle-thick fluid membranes
 * :doc:`mgpt <pair_mgpt>` - Simplified model generalized pseudopotential theory (MGPT) potential
 * :doc:`mie/cut <pair_mie>` - Mie potential
 * :doc:`mliap <pair_mliap>` - Multiple styles of machine-learning potential
@@ -361,7 +367,6 @@ accelerated styles exist.
 * :doc:`polymorphic <pair_polymorphic>` - Polymorphic 3-body potential
 * :doc:`python <pair_python>` -
 * :doc:`quip <pair_quip>` -
-* :doc:`rann <pair_rann>` -
 * :doc:`reaxff <pair_reaxff>` - ReaxFF potential
 * :doc:`rebo <pair_airebo>` - Second generation REBO potential of Brenner
 * :doc:`rebomos <pair_rebomos>` - REBOMoS potential for MoS2
@@ -396,6 +401,7 @@ accelerated styles exist.
 * :doc:`spin/neel <pair_spin_neel>` -
 * :doc:`srp <pair_srp>` -
 * :doc:`srp/react <pair_srp>` -
+* :doc:`surf/granular <pair_surf_granular>` - line/triangle interactions with granular spheres
 * :doc:`sw <pair_sw>` - Stillinger-Weber 3-body potential
 * :doc:`sw/angle/table <pair_sw_angle_table>` - Stillinger-Weber potential with tabulated angular term
 * :doc:`sw/mod <pair_sw>` - modified Stillinger-Weber 3-body potential

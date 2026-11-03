@@ -65,6 +65,7 @@ class UniqueToken<Threads, UniqueTokenScope::Instance> {
         }))
 
     KOKKOS_IF_ON_DEVICE((return 0;))
+    KOKKOS_IMPL_UNREACHABLE();
   }
 
   /// \brief release a value acquired by generate
@@ -95,6 +96,8 @@ class UniqueToken<Threads, UniqueTokenScope::Global> {
     KOKKOS_IF_ON_HOST((return Threads::impl_thread_pool_size();))
 
     KOKKOS_IF_ON_DEVICE((return 0;))
+
+    KOKKOS_IMPL_UNREACHABLE();
   }
 
   /// \brief acquire value such that 0 <= value < size()
@@ -103,6 +106,8 @@ class UniqueToken<Threads, UniqueTokenScope::Global> {
     KOKKOS_IF_ON_HOST((return Threads::impl_thread_pool_rank();))
 
     KOKKOS_IF_ON_DEVICE((return 0;))
+
+    KOKKOS_IMPL_UNREACHABLE();
   }
 
   /// \brief release a value acquired by generate

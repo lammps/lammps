@@ -1,0 +1,69 @@
+---
+lammps_version: 4 Jul 2026
+tags: granular unvetted
+date_generated: Tue Jul 28 19:08:04 2026
+epsilon: 1e-10
+skip_tests:
+prerequisites: |
+  atom ellipsoid
+  pair granular/superellipsoid
+pre_commands: |
+  units si
+  dimension 3
+  boundary f f f
+  atom_style ellipsoid superellipsoid
+  region box block 0.0 20.0 0.0 20.0 0.0 20.0 units box
+  create_box 1 box
+  create_atoms 1 single ${x1} ${y1} ${z1} units box
+  create_atoms 1 single 12.0 10.5 10.0 units box
+  set type 1 shape 1.5 1.0 1.0
+  set type 1 block 4.0 4.0
+  set type 1 mass 1.0
+  group moving id 1
+  velocity moving set ${vx} 0.0 0.0
+  comm_modify vel yes
+  neighbor 0.5 bin
+  neigh_modify delay 0
+  timestep 0.002
+post_commands: |
+  fix integr all nve/asphere
+input_file:
+natoms: 2
+variables: |
+  knorm 1000.0
+  kt 285.0
+  xmu 0.5
+  vx 3.0
+  x1 8.0
+  y1 10.0
+  z1 10.0
+pair_style: granular/superellipsoid
+pair_coeff: |
+  * * hooke ${knorm} 0.0 tangential linear_history ${kt} 0.0 ${xmu} damping mass_velocity
+run_segments: |-
+  500 200
+analytic_enable: yes
+analytic_model: momentum_conservation
+analytic_tol: 1e-08
+analytic_segment: -1
+run_pos: |2
+    0   1  1.0662166042800624e+01  9.9247754952904614e+00  1.0000000000000000e+01
+    0   2  1.2337833957199484e+01  1.0575224504709539e+01  1.0000000000000000e+01
+    1   1  1.0778819110859150e+01  9.6722571162415676e+00  1.0000000000000000e+01
+    1   2  1.3421180889141004e+01  1.0827742883758432e+01  1.0000000000000000e+01
+run_vel: |2
+    0   1  2.9163267014654626e-01 -6.3129594762241270e-01  0.0000000000000000e+00
+    0   2  2.7083673298534547e+00  6.3129594762241270e-01  0.0000000000000000e+00
+    1   1  2.9163267014654626e-01 -6.3129594762241270e-01  0.0000000000000000e+00
+    1   2  2.7083673298534547e+00  6.3129594762241270e-01  0.0000000000000000e+00
+run_torque: |2
+    0   1  0.0000000000000000e+00  0.0000000000000000e+00  0.0000000000000000e+00
+    0   2  0.0000000000000000e+00  0.0000000000000000e+00  0.0000000000000000e+00
+    1   1  0.0000000000000000e+00  0.0000000000000000e+00  0.0000000000000000e+00
+    1   2  0.0000000000000000e+00  0.0000000000000000e+00  0.0000000000000000e+00
+run_angmom: |2
+    0   1  0.0000000000000000e+00  0.0000000000000000e+00  2.3906948439836406e-01
+    0   2  0.0000000000000000e+00  0.0000000000000000e+00  2.3906948439836501e-01
+    1   1  0.0000000000000000e+00  0.0000000000000000e+00  2.3906948439836406e-01
+    1   2  0.0000000000000000e+00  0.0000000000000000e+00  2.3906948439836501e-01
+...

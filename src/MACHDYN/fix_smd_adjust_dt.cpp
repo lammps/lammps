@@ -87,8 +87,6 @@ void FixSMDTlsphDtReset::setup(int /*vflag*/) {
 
 void FixSMDTlsphDtReset::initial_integrate(int /*vflag*/) {
 
-        //printf("in adjust_dt: dt = %20.10f\n", update->dt);
-
         t_elapsed += update->dt;
 }
 
@@ -133,48 +131,6 @@ void FixSMDTlsphDtReset::end_of_step() {
                 dtmin = MIN(dtmin, *dt_PERI_IPMB);
         }
 
-//      double **v = atom->v;
-//      double **f = atom->f;
-//      double *rmass = atom->rmass;
-//      double *radius = atom->radius;
-//      int *mask = atom->mask;
-//      int nlocal = atom->nlocal;
-//      double dtv, dtf, dtsq;
-//      double vsq, fsq, massinv, xmax;
-//      double delx, dely, delz, delr;
-
-//      for (int i = 0; i < nlocal; i++) {
-//              if (mask[i] & groupbit) {
-//                      xmax = 0.005 * radius[i];
-//                      massinv = 1.0 / rmass[i];
-//                      vsq = v[i][0] * v[i][0] + v[i][1] * v[i][1] + v[i][2] * v[i][2];
-//                      fsq = f[i][0] * f[i][0] + f[i][1] * f[i][1] + f[i][2] * f[i][2];
-//                      dtv = dtf = BIG;
-//                      if (vsq > 0.0)
-//                              dtv = xmax / sqrt(vsq);
-//                      if (fsq > 0.0)
-//                              dtf = sqrt(2.0 * xmax / (sqrt(fsq) * massinv));
-//                      dt = MIN(dtv, dtf);
-//                      dtmin = MIN(dtmin, dt);
-//                      dtsq = dt * dt;
-//                      delx = dt * v[i][0] + 0.5 * dtsq * massinv * f[i][0];
-//                      dely = dt * v[i][1] + 0.5 * dtsq * massinv * f[i][1];
-//                      delz = dt * v[i][2] + 0.5 * dtsq * massinv * f[i][2];
-//                      delr = sqrt(delx * delx + dely * dely + delz * delz);
-//                      if (delr > xmax)
-//                              dt *= xmax / delr;
-//                      dtmin = MIN(dtmin, dt);
-//
-////                    xmax = 0.05 * radius[i];
-////                    massinv = 1.0 / rmass[i];
-////                    fsq = f[i][0] * f[i][0] + f[i][1] * f[i][1] + f[i][2] * f[i][2];
-////                    dtf = BIG;
-////                    if (fsq > 0.0)
-////                            dtf = sqrt(2.0 * xmax / (sqrt(fsq) * massinv));
-////                    dtmin = MIN(dtmin, dtf);
-//              }
-//      }
-
         dtmin *= safety_factor; // apply safety factor
         MPI_Allreduce(&dtmin, &dt, 1, MPI_DOUBLE, MPI_MIN, world);
 
@@ -182,15 +138,11 @@ void FixSMDTlsphDtReset::end_of_step() {
                 dt = 1.0e-16;
         }
 
-        //printf("dtmin is now: %f, dt is now%f\n", dtmin, dt);
-
-
         update->dt = dt;
         update->dt_default = 0;
         if (force->pair)
                 force->pair->reset_dt();
-        for (int i = 0; i < modify->nfix; i++)
-                modify->fix[i]->reset_dt();
+        for (const auto &ifix : modify->get_fix_list()) ifix->reset_dt();
 }
 
 /* ---------------------------------------------------------------------- */

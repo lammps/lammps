@@ -1,0 +1,51 @@
+# Fixed-box GFN2-xTB QM/MM geometry minimization with 3-D PME.
+#
+# The MM point charges are fixed because this deliberately minimal example
+# has no MM short-range potential.  Tighter electrostatic and SCC settings
+# reduce line-search noise relative to the dynamics smoke test.
+
+units           real
+atom_style      charge
+atom_modify     map array
+boundary        p p p
+
+region          cell block 0 20 0 20 0 20 units box
+create_box      3 cell
+create_atoms    1 single 9.60 10.0 10.0 units box
+create_atoms    1 single 10.40 10.0 10.0 units box
+create_atoms    2 single 5.00 10.0 10.0 units box
+create_atoms    3 single 15.00 10.0 10.0 units box
+
+mass            1 1.008
+mass            2 22.990
+mass            3 35.450
+set             atom 1 charge 0.0
+set             atom 2 charge 0.0
+set             atom 3 charge 1.0
+set             atom 4 charge -1.0
+
+group           qm id 1 2
+group           mm subtract all qm
+
+pair_style      coul/long 8.0
+pair_coeff      * *
+kspace_style    pppm/xtb 1.0e-8
+
+fix             qmmm qm qmmm/xtb elements H Na Cl cutoff 8.0 method gfn2 &
+                charge 0 uhf 0 accuracy 1.0e-8 maxiter 500 &
+                ewald_alpha 0.5 kmax 16 16 16 ksqmax 256
+# Apply this after fix qmmm so the final MM forces, including the QM/MM
+# correction, are zeroed before the minimizer reads its search direction.
+fix             freeze mm setforce 0.0 0.0 0.0
+
+variable        q1 equal q[1]
+variable        q2 equal q[2]
+variable        fx1 equal fx[1]
+variable        fx2 equal fx[2]
+variable        hh equal x[2]-x[1]
+thermo_style    custom step pe f_qmmm v_q1 v_q2 v_fx1 v_fx2 v_hh
+thermo          1
+
+min_style       cg
+min_modify      line quadratic dmax 0.05
+minimize        1.0e-12 1.0e-5 100 500

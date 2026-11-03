@@ -47,8 +47,8 @@ be run for 0 timesteps in order to properly register the new particles
 in the system. See the "funnel_flow" example in the MACHDYN examples
 directory.
 
-See `this PDF guide <PDF/MACHDYN_LAMMPS_userguide.pdf>`_ to use Smooth Mach
-Dynamics in LAMMPS.
+See the :doc:`Howto machdyn <Howto_machdyn>` page for an introduction
+to using Smooth Mach Dynamics in LAMMPS.
 
 Dump image info
 """""""""""""""
@@ -98,7 +98,9 @@ Related commands
 
 :doc:`smd/triangle_mesh_vertices <compute_smd_triangle_vertices>`,
 :doc:`smd/move_tri_surf <fix_smd_move_triangulated_surface>`,
-:doc:`smd/tri_surface <pair_smd_triangulated_surface>`
+:doc:`smd/tri_surface <pair_smd_triangulated_surface>`,
+:doc:`fix surface/global <fix_surface_global>`,
+:doc:`fix surface/local <fix_surface_local>`
 
 Default
 """""""

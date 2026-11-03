@@ -32,6 +32,7 @@ class FixRigidNH : public FixRigid {
   void write_restart(FILE *) override;
   void restart(char *buf) override;
   void reset_target(double) override;
+  double memory_usage() override;
 
  protected:
   double **conjqm;                // conjugate quaternion momentum
@@ -77,7 +78,6 @@ class FixRigidNH : public FixRigid {
   void compute_press_target();
   void nh_epsilon_dot();
 
-  double memory_usage() override;
   void allocate_chain();
   void allocate_order();
   void deallocate_chain();

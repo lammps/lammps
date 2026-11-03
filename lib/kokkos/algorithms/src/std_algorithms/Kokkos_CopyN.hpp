@@ -5,7 +5,7 @@
 #define KOKKOS_STD_ALGORITHMS_COPY_N_HPP
 
 #include "impl/Kokkos_CopyCopyN.hpp"
-#include "Kokkos_BeginEnd.hpp"
+#include <Kokkos_Iterator.hpp>
 
 namespace Kokkos {
 namespace Experimental {
@@ -41,6 +41,7 @@ auto copy_n(const ExecutionSpace& ex,
             const ::Kokkos::View<DataType2, Properties2...>& dest) {
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(source);
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(dest);
+  Impl::expect_extents_of_at_least(source, dest, count);
 
   namespace KE = ::Kokkos::Experimental;
   return Impl::copy_n_exespace_impl("Kokkos::copy_n_view_api_default", ex,
@@ -56,6 +57,7 @@ auto copy_n(const std::string& label, const ExecutionSpace& ex,
             const ::Kokkos::View<DataType2, Properties2...>& dest) {
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(source);
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(dest);
+  Impl::expect_extents_of_at_least(source, dest, count);
 
   namespace KE = ::Kokkos::Experimental;
   return Impl::copy_n_exespace_impl(label, ex, KE::cbegin(source), count,
@@ -83,6 +85,7 @@ KOKKOS_FUNCTION auto copy_n(
     const ::Kokkos::View<DataType2, Properties2...>& dest) {
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(source);
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(dest);
+  Impl::expect_extents_of_at_least(source, dest, count);
 
   namespace KE = ::Kokkos::Experimental;
   return Impl::copy_n_team_impl(teamHandle, KE::cbegin(source), count,

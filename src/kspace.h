@@ -29,8 +29,6 @@ class KSpace : protected Pointers {
     REVERSE_RHO_ARITH,
     REVERSE_RHO_NONE,
     REVERSE_RHO_GPU,
-    REVERSE_RHO_G,
-    REVERSE_RHO_A,
     REVERSE_AD,
     REVERSE_AD_PERATOM,
     REVERSE_MU,
@@ -55,15 +53,7 @@ class KSpace : protected Pointers {
     FORWARD_IK_NONE,
     FORWARD_AD_NONE,
     FORWARD_IK_PERATOM_NONE,
-    FORWARD_AD_PERATOM_NONE,
-    FORWARD_IK_G,
-    FORWARD_AD_G,
-    FORWARD_IK_PERATOM_G,
-    FORWARD_AD_PERATOM_G,
-    FORWARD_IK_A,
-    FORWARD_AD_A,
-    FORWARD_IK_PERATOM_A,
-    FORWARD_AD_PERATOM_A
+    FORWARD_AD_PERATOM_NONE
   };
 
   double energy;    // accumulated energies
@@ -82,6 +72,7 @@ class KSpace : protected Pointers {
   int tip4pflag;         // 1 if a TIP4P solver
   int dipoleflag;        // 1 if a dipole solver
   int spinflag;          // 1 if a spin solver
+  int xtbflag;           // 1 if compatible with the QMMM-XTB package
   int rk_flag;           /* 1 if a solver uses two distinct communicator worlds for
                             r-space and k-space computations*/
   int differentiation_flag;
@@ -146,7 +137,7 @@ class KSpace : protected Pointers {
 
   ExecutionSpace execution_space;
   uint64_t datamask_read, datamask_modify;
-  int copymode;
+  int copymode, kokkosable;
 
   int compute_flag;        // 0 if skip compute()
   int fftbench;            // 0 if skip FFT timing

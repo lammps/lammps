@@ -104,7 +104,7 @@ FixTTM::FixTTM(LAMMPS *lmp, int narg, char **arg) :
 
     // error check
 
-    if (seed <= 0) error->all(FLERR, 3, "Invalid random number seed in fix ttm command");
+    if (seed <= 0) error->all(FLERR, 3, "Invalid random number seed in fix {} command", style);
     if (electronic_specific_heat <= 0.0)
       error->all(FLERR, 4, "Fix {} electronic_specific_heat must be > 0.0", style);
     if (electronic_density <= 0.0)
@@ -152,8 +152,8 @@ FixTTM::FixTTM(LAMMPS *lmp, int narg, char **arg) :
 
     // set 2 callbacks
 
-    atom->add_callback(Atom::GROW);
-    atom->add_callback(Atom::RESTART);
+    atom->add_callback(this, Atom::GROW);
+    atom->add_callback(this, Atom::RESTART);
   }
 
   // determines which class deallocate_grid() is called from

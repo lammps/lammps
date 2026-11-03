@@ -38,7 +38,7 @@ class RegCone : public Region {
   void shape_update() override;
   void bbox_update() override;
 
- private:
+ protected:
   char axis;
   double c1, c2;
   double radiuslo, radiushi;

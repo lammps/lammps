@@ -18,6 +18,7 @@
 #include <cmath>
 
 #include "lal_re_squared.h"
+#include "lammps_gpu.h"
 
 using namespace std;
 using namespace LAMMPS_AL;
@@ -27,6 +28,8 @@ static RESquared<PRECISION,ACC_PRECISION> REMF;
 // ---------------------------------------------------------------------------
 // Allocate memory on host and device and copy constants to device
 // ---------------------------------------------------------------------------
+
+namespace LAMMPS_GPU {
 int re_gpu_init(const int ntypes, double **shape, double **well, double **cutsq,
                 double **sigma, double **epsilon,
                 int **form, double **host_lj1, double **host_lj2,
@@ -36,7 +39,6 @@ int re_gpu_init(const int ntypes, double **shape, double **well, double **cutsq,
                 const double cell_size, int &gpu_mode, FILE *screen) {
   REMF.clear();
   gpu_mode=REMF.device->gpu_mode();
-  double gpu_split=REMF.device->particle_split();
   int first_gpu=REMF.device->first_device();
   int last_gpu=REMF.device->last_device();
   int world_me=REMF.device->world_me();
@@ -58,8 +60,7 @@ int re_gpu_init(const int ntypes, double **shape, double **well, double **cutsq,
   if (world_me==0)
     init_ok=REMF.init(ntypes, shape, well, cutsq, sigma, epsilon,
                       form, host_lj1, host_lj2, host_lj3, host_lj4, offset,
-                      special_lj, inum, nall, max_nbors, maxspecial, cell_size,
-                      gpu_split, screen);
+                      special_lj, inum, nall, max_nbors, maxspecial, cell_size, screen);
 
   REMF.device->world_barrier();
   if (message)
@@ -78,7 +79,7 @@ int re_gpu_init(const int ntypes, double **shape, double **well, double **cutsq,
       init_ok=REMF.init(ntypes, shape, well, cutsq,  sigma, epsilon,
                         form, host_lj1, host_lj2, host_lj3,
                         host_lj4, offset, special_lj,  inum, nall,
-                        max_nbors, maxspecial, cell_size, gpu_split, screen);
+                        max_nbors, maxspecial, cell_size, screen);
 
     REMF.device->serialize_init();
     if (message)
@@ -99,37 +100,30 @@ void re_gpu_clear() {
   REMF.clear();
 }
 
-  int** compute(const int ago, const int inum_full, const int nall,
+int** compute(const int ago, const int inum_full, const int nall,
                 double **host_x, int *host_type, double *sublo,
                 double *subhi, tagint *tag, int **nspecial,
                 tagint **special, const bool eflag, const bool vflag,
-                const bool eatom, const bool vatom, int &host_start,
-                int **ilist, int **numj, const double cpu_time, bool &success,
+                const bool eatom, const bool vatom, int **ilist, int **numj, bool &success,
                 const int *ellipsoid, const EllipsoidBonus *bonus);
 
-int** re_gpu_compute_n(const int ago, const int inum_full, const int nall,
-                       double **host_x, int *host_type, double *sublo,
-                       double *subhi, tagint *tag, int **nspecial,
-                       tagint **special, const bool eflag, const bool vflag,
-                       const bool eatom, const bool vatom, int &host_start,
-                       int **ilist, int **jnum, const double cpu_time,
-                       bool &success, const int *ellipsoid,
-                       const void *bonus) {
-  return REMF.compute(ago, inum_full, nall, host_x, host_type, sublo, subhi,
-                      tag, nspecial, special, eflag, vflag, eatom, vatom,
-                      host_start, ilist, jnum, cpu_time, success, ellipsoid,
+int **re_gpu_compute_n(const int ago, const int inum_full, const int nall, double **host_x,
+                         int *host_type, double *sublo, double *subhi, tagint *tag, int **nspecial,
+                         tagint **special, const bool eflag, const bool vflag, const bool eatom,
+                         const bool vatom, int **ilist, int **jnum, bool &success,
+                         const int *ellipsoid, const void *bonus) {
+  return REMF.compute(ago, inum_full, nall, host_x, host_type, sublo, subhi, tag, nspecial,
+                      special, eflag, vflag, eatom, vatom, ilist, jnum, success, ellipsoid,
                       static_cast<const EllipsoidBonus *>(bonus));
 }
 
 int * re_gpu_compute(const int ago, const int inum_full, const int nall,
                      double **host_x, int *host_type, int *ilist, int *numj,
                      int **firstneigh, const bool eflag, const bool vflag,
-                     const bool eatom, const bool vatom, int &host_start,
-                     const double cpu_time, bool &success,
+                     const bool eatom, const bool vatom, bool &success,
                      const int *ellipsoid, const void *bonus) {
   return REMF.compute(ago, inum_full, nall, host_x, host_type, ilist,
-                      numj, firstneigh, eflag, vflag, eatom, vatom, host_start,
-                      cpu_time, success, ellipsoid,
+                      numj, firstneigh, eflag, vflag, eatom, vatom, success, ellipsoid,
                       static_cast<const EllipsoidBonus *>(bonus));
 }
 
@@ -139,3 +133,5 @@ int * re_gpu_compute(const int ago, const int inum_full, const int nall,
 double re_gpu_bytes() {
   return REMF.host_memory_usage();
 }
+
+} // namespace LAMMPS_GPU

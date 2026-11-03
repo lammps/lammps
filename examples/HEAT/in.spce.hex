@@ -30,7 +30,8 @@ log                 log.spce_hex
  variable dt             equal 3.0  
 
 # simulation time for the production run (1 ns)
- variable tprod      	equal 1000000
+# (index-style, can be overridden for abbreviated test runs)
+ variable tprod      	index 1000000
 
 # total number of timesteps
  variable Nprod      	equal floor(${tprod}/${dt})

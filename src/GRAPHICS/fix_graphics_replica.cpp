@@ -75,6 +75,8 @@ FixGraphicsReplica::FixGraphicsReplica(LAMMPS *lmp, int narg, char **arg) :
   if (atom->map_style == Atom::MAP_NONE)
     error->universe_all(FLERR, "Fix graphics/replica requires an atom map, see atom_modify");
 
+  imggroup = fmt::format("GRAPHICS/REPLICA:{}", id);
+  group->find_or_create(imggroup);
   numobjs = 0;
 }
 
@@ -84,6 +86,18 @@ FixGraphicsReplica::~FixGraphicsReplica()
 {
   memory->destroy(imgobjs);
   memory->destroy(imgparms);
+
+  // delete group created by the constructor,
+  // unless the Group class has already been deleted at program exit
+
+  if (group) {
+    try {
+      group->assign(imggroup + " delete");
+    } catch (std::exception &e) {
+      if (comm->me == 0)
+        fprintf(stderr, "Error deleting group %s: %s\n", imggroup.c_str(), e.what());
+    }
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -95,8 +109,9 @@ int FixGraphicsReplica::setmask()
 
 /* ---------------------------------------------------------------------- */
 
-void FixGraphicsReplica::init()
+void FixGraphicsReplica::setup(int /*vflag*/)
 {
+  // must come after any dynamic group is updated for the first time
   end_of_step();
 }
 
@@ -118,56 +133,67 @@ void FixGraphicsReplica::end_of_step()
   memory->destroy(imgobjs);
   memory->destroy(imgparms);
 
-  // count atoms in group and across replica
+  // per-atom data of local atoms
 
-  bigint nper = group->count(igroup);
-  nper = (me == 0) ? nper : 0;
-  bigint nall = 0;
-  MPI_Allreduce(&nper, &nall, 1, MPI_LMP_BIGINT, MPI_SUM, universe->uworld);
-  MPI_Bcast(&nper, 1, MPI_LMP_BIGINT, 0, world);
+  const auto *const *const x = atom->x;
+  const auto *const tag = atom->tag;
+  const auto *const type = atom->type;
+  const auto *const image = atom->image;
+  int *const mask = atom->mask;
+  const auto nlocal = atom->nlocal;
 
-  // ensure the group has the same number of atoms on each replica
+  // clear assignment of atoms to the custom group on all ranks
 
-  bigint nminmax = 0;
-  MPI_Allreduce(&nper, &nminmax, 1, MPI_LMP_BIGINT, MPI_MIN, universe->uworld);
-  if (nminmax != nper)
-    error->universe_all(FLERR, "Fix group must have the same number of atoms for each replica");
-  MPI_Allreduce(&nper, &nminmax, 1, MPI_LMP_BIGINT, MPI_MAX, universe->uworld);
-  if (nminmax != nper)
-    error->universe_all(FLERR, "Fix group must have the same number of atoms for each replica");
+  const int repgroup = group->find_or_create(imggroup);
+  const int repbit = group->bitmask[repgroup];
+  group->assign(imggroup + " clear");
+
+  // create sorted list of the IDs of all fix group atoms on replica 0
+
+  bigint nper = 0;
+  std::vector<tagint> taglist;
+  if (universe->iworld == 0) {
+    std::vector<tagint> tagme;
+    for (int i = 0; i < nlocal; ++i)
+      if (mask[i] & groupbit) tagme.emplace_back(tag[i]);
+    int ngroup = (int) tagme.size();
+    std::vector<int> recvcounts(nprocs, 0);
+    std::vector<int> displs(nprocs, 0);
+    MPI_Allgather(&ngroup, 1, MPI_INT, recvcounts.data(), 1, MPI_INT, world);
+    for (int i = 1; i < nprocs; ++i) displs[i] = displs[i - 1] + recvcounts[i - 1];
+    taglist.resize(displs[nprocs - 1] + recvcounts[nprocs - 1], 0);
+    MPI_Allgatherv(tagme.data(), ngroup, MPI_LMP_TAGINT, taglist.data(), recvcounts.data(),
+                   displs.data(), MPI_LMP_TAGINT, world);
+    std::sort(taglist.begin(), taglist.end());
+    nper = (bigint) taglist.size();
+  }
+  MPI_Bcast(&nper, 1, MPI_LMP_BIGINT, 0, universe->uworld);
 
   // determine number of spheres to draw and check for overflow
 
   bigint numtotal = 0;
-  if (dflag) numtotal += nall;
+  if (dflag) numtotal += nper * universe->nworlds;
   if (aflag) numtotal += nper;
   if (numtotal >= MAXSMALLINT) error->universe_all(FLERR, "Too many graphics objects");
   numobjs = (int) numtotal;
 
-  // create sorted map of atom-IDs
+  // broadcast ID list to all replicas and assign matching local atoms to the
+  // custom group.  the custom group now contains the same atoms on all replicas,
+  // even if a dynamic fix group selects different atoms on different replicas.
 
-  const auto *const *const x = atom->x;
-  const auto *const tag = atom->tag;
-  const auto *const mask = atom->mask;
-  const auto *const type = atom->type;
-  const auto *const image = atom->image;
-  const auto nlocal = atom->nlocal;
+  taglist.resize(nper, 0);
+  MPI_Bcast(taglist.data(), (int) nper, MPI_LMP_TAGINT, 0, universe->uworld);
+  for (const auto id : taglist) {
+    const int i = atom->map(id);
+    if ((i >= 0) && (i < nlocal)) mask[i] |= repbit;
+  }
 
-  std::vector<int> recvcounts(nprocs, 0);
-  std::vector<int> displs(nprocs, 0);
-  int ngroup = 0;
-  for (int i = 0; i < nlocal; ++i)
-    if (mask[i] & groupbit) ++ngroup;
-  MPI_Allgather(&ngroup, 1, MPI_INT, recvcounts.data(), 1, MPI_INT, world);
-  for (int i = 1; i < nprocs; ++i) displs[i] = displs[i - 1] + recvcounts[i - 1];
+  // consistency check: all atoms in the ID list must exist on all replicas
 
-  std::vector<tagint> tagme;
-  std::vector<tagint> taglist(nper, 0);
-  for (int i = 0; i < nlocal; ++i)
-    if (mask[i] & groupbit) tagme.emplace_back(tag[i]);
-  MPI_Allgatherv(tagme.data(), tagme.size(), MPI_LMP_TAGINT, taglist.data(), recvcounts.data(),
-                 displs.data(), MPI_LMP_TAGINT, world);
-  std::sort(taglist.begin(), taglist.end());
+  int missing = (group->count(repgroup) != nper) ? 1 : 0;
+  MPI_Allreduce(MPI_IN_PLACE, &missing, 1, MPI_INT, MPI_MAX, universe->uworld);
+  if (missing)
+    error->universe_all(FLERR, "Atoms in fix group on replica 0 must exist on all replicas");
 
   // collect unwrapped positions and atom type data
   // for selected atoms sorted by ID on the root of each replica

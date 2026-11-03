@@ -45,20 +45,18 @@ using namespace std;
 /* ---------------------------------------------------------------------- */
 
 FixSMDIntegrateTlsph::FixSMDIntegrateTlsph(LAMMPS *lmp, int narg, char **arg) :
-                Fix(lmp, narg, arg) {
-        if (narg < 3) {
-                printf("narg=%d\n", narg);
+    Fix(lmp, narg, arg), pair(nullptr)
+{
+        if (narg < 3)
                 error->all(FLERR, "Illegal fix smd/integrate_tlsph command");
-        }
 
         xsphFlag = false;
         vlimit = -1.0;
         int iarg = 3;
 
-        if (comm->me == 0) {
-                printf("\n>>========>>========>>========>>========>>========>>========>>========>>========\n");
-                printf("fix smd/integrate_tlsph is active for group: %s \n", arg[1]);
-        }
+        if (comm->me == 0)
+                utils::logmesg(lmp, "\n>>========>>========>>========>>========>>========>>========>>========>>========\n"
+                               "fix smd/integrate_tlsph is active for group: {}\n", arg[1]);
 
         while (true) {
 
@@ -68,10 +66,7 @@ FixSMDIntegrateTlsph::FixSMDIntegrateTlsph(LAMMPS *lmp, int narg, char **arg) :
 
                 if (strcmp(arg[iarg], "xsph") == 0) {
                         xsphFlag = true;
-                        if (comm->me == 0) {
-                                error->one(FLERR, "XSPH is currently not available");
-                                printf("... will use XSPH time integration\n");
-                        }
+                        error->all(FLERR, "XSPH is currently not available");
                 } else if (strcmp(arg[iarg], "limit_velocity") == 0) {
                         iarg++;
                         if (iarg == narg) {
@@ -79,27 +74,22 @@ FixSMDIntegrateTlsph::FixSMDIntegrateTlsph(LAMMPS *lmp, int narg, char **arg) :
                         }
 
                         vlimit = utils::numeric(FLERR, arg[iarg],false,lmp);
-                        if (comm->me == 0) {
-                                printf("... will limit velocities to <= %g\n", vlimit);
-                        }
+                        if (comm->me == 0)
+                                utils::logmesg(lmp, "... will limit velocities to <= {:g}\n", vlimit);
                 } else {
-                        char msg[128];
-                        snprintf(msg,128, "Illegal keyword for smd/integrate_tlsph: %s\n", arg[iarg]);
-                        error->all(FLERR, msg);
+                        error->all(FLERR, iarg, "Unknown fix smd/integrate_tlsph keyword: {}", arg[iarg]);
                 }
 
                 iarg++;
         }
 
-        if (comm->me == 0) {
-                printf(">>========>>========>>========>>========>>========>>========>>========>>========\n");
-        }
+        if (comm->me == 0) utils::logmesg(lmp, ">>========>>========>>========>>========>>========>>========>>========>>========\n");
 
         time_integrate = 1;
 
         // set comm sizes needed by this fix
 
-        atom->add_callback(Atom::GROW);
+        atom->add_callback(this, Atom::GROW);
 
 }
 

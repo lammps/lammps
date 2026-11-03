@@ -362,11 +362,14 @@ each file will contain the sequence of snapshots that transition the
 system over the energy barrier.  Earlier snapshots will show the
 convergence of the replicas to the MEP.
 
-Likewise, :doc:`restart <restart>` filenames can be specified with a
-*universe* or *uloop* style :doc:`variable <variable>`, to generate
-restart files for each replica.  These may be useful if the GNEB
-calculation fails to converge properly to the MEP, and you wish to
-restart the calculation from an intermediate point with altered
+Likewise, :doc:`restart <restart>` and :doc:`write_restart
+<write_restart>` filenames must include a *universe*, *uloop*, or
+*world* style :doc:`variable <variable>` to generate a separate restart
+file for each replica.  Otherwise all replicas write to the same file at
+the same time, and the resulting file may contain a garbled mix of data
+from several replicas.  Restart files for each replica may be useful
+if the GNEB calculation fails to converge properly to the MEP, and you
+wish to restart the calculation from an intermediate point with altered
 parameters.
 
 A c file script in provided in the tool/spin/interpolate_gneb

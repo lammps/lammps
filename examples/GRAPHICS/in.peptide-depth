@@ -1,0 +1,75 @@
+# Solvated 5-mer peptide
+
+units           real
+atom_style      full
+
+pair_style      lj/charmm/coul/long 8.0 10.0 10.0
+bond_style      harmonic
+angle_style     charmm
+dihedral_style  charmm
+improper_style  harmonic
+kspace_style    pppm 0.0001
+
+read_data       data.peptide
+
+neighbor        2.0 bin
+neigh_modify    delay 5
+
+timestep        2.0
+
+thermo_style    multi
+thermo          500
+
+fix             1 all nvt temp 275.0 275.0 100.0 tchain 1
+fix             2 all shake 0.0001 10 10000 b 4 6 8 10 12 14 18 a 31
+
+group           peptide type <= 12
+
+# recenter system so the peptide is in the center of the box for that we compute the center
+# of mass of the peptide and the center of the box and displace atoms so that they will match
+variable comx equal xcm(peptide,x)
+variable comy equal xcm(peptide,y)
+variable comz equal xcm(peptide,z)
+variable midx equal 0.5*(xhi+xlo)
+variable midy equal 0.5*(yhi+ylo)
+variable midz equal 0.51*(zhi+zlo)
+displace_atoms all move $(-v_comx+v_midx)  $(-v_comy+v_midy) $(-v_comz+v_midz)
+variable comx delete
+variable comy delete
+variable comz delete
+variable midx delete
+variable midy delete
+variable midz delete
+
+variable dumpfreq index 100
+
+group    water subtract all peptide
+
+# true for lower part of water and all peptide atoms
+variable lower atom (z<$(zlo+0.4*(zhi-zlo))||gmask(peptide))
+
+# for creating periodic extensions only for water
+group    lower dynamic water var lower every ${dumpfreq}
+
+# selecting atoms for visualization
+group    viz   dynamic all var lower every ${dumpfreq}
+
+# add periodic replica to the left, right, and back
+fix img lower graphics/periodic ${dumpfreq} xlo ylo yhi bonds no
+
+# create images with strong depth cueing and defocus
+dump viz viz image ${dumpfreq} peptide-depth-*.ppm element type &
+                size 800 800 zoom 1.6 view 78 10 box yes 0.02 &
+                shiny 0.8 fsaa yes ssao yes 2451512 0.8  &
+                depthcue yes 1.0 black 0.3  defocus yes 1.0 0.4 &
+                fix img element 0 0
+
+# limit SSAO samples for a faster run and use tight specular for a plastic look
+dump_modify  viz pad 6 element C C O H N C C C O H H S O H &
+                adiam 1 2.72 adiam 2 2.72 adiam 3 2.432 adiam 4 1.92 adiam 5 2.48 &
+                adiam 6 2.72 adiam 7 2.72 adiam 8 2.72 adiam 9 2.432 adiam 10 1.92 &
+                adiam 11 1.92 adiam 12 2.88 adiam 13 2.432 adiam 14 1.92 &
+                color nightsky 0.11 0.11 0.15 backcolor black backcolor2 nightsky &
+                ssaosamples 16 specular tight boxcolor steelblue 
+
+run             30000

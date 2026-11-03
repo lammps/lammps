@@ -14,6 +14,7 @@
 #include "label_map.h"
 
 #include "atom.h"
+#include "atom_masks.h"
 #include "citeme.h"
 #include "comm.h"
 #include "error.h"
@@ -280,7 +281,7 @@ int LabelMap::find_or_create(const std::string &mylabel, std::vector<std::string
   if (lmp->citeme) lmp->citeme->add(cite_type_label_framework);
 
   // if no match found, create new label at next available index
-  // label map assumed to be intialized with numeric index
+  // label map assumed to be initialized with numeric index
   // user labels are assumed to be alphanumeric (not a number)
 
   auto labels_map_size = labels_map.size();
@@ -784,31 +785,31 @@ void LabelMap::write_map(const std::string &filename)
   if (comm->me == 0) {
     SafeFilePtr fp = fopen(filename.c_str(), "w");
     if (!fp) error->one(FLERR, "Cannot open label map file {}: {}", filename, utils::getsyserror());
-    if (typelabel_map.size() > 0) {
+    if (!typelabel_map.empty()) {
       fputs("labelmap atom", fp);
       for (int i = 0; i < natomtypes; ++i)
         if (!typelabel[i].empty()) utils::print(fp, R"( {} """ {} """)", i + 1, typelabel[i]);
       fputc('\n', fp);
     }
-    if (btypelabel_map.size() > 0) {
+    if (!btypelabel_map.empty()) {
       fputs("labelmap bond", fp);
       for (int i = 0; i < nbondtypes; ++i)
         if (!btypelabel[i].empty()) utils::print(fp, R"( {} """ {} """)", i + 1, btypelabel[i]);
       fputc('\n', fp);
     }
-    if (atypelabel_map.size() > 0) {
+    if (!atypelabel_map.empty()) {
       fputs("labelmap angle", fp);
       for (int i = 0; i < nangletypes; ++i)
         if (!atypelabel[i].empty()) utils::print(fp, R"( {} """ {} """)", i + 1, atypelabel[i]);
       fputc('\n', fp);
     }
-    if (dtypelabel_map.size() > 0) {
+    if (!dtypelabel_map.empty()) {
       fputs("labelmap dihedral", fp);
       for (int i = 0; i < ndihedraltypes; ++i)
         if (!dtypelabel[i].empty()) utils::print(fp, R"( {} """ {} """)", i + 1, dtypelabel[i]);
       fputc('\n', fp);
     }
-    if (itypelabel_map.size() > 0) {
+    if (!itypelabel_map.empty()) {
       fputs("labelmap improper", fp);
       for (int i = 0; i < nimpropertypes; ++i)
         if (!itypelabel[i].empty()) utils::print(fp, R"( {} """ {} """)", i + 1, itypelabel[i]);
@@ -823,6 +824,13 @@ void LabelMap::write_map(const std::string &filename)
 
 void LabelMap::check_labels()
 {
+  // the loops below read the per-atom arrays through the plain pointers,
+  // so bring the host side up to date first; without the KOKKOS package
+  // this does nothing
+
+  atom->sync_host_arrays(TAG_MASK | TYPE_MASK | BOND_MASK | ANGLE_MASK | DIHEDRAL_MASK |
+                         IMPROPER_MASK);
+
   int *type = atom->type;
   tagint *tag = atom->tag;
   // in rare cases, bonds are not symmetric. only check if newton on for bonds

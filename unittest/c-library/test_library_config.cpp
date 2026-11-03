@@ -2,7 +2,12 @@
 
 #include "lammps.h"
 #include "library.h"
+#include "platform.h"
 #include "timer.h"
+
+#include <cstdio>
+#include <cstdlib>
+#include <filesystem>
 #include <string>
 
 #include "gmock/gmock.h"
@@ -225,12 +230,53 @@ TEST(LAMMPSConfig, jpeg_support)
     EXPECT_EQ(lammps_config_has_jpeg_support(), LAMMPS_HAS_JPEG);
 };
 
+// check runtime detection of an external program by temporarily
+// changing the PATH environment variable to only search a new folder
+
+static void check_exe_detection(const std::string &name, int (*has_support)())
+{
+    namespace fs = std::filesystem;
+
+    // result must be consistent with searching the current PATH
+    EXPECT_EQ(has_support(), LAMMPS_NS::platform::find_exe_path(name).empty() ? 0 : 1);
+
+    const char *ptr           = getenv("PATH");
+    const std::string oldpath = ptr ? ptr : "";
+    const fs::path tmpdir     = fs::absolute("exe_detection_" + name);
+    fs::create_directory(tmpdir);
+    LAMMPS_NS::platform::putenv("PATH=" + tmpdir.string());
+    EXPECT_EQ(has_support(), 0);
+
+#if defined(_WIN32)
+    const fs::path exe = tmpdir / (name + ".bat");
+#else
+    const fs::path exe = tmpdir / name;
+#endif
+    FILE *fp = fopen(exe.string().c_str(), "w");
+    if (fp) {
+        fputs("exit 0\n", fp);
+        fclose(fp);
+    }
+#if !defined(_WIN32)
+    // a file without execute permission must be ignored
+    EXPECT_EQ(has_support(), 0);
+    fs::permissions(exe, fs::perms::owner_all, fs::perm_options::add);
+#endif
+    EXPECT_EQ(has_support(), 1);
+
+    if (ptr)
+        LAMMPS_NS::platform::putenv("PATH=" + oldpath);
+    else
+        LAMMPS_NS::platform::unsetenv("PATH");
+    fs::remove_all(tmpdir);
+}
+
 TEST(LAMMPSConfig, gzip_support)
 {
-    EXPECT_EQ(lammps_config_has_gzip_support(), LAMMPS_HAS_GZIP);
+    check_exe_detection("gzip", lammps_config_has_gzip_support);
 };
 
 TEST(LAMMPSConfig, ffmpeg_support)
 {
-    EXPECT_EQ(lammps_config_has_ffmpeg_support(), LAMMPS_HAS_FFMPEG);
+    check_exe_detection("ffmpeg", lammps_config_has_ffmpeg_support);
 };

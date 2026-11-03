@@ -18,6 +18,7 @@
 #include <cmath>
 
 #include "lal_pppm.h"
+#include "lammps_gpu.h"
 
 using namespace std;
 using namespace LAMMPS_AL;
@@ -28,6 +29,8 @@ static PPPM<PRECISION,ACC_PRECISION,double,_lgpu_double4> PPPMD;
 // ---------------------------------------------------------------------------
 // Allocate memory on host and device and copy constants to device
 // ---------------------------------------------------------------------------
+
+namespace LAMMPS_GPU {
 template <class grdtyp, class memtyp>
 grdtyp * pppm_gpu_init(memtyp &pppm, const int nlocal, const int nall,
                        FILE *screen, const int order, const int nxlo_out,
@@ -178,3 +181,4 @@ void pppm_gpu_forces_d(double **f) {
   PPPMD.ans->get_answers(f,nullptr,nullptr,nullptr,nullptr,etmp,error_flag);
 }
 
+} // namespace LAMMPS_GPU

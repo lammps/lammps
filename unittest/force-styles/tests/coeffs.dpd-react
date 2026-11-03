@@ -1,0 +1,23 @@
+# initial per-atom species concentrations for the DPD-REACT (fix rx) fixture.
+# the "d_<species>" per-atom properties are created by the "fix rx" command in
+# in.dpd-rx, so this file must be processed after that input template.
+# the concentrations of each atom type add up to 1.0
+
+set type 1 d_rdx 0.30
+set type 1 d_hcn 0.20
+set type 1 d_no2 0.10
+set type 1 d_no 0.15
+set type 1 d_h2o 0.15
+set type 1 d_n2 0.05
+set type 1 d_h2 0.03
+set type 1 d_co 0.01
+set type 1 d_co2 0.01
+set type 2 d_rdx 0.10
+set type 2 d_hcn 0.30
+set type 2 d_no2 0.20
+set type 2 d_no 0.05
+set type 2 d_h2o 0.10
+set type 2 d_n2 0.10
+set type 2 d_h2 0.05
+set type 2 d_co 0.05
+set type 2 d_co2 0.05

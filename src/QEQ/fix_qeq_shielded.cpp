@@ -39,13 +39,16 @@ static constexpr double EV_TO_KCAL_PER_MOL = 14.4;
 
 FixQEqShielded::FixQEqShielded(LAMMPS *lmp, int narg, char **arg) : FixQEq(lmp, narg, arg)
 {
-  if (narg == 10) {
-    if (strcmp(arg[8], "warn") == 0) {
-      maxwarn = utils::logical(FLERR, arg[9], false, lmp);
-    } else
-      error->all(FLERR, "Illegal fix qeq/shielded command");
-  } else if (narg > 8)
-    error->all(FLERR, "Illegal fix qeq/shielded command");
+  // optional args
+  int iarg = 8;
+  while (iarg < narg) {
+    int n = parse_common_keyword(narg, arg, iarg);
+    if (n > 0) iarg += n;
+    else error->all(FLERR, iarg, "Unknown fix {} keyword: {}", style, arg[iarg]);
+  }
+
+  finalize_xl();
+
   if (reax_flag) extract_reax();
 }
 
@@ -158,9 +161,7 @@ void FixQEqShielded::pre_force(int /*vflag*/)
     reallocate_matrix();
 
   init_matvec();
-  matvecs = CG(b_s, s);         // CG on s - parallel
-  matvecs += CG(b_t, t);        // CG on t - parallel
-  matvecs /= 2;
+  matvecs = solve_st();
   calculate_Q();
 
   if (force->kspace) force->kspace->qsum_qsq();
@@ -186,6 +187,10 @@ void FixQEqShielded::init_matvec()
       b_t[i]      = -1.0;
       t[i] = t_hist[i][2] + 3 * (t_hist[i][0] - t_hist[i][1]);
       s[i] = 4*(s_hist[i][0]+s_hist[i][2])-(6*s_hist[i][1]+s_hist[i][3]);
+    } else {
+      // atoms outside the group act as fixed charges on the s-solution only
+      s[i] = atom->q[i];
+      t[i] = 0.0;
     }
   }
 
@@ -213,34 +218,37 @@ void FixQEqShielded::compute_H()
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
 
-  // fill in the H matrix
+  // fill in the H matrix.  atoms outside the fix group keep their charge, but
+  // contribute to the electrostatic potential at the atoms in the group.  each
+  // pair is stored with both atoms with half the matrix element, so rows are
+  // also built for non-group atoms, but only with their neighbors in the group.
   m_fill = 0;
   r_sqr = 0;
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
-    if (mask[i] & groupbit) {
-      jlist = firstneigh[i];
-      jnum = numneigh[i];
-      H.firstnbr[i] = m_fill;
+    const bool igroup = mask[i] & groupbit;
+    jlist = firstneigh[i];
+    jnum = numneigh[i];
+    H.firstnbr[i] = m_fill;
 
-      for (jj = 0; jj < jnum; jj++) {
-        j = jlist[jj];
-        j &= NEIGHMASK;
+    for (jj = 0; jj < jnum; jj++) {
+      j = jlist[jj];
+      j &= NEIGHMASK;
+      if (!igroup && !(mask[j] & groupbit)) continue;
 
-        dx = x[j][0] - x[i][0];
-        dy = x[j][1] - x[i][1];
-        dz = x[j][2] - x[i][2];
-        r_sqr = dx*dx + dy*dy + dz*dz;
+      dx = x[j][0] - x[i][0];
+      dy = x[j][1] - x[i][1];
+      dz = x[j][2] - x[i][2];
+      r_sqr = dx*dx + dy*dy + dz*dz;
 
-        if (r_sqr <= cutoff_sq) {
-          H.jlist[m_fill] = j;
-          r = sqrt(r_sqr);
-          H.val[m_fill] = 0.5 * calculate_H(r, shld[type[i]][type[j]]);
-          m_fill++;
-        }
+      if (r_sqr <= cutoff_sq) {
+        H.jlist[m_fill] = j;
+        r = sqrt(r_sqr);
+        H.val[m_fill] = 0.5 * calculate_H(r, shld[type[i]][type[j]]);
+        m_fill++;
       }
-      H.numnbrs[i] = m_fill - H.firstnbr[i];
     }
+    H.numnbrs[i] = m_fill - H.firstnbr[i];
   }
 
   if (m_fill >= H.m)

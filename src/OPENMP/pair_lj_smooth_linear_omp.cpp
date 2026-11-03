@@ -143,6 +143,7 @@ void PairLJSmoothLinearOMP::eval(int iifrom, int iito, ThrData * const thr)
           evdwl = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype]);
           evdwl = evdwl - ljcut[itype][jtype]
                           + (r-cut[itype][jtype])*dljcut[itype][jtype];
+          evdwl *= factor_lj;
         }
 
         if (EVFLAG) ev_tally_thr(this,i,j,nlocal,NEWTON_PAIR,

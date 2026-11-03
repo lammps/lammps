@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
  *
  *                    *** Smooth Mach Dynamics ***
@@ -9,7 +8,6 @@
  * Eckerstrasse 4, D-79104 Freiburg i.Br, Germany.
  *
  * ----------------------------------------------------------------------- */
-
 
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
@@ -25,23 +23,25 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_smd_damage.h"
-#include <cstring>
+
 #include "atom.h"
-#include "update.h"
-#include "modify.h"
 #include "comm.h"
-#include "memory.h"
 #include "error.h"
+#include "memory.h"
+#include "modify.h"
+#include "update.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-ComputeSMDDamage::ComputeSMDDamage(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg)
+ComputeSMDDamage::ComputeSMDDamage(LAMMPS *lmp, int narg, char **arg) : Compute(lmp, narg, arg)
 {
-  if (narg != 3) error->all(FLERR,"Illegal compute smd/damage command");
-  if (atom->damage_flag != 1) error->all(FLERR,"compute smd/damage command requires atom_style with damage (e.g. smd)");
+  if (narg != 3) error->all(FLERR, 2, "Illegal compute smd/damage command");
+  if (atom->damage_flag != 1)
+    error->all(FLERR, 2, "compute smd/damage command requires atom_style with damage");
 
   peratom_flag = 1;
   size_peratom_cols = 0;
@@ -61,12 +61,8 @@ ComputeSMDDamage::~ComputeSMDDamage()
 
 void ComputeSMDDamage::init()
 {
-
-  int count = 0;
-  for (int i = 0; i < modify->ncompute; i++)
-    if (strcmp(modify->compute[i]->style,"smd/damage") == 0) count++;
-  if (count > 1 && comm->me == 0)
-    error->warning(FLERR,"More than one compute smd/damage");
+  if ((comm->me == 0) && (modify->get_compute_by_style("^smd/damage").size() > 1))
+    error->warning(FLERR, "More than one compute {}", style);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -80,7 +76,7 @@ void ComputeSMDDamage::compute_peratom()
   if (atom->nmax > nmax) {
     memory->sfree(damage_vector);
     nmax = atom->nmax;
-    damage_vector = (double *) memory->smalloc(nmax*sizeof(double),"atom:damage_vector");
+    damage_vector = (double *) memory->smalloc(nmax * sizeof(double), "atom:damage_vector");
     vector_atom = damage_vector;
   }
 
@@ -88,14 +84,13 @@ void ComputeSMDDamage::compute_peratom()
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
-    for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
-              damage_vector[i] = damage[i];
-      }
-      else {
-              damage_vector[i] = 0.0;
-      }
+  for (int i = 0; i < nlocal; i++) {
+    if (mask[i] & groupbit) {
+      damage_vector[i] = damage[i];
+    } else {
+      damage_vector[i] = 0.0;
     }
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -104,6 +99,6 @@ void ComputeSMDDamage::compute_peratom()
 
 double ComputeSMDDamage::memory_usage()
 {
-  double bytes = (double)nmax * sizeof(double);
+  double bytes = (double) nmax * sizeof(double);
   return bytes;
 }

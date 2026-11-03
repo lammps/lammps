@@ -42,7 +42,12 @@ timestep     0.001
 fix          1 all npt/body temp $T $T 1.0 x 0.001 $P 1.0 fixedpoint 0 0 0
 
 fix          2 all enforce2d
-fix          3 all wall/body/polygon 2000 50 50 yplane 0.0 48.0
+
+# walls at the lower and upper boundaries in y of the replicated box:
+# a fixed upper wall, e.g. at y = 48 for r = 4, would leave the particles
+# beyond it outside of the walls for a larger r, and they would be lost
+
+fix          3 all wall/body/polygon 2000 50 50 yplane $(ylo) $(yhi)
 
 #compute      1 all body/local id 1 2 3
 #dump         1 all local 100000 dump.polygon.* index c_1[1] c_1[2] c_1[3] c_1[4]

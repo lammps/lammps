@@ -16,6 +16,7 @@
 #include "atom.h"
 #include "force.h"
 #include "info.h"
+#include "library.h"
 #include "pair.h"
 #include "utils.h"
 
@@ -95,8 +96,8 @@ TEST_F(PairLDDTest, local_density_values)
                               {7.606403744, 0.29205516},   {0.522157906, 0.777519395},
                               {4.864480249, 4.853815902}};
     for (int i = 0; i < 5; ++i) {
-        EXPECT_NEAR(ld[i][0], ref[i][0], 1e-7);
-        EXPECT_NEAR(ld[i][1], ref[i][1], 1e-7);
+        EXPECT_NEAR(ld[i][0], ref[i][0], prec_tol(ref[i][0], 1e-7));
+        EXPECT_NEAR(ld[i][1], ref[i][1], prec_tol(ref[i][1], 1e-7));
     }
     remove("test_ldd_noforce.ldd");
 }
@@ -155,8 +156,8 @@ TEST_F(PairLDDTest, same_species_invariance)
     auto **ld2     = (double **) lmp->force->pair->extract_peratom("local_density", ncol);
     double a0_split = ld2[0][0], b0_split = ld2[0][1];
 
-    EXPECT_NEAR(a0_split, a0_base, 1e-10);
-    EXPECT_NEAR(b0_split, b0_base, 1e-10);
+    EXPECT_NEAR(a0_split, a0_base, prec_tol(a0_base, 1e-10));
+    EXPECT_NEAR(b0_split, b0_base, prec_tol(b0_base, 1e-10));
     remove("test_ldd_noforce.ldd");
 }
 
@@ -177,6 +178,13 @@ int main(int argc, char **argv)
     if ((argc > 1) && (strcmp(argv[1], "-v") == 0)) verbose = true;
 
     int rv = RUN_ALL_TESTS();
+
+    // finalize the KOKKOS package explicitly: otherwise Kokkos is torn down by
+    // static destructors at program exit, leading to segfaults in some cases
+    // same workaround as the force-style and FFT3d test drivers
+
+    lammps_kokkos_finalize();
+
     MPI_Finalize();
     return rv;
 }

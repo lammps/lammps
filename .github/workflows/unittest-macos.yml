@@ -16,19 +16,23 @@ concurrency:
   group: ${{ github.event_name }}-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: ${{github.event_name == 'pull_request'}}
 
+permissions:
+  contents: read
+
 jobs:
   build:
     name: MacOS Unit Test
     if: ${{ github.repository == 'lammps/lammps' }}
-    runs-on: macos-15-intel
+    runs-on: macos-26-intel
     env:
       CCACHE_DIR: ${{ github.workspace }}/.ccache
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
       with:
         fetch-depth: 2
+        persist-credentials: false
 
     - name: Install ccache
       run: brew install ccache
@@ -37,7 +41,7 @@ jobs:
       run: mkdir build
 
     - name: Set up ccache
-      uses: actions/cache@v5
+      uses: actions/cache@v6
       with:
         path: ${{ env.CCACHE_DIR }}
         key: macos-ccache-${{ github.sha }}
@@ -59,7 +63,6 @@ jobs:
               -D CMAKE_C_COMPILER_LAUNCHER=ccache \
               -D ENABLE_TESTING=on \
               -D BUILD_SHARED_LIBS=on \
-              -D LAMMPS_EXCEPTIONS=on \
               ../cmake
         cmake --build . --parallel 2
         ccache -s
@@ -67,4 +70,13 @@ jobs:
     - name: Run Tests
       working-directory: build
       shell: bash
-      run: ctest -V
+      run: ctest -V --output-junit junit-macos-x86_64.xml
+
+    # test results from pull request branches are only for the submitters,
+    # only post-merge results are published for downstream reporting
+    - name: Upload JUnit test results for post-merge runs
+      if: ${{ always() && (github.event_name == 'push') }}
+      uses: actions/upload-artifact@v7
+      with:
+        name: junit-macos-x86_64
+        path: build/junit-macos-x86_64.xml

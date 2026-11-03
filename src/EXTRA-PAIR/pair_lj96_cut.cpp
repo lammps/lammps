@@ -37,7 +37,9 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-PairLJ96Cut::PairLJ96Cut(LAMMPS *lmp) : Pair(lmp)
+PairLJ96Cut::PairLJ96Cut(LAMMPS *lmp) :
+    Pair(lmp), cut(nullptr), epsilon(nullptr), sigma(nullptr), lj1(nullptr), lj2(nullptr),
+    lj3(nullptr), lj4(nullptr), offset(nullptr)
 {
   respa_enable = 1;
   born_matrix_enable = 1;

@@ -262,7 +262,8 @@ void MLIAPDescriptorSO3Kokkos<DeviceType>::init()
 template <class DeviceType>
 double MLIAPDescriptorSO3Kokkos<DeviceType>::memory_usage()
 {
-  double bytes = MLIAPDescriptor::memory_usage();
+  // the base constructor allocates so3ptr in the KOKKOS case too
+  double bytes = MLIAPDescriptorSO3::memory_usage();
   bytes += so3ptr_kokkos->memory_usage();
 
   return bytes;

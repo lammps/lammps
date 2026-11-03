@@ -1,7 +1,7 @@
 # The oplsaa2023.lt file contains force-field parameters, atom type definitions,
 # partial charges, masses and bond-angle rules for the atoms in your system.
 
-import /usr/local/moltemplate/moltemplate/force_fields/oplsaa2024.lt
+import "oplsaa2024.lt"
 
 # It defines these atom types:
 # atom-type charge mass btype epsilon sigma description

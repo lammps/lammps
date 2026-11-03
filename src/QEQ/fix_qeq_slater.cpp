@@ -40,7 +40,8 @@ using MathSpecial::mdftaper;
 
 /* ---------------------------------------------------------------------- */
 
-FixQEqSlater::FixQEqSlater(LAMMPS *lmp, int narg, char **arg) : FixQEq(lmp, narg, arg)
+FixQEqSlater::FixQEqSlater(LAMMPS *lmp, int narg, char **arg) :
+    FixQEq(lmp, narg, arg), streitz(nullptr)
 {
   alpha = 0.20;
   vtype = 0;
@@ -72,14 +73,14 @@ FixQEqSlater::FixQEqSlater(LAMMPS *lmp, int narg, char **arg) : FixQEq(lmp, narg
           }
         }
       }
-    } else if (strcmp(arg[iarg], "warn") == 0) {
-      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "fix qeq/slater warn", error);
-      maxwarn = utils::logical(FLERR, arg[iarg + 1], false, lmp);
-      iarg += 2;
     } else {
-      error->all(FLERR, "Unknown fix qeq/slater keyword: {}", arg[iarg]);
+      int n = parse_common_keyword(narg, arg, iarg);
+      if (n > 0) iarg += n;
+      else error->all(FLERR, iarg, "Unknown fix {} keyword: {}", style, arg[iarg]);
     }
   }
+
+  finalize_xl();
 
   if (streitz_flag) extract_streitz();
 }
@@ -102,7 +103,7 @@ void FixQEqSlater::init()
 
 void FixQEqSlater::extract_streitz()
 {
-  Pair *pair = force->pair_match("coul/streitz", 1);
+  Pair *pair = force->pair_match("^coul/streitz", 0);
   if (pair == nullptr) error->all(FLERR, "No pair style coul/streitz for fix qeq/slater");
   int tmp;
   chi = (double *) pair->extract("chi", tmp);
@@ -130,9 +131,7 @@ void FixQEqSlater::pre_force(int /*vflag*/)
     reallocate_matrix();
 
   init_matvec();
-  matvecs = CG(b_s, s);         // CG on s - parallel
-  matvecs += CG(b_t, t);        // CG on t - parallel
-  matvecs /= 2;
+  matvecs = solve_st();
   calculate_Q();
 
   if (force->kspace) force->kspace->qsum_qsq();
@@ -158,6 +157,10 @@ void FixQEqSlater::init_matvec()
       b_t[i]      = -1.0;
       t[i] = t_hist[i][2] + 3 * (t_hist[i][0] - t_hist[i][1]);
       s[i] = 4*(s_hist[i][0]+s_hist[i][2])-(6*s_hist[i][1]+s_hist[i][3]);
+    } else {
+      // atoms outside the group act as fixed charges on the s-solution only
+      s[i] = atom->q[i];
+      t[i] = 0.0;
     }
   }
 
@@ -436,20 +439,20 @@ void FixQEqSlater::sparse_matvec(sparse_matrix *A, double *x, double *b)
   for (i = 0; i < nlocal; ++i) {
     if (atom->mask[i] & groupbit)
       b[i] = (eta[atom->type[i]] - 2.0*force->qqr2e*woself) * x[i];
+    else
+      b[i] = 0.0;
   }
 
   for (i = nlocal; i < nall; ++i) {
-    if (atom->mask[i] & groupbit)
-      b[i] = 0;
+    b[i] = 0.0;
   }
 
   for (i = 0; i < nlocal; ++i) {
-    if (atom->mask[i] & groupbit) {
-      for(itr_j=A->firstnbr[i]; itr_j<A->firstnbr[i]+A->numnbrs[i]; itr_j++) {
-        j = A->jlist[itr_j];
-        b[i] += A->val[itr_j] * x[j];
-        b[j] += A->val[itr_j] * x[i];
-      }
+    // include the rows of atoms outside the group for their fixed charges
+    for(itr_j=A->firstnbr[i]; itr_j<A->firstnbr[i]+A->numnbrs[i]; itr_j++) {
+      j = A->jlist[itr_j];
+      b[i] += A->val[itr_j] * x[j];
+      b[j] += A->val[itr_j] * x[i];
     }
   }
 }

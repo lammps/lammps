@@ -33,10 +33,6 @@ using namespace LAMMPS_AL;
 void NeighborShared::clear() {
   if (_compiled) {
     if (_gpu_nbor>0) {
-      if (_gpu_nbor==1) {
-        k_cell_id.clear();
-        k_cell_counts.clear();
-      }
       k_build_nbor.clear();
       k_transpose.clear();
       k_special.clear();
@@ -102,10 +98,6 @@ void NeighborShared::compile_kernels(UCL_Device &dev, const int gpu_nbor,
     build_program=new UCL_Program(dev);
     build_program->load_string(neighbor_gpu,flags.c_str(),nullptr,stderr);
 
-    if (_gpu_nbor==1) {
-      k_cell_id.set_function(*build_program,"calc_cell_id");
-      k_cell_counts.set_function(*build_program,"kernel_calc_cell_counts");
-    }
     k_build_nbor.set_function(*build_program,"calc_neigh_list_cell");
     k_transpose.set_function(*build_program,"transpose");
     k_special.set_function(*build_program,"kernel_special");

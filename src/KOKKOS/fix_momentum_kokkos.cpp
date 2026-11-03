@@ -62,8 +62,8 @@ static double get_kinetic_energy(
     Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType>(0,nlocal),
      LAMMPS_LAMBDA(int i, double& update) {
       if (mask(i) & groupbit)
-        update += rmass(i) *
-          (v(i,0)*v(i,0) + v(i,1)*v(i,1) + v(i,2)*v(i,2));
+        update += static_cast<double>(rmass(i) *
+          (v(i,0)*v(i,0) + v(i,1)*v(i,1) + v(i,2)*v(i,2)));
     }, ke);
   } else {
     // D.I. : why is there no MASS_MASK ?
@@ -73,8 +73,8 @@ static double get_kinetic_energy(
     Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType>(0,nlocal),
      LAMMPS_LAMBDA(int i, double& update) {
       if (mask(i) & groupbit)
-        update += mass(type(i)) *
-          (v(i,0)*v(i,0) + v(i,1)*v(i,1) + v(i,2)*v(i,2));
+        update += static_cast<double>(mass(type(i)) *
+          (v(i,0)*v(i,0) + v(i,1)*v(i,1) + v(i,2)*v(i,2)));
     }, ke);
   }
   double ke_total;
@@ -121,9 +121,9 @@ void FixMomentumKokkos<DeviceType>::end_of_step()
     Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType>(0,nlocal),
      LAMMPS_LAMBDA(int i) {
       if (mask(i) & groupbit2) {
-        if (xflag2) v(i,0) -= vcm[0];
-        if (yflag2) v(i,1) -= vcm[1];
-        if (zflag2) v(i,2) -= vcm[2];
+        if (xflag2) v(i,0) -= static_cast<KK_FLOAT>(vcm[0]);
+        if (yflag2) v(i,1) -= static_cast<KK_FLOAT>(vcm[1]);
+        if (zflag2) v(i,2) -= static_cast<KK_FLOAT>(vcm[2]);
       }
     });
     atomKK->modified(execution_space, V_MASK);
@@ -152,16 +152,16 @@ void FixMomentumKokkos<DeviceType>::end_of_step()
      LAMMPS_LAMBDA(int i) {
       if (mask[i] & groupbit2) {
         Few<double,3> x_i;
-        x_i[0] = x(i,0);
-        x_i[1] = x(i,1);
-        x_i[2] = x(i,2);
+        x_i[0] = static_cast<double>(x(i,0));
+        x_i[1] = static_cast<double>(x(i,1));
+        x_i[2] = static_cast<double>(x(i,2));
         auto unwrapKK = DomainKokkos::unmap(prd,h,triclinic,x_i,image(i));
         auto dx = unwrapKK[0] - xcm[0];
         auto dy = unwrapKK[1] - xcm[1];
         auto dz = unwrapKK[2] - xcm[2];
-        v(i,0) -= omega[1]*dz - omega[2]*dy;
-        v(i,1) -= omega[2]*dx - omega[0]*dz;
-        v(i,2) -= omega[0]*dy - omega[1]*dx;
+        v(i,0) -= static_cast<KK_FLOAT>(omega[1]*dz - omega[2]*dy);
+        v(i,1) -= static_cast<KK_FLOAT>(omega[2]*dx - omega[0]*dz);
+        v(i,2) -= static_cast<KK_FLOAT>(omega[0]*dy - omega[1]*dx);
       }
     });
     atomKK->modified(execution_space, V_MASK);
@@ -175,12 +175,13 @@ void FixMomentumKokkos<DeviceType>::end_of_step()
 
     double factor = 1.0;
     if (ekin_new != 0.0) factor = sqrt(ekin_old/ekin_new);
+    const KK_FLOAT factor_kk = static_cast<KK_FLOAT>(factor);
     Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType>(0,nlocal),
      LAMMPS_LAMBDA(int i) {
       if (mask(i) & groupbit2) {
-        v(i,0) *= factor;
-        v(i,1) *= factor;
-        v(i,2) *= factor;
+        v(i,0) *= factor_kk;
+        v(i,1) *= factor_kk;
+        v(i,2) *= factor_kk;
       }
     });
     atomKK->modified(execution_space, V_MASK);

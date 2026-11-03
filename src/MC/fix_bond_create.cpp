@@ -19,6 +19,7 @@
 #include "error.h"
 #include "force.h"
 #include "graphics.h"
+#include "improper_hybrid.h"
 #include "math_const.h"
 #include "memory.h"
 #include "modify.h"
@@ -178,7 +179,7 @@ FixBondCreate::FixBondCreate(LAMMPS *lmp, int narg, char **arg) :
 
   bondcount = nullptr;
   FixBondCreate::grow_arrays(atom->nmax);
-  atom->add_callback(Atom::GROW);
+  atom->add_callback(this, Atom::GROW);
   countflag = 0;
 
   // set comm sizes needed by this fix
@@ -217,7 +218,7 @@ FixBondCreate::~FixBondCreate()
 {
   // unregister callbacks to this fix from Atom class
 
-  atom->delete_callback(id,Atom::GROW);
+  atom->delete_callback(this, Atom::GROW);
 
   delete random;
 
@@ -302,10 +303,21 @@ void FixBondCreate::init()
       error->all(FLERR, Error::NOLASTLINE, "Fix {} improper type is invalid", style);
   } else improperflag = 0;
 
-  if (force->improper) {
-    if (force->improper_match("class2") || force->improper_match("ring"))
-      error->all(FLERR,"Cannot yet use fix {} with improper style {} ",
-                 style, force->improper_style);
+  // creating impropers assumes that their first atom is the central atom
+
+  if (improperflag && force->improper) {
+    auto check = [&](Improper *improper, const char *name) {
+      if (improper && (improper->central_atom() > 0))
+        error->all(FLERR, Error::NOLASTLINE,
+                   "Fix {} does not support improper style {}, since its central atom is not "
+                   "the first atom of an improper", style, name);
+    };
+    auto *hybrid = dynamic_cast<ImproperHybrid *>(force->improper);
+    if (hybrid) {
+      for (int i = 0; i < hybrid->nstyles; ++i) check(hybrid->styles[i], hybrid->keywords[i]);
+    } else {
+      check(force->improper, force->improper_style);
+    }
   }
 
   // need a half neighbor list, built every Nevery steps
@@ -858,7 +870,7 @@ void FixBondCreate::rebuild_special_one(int m)
   nspecial[m][0] = cn1;
   nspecial[m][1] = cn2;
   nspecial[m][2] = cn3;
-  memcpy(special[m],copy,cn3*sizeof(int));
+  memcpy(special[m],copy,cn3*sizeof(tagint));
 }
 
 /* ----------------------------------------------------------------------

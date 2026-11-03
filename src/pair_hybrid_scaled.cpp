@@ -381,6 +381,11 @@ void PairHybridScaled::settings(int narg, char **arg)
       error->all(FLERR, "Pair style hybrid/scaled cannot have none as an argument");
 
     styles[nstyles] = force->new_pair(arg[iarg], 1, dummy);
+
+    // a sub-style that keeps state in an internal fix builds the fix id from
+    // this position, see PairHybrid::settings()
+
+    styles[nstyles]->hybrid_index = nstyles;
     keywords[nstyles] = force->store_style(arg[iarg], 0);
     special_lj[nstyles] = special_coul[nstyles] = nullptr;
     compute_tally[nstyles] = 1;
@@ -394,7 +399,7 @@ void PairHybridScaled::settings(int narg, char **arg)
     // by looking for the next known pair style name.
 
     jarg = iarg + 1;
-    while ((jarg < narg) && !force->pair_map->count(arg[jarg]) &&
+    while ((jarg < narg) && !Force::pair_styles().contains(arg[jarg]) &&
            !lmp->match_style("pair", arg[jarg]))
       jarg++;
 
@@ -717,10 +722,14 @@ void PairHybridScaled::read_restart(FILE *fp)
   char *tmp;
   if (me == 0) utils::sfread(FLERR, &n, sizeof(int), 1, fp, nullptr, error);
   MPI_Bcast(&n, 1, MPI_INT, 0, world);
+  if ((n < 0) || (n > 4096))
+    error->all(FLERR, "Invalid number of scale variables in restart file");
   scalevars.resize(n);
   for (auto &scale : scalevars) {
     if (me == 0) utils::sfread(FLERR, &n, sizeof(int), 1, fp, nullptr, error);
     MPI_Bcast(&n, 1, MPI_INT, 0, world);
+    if ((n < 1) || (n > 65536))
+      error->all(FLERR, "Invalid variable name length in restart file");
     tmp = new char[n];
     if (me == 0) utils::sfread(FLERR, tmp, sizeof(char), n, fp, nullptr, error);
     MPI_Bcast(tmp, n, MPI_CHAR, 0, world);

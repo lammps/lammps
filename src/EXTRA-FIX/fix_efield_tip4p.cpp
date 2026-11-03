@@ -458,7 +458,8 @@ void FixEfieldTIP4P::post_force(int vflag)
               }
 
               if (i == iO) {
-                if (estyle == ATOM) fsum[0] += efield[0][3];
+                domain->unmap(xM, image[iO], unwrap);
+                if (estyle == ATOM) fsum[0] += efield[iO][3];
                 fsum[1] += fx;
                 fsum[2] += fy;
                 fsum[3] += fz;
@@ -504,7 +505,8 @@ void FixEfieldTIP4P::post_force(int vflag)
 
                 // tally global force
 
-                if (estyle == ATOM) fsum[0] += efield[0][3];
+                domain->unmap(x[iH1], image[iH1], unwrap);
+                if (estyle == ATOM) fsum[0] += efield[iH1][3];
                 fsum[1] += fx;
                 fsum[2] += fy;
                 fsum[3] += fz;
@@ -550,7 +552,8 @@ void FixEfieldTIP4P::post_force(int vflag)
 
                 // tally global force
 
-                if (estyle == ATOM) fsum[0] += efield[0][3];
+                domain->unmap(x[iH2], image[iH2], unwrap);
+                if (estyle == ATOM) fsum[0] += efield[iH2][3];
                 fsum[1] += fx;
                 fsum[2] += fy;
                 fsum[3] += fz;
@@ -598,7 +601,7 @@ void FixEfieldTIP4P::post_force(int vflag)
             f[i][2] += fz;
             fsum[3] += fz;
 
-            if (estyle == ATOM) fsum[0] += efield[0][3];
+            if (estyle == ATOM) fsum[0] += efield[i][3];
           }
         }
       }

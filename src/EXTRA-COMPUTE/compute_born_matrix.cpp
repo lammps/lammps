@@ -19,6 +19,7 @@
 
 #include "angle.h"
 #include "atom.h"
+#include "atom_masks.h"
 #include "atom_vec.h"
 #include "bond.h"
 #include "comm.h"
@@ -291,7 +292,7 @@ void ComputeBornMatrix::init()
 {
   if (!numflag) {
 
-    // need an occasional half neighbor list
+    // need an occasional full neighbor list
 
     neighbor->add_request(this, NeighConst::REQ_FULL | NeighConst::REQ_OCCASIONAL);
 
@@ -449,7 +450,8 @@ void ComputeBornMatrix::compute_pairs()
 
       pair_pref = dupair = du2pair = 0.0;
       pair->born_matrix(i, j, itype, jtype, rsq, factor_coul, factor_lj, dupair, du2pair);
-      pair_pref = 0.5 * du2pair - dupair * rinv;
+      // a full neighbor list visits each pair twice, so both terms are halved
+      pair_pref = 0.5 * (du2pair - dupair * rinv);
 
       // See albemunu in compute_born_matrix.h for indices order.
 
@@ -479,6 +481,8 @@ void ComputeBornMatrix::compute_numdiff()
   if (nall > maxatom) reallocate();
 
   // store copy of current forces for owned and ghost atoms
+
+  atom->sync_host_arrays(X_MASK | F_MASK);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -533,8 +537,12 @@ void ComputeBornMatrix::compute_numdiff()
 
   // restore original forces for owned and ghost atoms
 
+  atom->sync_host_arrays(F_MASK);
+
   for (int i = 0; i < nall; i++)
     for (int k = 0; k < 3; k++) f[i][k] = temp_f[i][k];
+
+  atom->modified_host_arrays(F_MASK);
 }
 
 /* ----------------------------------------------------------------------
@@ -543,6 +551,12 @@ void ComputeBornMatrix::compute_numdiff()
 
 void ComputeBornMatrix::displace_atoms(int nall, int idir, double magnitude)
 {
+  // the strain goes into the plain coordinate array, and the energy evaluation
+  // that follows works from the KOKKOS copies, so bring the host side up to
+  // date first and hand the write over afterwards
+
+  atom->sync_host_arrays(X_MASK);
+
   double **x = atom->x;
 
   // NOTE: virial_addon() expressions predicated on
@@ -563,6 +577,8 @@ void ComputeBornMatrix::displace_atoms(int nall, int idir, double magnitude)
       x[i][k] = temp_x[i][k] + 0.5 * numdelta * magnitude * (temp_x[i][l] - fixedpoint[l]);
       x[i][l] = temp_x[i][l] + 0.5 * numdelta * magnitude * (temp_x[i][k] - fixedpoint[k]);
     }
+
+  atom->modified_host_arrays(X_MASK);
 }
 
 /* ----------------------------------------------------------------------
@@ -576,6 +592,9 @@ void ComputeBornMatrix::restore_atoms(int nall, int idir)
 
   int k = dirlist[idir][0];
   int l = dirlist[idir][1];
+
+  atom->sync_host_arrays(X_MASK);
+
   double **x = atom->x;
   if (l == k)
     for (int i = 0; i < nall; i++) x[i][k] = temp_x[i][k];
@@ -584,6 +603,8 @@ void ComputeBornMatrix::restore_atoms(int nall, int idir)
       x[i][l] = temp_x[i][l];
       x[i][k] = temp_x[i][k];
     }
+
+  atom->modified_host_arrays(X_MASK);
 }
 
 /* ----------------------------------------------------------------------
@@ -673,9 +694,16 @@ void ComputeBornMatrix::virial_addon()
 
 void ComputeBornMatrix::force_clear(int nall)
 {
+  // the forces are cleared through the plain array and accumulated again by
+  // the force computations, which work from the KOKKOS copies
+
+  atom->sync_host_arrays(F_MASK);
+
   double **forces = atom->f;
   size_t nbytes = 3 * sizeof(double) * nall;
   if (nbytes) memset(&forces[0][0], 0, nbytes);
+
+  atom->modified_host_arrays(F_MASK);
 }
 
 /* ----------------------------------------------------------------------

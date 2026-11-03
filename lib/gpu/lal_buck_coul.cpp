@@ -49,11 +49,11 @@ int BuckCoulT::init(const int ntypes, double **host_cutsq,
                    double **host_offset, double *host_special_lj,
                    const int nlocal, const int nall, const int max_nbors,
                    const int maxspecial, const double cell_size,
-                   const double gpu_split, FILE *_screen, double **host_cut_ljsq,
+                           FILE *_screen, double **host_cut_ljsq,
                    double **host_cut_coulsq, double *host_special_coul,
                    const double qqrd2e) {
   int success;
-  success=this->init_atomic(nlocal,nall,max_nbors,maxspecial,cell_size,gpu_split,
+  success=this->init_atomic(nlocal,nall,max_nbors,maxspecial,cell_size,
                             _screen,buck_coul,"k_buck_coul");
   if (success!=0)
     return success;

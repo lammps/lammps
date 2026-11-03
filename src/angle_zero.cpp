@@ -31,7 +31,7 @@ using MathConst::RAD2DEG;
 
 /* ---------------------------------------------------------------------- */
 
-AngleZero::AngleZero(LAMMPS *_lmp) : Angle(_lmp), coeffflag(1) {}
+AngleZero::AngleZero(LAMMPS *_lmp) : Angle(_lmp), theta0(nullptr), coeffflag(1) {}
 
 /* ---------------------------------------------------------------------- */
 

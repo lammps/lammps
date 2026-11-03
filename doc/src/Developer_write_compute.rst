@@ -62,13 +62,18 @@ for the class definition:
    // clang-format on
    #else
 
-The block between ``#ifdef COMPUTE_CLASS`` and ``#else`` will be
-included by the ``Modify`` class in ``modify.cpp`` to build a map of
-factory functions.  The map connects the style name ``temp`` with the
-class name ``ComputeTemp``.  During compilation, LAMMPS constructs a
-file ``style_compute.h`` that ``#include``\s all installed compute style
-headers.  The ``// clang-format`` comments prevent the ``clang-format``
-tool from incorrectly inserting spaces inside the macro arguments.
+The block between ``#ifdef COMPUTE_CLASS`` and ``#else`` registers the
+compute style with LAMMPS.  During compilation, the build system parses the
+``ComputeStyle(temp,ComputeTemp)`` marker and generates a file
+``style_compute.cpp`` that ``#include``\s the header files of all installed
+compute styles and registers a factory function for each of them.  These
+factory functions are kept in a process-global registry that connects the
+style name ``temp`` with the class name ``ComputeTemp``.  The ``COMPUTE_CLASS``
+macro is never actually defined during compilation; the ``#ifdef
+COMPUTE_CLASS`` block only serves as a marker for the build system's parser, so
+the header always provides the class definition from its ``#else`` branch.  The
+``// clang-format`` comments prevent the ``clang-format`` tool from incorrectly
+inserting spaces inside the macro arguments.
 
 The class definition:
 

@@ -12,7 +12,6 @@ import kokkos.core;
 #endif
 #include "Kokkos_Constraints.hpp"
 #include "Kokkos_HelperPredicates.hpp"
-#include <std_algorithms/Kokkos_Distance.hpp>
 #include <std_algorithms/Kokkos_CountIf.hpp>
 #include <std_algorithms/Kokkos_CopyIf.hpp>
 #include <string>

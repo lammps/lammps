@@ -10,6 +10,7 @@ pre_commands: ! ""
 post_commands: ! |
   fix test solute npt temp 50.0 ${t_target} 1.0 aniso 1.0 1.0 100.0 drag 0.01 flip no
 input_file: in.fourmol
+input_coeffs: coeffs.fourmol
 natoms: 29
 global_scalar: 343.09560476537735
 global_vector: ! |-

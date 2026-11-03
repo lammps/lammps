@@ -17,7 +17,7 @@ Syntax
   .. parsed-literal::
 
        *lattice* value = *moving* or *frozen*
-         moving = integrate both spin and atomic degress of freedom
+         moving = integrate both spin and atomic degrees of freedom
          frozen = integrate spins on a fixed lattice
 
 Examples

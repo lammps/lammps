@@ -1,12 +1,13 @@
 # 3d Lennard-Jones melt
 
+variable	len index 20
 variable	x index 1
 variable	y index 1
 variable	z index 1
 
-variable	xx equal 20*$x
-variable	yy equal 20*$y
-variable	zz equal 20*$z
+variable	xx equal ${len}*$x
+variable	yy equal ${len}*$y
+variable	zz equal ${len}*$z
 
 units		lj
 atom_style	atomic

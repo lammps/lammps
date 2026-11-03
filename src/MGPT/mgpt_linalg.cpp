@@ -95,7 +95,6 @@ static void transtrace3_error(const double * restrict /*A*/,
   exit(1);
 }
 
-
 int mgpt_linalg::matrix_size;
 
 mgpt_linalg::mgpt_linalg() {
@@ -104,6 +103,7 @@ mgpt_linalg::mgpt_linalg() {
   tr_mul = transprod_error;
   tr_trace = transtrace3_error;
   single = 0;
+  msg = "";
 }
 
 mgpt_linalg::mgpt_linalg(int n,int single_precision) {

@@ -105,8 +105,8 @@ See the :doc:`pair_coeff <pair_coeff>` page for alternate ways
 to specify the path for the potential file.
 
 As an example, imagine the SiC.tersoff.zbl file has Tersoff/ZBL values
-for Si and C.  If your LAMMPS simulation has 4 atoms types and you
-want the first 3 to be Si, and the fourth to be C, you would use the
+for Si and C.  If your LAMMPS simulation has 4 atom types and you want
+the first 3 to be Si, and the fourth to be C, you would use the
 following pair_coeff command:
 
 .. code-block:: LAMMPS
@@ -194,7 +194,7 @@ be set to 0.0 if desired.
 Note that the twobody parameters in entries such as SiCC and CSiSi
 are often the same, due to the common use of symmetric mixing rules,
 but this is not always the case. For example, the beta and n parameters in
-Tersoff_2 :ref:`(Tersoff_2) <zbl-Tersoff_2>` are not symmetric.
+Tersoff_2 :ref:`(Tersoff) <zbl-Tersoff_2>` are not symmetric.
 
 We chose the above form so as to enable users to define all commonly
 used variants of the Tersoff portion of the potential.  In particular,
@@ -203,7 +203,7 @@ our form reduces to the original Tersoff form when m = 3 and gamma =
 and m = 1.  Note that in the current Tersoff implementation in LAMMPS,
 m must be specified as either 3 or 1.  Tersoff used a slightly
 different but equivalent form for alloys, which we will refer to as
-Tersoff_2 potential :ref:`(Tersoff_2) <zbl-Tersoff_2>`.
+Tersoff_2 potential :ref:`(Tersoff) <zbl-Tersoff_2>`.
 
 LAMMPS parameter values for Tersoff_2 can be obtained as follows:
 :math:`\gamma = \omega_{ijk}`, :math:`\lambda_3 = 0` and the value of
@@ -284,8 +284,8 @@ LAMMPS was built with that package.  See the :doc:`Build package
 This pair style requires the :doc:`newton <newton>` setting to be "on"
 for pair interactions.
 
-The *shift* keyword is currently not supported for the *tersoff/gpu* and
-*tersoff/kk* variants of this pair style.
+The *shift* keyword is currently not supported for the *tersoff/gpu*
+variant of this pair style.
 
 The tersoff/zbl potential files provided with LAMMPS (see the potentials
 directory) are parameterized for :doc:`"metal" units <units>`.  Also the
@@ -323,4 +323,4 @@ Condens. Matter, 15, 5649(2003).
 
 .. _zbl-Tersoff_2:
 
-**(Tersoff_2)** J. Tersoff, Phys Rev B, 39, 5566 (1989); errata (PRB 41, 3248)
+**(Tersoff)** J. Tersoff, Phys Rev B, 39, 5566 (1989); errata (PRB 41, 3248)

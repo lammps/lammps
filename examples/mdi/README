@@ -48,9 +48,8 @@ Build via regular make:
 Build via CMake:
 
 cd lammps
-mkdir build; cd build
-cmake -D PKG_MDI=yes -D BUILD_SHARED_LIBS=yes ../cmake
-make                            # creates lmp and liblammps.so
+cmake -S cmake -B build -D PKG_MDI=on -D BUILD_SHARED_LIBS=on
+cmake --build build             # creates lmp and liblammps.so
 
 Both of these build procedures build LAMMPS both as an executable
 (lmp_mpi) and as a shared library (liblammps.so).

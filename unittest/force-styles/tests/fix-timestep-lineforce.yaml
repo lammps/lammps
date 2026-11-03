@@ -11,6 +11,7 @@ post_commands: ! |
   fix move all nve
   fix test solute lineforce 0.2 -0.2 0.0
 input_file: in.fourmol
+input_coeffs: coeffs.fourmol
 natoms: 29
 run_pos: ! |2
     1 -2.8353666918474085e-01  2.4789954021539908e+00 -1.7245219279414484e-01

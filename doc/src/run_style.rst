@@ -154,7 +154,7 @@ options to support this, and strategies are discussed in :doc:`Section
 
 ----------
 
-.. versionadded:: TBD
+.. versionadded:: 4Jul2026
 
 The requirements for the run style *verlet/split/rk* are similar to that
 of *verlet/split*, and much of what was written above about the latter
@@ -196,7 +196,7 @@ This approach is based on the enhanced baseline decomposition of
 ----------
 
 The *respa* style implements the rRESPA multi-timescale integrator
-:ref:`(Tuckerman) <Tuckerman3>` with N hierarchical levels, where level
+:ref:`(Tuckerman4) <Tuckerman3>` with N hierarchical levels, where level
 1 is the innermost loop (shortest timestep) and level N is the outermost
 loop (largest timestep).  The loop factor arguments specify what the
 looping factor is between levels.  N1 specifies the number of iterations
@@ -375,6 +375,19 @@ REPLICA package.  Correspondingly the *respa/omp* style is available
 only if the OPENMP package was included. See the :doc:`Build package
 <Build_package>` page for more info.
 
+The *respa* style cannot be used with the KOKKOS package when any style
+runs on a GPU or other device, or when the package's atom communication,
+sorting, or atom map run on the device (the defaults of the :doc:`package
+kokkos <package>` command on a GPU).  It keeps a copy of the forces of each
+level and clears and sums those through the plain LAMMPS arrays, and it
+calls the force computations without the transfers between the host and
+the device that the *verlet* style performs for KOKKOS.  On a device this
+gives wrong forces with no indication that anything is amiss, so the
+combination is refused.  It can be used when everything stays on the host:
+a KOKKOS build without a device back end, or a device build with the
+*/kk/host* suffix on every style and *comm host*, *sort no*, and
+*atom/map no* package settings.
+
 Run style *verlet/split* is not compatible with kspace styles from
 the INTEL package and it is not compatible with any tip4p, dipole,
 or spin kspace styles.
@@ -415,5 +428,5 @@ June 3-7, (2025).
 
 .. _Tuckerman3:
 
-**(Tuckerman)** Tuckerman, Berne and Martyna, J Chem Phys, 97, p 1990
+**(Tuckerman4)** Tuckerman, Berne and Martyna, J Chem Phys, 97, p 1990
 (1992).

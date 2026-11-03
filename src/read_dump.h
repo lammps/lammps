@@ -24,13 +24,22 @@ CommandStyle(read_dump,ReadDump);
 
 #include "command.h"
 
+#include "creator_registry.h"
+
 namespace LAMMPS_NS {
+
+class Reader;
 
 class ReadDump : public Command {
  public:
   ReadDump(class LAMMPS *);
   ~ReadDump() override;
   void command(int, char **) override;
+
+  using ReaderCreator = Reader *(*)(LAMMPS *);
+
+  // global registry of reader style factory functions
+  static CreatorRegistry<ReaderCreator> &reader_styles();
 
   void store_files(int, char **);
   void setup_reader(int, char **);

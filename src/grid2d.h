@@ -94,7 +94,7 @@ class Grid2d : protected Pointers {
   int procylo, procyhi;    // not used for comm_style = tiled
 
   int ghostxlo, ghostxhi;    // # of my owned grid planes needed
-  int ghostylo, ghostyhi;    // by neighobr procs in each dir as their ghost planes
+  int ghostylo, ghostyhi;    // by neighbor procs in each dir as their ghost planes
 
   // swap = exchange of owned and ghost grid cells between 2 procs, including self
 

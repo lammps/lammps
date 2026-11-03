@@ -45,7 +45,7 @@ static constexpr double EPS_HOC = 1.0e-7;
 
 PPPMCGOMP::PPPMCGOMP(LAMMPS *lmp) : PPPMCG(lmp), ThrOMP(lmp, THR_KSPACE)
 {
-  triclinic_support = 0;
+  triclinic_support = 1;
   suffix_flag |= Suffix::OMP;
 }
 

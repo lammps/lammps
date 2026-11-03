@@ -228,7 +228,7 @@ void PPPMElectrode::init()
   if (order < minorder) error->all(FLERR, "PPPM/electrode order < minimum allowed order");
   if (!overlap_allowed && !gc->ghost_adjacent())
     error->all(FLERR, "PPPM/electrode grid stencil extends beyond nearest neighbor processor");
-  if (gc) delete gc;
+  delete gc;
 
   // adjust g_ewald
 
@@ -1102,7 +1102,7 @@ void PPPMElectrode::deallocate()
   memory->destroy(gc_buf1);
   memory->destroy(gc_buf2);
 
-  if (boundcorr != nullptr) delete boundcorr;
+  delete boundcorr;
   memory->destroy3d_offset(electrolyte_density_brick, nzlo_out, nylo_out, nxlo_out);
   memory->destroy(electrolyte_density_fft);
 

@@ -37,7 +37,7 @@ class FixStoreForce : public Fix {
   void min_post_force(int) override;
   double memory_usage() override;
 
- private:
+ protected:
   int nlevels_respa;
   int nmax;
   double **foriginal;    // stored force on atoms

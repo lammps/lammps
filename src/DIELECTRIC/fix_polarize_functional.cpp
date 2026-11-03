@@ -68,7 +68,7 @@ static constexpr double EPSILON = 1.0e-6;
 /* ---------------------------------------------------------------------- */
 
 FixPolarizeFunctional::FixPolarizeFunctional(LAMMPS *_lmp, int narg, char **arg) :
-    Fix(_lmp, narg, arg)
+    Fix(_lmp, narg, arg), list(nullptr)
 {
   if (narg < 4) error->all(FLERR, "Illegal fix polarize/functional command");
 
@@ -128,7 +128,7 @@ FixPolarizeFunctional::FixPolarizeFunctional(LAMMPS *_lmp, int narg, char **arg)
   cg_A = nullptr;
 
   FixPolarizeFunctional::grow_arrays(atom->nmax);
-  atom->add_callback(0);    // to ensure to work with atom->sort()
+  atom->add_callback(this, Atom::GROW);    // to ensure to work with atom->sort()
 }
 
 /* ---------------------------------------------------------------------- */
@@ -148,7 +148,7 @@ FixPolarizeFunctional::~FixPolarizeFunctional()
   memory->destroy(buffer2);
 
   if (allocated) deallocate();
-  atom->delete_callback(id, 0);
+  atom->delete_callback(this, Atom::GROW);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -296,6 +296,8 @@ void FixPolarizeFunctional::setup(int /*vflag*/)
     efield_pair = (dynamic_cast<PairLJCutCoulLongDielectric *>(force->pair))->efield;
   else if (strcmp(force->pair_style, "lj/cut/coul/msm/dielectric") == 0)
     efield_pair = (dynamic_cast<PairLJCutCoulMSMDielectric *>(force->pair))->efield;
+  else if (strcmp(force->pair_style, "lj/cut/coul/msm/dielectric/omp") == 0)
+    efield_pair = (dynamic_cast<PairLJCutCoulMSMDielectric *>(force->pair))->efield;
   else if (strcmp(force->pair_style, "lj/cut/coul/cut/dielectric") == 0)
     efield_pair = (dynamic_cast<PairLJCutCoulCutDielectric *>(force->pair))->efield;
   else if (strcmp(force->pair_style, "lj/cut/coul/cut/dielectric/omp") == 0)
@@ -306,7 +308,11 @@ void FixPolarizeFunctional::setup(int /*vflag*/)
     efield_pair = (dynamic_cast<PairLJCutCoulDebyeDielectric *>(force->pair))->efield;
   else if (strcmp(force->pair_style, "coul/long/dielectric") == 0)
     efield_pair = (dynamic_cast<PairCoulLongDielectric *>(force->pair))->efield;
+  else if (strcmp(force->pair_style, "coul/long/dielectric/omp") == 0)
+    efield_pair = (dynamic_cast<PairCoulLongDielectric *>(force->pair))->efield;
   else if (strcmp(force->pair_style, "coul/cut/dielectric") == 0)
+    efield_pair = (dynamic_cast<PairCoulCutDielectric *>(force->pair))->efield;
+  else if (strcmp(force->pair_style, "coul/cut/dielectric/omp") == 0)
     efield_pair = (dynamic_cast<PairCoulCutDielectric *>(force->pair))->efield;
   else
     error->all(FLERR, "Pair style not compatible with fix polarize/functional");

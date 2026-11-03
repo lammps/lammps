@@ -115,7 +115,7 @@ void ReadRestart::command(int narg, char **arg)
   format_revision();
   check_eof_magic();
 
-  if ((comm->me == 0) && (modify->get_fix_by_style("property/atom").size() > 0))
+  if ((comm->me == 0) && (!modify->get_fix_by_style("property/atom").empty()))
     error->warning(FLERR, "Fix property/atom command must be specified after read_restart "
                    "to restore its data.");
 
@@ -202,6 +202,7 @@ void ReadRestart::command(int narg, char **arg)
         error->all(FLERR, 1, "Invalid flag in peratom section of restart file");
 
       n = read_int();
+      if (n < 0) error->all(FLERR, 1, "Invalid data size in peratom section of restart file");
       if (n > maxbuf) {
         maxbuf = n;
         memory->destroy(buf);
@@ -209,8 +210,13 @@ void ReadRestart::command(int narg, char **arg)
       }
       read_double_vec(n,buf);
 
+      // the first value of each per-atom chunk is the size of the chunk;
+      // it must be positive so the loop below always advances
+
       m = 0;
       while (m < n) {
+        if (static_cast<int>(buf[m]) < 1)
+          error->all(FLERR, 1, "Invalid data in peratom section of restart file");
         x = &buf[m+1];
         if (remapflag) {
           iptr = (imageint *) &buf[m+7];
@@ -386,7 +392,7 @@ void ReadRestart::command(int narg, char **arg)
 
     if (nextra)
       modify->add_fix(fmt::format("_read_restart all READ_RESTART {} {}",
-                                  nextra,modify->nfix_restart_peratom));
+                                  nextra,modify->get_nfix_restart_peratom()));
 
     // move atoms to new processors via irregular()
     // turn sorting on in migrate_atoms() to avoid non-reproducible restarts
@@ -517,19 +523,29 @@ std::string ReadRestart::file_search(const std::string &inpfile)
   bigint maxnum = -1;
   loc = pattern.find('*');
   if (loc != std::string::npos) {
-    // the regex matcher in utils::strmatch() only checks the first 256 characters.
-    // a 64-bit integer timestep will consume 20 characters, so 236 chars is the cutoff.
-    if (loc > 236)
-      error->one(FLERR, 1, "Filename part before '*' is too long to find restart with largest step");
+    // the regex matcher in utils::strmatch() supports up to 255 elements.
+    // the anchors and the digits pattern use 4 elements for 3 more than the '*'.
+    if (pattern.size() > 252)
+      error->one(FLERR, 1, "Restart filename is too long to search for the file with the largest step");
 
-    // convert pattern to equivalent regexp
-    pattern.replace(loc,1,R"(\d+)");
+    // convert pattern to an equivalent anchored regexp that matches all other
+    // characters literally and has a sequence of digits in place of the '*'
+    std::string regexp = "^";
+    for (std::size_t i = 0; i < pattern.size(); ++i) {
+      if (i == loc) {
+        regexp += R"(\d+)";
+      } else {
+        if (std::string(R"(\^$.*+?[])").find(pattern[i]) != std::string::npos) regexp += '\\';
+        regexp += pattern[i];
+      }
+    }
+    regexp += '$';
 
     if (!std::filesystem::is_directory(dirname))
-      error->one(FLERR, 1, "Cannot open directory {} to search for restart file: {}",dirname);
+      error->one(FLERR, 1, "Cannot open directory {} to search for restart file",dirname);
 
     for (const auto &candidate : platform::list_directory(dirname)) {
-      if (utils::strmatch(candidate,pattern)) {
+      if (utils::strmatch(candidate,regexp)) {
         auto num = (bigint) std::stoll(utils::strfind(candidate.substr(loc),R"(\d+)"));
         if (num > maxnum) maxnum = num;
       }
@@ -984,7 +1000,7 @@ void ReadRestart::magic_string()
   if (count < n)
     error->all(FLERR,"Invalid LAMMPS restart file");
   MPI_Bcast(str,n,MPI_CHAR,0,world);
-  if (strcmp(str,MAGIC_STRING) != 0)
+  if (memcmp(str,MAGIC_STRING,n) != 0)
     error->all(FLERR,"Invalid LAMMPS restart file");
   delete[] str;
 }
@@ -1032,7 +1048,7 @@ void ReadRestart::check_eof_magic()
   }
 
   MPI_Bcast(str,n,MPI_CHAR,0,world);
-  if (strcmp(str,MAGIC_STRING) != 0)
+  if (memcmp(str,MAGIC_STRING,n) != 0)
     error->all(FLERR,"Incomplete or corrupted LAMMPS restart file");
 
   delete[] str;

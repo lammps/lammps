@@ -1,6 +1,6 @@
 ---
 lammps_version: 7 Feb 2024
-tags:
+tags: no_respa
 date_generated: Thu Apr  4 21:27:13 2024
 epsilon: 5e-13
 skip_tests:
@@ -13,6 +13,7 @@ post_commands: ! |
   fix test solute rigid/nve single
   fix_modify test virial yes
 input_file: in.fourmol
+input_coeffs: coeffs.fourmol
 natoms: 29
 run_stress: ! |-
   -1.3754817467882813e+03 -1.4228425246442055e+03 -3.6087196200592184e+03  8.7407043142559792e+02  2.1665316510417179e+02 -6.0480791467761571e+02

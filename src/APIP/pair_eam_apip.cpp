@@ -47,6 +47,8 @@ PairEAMAPIP::PairEAMAPIP(LAMMPS *lmp) : Pair(lmp)
   fp = nullptr;
   numforce = nullptr;
   type2frho = nullptr;
+  type2rhor = nullptr;
+  type2z2r = nullptr;
 
   nfuncfl = 0;
   funcfl = nullptr;
@@ -59,6 +61,8 @@ PairEAMAPIP::PairEAMAPIP(LAMMPS *lmp) : Pair(lmp)
   z2r = nullptr;
   scale = nullptr;
 
+  nrho = nr = nfrho = nrhor = nz2r = 0;
+  dr = rdr = drho = rdrho = 0.0;
   rhomax = rhomin = 0.0;
 
   frho_spline = nullptr;
@@ -71,6 +75,8 @@ PairEAMAPIP::PairEAMAPIP(LAMMPS *lmp) : Pair(lmp)
 
   lambda_thermostat = true;
   lambda_la = true;
+  cutforcesq = 0.0;
+  cutmax = 0.0;
 }
 
 /* ----------------------------------------------------------------------
@@ -573,7 +579,7 @@ double PairEAMAPIP::init_one(int i, int j)
 
 void PairEAMAPIP::setup()
 {
-  if (modify->get_fix_by_style("^lambda/la/csp/apip$").size() == 0) {
+  if (modify->get_fix_by_style("^lambda/la/csp/apip$").empty()) {
     lambda_la = false;
   } else {
     lambda_la = true;
@@ -582,7 +588,7 @@ void PairEAMAPIP::setup()
                      "  eam/apip      : compute potential energies for local-averaging forces\n");
   }
 
-  if (modify->get_fix_by_style("^lambda_thermostat/apip$").size() == 0) {
+  if (modify->get_fix_by_style("^lambda_thermostat/apip$").empty()) {
     lambda_thermostat = false;
   } else {
     lambda_thermostat = true;

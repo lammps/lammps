@@ -39,6 +39,7 @@
 #include "pair_spin.h"
 #include "update.h"
 
+#include <cmath>
 #include <cstring>
 
 using namespace LAMMPS_NS;
@@ -176,7 +177,7 @@ void FixNVESpin::init()
     if (hybrid == nullptr) npairs = 1;
     else npairs = hybrid->nstyles;
     for (int i = 0; i<npairs; i++) {
-      if (force->pair_match("^spin",0,i)) {
+      if (force->pair_match("^spin",0,i+1)) {
         npairspin ++;
       }
     }
@@ -197,8 +198,8 @@ void FixNVESpin::init()
     spin_pairs[0] = dynamic_cast<PairSpin *>(force->pair_match("^spin",0,0));
   } else if (npairspin > 1) {
     for (int i = 0; i<npairs; i++) {
-      if (force->pair_match("^spin",0,i)) {
-        spin_pairs[count1] = dynamic_cast<PairSpin *>(force->pair_match("^spin",0,i));
+      if (force->pair_match("^spin",0,i+1)) {
+        spin_pairs[count1] = dynamic_cast<PairSpin *>(force->pair_match("^spin",0,i+1));
         count1++;
       }
     }
@@ -218,85 +219,46 @@ void FixNVESpin::init()
   }
 
   // set ptrs for fix precession/spin styles
+  // reset flags and cached pointers first, since the fixes
+  // may have been deleted since a previous run
 
-  // loop 1: obtain # of fix precession/spin styles
+  precession_spin_flag = maglangevin_flag = setforce_spin_flag = 0;
+  locksetforcespin = nullptr;
 
-  int iforce;
-  nprecspin = 0;
-  for (iforce = 0; iforce < modify->nfix; iforce++) {
-    if (utils::strmatch(modify->fix[iforce]->style,"^precession/spin")) {
-      nprecspin++;
-    }
-  }
-
-  // init length of vector of ptrs to precession/spin styles
-
+  auto precfixes = modify->get_fix_by_style("^precession/spin");
+  nprecspin = (int) precfixes.size();
   if (nprecspin > 0) {
+    precession_spin_flag = 1;
     delete[] lockprecessionspin;
     lockprecessionspin = new FixPrecessionSpin*[nprecspin];
+    for (int i = 0; i < nprecspin; i++)
+      lockprecessionspin[i] = dynamic_cast<FixPrecessionSpin *>(precfixes[i]);
   }
-
-  // loop 2: fill vector with ptrs to precession/spin styles
-
-  int count2 = 0;
-  if (nprecspin > 0) {
-    for (iforce = 0; iforce < modify->nfix; iforce++) {
-      if (utils::strmatch(modify->fix[iforce]->style,"^precession/spin")) {
-        precession_spin_flag = 1;
-        lockprecessionspin[count2] = dynamic_cast<FixPrecessionSpin *>(modify->fix[iforce]);
-        count2++;
-      }
-    }
-  }
-
-  if (count2 != nprecspin)
-    error->all(FLERR,"Incorrect number of precession/spin fixes");
 
   // set ptrs for fix langevin/spin styles
 
-  // loop 1: obtain # of fix langevin/spin styles
-
-  nlangspin = 0;
-  for (iforce = 0; iforce < modify->nfix; iforce++) {
-    if (utils::strmatch(modify->fix[iforce]->style,"^langevin/spin")) {
-      nlangspin++;
-    }
-  }
-
-  // init length of vector of ptrs to langevin/spin styles
-
+  auto langfixes = modify->get_fix_by_style("^langevin/spin");
+  nlangspin = (int) langfixes.size();
   if (nlangspin > 0) {
+    maglangevin_flag = 1;
+    delete[] locklangevinspin;
     locklangevinspin = new FixLangevinSpin*[nlangspin];
+    for (int i = 0; i < nlangspin; i++)
+      locklangevinspin[i] = dynamic_cast<FixLangevinSpin *>(langfixes[i]);
   }
-
-  // loop 2: fill vector with ptrs to langevin/spin styles
-
-  count2 = 0;
-  if (nlangspin > 0) {
-    for (iforce = 0; iforce < modify->nfix; iforce++) {
-      if (utils::strmatch(modify->fix[iforce]->style,"^langevin/spin")) {
-        maglangevin_flag = 1;
-        locklangevinspin[count2] = dynamic_cast<FixLangevinSpin *>(modify->fix[iforce]);
-        count2++;
-      }
-    }
-  }
-
-  if (count2 != nlangspin)
-    error->all(FLERR,"Incorrect number of langevin/spin fixes");
 
   // ptrs FixSetForceSpin classes
 
-  for (iforce = 0; iforce < modify->nfix; iforce++) {
-    if (utils::strmatch(modify->fix[iforce]->style,"^setforce/spin")) {
-      setforce_spin_flag = 1;
-      locksetforcespin = dynamic_cast<FixSetForceSpin *>(modify->fix[iforce]);
-    }
+  auto setforcefixes = modify->get_fix_by_style("^setforce/spin");
+  if (!setforcefixes.empty()) {
+    setforce_spin_flag = 1;
+    locksetforcespin = dynamic_cast<FixSetForceSpin *>(setforcefixes.back());
   }
 
   // setting the sector variables/lists
 
   nsectors = 0;
+  memory->destroy(rsec);
   memory->create(rsec,3,"nve/spin:rsec");
 
   // perform the sectoring operation
@@ -548,35 +510,11 @@ void FixNVESpin::ComputeInteractionsSpin(int i)
 
 /* ----------------------------------------------------------------------
    divide each domain into 8 sectors
+   for triclinic boxes, the sectors are defined in lamda coordinates
 ---------------------------------------------------------------------- */
 
 void FixNVESpin::sectoring()
 {
-  int sec[3];
-  double sublo[3],subhi[3];
-
-  if (domain->triclinic == 1){
-     double* sublotmp = domain->sublo_lamda;
-     double* subhitmp = domain->subhi_lamda;
-     for (int dim = 0 ; dim < 3 ; dim++) {
-       sublo[dim]=sublotmp[dim]*domain->boxhi[dim];
-       subhi[dim]=subhitmp[dim]*domain->boxhi[dim];
-     }
-  }
-
-  else {
-     double* sublotmp = domain->sublo;
-     double* subhitmp = domain->subhi;
-     for (int dim = 0 ; dim < 3 ; dim++) {
-       sublo[dim]=sublotmp[dim];
-       subhi[dim]=subhitmp[dim];
-     }
-  }
-
-  const double rsx = subhi[0] - sublo[0];
-  const double rsy = subhi[1] - sublo[1];
-  const double rsz = subhi[2] - sublo[2];
-
   // extract larger cutoff from PairSpin styles
 
   double rv, cutoff;
@@ -591,16 +529,28 @@ void FixNVESpin::sectoring()
    error->all(FLERR, Error::NOLASTLINE,
               "No suitable cutoff found for sectoring operation: rv = {}", rv);
 
-  double rax = rsx/rv;
-  double ray = rsy/rv;
-  double raz = rsz/rv;
+  // extent of the subdomain and cutoff in each direction
+  // for triclinic boxes, convert the cutoff to the lamda distance
+  //   between parallel faces of the box, same as for the ghost cutoff in Comm
 
-  sec[0] = 1;
-  sec[1] = 1;
-  sec[2] = 1;
-  if (rax >= 2.0) sec[0] = 2;
-  if (ray >= 2.0) sec[1] = 2;
-  if (raz >= 2.0) sec[2] = 2;
+  double rs[3], rcut[3];
+  if (domain->triclinic) {
+    const double *h_inv = domain->h_inv;
+    for (int d = 0; d < 3; d++) rs[d] = domain->subhi_lamda[d] - domain->sublo_lamda[d];
+    rcut[0] = rv * sqrt(h_inv[0] * h_inv[0] + h_inv[5] * h_inv[5] + h_inv[4] * h_inv[4]);
+    rcut[1] = rv * sqrt(h_inv[1] * h_inv[1] + h_inv[3] * h_inv[3]);
+    rcut[2] = rv * h_inv[2];
+  } else {
+    for (int d = 0; d < 3; d++) {
+      rs[d] = domain->subhi[d] - domain->sublo[d];
+      rcut[d] = rv;
+    }
+  }
+
+  // split a direction in two sectors only if each is at least as wide as the cutoff
+
+  int sec[3];
+  for (int d = 0; d < 3; d++) sec[d] = (rs[d] >= 2.0 * rcut[d]) ? 2 : 1;
 
   nsectors = sec[0]*sec[1]*sec[2];
 
@@ -608,13 +558,7 @@ void FixNVESpin::sectoring()
     error->all(FLERR, Error::NOLASTLINE,
                "Illegal sectoring operation resulting in {} sectors instead of 8", nsectors);
 
-  rsec[0] = rsx;
-  rsec[1] = rsy;
-  rsec[2] = rsz;
-  if (sec[0] == 2) rsec[0] = rsx/2.0;
-  if (sec[1] == 2) rsec[1] = rsy/2.0;
-  if (sec[2] == 2) rsec[2] = rsz/2.0;
-
+  for (int d = 0; d < 3; d++) rsec[d] = rs[d] / sec[d];
 }
 
 /* ----------------------------------------------------------------------
@@ -623,21 +567,22 @@ void FixNVESpin::sectoring()
 
 int FixNVESpin::coords2sector(double *x)
 {
-  int nseci;
-  int seci[3];
-  double sublo[3];
-  double* sublotmp = domain->sublo;
-  for (int dim = 0 ; dim<3 ; dim++) {
-    sublo[dim]=sublotmp[dim];
+  double lamda[3];
+  double *xs = x;
+  double *sublo = domain->sublo;
+
+  if (domain->triclinic) {
+    domain->x2lamda(x, lamda);
+    xs = lamda;
+    sublo = domain->sublo_lamda;
   }
 
-  seci[0] = x[0] > (sublo[0] + rsec[0]);
-  seci[1] = x[1] > (sublo[1] + rsec[1]);
-  seci[2] = x[2] > (sublo[2] + rsec[2]);
+  int seci[3];
+  seci[0] = xs[0] > (sublo[0] + rsec[0]);
+  seci[1] = xs[1] > (sublo[1] + rsec[1]);
+  seci[2] = xs[2] > (sublo[2] + rsec[2]);
 
-  nseci = (seci[0] + 2*seci[1] + 4*seci[2]);
-
-  return nseci;
+  return (seci[0] + 2*seci[1] + 4*seci[2]);
 }
 
 /* ----------------------------------------------------------------------

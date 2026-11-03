@@ -49,20 +49,20 @@ class FixShardlowKokkos : public FixShardlow {
   NeighListKokkos<DeviceType> *k_list; // The SSA specific neighbor list
 
   FixShardlowKokkos(class LAMMPS *, int, char **);
-  ~FixShardlowKokkos();
-  int setmask();
-  virtual void init();
-  virtual void init_list(int, class NeighList *);
-  virtual void initial_integrate(int);
-  void setup_pre_neighbor();
-  void pre_neighbor();
+  ~FixShardlowKokkos() override;
+  int setmask() override;
+  void init() override;
+  void init_list(int, class NeighList *) override;
+  void initial_integrate(int) override;
+  void setup_pre_neighbor() override;
+  void pre_neighbor() override;
 
-  double memory_usage();
+  double memory_usage() override;
 
-  int pack_reverse_comm(int, int, double *);
-  void unpack_reverse_comm(int, int *, double *);
-  int pack_forward_comm(int , int *, double *, int, int *);
-  void unpack_forward_comm(int , int , double *);
+  int pack_reverse_comm(int, int, double *) override;
+  void unpack_reverse_comm(int, int *, double *) override;
+  int pack_forward_comm(int , int *, double *, int, int *) override;
+  void unpack_forward_comm(int , int , double *) override;
 
   struct params_ssa {
 // NOLINTNEXTLINE

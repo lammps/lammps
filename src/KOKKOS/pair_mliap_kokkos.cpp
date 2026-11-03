@@ -97,9 +97,9 @@ void PairMLIAPKokkos<DeviceType>::compute(int eflag, int vflag)
   }
 
   if (vflag_atom) {
-    if ((int)k_vatom.view_host().extent(0) < maxeatom) {
+    if ((int)k_vatom.view_host().extent(0) < maxvatom) {
       memoryKK->destroy_kokkos(k_vatom,vatom);
-      memoryKK->create_kokkos(k_vatom,vatom,maxeatom,6,"pair:eatom");
+      memoryKK->create_kokkos(k_vatom,vatom,maxvatom,6,"pair:vatom");
     } else {
       Kokkos::deep_copy(k_vatom.template view<DeviceType>(),0);
       k_vatom.modify<DeviceType>();
@@ -205,7 +205,7 @@ void PairMLIAPKokkos<DeviceType>::settings(int narg, char ** arg)
       if (model != nullptr) error->all(FLERR,"Illegal multiple pair_style mliap model definitions");
       if (descriptor != nullptr) error->all(FLERR,"Illegal multiple pair_style mliap descriptor definitions");
       if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "pair_style mliap unified", error);
-      MLIAPBuildUnifiedKokkos_t<DeviceType> build = build_unified(arg[iarg+1], dynamic_cast<MLIAPDataKokkos<DeviceType>*>(data), lmp);
+      MLIAPBuildUnifiedKokkos_t<DeviceType> build = build_unified(arg[iarg+1], MLIAPDataKokkos<DeviceType>::cast(data), lmp);
       if (iarg+3 > narg) {
         ghostneigh = 0;
       } else {
@@ -355,7 +355,7 @@ int PairMLIAPKokkos<DeviceType>::forward_comm(CommType* copy_from_, CommType* co
   copy_from = copy_from_;
   comm_forward = vec_len=vl;
 
-  Kokkos::parallel_for((atom->nlocal+atom->nghost)*vl, KOKKOS_LAMBDA (int i) {
+  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType>(0,(atom->nlocal+atom->nghost)*vl), KOKKOS_LAMBDA (int i) {
     copy_to_[i] = copy_from_[i];
   });
   //call comm
@@ -381,14 +381,14 @@ int PairMLIAPKokkos<DeviceType>::reverse_comm(CommType* copy_from_, CommType* co
   copy_from = copy_from_;
   comm_reverse = vec_len = vl;
 
-  Kokkos::parallel_for((atom->nlocal+atom->nghost)*vl, KOKKOS_LAMBDA (int i) {
+  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType>(0,(atom->nlocal+atom->nghost)*vl), KOKKOS_LAMBDA (int i) {
     copy_to_[i] = copy_from_[i]; // Copy inputs
   });
 
   comm->reverse_comm(this);
 
   Kokkos::parallel_for(
-    Kokkos::RangePolicy<>( (atom->nlocal)*vl,(atom->nlocal + atom->nghost)*vl),
+    Kokkos::RangePolicy<DeviceType>( (atom->nlocal)*vl,(atom->nlocal + atom->nghost)*vl),
     KOKKOS_LAMBDA (int i) {
     copy_to_[i] = 0; //Zero out ghosts
   });
@@ -425,7 +425,7 @@ int PairMLIAPKokkos<DeviceType>::pack_forward_comm_kokkos(
   auto val=fill.view<DeviceType>();
   int nf=vec_len;
   auto to=copy_to;
-  Kokkos::parallel_for(nv*nf, KOKKOS_LAMBDA (int start) {
+  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType>(0,nv*nf), KOKKOS_LAMBDA (int start) {
       const int i = start/nf;
       const int gstart=idx(i)*nf;
       const int j = start%nf;
@@ -496,7 +496,7 @@ void PairMLIAPKokkos<DeviceType>::unpack_forward_comm_kokkos(
   auto val=fill.view<DeviceType>();
   int nf=vec_len;
   auto to=copy_to;
-  Kokkos::parallel_for(nv*nf, KOKKOS_LAMBDA (int start) {
+  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType>(0,nv*nf), KOKKOS_LAMBDA (int start) {
       const int i=start/nf;
       const int gstart=(first_up+i)*nf;
       const int j=start%nf;
@@ -559,7 +559,7 @@ int PairMLIAPKokkos<DeviceType>::pack_reverse_comm_kokkos(int nv, int first_up, 
   int nf=vec_len;
   auto val=fill.view<DeviceType>();
   auto to=copy_to;
-  Kokkos::parallel_for(nv*nf, KOKKOS_LAMBDA (int start) {
+  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType>(0,nv*nf), KOKKOS_LAMBDA (int start) {
       const int i = start/nf;
       const int gstart=(first_up+i)*nf;
       const int j = start%nf;
@@ -627,7 +627,7 @@ void PairMLIAPKokkos<DeviceType>::unpack_reverse_comm_kokkos(int nv, DAT::tdual_
   auto val=fill.view<DeviceType>();
   auto idx=idx_v.view<DeviceType>();
   auto to=copy_to;
-  Kokkos::parallel_for(nv*nf, KOKKOS_LAMBDA (int start) {
+  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType>(0,nv*nf), KOKKOS_LAMBDA (int start) {
       const int i = start/nf;
       const int gstart=idx(i)*nf;
       const int j=start%nf;
@@ -666,6 +666,21 @@ void PairMLIAPKokkos<DeviceType>::unpack_reverse_comm(int nv, int *idx, double *
       copy_to[gstart++] += static_cast<CommType>(fill[start++]);
   }
 }
+
+/* ----------------------------------------------------------------------
+   convert a pointer to the base class into one to this class, nullptr if
+   it points to an instance of another class.  this must be done here,
+   where the class is explicitly instantiated: elsewhere the dynamic_cast
+   uses a hidden local copy of the type information with the C++ ABI of
+   macOS on arm64, so the linker warns about different visibility settings
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+PairMLIAPKokkos<DeviceType> *PairMLIAPKokkos<DeviceType>::cast(PairMLIAP *ptr)
+{
+  return dynamic_cast<PairMLIAPKokkos<DeviceType> *>(ptr);
+}
+
 namespace LAMMPS_NS {
 template class PairMLIAPKokkos<LMPDeviceType>;
 template int PairMLIAPKokkos<LMPDeviceType>::forward_comm<float>(float*,float*,const int);

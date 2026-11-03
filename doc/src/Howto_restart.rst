@@ -7,9 +7,9 @@ run will continue from where the previous run left off.  Or binary
 restart files can be saved to disk using the :doc:`restart <restart>`
 command.  At a later time, these binary files can be read via a
 :doc:`read_restart <read_restart>` command in a new script.  Or they can
-be converted to text data files using the :doc:`-r command-line switch
-<Run_options>` and read by a :doc:`read_data <read_data>` command in a
-new script.
+be converted to text data files using the :ref:`-restart2data
+command-line switch <restart2data>` and read by a :doc:`read_data
+<read_data>` command in a new script.
 
 Here we give examples of 2 scripts that read either a binary restart
 file or a converted data file and then issue a new run command to
@@ -63,7 +63,7 @@ file as follows:
 
 .. code-block:: bash
 
-   lmp_g++ -r tmp.restart.50 tmp.restart.data
+   lmp -restart2data tmp.restart.50 tmp.restart.data
 
 Then, this script could be used to re-run the last 50 steps:
 

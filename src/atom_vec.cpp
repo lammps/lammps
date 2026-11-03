@@ -21,7 +21,6 @@
 #include "force.h"
 #include "label_map.h"
 #include "memory.h"
-#include "modify.h"
 
 #include <cstring>
 
@@ -47,7 +46,7 @@ const std::vector<std::string> AtomVec::default_data_vel = {};
 
 /* ---------------------------------------------------------------------- */
 
-AtomVec::AtomVec(LAMMPS *lmp) : Pointers(lmp)
+AtomVec::AtomVec(LAMMPS *lmp) : Pointers(lmp), onemols(nullptr), h_rate(nullptr)
 {
   nmax = 0;
   ngrow = 0;
@@ -158,7 +157,8 @@ void AtomVec::init()
     error->all(FLERR, "KOKKOS package requires a kokkos enabled atom_style");
 }
 
-static constexpr bigint DELTA = 16384;
+static constexpr int DELTA = 16384;
+static constexpr bigint DELTABIG = DELTA;
 
 /* ----------------------------------------------------------------------
    roundup N so it is a multiple of DELTA
@@ -167,7 +167,7 @@ static constexpr bigint DELTA = 16384;
 
 bigint AtomVec::roundup(bigint n)
 {
-  if (n % DELTA) n = n / DELTA * DELTA + DELTA;
+  if (n % DELTABIG) n = n / DELTABIG * DELTABIG + DELTABIG;
   if (n > MAXSMALLINT) error->one(FLERR, "Too many atoms created on one or more procs");
   return n;
 }
@@ -182,7 +182,7 @@ void AtomVec::grow_nmax()
   nmax += DELTA;
 }
 
-static constexpr bigint DELTA_BONUS = 8192;
+static constexpr int DELTA_BONUS = DELTA/2;
 
 /* ----------------------------------------------------------------------
    grow nmax_bonus so it is a multiple of DELTA_BONUS
@@ -256,8 +256,7 @@ void AtomVec::grow(int n)
     }
   }
 
-  for (int iextra = 0; iextra < atom->nextra_grow; iextra++)
-    modify->fix[atom->extra_grow[iextra]]->grow_arrays(nmax);
+  for (auto *ifix : atom->extra_grow) ifix->grow_arrays(nmax);
 
   grow_pointers();
 }
@@ -344,9 +343,7 @@ void AtomVec::copy(int i, int j, int delflag)
 
   if (bonus_flag) copy_bonus(i, j, delflag);
 
-  if (atom->nextra_grow)
-    for (int iextra = 0; iextra < atom->nextra_grow; iextra++)
-      modify->fix[atom->extra_grow[iextra]]->copy_arrays(i, j, delflag);
+  for (auto *ifix : atom->extra_grow) ifix->copy_arrays(i, j, delflag);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -487,7 +484,7 @@ int AtomVec::pack_comm_vel(int n, int *list, double *buf, int pbc_flag, int *pbc
         buf[m++] = x[j][0] + dx;
         buf[m++] = x[j][1] + dy;
         buf[m++] = x[j][2] + dz;
-        if (mask[i] & deform_groupbit) {
+        if (mask[j] & deform_groupbit) {
           buf[m++] = v[j][0] + dvx;
           buf[m++] = v[j][1] + dvy;
           buf[m++] = v[j][2] + dvz;
@@ -884,9 +881,7 @@ int AtomVec::pack_border(int n, int *list, double *buf, int pbc_flag, int *pbc)
 
   if (bonus_flag) m += pack_border_bonus(n, list, &buf[m]);
 
-  if (atom->nextra_border)
-    for (int iextra = 0; iextra < atom->nextra_border; iextra++)
-      m += modify->fix[atom->extra_border[iextra]]->pack_border(n, list, &buf[m]);
+  for (auto *ifix : atom->extra_border) m += ifix->pack_border(n, list, &buf[m]);
 
   return m;
 }
@@ -948,7 +943,7 @@ int AtomVec::pack_border_vel(int n, int *list, double *buf, int pbc_flag, int *p
         buf[m++] = ubuf(tag[j]).d;
         buf[m++] = ubuf(type[j]).d;
         buf[m++] = ubuf(mask[j]).d;
-        if (mask[i] & deform_groupbit) {
+        if (mask[j] & deform_groupbit) {
           buf[m++] = v[j][0] + dvx;
           buf[m++] = v[j][1] + dvy;
           buf[m++] = v[j][2] + dvz;
@@ -1014,9 +1009,7 @@ int AtomVec::pack_border_vel(int n, int *list, double *buf, int pbc_flag, int *p
 
   if (bonus_flag) m += pack_border_bonus(n, list, &buf[m]);
 
-  if (atom->nextra_border)
-    for (int iextra = 0; iextra < atom->nextra_border; iextra++)
-      m += modify->fix[atom->extra_border[iextra]]->pack_border(n, list, &buf[m]);
+  for (auto *ifix : atom->extra_border) m += ifix->pack_border(n, list, &buf[m]);
 
   return m;
 }
@@ -1079,9 +1072,7 @@ void AtomVec::unpack_border(int n, int first, double *buf)
 
   if (bonus_flag) m += unpack_border_bonus(n, first, &buf[m]);
 
-  if (atom->nextra_border)
-    for (int iextra = 0; iextra < atom->nextra_border; iextra++)
-      m += modify->fix[atom->extra_border[iextra]]->unpack_border(n, first, &buf[m]);
+  for (auto *ifix : atom->extra_border) m += ifix->unpack_border(n, first, &buf[m]);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1145,9 +1136,7 @@ void AtomVec::unpack_border_vel(int n, int first, double *buf)
 
   if (bonus_flag) m += unpack_border_bonus(n, first, &buf[m]);
 
-  if (atom->nextra_border)
-    for (int iextra = 0; iextra < atom->nextra_border; iextra++)
-      m += modify->fix[atom->extra_border[iextra]]->unpack_border(n, first, &buf[m]);
+  for (auto *ifix : atom->extra_border) m += ifix->unpack_border(n, first, &buf[m]);
 }
 
 /* ----------------------------------------------------------------------
@@ -1236,9 +1225,7 @@ int AtomVec::pack_exchange(int i, double *buf)
 
   if (bonus_flag) m += pack_exchange_bonus(i, &buf[m]);
 
-  if (atom->nextra_grow)
-    for (int iextra = 0; iextra < atom->nextra_grow; iextra++)
-      m += modify->fix[atom->extra_grow[iextra]]->pack_exchange(i, &buf[m]);
+  for (auto *ifix : atom->extra_grow) m += ifix->pack_exchange(i, &buf[m]);
 
   buf[0] = m;
   return m;
@@ -1328,9 +1315,7 @@ int AtomVec::unpack_exchange(double *buf)
 
   if (bonus_flag) m += unpack_exchange_bonus(nlocal, &buf[m]);
 
-  if (atom->nextra_grow)
-    for (int iextra = 0; iextra < atom->nextra_grow; iextra++)
-      m += modify->fix[atom->extra_grow[iextra]]->unpack_exchange(nlocal, &buf[m]);
+  for (auto *ifix : atom->extra_grow) m += ifix->unpack_exchange(nlocal, &buf[m]);
 
   atom->nlocal++;
   return m;
@@ -1377,9 +1362,8 @@ int AtomVec::size_restart()
 
   if (bonus_flag) n += size_restart_bonus();
 
-  if (atom->nextra_restart)
-    for (int iextra = 0; iextra < atom->nextra_restart; iextra++)
-      for (i = 0; i < nlocal; i++) n += modify->fix[atom->extra_restart[iextra]]->size_restart(i);
+  for (auto *ifix : atom->extra_restart)
+    for (i = 0; i < nlocal; i++) n += ifix->size_restart(i);
 
   return n;
 }
@@ -1477,8 +1461,7 @@ int AtomVec::pack_restart(int i, double *buf)
 
   // invoke fixes which store peratom restart info
 
-  for (int iextra = 0; iextra < atom->nextra_restart; iextra++)
-    m += modify->fix[atom->extra_restart[iextra]]->pack_restart(i, &buf[m]);
+  for (auto *ifix : atom->extra_restart) m += ifix->pack_restart(i, &buf[m]);
 
   buf[0] = m;
   return m;
@@ -2421,7 +2404,7 @@ void AtomVec::setup_fields()
 {
   int n, cols;
 
-  if ((fields_data_atom.size() < 1) || (fields_data_atom[0] != "id"))
+  if ((fields_data_atom.empty()) || (fields_data_atom[0] != "id"))
     error->all(FLERR, "Atom style fields_data_atom must have 'id' as first field");
   if ((fields_data_vel.size() < 2) || (fields_data_vel[0] != "id") || (fields_data_vel[1] != "v"))
     error->all(FLERR, "Atom style fields_data_vel must have 'id' and 'v' as first two fields");
@@ -2459,6 +2442,7 @@ void AtomVec::setup_fields()
 
   // create threads data struct for grow and memory_usage to use
 
+  delete[] threads;
   if (ngrow)
     threads = new bool[ngrow];
   else
@@ -2544,13 +2528,13 @@ void AtomVec::setup_fields()
 int AtomVec::process_fields(const std::vector<std::string> &words,
                             const std::vector<std::string> &def_words, Method *method)
 {
-  int nfield = words.size();
-  int ndef = def_words.size();
+  int nfield = (int) words.size();
+  int ndef = (int) def_words.size();
 
   // process fields one by one, add to index vector
 
   const auto &peratom = atom->peratom;
-  const int nperatom = peratom.size();
+  const int nperatom = (int) peratom.size();
 
   // allocate memory in method
   method->resize(nfield);
@@ -2599,6 +2583,23 @@ void AtomVec::init_method(int nfield, Method *method)
       method->plength[i] = field.address_length;
     }
   }
+}
+
+/* ----------------------------------------------------------------------
+   Set pointers to default atom arrays
+     used by hybrid style to set substyle pointers
+------------------------------------------------------------------------- */
+
+void AtomVec::grow_default_pointers(tagint *tag2, int *type2, int *mask2, imageint *image2,
+                                    double **x2, double **v2, double **f2)
+{
+  tag = tag2;
+  type = type2;
+  mask = mask2;
+  image = image2;
+  x = x2;
+  v = v2;
+  f = f2;
 }
 
 /* ----------------------------------------------------------------------

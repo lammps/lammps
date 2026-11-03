@@ -1,0 +1,139 @@
+LAMMPS (2 Sep 2026)
+  using 1 OpenMP thread(s) per MPI task
+# ***
+# Example input for including electronic stopping effects using fix electron/stopping/fit
+# Si lattice with one primary knock-on atom (PKA) - single species simulation
+# ***
+
+units            metal
+boundary         p p p
+
+lattice          diamond 5.431
+Lattice spacing in x,y,z = 5.431 5.431 5.431
+
+region           box block -10 10 -10 10 -10 10
+create_box       1 box
+Created orthogonal box = (-54.31 -54.31 -54.31) to (54.31 54.31 54.31)
+  1 by 1 by 1 MPI processor grid
+create_atoms     1 box
+Created 64000 atoms
+  using lattice units in orthogonal box = (-54.31 -54.31 -54.31) to (54.31 54.31 54.31)
+  create_atoms CPU = 0.006 seconds
+
+pair_style       tersoff/zbl
+pair_coeff       * * SiC.tersoff.zbl Si
+Reading tersoff/zbl potential file SiC.tersoff.zbl with DATE: 2009-04-15
+
+mass             1 28.0855
+
+velocity         all create 300 42534 mom yes rot yes loop geom
+
+group            pka id 1
+1 atoms in group pka
+velocity         pka set 1120 1620 400
+
+fix              1 all nve
+fix              2 all dt/reset 1 NULL 0.001 0.05 emax 10.0
+fix              3 all electron/stopping/fit 4.63 3.3e-3 4.0e-8
+
+thermo           5
+thermo_style     custom step dt time temp pe ke f_3
+thermo_modify    lost warn flush yes
+
+#dump             0 all custom 10 dump.pka_* id type x y z vx vy vz fx fy fz
+#dump_modify      0 first yes
+
+run              100
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+
+- fix electron/stopping/fit command: https://doi.org/10.1063/1.5022471, https://doi.org/10.1103/PhysRevB.102.024107
+
+@Article{Stewart2018,
+ author  = {J. A. Stewart and G. Brookman and P. Price and M. Franco and W. Ji and K. Hattar and R. Dingreville},
+ title   = {Characterizing Single Isolated Radiation-Damage Events from Molecular Dynamics via Virtual Diffraction Methods},
+ journal = {Journal of Applied Physics},
+ year    = {2018},
+ volume  = {123},
+ number  = {16},
+ pages   = {165902}
+}
+
+@Article{Lee2020,
+ author  = {C. W. Lee and J. A. Stewart and S. M. Foiles and R. Dingreville and A. Schleife },
+ title   = {Multiscale Simulations of Electron and Ion Dynamics in Self-Irradiated Silicon},
+ journal = {Physical Review~B},
+ year    = {2020},
+ volume  = {102},
+ number  = {2},
+ pages   = {024107}
+}
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 5
+  ghost atom cutoff = 5
+  binsize = 2.5, bins = 44 44 44
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair tersoff/zbl, perpetual
+      attributes: full, newton on
+      pair build: full/bin/atomonly
+      stencil: full/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 23.91 | 23.91 | 23.91 Mbytes
+   Step           Dt            Time           Temp          PotEng         KinEng          f_3      
+         0   2.4879625e-05  0              21258.729     -296293.96      175863.26      0            
+         5   9.2458405e-06  9.0353213e-05  21252.063     -296277.66      175808.12      38.833884    
+        10   6.1529789e-06  0.00013001544  21246.739     -296250.61      175764.07      55.87536     
+        15   4.900613e-06   0.000156794    21242.649     -296228.23      175730.24      67.378411    
+        20   5.857591e-06   0.00018285242  21239.567     -296213.92      175704.74      78.570053    
+        25   7.0264361e-06  0.00021484819  21237.278     -296208.71      175685.81      92.309909    
+        30   8.2417532e-06  0.00025085798  21236.031     -296213.94      175675.49      107.77219    
+        35   6.4790563e-06  0.00029198243  21233.497     -296210.5       175654.53      125.42953    
+        40   7.2993675e-06  0.00032557066  21231.236     -296206.2       175635.82      139.84917    
+        45   6.922944e-06   0.0003624266   21230.261     -296213.96      175627.76      155.67033    
+        50   7.2394687e-06  0.00039626896  21230.561     -296230.99      175630.24      170.19758    
+        55   1.08275e-05    0.000442069    21230.066     -296246.63      175626.14      189.85822    
+        60   5.7638873e-06  0.00048342234  21226.098     -296231.57      175593.32      207.60844    
+        65   5.8457974e-06  0.00051104788  21222.568     -296214.13      175564.12      219.46391    
+        70   6.719863e-06   0.00054246405  21220.2       -296208.02      175544.53      232.94411    
+        75   7.0300603e-06  0.0005763287   21219.785     -296219.1       175541.1       247.47387    
+        80   1.7502102e-05  0.00062160764  21221.264     -296250.98      175553.34      266.90184    
+        85   2.2095018e-05  0.00073871745  21218.09      -296274.9       175527.08      317.15148    
+        90   8.299657e-06   0.00081496187  21211.295     -296251.74      175470.87      349.85925    
+        95   5.146929e-06   0.0008478291   21205.368     -296216.74      175421.83      363.95421    
+       100   5.8319597e-06  0.00087633392  21200.206     -296186.41      175379.13      376.1748     
+Loop time of 7.43792 on 1 procs for 100 steps with 64000 atoms
+
+Performance: 0.007 ns/day, 3542.700 hours/ns, 13.445 timesteps/s, 860.456 katom-step/s
+99.7% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 7.08       | 7.08       | 7.08       |   0.0 | 95.19
+Neigh   | 0.18857    | 0.18857    | 0.18857    |   0.0 |  2.54
+Comm    | 0.0093335  | 0.0093335  | 0.0093335  |   0.0 |  0.13
+Output  | 0.0052171  | 0.0052171  | 0.0052171  |   0.0 |  0.07
+Modify  | 0.14298    | 0.14298    | 0.14298    |   0.0 |  1.92
+Other   |            | 0.01176    |            |       |  0.16
+
+Nlocal:          64000 ave       64000 max       64000 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:          18341 ave       18341 max       18341 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:              0 ave           0 max           0 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+FullNghs:  1.79199e+06 ave 1.79199e+06 max 1.79199e+06 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 1791990
+Ave neighs/atom = 27.999844
+Neighbor list builds = 8
+Dangerous builds = 0
+Total wall time: 0:00:07

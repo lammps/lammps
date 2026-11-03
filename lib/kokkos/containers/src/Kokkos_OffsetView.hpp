@@ -471,6 +471,7 @@ class OffsetView : public View<DataType, Properties...> {
     KOKKOS_IF_ON_HOST((return runtime_check_begins_ends_host(begins, ends);))
     KOKKOS_IF_ON_DEVICE(
         (return runtime_check_begins_ends_device(begins, ends);))
+    KOKKOS_IMPL_UNREACHABLE();
   }
 
   // Constructor around unmanaged data after checking begins < ends for all
@@ -1115,23 +1116,6 @@ KOKKOS_INLINE_FUNCTION
   return Kokkos::Experimental::Impl::subview_offset(src, args...);
 }
 
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
-namespace Experimental {
-template <class D, class... P, class... Args>
-KOKKOS_DEPRECATED_WITH_COMMENT("Use Kokkos::subview instead")
-KOKKOS_INLINE_FUNCTION
-    typename Kokkos::Experimental::Impl::GetOffsetViewTypeFromViewType<
-        typename Kokkos::Impl::ViewMapping<
-            void /* deduce subview type from source view traits */
-            ,
-            ViewTraits<D, P...>, Args...>::type>::type
-    subview(const Kokkos::Experimental::OffsetView<D, P...>& src,
-            Args... args) {
-  return Kokkos::subview(src, args...);
-}
-}  // namespace Experimental
-#endif
-
 }  // namespace Kokkos
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
@@ -1151,12 +1135,20 @@ KOKKOS_INLINE_FUNCTION bool operator==(const OffsetView<LT, LP...>& lhs,
                         typename rhs_traits::array_layout> &&
          std::is_same_v<typename lhs_traits::memory_space,
                         typename rhs_traits::memory_space> &&
-         unsigned(lhs_traits::rank) == unsigned(rhs_traits::rank) &&
          lhs.data() == rhs.data() && lhs.span() == rhs.span() &&
-         lhs.extent(0) == rhs.extent(0) && lhs.extent(1) == rhs.extent(1) &&
-         lhs.extent(2) == rhs.extent(2) && lhs.extent(3) == rhs.extent(3) &&
-         lhs.extent(4) == rhs.extent(4) && lhs.extent(5) == rhs.extent(5) &&
-         lhs.extent(6) == rhs.extent(6) && lhs.extent(7) == rhs.extent(7) &&
+#ifndef KOKKOS_ENABLE_IMPL_VIEW_LEGACY
+         lhs.extents() == rhs.extents() &&
+#else
+         unsigned(lhs_traits::rank) == unsigned(rhs_traits::rank) &&
+         (lhs_traits::rank < 1 || (lhs.extent(0) == rhs.extent(0))) &&
+         (lhs_traits::rank < 2 || (lhs.extent(1) == rhs.extent(1))) &&
+         (lhs_traits::rank < 3 || (lhs.extent(2) == rhs.extent(2))) &&
+         (lhs_traits::rank < 4 || (lhs.extent(3) == rhs.extent(3))) &&
+         (lhs_traits::rank < 5 || (lhs.extent(4) == rhs.extent(4))) &&
+         (lhs_traits::rank < 6 || (lhs.extent(5) == rhs.extent(5))) &&
+         (lhs_traits::rank < 7 || (lhs.extent(6) == rhs.extent(6))) &&
+         (lhs_traits::rank < 8 || (lhs.extent(7) == rhs.extent(7))) &&
+#endif
          lhs.begin(0) == rhs.begin(0) && lhs.begin(1) == rhs.begin(1) &&
          lhs.begin(2) == rhs.begin(2) && lhs.begin(3) == rhs.begin(3) &&
          lhs.begin(4) == rhs.begin(4) && lhs.begin(5) == rhs.begin(5) &&
@@ -1182,12 +1174,21 @@ KOKKOS_INLINE_FUNCTION bool operator==(const View<LT, LP...>& lhs,
                         typename rhs_traits::array_layout> &&
          std::is_same_v<typename lhs_traits::memory_space,
                         typename rhs_traits::memory_space> &&
-         unsigned(lhs_traits::rank) == unsigned(rhs_traits::rank) &&
          lhs.data() == rhs.data() && lhs.span() == rhs.span() &&
-         lhs.extent(0) == rhs.extent(0) && lhs.extent(1) == rhs.extent(1) &&
-         lhs.extent(2) == rhs.extent(2) && lhs.extent(3) == rhs.extent(3) &&
-         lhs.extent(4) == rhs.extent(4) && lhs.extent(5) == rhs.extent(5) &&
-         lhs.extent(6) == rhs.extent(6) && lhs.extent(7) == rhs.extent(7);
+#ifndef KOKKOS_ENABLE_IMPL_VIEW_LEGACY
+         lhs.extents() == rhs.extents()
+#else
+         unsigned(lhs_traits::rank) == unsigned(rhs_traits::rank) &&
+         (lhs_traits::rank < 1 || (lhs.extent(0) == rhs.extent(0))) &&
+         (lhs_traits::rank < 2 || (lhs.extent(1) == rhs.extent(1))) &&
+         (lhs_traits::rank < 3 || (lhs.extent(2) == rhs.extent(2))) &&
+         (lhs_traits::rank < 4 || (lhs.extent(3) == rhs.extent(3))) &&
+         (lhs_traits::rank < 5 || (lhs.extent(4) == rhs.extent(4))) &&
+         (lhs_traits::rank < 6 || (lhs.extent(5) == rhs.extent(5))) &&
+         (lhs_traits::rank < 7 || (lhs.extent(6) == rhs.extent(6))) &&
+         (lhs_traits::rank < 8 || (lhs.extent(7) == rhs.extent(7)))
+#endif
+      ;
 }
 
 template <class LT, class... LP, class RT, class... RP>
@@ -1478,6 +1479,16 @@ create_mirror_view_and_copy(
     std::string const& name = "") {
   return {create_mirror_view_and_copy(space, src.view(), name), src.begins()};
 }
+
+template <class T, class... P>
+auto create_mirror_view_and_copy(
+    const Kokkos::Experimental::OffsetView<T, P...>& src) {
+  return create_mirror_view_and_copy(
+      typename Kokkos::Experimental::OffsetView<
+          T, P...>::host_mirror_type::memory_space{},
+      src);
+}
+
 } /* namespace Kokkos */
 
 //----------------------------------------------------------------------------

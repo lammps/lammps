@@ -43,7 +43,17 @@ using namespace MFOxdna;
 
 /* ---------------------------------------------------------------------- */
 
-PairOxrna2Xstk::PairOxrna2Xstk(LAMMPS *lmp) : Pair(lmp)
+PairOxrna2Xstk::PairOxrna2Xstk(LAMMPS *lmp) :
+    Pair(lmp), k_xst(nullptr), cut_xst_0(nullptr), cut_xst_c(nullptr), cut_xst_lo(nullptr),
+    cut_xst_hi(nullptr), cut_xst_lc(nullptr), cut_xst_hc(nullptr), b_xst_lo(nullptr),
+    b_xst_hi(nullptr), cutsq_xst_hc(nullptr), a_xst1(nullptr), theta_xst1_0(nullptr),
+    dtheta_xst1_ast(nullptr), b_xst1(nullptr), dtheta_xst1_c(nullptr), a_xst2(nullptr),
+    theta_xst2_0(nullptr), dtheta_xst2_ast(nullptr), b_xst2(nullptr), dtheta_xst2_c(nullptr),
+    a_xst3(nullptr), theta_xst3_0(nullptr), dtheta_xst3_ast(nullptr), b_xst3(nullptr),
+    dtheta_xst3_c(nullptr), a_xst7(nullptr), theta_xst7_0(nullptr), dtheta_xst7_ast(nullptr),
+    b_xst7(nullptr), dtheta_xst7_c(nullptr), a_xst8(nullptr), theta_xst8_0(nullptr),
+    dtheta_xst8_ast(nullptr), b_xst8(nullptr), dtheta_xst8_c(nullptr), nxyz_xtrct(nullptr),
+    fix_lrf(nullptr)
 {
   single_enable = 0;
   writedata = 0;
@@ -809,7 +819,7 @@ void PairOxrna2Xstk::init_style()
 {
   fix_lrf = nullptr;
   auto fixes = modify->get_fix_by_style("^OXDNA/LRF");
-  if (fixes.size() == 0) error->all(FLERR, "Fix OXDNA/LRF not found. Ensure pair oxdna/excv is present");
+  if (fixes.empty()) error->all(FLERR, "Fix OXDNA/LRF not found. Ensure pair oxdna/excv is present");
   else fix_lrf = dynamic_cast<FixOxdnaLRF *>(fixes[0]);
 
   neighbor->add_request(this, NeighConst::REQ_DEFAULT);

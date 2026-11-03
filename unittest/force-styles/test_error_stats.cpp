@@ -5,6 +5,7 @@
 
 // include the implementation since ErrorStats is a standalone class
 // this way we don't have to link against the style_tests and lammps libs
+// (error_stats.{h,cpp} live one level up, shared with the other test suites)
 #include "error_stats.cpp"
 #include "fmtlib_format.cpp"
 #include "fmtlib_os.cpp"

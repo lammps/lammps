@@ -4,6 +4,7 @@
 .. index:: pair_style sw/kk
 .. index:: pair_style sw/omp
 .. index:: pair_style sw/mod
+.. index:: pair_style sw/mod/kk
 .. index:: pair_style sw/mod/omp
 
 pair_style sw command
@@ -14,7 +15,7 @@ Accelerator Variants: *sw/gpu*, *sw/intel*, *sw/kk*, *sw/omp*
 pair_style sw/mod command
 =========================
 
-Accelerator Variants: *sw/mod/omp*
+Accelerator Variants: *sw/mod/kk*, *sw/mod/omp*
 
 Syntax
 """"""
@@ -156,9 +157,9 @@ command, where N is the number of LAMMPS atom types:
 See the :doc:`pair_coeff <pair_coeff>` page for alternate ways
 to specify the path for the potential file.
 
-As an example, imagine a file SiC.sw has Stillinger-Weber values for
-Si and C.  If your LAMMPS simulation has 4 atoms types and you want
-the first 3 to be Si, and the fourth to be C, you would use the following
+As an example, imagine a file SiC.sw has Stillinger-Weber values for Si
+and C.  If your LAMMPS simulation has 4 atom types and you want the
+first 3 to be Si, and the fourth to be C, you would use the following
 pair_coeff command:
 
 .. code-block:: LAMMPS

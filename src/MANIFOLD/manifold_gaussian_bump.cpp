@@ -153,8 +153,8 @@ manifold_gaussian_bump::manifold_gaussian_bump(class LAMMPS* lmp,
 
 manifold_gaussian_bump::~manifold_gaussian_bump()
 {
-  if (lut_z ) delete lut_z;
-  if (lut_zp) delete lut_zp;
+  delete lut_z;
+  delete lut_zp;
 }
 
 

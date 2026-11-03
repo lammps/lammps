@@ -17,10 +17,8 @@ mpicc simple.o liblammpsplugin.o -ldl -o simple-plugin
 
 or using the provided CMake file with:
 
-mkdir build
-cd build
-cmake ../
-cmake --build .
+cmake -S . -B build
+cmake --build build
 
 You also need to build LAMMPS as a shared library
 (see examples/COUPLE/README), e.g.
@@ -31,10 +29,8 @@ make mode=shlib mpi
 or
 
 cd $HOME/lammps
-mkdir build-shared
-cd build-shared
-cmake -D BUILD_MPI=on -D BUILD_SHARED_LIBS=on ../cmake
-make
+cmake -S cmake -B build-shared -D BUILD_MPI=on -D BUILD_SHARED_LIBS=on
+cmake --build build-shared
 
 You then run simple-plugin on a parallel machine
 on some number of processors Q with 3 arguments:

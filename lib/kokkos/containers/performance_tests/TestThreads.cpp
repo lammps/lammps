@@ -20,6 +20,7 @@ import kokkos.unordered_map;
 #include <TestUnorderedMapPerformance.hpp>
 
 #include <TestDynRankView.hpp>
+#include <TestDualView.hpp>
 
 #include <iomanip>
 #include <sstream>
@@ -32,6 +33,12 @@ TEST(threads, dynrankview_perf) {
   std::cout << "Threads" << std::endl;
   std::cout << " DynRankView vs View: Initialization Only " << std::endl;
   test_dynrankview_op_perf<Kokkos::Threads>(8192);
+}
+
+TEST(threads, dualview_perf) {
+  std::cout << "Threads" << std::endl;
+  std::cout << " DualView Access Performance " << std::endl;
+  test_dualview<size_t, Kokkos::Threads>();
 }
 
 TEST(threads, global_2_local) {

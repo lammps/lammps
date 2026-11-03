@@ -16,9 +16,12 @@ concurrency:
   group: ${{ github.event_name }}-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: ${{github.event_name == 'pull_request'}}
 
+permissions:
+  contents: read
+
 jobs:
   build:
-    name: Linux Unit Test
+    name: Linux Unit Test FFT_SINGLE
     if: ${{ github.repository == 'lammps/lammps' }}
     runs-on: ubuntu-latest
     env:
@@ -26,9 +29,10 @@ jobs:
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
       with:
         fetch-depth: 2
+        persist-credentials: false
 
     - name: Install extra packages
       run: |
@@ -44,7 +48,7 @@ jobs:
       run: mkdir build
 
     - name: Set up ccache
-      uses: actions/cache@v5
+      uses: actions/cache@v6
       with:
         path: ${{ env.CCACHE_DIR }}
         key: linux-unit-ccache-${{ github.sha }}
@@ -77,4 +81,13 @@ jobs:
     - name: Run Tests
       working-directory: build
       shell: bash
-      run: ctest -V
+      run: ctest -V --output-junit junit-linux-x86_64-fftsingle.xml
+
+    # test results from pull request branches are only for the submitters,
+    # only post-merge results are published for downstream reporting
+    - name: Upload JUnit test results for post-merge runs
+      if: ${{ always() && (github.event_name == 'push') }}
+      uses: actions/upload-artifact@v7
+      with:
+        name: junit-linux-x86_64-fftsingle
+        path: build/junit-linux-x86_64-fftsingle.xml

@@ -107,15 +107,15 @@ void PairCoulDielKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   type = atomKK->k_type.view<DeviceType>();
   nlocal = atom->nlocal;
   nall = atom->nlocal + atom->nghost;
-  special_lj[0] = force->special_lj[0];
-  special_lj[1] = force->special_lj[1];
-  special_lj[2] = force->special_lj[2];
-  special_lj[3] = force->special_lj[3];
-  special_coul[0] = force->special_coul[0];
-  special_coul[1] = force->special_coul[1];
-  special_coul[2] = force->special_coul[2];
-  special_coul[3] = force->special_coul[3];
-  qqrd2e = force->qqrd2e;
+  special_lj[0] = static_cast<KK_FLOAT>(force->special_lj[0]);
+  special_lj[1] = static_cast<KK_FLOAT>(force->special_lj[1]);
+  special_lj[2] = static_cast<KK_FLOAT>(force->special_lj[2]);
+  special_lj[3] = static_cast<KK_FLOAT>(force->special_lj[3]);
+  special_coul[0] = static_cast<KK_FLOAT>(force->special_coul[0]);
+  special_coul[1] = static_cast<KK_FLOAT>(force->special_coul[1]);
+  special_coul[2] = static_cast<KK_FLOAT>(force->special_coul[2]);
+  special_coul[3] = static_cast<KK_FLOAT>(force->special_coul[3]);
+  qqrd2e = static_cast<KK_FLOAT>(force->qqrd2e);
   newton_pair = force->newton_pair;
 
   EV_FLOAT ev;
@@ -125,14 +125,14 @@ void PairCoulDielKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   ev = pair_compute<PairCoulDielKokkos<DeviceType>,void>
     (this,(NeighListKokkos<DeviceType>*)list);
 
-  if (eflag) eng_coul += ev.ecoul;
+  if (eflag_global) eng_coul += static_cast<double>(ev.ecoul);
   if (vflag_global) {
-    virial[0] += ev.v[0];
-    virial[1] += ev.v[1];
-    virial[2] += ev.v[2];
-    virial[3] += ev.v[3];
-    virial[4] += ev.v[4];
-    virial[5] += ev.v[5];
+    virial[0] += static_cast<double>(ev.v[0]);
+    virial[1] += static_cast<double>(ev.v[1]);
+    virial[2] += static_cast<double>(ev.v[2]);
+    virial[3] += static_cast<double>(ev.v[3]);
+    virial[4] += static_cast<double>(ev.v[4]);
+    virial[5] += static_cast<double>(ev.v[5]);
   }
 
   if (eflag_atom) {
@@ -191,12 +191,11 @@ compute_ecoul(const KK_FLOAT& rsq, const int& /*i*/, const int& j,
   const KK_FLOAT r         = Kokkos::sqrt(rsq);
   const KK_FLOAT sigmae_ij = STACKPARAMS ? m_params[itype][jtype].sigmae : params(itype,jtype).sigmae;
   const KK_FLOAT rme_ij    = STACKPARAMS ? m_params[itype][jtype].rme    : params(itype,jtype).rme;
-  const KK_FLOAT offset_ij = STACKPARAMS ? m_params[itype][jtype].offset : params(itype,jtype).offset;
   const KK_FLOAT rarg      = (r - rme_ij) / sigmae_ij;
   const KK_FLOAT th        = Kokkos::tanh(rarg);
   const KK_FLOAT epsr      = m_a_eps + m_b_eps * th;
   const KK_FLOAT ecoul     = qqrd2e * qtmp * q(j) *
-    (m_eps_s / epsr - static_cast<KK_FLOAT>(1.0)) / r - offset_ij;
+    (m_eps_s / epsr - static_cast<KK_FLOAT>(1.0)) / r;
   return factor_coul * ecoul;
 }
 
@@ -262,22 +261,21 @@ double PairCoulDielKokkos<DeviceType>::init_one(int i, int j)
 
   k_params.view_host()(i,j).sigmae = static_cast<KK_FLOAT>(sigmae[i][j]);
   k_params.view_host()(i,j).rme    = static_cast<KK_FLOAT>(rme[i][j]);
-  k_params.view_host()(i,j).offset = static_cast<KK_FLOAT>(offset[i][j]);
   k_params.view_host()(i,j).cutsq  = static_cast<KK_FLOAT>(cutsqm);
 
   k_params.view_host()(j,i) = k_params.view_host()(i,j);
   if (i<MAX_TYPES_STACKPARAMS+1 && j<MAX_TYPES_STACKPARAMS+1) {
     m_params[i][j] = m_params[j][i] = k_params.view_host()(i,j);
-    m_cutsq[j][i]      = m_cutsq[i][j]      = cutsqm;
-    m_cut_ljsq[j][i]   = m_cut_ljsq[i][j]   = cutsqm;
-    m_cut_coulsq[j][i] = m_cut_coulsq[i][j] = cutsqm;
+    m_cutsq[j][i]      = m_cutsq[i][j]      = static_cast<KK_FLOAT>(cutsqm);
+    m_cut_ljsq[j][i]   = m_cut_ljsq[i][j]   = static_cast<KK_FLOAT>(cutsqm);
+    m_cut_coulsq[j][i] = m_cut_coulsq[i][j] = static_cast<KK_FLOAT>(cutsqm);
   }
 
   k_cutsq.view_host()(i,j) = k_cutsq.view_host()(j,i) = cutsqm;
   k_cutsq.modify_host();
-  k_cut_ljsq.view_host()(i,j) = k_cut_ljsq.view_host()(j,i) = cutsqm;
+  k_cut_ljsq.view_host()(i,j) = k_cut_ljsq.view_host()(j,i) = static_cast<KK_FLOAT>(cutsqm);
   k_cut_ljsq.modify_host();
-  k_cut_coulsq.view_host()(i,j) = k_cut_coulsq.view_host()(j,i) = cutsqm;
+  k_cut_coulsq.view_host()(i,j) = k_cut_coulsq.view_host()(j,i) = static_cast<KK_FLOAT>(cutsqm);
   k_cut_coulsq.modify_host();
   k_params.modify_host();
 

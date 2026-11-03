@@ -32,6 +32,7 @@
 #include "neighbor.h"
 #include "respa.h"
 #include "safe_pointers.h"
+#include "tokenizer.h"
 #include "update.h"
 
 #include <cmath>
@@ -604,14 +605,20 @@ int FixBocs::read_F_table(char *filename, int p_basis_type)
     const double volumeIntervalTolerance = 0.001;
     int lineNum = 0;  // this value is only for  message
     int numBadVolumeIntervals = 0; // count these for message
-    float f1, f2;
-    int test_sscanf;
     for (int i = 0; i < (int)inputLines.size(); ++i) {
       lineNum++;  // count each line processed now so lineNum messages can be 1-based
-      test_sscanf = sscanf(inputLines.at(i).c_str()," %f , %f ",&f1, &f2);
-      if (test_sscanf == 2) {
-        data[VOLUME][i] = (double)f1;
-        data[PRESSURE_CORRECTION][i] = (double)f2;
+      double v1 = 0.0, v2 = 0.0;
+      bool goodline = true;
+      try {
+        ValueTokenizer values(inputLines.at(i), " ,\t\n\r\f");
+        v1 = values.next_double();
+        v2 = values.next_double();
+      } catch (TokenizerException &) {
+        goodline = false;
+      }
+      if (goodline) {
+        data[VOLUME][i] = v1;
+        data[PRESSURE_CORRECTION][i] = v2;
         if (i == 1) {
           // second entry is used to compute the validation interval used below
           stdVolumeInterval = data[VOLUME][i] - data[VOLUME][i-1];

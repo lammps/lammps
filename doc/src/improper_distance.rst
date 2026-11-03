@@ -37,7 +37,8 @@ by the other three atoms.  If the 4 atoms in an improper quadruplet
 command) are ordered I,J,K,L then the I-atom is assumed to be the
 central atom.
 
-.. image:: JPG/improper_distance.jpg
+.. image:: JPG/improper_distance.png
+   :width: 50%
    :align: center
 
 Note that defining 4 atoms to interact in this way, does not mean that

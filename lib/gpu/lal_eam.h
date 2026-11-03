@@ -30,7 +30,6 @@ class EAM : public BaseAtomic<numtyp, acctyp> {
   /// Clear any previous data and set up for a new LAMMPS run
   /** \param max_nbors initial number of rows in the neighbor matrix
     * \param cell_size cutoff + skin
-    * \param gpu_split fraction of particles handled by device
     *
     * Returns:
     * -  0 if successful
@@ -41,10 +40,11 @@ class EAM : public BaseAtomic<numtyp, acctyp> {
   int init(const int ntypes, double host_cutforcesq, int **host_type2rhor,
            int **host_type2z2r, int *host_type2frho, double ***host_rhor_spline,
            double ***host_z2r_spline, double ***host_frho_spline, double** host_cutsq,
-           double rdr, double rdrho, double rhomax, int nrhor, int nrho, int nz2r,
+           double rdr, double rdrho, double rhomax, double rhomin,
+           const int he_flag, int nrhor, int nrho, int nz2r,
            int nfrho, int nr, const int nlocal, const int nall,
            const int max_nbors, const int maxspecial, const double cell_size,
-           const double gpu_split, FILE *_screen);
+           FILE *_screen);
 
   // Copy charges to device asynchronously
   inline void add_fp_data() {
@@ -69,8 +69,8 @@ class EAM : public BaseAtomic<numtyp, acctyp> {
   void compute(const int f_ago, const int inum_full, const int, const int nall,
                double **host_x, int *host_type, int *ilist, int *numj,
                int **firstneigh, const bool eflag, const bool vflag,
-               const bool eatom, const bool vatom, int &host_start,
-               const double cpu_time, bool &success,
+               const bool eatom, const bool vatom,
+               bool &success,
                void **fp_ptr);
 
   /// Pair loop with device neighboring
@@ -78,8 +78,8 @@ class EAM : public BaseAtomic<numtyp, acctyp> {
                 double **host_x, int *host_type, double *sublo,
                 double *subhi, tagint *tag, int **nspecial,
                 tagint **special, const bool eflag, const bool vflag,
-                const bool eatom, const bool vatom, int &host_start,
-                int **ilist, int **numj, const double cpu_time, bool &success,
+                const bool eatom, const bool vatom,
+                int **ilist, int **numj, bool &success,
                 int &inum, void **fp_ptr, double *prd, int *periodicity);
 
   /// Compute forces and energies after fp are ready
@@ -111,7 +111,8 @@ class EAM : public BaseAtomic<numtyp, acctyp> {
 
   UCL_D_Vec<numtyp> cutsq;
 
-  numtyp _cutforcesq,_rdr,_rdrho, _rhomax;
+  numtyp _cutforcesq,_rdr,_rdrho, _rhomax, _rhomin;
+  int _he_flag;
 
   int _nfrho,_nrhor,_nrho,_nz2r,_nr;
 

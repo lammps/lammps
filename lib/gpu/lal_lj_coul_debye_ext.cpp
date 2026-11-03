@@ -18,6 +18,7 @@
 #include <cmath>
 
 #include "lal_lj_coul_debye.h"
+#include "lammps_gpu.h"
 
 using namespace std;
 using namespace LAMMPS_AL;
@@ -27,6 +28,8 @@ static LJCoulDebye<PRECISION,ACC_PRECISION> LJCDMF;
 // ---------------------------------------------------------------------------
 // Allocate memory on host and device and copy constants to device
 // ---------------------------------------------------------------------------
+
+namespace LAMMPS_GPU {
 int ljcd_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
                   double **host_lj2, double **host_lj3, double **host_lj4,
                   double **offset, double *special_lj, const int inum,
@@ -37,7 +40,6 @@ int ljcd_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
                   const double kappa) {
   LJCDMF.clear();
   gpu_mode=LJCDMF.device->gpu_mode();
-  double gpu_split=LJCDMF.device->particle_split();
   int first_gpu=LJCDMF.device->first_device();
   int last_gpu=LJCDMF.device->last_device();
   int world_me=LJCDMF.device->world_me();
@@ -59,7 +61,7 @@ int ljcd_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
   if (world_me==0)
     init_ok=LJCDMF.init(ntypes, cutsq, host_lj1, host_lj2, host_lj3,
                         host_lj4, offset, special_lj, inum, nall, max_nbors,
-                        maxspecial, cell_size, gpu_split, screen, host_cut_ljsq,
+                        maxspecial, cell_size, screen, host_cut_ljsq,
                         host_cut_coulsq, host_special_coul, qqrd2e, kappa);
 
   LJCDMF.device->world_barrier();
@@ -78,7 +80,7 @@ int ljcd_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
     if (gpu_rank==i && world_me!=0)
       init_ok=LJCDMF.init(ntypes, cutsq, host_lj1, host_lj2, host_lj3, host_lj4,
                           offset, special_lj, inum, nall, max_nbors, maxspecial,
-                          cell_size, gpu_split, screen, host_cut_ljsq,
+                          cell_size, screen, host_cut_ljsq,
                           host_cut_coulsq, host_special_coul, qqrd2e, kappa);
 
     LJCDMF.device->serialize_init();
@@ -97,28 +99,25 @@ void ljcd_gpu_clear() {
   LJCDMF.clear();
 }
 
-int** ljcd_gpu_compute_n(const int ago, const int inum_full,
-                         const int nall, double **host_x, int *host_type,
-                         double *sublo, double *subhi, tagint *tag, int **nspecial,
-                         tagint **special, const bool eflag, const bool vflag,
-                         const bool eatom, const bool vatom, int &host_start,
-                         int **ilist, int **jnum, const double cpu_time,
-                         bool &success, double *host_q, double *boxlo,
-                         double *prd, int *periodicity) {
+int **ljcd_gpu_compute_n(const int ago, const int inum_full, const int nall, double **host_x,
+                         int *host_type, double *sublo, double *subhi, tagint *tag, int **nspecial,
+                         tagint **special, const bool eflag, const bool vflag, const bool eatom,
+                         const bool vatom, int **ilist, int **jnum, bool &success, double *host_q,
+                         double *boxlo, double *prd, int *periodicity)
+{
   return LJCDMF.compute(ago, inum_full, nall, host_x, host_type, sublo,
                         subhi, tag, nspecial, special, eflag, vflag, eatom,
-                        vatom, host_start, ilist, jnum, cpu_time, success,
+                        vatom, ilist, jnum, success,
                         host_q, boxlo, prd, periodicity);
 }
 
 void ljcd_gpu_compute(const int ago, const int inum_full, const int nall,
                      double **host_x, int *host_type, int *ilist, int *numj,
                      int **firstneigh, const bool eflag, const bool vflag,
-                     const bool eatom, const bool vatom, int &host_start,
-                     const double cpu_time, bool &success, double *host_q,
+                     const bool eatom, const bool vatom, bool &success, double *host_q,
                      const int nlocal, double *boxlo, double *prd) {
   LJCDMF.compute(ago,inum_full,nall,host_x,host_type,ilist,numj,firstneigh,eflag,
-                vflag,eatom,vatom,host_start,cpu_time,success,host_q,
+                vflag,eatom,vatom,success,host_q,
                 nlocal,boxlo,prd);
 }
 
@@ -126,4 +125,4 @@ double ljcd_gpu_bytes() {
   return LJCDMF.host_memory_usage();
 }
 
-
+} // namespace LAMMPS_GPU

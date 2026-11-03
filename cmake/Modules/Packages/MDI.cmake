@@ -1,4 +1,11 @@
 find_package(mdi QUIET)
+
+# set policy to use the time of extraction as timestamps of files unpacked from downloaded
+# archives, so that updating an archive version triggers rebuilding all dependent objects
+ if(POLICY CMP0135)
+  cmake_policy(SET CMP0135 NEW)
+endif()
+
 if(${mdi_FOUND})
   set(DOWNLOAD_MDI_DEFAULT OFF)
 else()
@@ -8,10 +15,9 @@ option(DOWNLOAD_MDI "Download and compile the MDI library instead of using an al
 
 if(DOWNLOAD_MDI)
   message(STATUS "MDI download requested - we will build our own")
-  set(MDI_URL "https://github.com/MolSSI-MDI/MDI_Library/archive/v1.4.26.tar.gz" CACHE STRING "URL for MDI tarball")
-  set(MDI_SHA256 "8cbd80ae9adf44394b693fe812b8e4e8ca506173b3ca1f31002adbe7eaf61362" CACHE STRING "SHA256 checksum for MDI tarball")
-  mark_as_advanced(MDI_URL)
-  mark_as_advanced(MDI_SHA256)
+  SetDownloadSettings(MDI "MDI"
+    "https://github.com/MolSSI-MDI/MDI_Library/archive/v1.4.26.tar.gz"
+    "8cbd80ae9adf44394b693fe812b8e4e8ca506173b3ca1f31002adbe7eaf61362")
   GetFallbackURL(MDI_URL MDI_FALLBACK)
   enable_language(C)
 

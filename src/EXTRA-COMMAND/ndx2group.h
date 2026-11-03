@@ -21,7 +21,6 @@ CommandStyle(ndx2group,Ndx2Group);
 #define LMP_NDX2GROUP_H
 
 #include "command.h"
-#include <vector>
 
 namespace LAMMPS_NS {
 

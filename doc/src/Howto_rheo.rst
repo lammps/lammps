@@ -17,7 +17,7 @@ into distinct classes to simplify the development of new integration schemes
 which can call these calculations. Additional numerical details can be found in
 :ref:`(Palermo) <howto_rheo_palermo>` and :ref:`(Clemmer) <howto_rheo_clemmer>`.
 Example movies illustrating some of these capabilities are found at
-https://www.lammps.org/movies.html#rheopackage.
+https://www.lammps.org/gallery/rheopackage/.
 
 Note, if you simply want to run a traditional SPH simulation, the :ref:`SPH package
 <PKG-SPH>` package is likely better suited for your application. It has fewer advanced
@@ -49,8 +49,8 @@ affect particles. Instead, one should use the *sph/e* attribute.
 The status variable uses bit-masking to track various properties of a particle
 such as its current state of matter (fluid or solid) and its location relative
 to a surface. Some of these properties (and others) can be accessed using
-:doc:`compute rheo/property/atom <compute_rheo_property_atom>`. The *status*
-attribute in :doc:`the set command <set>` only allows control over the first bit
+:doc:`compute rheo/property/atom <compute_rheo_property_atom>`. The *rheo/status*
+keyword of :doc:`the set command <set>` only allows control over the first bit
 which sets the state of matter, 0 is fluid and 1 is solid.
 
 Fluid interactions, including pressure forces, viscous forces, and heat exchange,

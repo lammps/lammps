@@ -22,12 +22,21 @@ AtomStyle(body,AtomVecBody);
 
 #include "atom_vec.h"
 
+#include "creator_registry.h"
+
 namespace LAMMPS_NS {
+
+class Body;
 
 class AtomVecBody : public AtomVec {
  friend class CreateAtoms;
  public:
   class Body *bptr;
+
+  using BodyCreator = Body *(*)(LAMMPS *, int, char **);
+
+  // global registry of body style factory functions
+  static CreatorRegistry<BodyCreator> &body_styles();
 
   struct Bonus {
     double quat[4];

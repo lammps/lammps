@@ -33,7 +33,10 @@ using namespace MathSpecial;
 
 /* ---------------------------------------------------------------------- */
 
-PairBeck::PairBeck(LAMMPS *lmp) : Pair(lmp) {}
+PairBeck::PairBeck(LAMMPS *lmp) :
+    Pair(lmp), cut(nullptr), AA(nullptr), BB(nullptr), aa(nullptr), alpha(nullptr), beta(nullptr)
+{
+}
 
 /* ---------------------------------------------------------------------- */
 

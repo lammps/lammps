@@ -133,7 +133,7 @@ void NPairBin<HALF, NEWTON, TRI, SIZE, ATOMONLY>::build(NeighList *list)
         } else if (TRI) {
           // for triclinic, bin stencil is full in all 3 dims
           // must use itag/jtag to eliminate half the I/J interactions
-          // cannot use I/J exact coord comparision
+          // cannot use I/J exact coord comparison
           //   b/c transforming orthog -> lambda -> orthog for ghost atoms
           //   with an added PBC offset can shift all 3 coords by epsilon
           if (j <= i) continue;

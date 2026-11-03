@@ -11,6 +11,7 @@ post_commands: ! |
   fix move all nve
   fix test solute smd cvel 10.0 0.1 couple solvent 10.0 1.0 1.0 1.0 2.0
 input_file: in.fourmol
+input_coeffs: coeffs.fourmol
 natoms: 29
 global_vector: ! |-
   7 -72.83531855892923 -0.196791262041319 -14.912414089985008 -73.61374596861104 10.22450493836208 2.1932886239044738 -20.095737519339888

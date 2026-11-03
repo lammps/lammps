@@ -23,8 +23,8 @@ one atom of a bond on the top of the system and the other at the bottom.
    :figwidth: 80%
    :figclass: align-center
 
-   Snapshots of the bulk Rhodopsin in lipid layer and water system (right)
-   and the generated slab geometry (left)
+   Snapshots of the bulk Rhodopsin in lipid layer and water system (left)
+   and the generated slab geometry (right)
 
 .. admonition:: Disclaimer
    :class: note
@@ -98,7 +98,7 @@ Next we replace the :doc:`fix npt command <fix_nh>` with:
 
 .. code-block:: LAMMPS
 
-   fix            2 nvt temp 300.0 300.0 10.0
+   fix            2 all nvt temp 300.0 300.0 10.0
 
 We now have an open system and thus the adjustment of the cell in
 z-direction is no longer required.  Since splitting the bulk water

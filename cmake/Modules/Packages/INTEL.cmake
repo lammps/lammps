@@ -72,6 +72,31 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
         target_compile_options(lammps PRIVATE ${_FLAG})
     endif()
   endforeach()
+elseif(CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM")
+  include(CheckCXXCompilerFlag)
+  # the INTEL package requires vector instructions, so compile for the CPU of
+  # the build host unless a target architecture was selected already
+  set(_INTEL_LLVM_FLAGS -qopt-zmm-usage=high)
+  if(NOT "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_${BTYPE}}" MATCHES "(^| )(-x|-ax|-march=|/Qx|/Qax|/arch:)")
+    list(PREPEND _INTEL_LLVM_FLAGS -xHost)
+  endif()
+  foreach(_FLAG ${_INTEL_LLVM_FLAGS})
+    string(REGEX REPLACE "[ =\"]" "" _FLAGX ${_FLAG})
+    check_cxx_compiler_flag("${_FLAG}" COMPILER_SUPPORTS${_FLAGX})
+    if(COMPILER_SUPPORTS${_FLAGX})
+      target_compile_options(lammps PRIVATE ${_FLAG})
+    endif()
+  endforeach()
+  # the "-fp-model precise" flag (set in cmake/CMakeLists.txt) also keeps icpx from
+  # setting the CPU to flush subnormal numbers to zero when LAMMPS starts.  this is
+  # done by code that the compiler adds to main(), and without it some INTEL package
+  # styles become much slower when they produce subnormal numbers (e.g. sw in mixed
+  # precision), so it is requested explicitly for the LAMMPS executable.  -ftz must
+  # come after -fp-model precise, which is the case for target specific options
+  check_cxx_compiler_flag(-ftz COMPILER_SUPPORTS-ftz)
+  if(COMPILER_SUPPORTS-ftz)
+    target_compile_options(lmp PRIVATE -ftz)
+  endif()
 endif()
 
 # collect sources
@@ -97,6 +122,18 @@ if(PKG_KSPACE)
 endif()
 if(PKG_ML-SNAP)
   list(APPEND INTEL_SOURCES ${INTEL_SOURCES_DIR}/sna_intel.cpp)
+endif()
+
+# the "-fp-model precise" flag for the Intel LLVM compilers (set in cmake/CMakeLists.txt)
+# makes the INTEL package styles much slower, so it is overridden for the INTEL sources
+if(CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM")
+  foreach(_FLAG -fp-model=fast=2 -Wno-overriding-option -Wno-nan-infinity-disabled)
+    string(REGEX REPLACE "[ =\"]" "" _FLAGX ${_FLAG})
+    check_cxx_compiler_flag("${_FLAG}" COMPILER_SUPPORTS${_FLAGX})
+    if(COMPILER_SUPPORTS${_FLAGX})
+      set_property(SOURCE ${INTEL_SOURCES} APPEND PROPERTY COMPILE_OPTIONS ${_FLAG})
+    endif()
+  endforeach()
 endif()
 
 target_sources(lammps PRIVATE ${INTEL_SOURCES})

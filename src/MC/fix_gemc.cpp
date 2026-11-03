@@ -24,6 +24,7 @@
 #include "compute.h"
 #include "domain.h"
 #include "error.h"
+#include "fix.h"
 #include "force.h"
 #include "group.h"
 #include "input.h"
@@ -45,13 +46,16 @@
 #include "kspace.h"
 
 #include <cstring>
+#include <exception>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
 /* ---------------------------------------------------------------------- */
 
-FixGEMC::FixGEMC(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
+FixGEMC::FixGEMC(LAMMPS *lmp, int narg, char **arg) :
+    Fix(lmp, narg, arg), c_pe(nullptr), local_gas_list(nullptr), sublo(nullptr), subhi(nullptr),
+    random_universe(nullptr), random_world(nullptr), random_proc(nullptr)
 {
   if (narg != 11) utils::missing_cmd_args(FLERR, "fix gemc", error);
 
@@ -68,6 +72,9 @@ FixGEMC::FixGEMC(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
   global_freq = 1;
   time_depend = 1;
   restart_global = 1;
+  vector_flag = 1;
+  size_vector = 6;
+  extvector = 0;
 
   // box size changes with volume MC moves
 
@@ -102,7 +109,8 @@ FixGEMC::FixGEMC(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 
   // unique to proc and world
 
-  random_proc = new RanPark(lmp,seed+3*(myworld+1)+7*(me+1));
+  random_proc = new RanPark(lmp,seed);
+  random_proc->reset_rank(seed, universe->me);
 
   // unique to world, sync between procs
 
@@ -120,14 +128,45 @@ FixGEMC::FixGEMC(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 
   gemc_nmax = 0;
   local_gas_list = nullptr;
+  exclusion_group = exclusion_group_bit = 0;
+
+  ntranslation_attempts = ntranslation_successes = 0.0;
+  nrotation_attempts = nrotation_successes = 0.0;
+  nvolume_attempts = nvolume_successes = 0.0;
+  nexchange_attempts = nexchange_successes = 0.0;
+  for (auto &n : nlast) n = 0.0;
 }
 
 /* ---------------------------------------------------------------------- */
 
 FixGEMC::~FixGEMC()
 {
+  delete random_proc;
+  delete random_world;
+  delete random_universe;
   memory->destroy(local_gas_list);
   MPI_Comm_free(&comm_replica);
+
+  // delete exclusion group created in init()
+  // unset neighbor exclusion settings made in init()
+  // not necessary if group and neighbor classes already destroyed
+  //   when LAMMPS exits
+
+  if (exclusion_group_bit && group) {
+    auto group_id = std::string("FixGEMC:gemc_exclusion_group:") + id;
+    try {
+      group->assign(group_id + " delete");
+    } catch (std::exception &e) {
+      if (comm->me == 0)
+        utils::print(stderr, "Error deleting group {}: {}\n", group_id, e.what());
+    }
+  }
+
+  if (exclusion_group_bit && group && neighbor) {
+    int igroupall = group->find("all");
+    neighbor->exclusion_group_group_delete(exclusion_group, igroupall);
+    neighbor->exclusion_group_group_delete(exclusion_group, exclusion_group);
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -144,6 +183,8 @@ int FixGEMC::setmask()
 void FixGEMC::init()
 {
   if (!atom->mass) error->all(FLERR, Error::NOLASTLINE, "Fix gemc requires per atom type masses");
+  if (domain->triclinic) error->all(FLERR, "Fix gemc does not support triclinic boxes");
+  if (force->kspace) error->all(FLERR, "Fix gemc does not support long-range electrostatics");
   if (atom->rmass_flag && (comm->me == 0))
     error->warning(FLERR, "Fix gemc will use per atom type masses for velocity initialization");
 
@@ -181,7 +222,7 @@ void FixGEMC::init()
 
   // for full energy
 
-  c_pe = modify->compute[modify->find_compute("thermo_pe")];
+  c_pe = modify->get_compute_by_id("thermo_pe");
 
   // check if atoms charged
 
@@ -218,32 +259,34 @@ void FixGEMC::init()
   // keeps temporarily deleted particles from being added in potential energy calc
 
   // id from fix
+  // skip if already exists from previous init()
 
-  auto group_id = std::string("FixGEMC:gemc_exclusion_group:") + id;
-  group->assign(group_id + " subtract all all");
-  exclusion_group = group->find(group_id);
-  if (exclusion_group == -1)
-    error->universe_all(FLERR,"Could not find fix gemc exclusion group ID");
-  exclusion_group_bit = group->bitmask[exclusion_group];
+  if (!exclusion_group_bit) {
+    auto group_id = std::string("FixGEMC:gemc_exclusion_group:") + id;
+    group->assign(group_id + " subtract all all");
+    exclusion_group = group->find(group_id);
+    if (exclusion_group == -1)
+      error->universe_all(FLERR,"Could not find fix gemc exclusion group ID");
+    exclusion_group_bit = group->bitmask[exclusion_group];
 
-  // neighbor list exclusion setup
-  // turn off interactions between group all and the exclusion group
+    // neighbor list exclusion setup
+    // turn off interactions between group all and the exclusion group
+    // and between atoms in the exclusion group, since those are not in group all
 
-  neighbor->modify_params(fmt::format("exclude group {} all",group_id));
+    neighbor->modify_params(fmt::format("exclude group {} all",group_id));
+    neighbor->modify_params(fmt::format("exclude group {} {}",group_id,group_id));
+  }
 
   groupbitall = 1 | groupbit;
-
-  ntranslation_attempts = ntranslation_successes = 0.0;
-  nvolume_attempts = nvolume_successes = 0.0;
-  nexchange_attempts = nexchange_successes = 0.0;
 
   // initialize log volume ratio
 
   double vol_i, vol_j;
   vol_i = (xhi - xlo) * (yhi - ylo) * (zhi - zlo);
-  MPI_Sendrecv(&vol_i, 1, MPI_DOUBLE, 1 - myworld, 0,
-               &vol_j, 1, MPI_DOUBLE, 1 - myworld, 0,
-               comm_replica, MPI_STATUS_IGNORE);
+  if (me == 0)
+    MPI_Sendrecv(&vol_i, 1, MPI_DOUBLE, 1 - myworld, 0,
+                 &vol_j, 1, MPI_DOUBLE, 1 - myworld, 0,
+                 comm_replica, MPI_STATUS_IGNORE);
   MPI_Bcast(&vol_j, 1, MPI_DOUBLE, 0, world);
 
   voltot = vol_i + vol_j;
@@ -257,9 +300,10 @@ void FixGEMC::init()
   int n_i, n_j;
   update_gas_atoms_list();
   n_i = natom_total;
-  MPI_Sendrecv(&n_i, 1, MPI_INT, 1 - myworld, 0,
-               &n_j, 1, MPI_INT, 1 - myworld, 0,
-               comm_replica, MPI_STATUS_IGNORE);
+  if (me == 0)
+    MPI_Sendrecv(&n_i, 1, MPI_INT, 1 - myworld, 0,
+                 &n_j, 1, MPI_INT, 1 - myworld, 0,
+                 comm_replica, MPI_STATUS_IGNORE);
   MPI_Bcast(&n_j, 1, MPI_INT, 0, world);
   ntot = n_i + n_j;
 
@@ -338,9 +382,9 @@ void FixGEMC::pre_exchange()
           " GEMC run progress: {:>3d}% \n  Trans: {:g}/{:g}\n"
           "  Vol: {:g}/{:g}\n  Ex: {:g}/{:g}\n",
           progress,
-          ntranslation_successes, ntranslation_attempts,
-          nvolume_successes, nvolume_attempts,
-          nexchange_successes, nexchange_attempts);
+          ntranslation_successes - nlast[0], ntranslation_attempts - nlast[1],
+          nvolume_successes - nlast[2], nvolume_attempts - nlast[3],
+          nexchange_successes - nlast[4], nexchange_attempts - nlast[5]);
       if (universe->uscreen) utils::print(universe->uscreen, msg);
       if (universe->ulogfile) utils::print(universe->ulogfile, msg);
 
@@ -369,9 +413,12 @@ void FixGEMC::pre_exchange()
       if (universe->uscreen) utils::print(universe->uscreen, msg);
       if (universe->ulogfile) utils::print(universe->ulogfile, msg);
 
-      ntranslation_attempts = ntranslation_successes = 0.0;
-      nvolume_attempts = nvolume_successes = 0.0;
-      nexchange_attempts = nexchange_successes = 0.0;
+      nlast[0] = ntranslation_successes;
+      nlast[1] = ntranslation_attempts;
+      nlast[2] = nvolume_successes;
+      nlast[3] = nvolume_attempts;
+      nlast[4] = nexchange_successes;
+      nlast[5] = nexchange_attempts;
     }
   }
 }
@@ -386,9 +433,16 @@ void FixGEMC::update_gas_atoms_list()
   int nlocal = atom->nlocal;
   int *mask = atom->mask;
 
+  if (nlocal > gemc_nmax) {
+    memory->destroy(local_gas_list);
+    gemc_nmax = atom->nmax;
+    memory->create(local_gas_list, gemc_nmax, "gemc:local_gas_list");
+  }
+
   natom_local = 0;
   for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
+      local_gas_list[natom_local] = i;
       natom_local++;
     }
   }
@@ -412,7 +466,7 @@ double FixGEMC::energy_full()
   atom->nghost = 0;
   comm->borders();
   if (triclinic_flag) domain->lamda2x(atom->nlocal+atom->nghost);
-  if (modify->n_pre_neighbor) modify->pre_neighbor();
+  if (modify->has_fixes(FixConst::PRE_NEIGHBOR)) modify->pre_neighbor();
   neighbor->build(1);
   int eflag = 1;
   int vflag = 0;
@@ -423,7 +477,7 @@ double FixGEMC::energy_full()
   size_t nbytes = sizeof(double) * (atom->nlocal + atom->nghost);
   if (nbytes) memset(&atom->f[0][0],0,3*nbytes);
 
-  if (modify->n_pre_force) modify->pre_force(vflag);
+  if (modify->has_fixes(FixConst::PRE_FORCE)) modify->pre_force(vflag);
 
   if (force->pair) force->pair->compute(eflag,vflag);
 
@@ -436,7 +490,7 @@ double FixGEMC::energy_full()
 
   if (force->kspace) force->kspace->compute(eflag,vflag);
 
-  if (modify->n_post_force_any) modify->post_force(vflag);
+  if (modify->has_fixes(FixConst::POST_FORCE_ANY)) modify->post_force(vflag);
 
   // NOTE: all fixes with energy_global_flag set and which
   //   operate at pre_force() or post_force()
@@ -455,9 +509,11 @@ double FixGEMC::energy_full()
 
 void FixGEMC::write_restart(FILE *fp)
 {
+  int nglobalvals = 13;
+  int nlocalvals = nprocs;
+  int ntotalvals = nglobalvals + nlocalvals;
+  std::vector<double> list(ntotalvals);
   int n = 0;
-  double list[13];
-  list[n++] = random_proc->state();
   list[n++] = random_world->state();
   list[n++] = random_universe->state();
   list[n++] = ubuf(next_reneighbor).d;
@@ -470,11 +526,15 @@ void FixGEMC::write_restart(FILE *fp)
   list[n++] = nvolume_attempts;
   list[n++] = nvolume_successes;
   list[n++] = ubuf(update->ntimestep).d;
+  list[n++] = nlocalvals;
+
+  double state = random_proc->state();
+  MPI_Gather(&state, 1, MPI_DOUBLE, &list[n], 1, MPI_DOUBLE, 0, world);
 
   if (comm->me == 0) {
-    int size = n * sizeof(double);
+    int size = ntotalvals * sizeof(double);
     fwrite(&size, sizeof(int), 1, fp);
-    fwrite(list, sizeof(double), n, fp);
+    fwrite(list.data(), sizeof(double), ntotalvals, fp);
   }
 }
 
@@ -486,9 +546,6 @@ void FixGEMC::restart(char *buf)
 {
   int n = 0;
   auto *list = (double *) buf;
-
-  seed = static_cast<int> (list[n++]);
-  random_proc->reset(seed);
 
   seed = static_cast<int> (list[n++]);
   random_world->reset(seed);
@@ -510,6 +567,18 @@ void FixGEMC::restart(char *buf)
   bigint ntimestep_restart = (bigint) ubuf(list[n++]).i;
   if (ntimestep_restart != update->ntimestep)
     error->all(FLERR,"Must not reset timestep when restarting fix gemc");
+
+  // read stored state of RNG unique to this process
+  // if nprocs changed, derive a unique state from the state of proc 0
+
+  auto nlocalvals = (int) list[n++];
+  if (nlocalvals == nprocs) {
+    seed = static_cast<int>(list[n + me]);
+    random_proc->reset(seed);
+  } else {
+    seed = static_cast<int>(list[n]);
+    random_proc->reset_rank(seed, universe->me);
+  }
 }
 
 /* ----------------------------------------------------------------------

@@ -242,6 +242,10 @@ class Memory : protected Pointers {
     return array;
   }
 
+/* ----------------------------------------------------------------------
+   create a 3d array with a ragged 3rd dimension
+------------------------------------------------------------------------- */
+
   template <typename TYPE>
   TYPE ***create_ragged(TYPE ***&array, int n1, int *n2, int **n3, const char *name)
   {

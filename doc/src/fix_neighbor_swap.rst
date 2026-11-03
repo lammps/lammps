@@ -55,7 +55,7 @@ atom/swap <fix_atom_swap>` command which swaps pairs of atoms anywhere
 in the simulation domain, the restriction of the MC swapping to
 neighbors enables a hybrid MD/kMC-like simulation.
 
-Neighboring atoms are defined by using a Voronoi tesselation performed
+Neighboring atoms are defined by using a Voronoi tessellation performed
 by the :doc:`compute voronoi/atom <compute_voronoi_atom>` command.
 Two atoms are neighbors if their Voronoi cells share a common face
 (3d) or edge (2d).
@@ -84,7 +84,7 @@ and the atomic hopping (kMC event) timescale.
 The algorithm implemented by this fix is as follows:
 
    - The MD simulation is paused every *N* steps
-   - A Voronoi tesselation is performed for the current atom configuration.
+   - A Voronoi tessellation is performed for the current atom configuration.
    - Then *X* atom swaps are attempted, one after the other.
    - For each swap, an atom *I* is selected randomly from the list of
      atom types specified by either the *types* or *diff* keywords.
@@ -127,7 +127,7 @@ algorithm.
 
 Limitations are imposed on selection of *I,J* atom pairs to avoid
 swapping of atoms which are outside of a reasonable cutoff (e.g. due to
-a Voronoi tesselation near free surfaces) though the use of a
+a Voronoi tessellation near free surfaces) though the use of a
 distance-weighted probability scaling.
 
 ----------
@@ -196,14 +196,14 @@ The keyword *rates* can modify the swap rate based on the type of atom
 *J*.  Ntype values must be specified, where Ntype = the number of atom
 types in the system.  Each value is used to scale the probability
 weighting given by the equation above.  In the third example command
-above, a simulation has 3 atoms types.  Atom *I*s of type 1 are
-eligible for swapping.  Swaps may occur with atom *J*s of all 3 types.
-Assuming all *J* atoms are equidistant from an atom *I*, *J* atoms of
-type 1 will be 3x more likely to be selected as a swap partner than
-atoms of type 2.  And *J* atoms of type 3 will be 6.5x more likely to
-be selected than atoms of type 2.  If the *rates* keyword is not used,
-all atom types will be treated with the same probability during selection
-of swap attempts.
+above, a simulation has 3 atom types.  Atom *I*s of type 1 are eligible
+for swapping.  Swaps may occur with atom *J*s of all 3 types.  Assuming
+all *J* atoms are equidistant from an atom *I*, *J* atoms of type 1 will
+be 3x more likely to be selected as a swap partner than atoms of type 2.
+And *J* atoms of type 3 will be 6.5x more likely to be selected than
+atoms of type 2.  If the *rates* keyword is not used, all atom types
+will be treated with the same probability during selection of swap
+attempts.
 
 ----------
 

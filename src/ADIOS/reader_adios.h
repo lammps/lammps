@@ -25,8 +25,6 @@ ReaderStyle(adios, ReaderADIOS);
 #include "reader.h"
 
 #include <map>
-#include <string>
-#include <vector>
 
 namespace LAMMPS_NS {
 class ReadADIOSInternal;

@@ -33,6 +33,7 @@ Commands
    displace_atoms
    dynamical_matrix
    echo
+   fenix
    fix
    fix_modify
    fitpod_command

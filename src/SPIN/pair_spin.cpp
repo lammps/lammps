@@ -84,8 +84,8 @@ void PairSpin::init_style()
 
   // check if newton pair is on
 
-  if ((force->newton_pair == 0) && (comm->me == 0))
-    error->all(FLERR,"Pair style spin requires newton pair on");
+  if (force->newton_pair == 0)
+    error->all(FLERR, Error::NOLASTLINE, "Pair style spin requires newton pair on");
 
   // need a full neighbor list
 

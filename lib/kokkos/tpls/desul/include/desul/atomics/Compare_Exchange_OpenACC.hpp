@@ -12,15 +12,12 @@ SPDX-License-Identifier: (BSD-3-Clause)
 #include <openacc.h>
 
 #include <desul/atomics/Common.hpp>
+#include <desul/atomics/Lock_Free_Types_OpenACC.hpp>
 #include <desul/atomics/Thread_Fence_OpenACC.hpp>
 #include <type_traits>
 
 namespace desul {
 namespace Impl {
-
-template <class T>
-inline constexpr bool device_atomic_always_lock_free<T, void> = (sizeof(T) == 4) ||
-                                                                (sizeof(T) == 8);
 
 #ifdef __NVCOMPILER
 
@@ -68,8 +65,8 @@ T device_atomic_compare_exchange(
     using cas_t =
         std::conditional_t<(sizeof(T) == 4), unsigned int, unsigned long long int>;
     cas_t return_val = atomicCAS(reinterpret_cast<cas_t*>(dest),
-                                 reinterpret_cast<cas_t&>(compare),
-                                 reinterpret_cast<cas_t&>(value));
+                                 *reinterpret_cast<cas_t*>(&compare),
+                                 *reinterpret_cast<cas_t*>(&value));
     return reinterpret_cast<T&>(return_val);
 #ifdef DESUL_CUDA_ARCH_IS_PRE_PASCAL
   } else if constexpr (std::is_same_v<T, float>) {

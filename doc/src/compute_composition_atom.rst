@@ -1,10 +1,11 @@
 .. index:: compute composition/atom
 .. index:: compute composition/atom/kk
+.. index:: compute composition/atom/omp
 
 compute composition/atom command
 ================================
 
-Accelerator Variants: *composition/atom/kk*
+Accelerator Variants: *composition/atom/kk*, *composition/atom/omp*
 
 Syntax
 """"""

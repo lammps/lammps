@@ -34,8 +34,10 @@ different CPUs, for the plain styles on one CPU core (first number) and
 for the OPENMP package styles with 8 threads (second number).  The
 averages are geometric means over 23 inputs (9 inputs with threads)
 with pairwise, manybody, and ReaxFF potentials and with long-range or
-cutoff Coulomb interactions.  The oneAPI compilers were tested only on
-the Cascade Lake CPU.
+cutoff Coulomb interactions.  The speed with the oneAPI compilers was
+measured only on the Cascade Lake CPU.  On the Zen 4 CPU, LAMMPS
+compiled with ``oneapi-opt.cmake`` ran and passed the same unit tests
+as with the default settings of the oneAPI compilers.
 
 .. table::
 
@@ -106,6 +108,10 @@ Limitations
   eventually diverge, while averaged properties agree within their
   statistical uncertainty.  This is the same kind of difference as
   between different compilers or different numbers of MPI processes.
+  A few unit tests, which are labeled "unstable", are sensitive to such
+  differences and fail with these presets.  Those tests should be
+  skipped with ``ctest -LE unstable``, or their failures can be
+  ignored (see :doc:`Developer_unittest`).
   Even with the default settings, the same executable can produce
   slightly different results on different CPUs: the math library of the
   GNU C library selects optimized versions of functions like ``exp()``,

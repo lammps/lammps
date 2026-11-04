@@ -48,7 +48,12 @@ enum CalculationMode {AVX512, AVX, AVX2, SSE, NONE};
         #ifdef __AVX__
         static const CalculationMode mode = AVX;
         #else
-        static const CalculationMode mode = SSE;
+          // the SSE code requires SSE4.1, use the scalar code without it
+          #ifdef __SSE4_1__
+          static const CalculationMode mode = SSE;
+          #else
+          static const CalculationMode mode = NONE;
+          #endif
         #endif
       #endif
     #endif

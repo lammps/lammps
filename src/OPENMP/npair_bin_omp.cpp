@@ -209,12 +209,14 @@ void NPairBinOmp<HALF, NEWTON, TRI, SIZE, ATOMONLY>::build(NeighList *list)
           cutsq = cut * cut;
 
           if (ATOMONLY) {
-            if (rsq <= cutsq) {
-              jh = j;
-              if (history && rsq < radsum * radsum)
-                jh = jh ^ mask_history;
-              neighptr[n++] = jh;
-            }
+            jh = j;
+            if (history && rsq < radsum * radsum)
+              jh = jh ^ mask_history;
+            if (n < oneatom) {
+              neighptr[n] = jh;
+              n += (rsq <= cutsq);
+            } else if (rsq <= cutsq)
+              n++;
           } else {
             if (rsq <= cutsq) {
               jh = j;

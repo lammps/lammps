@@ -1272,23 +1272,18 @@ void CommTiled::forward_comm(Pair *pair, int size)
   if (size) nsize = size;
   else nsize = pair->comm_forward;
 
+  // grow buffers if this communication is wider than the one borders() sized
+  // them for: a pair style may set comm_forward only when it communicates
+  // (pair mliap/kk forwards model features of a width known only at run
+  // time), after Comm::init() recorded maxforward.  Same bounds as in
+  // borders(): buf_send holds one message, buf_recv all messages of a swap
+
+  if (nsize*smaxone > maxsend) grow_send(nsize*smaxone,0);
+  if (nsize*rmaxall > maxrecv) grow_recv(nsize*rmaxall);
+
   for (int iswap = 0; iswap < nswap; iswap++) {
     nsend = nsendproc[iswap] - sendself[iswap];
     nrecv = nrecvproc[iswap] - sendself[iswap];
-
-    // grow buffers if this communication is wider than the one the buffers
-    // were sized for in borders(): a pair style may set comm_forward only
-    // when it communicates (pair mliap/kk forwards model features of a width
-    // known only at run time), after Comm::init() recorded maxforward.
-    // buf_send holds one message at a time, buf_recv all messages of the swap
-    // at offsets forward_recv_offset[iswap][i]
-
-    int maxone = 0;
-    int nall = 0;
-    for (i = 0; i < nsendproc[iswap]; i++) maxone = MAX(maxone,sendnum[iswap][i]);
-    for (i = 0; i < nrecv; i++) nall += recvnum[iswap][i];
-    if (nsize*maxone > maxsend) grow_send(nsize*maxone,0);
-    if (nsize*nall > maxrecv) grow_recv(nsize*nall);
 
     if (recvother[iswap]) {
       for (i = 0; i < nrecv; i++)
@@ -1335,21 +1330,16 @@ void CommTiled::reverse_comm(Pair *pair, int size)
   if (size) nsize = size;
   else nsize = MAX(pair->comm_reverse, pair->comm_reverse_off);
 
+  // grow buffers if this communication is wider than the one borders() sized
+  // them for (see forward_comm(Pair *) above); in the reverse direction
+  // buf_send holds one received message and buf_recv all sent messages
+
+  if (nsize*rmaxone > maxsend) grow_send(nsize*rmaxone,0);
+  if (nsize*smaxall > maxrecv) grow_recv(nsize*smaxall);
+
   for (int iswap = nswap-1; iswap >= 0; iswap--) {
     nsend = nsendproc[iswap] - sendself[iswap];
     nrecv = nrecvproc[iswap] - sendself[iswap];
-
-    // grow buffers if this communication is wider than the one the buffers
-    // were sized for in borders() (see forward_comm(Pair *) above):
-    // buf_send holds one packed message (recvnum atoms), buf_recv all
-    // messages of the swap at offsets reverse_recv_offset[iswap][i]
-
-    int maxone = 0;
-    int nall = 0;
-    for (i = 0; i < nrecvproc[iswap]; i++) maxone = MAX(maxone,recvnum[iswap][i]);
-    for (i = 0; i < nsend; i++) nall += sendnum[iswap][i];
-    if (nsize*maxone > maxsend) grow_send(nsize*maxone,0);
-    if (nsize*nall > maxrecv) grow_recv(nsize*nall);
 
     if (sendother[iswap]) {
       for (i = 0; i < nsend; i++)

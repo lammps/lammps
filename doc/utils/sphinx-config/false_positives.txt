@@ -2575,6 +2575,7 @@ Mishra
 mistyped
 mistyrose
 Mitchell
+mitigations
 Miyazaki
 Mizuguchi
 Mj

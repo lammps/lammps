@@ -205,12 +205,13 @@ void NPairBinGhostOmp<HALF>::build(NeighList *list)
           delz = ztmp - x[j][2];
           rsq = delx * delx + dely * dely + delz * delz;
 
+          // the ghost cutoff is often much shorter than the stencil, so few candidates
+          // are accepted and the branch is cheaper than an unconditional store
           const double cutsq_ij = uniform_cut ? cutsq_u : cutneighghostsq_i[jtype];
-          if (n < oneatom) {
-            neighptr[n] = j;
-            n += (rsq <= cutsq_ij);
-          } else if (rsq <= cutsq_ij)
+          if (rsq <= cutsq_ij) {
+            if (n < oneatom) neighptr[n] = j;
             n++;
+          }
         }
       }
     }

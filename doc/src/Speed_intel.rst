@@ -145,6 +145,11 @@ code to this standard once it is available in most compilers. We
 expect this to allow improved performance and support with other
 compilers.
 
+Notes on the versions of the Intel oneAPI compilers that LAMMPS has
+been tested with, on the C++ library header files they use, and on
+the ``setvars.sh`` script are in the :ref:`compiler section of the
+basic build options <build_compiler>`.
+
 Notes about Simultaneous Multithreading
 """""""""""""""""""""""""""""""""""""""
 

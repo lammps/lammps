@@ -756,7 +756,7 @@ void MLIAP_SO3Kokkos<DeviceType>::operator() (const MLIAP_SO3Kokkos<DeviceType>:
   int ipair = t_ij(ii);
   for (int neighbor = 0; neighbor < t_numneighs[ii]; neighbor++) {
     const int jelem = t_jelems[ipair];
-    int weight = t_wjelem[jelem];
+    double weight = t_wjelem[jelem];
 
     double x = t_rij(ipair, 0);
     double y = t_rij(ipair, 1);
@@ -864,7 +864,7 @@ void MLIAP_SO3Kokkos<DeviceType>::operator() (const MLIAP_SO3Kokkos<DeviceType>:
   for (int neighbor = 0; neighbor < t_numneighs[ii]; neighbor++) {
 
     const int jelem = t_jelems[ipair];
-    int weight = t_wjelem[jelem];
+    double weight = t_wjelem[jelem];
 
     double x = t_rij(ipair, 0);
     double y = t_rij(ipair, 1);
@@ -904,7 +904,7 @@ void MLIAP_SO3Kokkos<DeviceType>::operator() (const MLIAP_SO3Kokkos<DeviceType>:
   ipair = t_ij(ii);
   for (int neighbor = 0; neighbor < t_numneighs[ii]; neighbor++) {
     const int jelem = t_jelems[ipair];
-    int weight = t_wjelem[jelem];
+    double weight = t_wjelem[jelem];
 
     double x = t_rij(ipair, 0);
     double y = t_rij(ipair, 1);

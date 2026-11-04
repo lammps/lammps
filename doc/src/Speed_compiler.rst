@@ -22,8 +22,8 @@ is used instead of the corresponding compiler preset, for example:
 CPUs, the x86-64-v3 instruction set (``-march=x86-64-v3``), which
 includes the AVX2 vector instructions and fused multiply-add (FMA);
 ``gcc-opt.cmake`` also adds ``-fno-semantic-interposition``.
-``oneapi-opt.cmake`` selects ``-O3`` and ``-xHost``, i.e. code for the
-CPU of the machine where LAMMPS is compiled.
+``oneapi-opt.cmake`` selects ``-O3`` and ``-march=native``, i.e. code
+for the CPU of the machine where LAMMPS is compiled.
 
 Expected speedup
 """"""""""""""""
@@ -58,16 +58,21 @@ of the input on every CPU core at the same time, the speedup was about
 the same (within 1 to 3 percent), except for the ReaxFF input, which is
 then limited by the memory bandwidth and gains less.
 
-With GCC and Clang, compiling for the specific CPU of the machine
-(``-march=native``) instead of x86-64-v3 added at most 1.5 percent on
-average on these CPUs, even on those with AVX-512 instructions, since
+Compiling for the specific CPU of the machine (``-march=native``, or
+``-xHost`` with the Intel compilers) instead of x86-64-v3 added at most
+1.5 percent on average on these CPUs, even on those with AVX-512 instructions, since
 most of the floating-point work of the plain and OPENMP package styles
 is not vectorized (see the section on floating-point operations on the
 :doc:`Benchmarks <Speed_bench>` page).  Therefore, ``gcc-opt.cmake`` and
 ``clang-opt.cmake`` use x86-64-v3, so that the executable also runs on
-other CPUs.  ``oneapi-opt.cmake`` uses ``-xHost`` instead, since the
-vectorized styles of the :doc:`INTEL package <Speed_intel>` are designed
-to use AVX-512 instructions on CPUs that support them.
+other CPUs.  ``oneapi-opt.cmake`` uses ``-march=native`` instead, since
+the vectorized styles of the :doc:`INTEL package <Speed_intel>` are
+designed to use AVX-512 instructions on CPUs that support them.  With
+the Intel compilers, ``-march=native`` and ``-xHost`` gave the same
+speed within 1 percent on the Cascade Lake CPU.  However, the Intel
+compilers add a check for an Intel CPU to executables whose ``main()``
+function was compiled with ``-xHost`` or another ``-x`` option, so that
+those executables stop with an error message on CPUs from other vendors.
 
 Limitations
 """""""""""
@@ -90,9 +95,8 @@ Limitations
            -D CMAKE_CXX_FLAGS_RELWITHDEBINFO="-g -O3 -march=x86-64-v3 -DNDEBUG" \
            -D CMAKE_C_FLAGS_RELWITHDEBINFO="-g -O3 -march=x86-64-v3 -DNDEBUG"
 
-  With the Intel compilers, ``-x`` followed by the name of an
-  instruction set, e.g. ``-xCORE-AVX512``, selects a specific Intel
-  CPU generation.
+  With the Intel compilers, ``-march=`` followed by the name of a CPU,
+  e.g. ``-march=skylake-avx512``, selects a specific CPU generation.
 
 - With FMA, a multiplication and an addition are combined into one
   operation with a single rounding step.  This changes results in the

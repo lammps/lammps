@@ -30,11 +30,31 @@
 #include "update.h"
 
 #include <cstring>
+#include <immintrin.h>
 
 #include "suffix.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
+
+static constexpr unsigned int FTZ_MASK = _MM_FLUSH_ZERO_MASK | _MM_DENORMALS_ZERO_MASK;
+
+/* ----------------------------------------------------------------------
+   set the flush-to-zero and denormals-are-zero bits of the floating-point
+   control register in all OpenMP threads.  the Intel OpenMP runtime resets
+   the calling thread at the end of a parallel region and copies its setting
+   to the other threads at the start of each parallel region, so the bits
+   are set again in the calling thread after the parallel region.
+------------------------------------------------------------------------- */
+
+static void set_ftz_bits(unsigned int bits)
+{
+#if defined(_OPENMP)
+#pragma omp parallel
+  _mm_setcsr((_mm_getcsr() & ~FTZ_MASK) | (bits & FTZ_MASK));
+#endif
+  _mm_setcsr((_mm_getcsr() & ~FTZ_MASK) | (bits & FTZ_MASK));
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -70,6 +90,7 @@ FixIntel::FixIntel(LAMMPS *lmp, int narg, char **arg) :  Fix(lmp, narg, arg)
   int offload_deprecated = 0;
   _lrt = 0;
   _p3m_table = 1;
+  _ftz = 1;
 
   int iarg = 4;
   while (iarg < narg) {
@@ -94,6 +115,10 @@ FixIntel::FixIntel(LAMMPS *lmp, int narg, char **arg) :  Fix(lmp, narg, arg)
     } else if (strcmp(arg[iarg], "pppm_table") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal package intel command");
       _p3m_table = utils::logical(FLERR,arg[iarg+1],false,lmp);
+      iarg += 2;
+    } else if (strcmp(arg[iarg], "ftz") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal package intel command");
+      _ftz = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
 
     // offload-related keywords are deprecated and ignored: offload to
@@ -160,6 +185,14 @@ FixIntel::FixIntel(LAMMPS *lmp, int narg, char **arg) :  Fix(lmp, narg, arg)
   }
   #endif
 
+  // flush subnormal numbers to zero (or not), since some styles become much slower
+  // when they produce subnormal numbers.  this is done here and not only with -ftz
+  // in main(), so that it also applies when LAMMPS is used as a library.
+  // the previous setting is restored in the destructor.
+
+  _saved_ftz_bits = _mm_getcsr() & FTZ_MASK;
+  set_ftz_bits(_ftz ? FTZ_MASK : 0);
+
   // set precision
 
   if (_precision_mode == PREC_MODE_SINGLE)
@@ -174,6 +207,8 @@ FixIntel::FixIntel(LAMMPS *lmp, int narg, char **arg) :  Fix(lmp, narg, arg)
 
 FixIntel::~FixIntel()
 {
+  set_ftz_bits(_saved_ftz_bits);
+
   if (_precision_mode == PREC_MODE_SINGLE)
     delete _single_buffers;
   else if (_precision_mode == PREC_MODE_MIXED)

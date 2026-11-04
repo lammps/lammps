@@ -1858,7 +1858,11 @@ code when using features from the INTEL package.
       main program of the LAMMPS executable is compiled with ``-ftz``, so
       that very small floating-point numbers (subnormals) are flushed to
       zero, which avoids a large slowdown of some INTEL package styles in
-      mixed precision.
+      mixed precision.  In addition, the INTEL package itself sets the CPU
+      to flush subnormal numbers to zero while it is in use, with any
+      compiler, so that this also applies when LAMMPS is used as a
+      library (see the *ftz* keyword of the :doc:`package <package>`
+      command).
 
    .. tab:: Traditional make
 

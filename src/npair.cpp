@@ -39,6 +39,7 @@ NPair::NPair(LAMMPS *lmp) :
   flag_half_multi = nullptr;
   mycutneighsq = nullptr;
   ucut_type = nullptr;
+  ucut_ghost_type = nullptr;
   molecular = atom->molecular;
   copymode = 0;
   cutoff_custom = 0.0;
@@ -89,6 +90,7 @@ NPair::~NPair()
 
   memory->destroy(mycutneighsq);
   memory->destroy(ucut_type);
+  memory->destroy(ucut_ghost_type);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -163,18 +165,28 @@ void NPair::copy_neighbor_info()
   // flag the atom types whose neighbor cutoff is the same for all types,
   // so that binned builds can skip looking up the type of each neighbor
 
-  memory->destroy(ucut_type);
-  if (cutneighsq) {
-    const int ntypes = atom->ntypes;
-    memory->create(ucut_type, ntypes + 1, "npair:ucut_type");
-    for (int t = 1; t <= ntypes; t++) {
-      ucut_type[t] = 1;
-      for (int t2 = 2; t2 <= ntypes; t2++)
-        if (cutneighsq[t][t2] != cutneighsq[t][1]) {
-          ucut_type[t] = 0;
-          break;
-        }
-    }
+  set_uniform_cutoff_flags(ucut_type, cutneighsq, "npair:ucut_type");
+  set_uniform_cutoff_flags(ucut_ghost_type, cutneighghostsq, "npair:ucut_ghost_type");
+}
+
+/* ----------------------------------------------------------------------
+   set flags[t] = 1 if cutoffs cutsq[t][1..ntypes] are all the same, else 0
+------------------------------------------------------------------------- */
+
+void NPair::set_uniform_cutoff_flags(int *&flags, double **cutsq, const char *name)
+{
+  memory->destroy(flags);
+  if (!cutsq) return;
+
+  const int ntypes = atom->ntypes;
+  memory->create(flags, ntypes + 1, name);
+  for (int t = 1; t <= ntypes; t++) {
+    flags[t] = 1;
+    for (int t2 = 2; t2 <= ntypes; t2++)
+      if (cutsq[t][t2] != cutsq[t][1]) {
+        flags[t] = 0;
+        break;
+      }
   }
 }
 

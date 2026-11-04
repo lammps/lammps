@@ -398,7 +398,11 @@ The bond, angle, dihedral, and improper styles in the INTEL package
 require a pair style from the INTEL package (pair style
 :doc:`zero/intel <pair_zero>` can be used, if no pair interactions are
 needed) and the same :doc:`newton <newton>` setting for pair and bond
-interactions.
+interactions.  Their per-atom energies are added to the per-atom
+energies of the pair style.  Thus :doc:`compute pe/atom
+<compute_pe_atom>` with the *bond*, *angle*, *dihedral*, or *improper*
+keyword reports zero for them, and with the *pair* keyword it includes
+them.  The total per-atom energy is correct.
 
 References
 """"""""""

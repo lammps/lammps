@@ -486,6 +486,7 @@ Camiloni
 Campana
 Cangi
 Cao
+Capitan
 Cappelletti
 Capolungo
 Caro
@@ -1399,6 +1400,7 @@ Freitas
 Frenkel
 frictionless
 Friedrichs
+Frontera
 Frutos
 fs
 fsaa
@@ -1410,6 +1412,7 @@ ftol
 fuer
 fugacity
 Fu
+Fugaku
 fullerene
 Fumi
 func
@@ -3857,6 +3860,7 @@ sfree
 sftp
 Sg
 sgcmc
+Shaheen
 Shan
 Shanno
 Shapeev

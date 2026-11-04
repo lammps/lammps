@@ -1041,8 +1041,15 @@ void FixRigidNHSmall::remap()
   for (i = 0; i < 3; i++) epsilon[i] += dtv * epsilon_dot[i];
 
   // convert pertinent atoms and rigid bodies to lamda coords
+  // for dilate all, only remap atoms that are not in the group to lamda coords
+  // let set_xv() set the atom coords in the group using body xcm
 
-  if (!allremap) {
+  if (allremap) {
+    for (i = 0; i < nlocal; i++) {
+      if (mask[i] & groupbit) continue;
+      domain->x2lamda(x[i],x[i]);
+    }
+  } else {
     for (i = 0; i < nlocal; i++)
       if (mask[i] & dilate_group_bit)
         domain->x2lamda(x[i],x[i]);
@@ -1067,8 +1074,15 @@ void FixRigidNHSmall::remap()
   domain->set_local_box();
 
   // convert pertinent atoms and rigid bodies back to box coords
+  // for dilate all, only remap atom coords that are not in the group
+  // back from lamda coords
 
-  if (!allremap) {
+  if (allremap) {
+    for (i = 0; i < nlocal; i++) {
+      if (mask[i] & groupbit) continue;
+      domain->lamda2x(x[i],x[i]);
+    }
+  } else {
     for (i = 0; i < nlocal; i++)
       if (mask[i] & dilate_group_bit)
         domain->lamda2x(x[i],x[i]);

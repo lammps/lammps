@@ -349,7 +349,7 @@ void PairLubricatePolyOMP::eval(int iifrom, int iito, ThrData * const thr)
             h_sep*logxi;
           a_sh *= 6.0*MY_PI*mu*radi;
           // old invalid eq for pumping term
-          // changed 29Jul16 from eq 9.25 -> 9.27 in Kim and Karilla
+          // changed 29Jul16 from eq 9.25 -> 9.27 in Kim and Karrila
 //          a_pu = beta0*(4.0+beta0)/10.0/beta1/beta1*log(1.0/h_sep);
 //          a_pu += (32.0-33.0*beta0+83.0*beta0*beta0+43.0 *
 //                   pow(beta0,3.0))/250.0/pow(beta1,3.0)*h_sep*log(1.0/h_sep);

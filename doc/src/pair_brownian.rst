@@ -47,7 +47,10 @@ Description
 Styles *brownian* and *brownian/poly* compute Brownian forces and
 torques on finite-size spherical particles.  The former requires
 monodisperse spherical particles; the latter allows for polydisperse
-spherical particles.
+spherical particles.  For particles of different size, *brownian/poly*
+uses the near-contact expansions of the two-sphere resistance functions
+of :ref:`(Jeffrey and Onishi) <Jeffrey3>`, see also :ref:`(Kim and
+Karrila) <KimKarrila3>`.
 
 These pair styles are designed to be used with either the
 :doc:`pair_style lubricate <pair_lubricate>` or :doc:`pair_style
@@ -159,3 +162,14 @@ Default
 
 The default settings for the optional args are flagHI = 1 and flagVF =
 1.
+
+----------
+
+.. _Jeffrey3:
+
+**(Jeffrey)** Jeffrey and Onishi, J Fluid Mech, 139, 261-290 (1984).
+
+.. _KimKarrila3:
+
+**(Kim and Karrila)** Kim and Karrila, Microhydrodynamics: Principles and
+Selected Applications, Butterworth-Heinemann, Boston (1991).

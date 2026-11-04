@@ -779,7 +779,7 @@ void PairLubricateUPoly::compute_RU(double **x)
                   +64.0*beta[0][4])*h_sep_beta11/375.0)*log_h_sep_beta13;
 
           // old invalid eq for pumping term
-          // changed 29Jul16 from eq 9.25 -> 9.27 in Kim and Karilla
+          // changed 29Jul16 from eq 9.25 -> 9.27 in Kim and Karrila
 //          a_pu = pre[1]*((0.4*beta[0][1]+0.1*beta[0][2])*beta[1][1]
 //                +(0.128-0.132*beta[0][1]+0.332*beta[0][2]
 //                  +0.172*beta[0][3])*h_sep)*log_h_sep_beta13;

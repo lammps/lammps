@@ -121,7 +121,10 @@ the pairwise interactions have been computed.
    the pair style, and should not be reset by the time integration fix.
 
 Style *lubricateU* requires monodisperse spherical particles; style
-*lubricateU/poly* allows for polydisperse spherical particles.
+*lubricateU/poly* allows for polydisperse spherical particles.  For
+particles of different size, *lubricateU/poly* uses the near-contact
+expansions of the two-sphere resistance functions of :ref:`(Jeffrey and
+Onishi) <Jeffrey2>`, see also :ref:`(Kim and Karrila) <KimKarrila2>`.
 
 .. versionchanged:: TBD
 
@@ -247,6 +250,15 @@ The default settings for the optional args are flagHI = 1 and flagVF =
 .. _Ball2:
 
 **(Ball)** Ball and Melrose, Physica A, 247, 444-472 (1997).
+
+.. _Jeffrey2:
+
+**(Jeffrey)** Jeffrey and Onishi, J Fluid Mech, 139, 261-290 (1984).
+
+.. _KimKarrila2:
+
+**(Kim and Karrila)** Kim and Karrila, Microhydrodynamics: Principles and
+Selected Applications, Butterworth-Heinemann, Boston (1991).
 
 .. _Kumar2:
 

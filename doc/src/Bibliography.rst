@@ -841,6 +841,9 @@ Bibliography
 **(Jarzynski)**
    Jarzynski, Phys. Rev. Lett. 78, 2690 (1997)
 
+**(Jeffrey)**
+   Jeffrey and Onishi, J Fluid Mech, 139, 261-290 (1984).
+
 **(Jiang1)**
    Jiang, Hardy, Phillips, MacKerell, Schulten, and Roux, J Phys Chem Lett, 2, 87-92 (2011).
 
@@ -900,6 +903,9 @@ Bibliography
 
 **(Kim)**
    Kim, Keyes, Straub, J Chem. Phys, 132, 224107 (2010).
+
+**(Kim and Karrila)**
+   Kim and Karrila, Microhydrodynamics: Principles and Selected Applications, Butterworth-Heinemann, Boston (1991).
 
 **(Klapp)**
    Klapp, Schoen, J Chem Phys, 117, 8050 (2002).

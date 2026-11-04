@@ -107,7 +107,10 @@ as long as *flagVF* is set to 1 (default).
    <pair_lubricateU>` command.
 
 Style *lubricate* requires monodisperse spherical particles; style
-*lubricate/poly* allows for polydisperse spherical particles.
+*lubricate/poly* allows for polydisperse spherical particles.  For
+particles of different size, *lubricate/poly* uses the near-contact
+expansions of the two-sphere resistance functions of :ref:`(Jeffrey and
+Onishi) <Jeffrey1>`, see also :ref:`(Kim and Karrila) <KimKarrila1>`.
 
 .. versionchanged:: TBD
 
@@ -231,6 +234,15 @@ The default settings for the optional args are flagHI = 1 and flagVF =
 .. _Ball1:
 
 **(Ball)** Ball and Melrose, Physica A, 247, 444-472 (1997).
+
+.. _Jeffrey1:
+
+**(Jeffrey)** Jeffrey and Onishi, J Fluid Mech, 139, 261-290 (1984).
+
+.. _KimKarrila1:
+
+**(Kim and Karrila)** Kim and Karrila, Microhydrodynamics: Principles and
+Selected Applications, Butterworth-Heinemann, Boston (1991).
 
 .. _Kumar1:
 

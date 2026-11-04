@@ -738,8 +738,6 @@ void PPPMDispIntel::particle_map_intel(double delx, double dely, double delz,
     #if defined(LMP_SIMD_COMPILER)
 #if defined(USE_OMP_SIMD)
     #pragma omp simd reduction(+:flag)
-#else
-    #pragma simd reduction(+:flag)
 #endif
     #pragma vector aligned
     #endif
@@ -845,8 +843,6 @@ void PPPMDispIntel::make_rho_c_intel(IntelBuffers<flt_t,acc_t> * /*buffers*/)
         #if defined(LMP_SIMD_COMPILER)
 #if defined(USE_OMP_SIMD)
         #pragma omp simd
-#else
-        #pragma simd
 #endif
         #endif
         for (int k = 0; k < INTEL_P3M_ALIGNED_MAXORDER; k++) {
@@ -858,8 +854,6 @@ void PPPMDispIntel::make_rho_c_intel(IntelBuffers<flt_t,acc_t> * /*buffers*/)
         #if defined(LMP_SIMD_COMPILER)
 #if defined(USE_OMP_SIMD)
         #pragma omp simd
-#else
-        #pragma simd
 #endif
         #endif
         for (int k = nlower; k <= nupper; k++) {
@@ -894,8 +888,6 @@ void PPPMDispIntel::make_rho_c_intel(IntelBuffers<flt_t,acc_t> * /*buffers*/)
           #if defined(LMP_SIMD_COMPILER)
 #if defined(USE_OMP_SIMD)
           #pragma omp simd
-#else
-          #pragma simd
 #endif
           #pragma loop_count min(2), max(INTEL_P3M_ALIGNED_MAXORDER), avg(7)
           #endif
@@ -920,8 +912,6 @@ void PPPMDispIntel::make_rho_c_intel(IntelBuffers<flt_t,acc_t> * /*buffers*/)
     #if defined(LMP_SIMD_COMPILER)
 #if defined(USE_OMP_SIMD)
     #pragma omp simd
-#else
-    #pragma simd
 #endif
     #endif
     for (int i = ifrom; i < ito; i++) {
@@ -1009,8 +999,6 @@ void PPPMDispIntel::make_rho_g_intel(IntelBuffers<flt_t,acc_t> * /*buffers*/)
         #if defined(LMP_SIMD_COMPILER)
 #if defined(USE_OMP_SIMD)
         #pragma omp simd
-#else
-        #pragma simd
 #endif
         #endif
         for (int k = 0; k < INTEL_P3M_ALIGNED_MAXORDER; k++) {
@@ -1022,8 +1010,6 @@ void PPPMDispIntel::make_rho_g_intel(IntelBuffers<flt_t,acc_t> * /*buffers*/)
         #if defined(LMP_SIMD_COMPILER)
 #if defined(USE_OMP_SIMD)
         #pragma omp simd
-#else
-        #pragma simd
 #endif
         #endif
         for (int k = nlower_6; k <= nupper_6; k++) {
@@ -1059,8 +1045,6 @@ void PPPMDispIntel::make_rho_g_intel(IntelBuffers<flt_t,acc_t> * /*buffers*/)
           #if defined(LMP_SIMD_COMPILER)
 #if defined(USE_OMP_SIMD)
           #pragma omp simd
-#else
-          #pragma simd
 #endif
           #pragma loop_count min(2), max(INTEL_P3M_ALIGNED_MAXORDER), avg(7)
           #endif
@@ -1085,8 +1069,6 @@ void PPPMDispIntel::make_rho_g_intel(IntelBuffers<flt_t,acc_t> * /*buffers*/)
     #if defined(LMP_SIMD_COMPILER)
 #if defined(USE_OMP_SIMD)
     #pragma omp simd
-#else
-    #pragma simd
 #endif
     #endif
     for (int i = ifrom; i < ito; i++) {
@@ -1161,8 +1143,6 @@ void PPPMDispIntel::make_rho_a_intel(IntelBuffers<flt_t,acc_t> * /*buffers*/)
 #if defined(LMP_SIMD_COMPILER)
 #if defined(USE_OMP_SIMD)
 #pragma omp simd
-#else
-#pragma simd
 #endif
 #endif
       for (int k = 0; k < INTEL_P3M_ALIGNED_MAXORDER; k++) {
@@ -1174,8 +1154,6 @@ void PPPMDispIntel::make_rho_a_intel(IntelBuffers<flt_t,acc_t> * /*buffers*/)
 #if defined(LMP_SIMD_COMPILER)
 #if defined(USE_OMP_SIMD)
 #pragma omp simd
-#else
-#pragma simd
 #endif
 #endif
       for (int k = nlower_6; k <= nupper_6; k++) {
@@ -1211,8 +1189,6 @@ void PPPMDispIntel::make_rho_a_intel(IntelBuffers<flt_t,acc_t> * /*buffers*/)
 #if defined(LMP_SIMD_COMPILER)
 #if defined(USE_OMP_SIMD)
 #pragma omp simd
-#else
-#pragma simd
 #endif
 #pragma loop_count min(2), max(INTEL_P3M_ALIGNED_MAXORDER), avg(7)
 #endif
@@ -1306,8 +1282,6 @@ void PPPMDispIntel::make_rho_none_intel(IntelBuffers<flt_t,acc_t> * /*buffers*/)
         #if defined(LMP_SIMD_COMPILER)
 #if defined(USE_OMP_SIMD)
         #pragma omp simd
-#else
-        #pragma simd
 #endif
         #endif
         for (int k = 0; k < INTEL_P3M_ALIGNED_MAXORDER; k++) {
@@ -1319,8 +1293,6 @@ void PPPMDispIntel::make_rho_none_intel(IntelBuffers<flt_t,acc_t> * /*buffers*/)
         #if defined(LMP_SIMD_COMPILER)
 #if defined(USE_OMP_SIMD)
         #pragma omp simd
-#else
-        #pragma simd
 #endif
         #endif
         for (int k = nlower_6; k <= nupper_6; k++) {
@@ -1356,8 +1328,6 @@ void PPPMDispIntel::make_rho_none_intel(IntelBuffers<flt_t,acc_t> * /*buffers*/)
           #if defined(LMP_SIMD_COMPILER)
 #if defined(USE_OMP_SIMD)
           #pragma omp simd
-#else
-          #pragma simd
 #endif
           #pragma loop_count min(2), max(INTEL_P3M_ALIGNED_MAXORDER), avg(7)
           #endif
@@ -1383,8 +1353,6 @@ void PPPMDispIntel::make_rho_none_intel(IntelBuffers<flt_t,acc_t> * /*buffers*/)
     #if defined(LMP_SIMD_COMPILER)
 #if defined(USE_OMP_SIMD)
     #pragma omp simd
-#else
-    #pragma simd
 #endif
     #endif
     for (int i = ifrom; i < ito; i++) {
@@ -1468,8 +1436,6 @@ void PPPMDispIntel::fieldforce_c_ik_intel(IntelBuffers<flt_t,acc_t> * /*buffers*
         #if defined(LMP_SIMD_COMPILER)
 #if defined(USE_OMP_SIMD)
         #pragma omp simd
-#else
-        #pragma simd
 #endif
         #endif
         for (int k = 0; k < INTEL_P3M_ALIGNED_MAXORDER; k++) {
@@ -1481,8 +1447,6 @@ void PPPMDispIntel::fieldforce_c_ik_intel(IntelBuffers<flt_t,acc_t> * /*buffers*
         #if defined(LMP_SIMD_COMPILER)
 #if defined(USE_OMP_SIMD)
         #pragma omp simd
-#else
-        #pragma simd
 #endif
         #endif
         for (int k = nlower; k <= nupper; k++) {
@@ -1520,8 +1484,6 @@ void PPPMDispIntel::fieldforce_c_ik_intel(IntelBuffers<flt_t,acc_t> * /*buffers*
           #if defined(LMP_SIMD_COMPILER)
 #if defined(USE_OMP_SIMD)
           #pragma omp simd
-#else
-          #pragma simd
 #endif
           #pragma loop_count min(2), max(INTEL_P3M_ALIGNED_MAXORDER), avg(7)
           #endif
@@ -1650,8 +1612,6 @@ void PPPMDispIntel::fieldforce_c_ad_intel(IntelBuffers<flt_t,acc_t> * /*buffers*
         #if defined(LMP_SIMD_COMPILER)
 #if defined(USE_OMP_SIMD)
         #pragma omp simd
-#else
-        #pragma simd
 #endif
         #endif
         for (int k = 0; k < INTEL_P3M_ALIGNED_MAXORDER; k++) {
@@ -1666,8 +1626,6 @@ void PPPMDispIntel::fieldforce_c_ad_intel(IntelBuffers<flt_t,acc_t> * /*buffers*
         #if defined(LMP_SIMD_COMPILER)
 #if defined(USE_OMP_SIMD)
         #pragma omp simd
-#else
-        #pragma simd
 #endif
         #endif
         for (int k = nlower; k <= nupper; k++) {
@@ -1714,8 +1672,6 @@ void PPPMDispIntel::fieldforce_c_ad_intel(IntelBuffers<flt_t,acc_t> * /*buffers*
           #if defined(LMP_SIMD_COMPILER)
 #if defined(USE_OMP_SIMD)
           #pragma omp simd
-#else
-          #pragma simd
 #endif
           #pragma loop_count min(2), max(INTEL_P3M_ALIGNED_MAXORDER), avg(7)
           #endif
@@ -1740,8 +1696,6 @@ void PPPMDispIntel::fieldforce_c_ad_intel(IntelBuffers<flt_t,acc_t> * /*buffers*
     #if defined(LMP_SIMD_COMPILER)
 #if defined(USE_OMP_SIMD)
     #pragma omp simd
-#else
-    #pragma simd
 #endif
     #endif
     for (int i = ifrom; i < ito; i++) {
@@ -1844,8 +1798,6 @@ void PPPMDispIntel::fieldforce_g_ik_intel(IntelBuffers<flt_t,acc_t> * /*buffers*
         #if defined(LMP_SIMD_COMPILER)
 #if defined(USE_OMP_SIMD)
         #pragma omp simd
-#else
-        #pragma simd
 #endif
         #endif
         for (int k = 0; k < INTEL_P3M_ALIGNED_MAXORDER; k++) {
@@ -1857,8 +1809,6 @@ void PPPMDispIntel::fieldforce_g_ik_intel(IntelBuffers<flt_t,acc_t> * /*buffers*
         #if defined(LMP_SIMD_COMPILER)
 #if defined(USE_OMP_SIMD)
         #pragma omp simd
-#else
-        #pragma simd
 #endif
         #endif
         for (int k = nlower_6; k <= nupper_6; k++) {
@@ -1896,8 +1846,6 @@ void PPPMDispIntel::fieldforce_g_ik_intel(IntelBuffers<flt_t,acc_t> * /*buffers*
           #if defined(LMP_SIMD_COMPILER)
 #if defined(USE_OMP_SIMD)
           #pragma omp simd
-#else
-          #pragma simd
 #endif
           #pragma loop_count min(2), max(INTEL_P3M_ALIGNED_MAXORDER), avg(7)
           #endif
@@ -2021,8 +1969,6 @@ void PPPMDispIntel::fieldforce_g_ad_intel(IntelBuffers<flt_t,acc_t> * /*buffers*
         #if defined(LMP_SIMD_COMPILER)
 #if defined(USE_OMP_SIMD)
         #pragma omp simd
-#else
-        #pragma simd
 #endif
         #endif
         for (int k = 0; k < INTEL_P3M_ALIGNED_MAXORDER; k++) {
@@ -2037,8 +1983,6 @@ void PPPMDispIntel::fieldforce_g_ad_intel(IntelBuffers<flt_t,acc_t> * /*buffers*
         #if defined(LMP_SIMD_COMPILER)
 #if defined(USE_OMP_SIMD)
         #pragma omp simd
-#else
-        #pragma simd
 #endif
         #endif
         for (int k = nlower_6; k <= nupper_6; k++) {
@@ -2085,8 +2029,6 @@ void PPPMDispIntel::fieldforce_g_ad_intel(IntelBuffers<flt_t,acc_t> * /*buffers*
           #if defined(LMP_SIMD_COMPILER)
 #if defined(USE_OMP_SIMD)
           #pragma omp simd
-#else
-          #pragma simd
 #endif
           #pragma loop_count min(2), max(INTEL_P3M_ALIGNED_MAXORDER), avg(7)
           #endif
@@ -2111,8 +2053,6 @@ void PPPMDispIntel::fieldforce_g_ad_intel(IntelBuffers<flt_t,acc_t> * /*buffers*
     #if defined(LMP_SIMD_COMPILER)
 #if defined(USE_OMP_SIMD)
     #pragma omp simd
-#else
-    #pragma simd
 #endif
     #endif
     for (int i = ifrom; i < ito; i++) {
@@ -2213,8 +2153,6 @@ void PPPMDispIntel::fieldforce_a_ik_intel(IntelBuffers<flt_t,acc_t> * /*buffers*
         #if defined(LMP_SIMD_COMPILER)
 #if defined(USE_OMP_SIMD)
         #pragma omp simd
-#else
-        #pragma simd
 #endif
         #endif
         for (int k = 0; k < INTEL_P3M_ALIGNED_MAXORDER; k++) {
@@ -2226,8 +2164,6 @@ void PPPMDispIntel::fieldforce_a_ik_intel(IntelBuffers<flt_t,acc_t> * /*buffers*
         #if defined(LMP_SIMD_COMPILER)
 #if defined(USE_OMP_SIMD)
         #pragma omp simd
-#else
-        #pragma simd
 #endif
         #endif
         for (int k = nlower_6; k <= nupper_6; k++) {
@@ -2284,8 +2220,6 @@ void PPPMDispIntel::fieldforce_a_ik_intel(IntelBuffers<flt_t,acc_t> * /*buffers*
           #if defined(LMP_SIMD_COMPILER)
 #if defined(USE_OMP_SIMD)
           #pragma omp simd
-#else
-          #pragma simd
 #endif
           #pragma loop_count min(2), max(INTEL_P3M_ALIGNED_MAXORDER), avg(7)
           #endif
@@ -2480,8 +2414,6 @@ void PPPMDispIntel::fieldforce_a_ad_intel(IntelBuffers<flt_t,acc_t> * /*buffers*
         #if defined(LMP_SIMD_COMPILER)
 #if defined(USE_OMP_SIMD)
         #pragma omp simd
-#else
-        #pragma simd
 #endif
         #endif
         for (int k = 0; k < INTEL_P3M_ALIGNED_MAXORDER; k++) {
@@ -2496,8 +2428,6 @@ void PPPMDispIntel::fieldforce_a_ad_intel(IntelBuffers<flt_t,acc_t> * /*buffers*
         #if defined(LMP_SIMD_COMPILER)
 #if defined(USE_OMP_SIMD)
         #pragma omp simd
-#else
-        #pragma simd
 #endif
         #endif
         for (int k = nlower_6; k <= nupper_6; k++) {
@@ -2569,8 +2499,6 @@ void PPPMDispIntel::fieldforce_a_ad_intel(IntelBuffers<flt_t,acc_t> * /*buffers*
           #if defined(LMP_SIMD_COMPILER)
 #if defined(USE_OMP_SIMD)
           #pragma omp simd
-#else
-          #pragma simd
 #endif
           #pragma loop_count min(2), max(INTEL_P3M_ALIGNED_MAXORDER), avg(7)
           #endif
@@ -2635,8 +2563,6 @@ void PPPMDispIntel::fieldforce_a_ad_intel(IntelBuffers<flt_t,acc_t> * /*buffers*
     #if defined(LMP_SIMD_COMPILER)
 #if defined(USE_OMP_SIMD)
     #pragma omp simd
-#else
-    #pragma simd
 #endif
     #endif
     for (int i = ifrom; i < ito; i++) {
@@ -2776,8 +2702,6 @@ void PPPMDispIntel::fieldforce_none_ik_intel(IntelBuffers<flt_t,acc_t> * /*buffe
         #if defined(LMP_SIMD_COMPILER)
 #if defined(USE_OMP_SIMD)
         #pragma omp simd
-#else
-        #pragma simd
 #endif
         #endif
         for (int k = 0; k < INTEL_P3M_ALIGNED_MAXORDER; k++) {
@@ -2789,8 +2713,6 @@ void PPPMDispIntel::fieldforce_none_ik_intel(IntelBuffers<flt_t,acc_t> * /*buffe
         #if defined(LMP_SIMD_COMPILER)
 #if defined(USE_OMP_SIMD)
         #pragma omp simd
-#else
-        #pragma simd
 #endif
         #endif
         for (int k = nlower_6; k <= nupper_6; k++) {
@@ -2830,8 +2752,6 @@ void PPPMDispIntel::fieldforce_none_ik_intel(IntelBuffers<flt_t,acc_t> * /*buffe
             #if defined(LMP_SIMD_COMPILER)
 #if defined(USE_OMP_SIMD)
             #pragma omp simd
-#else
-            #pragma simd
 #endif
             #pragma loop_count min(2), max(INTEL_P3M_ALIGNED_MAXORDER), avg(7)
             #endif
@@ -2965,8 +2885,6 @@ void PPPMDispIntel::fieldforce_none_ad_intel(IntelBuffers<flt_t,acc_t> * /*buffe
         #if defined(LMP_SIMD_COMPILER)
 #if defined(USE_OMP_SIMD)
         #pragma omp simd
-#else
-        #pragma simd
 #endif
         #endif
         for (int k = 0; k < INTEL_P3M_ALIGNED_MAXORDER; k++) {
@@ -2981,8 +2899,6 @@ void PPPMDispIntel::fieldforce_none_ad_intel(IntelBuffers<flt_t,acc_t> * /*buffe
         #if defined(LMP_SIMD_COMPILER)
 #if defined(USE_OMP_SIMD)
         #pragma omp simd
-#else
-        #pragma simd
 #endif
         #endif
         for (int k = nlower_6; k <= nupper_6; k++) {
@@ -3030,8 +2946,6 @@ void PPPMDispIntel::fieldforce_none_ad_intel(IntelBuffers<flt_t,acc_t> * /*buffe
             #if defined(LMP_SIMD_COMPILER)
 #if defined(USE_OMP_SIMD)
             #pragma omp simd
-#else
-            #pragma simd
 #endif
             #pragma loop_count min(2), max(INTEL_P3M_ALIGNED_MAXORDER), avg(7)
             #endif
@@ -3114,8 +3028,6 @@ void PPPMDispIntel::precompute_rho()
       #if defined(LMP_SIMD_COMPILER)
 #if defined(USE_OMP_SIMD)
       #pragma omp simd
-#else
-      #pragma simd
 #endif
       #endif
       for (int k=nlower; k<=nupper;k++) {
@@ -3132,8 +3044,6 @@ void PPPMDispIntel::precompute_rho()
         #if defined(LMP_SIMD_COMPILER)
 #if defined(USE_OMP_SIMD)
         #pragma omp simd
-#else
-        #pragma simd
 #endif
         #endif
         for (int k=nlower; k<=nupper;k++) {
@@ -3156,8 +3066,6 @@ void PPPMDispIntel::precompute_rho()
       #if defined(LMP_SIMD_COMPILER)
 #if defined(USE_OMP_SIMD)
       #pragma omp simd
-#else
-      #pragma simd
 #endif
       #endif
       for (int k=nlower_6; k<=nupper_6;k++) {
@@ -3174,8 +3082,6 @@ void PPPMDispIntel::precompute_rho()
         #if defined(LMP_SIMD_COMPILER)
 #if defined(USE_OMP_SIMD)
         #pragma omp simd
-#else
-        #pragma simd
 #endif
         #endif
         for (int k=nlower_6; k<=nupper_6;k++) {

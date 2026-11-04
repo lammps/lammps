@@ -317,8 +317,6 @@ void PairSWIntel::eval(const int vflag,
         #if defined(LMP_SIMD_COMPILER)
 #if defined(USE_OMP_SIMD)
         #pragma omp simd reduction(+:fxtmp, fytmp, fztmp, fwtmp, sevdwl)
-#else
-        #pragma simd reduction(+:fxtmp, fytmp, fztmp, fwtmp, sevdwl)
 #endif
         #pragma vector aligned
         #endif

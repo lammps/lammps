@@ -23,9 +23,6 @@
 #ifdef __INTEL_LLVM_COMPILER
 #define USE_OMP_SIMD
 #define LMP_SIMD_COMPILER
-// LMP_INTEL_USE_SIMDOFF is not defined: with the LLVM based Intel compilers, the vectorized
-// loops of the bond, angle, dihedral, and improper styles that it enables lose part of the
-// energy sum in their "omp simd reduction" when vectorized, so they report wrong energies
 // Indicate to vectorizer that it is safe to use dword indexed gather
 #define IP_PRE_dword_index(i) ((i) & NEIGHMASK)
 #else

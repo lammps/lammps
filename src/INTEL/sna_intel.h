@@ -27,12 +27,8 @@
 
 #define SVW 8
 
-#if defined(LMP_SIMD_COMPILER)
 #if defined(USE_OMP_SIMD)
 #define SV_for _Pragma("omp simd") _Pragma("vector aligned") for
-#else
-#define SV_for _Pragma("simd assert") _Pragma("vector aligned") for
-#endif
 #else
 #define SV_for for
 #endif

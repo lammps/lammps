@@ -193,16 +193,18 @@ compilers.
 
 .. note::
 
-   The vectorization and math capabilities can differ depending on
-   the CPU. For Intel compilers, the ``-x`` flag specifies the type of
-   processor for which to optimize. ``-xHost`` specifies that the compiler
-   should build for the processor used for compiling. For fourth
-   generation Intel Xeon (v4/Broadwell) processors, ``-xCORE-AVX2`` should
-   be used. For older Intel Xeon processors, ``-xAVX`` will perform best
-   in general for the different simulations in LAMMPS. With the LLVM
-   based Intel compilers, CMake adds ``-xHost`` unless an architecture
-   flag is already present in ``CMAKE_CXX_FLAGS``, so you need to set
-   a suitable flag explicitly when compiling for a different CPU.
+   The vectorization and math capabilities differ between CPUs.  With
+   the LLVM based Intel compilers, CMake compiles the LAMMPS library for
+   the CPU of the machine where LAMMPS is compiled (``-xHost``), unless
+   a target CPU is already selected with ``-x``, ``-ax``, or
+   ``-march=`` in ``CMAKE_CXX_FLAGS`` or in the flags for the build
+   type (e.g. ``CMAKE_CXX_FLAGS_RELWITHDEBINFO``).  Selecting a target
+   CPU is needed when compiling for a different CPU, e.g. when the login
+   and compute nodes of a cluster differ.  Use ``-march=`` for this
+   (e.g. ``-march=skylake-avx512`` or ``-march=x86-64-v3``) and not
+   ``-x``: when the file with the main program is compiled with a
+   ``-x`` flag, the LAMMPS executable checks for an Intel CPU when it
+   starts and refuses to run on CPUs from other vendors.
 
 Running LAMMPS with the INTEL package
 """""""""""""""""""""""""""""""""""""

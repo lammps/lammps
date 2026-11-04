@@ -394,6 +394,12 @@ the pair styles in the INTEL package currently support the
 :doc:`run_style respa <run_style>` command; only the "pair" option is
 supported.
 
+The bond, angle, dihedral, and improper styles in the INTEL package
+require a pair style from the INTEL package (pair style
+:doc:`zero/intel <pair_zero>` can be used, if no pair interactions are
+needed) and the same :doc:`newton <newton>` setting for pair and bond
+interactions.
+
 References
 """"""""""
 

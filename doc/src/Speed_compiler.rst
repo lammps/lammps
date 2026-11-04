@@ -18,10 +18,12 @@ is used instead of the corresponding compiler preset, for example:
 
    cmake -S cmake -B build -C cmake/presets/gcc-opt.cmake -C cmake/presets/most.cmake
 
-These presets select ``-O3`` and, on x86_64 CPUs, the x86-64-v3
-instruction set (``-march=x86-64-v3``), which includes the AVX2 vector
-instructions and fused multiply-add (FMA).  ``gcc-opt.cmake`` also adds
-``-fno-semantic-interposition``.
+``gcc-opt.cmake`` and ``clang-opt.cmake`` select ``-O3`` and, on x86_64
+CPUs, the x86-64-v3 instruction set (``-march=x86-64-v3``), which
+includes the AVX2 vector instructions and fused multiply-add (FMA);
+``gcc-opt.cmake`` also adds ``-fno-semantic-interposition``.
+``oneapi-opt.cmake`` selects ``-O3`` and ``-xHost``, i.e. code for the
+CPU of the machine where LAMMPS is compiled.
 
 Expected speedup
 """"""""""""""""
@@ -45,7 +47,7 @@ the Cascade Lake CPU.
    +--------------------------------------+-----------+-----------+------------+
    | Intel Xeon E5-2620 v4 (Broadwell)    | 5% / 7%   | 6% / 5%   |            |
    +--------------------------------------+-----------+-----------+------------+
-   | Intel Xeon Gold 6248 (Cascade Lake)  | 10% / 9%  | 11% / 8%  | 10% / 8%   |
+   | Intel Xeon Gold 6248 (Cascade Lake)  | 10% / 9%  | 11% / 8%  | 12% / 7%   |
    +--------------------------------------+-----------+-----------+------------+
 
 The compilers were GCC 15 and 16, Clang 21 and 22, and Intel oneAPI
@@ -56,24 +58,41 @@ of the input on every CPU core at the same time, the speedup was about
 the same (within 1 to 3 percent), except for the ReaxFF input, which is
 then limited by the memory bandwidth and gains less.
 
-Compiling for the specific CPU of the machine (``-march=native`` with
-GCC and Clang or ``-xHost`` with the Intel compilers) instead of
-x86-64-v3 added at most 1.5 percent on average on these CPUs, even on
-those with AVX-512 instructions.  Most of the floating-point work of the plain
-and OPENMP package styles is not vectorized (see the section on
-floating-point operations on the :doc:`Benchmarks <Speed_bench>` page).
-Also, an executable compiled for a specific CPU can stop with an
-"illegal instruction" error on a different CPU, e.g. when LAMMPS was
-compiled on the login node of a cluster with a newer CPU than its
-compute nodes.  The presets therefore use x86-64-v3.
+With GCC and Clang, compiling for the specific CPU of the machine
+(``-march=native``) instead of x86-64-v3 added at most 1.5 percent on
+average on these CPUs, even on those with AVX-512 instructions, since
+most of the floating-point work of the plain and OPENMP package styles
+is not vectorized (see the section on floating-point operations on the
+:doc:`Benchmarks <Speed_bench>` page).  Therefore, ``gcc-opt.cmake`` and
+``clang-opt.cmake`` use x86-64-v3, so that the executable also runs on
+other CPUs.  ``oneapi-opt.cmake`` uses ``-xHost`` instead, since the
+vectorized styles of the :doc:`INTEL package <Speed_intel>` are designed
+to use AVX-512 instructions on CPUs that support them.
 
 Limitations
 """""""""""
 
-- An executable compiled with these presets runs only on CPUs that
-  support the x86-64-v3 instruction set: most Intel CPUs since Haswell
-  (2013) and AMD CPUs since Zen (2017).  On older CPUs it stops with an
-  "illegal instruction" error.
+- An executable compiled with ``gcc-opt.cmake`` or ``clang-opt.cmake``
+  runs only on CPUs that support the x86-64-v3 instruction set: most
+  Intel CPUs since Haswell (2013) and AMD CPUs since Zen (2017).  An
+  executable compiled with ``oneapi-opt.cmake`` runs only on CPUs that
+  support the same instruction set extensions as the CPU of the machine
+  where it was compiled.  On other CPUs, the executable stops with an
+  "illegal instruction" error.  On most clusters, the login nodes,
+  where LAMMPS is usually compiled, have the same kind of CPU as the
+  compute nodes.  If not, the target CPU can be selected by setting the
+  compiler flags for the build type after the preset, for example for
+  all CPUs with AVX2 and FMA support:
+
+  .. code-block:: bash
+
+     cmake -S cmake -B build -C cmake/presets/oneapi-opt.cmake \
+           -D CMAKE_CXX_FLAGS_RELWITHDEBINFO="-g -O3 -march=x86-64-v3 -DNDEBUG" \
+           -D CMAKE_C_FLAGS_RELWITHDEBINFO="-g -O3 -march=x86-64-v3 -DNDEBUG"
+
+  With the Intel compilers, ``-x`` followed by the name of an
+  instruction set, e.g. ``-xCORE-AVX512``, selects a specific Intel
+  CPU generation.
 
 - With FMA, a multiplication and an addition are combined into one
   operation with a single rounding step.  This changes results in the
@@ -95,12 +114,6 @@ Limitations
   gained only about 2 percent and caused more than 20 unit tests to fail,
   some with NaN results.  Therefore, LAMMPS adds ``-fp-model precise``
   when compiling with the Intel compilers.
-
-- With the oneAPI compilers, the :doc:`INTEL package <Speed_intel>`
-  compiles LAMMPS for the CPU of the build machine (``-xHost``), unless
-  a target CPU is already selected.  With ``oneapi-opt.cmake``, the
-  INTEL package styles are thus compiled for x86-64-v3 and do not use
-  AVX-512 instructions.
 
 - Some Linux distributions change the defaults of their compilers.  For
   example, GCC in Red Hat Enterprise Linux 10 and compatible

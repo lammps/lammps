@@ -467,6 +467,12 @@ void FixRigidNHSmallKokkos<DeviceType>::initial_integrate(int vflag)
     scale_v[2] = dtv * exp(tmp) * maclaurin_series(tmp);
   }
 
+  // remap simulation box and xcm by full step
+  //   xcm: scaled according to the first term of the RHS of (6) in Step 1
+  //        (Kamberaj et al. page 224114-16)
+
+  if (pstat_flag) remap();
+
   // update xcm, vcm, quat, conjqm and angmom of bodies on the device
 
   nh_initial_integrate_bodies(scale_r, scale_t, scale_v);
@@ -494,18 +500,13 @@ void FixRigidNHSmallKokkos<DeviceType>::initial_integrate(int vflag)
 
   this->v_init(vflag,0);
 
-  // remap simulation box by 1/2 step
-
-  if (pstat_flag) remap();
-
   // set coords/orient and velocity/rotation of atoms in rigid bodies
 
   set_xv_kokkos(1);
 
-  // remap simulation box by full step; redo KSpace coeffs since volume changed
+  // redo KSpace coeffs since volume changed
 
   if (pstat_flag) {
-    remap();
     if (kspace_flag) force->kspace->setup();
   }
 }
@@ -1106,7 +1107,7 @@ void FixRigidNHSmallKokkos<DeviceType>::remap()
   auto *domainKK = (DomainKokkos *) domain;
   int nlocal = atom->nlocal;
 
-  for (i = 0; i < 3; i++) epsilon[i] += dtq * epsilon_dot[i];
+  for (i = 0; i < 3; i++) epsilon[i] += dtv * epsilon_dot[i];
 
   if (allremap) domainKK->x2lamda(nlocal);
   else domainKK->x2lamda(nlocal, dilate_group_bit);
@@ -1131,6 +1132,11 @@ void FixRigidNHSmallKokkos<DeviceType>::remap()
   else domainKK->lamda2x(nlocal, dilate_group_bit);
 
   for (auto &ifix : rfix) ifix->deform(1);
+
+  // forward communicate the updated xcm
+
+  commflag = REMAP;
+  commKK->template forward_comm_device<DeviceType>(this,3);
 }
 
 /* ----------------------------------------------------------------------

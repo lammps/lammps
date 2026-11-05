@@ -565,12 +565,6 @@ void FixRigidNHSmall::initial_integrate(int vflag)
     nhc_press_integrate();
   }
 
-  // redo KSpace coeffs since volume has changed
-
-  if (pstat_flag) {
-    if (kspace_flag) force->kspace->setup();
-  }
-
   // virial setup before call to set_xv
 
   v_init(vflag);
@@ -579,6 +573,12 @@ void FixRigidNHSmall::initial_integrate(int vflag)
   // from xcm, quarternion and omega
 
   set_xv();
+
+  // redo KSpace coeffs since volume has changed
+
+  if (pstat_flag) {
+    if (kspace_flag) force->kspace->setup();
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1093,7 +1093,7 @@ void FixRigidNHSmall::remap()
   // forward communicate the updated xcm
 
   commflag = REMAP;
-  comm->forward_comm(this, INITIAL_BUFSZ);
+  comm->forward_comm(this, REMAP_BUFSZ);
 }
 
 /* ----------------------------------------------------------------------

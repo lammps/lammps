@@ -94,6 +94,12 @@ void FixRigidNHOMP::initial_integrate(int vflag)
     scale_v[2] = dtv * exp(tmp) * maclaurin_series(tmp);
   }
 
+  // remap simulation box and xcm by full step
+  //   xcm: scaled according to the first term of the RHS of (6) in Step 1
+  //        (Kamberaj et al. page 224114-16)
+
+  if (pstat_flag) remap();
+
   // update xcm, vcm, quat, conjqm and angmom
   double akt=0.0, akr=0.0;
 
@@ -211,10 +217,6 @@ void FixRigidNHOMP::initial_integrate(int vflag)
 
   v_init(vflag);
 
-  // remap simulation box by 1/2 step
-
-  if (pstat_flag) remap();
-
   // set coords/orient and velocity/rotation of atoms in rigid bodies
   // from quarternion and omega
 
@@ -244,11 +246,9 @@ void FixRigidNHOMP::initial_integrate(int vflag)
     }
   }
 
-  // remap simulation box by full step
   // redo KSpace coeffs since volume has changed
 
   if (pstat_flag) {
-    remap();
     if (kspace_flag) force->kspace->setup();
   }
 }
@@ -594,12 +594,21 @@ void FixRigidNHOMP::remap()
 
   // epsilon is not used, except for book-keeping
 
-  for (int i = 0; i < 3; i++) epsilon[i] += dtq * epsilon_dot[i];
+  for (int i = 0; i < 3; i++) epsilon[i] += dtv * epsilon_dot[i];
 
   // convert pertinent atoms and rigid bodies to lamda coords
+  // for dilate all, only remap atoms that are not in the group to lamda coords
+  // let set_xv() set the atom coords in the group using body xcm
 
-  if (allremap) domain->x2lamda(nlocal);
-  else {
+  if (allremap) {
+#if defined (_OPENMP)
+#pragma omp parallel for LMP_DEFAULT_NONE schedule(static)
+#endif
+    for (int i = 0; i < nlocal; i++) {
+      if (mask[i] & groupbit) continue;
+      domain->x2lamda(x[i],x[i]);
+    }
+  } else {
 #if defined (_OPENMP)
 #pragma omp parallel for LMP_DEFAULT_NONE schedule(static)
 #endif
@@ -627,9 +636,18 @@ void FixRigidNHOMP::remap()
   domain->set_local_box();
 
   // convert pertinent atoms and rigid bodies back to box coords
+  // for dilate all, only remap atom coords that are not in the group
+  // back from lamda coords
 
-  if (allremap) domain->lamda2x(nlocal);
-  else {
+  if (allremap) {
+#if defined (_OPENMP)
+#pragma omp parallel for LMP_DEFAULT_NONE schedule(static)
+#endif
+    for (int i = 0; i < nlocal; i++) {
+      if (mask[i] & groupbit) continue;
+      domain->lamda2x(x[i],x[i]);
+    }
+  } else {
 #if defined (_OPENMP)
 #pragma omp parallel for LMP_DEFAULT_NONE schedule(static)
 #endif

@@ -3180,6 +3180,7 @@ int FixRigidSmall::pack_forward_comm(int n, int *list, double *buf,
         m += bodysize;
       }
     }
+
   } else if (commflag == REMAP) {
     for (i = 0; i < n; i++) {
       j = list[i];

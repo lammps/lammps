@@ -35,6 +35,7 @@
 #include "force.h"
 #include "memory.h"
 #include "modify.h"
+#include "neighbor.h"
 #include "pair_hybrid.h"
 #include "pair_spin.h"
 #include "update.h"
@@ -73,6 +74,7 @@ FixNVESpin::FixNVESpin(LAMMPS *lmp, int narg, char **arg) :
   if (narg < 4) error->all(FLERR,"Illegal fix/nve/spin command");
 
   time_integrate = 1;
+  comm_forward = 3;
   lattice_flag = 1;
   nlocal_max = 0;
   npairs = 0;
@@ -80,6 +82,8 @@ FixNVESpin::FixNVESpin(LAMMPS *lmp, int narg, char **arg) :
 
   // test nprec
   nprecspin = nlangspin = nsetspin = 0;
+  nsectors = 0;
+  secdim[0] = secdim[1] = secdim[2] = 0;
 
   // checking if map array or hash is defined
 
@@ -89,6 +93,11 @@ FixNVESpin::FixNVESpin(LAMMPS *lmp, int narg, char **arg) :
   // define sector_flag
 
   sector_flag = (comm->nprocs > 1) ? 1 : 0;
+  danger_flag = 0;
+
+  // no self-consistent iterations of the single spin updates by default
+
+  sciter = 0;
 
   // defining lattice_flag
 
@@ -105,6 +114,12 @@ FixNVESpin::FixNVESpin(LAMMPS *lmp, int narg, char **arg) :
       else if ((latarg == "yes") || (latarg == "on") || (latarg == "true") || (latarg == "moving"))
         lattice_flag = 1;
       else error->all(FLERR,"Illegal fix/nve/spin command");
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"selfconsistent") == 0) {
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "fix nve/spin selfconsistent", error);
+      sciter = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
+      if (sciter < 0)
+        error->all(FLERR, iarg+1, "Fix nve/spin selfconsistent must be >= 0, not {}", sciter);
       iarg += 2;
     } else error->all(FLERR,"Illegal fix/nve/spin command");
   }
@@ -243,8 +258,15 @@ void FixNVESpin::init()
     maglangevin_flag = 1;
     delete[] locklangevinspin;
     locklangevinspin = new FixLangevinSpin*[nlangspin];
-    for (int i = 0; i < nlangspin; i++)
+    for (int i = 0; i < nlangspin; i++) {
       locklangevinspin[i] = dynamic_cast<FixLangevinSpin *>(langfixes[i]);
+
+      // the random field would be drawn again at each iteration
+
+      if ((sciter > 0) && locklangevinspin[i]->temp_flag)
+        error->all(FLERR, Error::NOLASTLINE, "Fix nve/spin selfconsistent cannot be used with "
+                   "fix langevin/spin {} at a non-zero temperature", locklangevinspin[i]->id);
+    }
   }
 
   // ptrs FixSetForceSpin classes
@@ -264,6 +286,21 @@ void FixNVESpin::init()
   // perform the sectoring operation
 
   if (sector_flag) sectoring();
+
+  // the sectoring algorithm requires that atoms move less than half the
+  //   neighbor skin between reneighborings, which is only guaranteed if
+  //   reneighboring is considered on every step (with check no, lists
+  //   are then rebuilt on every step, which is also safe)
+
+  danger_flag = 0;
+  if (sector_flag && lattice_flag && (comm->me == 0) &&
+      ((neighbor->every > 1) || (neighbor->delay > 0) || neighbor->build_once))
+    error->warning(FLERR, "Fix nve/spin with multiple processors and a moving lattice may "
+                   "give inaccurate results if atoms move more than half the neighbor skin "
+                   "distance between neighbor list builds. This is possible with the "
+                   "current settings (neigh_modify every {} delay {} once {}). To avoid "
+                   "this, use 'neigh_modify every 1 delay 0 check yes once no'",
+                   neighbor->every, neighbor->delay, neighbor->build_once ? "yes" : "no");
 
   // init. size of stacking lists (sectoring)
 
@@ -305,28 +342,33 @@ void FixNVESpin::initial_integrate(int /*vflag*/)
   }
 
   // update half s for all atoms
+  // communicate ghost positions (and spins) once, since other fixes may have
+  //   changed positions or box since the last comm (e.g. fix deform remap x),
+  //   then only ghost spins
+  // no comm between the forward and the backward update of the last sector:
+  //   only ghosts of that sector are out of date then, and atoms of a sector
+  //   never interact with ghosts of the same sector on other processors
 
   if (sector_flag) {                            // sectoring seq. update
     for (int j = 0; j < nsectors; j++) {        // advance quarter s for nlocal
-      comm->forward_comm();
+      if (j == 0) comm->forward_comm();
+      else comm->forward_comm(this);
       int i = stack_foot[j];
       while (i >= 0) {
         const int next = forward_stacks[i];
         if (mask[i] & groupbit) {
-          ComputeInteractionsSpin(i);
-          AdvanceSingleSpin(i);
+          UpdateSingleSpin(i);
         }
         i = next;
       }
     }
     for (int j = nsectors-1; j >= 0; j--) {     // advance quarter s for nlocal
-      comm->forward_comm();
+      if (j < nsectors-1) comm->forward_comm(this);
       int i = stack_head[j];
       while (i >= 0) {
         const int next = backward_stacks[i];
         if (mask[i] & groupbit) {
-          ComputeInteractionsSpin(i);
-          AdvanceSingleSpin(i);
+          UpdateSingleSpin(i);
         }
         i = next;
       }
@@ -335,14 +377,12 @@ void FixNVESpin::initial_integrate(int /*vflag*/)
     comm->forward_comm();                        // comm. positions of ghost atoms
     for (int i = 0; i < nlocal; i++) {           // advance quarter s for nlocal
       if (mask[i] & groupbit) {
-        ComputeInteractionsSpin(i);
-        AdvanceSingleSpin(i);
+        UpdateSingleSpin(i);
       }
     }
     for (int i = nlocal-1; i >= 0; i--) {        // advance quarter s for nlocal
       if (mask[i] & groupbit) {
-        ComputeInteractionsSpin(i);
-        AdvanceSingleSpin(i);
+        UpdateSingleSpin(i);
       }
     }
   }
@@ -360,28 +400,29 @@ void FixNVESpin::initial_integrate(int /*vflag*/)
   }
 
   // update half s for all particles
+  // ghost positions have changed: communicate them (and spins) once,
+  //   then only ghost spins (none before the backward update of the last sector)
 
   if (sector_flag) {                            // sectoring seq. update
     for (int j = 0; j < nsectors; j++) {        // advance quarter s for nlocal
-      comm->forward_comm();
+      if (j == 0) comm->forward_comm();
+      else comm->forward_comm(this);
       int i = stack_foot[j];
       while (i >= 0) {
         const int next = forward_stacks[i];
         if (mask[i] & groupbit) {
-          ComputeInteractionsSpin(i);
-          AdvanceSingleSpin(i);
+          UpdateSingleSpin(i);
         }
         i = next;
       }
     }
     for (int j = nsectors-1; j >= 0; j--) {     // advance quarter s for nlocal
-      comm->forward_comm();
+      if (j < nsectors-1) comm->forward_comm(this);
       int i = stack_head[j];
       while (i >= 0) {
         const int next = backward_stacks[i];
         if (mask[i] & groupbit) {
-          ComputeInteractionsSpin(i);
-          AdvanceSingleSpin(i);
+          UpdateSingleSpin(i);
         }
         i = next;
       }
@@ -390,14 +431,12 @@ void FixNVESpin::initial_integrate(int /*vflag*/)
     comm->forward_comm();                       // comm. positions of ghost atoms
     for (int i = 0; i < nlocal; i++) {          // advance quarter s for nlocal-1
       if (mask[i] & groupbit) {
-        ComputeInteractionsSpin(i);
-        AdvanceSingleSpin(i);
+        UpdateSingleSpin(i);
       }
     }
     for (int i = nlocal-1; i >= 0; i--) {       // advance quarter s for nlocal-1
       if (mask[i] & groupbit) {
-        ComputeInteractionsSpin(i);
-        AdvanceSingleSpin(i);
+        UpdateSingleSpin(i);
       }
     }
   }
@@ -420,6 +459,27 @@ void FixNVESpin::pre_neighbor()
 {
   double **x = atom->x;
   int nlocal = atom->nlocal;
+
+  // redo the sectoring, since the sub-domains may have changed
+  //   since the last call (changing box, load balancing)
+
+  if (sector_flag) {
+    sectoring();
+    memory->grow(stack_head,nsectors,"nve/spin:stack_head");
+    memory->grow(stack_foot,nsectors,"nve/spin:stack_foot");
+
+    // warn once per run if atoms have moved more than half the skin
+    //   between two neighbor list builds (counted by Neighbor)
+
+    if (!danger_flag && (neighbor->ndanger > 0)) {
+      danger_flag = 1;
+      if (comm->me == 0)
+        error->warning(FLERR, "Fix nve/spin: atoms moved more than half the neighbor skin "
+                       "distance between neighbor list builds, so spins on different "
+                       "processors may have been updated in the wrong order. "
+                       "Use 'neigh_modify every 1 delay 0 check yes'");
+    }
+  }
 
   if (nlocal_max < nlocal) {                    // grow linked lists if necessary
     nlocal_max = nlocal;
@@ -516,18 +576,35 @@ void FixNVESpin::ComputeInteractionsSpin(int i)
 void FixNVESpin::sectoring()
 {
   // extract larger cutoff from PairSpin styles
+  // use the largest per-type cutoff if available, since this is the distance
+  //   checked in compute_single_pair(), and it may be smaller than the global one
 
   double rv, cutoff;
   rv = cutoff = 0.0;
   int dim = 0;
+  const int ntypes = atom->ntypes;
   for (int i = 0; i < npairspin ; i++) {
     cutoff = *((double *) spin_pairs[i]->extract("cut",dim));
+    auto cut_spin = (double **) spin_pairs[i]->extract("cut_spin",dim);
+    if (cut_spin && (dim == 2)) {
+      cutoff = 0.0;
+      for (int itype = 1; itype <= ntypes; itype++)
+        for (int jtype = itype; jtype <= ntypes; jtype++)
+          if (spin_pairs[i]->setflag[itype][jtype])
+            cutoff = MAX(cutoff,cut_spin[itype][jtype]);
+    }
     rv = MAX(rv,cutoff);
   }
 
   if (rv == 0.0)
    error->all(FLERR, Error::NOLASTLINE,
               "No suitable cutoff found for sectoring operation: rv = {}", rv);
+
+  // atoms may move up to half the skin distance between reneighborings,
+  //   so the sector width must include the skin to keep spins of
+  //   same-index sectors on neighboring procs out of interaction range
+
+  rv += neighbor->skin;
 
   // extent of the subdomain and cutoff in each direction
   // for triclinic boxes, convert the cutoff to the lamda distance
@@ -547,18 +624,30 @@ void FixNVESpin::sectoring()
     }
   }
 
-  // split a direction in two sectors only if each is at least as wide as the cutoff
+  // split a direction in two sectors only if it is divided between several procs
+  // in the other directions, the neighbors of a proc are periodic images of its
+  //   own atoms, which are kept up to date via sametag in AdvanceSingleSpin()
+  // with a tiled decomposition, split all directions
 
-  int sec[3];
-  for (int d = 0; d < 3; d++) sec[d] = (rs[d] >= 2.0 * rcut[d]) ? 2 : 1;
+  const char *dimname[3] = {"x", "y", "z"};
+  nsectors = 1;
+  for (int d = 0; d < 3; d++) {
+    secdim[d] = 0;
+    if (d < domain->dimension)
+      secdim[d] = (comm->layout == Comm::LAYOUT_TILED) || (comm->procgrid[d] > 1);
+    if (secdim[d]) nsectors *= 2;
 
-  nsectors = sec[0]*sec[1]*sec[2];
+    // each sector must be at least as wide as cutoff + skin
 
-  if (sector_flag && (nsectors != 8))
-    error->all(FLERR, Error::NOLASTLINE,
-               "Illegal sectoring operation resulting in {} sectors instead of 8", nsectors);
+    if (secdim[d] && (rs[d] < 2.0 * rcut[d]))
+      error->all(FLERR, Error::NOLASTLINE,
+                 "Processor sub-domain of fix nve/spin is {:.8} wide in {} direction, but "
+                 "must be at least {:.8} = 2 x (largest magnetic cutoff + neighbor skin). "
+                 "Use fewer processors in this direction (see the processors command)",
+                 rs[d] * rv / rcut[d], dimname[d], 2.0 * rv);
 
-  for (int d = 0; d < 3; d++) rsec[d] = rs[d] / sec[d];
+    rsec[d] = secdim[d] ? 0.5 * rs[d] : rs[d];
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -577,12 +666,96 @@ int FixNVESpin::coords2sector(double *x)
     sublo = domain->sublo_lamda;
   }
 
-  int seci[3];
-  seci[0] = xs[0] > (sublo[0] + rsec[0]);
-  seci[1] = xs[1] > (sublo[1] + rsec[1]);
-  seci[2] = xs[2] > (sublo[2] + rsec[2]);
+  // one bit per split direction, in x,y,z order
 
-  return (seci[0] + 2*seci[1] + 4*seci[2]);
+  int nseci = 0;
+  int bit = 1;
+  for (int d = 0; d < 3; d++) {
+    if (!secdim[d]) continue;
+    if (xs[d] > (sublo[d] + rsec[d])) nseci += bit;
+    bit *= 2;
+  }
+
+  return nseci;
+}
+
+/* ----------------------------------------------------------------------
+   rotate the spin s about the field fm during a time dts:
+   g = s + dts/2 fm x (s + g) (Cayley transform), so that |g| = |s|
+   single-spin propagator of Omelyan, Mryglod, and Folk, Phys Rev Lett 86,
+   898 (2001), in the form of Eq. (15) of Tranchida et al. (2018)
+---------------------------------------------------------------------- */
+
+static void RotateSpin(const double *s, const double *fm, double dts, double *g)
+{
+  double fm2,energy,dts2;
+  double cp[3];
+
+  fm2 = (fm[0]*fm[0])+(fm[1]*fm[1])+(fm[2]*fm[2]);
+  energy = (s[0]*fm[0])+(s[1]*fm[1])+(s[2]*fm[2]);
+  dts2 = dts*dts;
+
+  cp[0] = fm[1]*s[2] - fm[2]*s[1];
+  cp[1] = fm[2]*s[0] - fm[0]*s[2];
+  cp[2] = fm[0]*s[1] - fm[1]*s[0];
+
+  g[0] = s[0] + cp[0]*dts;
+  g[1] = s[1] + cp[1]*dts;
+  g[2] = s[2] + cp[2]*dts;
+
+  g[0] += (fm[0]*energy - 0.5*s[0]*fm2)*0.5*dts2;
+  g[1] += (fm[1]*energy - 0.5*s[1]*fm2)*0.5*dts2;
+  g[2] += (fm[2]*energy - 0.5*s[2]*fm2)*0.5*dts2;
+
+  g[0] /= (1.0 + 0.25*fm2*dts2);
+  g[1] /= (1.0 + 0.25*fm2*dts2);
+  g[2] /= (1.0 + 0.25*fm2*dts2);
+}
+
+/* ----------------------------------------------------------------------
+   compute the field on spin i and advance it of a timestep dts
+   with sciter > 0, the field is evaluated at the midpoint (s + s')/2 of
+   the update, found by sciter fixed-point iterations; this makes the
+   update time-symmetric also when the field on spin i depends on s_i
+   (anisotropy, biquadratic exchange, ...)
+---------------------------------------------------------------------- */
+
+void FixNVESpin::UpdateSingleSpin(int i)
+{
+  int *sametag = atom->sametag;
+  double **sp = atom->sp;
+  double **fm = atom->fm;
+  double s0[3],g[3];
+
+  ComputeInteractionsSpin(i);
+
+  if (sciter > 0) {
+    s0[0] = sp[i][0];
+    s0[1] = sp[i][1];
+    s0[2] = sp[i][2];
+    for (int k = 0; k < sciter; k++) {
+      RotateSpin(s0,fm[i],dts,g);
+      sp[i][0] = 0.5*(s0[0] + g[0]);
+      sp[i][1] = 0.5*(s0[1] + g[1]);
+      sp[i][2] = 0.5*(s0[2] + g[2]);
+
+      // periodic images of spin i on this proc, which spin i may interact
+      //   with in small boxes, also take the midpoint value
+      //   (AdvanceSingleSpin() sets them to the new value afterwards)
+
+      for (int j = sametag[i]; j >= 0; j = sametag[j]) {
+        sp[j][0] = sp[i][0];
+        sp[j][1] = sp[i][1];
+        sp[j][2] = sp[i][2];
+      }
+      ComputeInteractionsSpin(i);
+    }
+    sp[i][0] = s0[0];
+    sp[i][1] = s0[1];
+    sp[i][2] = s0[2];
+  }
+
+  AdvanceSingleSpin(i);
 }
 
 /* ----------------------------------------------------------------------
@@ -595,30 +768,9 @@ void FixNVESpin::AdvanceSingleSpin(int i)
   int *sametag = atom->sametag;
   double **sp = atom->sp;
   double **fm = atom->fm;
-  double fm2,energy,dts2;
-  double cp[3],g[3];
+  double g[3];
 
-  cp[0] = cp[1] = cp[2] = 0.0;
-  g[0] = g[1] = g[2] = 0.0;
-  fm2 = (fm[i][0]*fm[i][0])+(fm[i][1]*fm[i][1])+(fm[i][2]*fm[i][2]);
-  energy = (sp[i][0]*fm[i][0])+(sp[i][1]*fm[i][1])+(sp[i][2]*fm[i][2]);
-  dts2 = dts*dts;
-
-  cp[0] = fm[i][1]*sp[i][2] - fm[i][2]*sp[i][1];
-  cp[1] = fm[i][2]*sp[i][0] - fm[i][0]*sp[i][2];
-  cp[2] = fm[i][0]*sp[i][1] - fm[i][1]*sp[i][0];
-
-  g[0] = sp[i][0] + cp[0]*dts;
-  g[1] = sp[i][1] + cp[1]*dts;
-  g[2] = sp[i][2] + cp[2]*dts;
-
-  g[0] += (fm[i][0]*energy - 0.5*sp[i][0]*fm2)*0.5*dts2;
-  g[1] += (fm[i][1]*energy - 0.5*sp[i][1]*fm2)*0.5*dts2;
-  g[2] += (fm[i][2]*energy - 0.5*sp[i][2]*fm2)*0.5*dts2;
-
-  g[0] /= (1.0 + 0.25*fm2*dts2);
-  g[1] /= (1.0 + 0.25*fm2*dts2);
-  g[2] /= (1.0 + 0.25*fm2*dts2);
+  RotateSpin(sp[i],fm[i],dts,g);
 
   sp[i][0] = g[0];
   sp[i][1] = g[1];
@@ -632,17 +784,17 @@ void FixNVESpin::AdvanceSingleSpin(int i)
   // sp[i][1] *= scale;
   // sp[i][2] *= scale;
 
-  // comm. sp[i] to atoms with same tag (for serial algo)
+  // comm. sp[i] to atoms with same tag (periodic images on this proc)
+  // needed for the serial algo, and for the sectoring algo in directions
+  //   that are not split into sectors
 
-  if (!sector_flag) {
-    if (sametag[i] >= 0) {
-      j = sametag[i];
-      while (j >= 0) {
-        sp[j][0] = sp[i][0];
-        sp[j][1] = sp[i][1];
-        sp[j][2] = sp[i][2];
-        j = sametag[j];
-      }
+  if (sametag[i] >= 0) {
+    j = sametag[i];
+    while (j >= 0) {
+      sp[j][0] = sp[i][0];
+      sp[j][1] = sp[i][1];
+      sp[j][2] = sp[i][2];
+      j = sametag[j];
     }
   }
 
@@ -677,6 +829,38 @@ void FixNVESpin::final_integrate()
     }
   }
 
+}
+
+/* ----------------------------------------------------------------------
+   pack/unpack only the spin direction of ghost atoms (sectoring algo)
+---------------------------------------------------------------------- */
+
+int FixNVESpin::pack_forward_comm(int n, int *list, double *buf,
+                                  int /*pbc_flag*/, int * /*pbc*/)
+{
+  double **sp = atom->sp;
+  int m = 0;
+  for (int i = 0; i < n; i++) {
+    const int j = list[i];
+    buf[m++] = sp[j][0];
+    buf[m++] = sp[j][1];
+    buf[m++] = sp[j][2];
+  }
+  return m;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixNVESpin::unpack_forward_comm(int n, int first, double *buf)
+{
+  double **sp = atom->sp;
+  int m = 0;
+  const int last = first + n;
+  for (int i = first; i < last; i++) {
+    sp[i][0] = buf[m++];
+    sp[i][1] = buf[m++];
+    sp[i][2] = buf[m++];
+  }
 }
 
 /* ---------------------------------------------------------------------- */

@@ -37,12 +37,15 @@ class FixNVESpin : public Fix {
 
   void ComputeInteractionsSpin(int);    // compute and advance single spin functions
   void AdvanceSingleSpin(int);
+  void UpdateSingleSpin(int);
 
   void sectoring();    // sectoring operation functions
   int coords2sector(double *);
 
   void setup_pre_neighbor() override;
   void pre_neighbor() override;
+  int pack_forward_comm(int, int *, double *, int, int *) override;
+  void unpack_forward_comm(int, int, double *) override;
   double memory_usage() override;
 
   int lattice_flag;    // lattice_flag = 0 if spins only
@@ -51,8 +54,11 @@ class FixNVESpin : public Fix {
  protected:
   int sector_flag;    // sector_flag = 0  if serial algorithm
                       // sector_flag = 1  if parallel algorithm
+  int danger_flag;    // 1 if the warning about dangerous neighbor builds was printed
 
   double dtv, dtf, dts;    // velocity, force, and spin timesteps
+
+  int sciter;    // # of self-consistent iterations of each single spin update
 
   int nlocal_max;    // max value of nlocal (for size of lists)
 
@@ -87,6 +93,7 @@ class FixNVESpin : public Fix {
   // sectoring variables
 
   int nsectors;
+  int secdim[3];    // 1 if a direction is split into two sectors
   double *rsec;
 
   // stacking variables for sectoring algorithm

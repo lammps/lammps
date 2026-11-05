@@ -159,13 +159,17 @@ double PairSpinExchange::init_one(int i, int j)
 }
 
 /* ----------------------------------------------------------------------
-   extract the larger cutoff
+   extract the larger cutoff, or the per-type cutoffs if "cut_spin"
 ------------------------------------------------------------------------- */
 
 void *PairSpinExchange::extract(const char *str, int &dim)
 {
   dim = 0;
   if (strcmp(str,"cut") == 0) return (void *) &cut_spin_exchange_global;
+  if (strcmp(str,"cut_spin") == 0) {
+    dim = 2;
+    return (void *) cut_spin_exchange;
+  }
   return nullptr;
 }
 

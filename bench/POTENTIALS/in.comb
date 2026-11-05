@@ -17,7 +17,7 @@ compute   	q2 type2 reduce ave c_charge2
 pair_style	comb
 pair_coeff	* * ffield.comb Si O
 neighbor	0.5 bin
-neigh_modify	every 10 delay 0 check yes 
+neigh_modify	every 10 delay 0 check yes
 
 timestep        0.0002
 

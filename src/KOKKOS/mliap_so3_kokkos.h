@@ -115,7 +115,7 @@ template <class DeviceType> class MLIAP_SO3Kokkos : protected Pointers {
   KOKKOS_FUNCTION
   void operator()(const MLIAPSO3GetRipArrayTag &, int ii) const;
 
-  void init_arrays(int nlocal, int ncoefs);
+  void init_arrays(int nlocal, bigint npairs, int ncoefs);
   void init_garray(int nmax, int lmax, double rcut, double alpha, double *w, int lw1,
                    double *g_array, int lg2);
 

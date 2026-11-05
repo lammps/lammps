@@ -1315,11 +1315,6 @@ You need to have an Intel compiler, version 14 or higher to take full
 advantage of this package. While compilation with GNU compilers is
 supported, performance will be sub-optimal.
 
-.. note::
-
-   the INTEL package contains styles that require using the
-   -restrict flag, when compiling with Intel compilers.
-
 **Author:** Mike Brown (Intel).
 
 **Install:**
@@ -1896,11 +1891,6 @@ MISC package
 A variety of compute, fix, pair, bond styles with specialized
 capabilities that don't align with other packages.  Do a directory
 listing, ``ls src/MISC``, to see the list of commands.
-
-.. note::
-
-   the MISC package contains styles that require using the
-   -restrict flag, when compiling with Intel compilers.
 
 **Supporting info:**
 

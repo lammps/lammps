@@ -203,8 +203,8 @@ make a copy of one of them and modify it to suit your needs.
     # (useful during development)
     cmake -S cmake -B build -C cmake/presets/pedantic.cmake [OPTIONS]
 
-    # change settings to use the Intel compilers by default
-    cmake -C ../cmake/presets/intel.cmake    [OPTIONS] ../cmake
+    # change settings to use the Intel oneAPI compilers by default
+    cmake -S cmake -B build -C cmake/presets/oneapi.cmake   [OPTIONS]
 
     # change settings to use the PGI compilers by default
     cmake -S cmake -B build -C cmake/presets/pgi.cmake      [OPTIONS]

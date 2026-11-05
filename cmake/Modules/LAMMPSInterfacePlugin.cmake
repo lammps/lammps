@@ -56,10 +56,6 @@ endif()
 #endif()
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Need -restrict with Intel compilers
-if(CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -restrict")
-endif()
 set(CMAKE_POSITION_INDEPENDENT_CODE TRUE)
 
 # skip over obsolete MPI-2 C++ bindings
@@ -248,10 +244,8 @@ if(BUILD_OMP)
 
   if (((CMAKE_CXX_COMPILER_ID STREQUAL "GNU") AND (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 9.0)) OR
       (CMAKE_CXX_COMPILER_ID STREQUAL "PGI") OR
-      ((CMAKE_CXX_COMPILER_ID STREQUAL "Clang") AND (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 10.0)) OR
-      ((CMAKE_CXX_COMPILER_ID STREQUAL "Intel") AND (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 19.0)))
+      ((CMAKE_CXX_COMPILER_ID STREQUAL "Clang") AND (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 10.0)))
     # GCC 9.x and later plus Clang 10.x and later implement strict OpenMP 4.0 semantics for consts.
-    # Intel 18.0 was tested to support both, so we switch to OpenMP 4+ from 19.x onward to be safe.
     target_compile_definitions(lammps INTERFACE -DLAMMPS_OMP_COMPAT=4)
   else()
     target_compile_definitions(lammps INTERFACE -DLAMMPS_OMP_COMPAT=3)

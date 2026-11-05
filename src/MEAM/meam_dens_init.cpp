@@ -269,15 +269,18 @@ void MEAM::getscreen(int i, double *scrfcn, double *dscrfcn, double *fcpair, dou
           //     here
           //     (other negative cikj cases were handled by the test on "a"
           //     above)
-          //     Note that we never have 0<cikj<Cmin here, else sij=0
-          //     (rejected above)
         } else {
           delc = Cmax - Cmin;
           cikj = (cikj - Cmin) / delc;
           sikj = dfcut(cikj, dfikj);
-          coef1 = dfikj / (delc * sikj);
-          dCikj = dCfunc(rij2, rik2, rjk2);
-          dscrfcn[jn] = dscrfcn[jn] + coef1 * dCikj;
+          //     for cikj within rounding of Cmin, sij can be > 0 from the loop above
+          //     while sikj = dfikj = 0 here (cikj rounded differently, e.g. by fused
+          //     multiply-add), i.e. 0/0.  the contribution vanishes in this limit.
+          if (sikj > 0.0) {
+            coef1 = dfikj / (delc * sikj);
+            dCikj = dCfunc(rij2, rik2, rjk2);
+            dscrfcn[jn] = dscrfcn[jn] + coef1 * dCikj;
+          }
         }
       }
       coef1 = sfcij;

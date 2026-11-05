@@ -198,6 +198,8 @@ if(PKG_PHONON)
   target_link_libraries(test_phonon_commands PRIVATE lammps GTest::GMock)
   add_test(NAME PhononCommands COMMAND test_phonon_commands)
   add_kokkos_test(NAME PhononCommands COMMAND test_phonon_commands)
+  add_mpi_test(NAME PhononCommandsMPI NUM_PROCS 2 COMMAND $<TARGET_FILE:test_phonon_commands>
+               --gtest_filter=PhononLongRangeTest.*)
 endif()
 
 if(PKG_VORONOI)

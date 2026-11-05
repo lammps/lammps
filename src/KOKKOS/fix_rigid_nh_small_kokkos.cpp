@@ -1119,7 +1119,7 @@ void FixRigidNHSmallKokkos<DeviceType>::remap()
       oldlo = domain->boxlo[i];
       oldhi = domain->boxhi[i];
       ctr = 0.5 * (oldlo + oldhi);
-      expfac = exp(dtq * epsilon_dot[i]);
+      expfac = exp(dtv * epsilon_dot[i]);
       domain->boxlo[i] = (oldlo-ctr)*expfac + ctr;
       domain->boxhi[i] = (oldhi-ctr)*expfac + ctr;
     }

@@ -597,18 +597,9 @@ void FixRigidNHOMP::remap()
   for (int i = 0; i < 3; i++) epsilon[i] += dtv * epsilon_dot[i];
 
   // convert pertinent atoms and rigid bodies to lamda coords
-  // for dilate all, only remap atoms that are not in the group to lamda coords
-  // let set_xv() set the atom coords in the group using body xcm
 
-  if (allremap) {
-#if defined (_OPENMP)
-#pragma omp parallel for LMP_DEFAULT_NONE schedule(static)
-#endif
-    for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) continue;
-      domain->x2lamda(x[i],x[i]);
-    }
-  } else {
+  if (allremap) domain->x2lamda(nlocal);
+  else {
 #if defined (_OPENMP)
 #pragma omp parallel for LMP_DEFAULT_NONE schedule(static)
 #endif
@@ -626,7 +617,7 @@ void FixRigidNHOMP::remap()
       const double oldlo = domain->boxlo[i];
       const double oldhi = domain->boxhi[i];
       const double ctr = 0.5 * (oldlo + oldhi);
-      const double expfac = exp(dtq * epsilon_dot[i]);
+      const double expfac = exp(dtv * epsilon_dot[i]);
       domain->boxlo[i] = (oldlo-ctr)*expfac + ctr;
       domain->boxhi[i] = (oldhi-ctr)*expfac + ctr;
     }
@@ -636,18 +627,9 @@ void FixRigidNHOMP::remap()
   domain->set_local_box();
 
   // convert pertinent atoms and rigid bodies back to box coords
-  // for dilate all, only remap atom coords that are not in the group
-  // back from lamda coords
 
-  if (allremap) {
-#if defined (_OPENMP)
-#pragma omp parallel for LMP_DEFAULT_NONE schedule(static)
-#endif
-    for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) continue;
-      domain->lamda2x(x[i],x[i]);
-    }
-  } else {
+  if (allremap) domain->lamda2x(nlocal);
+  else {
 #if defined (_OPENMP)
 #pragma omp parallel for LMP_DEFAULT_NONE schedule(static)
 #endif

@@ -287,13 +287,14 @@ if not pythonflag and not guiflag:
     shutil.move(exe,os.path.join('..',os.path.basename(exe)))
   print("Done")
 
-print("Building PDF manual")
 os.chdir(os.path.join(gitdir,"doc"))
-txt = system("make upgrade")
-if verbose: print(txt)
-txt = system("make pdf")
-if verbose: print(txt)
-shutil.move("Manual.pdf",os.path.join(builddir,"LAMMPS-Manual.pdf"))
+if not os.path.exists("Manual.pdf"):
+    print("Building PDF manual")
+    txt = system("make upgrade")
+    if verbose: print(txt)
+    txt = system("make pdf")
+    if verbose: print(txt)
+shutil.copy("Manual.pdf",os.path.join(builddir,"LAMMPS-Manual.pdf"))
 print("Done")
 
 # switch back to build folder and copy/process files for inclusion in installer

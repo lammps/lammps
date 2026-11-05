@@ -29,16 +29,6 @@ cause an error termination.
 
 -----------------------------------------------------------------------------
 
-For Intel server processors codenamed "Skylake", the following flags should
-be added or changed in the Makefile depending on the version:
-
-2017 update 2         - No changes needed
-2017 updates 3 or 4   - Use -xCOMMON-AVX512 and not -xHost or -xCORE-AVX512
-2018 initial release  - Use -xCOMMON-AVX512 and not -xHost or -xCORE-AVX512
-2018u1 or newer       - Use -xHost or -xCORE-AVX512 and -qopt-zmm-usage=high
-
------------------------------------------------------------------------------
-
 When using the suffix command with "intel", intel styles will be used if they
 exist. If the suffix command is used with "hybrid intel omp" and the OPENMP
 is installed, OPENMP styles will be used whenever INTEL styles are not

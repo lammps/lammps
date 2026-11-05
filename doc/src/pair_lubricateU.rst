@@ -121,15 +121,17 @@ the pairwise interactions have been computed.
    the pair style, and should not be reset by the time integration fix.
 
 Style *lubricateU* requires monodisperse spherical particles; style
-*lubricateU/poly* allows for polydisperse spherical particles.
+*lubricateU/poly* allows for polydisperse spherical particles.  For
+particles of different size, *lubricateU/poly* uses the near-contact
+expansions of the two-sphere resistance functions of :ref:`(Jeffrey and
+Onishi) <Jeffrey2>`, see also :ref:`(Kim and Karrila) <KimKarrila2>`.
 
-.. versionchanged:: 4Jul2026
+.. versionchanged:: TBD
 
-The near-field resistance functions used by *lubricateU/poly* for
-particles of unequal radii were corrected for consistency with
-:doc:`pair_style lubricate/poly <pair_lubricate>` so that the squeeze
-and shear resistances are symmetric under exchange of the two
-particles.  Results for monodisperse systems are unchanged.
+The squeeze and shear resistance functions of *lubricateU/poly* for
+particles of different size are the same as those of :doc:`pair_style
+lubricate/poly <pair_lubricate>`.  Results for particles of equal size
+are unchanged.
 
 If the suspension is sheared via the :doc:`fix deform <fix_deform>`
 command then the pair style uses the shear rate to adjust the
@@ -248,6 +250,15 @@ The default settings for the optional args are flagHI = 1 and flagVF =
 .. _Ball2:
 
 **(Ball)** Ball and Melrose, Physica A, 247, 444-472 (1997).
+
+.. _Jeffrey2:
+
+**(Jeffrey)** Jeffrey and Onishi, J Fluid Mech, 139, 261-290 (1984).
+
+.. _KimKarrila2:
+
+**(Kim and Karrila)** Kim and Karrila, Microhydrodynamics: Principles and
+Selected Applications, Butterworth-Heinemann, Boston (1991).
 
 .. _Kumar2:
 

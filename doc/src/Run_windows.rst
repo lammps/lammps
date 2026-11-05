@@ -3,7 +3,7 @@ Running LAMMPS on Windows
 
 To run a serial (non-MPI) executable, follow these steps:
 
-* Install a LAMMPS installer package from https://packages.lammps.org/windows.html
+* Install a LAMMPS installer package from https://download.lammps.org/packages/windows/
 * Open the "Command Prompt" or "Terminal" app.
 * Change to the directory where you have your input script,
   (e.g. by typing: cd "Documents").

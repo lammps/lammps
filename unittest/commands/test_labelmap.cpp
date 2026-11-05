@@ -444,17 +444,16 @@ TEST_F(LabelMapTest, CheckLabelsWriteData)
     EXPECT_THAT(atom->lmap->find_label(1, Atom::BOND), StrEq("C-N"));
     EXPECT_THAT(atom->lmap->find_label(1, Atom::ANGLE), StrEq("C-N-C"));
 
-    double tolerance = 1.0e-10;
-    if (using_accelerator() && kokkos_reduced_precision()) tolerance = 1.0e-7;
-
-    // 10 steps of 0.005 at unit velocity along x without any forces
+    // 10 steps of 0.005 at unit velocity along x without any forces.  KOKKOS in
+    // single or mixed precision accumulates the positions as floats, so the
+    // round-off of every step adds up
 
     for (int i = 1; i <= 4; ++i) {
         int j = atom->map(i);
         ASSERT_GE(j, 0);
         EXPECT_EQ(atom->type[j], (i % 2) ? 1 : 2);
-        EXPECT_NEAR(atom->x[j][0], i - 1.0 + 0.05, tolerance);
-        EXPECT_NEAR(atom->v[j][0], 1.0, tolerance);
+        EXPECT_NEAR(atom->x[j][0], i - 1.0 + 0.05, prec_tol(i - 1.0 + 0.05, 1.0e-10));
+        EXPECT_NEAR(atom->v[j][0], 1.0, prec_tol(1.0, 1.0e-10));
     }
 }
 } // namespace LAMMPS_NS

@@ -32,7 +32,7 @@ Windows.  This is mostly facilitated by using the
 :doc:`Developer_platform` in the ``platform`` namespace and CMake.
 
 Before trying to build LAMMPS on Windows yourself, please consider the
-`pre-compiled Windows installer packages <https://packages.lammps.org/windows.html>`_
+`pre-compiled Windows installer packages <https://download.lammps.org/packages/windows/>`_
 and see if they are sufficient for your needs.
 
 .. _linux:
@@ -125,15 +125,13 @@ Using Intel oneAPI Compilers and Libraries
 After installing the `Intel oneAPI
 <https://www.intel.com/content/www/us/en/developer/tools/oneapi/toolkits.html>`_
 base toolkit and the HPC toolkit, it is also possible to compile large
-parts of LAMMPS natively on Windows using Intel compilers.  The HPC
-toolkit provides two sets of C/C++ and Fortran compilers: the so-called
-"classic" compilers (``icl.exe`` and ``ifort.exe``) and newer, LLVM
-based compilers (``icx.exe`` and ``ifx.exe``).  In addition to the
-compilers and their dependent modules, also the thread building blocks
-(TBB) and the math kernel library (MKL) need to be installed.  The
-preset ``cmake/presets/intel-llvm.cmake`` selects the LLVM based
-compilers. The preset
-``cmake/presets/windows.cmake`` enables compatible packages that are not
+parts of LAMMPS natively on Windows using the LLVM based Intel compilers
+(``icx.exe`` and ``ifx.exe``).  In addition to the compilers and their
+dependent modules, also the thread building blocks (TBB) and the math
+kernel library (MKL) need to be installed.  The preset
+ ``cmake/presets/intel-llvm.cmake`` selects the LLVM based compilers.
+The preset ``cmake/presets/windows.cmake`` enables compatible packages
+that are not
 dependent on additional features or libraries.  You **must** use the
 CMake based build procedure and use Ninja as build tool.  For compiling
 from the command prompt, thus both `CMake <https://cmake.org>`_ and
@@ -141,18 +139,15 @@ from the command prompt, thus both `CMake <https://cmake.org>`_ and
 is also possible to use Visual Studio, if it is started (``devenv.exe``)
 from a command prompt that has the Intel oneAPI compilers enabled.  The
 Visual Studio settings file in the ``cmake`` folder contains
-configurations for both compiler variants in debug and release settings.
+configurations for the Intel compilers in debug and release settings.
 Those will use the CMake and Ninja binaries bundled with Visual Studio,
 thus a separate installation is not required.
 
 .. admonition:: Known Limitations
    :class: note
 
-   In addition to portability issues with several packages and external
-   libraries, the classic Intel compilers are currently not able to
-   compile the googletest libraries and thus enabling the ``-DENABLE_TESTING``
-   option will result in compilation failure.  The LLVM based compilers
-   are compatible.
+   There are portability issues with several packages and external
+   libraries.
 
 .. note::
 

@@ -132,7 +132,8 @@ class FixIntel : public Fix {
 
  protected:
   int _overflow_flag[5];
-  int _lrt, _p3m_table;
+  int _lrt, _p3m_table, _ftz;
+  unsigned int _saved_ftz_bits;
 
   IntelBuffers<float, float>::vec3_acc_t *_force_array_s;
   IntelBuffers<float, double>::vec3_acc_t *_force_array_m;

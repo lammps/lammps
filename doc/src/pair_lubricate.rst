@@ -107,17 +107,18 @@ as long as *flagVF* is set to 1 (default).
    <pair_lubricateU>` command.
 
 Style *lubricate* requires monodisperse spherical particles; style
-*lubricate/poly* allows for polydisperse spherical particles.
+*lubricate/poly* allows for polydisperse spherical particles.  For
+particles of different size, *lubricate/poly* uses the near-contact
+expansions of the two-sphere resistance functions of :ref:`(Jeffrey and
+Onishi) <Jeffrey1>`, see also :ref:`(Kim and Karrila) <KimKarrila1>`.
 
-.. versionchanged:: 4Jul2026
+.. versionchanged:: TBD
 
-The near-field resistance functions used by *lubricate/poly* for
-particles of unequal radii were corrected so that the pairwise
-lubrication force obeys Newton's third law (is equal and opposite).
-Previously the log-order terms were evaluated using a per-particle
-reference length, which made the force on particle *i* differ from
-minus the force on particle *j* for strongly polydisperse pairs.
-Results for monodisperse systems are unchanged.
+For *lubricate/poly* the logarithmic terms of the resistance functions
+use the gap between the particle surfaces divided by the mean radius of
+the two particles, so that the lubrication forces between particles of
+different size are equal and opposite.  Results for particles of equal
+size are unchanged.
 
 .. versionchanged:: 30Sep2026
 
@@ -233,6 +234,15 @@ The default settings for the optional args are flagHI = 1 and flagVF =
 .. _Ball1:
 
 **(Ball)** Ball and Melrose, Physica A, 247, 444-472 (1997).
+
+.. _Jeffrey1:
+
+**(Jeffrey)** Jeffrey and Onishi, J Fluid Mech, 139, 261-290 (1984).
+
+.. _KimKarrila1:
+
+**(Kim and Karrila)** Kim and Karrila, Microhydrodynamics: Principles and
+Selected Applications, Butterworth-Heinemann, Boston (1991).
 
 .. _Kumar1:
 

@@ -1,21 +1,68 @@
-These are input scripts used to run benchmark tests for many of the
-interatomic potentials in LAMMPS.  The results of running these
-scripts on different machines are shown on the Potentials section of
-the Benchmark page of the LAMMPS WWW site (https://www.lammps.org/bench.html).
+These are input scripts for benchmarking many of the interatomic
+potentials in LAMMPS.  Each input runs 100 MD steps for a system of
+about 32,000 atoms (16,000 for SNAP).  The inputs were used to compare
+the computational cost of the potentials in the LAMMPS paper:
 
-Examples are shown below of how to run these scripts.  Log files for
-running them on 1 and 4 processors of a Linux box are included in the
-directory.  This assumes that the executable lmp_mpi has been built
-with the appropriate packages installed in order to run with a
-particular potential.
+  A. P. Thompson et al., Comp Phys Comm, 271, 108171 (2022)
 
-Any potential parameter file(s) used by the input scripts are also
-included in this directory.
+The "Benchmarks" section of the LAMMPS manual lists the number of
+floating-point operations per atom and timestep for most of them
+(https://docs.lammps.org/Speed_bench.html).
 
-------------------------------------------------------------------------
+Any potential parameter files used by the input scripts are also
+included in this directory.  The inputs need LAMMPS to be compiled
+with the following packages:
 
-lmp_mpi -in in.fene
-lmp_mpi -in in.tersoff
+  in.adp       MANYBODY
+  in.airebo    MANYBODY
+  in.bop       MANYBODY
+  in.comb      MANYBODY
+  in.dpd       DPD-BASIC
+  in.eam       MANYBODY
+  in.eff       EFF
+  in.eim       MANYBODY
+  in.fene      MOLECULE
+  in.gb        ASPHERE
+  in.granular  GRANULAR
+  in.lj        (none)
+  in.meam      MEAM
+  in.peri      PERI
+  in.protein   KSPACE, MOLECULE, RIGID
+  in.reaxff    REAXFF
+  in.rebo      MANYBODY
+  in.snap      ML-SNAP
+  in.spce      KSPACE, MOLECULE, RIGID
+  in.sw        MANYBODY
+  in.tersoff   MANYBODY
 
-mpirun -np 4 lmp_mpi -in in.fene
-mpirun -np 4 lmp_mpi -in in.protein
+Examples of how to run these scripts on one or four CPU cores:
+
+  lmp -in in.fene
+  mpirun -np 4 lmp -in in.protein
+
+The CPU time (in seconds) for the run is in the "Loop time" line of
+the log files.  The log files in this directory were created with one
+MPI process and one OpenMP thread pinned to one core of an otherwise
+idle machine, with LAMMPS (development version 30 Sep 2026, commit
+8e29ee3d8c) compiled by GCC using the cmake/presets/gcc.cmake preset,
+the default build type (-O2) for generic x86_64 CPUs
+(-march=x86-64 -mtune=generic), and the KISS FFT library, e.g.:
+
+  lmp -in in.fene -log log.4Nov2026.fene.AMD-Zen4
+
+The suffix of the log file name indicates the CPU:
+
+  AMD-Zen4    AMD Ryzen Threadripper PRO 7985WX (Zen 4), 64 cores,
+              3.2 GHz base clock, run at 3.15 GHz (boost off),
+              128 GB DDR5-4800 memory in 4 channels,
+              Fedora Linux 44, GCC 16.2.1, MPICH 4.2.2
+
+  Intel-BDW   2x Intel Xeon E5-2620 v4 (Broadwell), 2x 8 cores,
+              2.1 GHz base clock, run at 3.0 GHz (turbo),
+              512 GB DDR4-2133 memory in 2x 4 channels,
+              Ubuntu 26.04.1 LTS, GCC 15.2.0, Open MPI 5.0.10
+
+  Intel-Casc  2x Intel Xeon Gold 6248 (Cascade Lake), 2x 20 cores,
+              2.5 GHz base clock, run at 3.2 GHz (turbo),
+              384 GB DDR4-2933 memory in 2x 6 channels,
+              Rocky Linux 10.2, GCC 14.3.1, MPICH 4.1.2

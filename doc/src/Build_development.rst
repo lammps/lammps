@@ -557,7 +557,9 @@ tool chain, compiler optimization.  Those tests are flagged with a "slow"
 and/or "unstable" label, and thus those tests can be selectively
 excluded with the ``-LE`` flag to ``ctest`` (see description of the most
 commonly used ``ctest`` flags) or specifically selected using the ``-L``
-flag.
+flag.  With the Intel compilers, some of the tests with the "unstable"
+label fail, so they should be skipped with ``ctest -LE unstable`` or
+their failures can be ignored.
 
 .. admonition:: Recommendations and notes for YAML files
    :class: note

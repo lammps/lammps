@@ -80,6 +80,16 @@ and the Intel compilers have been successfully used on Linux, macOS, and
 Windows.  Also, the Nvidia HPC SDK (formerly PGI compilers) will compile
 LAMMPS (tested on Linux).
 
+.. versionchanged:: TBD
+
+The legacy Intel compilers (``icc`` and ``icpc`` on Linux, ``icl`` on
+Windows), also known as "Intel Classic" compilers, have been
+discontinued by Intel and are **no longer** supported.  Please use the
+LLVM based Intel oneAPI compilers (``icx`` and ``icpx``) or a different
+compiler instead.  If you cannot switch compilers, please use the LAMMPS
+30Sep2026 stable version (or one of its updates), which is the last
+LAMMPS version with support for the Intel Classic compilers.
+
 .. versionchanged:: 10Sep2025
 
 The GNU compilers *before* version 9.3 have known problems with

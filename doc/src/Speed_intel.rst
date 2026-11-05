@@ -62,6 +62,29 @@ Skylake) with "June 2017" LAMMPS built with Intel Parallel Studio
 ``src/INTEL/TEST/README`` for the raw simulation rates and
 instructions to reproduce.
 
+On CPUs from other vendors, the speedup can be much smaller, and some
+INTEL package styles can be slower than the styles without
+acceleration.  For example, on AMD Zen 4 CPUs, pair styles
+*eam/intel* and *lj/charmm/coul/long/intel* were slower than the
+corresponding styles without acceleration, and *tersoff/intel* was
+slower in double precision, while *lj/cut/intel*, *sw/intel*, and
+*snap/intel* were 1.7 to 2.8 times faster.  On such CPUs, the
+performance should be compared with the styles without acceleration
+and with those from the OPENMP package before running long
+simulations.
+
+On Intel CPUs from the Skylake to the Ice Lake generations (this
+includes the first three generations of Xeon Scalable processors), the
+protection against the "Gather Data Sampling" (or "Downfall") security
+vulnerability makes the vector instructions, which many INTEL package
+styles use to load the data of neighboring atoms, much slower.  This
+protection is active by default.  On a Xeon Gold 6248 CPU, the INTEL
+package styles were on average 1.55 times faster when it was switched
+off, while styles without acceleration and those from the OPENMP
+package were not affected.  On Linux, the file
+``/sys/devices/system/cpu/vulnerabilities/gather_data_sampling`` shows
+whether the protection is active.
+
 ----------
 
 Accuracy and order of operations
@@ -136,8 +159,6 @@ AVX-512:
 Required hardware/software
 """"""""""""""""""""""""""
 
-When using Intel compilers version 16.0 or later is required.
-
 Although any compiler can be used with the INTEL package,
 currently, vectorization directives are disabled by default when
 not using Intel compilers due to lack of standard support and
@@ -146,6 +167,11 @@ supports directives for vectorization and we plan to transition the
 code to this standard once it is available in most compilers. We
 expect this to allow improved performance and support with other
 compilers.
+
+Notes on the versions of the Intel oneAPI compilers that LAMMPS has
+been tested with, on the C++ library header files they use, and on
+the ``setvars.sh`` script are in the :ref:`compiler section of the
+basic build options <build_compiler>`.
 
 Notes about Simultaneous Multithreading
 """""""""""""""""""""""""""""""""""""""
@@ -357,6 +383,16 @@ None of the pair styles in the INTEL package currently support the
 "inner", "middle", "outer" options for rRESPA integration via the
 :doc:`run_style respa <run_style>` command; only the "pair" option is
 supported.
+
+The bond, angle, dihedral, and improper styles in the INTEL package
+require a pair style from the INTEL package (pair style
+:doc:`zero/intel <pair_zero>` can be used, if no pair interactions are
+needed) and the same :doc:`newton <newton>` setting for pair and bond
+interactions.  Their per-atom energies are added to the per-atom
+energies of the pair style.  Thus :doc:`compute pe/atom
+<compute_pe_atom>` with the *bond*, *angle*, *dihedral*, or *improper*
+keyword reports zero for them, and with the *pair* keyword it includes
+them.  The total per-atom energy is correct.
 
 References
 """"""""""

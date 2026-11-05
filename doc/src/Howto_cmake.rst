@@ -521,7 +521,7 @@ interface (``ccmake`` or ``cmake-gui``).
 .. note::
 
    Using a preset to select a compiler package (``clang.cmake``,
-   ``gcc.cmake``, ``intel.cmake``, ``oneapi.cmake``, ``nvhpc.cmake``, or
+   ``gcc.cmake``, ``oneapi.cmake``, ``nvhpc.cmake``, or
    ``pgi.cmake``) is an exception to the mechanism of updating the
    configuration incrementally, as they will trigger a reset of cached
    internal CMake settings and thus reset settings to their default

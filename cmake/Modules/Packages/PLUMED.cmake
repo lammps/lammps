@@ -43,13 +43,15 @@ endif()
 # Note: must also adjust check for supported API versions in
 # fix_plumed.cpp when version changes from v2.n.x to v2.n+1.y
 SetDownloadSettings(PLUMED "PLUMED"
-  "https://github.com/plumed/plumed2/releases/download/v2.10.2/plumed-src-2.10.2.tgz"
-  "42f097dd148275bbcd72034815655391d4743be06d1cea500ef848c84b8462dc")
+  "https://github.com/plumed/plumed2/releases/download/v2.9.5/plumed-src-2.9.5.tgz"
+  "d2fe917ec594d0c036eded0a94ebca90d76f56efa1764fa6c79e76b3167ce2c9")
 GetFallbackURL(PLUMED_URL PLUMED_FALLBACK)
 
 # adjust C++ standard support for self-compiled Plumed2
-if(CMAKE_CXX_STANDARD GREATER_EQUAL 17)
-  set(PLUMED_CXX_STANDARD 17)
+if(CMAKE_CXX_STANDARD GREATER 11)
+  set(PLUMED_CXX_STANDARD 14)
+else()
+  set(PLUMED_CXX_STANDARD 11)
 endif()
 
 if((CMAKE_SYSTEM_NAME STREQUAL "Windows") AND (CMAKE_CROSSCOMPILING))

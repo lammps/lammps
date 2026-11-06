@@ -13,6 +13,9 @@
 
 /* ----------------------------------------------------------------------
    Contributing author: Trung Dac Nguyen (ndactrung@gmail.com)
+   Ref: Wang, Yu, Langston, Fraige, Particle shape effects in discrete
+   element modelling of cohesive angular particles, Granular Matter 2011,
+   13:1-12.
 
    Contact models of the GRANULAR package for the contacts between rounded
    polyhedra: the normal force and the normal damping of each contact, and
@@ -27,6 +30,38 @@
    bodies, in the same order as in GranularModel::calculate_forces(), and
    the layout of the history is the same as in PairGranular::init_style().
    Changes there must be followed here.
+
+   In the current version, the granular sub-models here must satisfy two conditions:
+   (1) the normal force of a contact depends only on its overlap and
+   (2) its effective radius of curvature, and the damping and tangential forces
+       can be combined into a single friction force per pair of particles,
+       whose history is a single set of values per pair.
+   The contacts of two polyhedra are detected at each time step and can change
+   in number and kind, e.g. from a vertex on a face to two crossing edges,
+   so that no values can be kept for an individual contact.
+   The following granular sub-models are not yet supported:
+    * The *dmt* normal model adds an adhesive force at each contact, in
+      addition to the cohesion of Wang et al. For a face resting on
+      another face, the contact is represented by several vertex contacts.
+      Consequently. the adhesion would grow with the number of these contacts
+      rather than with the area of the contact region.
+    * The *jkr* normal model keeps two particles in contact until they are
+      separated beyond a pull-off distance, which requires to remember whether
+      each contact has been formed, and acts at separations beyond the surfaces
+      of the particles.
+    * The *mdr* normal model and damping model describe the large deformation
+      of spheres, with quantities stored per particle, such as the volume of
+      the spherical caps cut off by the contacts, which are not defined for
+      polyhedra.
+    * The *viscoelastic*, *tsuji*, and *coeff_restitution* damping models
+      depend on the contact radius or the normal stiffness of a contact, and
+      the *mindlin* tangential models on the contact radius, which has no
+      single value for the friction force of a pair of particles that combines
+      several contacts.
+    * The *rolling* and *twisting* models need the history of the relative
+      rotation and the contact radius of each contact, and the *heat* models
+      the contact radius or area of each contact.
+
 ------------------------------------------------------------------------- */
 
 #include "pair_body_rounded_polyhedron_granular.h"

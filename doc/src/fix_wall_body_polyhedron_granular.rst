@@ -12,16 +12,16 @@ Syntax
 
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * wall/body/polyhedron/granular = style name of this fix command
-* normal_model = *hooke* or *hertz* or *hertz/material*
+* normal_model = :ref:`hooke <hooke_normal_model>` or :ref:`hertz <hertz_normal_model>` or :ref:`hertz/material <hertz_material_normal_model>`
 * normal_coeffs = coefficients of the normal model, see :doc:`pair_style granular <pair_granular>`
-* tangential_model = *linear_nohistory* or *linear_history*
+* tangential_model = :ref:`linear_nohistory <linear_nohistory_tangential_model>` or :ref:`linear_history <linear_history_tangential_model>`
 * tangential_coeffs = coefficients of the tangential model, see :doc:`pair_style granular <pair_granular>`
 * zero or more keyword/value pairs may be appended to the models
 * keyword = *damping*
 
   .. parsed-literal::
 
-       *damping* value = *velocity* or *mass_velocity*
+       *damping* value = :ref:`velocity <velocity_damping_model>` or :ref:`mass_velocity <mass_velocity_damping_model>`
 
 * wallstyle = *xplane* or *yplane* or *zplane*
 * args = list of arguments for a particular style
@@ -100,11 +100,10 @@ surface of a sphere, at the distance of its radius :math:`r` from its
 center, for both.
 
 The *tangential* keyword with its model is required and the *damping*
-model is optional.  Other normal, damping, and tangential models, as well
-as the *rolling*, *twisting*, and *heat* models, *limit_damping*, and
-*synchronized_verlet* of :doc:`pair_style granular <pair_granular>` are
-not supported, for the reasons given for :doc:`pair_style
-body/rounded/polyhedron/granular <pair_body_rounded_polyhedron_granular>`.
+model is optional.  Other normal, damping, and tangential models,
+as well as the :doc:`rolling <granular_rolling_models>`,
+:doc:`twisting <granular_twisting_models>`, and
+:doc:`heat <granular_heat_models>` models are not supported.
 The *wallstyle* and the *wiggle* keyword are the same as
 for :doc:`fix wall/body/polyhedron <fix_wall_body_polyhedron>`.
 

@@ -557,7 +557,7 @@ struct PairDispersionD3KernelA {
 
       if (rsq < d_cutsq(itype, jtype)) {
 
-        const KK_FLOAT r2inv = 1.0f / rsq;
+        const KK_FLOAT r2inv = static_cast<KK_FLOAT>(1.0) / rsq;
         const KK_FLOAT r6inv = r2inv * r2inv * r2inv;
         const KK_FLOAT r8inv = r6inv * r2inv;
         const KK_FLOAT r10inv = r8inv * r2inv;
@@ -591,8 +591,8 @@ struct PairDispersionD3KernelA {
             t6 = MathSpecialKokkos::powauto(ip6, alpha6) * MathSpecialKokkos::powauto(rsq, -half_alpha6);
             t8 = MathSpecialKokkos::powauto(ip8, alpha8) * MathSpecialKokkos::powauto(rsq, -half_alpha8);
 
-            damp6 = 1.0f / (1.0f + 6.0f * t6);
-            damp8 = 1.0f / (1.0f + 6.0f * t8);
+            damp6 = static_cast<KK_FLOAT>(1.0) / (static_cast<KK_FLOAT>(1.0) + static_cast<KK_FLOAT>(6.0) * t6);
+            damp8 = static_cast<KK_FLOAT>(1.0) / (static_cast<KK_FLOAT>(1.0) + static_cast<KK_FLOAT>(6.0) * t8);
 
             e6 = C6 * damp6 * r6inv;
             e8 = C8 * damp8 * r8inv;
@@ -601,7 +601,7 @@ struct PairDispersionD3KernelA {
             tmp8 = 8 * s8 * C8 * r10inv * damp8;
 
             fpair1 = -tmp6 - tmp8;
-            fpair2 = tmp6 * alpha6 * t6 * damp6 + (3.0f / 4) * tmp8 * alpha8 * t8 * damp8;
+            fpair2 = tmp6 * alpha6 * t6 * damp6 + static_cast<KK_FLOAT>(3.0 / 4.0) * tmp8 * alpha8 * t8 * damp8;
 
             fpair = fpair1 + fpair2;
             fpair *= factor_lj;
@@ -614,9 +614,9 @@ struct PairDispersionD3KernelA {
             const KK_FLOAT r = Kokkos::sqrt(rsq);
 
             t6 = MathSpecialKokkos::powauto((r / (rs6 * r0)) + rs8 * r0, -alpha6);
-            damp6 = 1.0f / (1.0f + 6.0f * t6);
+            damp6 = static_cast<KK_FLOAT>(1.0) / (static_cast<KK_FLOAT>(1.0) + static_cast<KK_FLOAT>(6.0) * t6);
             t8 = MathSpecialKokkos::powauto((r / r0) + rs8 * r0, -alpha8);
-            damp8 = 1.0f / (1.0f + 6.0f * t8);
+            damp8 = static_cast<KK_FLOAT>(1.0) / (static_cast<KK_FLOAT>(1.0) + static_cast<KK_FLOAT>(6.0) * t8);
 
             e6 = C6 * damp6 * r6inv;
             e8 = C8 * damp8 * r8inv;
@@ -629,7 +629,7 @@ struct PairDispersionD3KernelA {
             const KK_FLOAT fp26 = tmp6 * alpha6 * t6 * damp6 * r / (r + rs6 * rs8 * r0 * r0);
             const KK_FLOAT fp28 = tmp8 * alpha8 * t8 * damp8 * r / (r + rs8 * r0 * r0);
 
-            fpair2 = fp26 + (3.0f / 4) * fp28;
+            fpair2 = fp26 + static_cast<KK_FLOAT>(3.0 / 4.0) * fp28;
 
             fpair = fpair1 + fpair2;
             fpair *= factor_lj;

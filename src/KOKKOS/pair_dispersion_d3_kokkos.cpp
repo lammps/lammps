@@ -738,6 +738,29 @@ void PairDispersionD3Kokkos<DeviceType>::unpack_reverse_comm(int n, int *list, d
   }
 }
 
+/* ----------------------------------------------------------------------
+   memory usage of the Kokkos views
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+double PairDispersionD3Kokkos<DeviceType>::memory_usage()
+{
+  double bytes = 0;
+
+  bytes += MemKK::memory_usage(d_c6ab);
+  bytes += MemKK::memory_usage(d_r0ab);
+  bytes += MemKK::memory_usage(d_r2r4);
+  bytes += MemKK::memory_usage(d_rcov);
+  bytes += MemKK::memory_usage(d_mxci);
+  bytes += MemKK::memory_usage(d_cutsq);
+  bytes += MemKK::memory_usage(d_cn);
+  bytes += MemKK::memory_usage(d_dc6);
+  bytes += MemKK::memory_usage(d_eatom);
+  bytes += MemKK::memory_usage(d_vatom);
+
+  return bytes;
+}
+
 /* ---------------------------------------------------------------------- */
 
 namespace LAMMPS_NS {

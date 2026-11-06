@@ -881,6 +881,8 @@ class PairDispersionD3Kokkos : public PairDispersionD3, public KokkosBase {
   int pack_reverse_comm(int, int, double *) override;
   void unpack_reverse_comm(int, int *, double *) override;
 
+  double memory_usage() override;
+
  protected:
   typename AT::t_kkfloat_1d_3_lr_randomread x; // atom positions
   typename AT::t_kkacc_1d_3 f;                 // atom forces

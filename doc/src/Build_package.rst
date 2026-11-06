@@ -136,6 +136,12 @@ make a copy of one of them and modify it to suit your needs.
     # change settings to use the GNU compilers by default
     cmake -S cmake -B build -C cmake/presets/gcc.cmake      [OPTIONS]
 
+    # like gcc.cmake, clang.cmake, or oneapi.cmake, but with more aggressive
+    # optimization (see the "Compiler optimization" page)
+    cmake -S cmake -B build -C cmake/presets/gcc-opt.cmake  [OPTIONS]
+    cmake -S cmake -B build -C cmake/presets/clang-opt.cmake [OPTIONS]
+    cmake -S cmake -B build -C cmake/presets/oneapi-opt.cmake [OPTIONS]
+
     # like gcc.cmake but with additional compiler warnings enabled
     # (useful during development)
     cmake -S cmake -B build -C cmake/presets/pedantic.cmake [OPTIONS]

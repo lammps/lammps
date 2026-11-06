@@ -370,10 +370,14 @@ struct PairDispersionD3KernelA {
       }
     }
 
-    // the reference threshold of 1.0e-99 underflows to zero in a single
-    // precision build, so use the smallest normalized value of KK_FLOAT
+    // the derivatives divide by den*den, so den must stay above the square root
+    // of the smallest normalized number.  the threshold of 1.0e-99 of the plain
+    // style is safe in double precision but would underflow in single precision.
 
-    if (den > std::numeric_limits<KK_FLOAT>::min()) {
+    constexpr KK_FLOAT den_min =
+        static_cast<KK_FLOAT>(std::is_same_v<KK_FLOAT, double> ? 1.0e-99 : 1.0e-18);
+
+    if (den > den_min) {
       c6 = num / den;
       dc6i = ((d_num_i * den) - (d_den_i * num)) / (den * den);
       dc6j = ((d_num_j * den) - (d_den_j * num)) / (den * den);

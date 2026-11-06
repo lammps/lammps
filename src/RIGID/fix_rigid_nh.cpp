@@ -405,7 +405,6 @@ void FixRigidNH::setup(int vflag)
 
   if (pstat_flag) {
     compute_press_target();
-    nh_epsilon_dot();
   }
 }
 
@@ -419,6 +418,10 @@ void FixRigidNH::initial_integrate(int vflag)
   double tmp,scale_r,scale_t[3],scale_v[3];
   double dtfm,mbody[3],tbody[3],fquat[4];
   double dtf2 = dtf * 2.0;
+
+  // advance the barostat to the half step before scaling particle momenta
+
+  if (pstat_flag) nh_epsilon_dot(0);
 
   // compute scale variables
 
@@ -439,7 +442,7 @@ void FixRigidNH::initial_integrate(int vflag)
     scale_t[0] *= exp(-dtq * (epsilon_dot[0] + mtk_term2));
     scale_t[1] *= exp(-dtq * (epsilon_dot[1] + mtk_term2));
     scale_t[2] *= exp(-dtq * (epsilon_dot[2] + mtk_term2));
-    scale_r *= exp(-dtq * (pdim * mtk_term2));
+    scale_r *= exp(-dtq * mtk_term2);
 
     tmp = dtq * epsilon_dot[0];
     scale_v[0] = dtv * exp(tmp) * maclaurin_series(tmp);
@@ -448,6 +451,12 @@ void FixRigidNH::initial_integrate(int vflag)
     tmp = dtq * epsilon_dot[2];
     scale_v[2] = dtv * exp(tmp) * maclaurin_series(tmp);
   }
+
+  // remap simulation box and xcm by full step
+  //   xcm: scaled according to the first term of the RHS of (6) in Step 1
+  //        (Kamberaj et al. page 224114-16)
+
+  if (pstat_flag) remap();
 
   // update xcm, vcm, quat, conjqm and angmom
 
@@ -555,20 +564,14 @@ void FixRigidNH::initial_integrate(int vflag)
 
   v_init(vflag);
 
-  // remap simulation box by 1/2 step
-
-  if (pstat_flag) remap();
-
   // set coords/orient and velocity/rotation of atoms in rigid bodies
-  // from quarternion and omega
+  // from xcm, quarternion and omega
 
   set_xv();
 
-  // remap simulation box by full step
   // redo KSpace coeffs since volume has changed
 
   if (pstat_flag) {
-    remap();
     if (kspace_flag) force->kspace->setup();
   }
 }
@@ -599,7 +602,7 @@ void FixRigidNH::final_integrate()
     scale_t[0] *= exp(-dtq * (epsilon_dot[0] + mtk_term2));
     scale_t[1] *= exp(-dtq * (epsilon_dot[1] + mtk_term2));
     scale_t[2] *= exp(-dtq * (epsilon_dot[2] + mtk_term2));
-    scale_r *= exp(-dtq * (pdim * mtk_term2));
+    scale_r *= exp(-dtq * mtk_term2);
 
     // reset akin_t and akin_r, to be accumulated for use in nh_epsilon_dot()
 
@@ -699,7 +702,7 @@ void FixRigidNH::final_integrate()
 
     compute_press_target();
 
-    nh_epsilon_dot();
+    nh_epsilon_dot(1);
   }
 }
 
@@ -973,7 +976,7 @@ void FixRigidNH::remap()
 
   // epsilon is not used, except for book-keeping
 
-  for (i = 0; i < 3; i++) epsilon[i] += dtq * epsilon_dot[i];
+  for (i = 0; i < 3; i++) epsilon[i] += dtv * epsilon_dot[i];
 
   // convert pertinent atoms and rigid bodies to lamda coords
 
@@ -993,7 +996,7 @@ void FixRigidNH::remap()
       oldlo = domain->boxlo[i];
       oldhi = domain->boxhi[i];
       ctr = 0.5 * (oldlo + oldhi);
-      expfac = exp(dtq * epsilon_dot[i]);
+      expfac = exp(dtv * epsilon_dot[i]);
       domain->boxlo[i] = (oldlo-ctr)*expfac + ctr;
       domain->boxhi[i] = (oldhi-ctr)*expfac + ctr;
     }
@@ -1045,10 +1048,12 @@ void FixRigidNH::compute_press_target()
 }
 
 /* ----------------------------------------------------------------------
-   update epsilon_dot
+   update epsilon_dot:
+     flag = 0: advance half step then scale (Eq. 64, Step 1 1-2)
+     flag = 1: scale then advance half step (Eq. 64, Step 2 7-8)
 -----------------------------------------------------------------------*/
 
-void FixRigidNH::nh_epsilon_dot()
+void FixRigidNH::nh_epsilon_dot(int flag)
 {
   if (g_f == 0) return;
 
@@ -1068,8 +1073,9 @@ void FixRigidNH::nh_epsilon_dot()
     if (p_flag[i]) {
       f_epsilon = (p_current[i]-p_hydro)*volume / nktv2p + mtk_term1;
       f_epsilon /= epsilon_mass[i];
+      if (flag) epsilon_dot[i] *= scale;
       epsilon_dot[i] += dtq * f_epsilon;
-      epsilon_dot[i] *= scale;
+      if (!flag) epsilon_dot[i] *= scale;
     }
 
   mtk_term2 = 0.0;

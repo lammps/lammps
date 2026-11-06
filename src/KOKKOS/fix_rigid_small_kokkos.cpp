@@ -2437,6 +2437,24 @@ int FixRigidSmallKokkos<DeviceType>::pack_forward_comm_kokkos(int n, DAT::tdual_
     );
     Kokkos::Profiling::popRegion();
     return n;
+
+  } else if (commflag == REMAP) {
+    const auto &send = body_send(iswap);
+    int n_body = send.n;
+    auto d_body_sendlist = send.list;
+    Kokkos::parallel_for("fix rigid/small pack forward comm remap",
+      Range1D(0, n_body),
+      KOKKOS_LAMBDA (const int ibodysend) {
+        int ibody = d_body_sendlist(ibodysend);
+        Body &b = d_body(ibody);
+        int m = 3*ibodysend;
+        d_buf(m++) = b.xcm[0];
+        d_buf(m++) = b.xcm[1];
+        d_buf(m++) = b.xcm[2];
+      }
+    );
+    Kokkos::Profiling::popRegion();
+    return 3*n_body;
   }
 
   Kokkos::Profiling::popRegion();

@@ -421,7 +421,6 @@ void FixRigidNHSmallKokkos<DeviceType>::setup(int vflag)
 
   if (pstat_flag) {
     compute_press_target();
-    nh_epsilon_dot();
   }
 
   // --- push host state to device and enable device comm/sort for the run ---
@@ -439,6 +438,10 @@ void FixRigidNHSmallKokkos<DeviceType>::initial_integrate(int vflag)
 {
   double tmp,scale_r,scale_t[3],scale_v[3];
 
+  // advance the barostat to the half step before scaling particle momenta
+
+  if (pstat_flag) nh_epsilon_dot(0);
+
   scale_t[0] = scale_t[1] = scale_t[2] = 1.0;
   scale_v[0] = scale_v[1] = scale_v[2] = 1.0;
   scale_r = 1.0;
@@ -454,7 +457,7 @@ void FixRigidNHSmallKokkos<DeviceType>::initial_integrate(int vflag)
     scale_t[0] *= exp(-dtq * (epsilon_dot[0] + mtk_term2));
     scale_t[1] *= exp(-dtq * (epsilon_dot[1] + mtk_term2));
     scale_t[2] *= exp(-dtq * (epsilon_dot[2] + mtk_term2));
-    scale_r *= exp(-dtq * (pdim * mtk_term2));
+    scale_r *= exp(-dtq * mtk_term2);
 
     tmp = dtq * epsilon_dot[0];
     scale_v[0] = dtv * exp(tmp) * maclaurin_series(tmp);
@@ -463,6 +466,12 @@ void FixRigidNHSmallKokkos<DeviceType>::initial_integrate(int vflag)
     tmp = dtq * epsilon_dot[2];
     scale_v[2] = dtv * exp(tmp) * maclaurin_series(tmp);
   }
+
+  // remap simulation box and xcm by full step
+  //   xcm: scaled according to the first term of the RHS of (6) in Step 1
+  //        (Kamberaj et al. page 224114-16)
+
+  if (pstat_flag) remap();
 
   // update xcm, vcm, quat, conjqm and angmom of bodies on the device
 
@@ -491,18 +500,13 @@ void FixRigidNHSmallKokkos<DeviceType>::initial_integrate(int vflag)
 
   this->v_init(vflag,0);
 
-  // remap simulation box by 1/2 step
-
-  if (pstat_flag) remap();
-
   // set coords/orient and velocity/rotation of atoms in rigid bodies
 
   set_xv_kokkos(1);
 
-  // remap simulation box by full step; redo KSpace coeffs since volume changed
+  // redo KSpace coeffs since volume changed
 
   if (pstat_flag) {
-    remap();
     if (kspace_flag) force->kspace->setup();
   }
 }
@@ -527,7 +531,7 @@ void FixRigidNHSmallKokkos<DeviceType>::final_integrate()
     scale_t[0] *= exp(-dtq * (epsilon_dot[0] + mtk_term2));
     scale_t[1] *= exp(-dtq * (epsilon_dot[1] + mtk_term2));
     scale_t[2] *= exp(-dtq * (epsilon_dot[2] + mtk_term2));
-    scale_r *= exp(-dtq * (pdim * mtk_term2));
+    scale_r *= exp(-dtq * mtk_term2);
   }
 
   // late calculation of forces and torques (if requested)
@@ -582,7 +586,7 @@ void FixRigidNHSmallKokkos<DeviceType>::final_integrate()
 
     compute_press_target();
 
-    nh_epsilon_dot();
+    nh_epsilon_dot(1);
   }
 }
 
@@ -1103,7 +1107,7 @@ void FixRigidNHSmallKokkos<DeviceType>::remap()
   auto *domainKK = (DomainKokkos *) domain;
   int nlocal = atom->nlocal;
 
-  for (i = 0; i < 3; i++) epsilon[i] += dtq * epsilon_dot[i];
+  for (i = 0; i < 3; i++) epsilon[i] += dtv * epsilon_dot[i];
 
   if (allremap) domainKK->x2lamda(nlocal);
   else domainKK->x2lamda(nlocal, dilate_group_bit);
@@ -1115,7 +1119,7 @@ void FixRigidNHSmallKokkos<DeviceType>::remap()
       oldlo = domain->boxlo[i];
       oldhi = domain->boxhi[i];
       ctr = 0.5 * (oldlo + oldhi);
-      expfac = exp(dtq * epsilon_dot[i]);
+      expfac = exp(dtv * epsilon_dot[i]);
       domain->boxlo[i] = (oldlo-ctr)*expfac + ctr;
       domain->boxhi[i] = (oldhi-ctr)*expfac + ctr;
     }
@@ -1128,6 +1132,11 @@ void FixRigidNHSmallKokkos<DeviceType>::remap()
   else domainKK->lamda2x(nlocal, dilate_group_bit);
 
   for (auto &ifix : rfix) ifix->deform(1);
+
+  // forward communicate the updated xcm
+
+  commflag = REMAP;
+  commKK->template forward_comm_device<DeviceType>(this,3);
 }
 
 /* ----------------------------------------------------------------------
@@ -1163,11 +1172,13 @@ void FixRigidNHSmallKokkos<DeviceType>::compute_press_target()
 }
 
 /* ----------------------------------------------------------------------
-   update epsilon_dot
+   update epsilon_dot:
+     flag = 0: advance half step then scale (Eq. 64, Step 1 1-2)
+     flag = 1: scale then advance half step (Eq. 64, Step 2 7-8)
 -----------------------------------------------------------------------*/
 
 template<class DeviceType>
-void FixRigidNHSmallKokkos<DeviceType>::nh_epsilon_dot()
+void FixRigidNHSmallKokkos<DeviceType>::nh_epsilon_dot(int flag)
 {
   if (g_f == 0) return;
 
@@ -1185,8 +1196,9 @@ void FixRigidNHSmallKokkos<DeviceType>::nh_epsilon_dot()
     if (p_flag[i]) {
       f_epsilon = (p_current[i]-p_hydro)*volume / nktv2p + mtk_term1;
       f_epsilon /= epsilon_mass[i];
+      if (flag) epsilon_dot[i] *= scale;
       epsilon_dot[i] += dtq * f_epsilon;
-      epsilon_dot[i] *= scale;
+      if (!flag) epsilon_dot[i] *= scale;
     }
 
   mtk_term2 = 0.0;

@@ -21,7 +21,7 @@
     enum{SINGLE, MOLECULE, GROUP};
     enum{NONE, XYZ, XY, YZ, XZ};
     enum{ISO, ANISO, TRICLINIC};
-    enum{FULL_BODY, INITIAL, FINAL, FORCE_TORQUE, VCM_ANGMOM, XCM_MASS, ITENSOR, DOF, BODY_SENDLIST};
+    enum{FULL_BODY, INITIAL, FINAL, FORCE_TORQUE, VCM_ANGMOM, XCM_MASS, ITENSOR, DOF, BODY_SENDLIST, REMAP};
 
     enum {POINT     = 1<<0,
           SPHERE    = 1<<1,
@@ -41,6 +41,7 @@
     // explicit forward communication buffer sizes
     static constexpr int INITIAL_BUFSZ = 29;
     static constexpr int FINAL_BUFSZ = 10;
+    static constexpr int REMAP_BUFSZ = 3;
 
     // moment of inertia prefactor for sphere
     static constexpr double SINERTIA = 0.4;

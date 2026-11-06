@@ -80,7 +80,7 @@ package and are explained in the individual accelerator doc pages,
 listed above.
 
 +-----------------------------------------------------------+---------------------------------------------+
-| Configure LAMMPS to include the accelerator package       | :doc:`Build_cmake` or :doc:`Build_make`     |
+| Configure LAMMPS to include the accelerator package       | :doc:`Build_cmake`                          |
 +-----------------------------------------------------------+---------------------------------------------+
 | (Re-)Compile LAMMPS                                       | :doc:`Build`                                |
 +-----------------------------------------------------------+---------------------------------------------+

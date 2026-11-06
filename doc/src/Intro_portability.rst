@@ -29,19 +29,19 @@ LAMMPS Python module should result in an error.  If you come across
 some part of the LAMMPS distribution that is not (yet) compatible with
 Python 3, please notify :doc:`the LAMMPS developers <Intro_authors>`.
 
-Build systems
-^^^^^^^^^^^^^
+Build system
+^^^^^^^^^^^^
 
-LAMMPS can be compiled from source code using the cross-platform CMake
-system.  CMake must be at least version 3.27.  Alternatively, using a
-(traditional) build system based on shell scripts, a few shell utilities
-(grep, sed, cat, tr) and the GNU make program.  This requires running
-within a Bourne shell (``/bin/sh`` or ``/bin/bash``).
+LAMMPS can be :doc:`compiled from source code <Build_cmake>` using the
+cross-platform `CMake system <https://cmake.org/>`_.  The CMake version
+must be 3.27 or later.
 
-.. versionchanged:: 10Sep2025
+.. versionremoved:: TBD
 
-The traditional GNU make based build system no longer supports all
-packages.  Details can be found in the :doc:`package specific build
+The :doc:`legacy GNU make based build system <Build_make>` has been
+removed in fall 2026.
+
+Additional details can be found in the :doc:`package specific build
 instructions <Build_extras>`.
 
 Operating systems
@@ -59,12 +59,15 @@ limitations of required external libraries or packages.
 Executables for Windows may be created either natively using Cygwin,
 MinGW, Intel, Clang, or Microsoft Visual C++ compilers, or with a Linux
 to Windows MinGW cross-compiler.  Native compilation is supported using
-Microsoft Visual Studio or a terminal window (using the CMake build
-system).
+Microsoft Visual Studio or a terminal window.  Windows also supports
+a :doc:`Linux subsystem <Howto_wsl>` for compiling and running Linux
+binaries.
 
 Executables for macOS may be created either using Xcode or GNU compilers
-installed with Homebrew.  In the latter case, building of LAMMPS through
-Homebrew instead of a manual compile is also possible.
+installed with `Homebrew <https://brew.sh>`_.  In the latter case,
+installation of LAMMPS through a `Homebrew bottle
+<https://formulae.brew.sh/formula/lammps>`_ instead of a manual compile
+is also available.
 
 Additionally, FreeBSD and Solaris have been tested successfully to
 run LAMMPS and produce results consistent with those on Linux.
@@ -89,8 +92,9 @@ LAMMPS version with support for the Intel Classic compilers.
 
 .. versionchanged:: 10Sep2025
 
-The GNU compilers *before* version 9.3 have known problems with supporting
-C++17 and thus are **not** recommended to build LAMMPS.
+The GNU compilers *before* version 9.3 have known problems with
+supporting the C++17 standard and thus are **not** recommended to build
+LAMMPS.
 
 CPU architectures
 ^^^^^^^^^^^^^^^^^
@@ -134,17 +138,19 @@ include:
 - `Clang Static Analyzer <https://clang-analyzer.llvm.org/>`_
 - `Clang-Tidy <https://clang.llvm.org/extra/clang-tidy/>`_
 - Enabling and looking at compiler warnings
+- Code review through AI coding agents like GitHub Copilot or Claude Code
 
 CodeQL alerts for the ``develop`` branch of LAMMPS can be seen at
 https://github.com/lammps/lammps/security/code-scanning.  Static code
 analysis reports for the ``develop`` branch from the clang tools are
 available at https://download.lammps.org/analysis/
 
-We currently also request code reviews from `GitHub Copilot
-<https://github.com/features/copilot>`_ to lower the code review
+We request code reviews from `GitHub Copilot
+<https://github.com/features/copilot>`_ and `Claude Code
+<https://claude.com/product/claude-code>`_ to lower the code review
 workload for the LAMMPS developers.  The LAMMPS git repository includes
-specific instructions for Copilot to particularly look for compliance of
-submitted pull requests with LAMMPS coding and documentation
+specific instructions for AI agents to particularly look for compliance
+of submitted pull requests with LAMMPS coding and documentation
 conventions.
 
 A discussion of software engineering methods applied to LAMMPS over time

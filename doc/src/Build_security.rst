@@ -104,8 +104,8 @@ How downloaded files are checked
 --------------------------------
 
 Some optional packages and features need source code from other projects
-that is not included in the LAMMPS distribution.  When building LAMMPS
-with CMake, this source code can be downloaded automatically.  For these
+that is not included in the LAMMPS distribution.  When building LAMMPS,
+this source code can be downloaded automatically by CMake.  For these
 downloads the following applies:
 
 - The LAMMPS developers select a specific version of the external source
@@ -116,11 +116,12 @@ downloads the following applies:
 - The checksum of a downloaded archive is compared with the recorded
   checksum *before* the archive is unpacked.  If the checksums differ,
   the archive is not used.
-- For many archives there is a copy on the LAMMPS download server
-  (``download.lammps.org``).  This copy is used when the download from
-  the original location fails or when its checksum does not match.  The
-  copy must have the same recorded checksum.  If neither download can be
-  used, the build stops with an error.
+- For many archives there is a validated backup copy on the LAMMPS
+  download server (``https://download.lammps.org``).  This copy is used
+  when the download from the original location fails or when its
+  checksum does not match.  The copy must have the same recorded
+  checksum.  If neither download can be used, the build stops with an
+  error.
 - In most cases nothing is downloaded when a suitable version of the
   external library is already installed on your machine and CMake finds
   it.  That version is then used instead.
@@ -131,10 +132,6 @@ downloads the following applies:
    archive that the LAMMPS developers have selected and tested LAMMPS
    with.  It does **not** mean that the LAMMPS developers have reviewed
    the content of that archive.
-
-The legacy build system using GNU make does not download source code
-from other projects.  It only downloads the potential file for the
-MESONT package mentioned below, and checks it in the same way.
 
 What the LAMMPS developers do not control
 -----------------------------------------

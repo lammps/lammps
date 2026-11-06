@@ -13,22 +13,12 @@ CMake build system
 
 If you are building with CMake, you need at least CMake version 3.27 and
 a compatible build tool (e.g. GNU make or :ref:`Ninja <ninja_ccache>`,
-which is available for Linux, macOS, and Windows).  The
-CMake scripting includes tests for required software and will
-auto-detect and auto-enable available tools and libraries for optional
-features (of course those can be disabled, if desired).  If required
-software is missing, CMake will try to download the compile the missing
-parts automatically, if possible or stop with an error.
-
-GNU build system
-================
-
-If you are building LAMMPS with the legacy GNU make based build system
-you need GNU make (other make variants are not going to work since the
-build system uses features unique to GNU make) and a Unix-like build
-environment with a Bourne shell, and shell tools like "sed", "grep",
-"touch", "test", "tr", "cp", "mv", "rm", "ln", "diff" and so on. Parts
-of LAMMPS interface with or use Python version 3.6 or later.
+which is available for Linux, macOS, and Windows).  The CMake scripting
+includes tests for required software and will auto-detect and
+auto-enable available tools and libraries for optional features (of
+course those can be disabled, if desired).  If required software is
+missing, CMake will try to download and compile the missing parts
+automatically or stop with an error.
 
 Compiler and OS compatibility
 =============================

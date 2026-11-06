@@ -61,18 +61,13 @@ then they should be added to the corresponding accelerator package
 you feel that your contribution should be added to a different package,
 please consult with the LAMMPS developers first.
 
-The contributed code needs to support the :doc:`traditional GNU make
-build process <Build_make>` **and** the :doc:`CMake build process
-<Build_cmake>`.  For the GNU make process and if the package has an
-``Install.sh`` file, most likely that file needs to be updated to
-correctly copy the sources when installing the package and properly
-delete them when uninstalling.  This is particularly important when
-added a new pair style that is a derived class from an existing pair
-style in a package, so that its installation depends on the the
-installation status of the package of the derived class.  For the CMake
-process, it is sometimes necessary to make changes to the package
+The contributed code needs to support the :doc:`CMake build process
+<Build_cmake>`.  This is usually automatic unless the new style uses
+some external library or depends on code from a different optional
+package (variants in the accelerator packages are handled automatically).
+In those cases it may be necessary to make changes to the general CMake
+scripting file in ``cmake/CMakeLists.txt`` or the package
 specific CMake scripting in ``cmake/Modules/Packages``.
-
 
 ----
 

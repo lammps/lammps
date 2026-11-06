@@ -21,13 +21,12 @@ allowing the calculation of free energy barriers and minimum free energy paths.
 
 To compile:
 
-make yes-misc # for PAFI
-make yes-manybody # for EAM potential
-make machine # for binary (machine= e.g. mpi)
+cmake -S cmake -B build -D PKG_MANYBODY=ON -D PKG_MISC=ON -D BUILD_MPI=ON
+cmake --build build
 
 To run the example from this folder:
 ```
-mpirun -np NPROCS /path/to/lammps/src/lmp_machine -in in.pafi
+mpirun -np NPROCS /path/to/lammps/build/lmp -in in.pafi
 ```
 
 This example executes a hyperplane constrained overdamped Langevin simulation

@@ -53,9 +53,10 @@ Use one consistent form for command lines in the manual and in README files:
 - `-G Ninja` appears only in the section on faster compilation with Ninja and
   ccache; all other examples stay generator-neutral.  Prefer explicit command-line
   flags over environment variables or shell-profile settings.
-- The LAMMPS executable is `lmp`.  Use `lmp_<machine>` names only where a legacy
-  make build is the topic (`make mpi` produces `lmp_mpi`), for the
-  `LAMMPS_MACHINE` setting, or for actual binary names of distribution packages.
+- The LAMMPS executable is `lmp`.  Use `lmp_<machine>` names only for the
+  `LAMMPS_MACHINE` setting or for actual binary names of distribution packages.
+  Do not document the removed legacy make build (`make yes-<pkg>`, `make mpi`,
+  `Makefile.lammps`, `lib-<pkg>`) except in the transition guide in `Build_make.rst`.
 - Always pass input files with `-in in.file` (long form).  Use I/O redirection
   (`lmp < in.file`) only where reading from standard input is the topic.
 

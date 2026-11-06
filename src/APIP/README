@@ -6,5 +6,4 @@ David Immel, Ralf Drautz, Godehard Sutmann; Conservative adaptive-precision inte
 
 Examples of how to use an adaptive-precision potential are provided in examples/PACKAGES/APIP .
 
-The pair_style pace/apip requires the installation of lib/pace of the ML-PACE package.
-The installation of lib/pace is described in the LAMMPS manual
+The pair_style pace/apip requires the installation of the ML-PACE package.

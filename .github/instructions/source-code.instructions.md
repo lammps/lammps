@@ -32,10 +32,10 @@ restart, buffers, parsing): `.github/dev-docs/style-implementation-notes.md`.
 - **No commented-out code** (debugging leftovers, disabled features, unused
   alternatives) unless the pull request explains it as a placeholder for a planned
   feature.
-- **Package file bookkeeping:** new files in package directories go into
-  `src/.gitignore` (the legacy make build copies them into `src/`, and those copies
-  must not be committed); renamed or removed package files go into `src/Purge.list` so
-  `make purge` removes stale copies.
+- **Package files:** CMake picks up new files in package directories automatically
+  (re-run the configuration).  Only files that depend on a second optional package, and
+  helper files of the accelerator packages without a style macro, need an entry in
+  `cmake/Modules/Packages/<PKG>.cmake` (see `.github/instructions/build-system.instructions.md`).
 
 ## Conventions
 
@@ -71,7 +71,8 @@ restart, buffers, parsing): `.github/dev-docs/style-implementation-notes.md`.
 
 1. Place `<prefix>_<name>.cpp`/`.h` in `src/` or the package directory, starting from a
    similar existing style (https://docs.lammps.org/Modify_style.html).
-2. Update `src/.gitignore` and `src/Purge.list` as described above.
+2. If the new files depend on another optional package, handle that in
+   `cmake/Modules/Packages/<PKG>.cmake` as described above.
 3. Create or update the matching `doc/src/*.rst` page; new public commands and keywords
    need `.. versionadded:: TBD` (see `.github/instructions/documentation.instructions.md`).
    Internal styles (upper-case style names) need no documentation.

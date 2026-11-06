@@ -44,14 +44,12 @@ folder that the dynamic loader searches or inside of the installed
 
    .. tab:: Python package
 
-      Compile LAMMPS with either :doc:`CMake <Build_cmake>` or the
-      :doc:`traditional make <Build_make>` procedure in :ref:`shared
-      mode <build_exe>`.  After compilation has finished, type (in the
-      compilation folder):
+      Compile LAMMPS with ``-D BUILD_SHARED_LIBS=on``.  After
+      compilation has finished, type:
 
       .. code-block:: bash
 
-         make install-python
+         cmake --build build --target install-python
 
       This will try to build a so-called (binary) wheel file, a
       compressed binary python package and then install it with the
@@ -87,26 +85,24 @@ folder that the dynamic loader searches or inside of the installed
 
       .. note::
 
-            If there is an existing installation of the LAMMPS python
-            module, ``make install-python`` will try to update it.
-            However, that will fail if the older version of the module
-            was installed by LAMMPS versions until 17Feb2022.  Those
-            were using the distutils package, which does not create a
-            "manifest" that allows a clean uninstall.  The ``make
-            install-python`` command will always produce a
-            lammps-<version>-<python>-<abi>-<os>-<arch>.whl file (the
-            'wheel'). And this file can be later installed directly with
-            ``python -m pip install <wheel file>.whl`` without having to
-            type ``make install-python`` again and repeating the build
-            step, too.
+         If there is an existing installation of the LAMMPS python
+         module, ``cmake --build build --target install-python`` will
+         try to update it.  However, that will fail if the older version
+         of the module was installed by LAMMPS versions until 17Feb2022.
+         Those were using the distutils package, which does not create a
+         "manifest" that allows a clean uninstall.  The ``cmake
+         --build build --target install-python`` command will always
+         produce a lammps-<version>-<python>-<abi>-<os>-<arch>.whl file
+         (the 'wheel').  And this file can be later installed directly
+         with ``python -m pip install <wheel file>.whl`` without having
+         to type ``cmake --build build --target install-python`` again
+         and repeating the build step, too.
 
-      For the traditional make process you can override the python
-      version to version x.y when calling ``make`` with
-      ``PYTHON=pythonX.Y``.  For a CMake based compilation this choice
-      has to be made during the CMake configuration step.
+      You can override the python version to version x.y when calling ``cmake`` with
+      ``-D Python_EXECUTABLE=/path/to/pythonX.Y``.
 
-      If the default settings of ``make install-python`` are not what you want,
-      you can invoke ``install.py`` from the ``python`` directory manually as
+      If the default settings are not what you want, you can invoke
+      ``install.py`` from the ``python`` directory manually as
 
       .. code-block:: bash
 
@@ -170,14 +166,13 @@ folder that the dynamic loader searches or inside of the installed
       window and after you turn off the virtual environment with the
       ``deactivate`` command.
 
-      When using CMake to build LAMMPS, you need to set
-      ``CMAKE_INSTALL_PREFIX`` to the value of the ``$VIRTUAL_ENV``
-      environment variable during the configuration step. For the
-      traditional make procedure, no additional steps are needed.
-      After compiling LAMMPS you can do a "Python package only"
-      installation with ``make install-python`` and the LAMMPS Python
-      package and the shared library file are installed into the
-      following locations:
+      Configure LAMMPS with CMake while the virtual environment is
+      active, so that CMake uses its Python interpreter (or set
+      ``-D Python_EXECUTABLE=$VIRTUAL_ENV/bin/python``).  After
+      compiling LAMMPS you can do a "Python package only" installation
+      with ``cmake --build build --target install-python`` and the
+      LAMMPS Python package and the shared library file are installed
+      into the following locations:
 
       +------------------------+--------------------------------------------------------+-------------------------------------------------------------+
       | File                   | Location                                               | Notes                                                       |
@@ -201,14 +196,14 @@ folder that the dynamic loader searches or inside of the installed
       .. code-block:: bash
 
          export PYTHONPATH=${PYTHONPATH}:${HOME}/lammps/python
-         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${HOME}/lammps/src
+         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${HOME}/lammps/build
 
       For the C-shells like csh or tcsh the commands are:
 
       .. code-block:: csh
 
          setenv PYTHONPATH ${PYTHONPATH}:${HOME}/lammps/python
-         setenv LD_LIBRARY_PATH ${LD_LIBRARY_PATH}:${HOME}/lammps/src
+         setenv LD_LIBRARY_PATH ${LD_LIBRARY_PATH}:${HOME}/lammps/build
 
       On macOS you may also need to set ``DYLD_LIBRARY_PATH`` accordingly.
       You can make those changes permanent by editing your ``$HOME/.bashrc``
@@ -290,7 +285,7 @@ follows:
 
   .. code-block:: console
 
-     $ source $HOME/myenv/activate
+     $ source $HOME/myenv/bin/activate
      (myenv)$ python -m pip install mpi4py
 
 - Via ``pip`` into a system folder (not recommended):
@@ -300,7 +295,8 @@ follows:
      sudo python3 -m pip install mpi4py
 
 For more detailed installation instructions and additional options,
-please see the `mpi4py installation <https://mpi4py.readthedocs.io/en/stable/install.html>`_ page.
+please see the `mpi4py installation
+<https://mpi4py.readthedocs.io/en/stable/install.html>`_ page.
 
 
 To use ``mpi4py`` and LAMMPS in parallel from Python, you **must** make
@@ -308,17 +304,15 @@ certain that **both** are using the **same** implementation and version
 of MPI library.  If you only have one MPI library installed on your
 system this is not an issue, but it can be if you have multiple MPI
 installations (e.g. on an HPC cluster to be selected through environment
-modules).  Your LAMMPS build is explicit about which MPI it is using,
-since it is either detected during CMake configuration or in the
-traditional make build system you specify the details in your low-level
-``src/MAKE/Makefile.foo`` file. The installation process of ``mpi4py``
-uses the ``mpicc`` command to find information about the MPI it uses to
-build against.  And it tries to load "libmpi.so" from the
-``LD_LIBRARY_PATH``.  This may or may not find the MPI library that
-LAMMPS is using.  If you have problems running both mpi4py and LAMMPS
-together, this is an issue you may need to address, e.g. by loading the
-module for different MPI installation so that mpi4py finds the right
-one.
+modules).  Your LAMMPS build is explicit about which MPI library it is
+using, since that is determined during CMake configuration.  The
+installation process of ``mpi4py`` uses the ``mpicc`` command to find
+information about the MPI it uses to build against.  And it tries to
+load "libmpi.so" from the ``LD_LIBRARY_PATH``.  This may or may not find
+the MPI library that LAMMPS is using.  If you have problems running both
+mpi4py and LAMMPS together, this is an issue you may need to address,
+e.g. by loading the module for different MPI installation so that mpi4py
+finds the right one.
 
 If you have successfully installed mpi4py, you should be able to run
 Python and type

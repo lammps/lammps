@@ -38,8 +38,8 @@ create a local copy of the LAMMPS repository with a command like:
    git clone -b release https://github.com/lammps/lammps.git mylammps
 
 where "mylammps" is the name of the directory you wish to create on
-your machine and "release" is one of the 3 branches listed above.
-(Note that you actually download all 3 branches; you can switch
+your machine and "release" is one of the 4 branches listed above.
+(Note that you actually download all branches; you can switch
 between them at any time using "git checkout <branch name>".)
 
 .. admonition:: Saving time and disk space when using ``git clone``
@@ -117,62 +117,36 @@ key is explained in the :ref:`section about checking downloaded files
 
 Once you have updated your local files with a ``git pull`` (or ``git
 checkout``), you still need to re-build LAMMPS if any source files have
-changed.  How to do this depends on the build system you are using.
+changed.
 
-.. tabs::
+From the top-level LAMMPS folder (with ``build`` as build folder), type:
 
-   .. tab:: CMake build
+.. code-block:: bash
 
-      From the top-level LAMMPS folder (with ``build`` as build folder), type:
+   cmake --build build
 
-      .. code-block:: bash
+CMake should auto-detect whether it needs to re-run the CMake
+configuration step and otherwise redo the build for all files that have
+been changed or files that depend on changed files.  In case some build
+options have been changed or renamed, you may have to update those by
+running:
 
-         cmake --build build
+.. code-block:: bash
 
-      CMake should auto-detect whether it needs to re-run the CMake
-      configuration step and otherwise redo the build for all files
-      that have been changed or files that depend on changed files.
-      In case some build options have been changed or renamed, you
-      may have to update those by running:
+   cmake -S cmake -B build
 
-      .. code-block:: bash
-
-         cmake -S cmake -B build
-
-      and then rebuild.
-
-   .. tab:: Traditional make
-
-      Switch to the src directory and type:
-
-      .. code-block:: bash
-
-         make purge             # remove any deprecated src files
-         make package-update    # sync package files with src files
-         make foo               # re-build for your machine (mpi, serial, etc)
-
-      to enforce consistency of the source between the src folder
-      and package directories.  This is OK to do even if you don't
-      use any packages. The ``make purge`` command removes any deprecated
-      src files if they were removed by the update from a package
-      subdirectory.
-
-      .. warning::
-
-         If you wish to edit/change a src file that is from a package,
-         you should edit the version of the file inside the package
-         subdirectory with src, then re-install the package.  The
-         version in the source directory is merely a copy and will be
-         wiped out if you type "make package-update".
+and then rebuild.
 
 .. admonition:: Git protocols
    :class: note
 
    The servers at github.com support the "https" access protocol for
-   anonymous, read-only access.  If you have a suitably configured
-   GitHub account, you may also use SSH protocol with the URL
+   anonymous, read-only access.  You can enable write access over
+   "https" through authenticating with the :ref:`GitHub CLI tool "gh"
+   <github_cli>`.  If you have a suitably configured GitHub account, you
+   may also use SSH protocol with the URL
    ``git@github.com:lammps/lammps.git``.
 
 The LAMMPS GitHub project is currently overseen by Axel Kohlmeyer
 (Temple U, akohlmey at gmail.com), contact him if you have any
-questions or concerns.
+GitHub specific LAMMPS questions or concerns.

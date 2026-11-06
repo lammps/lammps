@@ -1,6 +1,3 @@
-NOTE: This Geryon distribution has been modified to remove files not
-      necessary for the LAMMPS implementation. The full distribution
-      is available at http://users.nccs.gov/~wb8/geryon/index.htm
 
 Geryon
 
@@ -22,10 +19,7 @@ CUDA Driver, and OpenCL APIs with a consistent interface:
     * Simple classes for managing device timing
     * Simple classes for managing kernel compilation and execution
 
-Geryon does not require building (although a Makefile is provided for testing
-purposes). The library is a set of header files that can be included with
-your code.
+Geryon does not require building.
 
-Documentation and examples are provided at
-
-http://users.nccs.gov/~wb8/geryon/index.htm
+NOTE: This Geryon distribution has been modified to remove files not
+      necessary for the LAMMPS implementation.

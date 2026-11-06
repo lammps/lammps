@@ -1,23 +1,31 @@
 Using CMake with LAMMPS
 =======================
 
-CMake is the recommended way of building LAMMPS, and it has been
-supported since 2018 thanks to the efforts of Christoph Junghans (LANL)
-and Richard Berger (LANL).  The :doc:`legacy build system <Build_make>`
-based on GNU make is slated for retirement.  One of the key strengths of
-CMake is that it is not tied to a specific platform or build system.
-Instead it generates the files necessary to build and develop for
-different build systems and on different platforms, e.g. makefiles for
-the ``make`` program, files for the faster ``ninja`` build tool, or
-project files for integrated development environments (IDE) like Visual
-Studio or Xcode.  Several other IDEs, e.g. Visual Studio Code, Qt
-Creator, or CLion, can read the CMake configuration files directly.
+.. versionchanged:: TBD
+
+Building LAMMPS from source uses CMake to adapt the build configuration
+and generate files for the selected build system.  CMake support has
+been available in LAMMPS since 2018 thanks to the efforts of Christoph
+Junghans (LANL), Richard Berger (LANL), and Axel Kohlmeyer (Temple U).
+The :doc:`legacy build system <Build_make>` based on GNU make was
+removed in fall 2026.
+
+A key strength of CMake is that it is not tied to a specific platform or
+build system.  Instead it generates the files necessary to build and
+develop for different build systems and on different platforms,
+e.g. makefiles for the ``make`` program, files for the faster ``ninja``
+build tool, or project files for integrated development environments
+(IDE) like Visual Studio or Xcode.  Several other IDEs, e.g. Visual
+Studio Code, Qt Creator, or CLion, can read the CMake configuration
+files directly.
 
 A second important feature of CMake is that it can detect and validate
 available libraries, optimal settings, available support tools and so
 on, so that by default LAMMPS will take advantage of available tools
 without requiring to provide the details about how to enable/integrate
-them.
+them.  CMake provides a platform-neutral scripting language with
+functions and modules specifically aimed at configuring a build system
+and running automated tests.
 
 The downside of this approach is, that there is some complexity
 associated with running CMake itself and how to customize the building
@@ -26,17 +34,15 @@ selected examples.  Please see the chapter about :doc:`building LAMMPS
 <Build>` for descriptions of specific flags and options for LAMMPS in
 general and for specific packages.
 
-.. versionchanged:: TBD
-
 CMake can be used through either the command-line interface (CLI)
 program ``cmake``, a text mode interactive user interface (TUI)
 program ``ccmake``, or a graphical user interface (GUI) program
 ``cmake-gui``.  All of them are portable software available on
 all supported platforms and can be used interchangeably.
-The minimum required CMake version is currently 3.27.
+The *minimum required* CMake version is currently 3.27.
 
 All details about features and settings for CMake are in the `CMake
-online documentation <https://cmake.org/documentation/>`_. We focus
+online documentation <https://cmake.org/documentation/>`_.  We focus
 below on the most important aspects with respect to compiling LAMMPS.
 
 Prerequisites
@@ -91,10 +97,10 @@ When using CMake the build procedure is separated into multiple distinct phases:
 
 The configuration and compilation of LAMMPS has to happen in a dedicated
 *build folder* which must be different from the source folder.  Also
-the source folder (``src``) must remain pristine, so it is not allowed
-to "install" packages using the traditional make process and after a
-compilation attempt all created source files must be removed.  This can
-be achieved with ``make no-all purge`` in the ``src`` folder.
+the source folder (``src``) must remain pristine: files left behind
+there by the legacy make-based build of older LAMMPS versions conflict
+with CMake and must be removed with ``make purge`` in the ``src``
+folder.
 
 You can pick **any** folder outside the ``src`` folder.  We recommend to
 use a folder ``build`` in the top-level folder, or multiple folders in

@@ -13,10 +13,5 @@ having to recompile or change LAMMPS directly.  The plugins bundled
 with VMD are usually installed in a directory inside the VMD
 installation tree named "plugins/<VMDARCH>/molfile".
 
-To be able to dynamically load and execute the plugins from inside
-LAMMPS, you need to link with an appropriate system library, which
-is done using the settings in lib/molfile/Makefile.lammps.  See
-that file and the lib/molfile/README file for more details.
-
 The person who created this package is Axel Kohlmeyer at Temple U
 (akohlmey at gmail.com).  Contact him directly if you have questions.

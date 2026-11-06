@@ -7,7 +7,7 @@ current API.  The GPU package has two halves: the device library `lib/gpu/` (Ger
 `UCL_*` containers, one kernel source compiled for CUDA, HIP, and OpenCL) and thin
 LAMMPS wrappers in `src/GPU/`.
 
-## Files of one port (6 files + 3 edits)
+## Files of one port (6 files + 2 edits)
 
 | file | role |
 |---|---|
@@ -16,7 +16,6 @@ LAMMPS wrappers in `src/GPU/`.
 | `lib/gpu/lal_<name>_ext.cpp` | C++ entry points `<prefix>_gpu_init/_reinit/_clear/_compute_n/_compute/_bytes` around one static device object (`<PREFIX>MF`) |
 | `src/GPU/pair_<style>_gpu.h`, `.cpp` | `Pair<Style>GPU : public Pair<Style>`; calls the entry points |
 | `lib/gpu/include/lammps_gpu.h` | declarations of the entry points in namespace `LAMMPS_GPU` |
-| `src/GPU/Install.sh` | two `action` lines per style |
 | `doc/src/` | `(g)` letter in `Commands_pair.rst`, `.. index:: pair_style <style>/gpu`, `*<style>/gpu*` in the "Accelerator Variants" line |
 
 - The kernel symbol and generated header name are the `.cu` file name minus `lal_`:
@@ -26,10 +25,10 @@ LAMMPS wrappers in `src/GPU/`.
   reconfigure (`cmake -S cmake -B <build>`) after adding files.  A kernel that includes
   an extra header (`lal_*_extra.h`) must be removed from the OpenCL glob list and get
   its own `GenerateOpenCLHeader` line there, like `tersoff` and `gayberne`.
-- No `src/Purge.list` entry: that file lists REMOVED or renamed files only.
-- `Install.sh`: `action pair_<style>_gpu.cpp pair_<style>.cpp` (and the same for `.h`),
-  where the second file is the CPU parent, so the variant is installed only when the
-  parent's package is.  Keep the block alphabetical.
+- Name `src/GPU/pair_<style>_gpu.{h,cpp}` after the CPU parent file
+  (`pair_<style>.h`): CMake's `RegisterStylesExt()` compiles the variant only when the
+  parent header is a style header of the build, so the variant follows the parent's
+  package automatically.
 - `lammps_gpu.h`: copy the block of the template style, then format only the new lines
   with `clang-format -i --lines=<first>:<last> lib/gpu/include/lammps_gpu.h` (uses
   `lib/gpu/include/.clang-format`; do not reformat the whole file).  A declaration

@@ -27,13 +27,13 @@ reduce the storage requirements. Here are some suggestions:
   releases page on GitHub <https://github.com/lammps/lammps/releases>`_
   these will not contain the git history at all.
 
-- Build LAMMPS without the debug flag (remove ``-g`` from the machine
-  makefile or use ``-DCMAKE_BUILD_TYPE=Release``) or use the ``strip``
+- Build LAMMPS without debug information (use
+  ``-D CMAKE_BUILD_TYPE=Release``) or use the ``strip``
   command on the LAMMPS executable when no more debugging would be
   needed.  The strip command may also be applied to the LAMMPS shared
   library. The static library may be deleted entirely.
 
-- When compiling LAMMPS with the unit tests enabled (``-D
+- When compiling LAMMPS with unit tests enabled (``-D
   ENABLE_TESTING=on``, see :ref:`Code Coverage and Unit Testing
   <testing>`), *always* build LAMMPS as a shared library with ``-D
   BUILD_SHARED_LIBS=on``.  With the default static LAMMPS library, every
@@ -48,10 +48,8 @@ reduce the storage requirements. Here are some suggestions:
   the test programs took less than 2 GBytes.
 
 - Delete compiled object files and libraries after copying the LAMMPS
-  executable to a permanent location.  When using the traditional build
-  process, one may use ``make clean-<machine>`` or ``make clean-all`` to
-  delete object files in the src folder.  For CMake based builds, one
-  may use ``make clean`` or just delete the entire build folder.
+  executable to a permanent location with ``cmake --build build --target
+  clean`` or just delete the entire ``build`` folder and its content.
 
 - The folders containing the documentation tree (doc), the examples
   (examples) are not needed to build and run LAMMPS and can be safely
@@ -64,8 +62,7 @@ reduce the storage requirements. Here are some suggestions:
   (local) scratch storage that will not count toward the quota.  A local
   scratch file system may offer the additional benefit of speeding up
   creating object files and linking with libraries compared to a
-  networked file system.  Also with CMake (and unlike with the
-  traditional make) it is possible to compile LAMMPS executables with
+  networked file system.  Also with CMake it is possible to compile LAMMPS executables with
   different settings and packages included from the same source tree
   since all the configuration information is stored in the build folder.
   So it is not necessary to have multiple copies of the LAMMPS sources.

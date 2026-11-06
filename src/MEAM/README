@@ -15,9 +15,7 @@ The original Fortran implementation was created by
 
 ==============================================================================
 
-Use "make yes-meam" to enable this package or use
--DPKG_MEAM=on when configuring building LAMMPS
-
+Use -DPKG_MEAM=on when configuring LAMMPS with cmake
 
 In your LAMMPS input script, specify
   pair_style meam

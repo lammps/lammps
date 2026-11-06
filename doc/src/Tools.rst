@@ -29,11 +29,10 @@ actively supported by the LAMMPS developers, as they were contributed
 by LAMMPS users.  If you have problems using them, we can direct you
 to the authors.
 
-The source code for each of these codes is in the tools subdirectory
-of the LAMMPS distribution.  There is a Makefile (which you may need
-to edit for your platform) which will build several of the tools which
-reside in that directory.  Most of them are larger packages in their
-own subdirectories with their own Makefiles and/or README files.
+The source code for each of these codes is in the tools subdirectory of
+the LAMMPS distribution.  Use ``-D BUILD_TOOLS=ON`` to include some of
+them when building LAMMPS.  Some tools are packages with their own
+subdirectory with their own Makefiles and/or README files.
 
 ----------
 
@@ -168,7 +167,7 @@ The syntax for running the tool is
 
 .. code-block:: bash
 
-   chain < def.chain > data.file
+   chain.x < def.chain > data.file
 
 See the def.chain or def.chain.ab files in the tools directory for
 examples of definition files.  This tool was used to create the system
@@ -199,10 +198,10 @@ and report any non-compliance.  With the optional ``-f`` argument the
 corresponding script will try to change the non-compliant file(s) to
 match the conventions.
 
-For convenience this scripts can also be invoked by the make file in
-the ``src`` folder with, `make check-whitespace` or `make fix-whitespace`
+For convenience these scripts can also be invoked by the make file in
+the ``src`` folder with ``make check-whitespace`` or ``make fix-whitespace``
 to either detect or edit the files.  Correspondingly for the other python
-scripts. `make check` will run all checks.
+scripts.  ``make check`` will run all checks except for the list of version tags.
 
 ----------
 
@@ -671,7 +670,7 @@ These scripts were written by Arun Subramaniyan at Purdue Univ
 micelle2d tool
 ----------------------------
 
-The file micelle2d.f creates a LAMMPS data file containing short lipid
+The file micelle2d.f90 creates a LAMMPS data file containing short lipid
 chains in a monomer solution.  It uses a text file containing lipid
 definition parameters as an input.  The created molecules and solvent
 atoms can strongly overlap, so LAMMPS needs to run the system
@@ -680,7 +679,7 @@ for running the tool is
 
 .. code-block:: bash
 
-   micelle2d < def.micelle2d > data.file
+   micelle2d.x < def.micelle2d > data.file
 
 See the def.micelle2d file in the tools directory for an example of a
 definition file.  This tool was used to create the system for the
@@ -1047,11 +1046,10 @@ SWIG will generate a 1:1 translation of the functions in the interface file.
 Building the wrapper
 ^^^^^^^^^^^^^^^^^^^^
 
-When using CMake, the build steps for building a wrapper
-module are integrated for the languages: Java, Lua,
-Perl5, Python, Ruby, and Tcl.  These require that the
-LAMMPS library is build as a shared library and all
-necessary development headers and libraries are present.
+The build steps for building a wrapper module are integrated for the
+languages: Java, Lua, Perl5, Python, Ruby, and Tcl.  These require that
+the LAMMPS library is built as a shared library and all necessary
+development headers and libraries are present.
 
 .. code-block:: bash
 
@@ -1062,32 +1060,6 @@ necessary development headers and libraries are present.
    -D BUILD_SWIG_PYTHON=on  # to enable building the Python wrapper
    -D BUILD_SWIG_RUBY=on    # to enable building the Ruby wrapper
    -D BUILD_SWIG_TCL=on     # to enable building the Tcl wrapper
-
-
-Manual building allows a little more flexibility. E.g. one can choose
-the name of the module and build and use a dynamically loaded object
-for Tcl with:
-
-.. code-block:: bash
-
-   swig -tcl -module tcllammps lammps.i
-   gcc -fPIC -shared $(pkg-config tcl --cflags) -o tcllammps.so \
-               lammps_wrap.c -L ../src/ -llammps
-   tclsh
-
-Or one can build an extended Tcl shell command with the wrapped
-functions included with:
-
-.. code-block:: bash
-
-   swig -tcl -module tcllmps lammps_shell.i
-   gcc -o tcllmpsh lammps_wrap.c -Xlinker -export-dynamic \
-            -DHAVE_CONFIG_H $(pkg-config tcl --cflags) \
-            $(pkg-config tcl --libs) -L ../src -llammps
-
-In both cases it is assumed that the LAMMPS library was compiled
-as a shared library in the ``src`` folder. Otherwise the last
-part of the commands needs to be adjusted.
 
 Utility functions
 ^^^^^^^^^^^^^^^^^

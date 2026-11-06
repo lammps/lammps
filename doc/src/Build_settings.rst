@@ -6,7 +6,7 @@ Optional build settings
 =======================
 
 LAMMPS can be built with several optional settings.  Each subsection
-explains how to do this for building both with CMake and make.
+explains how to do this.
 
 .. contents::
    :local:
@@ -23,13 +23,7 @@ C++17 standard compliance when building all of LAMMPS
 A C++17 standard compatible compiler is currently the minimum
 requirement for compiling LAMMPS.  LAMMPS version 22 July 2025 is the
 last version compatible with the C++11 standard for the core code and
-most packages. Most currently used C++ compilers are compatible with
-C++17, but some older ones may need extra flags to enable C++17
-compliance.
-
-.. code-block:: make
-
-   CCFLAGS = -g -O3 -std=c++17
+most packages.
 
 Individual packages may require compliance with a later C++ standard
 like C++20.  These requirements will be documented with the
@@ -58,142 +52,53 @@ communication algorithms, which comes with many optimizations for
 special cases, e.g. leveraging available 2D and 3D FFTs in the back end
 libraries and better pipelining for packing and communication.
 
-.. tabs::
+.. code-block:: bash
 
-   .. tab:: CMake build
+   -D FFT=value              # FFTW3 or MKL or NVPL or KISS,
+                             # default is FFTW3 if found, else KISS
+   -D FFT_KOKKOS=value       # FFTW3 or MKL or NVPL or KISS or CUFFT
+                             # or HIPFFT or MKL_GPU, default is KISS
+   -D FFT_SINGLE=value       # on or off (default), off = double precision
+   -D FFT_PACK=value         # array (default) or pointer or memcpy
+   -D FFT_USE_HEFFTE=value   # on or off (default), on links to heFFTe
 
-      .. code-block:: bash
+.. note::
 
-         -D FFT=value              # FFTW3 or MKL or NVPL or KISS,
-                                   # default is FFTW3 if found, else KISS
-         -D FFT_KOKKOS=value       # FFTW3 or MKL or NVPL or KISS or CUFFT
-                                   # or HIPFFT or MKL_GPU, default is KISS
-         -D FFT_SINGLE=value       # on or off (default), off = double precision
-         -D FFT_PACK=value         # array (default) or pointer or memcpy
-         -D FFT_USE_HEFFTE=value   # on or off (default), on links to heFFTe
+   When the Kokkos variant of a package is compiled and selected at run time,
+   the FFT library selected by the ``FFT_KOKKOS`` variable applies. Otherwise,
+   the FFT library selected by the FFT variable applies.
+   The same FFT settings apply to both. ``FFT_KOKKOS`` must be compatible with the
+   Kokkos back end - for example, when using the CUDA back end of Kokkos,
+   you must use either ``CUFFT`` or ``KISS``.
 
-      .. note::
+Usually these settings are all that is needed.  If FFTW3 is
+selected, then CMake will try to detect, if threaded FFTW
+libraries are available and enable them by default.  This setting
+is independent of whether OpenMP threads are enabled and a package
+like KOKKOS or OPENMP is used.  If CMake cannot detect the FFT
+library, you can set these variables to assist:
 
-         When the Kokkos variant of a package is compiled and selected at run time,
-         the FFT library selected by the ``FFT_KOKKOS`` variable applies. Otherwise,
-         the FFT library selected by the FFT variable applies.
-         The same FFT settings apply to both. ``FFT_KOKKOS`` must be compatible with the
-         Kokkos back end - for example, when using the CUDA back end of Kokkos,
-         you must use either ``CUFFT`` or ``KISS``.
+.. code-block:: bash
 
-      Usually these settings are all that is needed.  If FFTW3 is
-      selected, then CMake will try to detect, if threaded FFTW
-      libraries are available and enable them by default.  This setting
-      is independent of whether OpenMP threads are enabled and a package
-      like KOKKOS or OPENMP is used.  If CMake cannot detect the FFT
-      library, you can set these variables to assist:
+   -D FFTW3_INCLUDE_DIR=path   # path to FFTW3 include files
+   -D FFTW3_LIBRARY=path       # path to FFTW3 libraries
+   -D FFTW3_OMP_LIBRARY=path   # path to FFTW3 OpenMP wrapper libraries
+   -D FFT_FFTW_THREADS=on      # enable using OpenMP threaded FFTW3 libraries
+   -D MKL_INCLUDE_DIR=path     # ditto for Intel MKL library
+   -D FFT_MKL_THREADS=on       # enable using threaded FFTs with MKL libraries
+   -D MKL_LIBRARY=path         # path to MKL libraries
+   -D FFT_HEFFTE_BACKEND=value # FFTW or MKL or empty/undefined for the stock
+                               # heFFTe back end
+   -D Heffte_ROOT=path         # path to an existing heFFTe installation
+   -D nvpl_fft_INCLUDE_DIR=path # path to NVPL FFT include files
+   -D nvpl_fft_LIBRARY_DIR=path # path to NVPL FFT libraries
 
-      .. code-block:: bash
+.. note::
 
-         -D FFTW3_INCLUDE_DIR=path   # path to FFTW3 include files
-         -D FFTW3_LIBRARY=path       # path to FFTW3 libraries
-         -D FFTW3_OMP_LIBRARY=path   # path to FFTW3 OpenMP wrapper libraries
-         -D FFT_FFTW_THREADS=on      # enable using OpenMP threaded FFTW3 libraries
-         -D MKL_INCLUDE_DIR=path     # ditto for Intel MKL library
-         -D FFT_MKL_THREADS=on       # enable using threaded FFTs with MKL libraries
-         -D MKL_LIBRARY=path         # path to MKL libraries
-         -D FFT_HEFFTE_BACKEND=value # FFTW or MKL or empty/undefined for the stock
-                                     # heFFTe back end
-         -D Heffte_ROOT=path         # path to an existing heFFTe installation
-         -D nvpl_fft_INCLUDE_DIR=path # path to NVPL FFT include files
-         -D nvpl_fft_LIBRARY_DIR=path # path to NVPL FFT libraries
-
-      .. note::
-
-         heFFTe comes with a builtin (= stock) back end for FFTs, i.e. a
-         default internal FFT implementation; however, this stock back
-         end is intended for testing purposes only and is not optimized
-         for production runs.
-
-
-   .. tab:: Traditional make
-
-      To change the FFT library to be used and its options, you have to edit
-      your machine Makefile. Below are examples how the makefile variables
-      could be changed.
-
-      .. code-block:: make
-
-         FFT_INC = -DFFT_<NAME>        # where <NAME> is KISS (default), FFTW3,
-                                       # FFTW (same as FFTW3), NVPL, or MKL
-         FFT_INC = -DFFT_KOKKOS_<NAME> # where <NAME> is KISS (default), FFTW3,
-                                       # FFTW (same as FFTW3), NVPL, MKL, CUFFT,
-                                       # HIPFFT, or MKL_GPU
-         FFT_INC = -DFFT_SINGLE       # do not specify for double precision
-         FFT_INC = -DFFT_FFTW_THREADS # enable using threaded FFTW3 libraries
-         FFT_INC = -DFFT_MKL_THREADS  # enable using threaded FFTs with MKL libraries
-         FFT_INC = -DFFT_PACK_ARRAY   # or -DFFT_PACK_POINTER or -DFFT_PACK_MEMCPY
-                                      # default is FFT_PACK_ARRAY if not specified
-
-      .. code-block:: make
-
-         FFT_INC =  -I/usr/local/include
-         FFT_PATH = -L/usr/local/lib
-
-         # hipFFT either precision
-         FFT_LIB =  -lhipfft
-
-         # cuFFT either precision
-         FFT_LIB =  -lcufft
-
-         # MKL_GPU either precision
-         FFT_LIB = -lmkl_sycl_dft -lmkl_intel_ilp64 -lmkl_tbb_thread -lmkl_core -ltbb
-
-         # FFTW3 double precision
-         FFT_LIB =  -lfftw3
-
-         # FFTW3 double precision with threads (needs -DFFT_FFTW_THREADS)
-         FFT_LIB =  -lfftw3 -lfftw3_omp
-
-         # FFTW3 single precision
-         FFT_LIB =  -lfftw3 -lfftw3f
-
-         # serial MKL with Intel compiler
-         FFT_LIB =  -lmkl_intel_lp64 -lmkl_sequential -lmkl_core
-
-         # serial MKL with GNU compiler
-         FFT_LIB =  -lmkl_gf_lp64 -lmkl_sequential -lmkl_core
-
-         # threaded MKL with Intel compiler
-         FFT_LIB =  -lmkl_intel_lp64 -lmkl_intel_thread -lmkl_core
-
-         # threaded MKL with GNU compiler
-         FFT_LIB =  -lmkl_gf_lp64 -lmkl_gnu_thread -lmkl_core
-
-         # MKL with automatic runtime selection of interface libs
-         FFT_LIB =  -lmkl_rt
-
-         # threaded NVPL FFT
-         FFT_LIB =  -lnvpl_fftw
-
-
-      As with CMake, you do not need to set paths in ``FFT_INC`` or
-      ``FFT_PATH``, if the compiler can find the FFT header and library
-      files in its default search path.  You must specify ``FFT_LIB``
-      with the appropriate FFT libraries to include in the link.
-
-      Traditional make can also link to heFFTe using an existing installation
-
-      .. code-block:: make
-
-         include <path-to-heffte-installation>/share/heffte/HeffteMakefile.in
-         FFT_INC = -DFFT_HEFFTE -DFFT_HEFFTE_FFTW $(heffte_include)
-         FFT_PATH =
-         FFT_LIB = $(heffte_link) $(heffte_libs)
-
-      The heFFTe install path will contain ``HeffteMakefile.in``.
-      which will define the ``heffte_`` include variables needed to link to heFFTe from
-      an external project using traditional make.
-      The ``-DFFT_HEFFTE`` is required to switch to using heFFTe, while the optional ``-DFFT_HEFFTE_FFTW``
-      selects the desired heFFTe back end, e.g., ``-DFFT_HEFFTE_FFTW`` or ``-DFFT_HEFFTE_MKL``,
-      omitting the variable will default to the `stock` back end.
-      The heFFTe `stock` back end is intended to be used for testing and debugging,
-      but is not performance optimized for large scale production runs.
+   heFFTe comes with a builtin (= stock) back end for FFTs, i.e. a
+   default internal FFT implementation; however, this stock back
+   end is intended for testing purposes only and is not optimized
+   for production runs.
 
 The `KISS FFT library <https://github.com/mborgerding/kissfft>`_ is
 included in the LAMMPS distribution.  It is portable across all
@@ -205,33 +110,25 @@ per-timestep CPU cost, FFTs are only a portion of long-range Coulombics,
 and 1d FFTs are only a portion of the FFT cost (parallel communication
 can be costly).  A breakdown of these timings is printed to the screen
 at the end of a run when using the :doc:`kspace_style pppm
-<kspace_style>` command. The :doc:`Screen and logfile output
+<kspace_style>` command.  The :doc:`Screen and logfile output
 <Run_output>` page gives more details.  A more detailed (and time
 consuming) report of the FFT performance is generated with the
 :doc:`kspace_modify fftbench yes <kspace_modify>` command.
 
 FFTW is a fast, portable FFT library that should also work on any
-platform and can be faster than the KISS FFT library.  You can download
-it from `www.fftw.org <https://www.fftw.org>`_.  LAMMPS requires version
-3.X; the legacy version 2.1.X is no longer supported.
-
-Building FFTW for your box should be as simple as ``./configure; make;
-make install``.  The install command typically requires root privileges
-(e.g. invoke it via sudo), unless you specify a local directory with
-the ``--prefix`` option of configure.  Type ``./configure --help`` to see
-various options.
+platform and can be faster than the KISS FFT library.  LAMMPS requires
+FFTW version 3.x.
 
 The Intel MKL math library is part of the Intel compiler suite.  It
-can be used with the Intel or GNU compiler (see the ``FFT_LIB`` setting
-above).
+can be used with the Intel or GNU compiler.
 
 The NVIDIA Performance Libraries (NVPL) FFT library is optimized for NVIDIA
 Grace Armv9.0 architecture. You can download it from https://docs.nvidia.com/nvpl/
 
 The cuFFT and hipFFT FFT libraries are packaged with NVIDIA's CUDA and
-AMD's HIP installations, respectively. These FFT libraries require the
+AMD's HIP installations, respectively.  These FFT libraries require the
 Kokkos acceleration package to be enabled and the Kokkos back end to be
-GPU-resident (i.e., HIP or CUDA). Similarly, GPU offload of FFTs on
+GPU-resident (i.e., HIP or CUDA).  Similarly, GPU offload of FFTs on
 Intel GPUs with oneMKL currently requires the Kokkos acceleration
 package to be enabled with the SYCL back end.
 
@@ -243,19 +140,11 @@ Double precision means they are 8-byte doubles.  Note that Fourier
 transform and related PPPM operations are somewhat less sensitive to
 floating point truncation errors, and thus the resulting error is
 generally less than the difference in precision. Using the
-``-DFFT_SINGLE`` setting trades off a little accuracy for reduced memory
-use and parallel communication costs for transposing 3d FFT data.
+``-DFFT_SINGLE=on`` setting trades off a little accuracy for reduced
+memory use and parallel communication costs for transposing 3d FFT data.
 
-When using ``-DFFT_SINGLE`` with FFTW3, you may need to ensure that
+When using ``-DFFT_SINGLE=on`` with FFTW3, you may need to ensure that
 the FFTW3 installation includes support for single-precision.
-
-When compiling FFTW3 from source, you can do the following, which should
-produce the additional libraries ``libfftw3f.a`` and ``libfftw3f.so``\ .
-
-.. code-block:: bash
-
-   make clean
-   ./configure --enable-single; make; make install
 
 Performing 3d FFTs requires communication to transpose the 3d FFT
 grid.  The data packing/unpacking for this can be done in one of 3
@@ -264,13 +153,13 @@ Depending on the machine, the size of the FFT grid, the number of
 processors used, one option may be slightly faster.  The default is
 ARRAY mode.
 
-When using ``-DFFT_HEFFTE`` CMake will first look for an existing
-install with hints provided by ``-DHeffte_ROOT``, as recommended by the
-CMake standard and note that the name is case sensitive. If CMake cannot
-find a heFFTe installation with the correct back end (e.g., FFTW or
-MKL), it will attempt to download and build the library automatically.
-In this case, LAMMPS CMake will also accept all heFFTe specific
-variables listed in the `heFFTe documentation
+When using ``-DFFT_USE_HEFFTE=on`` CMake will first look for an existing
+install with hints provided by ``-DHeffte_ROOT=<path>``, as recommended
+by the CMake standard and note that the name is case sensitive. If CMake
+cannot find a heFFTe installation with the correct back end (e.g., FFTW
+or MKL), it will attempt to download and build the library
+automatically.  In this case, LAMMPS CMake will also accept all heFFTe
+specific variables listed in the `heFFTe documentation
 <https://icl-utk-edu.github.io/heffte/md_doxygen_installation.html>`_
 and those variables will be passed into the heFFTe build.
 
@@ -291,29 +180,14 @@ This has an impact on the size of a system that can be simulated, or how
 large counters can become before "rolling over".  The default setting of
 "smallbig" is almost always adequate.
 
-.. tabs::
+The choice of integer types is made via setting a variable during
+configuration.
 
-   .. tab:: CMake build
+.. code-block:: bash
 
-      With CMake the choice of integer types is made via setting a
-      variable during configuration.
+   -D LAMMPS_SIZES=value   # smallbig (default) or bigbig
 
-      .. code-block:: bash
-
-         -D LAMMPS_SIZES=value   # smallbig (default) or bigbig
-
-      If the variable is not set explicitly, "smallbig" is used.
-
-   .. tab:: Traditional build
-
-      If you want a setting different from the default, you need to edit the
-      ``LMP_INC`` variable setting your machine Makefile.
-
-      .. code-block:: make
-
-         LMP_INC = -DLAMMPS_SMALLBIG    # or -DLAMMPS_BIGBIG
-
-      The default setting is ``-DLAMMPS_SMALLBIG`` if nothing is specified
+If the variable is not set explicitly, "smallbig" is used.
 
 LAMMPS system size restrictions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -371,11 +245,6 @@ will "roll over", e.g. from 511 to -512, which can cause diagnostics
 like the mean-squared displacement, as calculated by the :doc:`compute
 msd <compute_msd>` command, to be faulty.
 
-Also note that the GPU package requires its lib/gpu library to be
-compiled with the same size setting, or the link will fail.  A CMake
-build does this automatically.  When building with make, the setting
-in whichever ``lib/gpu/Makefile`` is used must be the same as above.
-
 ----------
 
 .. _gzip:
@@ -431,38 +300,18 @@ The :doc:`geturl command <geturl>` command uses the `the libcurl library
 <https://curl.se/libcurl/>`_ to download files.  This requires that
 LAMMPS is compiled accordingly which needs the following settings:
 
-.. tabs::
+.. code-block:: bash
 
-   .. tab:: CMake build
+   -D WITH_CURL=value      # on or off
+                           # default = yes if CMake finds CURL development files, else no
 
-      .. code-block:: bash
+Usually these settings are all that is needed.  If CMake cannot find the
+curl package header, library, executable files, you can set these variables:
 
-         -D WITH_CURL=value      # on or off
-                                 # default = yes if CMake finds CURL development files, else no
+.. code-block:: bash
 
-      Usually these settings are all that is needed.  If CMake cannot
-      find the graphics header, library, executable files, you can set
-      these variables:
-
-      .. code-block:: bash
-
-         -D CURL_INCLUDE_DIR=path    # path to folder which contains curl.h header file
-         -D CURL_LIBRARY=path        # path to libcurls.a (.so) file
-
-   .. tab:: Traditional make
-
-      .. code-block:: make
-
-         LMP_INC = -DLAMMPS_CURL  <other LMP_INC settings>
-
-         CURL_INC = -I/usr/local/include   # path to curl folder with curl.h
-         CURL_PATH = -L/usr/lib            # paths to libcurl.a(.so) if make cannot find it
-         CURL_LIB = -lcurl                 # library names
-
-      As with CMake, you do not need to set ``CURL_INC`` or ``CURL_PATH``,
-      if make can find the libcurl header and library files in their
-      default system locations.  You must specify ``CURL_LIB`` with a
-      paths or linker flags to link to libcurl.
+   -D CURL_INCLUDE_DIR=path    # path to folder which contains curl.h header file
+   -D CURL_LIBRARY=path        # path to libcurl.a (.so) file
 
 ----------
 
@@ -476,9 +325,8 @@ folder as examples of how those kinds of potential files look like and
 for use with the provided input examples in the ``examples`` tree.  To
 keep the size of the distributed LAMMPS source package small, very large
 potential files (> 5 MBytes) are not bundled, but only downloaded on
-demand when the :doc:`corresponding package <Packages>` is
-installed.  This automatic download can be prevented when :doc:`building
-LAMMPS with CMake <Build_cmake>` by adding the setting `-D
+demand when the :doc:`corresponding package <Packages>` is installed.
+This automatic download can be prevented by adding the setting `-D
 DOWNLOAD_POTENTIALS=off` when configuring.
 
 ----------
@@ -495,31 +343,14 @@ pointers that are aligned to 16-byte boundaries. Using SSE vector
 instructions efficiently, however, requires memory blocks being aligned
 on 64-byte boundaries.
 
-.. tabs::
+.. code-block:: bash
 
-   .. tab:: CMake build
+   -D LAMMPS_MEMALIGN=value            # 0, 8, 16, 32, 64 (default)
 
-      .. code-block:: bash
-
-         -D LAMMPS_MEMALIGN=value            # 0, 8, 16, 32, 64 (default)
-
-      Use a ``LAMMPS_MEMALIGN`` value of 0 to disable using
-      ``posix_memalign()`` and revert to using the ``malloc()`` C-library
-      function instead.  When compiling LAMMPS for Windows systems,
-      ``malloc()`` will always be used and this setting is ignored.
-
-   .. tab:: Traditional make
-
-      .. code-block:: make
-
-         LMP_INC = -DLAMMPS_MEMALIGN=value   # 8, 16, 32, 64
-
-      Do not set ``-DLAMMPS_MEMALIGN``, if you want to have memory
-      allocated with the ``malloc()`` function call
-      instead. ``-DLAMMPS_MEMALIGN`` **cannot** be used on Windows, as
-      Windows different function calls with different semantics for
-      allocating aligned memory, that are not compatible with how LAMMPS
-      manages its dynamical memory.
+Use a ``LAMMPS_MEMALIGN`` value of 0 to disable using
+``posix_memalign()`` and revert to using the ``malloc()`` C-library
+function instead.  When compiling LAMMPS for Windows systems,
+``malloc()`` will always be used and this setting is ignored.
 
 ----------
 
@@ -531,19 +362,9 @@ types, the following setting will be needed.  It converts "long long"
 to a "long" data type, which should be the desired 8-byte integer on
 those systems:
 
-.. tabs::
+.. code-block:: bash
 
-   .. tab:: CMake build
-
-      .. code-block:: bash
-
-         -D LAMMPS_LONGLONG_TO_LONG=value     # on or off (default)
-
-   .. tab:: Traditional make
-
-      .. code-block:: make
-
-         LMP_INC = -DLAMMPS_LONGLONG_TO_LONG  <other LMP_INC settings>
+   -D LAMMPS_LONGLONG_TO_LONG=value     # on or off (default)
 
 ----------
 

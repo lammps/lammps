@@ -63,12 +63,12 @@ Used by every table below.  Estimates include the docs and the unit-test run.
 | LARGE | several days, or blocked on a framework piece listed next to it |
 
 Per-package cost floor, before any physics: OPENMP = 2 files (`src/OPENMP/
-pair_X_omp.{h,cpp}`, registration automatic); KOKKOS = 2 files + `src/KOKKOS/Install.sh`;
-GPU = 6 files (`src/GPU/pair_X_gpu.{h,cpp}`, `lib/gpu/lal_X.{h,cpp,cu}`,
-`lib/gpu/lal_X_ext.cpp`) + a declaration block in `lib/gpu/include/lammps_gpu.h` +
-`src/GPU/Install.sh` + `src/Purge.list`.  All three: the `(o)`/`(k)`/`(g)` letter in
-`doc/src/Commands_pair.rst`, an `.. index::` line and the "Accelerator Variants" entry
-of the pair page, no `versionadded`.
+pair_X_omp.{h,cpp}`); KOKKOS = 2 files; GPU = 6 files (`src/GPU/pair_X_gpu.{h,cpp}`,
+`lib/gpu/lal_X.{h,cpp,cu}`, `lib/gpu/lal_X_ext.cpp`) + a declaration block in
+`lib/gpu/include/lammps_gpu.h`.  CMake registers the style files of all three packages
+automatically when they are named after the CPU parent file.  All three: the
+`(o)`/`(k)`/`(g)` letter in `doc/src/Commands_pair.rst`, an `.. index::` line and the
+"Accelerator Variants" entry of the pair page, no `versionadded`.
 
 Validation is free when the base style has a YAML reference: `test_pair_style` runs
 the `omp`, `kokkos_omp`, `kokkos_serial`, `kokkos_gpu`, `gpu`, `intel` and `opt` cases
@@ -323,8 +323,7 @@ Verification decks for all Tier 1 styles: `kokkos-tier1-verification/`.
   `lib/gpu/lal_X.{h,cpp,cu}` (device class + kernels `k_X` / `k_X_fast`),
   `lib/gpu/lal_X_ext.cpp` (C entry points `X_gpu_init/compute/compute_n/clear/bytes` in
   `namespace LAMMPS_GPU`), a declaration block in `lib/gpu/include/lammps_gpu.h`
-  (included on both sides, so signatures are checked), two `action` lines in
-  `src/GPU/Install.sh`, an entry in `src/Purge.list`.  CMake globs `lib/gpu/*.cpp` and
+  (included on both sides, so signatures are checked).  CMake globs `lib/gpu/*.cpp` and
   `*.cu` for CUDA, OpenCL and HIP (`cmake/Modules/Packages/GPU.cmake`); the kernel
   symbol is the file name minus `lal_`; the host `.cpp` includes `X_cl.h` /
   `X_cubin.h`.  The legacy `lib/gpu/Makefile.*` are gone.  Clean template commit:
@@ -348,9 +347,6 @@ Verification decks for all Tier 1 styles: `kokkos-tier1-verification/`.
 - Precision at configure time: `-D GPU_PREC=single|mixed|double` (default mixed).
   The YAML harness relaxes `epsilon` x7.5 (double), x5e8 (mixed), x1e10 (single):
   validate new kernels against a double-precision build, then run mixed and HIP.
-- `src/GPU/Install.sh` is missing the `action` lines for nine existing styles
-  (`coul/slater/long`, the SPH styles, the soft styles among them); harmless for CMake
-  builds, fix when touching the file.
 
 ### Pair styles without /gpu
 

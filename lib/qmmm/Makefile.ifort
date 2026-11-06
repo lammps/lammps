@@ -1,6 +1,6 @@
 # -*- Makefile -*- for coupling LAMMPS to PWscf for QM/MM molecular dynamics
 # adapted for the case of compiling LAMMPS with CMake. This assumes that
-# LAMMPS was configured to build a shared library and installed with "make install"
+# LAMMPS was configured to build a shared library and installed with "cmake --install"
 # as it used the PKG config configuration file. You may need to extend
 # the PKG_CONFIG_PATH environment variable to have pkgconf find the liblammps.pc file.
 # This is set up for using GNU Fortran and OpenMPI to compile both LAMMPS and QE
@@ -44,28 +44,17 @@ QELIBS += -L${QETOPDIR}/FoX/lib -lFoX_dom -lFoX_sax -lFoX_wxml -lFoX_common -lFo
 LAMMPSFLAGS = $(shell pkg-config --cflags liblammps)
 LAMMPSLIB   = $(shell pkg-config --libs liblammps)
 
-# part 4: local QM/MM library and progams
-SRC=pwqmmm.c libqmmm.c
-OBJ=$(SRC:%.c=%.o)
+# part 4: QM/MM program. the functions from libqmmm.c are included in liblammps
 
+default: pwqmmm.x
 
-default: libqmmm.a
-
-all : tldeps libqmmm.a pwqmmm.x
+all : pwqmmm.x
 
 pwqmmm.x : pwqmmm.o $(PWOBJS) $(LIBOBJS)
 	$(MPICXX) $(LDFLAGS) -o $@ $^ $(LAMMPSLIB) $(QELIBS) $(MPILIBS)
 
-libqmmm.a: libqmmm.o
-	$(AR) $(ARFLAGS) $@ $^
-
 %.o: %.c
 	$(MPICXX) -c $(LAMMPSFLAGS) $(MPICXXFLAGS) $< -o $@
-
-tldeps:
-	( cd $(QETOPDIR) ; $(MAKE) $(MFLAGS) couple || exit 1)
-	$(MAKE) -C ../../src $(MFLAGS) $(LAMMPSCFG)
-	$(MAKE) -C ../../src $(MFLAGS) mode=lib $(LAMMPSCFG)
 
 clean :
 	-rm -f *.x *.o *.a *~ *.F90 *.d *.mod *.i *.L
@@ -73,4 +62,3 @@ clean :
 # explicit dependencies
 
 pwqmmm.o: pwqmmm.c libqmmm.h
-libqmmm.o: libqmmm.c libqmmm.h

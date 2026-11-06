@@ -9,17 +9,14 @@ Wuppertal and others) and the Juelich Supercomputing Centre
 (Forschungszentrum Juelich).
 
 The use of the scafacos kspace requires the download and installation
-of the library on the system. This can be done in lib/scafacos or
-elsewhere in your system. Details of the download and build process
-for ScaFaCoS are given in the lib/scafacos/README file and it can also
-be done via the make lib-user-scafacos command from the LAMMPS
-source directory.
+of the ScaFaCoS library.  This can be done either separately and system-wide
+or automatically during the compilation of LAMMPS.
 
 Once you have successfully built LAMMPS with this package and the
 ScaFaCoS library, you can test it using an input file from the
 examples scafacos dir, e.g.:
 
-lmp_serial -in lammps/examples/PACKAGES/scafacos/in.scafacos.fmm
+./build/lmp  -in lammps/examples/PACKAGES/scafacos/in.scafacos.fmm
 
 For questions about ScaFaCoS, please contact:
 r.halver@fz-juelich.de or g.sutmann@fz-juelich.de

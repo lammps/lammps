@@ -43,8 +43,7 @@ all or parts of the code and modifications in this pull request.
 - [ ] The source code follows the LAMMPS formatting guidelines
 - [ ] Suitable new documentation files and/or updates to the existing docs are included
 - [ ] The added/updated documentation is integrated and tested with the documentation build system
-- [ ] The feature has been verified to work with the conventional build system
-- [ ] The feature has been verified to work with the CMake based build system
+- [ ] The code changes have been verified to compile
 - [ ] Suitable tests have been added to the unittest tree.
 - [ ] A package specific README file has been included or updated
 - [ ] One or more example input decks are included

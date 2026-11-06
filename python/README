@@ -9,13 +9,10 @@ and
 https://docs.lammps.org/Python_install.html
 
 Basically you need to use the flag -D BUILD_SHARED_LIBS=ON when
-configuring LAMMPS with CMake and then in the build folder use the
-command % cmake --build . --target install-python
+configuring LAMMPS with CMake and then use the command (here for
+a build folder called "build"):
 
-or for the legacy GNU build system execute these steps in the src folder:
-
-% make g++ mode=shlib           # build for whatever machine target you wish
-% make install-python           # install into site-packages folder
+% cmake --build build --target install-python
 
 You can replace the last step by a one-time setting of environment
 variables in your shell environment.  Or you can run the

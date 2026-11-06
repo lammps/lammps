@@ -28,7 +28,7 @@ PairStyle(dispersion/d3/kk/host,PairDispersionD3Kokkos<LMPHostType>);
 #include "pair_dispersion_d3.h"
 #include "pair_kokkos.h"
 
-#include <limits>
+#include <type_traits>
 
 namespace LAMMPS_NS {
 

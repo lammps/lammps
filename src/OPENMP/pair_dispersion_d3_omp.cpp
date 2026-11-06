@@ -79,9 +79,9 @@ void PairDispersionD3OMP::calc_coordination_number()
     // Calculate coordination number with the helper functions
     // The flags need to be constants for the template instantiation
     if (force->newton_pair) {
-        eval_coordination<1>(ifrom,ito,thr);
-    } else{
-        eval_coordination<0>(ifrom,ito,thr);
+      eval_coordination<1>(ifrom,ito,thr);
+    } else {
+      eval_coordination<0>(ifrom,ito,thr);
     }
 
     thr->timer(Timer::PAIR);
@@ -320,7 +320,7 @@ void PairDispersionD3OMP::eval_first_phase(int iifrom, int iito, ThrData * const
         double tmp6, tmp8, fpair1, fpair2, fpair;
         t6 = t8 = e6 = e8 = evdwl = fpair = fpair1 = fpair2 = 0.0;
 
-        // Damping code selection - now using the passed dampingCode parameter
+        // select the damping function
         switch (dampingCode) {
           // Written to avoid using sqrt and pow()
           case 1: /* Original damping */
@@ -495,9 +495,9 @@ void PairDispersionD3OMP::eval_second_phase(int iifrom, int iito, ThrData * cons
         fytmp += dely * fpair;
         fztmp += delz * fpair;
         if (NEWTON_PAIR || j < nlocal) {
-            f[j].x -= delx * fpair;
-            f[j].y -= dely * fpair;
-            f[j].z -= delz * fpair;
+          f[j].x -= delx * fpair;
+          f[j].y -= dely * fpair;
+          f[j].z -= delz * fpair;
         }
 
         // Update virial (no energy contributions in this phase)

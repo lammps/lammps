@@ -1,0 +1,5 @@
+{
+  "_comment": "P-1 with the inversion center at fractional coordinates (1/16,1/16,1/16) of the box: the image of s is 2*(1/16) - s",
+  "group_name": "P-1 (inversion center at 1/16,1/16,1/16)",
+  "ops": [ "x,y,z", "-x+1/8,-y+1/8,-z+1/8" ]
+}

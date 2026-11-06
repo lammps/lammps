@@ -170,8 +170,8 @@ FixSurfaceLocal::FixSurfaceLocal(LAMMPS *lmp, int narg, char **arg) :
 
   atom2connect = nullptr;
   FixSurfaceLocal::grow_arrays(atom->nmax);
-  atom->add_callback(0);
-  atom->add_callback(2);
+  atom->add_callback(this, Atom::GROW);
+  atom->add_callback(this, Atom::BORDER);
 
   nlocal_connect = nghost_connect = nmax_connect = 0;
   connect2d = nullptr;
@@ -190,7 +190,7 @@ FixSurfaceLocal::~FixSurfaceLocal()
 {
   // unregister callbacks to this fix from Atom class
 
-  atom->delete_callback(id, 0);
+  atom->delete_callback(this, Atom::GROW);
 
   memory->destroy(atom2connect);
   memory->destroy(connect2atom);

@@ -187,8 +187,8 @@ __kernel void k_lj_coul_long_soft_fast(const __global numtyp4 *restrict x_,
     sp_lj[tid]=sp_lj_in[tid];
   if (tid<MAX_SHARED_TYPES*MAX_SHARED_TYPES) {
     lj1[tid]=lj1_in[tid];
-    if (EVFLAG && eflag)
-      lj3[tid]=lj3_in[tid];
+    // the soft-core force needs lj3 as well, not only the energy
+    lj3[tid]=lj3_in[tid];
   }
 
   acctyp3 f;

@@ -122,25 +122,12 @@ check_for_autogen_files(${LAMMPS_SOURCE_DIR})
 #####################################################################
 include(CheckIncludeFileCXX)
 
-# set required compiler flags and compiler/CPU arch specific optimizations
+# the discontinued Intel Classic compilers are no longer supported
 if(CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
-  if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
-    if(CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
-      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Qrestrict")
-    endif()
-    if(CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL 17.3 OR CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL 17.4)
-      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /QxCOMMON-AVX512")
-    else()
-      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /QxHost")
-    endif()
-  else()
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -restrict")
-    if(CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL 17.3 OR CMAKE_CXX_COMPILER_VERSION VERSION_EQUAL 17.4)
-      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -xCOMMON-AVX512")
-    else()
-      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -xHost -fp-model fast=2 -no-prec-div -qoverride-limits -diag-disable=10441 -diag-disable=11074 -diag-disable=11076 -diag-disable=2196")
-    endif()
-  endif()
+  message(FATAL_ERROR "The Intel Classic C++ compiler is no longer supported. Please use the LLVM "
+    "based Intel oneAPI compilers (icx and icpx) or a different C++ compiler. If you cannot switch "
+    "compilers, please use the LAMMPS 30Sep2026 stable version, which is the last version with "
+    "support for the Intel Classic compilers.")
 endif()
 
 # silence excessive warnings for new Intel Compilers
@@ -184,7 +171,7 @@ set(CMAKE_CXX_EXTENSIONS OFF CACHE BOOL "Use compiler extensions")
 # ugly hacks for MSVC which by default always reports an old C++ standard in the __cplusplus macro
 # and prints lots of pointless warnings about "unsafe" functions
 if(MSVC)
-  if((CMAKE_CXX_COMPILER_ID STREQUAL "MSVC") OR (CMAKE_CXX_COMPILER_ID STREQUAL "Intel"))
+  if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     add_compile_options(/Zc:__cplusplus)
     add_compile_options(/wd4244)
     add_compile_options(/wd4267)
@@ -303,9 +290,19 @@ if(WITH_ZLIB)
   target_link_libraries(lammps PRIVATE ZLIB::ZLIB)
 endif()
 
-# tell CMake to export all symbols to a .dll on Windows with MinGW cross-compilers
+# a .dll on Windows can export at most 65535 symbols, which is too few for exporting all
+# symbols with MinGW cross-compilers and many packages.  So we generate a .def file with
+# all symbols except those that do not need to be exported (see GenerateDLLExports.cmake)
 if(BUILD_SHARED_LIBS AND (CMAKE_SYSTEM_NAME STREQUAL "Windows") AND CMAKE_CROSSCOMPILING)
-  set_target_properties(lammps PROPERTIES LINK_FLAGS "-Wl,--export-all-symbols")
+  file(GENERATE OUTPUT ${CMAKE_BINARY_DIR}/liblammps-objects.txt
+    CONTENT "$<JOIN:$<TARGET_OBJECTS:lammps>,\n>\n")
+  add_custom_command(TARGET lammps PRE_LINK
+    COMMAND ${CMAKE_COMMAND} -D NM=${CMAKE_NM}
+      -D OBJECTS=${CMAKE_BINARY_DIR}/liblammps-objects.txt
+      -D DEF_FILE=${CMAKE_BINARY_DIR}/liblammps.def
+      -P ${CMAKE_CURRENT_SOURCE_DIR}/Modules/GenerateDLLExports.cmake
+    VERBATIM)
+  target_link_options(lammps PRIVATE ${CMAKE_BINARY_DIR}/liblammps.def)
 endif()
 
 add_executable(lmp ${MAIN_SOURCES})
@@ -475,7 +472,7 @@ target_compile_definitions(lammps PUBLIC -DLAMMPS_${LAMMPS_SIZES})
 # posix_memalign is not available on Windows
 # with INTEL package and Intel compilers we use TBB's aligned malloc
 if((CMAKE_SYSTEM_NAME STREQUAL "Windows")
-   AND NOT (PKG_INTEL AND ((CMAKE_CXX_COMPILER_ID STREQUAL "Intel") OR (CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM"))))
+   AND NOT (PKG_INTEL AND (CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM")))
   set(LAMMPS_MEMALIGN "0" CACHE STRING "posix_memalign() is not available on Windows" FORCE)
 else()
   set(LAMMPS_MEMALIGN "64" CACHE STRING "enables the use of the posix_memalign() call instead of malloc() when large chunks or memory are allocated by LAMMPS. Set to 0 to disable")
@@ -539,10 +536,8 @@ if(BUILD_OMP)
       (CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM") OR (CMAKE_CXX_COMPILER_ID STREQUAL "XLClang") OR
       ((CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang") AND (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 10.0)) OR
       ((CMAKE_CXX_COMPILER_ID STREQUAL "Clang") AND (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 10.0)) OR
-      ((CMAKE_CXX_COMPILER_ID STREQUAL "CrayClang") AND (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 10.0)) OR
-      ((CMAKE_CXX_COMPILER_ID STREQUAL "Intel") AND (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 19.0)))
+      ((CMAKE_CXX_COMPILER_ID STREQUAL "CrayClang") AND (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 10.0)))
     # GCC 9.x and later plus Clang 10.x and later implement strict OpenMP 4.0 semantics for consts.
-    # Intel 18.0 was tested to support both, so we switch to OpenMP 4+ from 19.x onward to be safe.
     set(LAMMPS_OMP_COMPAT_LEVEL 4)
   else()
     set(LAMMPS_OMP_COMPAT_LEVEL 3)
@@ -595,18 +590,6 @@ if(BUILD_OMP)
       set(CMAKE_STATIC_LINKER_FLAGS "${CMAKE_STATIC_LINKER_FLAGS} -fopenmp")
     endif()
   endif()
-endif()
-
-# lower C++ standard for fmtlib sources when using Intel classic compiler
-if((CMAKE_CXX_COMPILER_ID STREQUAL "Intel") AND (CMAKE_CXX_STANDARD GREATER_EQUAL 17)
-    AND (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 2021.10))
-  message(STATUS "Lowering C++ standard for compiling fmtlib sources with Intel Classic compiler")
-  get_filename_component(LMP_UTILS_SRC "${LAMMPS_SOURCE_DIR}/utils.cpp" ABSOLUTE)
-  get_filename_component(LMP_VARIABLE_SRC "${LAMMPS_SOURCE_DIR}/variable.cpp" ABSOLUTE)
-  get_filename_component(FMT_FORMAT_SRC "${LAMMPS_SOURCE_DIR}/fmtlib_format.cpp" ABSOLUTE)
-  get_filename_component(FMT_OS_SRC "${LAMMPS_SOURCE_DIR}/fmtlib_os.cpp" ABSOLUTE)
-  set_source_files_properties("${FMT_FORMAT_SRC}" "${FMT_OS_SRC}" "${LMP_VARIABLE_SRC}" "${LMP_UTILS_SRC}"
-          PROPERTIES COMPILE_OPTIONS "-std=c++14")
 endif()
 
 option(USE_INTERNAL_LINALG "Prefer internal library with BLAS/LAPACK subset over system BLAS/LAPACK" OFF)
@@ -824,8 +807,8 @@ add_custom_target(gitversion COMMAND ${CMAKE_COMMAND}
   -D GIT_EXECUTABLE="${GIT_EXECUTABLE}"
   -D GIT_FOUND="${GIT_FOUND}"
   -D LAMMPS_STYLE_HEADERS_DIR="${LAMMPS_STYLE_HEADERS_DIR}"
-  -P ${CMAKE_CURRENT_SOURCE_DIR}/Modules/generate_lmpgitversion.cmake)
-set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES ${LAMMPS_STYLE_HEADERS_DIR}/gitversion.h)
+  -P "${CMAKE_CURRENT_SOURCE_DIR}/Modules/generate_lmpgitversion.cmake"
+  BYPRODUCTS "${LAMMPS_STYLE_HEADERS_DIR}/lmpgitversion.h")
 add_dependencies(lammps gitversion)
 
 ###########################################

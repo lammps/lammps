@@ -38,7 +38,7 @@ using namespace InterLayer;
 /* ---------------------------------------------------------------------- */
 
 PairCoulShield::PairCoulShield(LAMMPS *lmp) :
-    Pair(lmp), cut(nullptr), sigmae(nullptr), offset(nullptr)
+    Pair(lmp), cut(nullptr), sigmae(nullptr)
 {
   tap_flag = 1;
 }
@@ -52,7 +52,6 @@ PairCoulShield::~PairCoulShield()
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(sigmae);
-    memory->destroy(offset);
     memory->destroy(cutsq);
     memory->destroy(cut);
     allocated = 0;
@@ -142,13 +141,7 @@ void PairCoulShield::compute(int eflag, int vflag)
           f[j][2] -= delz * fpair;
         }
 
-        if (eflag) {
-          if (tap_flag)
-            ecoul = Vc * Tap;
-          else
-            ecoul = Vc - offset[itype][jtype];
-          ecoul *= factor_coul;
-        }
+        if (eflag) ecoul = Vc * Tap * factor_coul;
 
         if (evflag) ev_tally(i, j, nlocal, newton_pair, 0.0, ecoul, fpair, delx, dely, delz);
       }
@@ -174,7 +167,6 @@ void PairCoulShield::allocate()
   memory->create(cutsq, n + 1, n + 1, "pair:cutsq");
   memory->create(cut, n + 1, n + 1, "pair:cut");
   memory->create(sigmae, n + 1, n + 1, "pair:sigmae");
-  memory->create(offset, n + 1, n + 1, "pair:offset");
 }
 
 /* ----------------------------------------------------------------------
@@ -253,22 +245,7 @@ double PairCoulShield::init_one(int i, int j)
                "for pair style coul/shield, parameters need to be set explicitly for all pairs.");
   }
 
-  double *q = atom->q;
-  double qqrd2e = force->qqrd2e;
-  double r, r3, rarg, th, epsr;
-
-  if (offset_flag) {
-    r = cut[i][j];
-    r3 = r * r * r;
-    rarg = 1.0 / sigmae[i][j];
-    th = r3 + MathSpecial::cube(rarg);
-    epsr = 1.0 / pow(th, 1.0 / 3.0);
-    offset[i][j] = qqrd2e * q[i] * q[j] * epsr;
-  } else
-    offset[i][j] = 0.0;
-
   sigmae[j][i] = sigmae[i][j];
-  offset[j][i] = offset[i][j];
   cut[j][i] = cut[i][j];
 
   return cut[i][j];
@@ -385,9 +362,6 @@ double PairCoulShield::single(int i, int j, int itype, int jtype, double rsq, do
   fvc = forcecoul * Tap - Vc * dTap / r;
   fforce = factor_coul * fvc;
 
-  if (tap_flag)
-    phishieldec = Vc * Tap;
-  else
-    phishieldec = Vc - offset[itype][jtype];
+  phishieldec = Vc * Tap;
   return factor_coul * phishieldec;
 }

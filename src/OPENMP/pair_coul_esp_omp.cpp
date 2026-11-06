@@ -142,7 +142,7 @@ void PairCoulEspOMP::eval(int iifrom, int iito, ThrData * const thr)
             force_poly_r *= r_scal;
             force_poly_appx += force_poly_coeff[index]*force_poly_r;
           }
-          prefactor = qqrd2e * qtmp*q[j]/r;
+          prefactor = qqrd2e * scale[itype][jtype] * qtmp*q[j]/r;
           forcecoul = prefactor * force_poly_appx;
           if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor;
         } else {
@@ -152,10 +152,10 @@ void PairCoulEspOMP::eval(int iifrom, int iito, ThrData * const thr)
           itable >>= ncoulshiftbits;
           fraction = ((double) rsq_lookup.f - rtable[itable]) * drtable[itable];
           table = ftable[itable] + fraction*dftable[itable];
-          forcecoul = qtmp*q[j] * table;
+          forcecoul = scale[itype][jtype] * qtmp*q[j] * table;
           if (factor_coul < 1.0) {
             table = ctable[itable] + fraction*dctable[itable];
-            prefactor = qtmp*q[j] * table;
+            prefactor = scale[itype][jtype] * qtmp*q[j] * table;
             forcecoul -= (1.0-factor_coul)*prefactor;
           }
         }

@@ -67,21 +67,21 @@ endif()
 # the LAMMPS version header in the output for an empty input
 file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/in.empty "")
 add_test(NAME RunLammps
-         COMMAND $<TARGET_FILE:lmp> -log none -echo none -in in.empty)
+         COMMAND ${LAMMPS_TEST_LAUNCHER} $<TARGET_FILE:lmp> -log none -echo none -in in.empty)
 set_tests_properties(RunLammps PROPERTIES
          ENVIRONMENT "TSAN_OPTIONS=ignore_noninstrumented_modules=1;HWLOC_HIDE_ERRORS=2"
          PASS_REGULAR_EXPRESSION "LAMMPS \\([0-9]+ [A-Za-z]+ 2[0-9][0-9][0-9]( - Update [0-9]+)?( - Development.*)?( - Maintenance.*)?\\)")
 
 # check if the compiled executable will print the help message
 add_test(NAME HelpMessage
-         COMMAND $<TARGET_FILE:lmp> -h)
+         COMMAND ${LAMMPS_TEST_LAUNCHER} $<TARGET_FILE:lmp> -h)
 set_tests_properties(HelpMessage PROPERTIES
          ENVIRONMENT "TSAN_OPTIONS=ignore_noninstrumented_modules=1;HWLOC_HIDE_ERRORS=2"
          PASS_REGULAR_EXPRESSION ".*Large-scale Atomic/Molecular Massively Parallel Simulator -.*Usage example:.*")
 
 # check if the compiled executable will error out on an invalid command line flag
 add_test(NAME InvalidFlag
-         COMMAND $<TARGET_FILE:lmp> -xxx)
+         COMMAND ${LAMMPS_TEST_LAUNCHER} $<TARGET_FILE:lmp> -xxx)
 set_tests_properties(InvalidFlag PROPERTIES
          ENVIRONMENT "TSAN_OPTIONS=ignore_noninstrumented_modules=1;HWLOC_HIDE_ERRORS=2"
          PASS_REGULAR_EXPRESSION "ERROR: Invalid command-line argument.*")
@@ -102,7 +102,7 @@ if(BUILD_MPI)
     set(ARGS ${MPI_TEST_COMMAND})
     add_test(NAME ${MPI_TEST_NAME}
              WORKING_DIRECTORY ${MPI_TEST_WORKING_DIRECTORY}
-             COMMAND ${MPIEXEC_EXECUTABLE} ${MPIEXEC_NUMPROC_FLAG} ${MPI_TEST_NUM_PROCS}
+             COMMAND ${LAMMPS_TEST_LAUNCHER} ${MPIEXEC_EXECUTABLE} ${MPIEXEC_NUMPROC_FLAG} ${MPI_TEST_NUM_PROCS}
              ${MPIEXEC_PREFLAGS} ${EXECUTABLE} ${MPIEXEC_POSTFLAGS} ${ARGS})
     set_tests_properties(${MPI_TEST_NAME} PROPERTIES LABELS "mpi" ENVIRONMENT "OMP_PROC_BIND=false")
   endfunction()

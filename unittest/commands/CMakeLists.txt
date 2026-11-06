@@ -105,6 +105,25 @@ target_link_libraries(test_set_property PRIVATE lammps GTest::GMock)
 add_test(NAME SetProperty COMMAND test_set_property)
 add_kokkos_test(NAME SetProperty COMMAND test_set_property)
 
+if(PKG_COLLOID)
+  add_executable(test_pair_lubricate_poly test_pair_lubricate_poly.cpp)
+  target_link_libraries(test_pair_lubricate_poly PRIVATE lammps GTest::GMock)
+  add_test(NAME PairLubricatePoly COMMAND test_pair_lubricate_poly)
+  add_mpi_test(NAME PairLubricatePolyMPI NUM_PROCS 4 COMMAND $<TARGET_FILE:test_pair_lubricate_poly>)
+
+  add_executable(test_pair_brownian_poly test_pair_brownian_poly.cpp)
+  target_link_libraries(test_pair_brownian_poly PRIVATE lammps GTest::GMock)
+  add_test(NAME PairBrownianPoly COMMAND test_pair_brownian_poly)
+  add_mpi_test(NAME PairBrownianPolyMPI NUM_PROCS 4 COMMAND $<TARGET_FILE:test_pair_brownian_poly>)
+
+  if(PKG_OPENMP)
+    add_test(NAME PairLubricatePolyOMP COMMAND test_pair_lubricate_poly)
+    add_test(NAME PairBrownianPolyOMP COMMAND test_pair_brownian_poly)
+    set_tests_properties(PairLubricatePolyOMP PairBrownianPolyOMP PROPERTIES
+                         ENVIRONMENT "LAMMPS_ACCELERATOR_ARGS=-sf omp -pk omp 2")
+  endif()
+endif()
+
 if(PKG_EXTRA-PAIR AND PKG_MOLECULE)
   add_executable(test_dispersion_d3_special_bonds test_dispersion_d3_special_bonds.cpp)
   target_link_libraries(test_dispersion_d3_special_bonds PRIVATE lammps GTest::GTest)
@@ -202,6 +221,13 @@ if(PKG_REAXFF)
                        ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR}")
   add_kokkos_test(NAME ReaxFFOutput COMMAND test_reaxff_output
                   ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR}")
+endif()
+
+if(PKG_REAXFF OR PKG_QEQ)
+  add_executable(test_qeq_subgroup test_qeq_subgroup.cpp)
+  target_link_libraries(test_qeq_subgroup PRIVATE lammps GTest::GMock)
+  add_test(NAME QEqSubgroup COMMAND test_qeq_subgroup)
+  add_kokkos_test(NAME QEqSubgroup COMMAND test_qeq_subgroup)
 endif()
 
 add_executable(test_mpi_load_balancing test_mpi_load_balancing.cpp)

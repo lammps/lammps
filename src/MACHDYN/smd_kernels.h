@@ -41,7 +41,6 @@ static inline double Kernel_Barbara(const double r, const double h)
 {
   double arg = (1.570796327 * (r + h)) / h;
   double hsq = h * h;
-  //wf = (1.680351548 * (cos(arg) + 1.)) / hsq;
   return -2.639490040 * sin(arg) / (hsq * h);
 }
 
@@ -54,7 +53,6 @@ static inline void spiky_kernel_and_derivative(const double h, const double r, c
          */
 
   if (r > h) {
-    printf("r=%f > h=%f in Spiky kernel\n", r, h);
     wf = wfd = 0.0;
     return;
   }
@@ -69,25 +67,6 @@ static inline void spiky_kernel_and_derivative(const double h, const double r, c
         (h * h * h * h * h * h);          // [1/m^4] ==> correct for dW/dr in 3D
     wf = -0.333333333333e0 * hr * wfd;    // [m/m^4] ==> [1/m^3] correct for W in 3D
   }
-
-  // alternative formulation
-  //              double hr = h - r;
-  //
-  //              /*
-  //               * Spiky kernel
-  //               */
-  //
-  //              if (domain->dimension == 2) {
-  //                      double h5 = h * h * h * h * h;
-  //                      wf = 3.183098861e0 * hr * hr * hr / h5;
-  //                      wfd = -9.549296583 * hr * hr / h5;
-  //
-  //              } else {
-  //                      double h6 = h * h * h * h * h * h;
-  //                      wf = 4.774648292 * hr * hr * hr / h6;
-  //                      wfd = -14.32394487 * hr * hr / h6;
-  //              }
-  //      }
 }
 
 static inline void barbara_kernel_and_derivative(const double h, const double r,
@@ -102,10 +81,8 @@ static inline void barbara_kernel_and_derivative(const double h, const double r,
   double hsq = h * h;
 
   if (r > h) {
-    printf("r = %f > h = %f in barbara kernel function\n", r, h);
-    exit(1);
-    //wf = wfd = 0.0;
-    //return;
+    wf = wfd = 0.0;
+    return;
   }
 
   if (dimension == 2) {

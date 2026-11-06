@@ -242,7 +242,7 @@ if revflag == 'stable' or revflag == 'release' or rev2.match(revflag):
     verseq = verexp.match(vertxt).groups()
     version = "".join(verseq)
 elif revflag == 'develop' or revflag == 'maintenance':
-    version = time.strftime('%Y-%m-%d')
+    version = system("git describe HEAD").strip()
 
 if not pythonflag and not guiflag:
   print("Configuring pace plugin build with CMake")
@@ -287,13 +287,14 @@ if not pythonflag and not guiflag:
     shutil.move(exe,os.path.join('..',os.path.basename(exe)))
   print("Done")
 
-print("Building PDF manual")
 os.chdir(os.path.join(gitdir,"doc"))
-txt = system("make upgrade")
-if verbose: print(txt)
-txt = system("make pdf")
-if verbose: print(txt)
-shutil.move("Manual.pdf",os.path.join(builddir,"LAMMPS-Manual.pdf"))
+if not os.path.exists("Manual.pdf"):
+    print("Building PDF manual")
+    txt = system("make upgrade")
+    if verbose: print(txt)
+    txt = system("make pdf")
+    if verbose: print(txt)
+shutil.copy("Manual.pdf",os.path.join(builddir,"LAMMPS-Manual.pdf"))
 print("Done")
 
 # switch back to build folder and copy/process files for inclusion in installer
@@ -309,13 +310,6 @@ shutil.copy(os.path.join(gitdir,"LICENSE"),os.path.join(builddir,"LICENSE.txt"))
 shutil.copy(os.path.join(gitdir,"doc","src","PDF","colvars-refman-lammps.pdf"),os.path.join(builddir,"Colvars-Manual.pdf"))
 shutil.copy(os.path.join(gitdir,"tools","createatoms","Manual.pdf"),os.path.join(builddir,"CreateAtoms-Manual.pdf"))
 shutil.copy(os.path.join(gitdir,"doc","src","PDF","kspace.pdf"),os.path.join(builddir,"Kspace-Extra-Info.pdf"))
-shutil.copy(os.path.join(gitdir,"doc","src","PDF","pair_gayberne_extra.pdf"),os.path.join(builddir,"PairGayBerne-Manual.pdf"))
-shutil.copy(os.path.join(gitdir,"doc","src","PDF","pair_resquared_extra.pdf"),os.path.join(builddir,"PairReSquared-Manual.pdf"))
-shutil.copy(os.path.join(gitdir,"doc","src","PDF","PDLammps_overview.pdf"),os.path.join(builddir,"PDLAMMPS-Overview.pdf"))
-shutil.copy(os.path.join(gitdir,"doc","src","PDF","PDLammps_EPS.pdf"),os.path.join(builddir,"PDLAMMPS-EPS.pdf"))
-shutil.copy(os.path.join(gitdir,"doc","src","PDF","PDLammps_VES.pdf"),os.path.join(builddir,"PDLAMMPS-VES.pdf"))
-shutil.copy(os.path.join(gitdir,"doc","src","PDF","SPH_LAMMPS_userguide.pdf"),os.path.join(builddir,"SPH-Manual.pdf"))
-shutil.copy(os.path.join(gitdir,"doc","src","PDF","MACHDYN_LAMMPS_userguide.pdf"),os.path.join(builddir,"MACHDYN-Manual.pdf"))
 shutil.copy(os.path.join(gitdir,"doc","src","PDF","CG-DNA.pdf"),os.path.join(builddir,"CG-DNA-Manual.pdf"))
 
 # prune outdated inputs, too large files, or examples of packages we don't bundle

@@ -19,9 +19,9 @@ Python interactively in parallel does not generally work, unless you
 have a version of Python that extends Python to enable multiple
 instances of Python to read what you type.
 
-To do all of this, you must build LAMMPS in :ref:`"shared" mode <exe>`
-and make certain that your Python interpreter can find the ``lammps``
-Python package and the LAMMPS shared library file.
+To do all of this, you must build LAMMPS in :ref:`"shared" mode
+<build_exe>` and make certain that your Python interpreter can find the
+``lammps`` Python package and the LAMMPS shared library file.
 
 .. _ctypes: https://docs.python.org/3/library/ctypes.html
 

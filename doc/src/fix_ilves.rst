@@ -180,11 +180,14 @@ At each time step, after the force computation, *fix ilves*:
    constrained positions.
 
 As with :doc:`fix shake <fix_shake>`, the constraints are enforced on
-the positions only; the velocities are projected onto the constraint
-manifold once at the start of a run (the analogue of SHAKE's initial
-velocity correction) but not every step.  ``fix ilves`` therefore has no
-special requirement on its placement relative to other time-integration
-fixes, unlike a full RATTLE integrator.
+the positions only.  At the start of each run, the atoms are moved onto
+the constraint manifold (as fix shake does), so that a geometry that
+does not satisfy the constraints, e.g. from a data file for a different
+water model, is corrected before the first step, and the velocities are
+projected onto the constraint manifold (as :doc:`fix rattle <fix_shake>`
+does), but this is not repeated every step.  ``fix ilves`` therefore has
+no special requirement on its placement relative to other
+time-integration fixes, unlike a full RATTLE integrator.
 
 The constraint topology is distributed: each MPI rank builds its
 constraint list from its own local bond storage plus the ghost atoms in
@@ -316,8 +319,9 @@ style including them) is required, and an :doc:`atom map <atom_modify>`
 must be enabled.
 
 Only one ``fix ilves`` instance may be defined at a time.  ``fix ilves``
-and :doc:`fix shake <fix_shake>` may be used at the same time, but the
-sets of constrained atoms *must not* overlap.
+and :doc:`fix shake or fix rattle <fix_shake>` may be used at the same
+time, but the sets of constrained atoms *must not* overlap.  LAMMPS
+stops with an error at the start of a run if they do.
 
 ``fix ilves`` supports :doc:`run_style respa <run_style>`.  As for
 :doc:`fix shake <fix_shake>`, the constraints are enforced at every

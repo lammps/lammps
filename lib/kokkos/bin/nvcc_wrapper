@@ -494,7 +494,13 @@ do
   @*.rsp)
     rsp_file="${1#@}"
     # Need $1 at the start so it gets shifted out instead of the first thing in the rsp file
-    set -- $1 $(cat "$rsp_file") "${@:2}"
+    # Strip quotes from tokens: CMake >=3.29 writes quoted paths into objects1.rsp, so unquoted word-splitting mis-handles them as -Xcompiler args
+    # Known issues:
+    #   1) Escaped quotes will corrupt the response file.
+    #   Pre-Existing:
+    #      2) Objects that end in .a/.so/.dylib (e.g: --option=value.a) are mis-classified (with stipped quotes: link arg, without: -Xcompiler arg)
+    #      3) Quoted whitespace is lost: paths containing spaces are still split
+    set -- $1 $(sed 's/"//g' "$rsp_file") "${@:2}"
     ;;
   #Handle object files which always need to use "-Xlinker": -x cu applies to all input files, so give them to linker, except if only linking
   @*|*.dylib)

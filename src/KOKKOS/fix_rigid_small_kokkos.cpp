@@ -120,13 +120,8 @@ FixRigidSmallKokkos<DeviceType>::~FixRigidSmallKokkos()
 {
   if (copymode) return;
 
-  // No atomKK->sync() here.  Modify::delete_fix() deletes the fix before it
-  // compacts modify->fix[], and AtomKokkos::sync() walks that list for the
-  // property/atom fixes -- so a sync from this destructor reads a fix that has
-  // already been freed, which AddressSanitizer reports as a heap-use-after-free
-  // at the end of any run whose input has a fix property/atom.  Nothing reads
-  // the atom arrays after this point, and no other KOKKOS fix syncs from its
-  // destructor.
+  // No atomKK->sync() here.  Nothing reads the atom arrays after this point,
+  // and no other KOKKOS fix syncs from its destructor.
 
   // free the Kokkos-owned buffers and null the base pointers so the
   // FixRigidSmall destructor's memory->destroy() calls become no-ops
@@ -192,8 +187,8 @@ void FixRigidSmallKokkos<DeviceType>::init()
   if (std::is_same<DeviceType,LMPDeviceType>::value) {
     bool sort_on_host = lmp->kokkos->sort_legacy || atomKK->hybrid_flag ||
       atom->ellipsoid_flag || atom->line_flag || atom->tri_flag || atom->body_flag;
-    for (int i = 0; i < atom->nextra_grow; i++)
-      if (!modify->fix[atom->extra_grow[i]]->sort_device) sort_on_host = true;
+    for (auto *ifix : atom->extra_grow)
+      if (!ifix->sort_device) sort_on_host = true;
 
     if (sort_on_host || lmp->kokkos->exchange_comm_legacy ||
         lmp->kokkos->exchange_comm_on_host) {

@@ -170,7 +170,7 @@ void PairMorseSoftOMP::eval(int iifrom, int iito, ThrData * const thr)
           f[j][2] -= delz * fpair;
         }
 
-        if (EFLAG) { evdwl = phi * factor_lj; }
+        if (EFLAG) { evdwl = (phi - offset[itype][jtype]) * factor_lj; }
 
         if (EVFLAG) ev_tally_thr(this, i, j, nlocal, NEWTON_PAIR, evdwl, 0.0, fpair, delx, dely, delz, thr);
       }

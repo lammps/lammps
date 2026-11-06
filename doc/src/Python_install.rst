@@ -5,7 +5,7 @@ The LAMMPS Python module enables calling the :ref:`LAMMPS C library API
 <lammps_c_api>` from Python by dynamically loading functions in the
 LAMMPS shared library through the Python `ctypes <ctypes_>`_
 module.  Because of the dynamic loading, it is required that LAMMPS is
-compiled in :ref:`"shared" mode <exe>`.
+compiled in :ref:`"shared" mode <build_exe>`.
 
 .. versionchanged:: 2Apr2025
 
@@ -46,7 +46,7 @@ folder that the dynamic loader searches or inside of the installed
 
       Compile LAMMPS with either :doc:`CMake <Build_cmake>` or the
       :doc:`traditional make <Build_make>` procedure in :ref:`shared
-      mode <exe>`.  After compilation has finished, type (in the
+      mode <build_exe>`.  After compilation has finished, type (in the
       compilation folder):
 
       .. code-block:: bash
@@ -190,7 +190,7 @@ folder that the dynamic loader searches or inside of the installed
    .. tab:: In place usage
 
       You can also :doc:`compile LAMMPS <Build>` as usual in
-      :ref:`"shared" mode <exe>` leave the shared library and Python
+      :ref:`"shared" mode <build_exe>` leave the shared library and Python
       package inside the source/compilation folders. Instead of
       copying the files where they can be found, you need to set the environment
       variables ``PYTHONPATH`` (for the Python package) and

@@ -45,7 +45,7 @@ int mie_gpu_init(const int ntypes, double **cutsq, double **host_mie1,
   int gpu_rank=MLMF.device->gpu_rank();
   int procs_per_gpu=MLMF.device->procs_per_gpu();
 
-  MLMF.device->init_message(screen,"mie",first_gpu,last_gpu);
+  MLMF.device->init_message(screen,"mie/cut",first_gpu,last_gpu);
 
   bool message=false;
   if (MLMF.device->replica_me()==0 && screen)

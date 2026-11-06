@@ -243,8 +243,7 @@ compute_ecoul(const KK_FLOAT& rsq, const int& i, const int& j,
     }
     ecoul = Vc * Tap;
   } else {
-    const KK_FLOAT offset_ij = STACKPARAMS ? m_params[itype][jtype].offset : params(itype,jtype).offset;
-    ecoul = Vc - offset_ij;
+    ecoul = Vc;
   }
   return factor_coul * ecoul;
 }
@@ -310,7 +309,6 @@ double PairCoulShieldKokkos<DeviceType>::init_one(int i, int j)
   double cutsqm = cutone*cutone;
 
   k_params.view_host()(i,j).sigmae = static_cast<KK_FLOAT>(sigmae[i][j]);
-  k_params.view_host()(i,j).offset = static_cast<KK_FLOAT>(offset[i][j]);
   k_params.view_host()(i,j).cut    = static_cast<KK_FLOAT>(cut[i][j]);
   k_params.view_host()(i,j).cutsq  = static_cast<KK_FLOAT>(cutsqm);
 

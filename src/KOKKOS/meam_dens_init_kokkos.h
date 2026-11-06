@@ -427,16 +427,20 @@ const {
           // here
           // (other negative cikj cases were handled by the test on "a"
           // above)
-          // Note that we never have 0<cikj<Cmin here, else sij=0
-          // (rejected above)
         } else {
           const KK_FLOAT delc = Cmax - Cmin;
           cikj = (cikj - Cmin) / delc;
           KK_FLOAT dfikj;
           const KK_FLOAT sikj = dfcut(cikj, dfikj);
-          const KK_FLOAT coef1 = dfikj / (delc * sikj);
-          const KK_FLOAT dCikj = dCfunc(rij2, rik2, rjk2);
-          d_dscrfcn[offset+jn] += coef1 * dCikj;
+          // for cikj within rounding of Cmin, sij can be > 0 from the loop above
+          // while sikj = dfikj = 0 here (cikj rounded differently, e.g. by fused
+          // multiply-add, or 1 - x == 1 in single precision), i.e. 0/0.
+          // the contribution vanishes in this limit.
+          if (sikj > static_cast<KK_FLOAT>(0.0)) {
+            const KK_FLOAT coef1 = dfikj / (delc * sikj);
+            const KK_FLOAT dCikj = dCfunc(rij2, rik2, rjk2);
+            d_dscrfcn[offset+jn] += coef1 * dCikj;
+          }
         }
       }
       const KK_FLOAT coef1 = sfcij;

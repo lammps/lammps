@@ -159,7 +159,7 @@ FixFilterCorotate::FixFilterCorotate(LAMMPS *lmp, int narg, char **arg) :
   shake_type = nullptr;
 
   FixFilterCorotate::grow_arrays(atom->nmax);
-  atom->add_callback(Atom::GROW);    //calls grow_arrays
+  atom->add_callback(this, Atom::GROW);    //calls grow_arrays
 
   x_store = nullptr;
 
@@ -216,7 +216,7 @@ FixFilterCorotate::~FixFilterCorotate()
   memory->destroy(dn2dx);
   memory->destroy(dn3dx);
 
-  atom->delete_callback(id,Atom::GROW);
+  atom->delete_callback(this, Atom::GROW);
 
   // delete locally stored arrays
 

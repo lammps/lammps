@@ -11,6 +11,7 @@
 .. index:: pair_style lj/cut/coul/msm/dielectric
 .. index:: pair_style lj/cut/coul/msm/dielectric/omp
 .. index:: pair_style lj/long/coul/long/dielectric
+.. index:: pair_style lj/long/coul/long/dielectric/omp
 
 pair_style coul/cut/dielectric command
 ======================================
@@ -44,6 +45,8 @@ Accelerator Variants: *lj/cut/coul/msm/dielectric/omp*
 
 pair_style lj/long/coul/long/dielectric command
 ===============================================
+
+Accelerator Variants: *lj/long/coul/long/dielectric/omp*
 
 Syntax
 """"""

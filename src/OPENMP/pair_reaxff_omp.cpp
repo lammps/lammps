@@ -40,6 +40,7 @@
 #include "citeme.h"
 #include "comm.h"
 #include "error.h"
+#include "fix_acks2_reaxff.h"
 #include "fix_reaxff.h"
 #include "force.h"
 #include "memory.h"
@@ -121,7 +122,7 @@ void PairReaxFFOMP::init_style()
 
   api->system->acks2_flag = acks2_fixes.size();
   if (api->system->acks2_flag)
-    error->all(FLERR, Error::NOLASTLINE, "Cannot (yet) use ACKS2 with OPENMP ReaxFF");
+    api->workspace->s = (dynamic_cast<FixACKS2ReaxFF *>(acks2_fixes.front()))->get_s();
 
   api->system->n = atom->nlocal; // my atoms
   api->system->N = atom->nlocal + atom->nghost; // mine + ghosts
@@ -238,6 +239,11 @@ void PairReaxFFOMP::compute(int eflag, int vflag)
   api->system->n = atom->nlocal; // my atoms
   api->system->N = atom->nlocal + atom->nghost; // mine + ghosts
   const int nall = api->system->N;
+
+  if (api->system->acks2_flag) {
+    auto *ifix = modify->get_fix_by_style("^acks2/reax").front();
+    api->workspace->s = (dynamic_cast<FixACKS2ReaxFF*>(ifix))->get_s();
+  }
 
 #if defined(_OPENMP)
 #pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(eflag,vflag)
@@ -420,7 +426,10 @@ int PairReaxFFOMP::write_reax_lists()
     auto *jlist = firstneigh[i];
     Set_Start_Index(i, num_nbrs_offset[i], far_nbrs);
 
-    if (i < inum)
+    // the first inum entries of ilist are the local atoms, the rest are ghosts.
+    // with a skip list (pair_style hybrid) ilist is not the identity mapping.
+
+    if (itr_i < inum)
       cutoff_sqr = SQR(api->control->nonb_cut);
     else
       cutoff_sqr = SQR(api->control->bond_cut);
@@ -456,9 +465,9 @@ void PairReaxFFOMP::read_reax_forces(int /* vflag */)
     api->system->my_atoms[i].f[1] = api->workspace->f[i][1];
     api->system->my_atoms[i].f[2] = api->workspace->f[i][2];
 
-    atom->f[i][0] = -api->workspace->f[i][0];
-    atom->f[i][1] = -api->workspace->f[i][1];
-    atom->f[i][2] = -api->workspace->f[i][2];
+    atom->f[i][0] += -api->workspace->f[i][0];
+    atom->f[i][1] += -api->workspace->f[i][1];
+    atom->f[i][2] += -api->workspace->f[i][2];
   }
 }
 
@@ -467,9 +476,12 @@ void PairReaxFFOMP::read_reax_forces(int /* vflag */)
 void PairReaxFFOMP::FindBond()
 {
   const double bo_cut = 0.10;
+  int overflow = 0;
+
+  // errors cannot be raised inside a parallel region; count atoms with too many bonds instead
 
 #if defined(_OPENMP)
-#pragma omp parallel for schedule(static) default(shared)
+#pragma omp parallel for schedule(static) default(shared) reduction(+:overflow)
 #endif
   for (int i = 0; i < api->system->n; i++) {
     int j, pj, nj;
@@ -485,11 +497,19 @@ void PairReaxFFOMP::FindBond()
       bo_tmp = bo_ij->bo_data.BO;
 
       if (bo_tmp >= bo_cut) {
+        if (nj >= MAXSPECBOND) {
+          ++overflow;
+          break;
+        }
         tmpid[i][nj] = j;
         tmpbo[i][nj] = bo_tmp;
         nj ++;
-        if (nj > MAXSPECBOND) error->all(FLERR,"Increase MAXSPECBOND in fix_reaxff_species.h");
       }
     }
   }
+
+  if (overflow)
+    error->one(FLERR, Error::NOLASTLINE,
+               "{} atom(s) have more than {} bonds for ReaxFF species analysis; "
+               "increase MAXSPECBOND in reaxff_defs.h", overflow, MAXSPECBOND);
 }

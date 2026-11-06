@@ -665,7 +665,7 @@ __kernel void k_resquared_lj(const __global numtyp4 *restrict x_,
       numtyp r2inv = delx*delx+dely*dely+delz*delz;
 
       int ii=itype*lj_types+jtype;
-      if (r2inv<lj1[ii].z && lj1[ii].w==SPHERE_SPHERE) {
+      if (r2inv<lj1[ii].z && lj1[ii].w==(numtyp)SPHERE_SPHERE) {
         r2inv=ucl_recip(r2inv);
         numtyp r6inv = r2inv*r2inv*r2inv;
         numtyp force = r2inv*r6inv*(lj1[ii].x*r6inv-lj1[ii].y);
@@ -761,7 +761,7 @@ __kernel void k_resquared_lj_fast(const __global numtyp4 *restrict x_,
       numtyp delz = ix.z-jx.z;
       numtyp r2inv = delx*delx+dely*dely+delz*delz;
 
-      if (r2inv<lj1[mtype].z && lj1[mtype].w==SPHERE_SPHERE) {
+      if (r2inv<lj1[mtype].z && lj1[mtype].w==(numtyp)SPHERE_SPHERE) {
         r2inv=ucl_recip(r2inv);
         numtyp r6inv = r2inv*r2inv*r2inv;
         numtyp force = factor_lj*r2inv*r6inv*(lj1[mtype].x*r6inv-lj1[mtype].y);

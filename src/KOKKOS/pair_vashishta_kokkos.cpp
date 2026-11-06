@@ -48,6 +48,9 @@ PairVashishtaKokkos<DeviceType>::PairVashishtaKokkos(LAMMPS *lmp) : PairVashisht
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
   datamask_read = X_MASK | F_MASK | TAG_MASK | TYPE_MASK | ENERGY_MASK | VIRIAL_MASK;
   datamask_modify = F_MASK | ENERGY_MASK | VIRIAL_MASK;
+
+  tabflag = 0;
+  tabinnersq_kk = oneOverDeltaR2_kk = 0.0;
 }
 
 /* ----------------------------------------------------------------------
@@ -637,6 +640,22 @@ KOKKOS_INLINE_FUNCTION
 void PairVashishtaKokkos<DeviceType>::twobody(const Param& param, const KK_FLOAT& rsq, KK_FLOAT& fforce,
                      const int& eflag, KK_FLOAT& eng) const
 {
+  // vashishta/table: interpolate linearly in rsq beyond the inner cutoff
+
+  if (tabflag && (rsq >= tabinnersq_kk)) {
+    const int tableIndex = static_cast<int>((rsq - tabinnersq_kk) * oneOverDeltaR2_kk);
+    const KK_FLOAT fraction = (rsq - tabinnersq_kk) * oneOverDeltaR2_kk - static_cast<KK_FLOAT>(tableIndex);
+    const KK_FLOAT force0 = d_forceTable(param.ielement,param.jelement,tableIndex);
+    const KK_FLOAT force1 = d_forceTable(param.ielement,param.jelement,tableIndex+1);
+    fforce = (static_cast<KK_FLOAT>(1.0) - fraction)*force0 + fraction*force1;
+    if (eflag) {
+      const KK_FLOAT energy0 = d_potentialTable(param.ielement,param.jelement,tableIndex);
+      const KK_FLOAT energy1 = d_potentialTable(param.ielement,param.jelement,tableIndex+1);
+      eng = (static_cast<KK_FLOAT>(1.0) - fraction)*energy0 + fraction*energy1;
+    }
+    return;
+  }
+
   KK_FLOAT r,rinvsq,r4inv,r6inv,reta,lam1r,lam4r,vc2,vc3;
   const KK_FLOAT eta_kk = static_cast<KK_FLOAT>(param.eta);
   const KK_FLOAT lam1inv_kk = static_cast<KK_FLOAT>(param.lam1inv);

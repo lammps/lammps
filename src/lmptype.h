@@ -328,9 +328,7 @@ struct multitype {
 
 // define stack variable alignment
 
-#if defined(__INTEL_COMPILER)
-#define _alignvar(expr, val) __declspec(align(val)) expr
-#elif defined(__GNUC__) || defined(__PGI) || defined(__INTEL_LLVM_COMPILER)
+#if defined(__GNUC__) || defined(__PGI) || defined(__INTEL_LLVM_COMPILER)
 #define _alignvar(expr, val) expr __attribute((aligned(val)))
 #else
 #define _alignvar(expr, val) expr
@@ -338,7 +336,7 @@ struct multitype {
 
 // declaration to lift aliasing restrictions
 
-#if defined(__INTEL_COMPILER) || (defined(__PGI) && !defined(__NVCOMPILER))
+#if defined(__PGI) && !defined(__NVCOMPILER)
 #define _noalias restrict
 #elif defined(__GNUC__) || defined(__INTEL_LLVM_COMPILER) || defined(__NVCOMPILER) || \
     defined(_MSC_VER)
@@ -353,7 +351,7 @@ struct multitype {
 
 #if defined(__clang__)
 #define _noopt __attribute__((optnone))
-#elif defined(__INTEL_COMPILER) || defined(__INTEL_LLVM_COMPILER)
+#elif defined(__INTEL_LLVM_COMPILER)
 #define _noopt
 #elif defined(__PGI)
 #define _noopt

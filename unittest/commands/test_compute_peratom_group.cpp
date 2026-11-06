@@ -45,6 +45,9 @@
 // whether to print verbose output (i.e. not capturing LAMMPS screen output).
 bool verbose = false;
 
+#define STRINGIFY(val) XSTR(val)
+#define XSTR(val) #val
+
 namespace LAMMPS_NS {
 
 class ComputePeratomGroupTest : public LAMMPSTest {
@@ -216,6 +219,82 @@ TEST_F(ComputePeratomGroupTest, dpd_atom)
     define_groups(1.9);
     HIDE_OUTPUT([&] {
         command("compute test sub dpd/atom");
+    });
+    check_swap("test");
+}
+
+// compute pace/atom uses a reduced ACE potential file from the force-style
+// tests, with the single atom type mapped to its first element.  The ACE
+// cutoff is longer than the lj/cut cutoff of lj_lattice(), so the lattice is
+// set up here with pair style zero instead.
+
+TEST_F(ComputePeratomGroupTest, pace_atom)
+{
+    if (!Info::has_package("ML-PACE")) GTEST_SKIP();
+    HIDE_OUTPUT([&] {
+        command("units lj");
+        command("atom_style atomic");
+        command("atom_modify map array sort 0 0.0");
+        command("lattice fcc 0.8442");
+        command("region box block 0 4 0 4 0 4");
+        command("create_box 1 box");
+        command("create_atoms 1 box");
+        command("mass 1 1.0");
+        command("displace_atoms all random 0.05 0.05 0.05 12345 units box");
+        command("pair_style zero 5.7");
+        command("pair_coeff * *");
+    });
+    define_groups(3.3);
+    HIDE_OUTPUT([&] {
+        command("compute test sub pace/atom " STRINGIFY(TEST_INPUT_FOLDER) "/pace_hno.yace");
+        command("compute ref all pace/atom " STRINGIFY(TEST_INPUT_FOLDER) "/pace_hno.yace");
+    });
+    check_swap("test");
+
+    // the neighbors are not filtered by the group, so the descriptors of
+    // the group atoms must equal those of the compute on all atoms
+    auto *test = lmp->modify->get_compute_by_id("test");
+    auto *ref  = lmp->modify->get_compute_by_id("ref");
+    ASSERT_NE(test, nullptr);
+    ASSERT_NE(ref, nullptr);
+    test->compute_peratom();
+    ref->compute_peratom();
+    const int groupbit = lmp->group->get_bitmask_by_id(FLERR, "sub", "test");
+    const int ncols    = test->size_peratom_cols;
+    const int *mask    = lmp->atom->mask;
+    const auto *tag    = lmp->atom->tag;
+    for (int i = 0; i < lmp->atom->nlocal; ++i) {
+        if (!(mask[i] & groupbit)) continue;
+        for (int m = 0; m < ncols; ++m)
+            EXPECT_DOUBLE_EQ(test->array_atom[i][m], ref->array_atom[i][m])
+                << "atom " << tag[i] << " column " << m + 1;
+    }
+}
+
+// with neigh_modify include, atoms outside the group are not in the neighbor
+// list at all, so the compute never visits them; they must still report zeros
+
+TEST_F(ComputePeratomGroupTest, pace_atom_neigh_include)
+{
+    if (!Info::has_package("ML-PACE")) GTEST_SKIP();
+    HIDE_OUTPUT([&] {
+        command("units lj");
+        command("atom_style atomic");
+        command("atom_modify map array sort 0 0.0");
+        command("lattice fcc 0.8442");
+        command("region box block 0 4 0 4 0 4");
+        command("create_box 1 box");
+        command("create_atoms 1 box");
+        command("mass 1 1.0");
+        command("displace_atoms all random 0.05 0.05 0.05 12345 units box");
+        command("pair_style zero 5.7");
+        command("pair_coeff * *");
+    });
+    define_groups(3.3);
+    HIDE_OUTPUT([&] {
+        command("atom_modify first sub");
+        command("neigh_modify include sub");
+        command("compute test sub pace/atom " STRINGIFY(TEST_INPUT_FOLDER) "/pace_hno.yace");
     });
     check_swap("test");
 }

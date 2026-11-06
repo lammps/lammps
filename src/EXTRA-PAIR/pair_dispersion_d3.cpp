@@ -121,7 +121,7 @@ void PairDispersionD3::allocate()
 
 /* ----------------------------------------------------------------------
    Settings: read from pair_style (Required)
-             pair_style   d3 rthr cn_thr damping_type
+             pair_style dispersion/d3 damping functional cutoff cn_cutoff
 ------------------------------------------------------------------------- */
 
 void PairDispersionD3::settings(int narg, char **arg)
@@ -276,7 +276,7 @@ void PairDispersionD3::read_c6ab(int *atomic_numbers, int ntypes)
 
 /* ----------------------------------------------------------------------
    Coeff: read from pair_coeff (Required)
-          pair_coeff * * path_r0ab.csv path_c6ab.csv functional element1 element2 ...
+          pair_coeff * * element1 element2 ...
 ------------------------------------------------------------------------- */
 
 void PairDispersionD3::coeff(int narg, char **arg)

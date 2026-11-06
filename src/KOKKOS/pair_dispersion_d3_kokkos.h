@@ -32,6 +32,136 @@ PairStyle(dispersion/d3/kk/host,PairDispersionD3Kokkos<LMPHostType>);
 
 namespace LAMMPS_NS {
 
+namespace DispersionD3 {
+
+/* ----------------------------------------------------------------------
+   Tally the virial of one pair into the global and per-atom virial of the
+   calling kernel k.
+------------------------------------------------------------------------- */
+
+template <int NEIGHFLAG, int NEWTON_PAIR, class Kernel>
+// NOLINTNEXTLINE
+KOKKOS_INLINE_FUNCTION
+void v_tally(const Kernel &k, EV_FLOAT &ev, const int &i, const int &j,
+             const KK_FLOAT &fpair, const KK_FLOAT &delx, const KK_FLOAT &dely,
+             const KK_FLOAT &delz)
+{
+  using DUP = typename Kernel::DUP;
+  using ScatterAccess = typename Kernel::ScatterAccess;
+  const int nlocal = k.nlocal;
+
+  if (k.vflag_either) {
+    const KK_FLOAT v0 = delx*delx*fpair;
+    const KK_FLOAT v1 = dely*dely*fpair;
+    const KK_FLOAT v2 = delz*delz*fpair;
+    const KK_FLOAT v3 = delx*dely*fpair;
+    const KK_FLOAT v4 = delx*delz*fpair;
+    const KK_FLOAT v5 = dely*delz*fpair;
+
+    if (k.vflag_global) {
+      if (NEIGHFLAG!=FULL) {
+        if (NEWTON_PAIR || i < nlocal) {
+          ev.v[0] += 0.5*v0;
+          ev.v[1] += 0.5*v1;
+          ev.v[2] += 0.5*v2;
+          ev.v[3] += 0.5*v3;
+          ev.v[4] += 0.5*v4;
+          ev.v[5] += 0.5*v5;
+        }
+        if (NEWTON_PAIR || j < nlocal) {
+          ev.v[0] += 0.5*v0;
+          ev.v[1] += 0.5*v1;
+          ev.v[2] += 0.5*v2;
+          ev.v[3] += 0.5*v3;
+          ev.v[4] += 0.5*v4;
+          ev.v[5] += 0.5*v5;
+        }
+      } else {
+        ev.v[0] += 0.5*v0;
+        ev.v[1] += 0.5*v1;
+        ev.v[2] += 0.5*v2;
+        ev.v[3] += 0.5*v3;
+        ev.v[4] += 0.5*v4;
+        ev.v[5] += 0.5*v5;
+      }
+    }
+
+    if (k.vflag_atom) {
+      auto v_vatom = ScatterViewHelper<DUP,decltype(k.dup_vatom),decltype(k.ndup_vatom)>::get(
+          k.dup_vatom,k.ndup_vatom);
+      auto a_vatom = v_vatom.template access<ScatterAccess>();
+      if (NEIGHFLAG!=FULL) {
+        if (NEWTON_PAIR || i < nlocal) {
+          a_vatom(i,0) += 0.5*v0;
+          a_vatom(i,1) += 0.5*v1;
+          a_vatom(i,2) += 0.5*v2;
+          a_vatom(i,3) += 0.5*v3;
+          a_vatom(i,4) += 0.5*v4;
+          a_vatom(i,5) += 0.5*v5;
+        }
+        if (NEWTON_PAIR || j < nlocal) {
+          a_vatom(j,0) += 0.5*v0;
+          a_vatom(j,1) += 0.5*v1;
+          a_vatom(j,2) += 0.5*v2;
+          a_vatom(j,3) += 0.5*v3;
+          a_vatom(j,4) += 0.5*v4;
+          a_vatom(j,5) += 0.5*v5;
+        }
+      } else {
+        a_vatom(i,0) += 0.5*v0;
+        a_vatom(i,1) += 0.5*v1;
+        a_vatom(i,2) += 0.5*v2;
+        a_vatom(i,3) += 0.5*v3;
+        a_vatom(i,4) += 0.5*v4;
+        a_vatom(i,5) += 0.5*v5;
+      }
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
+   Tally the energy and virial of one pair into the global and per-atom
+   energy and virial of the calling kernel k
+------------------------------------------------------------------------- */
+
+template <int NEIGHFLAG, int NEWTON_PAIR, class Kernel>
+// NOLINTNEXTLINE
+KOKKOS_INLINE_FUNCTION
+void ev_tally(const Kernel &k, EV_FLOAT &ev, const int &i, const int &j,
+              const KK_FLOAT &epair, const KK_FLOAT &fpair, const KK_FLOAT &delx,
+              const KK_FLOAT &dely, const KK_FLOAT &delz)
+{
+  using DUP = typename Kernel::DUP;
+  using ScatterAccess = typename Kernel::ScatterAccess;
+  const int nlocal = k.nlocal;
+
+  if (k.eflag) {
+    const KK_FLOAT epairhalf = 0.5 * epair;
+    if (k.eflag_global) {
+      if (NEIGHFLAG!=FULL && (NEWTON_PAIR || j < nlocal)) {
+        ev.evdwl += epair;
+      } else {
+        ev.evdwl += epairhalf;
+      }
+    }
+    if (k.eflag_atom) {
+      auto v_eatom = ScatterViewHelper<DUP,decltype(k.dup_eatom),decltype(k.ndup_eatom)>::get(
+          k.dup_eatom,k.ndup_eatom);
+      auto a_eatom = v_eatom.template access<ScatterAccess>();
+      if (NEIGHFLAG!=FULL) {
+        if (NEWTON_PAIR || i < nlocal) a_eatom[i] += epairhalf;
+        if (NEWTON_PAIR || j < nlocal) a_eatom[j] += epairhalf;
+      } else {
+        a_eatom[i] += epairhalf;
+      }
+    }
+  }
+
+  v_tally<NEIGHFLAG,NEWTON_PAIR>(k, ev, i, j, fpair, delx, dely, delz);
+}
+
+}    // namespace DispersionD3
+
 /* ---------------------------------------------------------------------- */
 //    Functor to initialize cn and dc6 arrays
 /* ---------------------------------------------------------------------- */
@@ -390,104 +520,6 @@ struct PairDispersionD3KernelA {
 
   // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
-  void ev_tally(value_type &ev, const int &i, const int &j,
-        const KK_FLOAT &epair, const KK_FLOAT &fpair, const KK_FLOAT &delx,
-                  const KK_FLOAT &dely, const KK_FLOAT &delz) const
-  {
-    const int EFLAG = eflag;
-    const int VFLAG = vflag_either;
-
-    if (EFLAG) {
-      const KK_FLOAT epairhalf = 0.5 * epair;
-      if (eflag_global) {
-        if (NEIGHFLAG!=FULL && (NEWTON_PAIR || j < nlocal)) {
-          ev.evdwl += epair;
-        } else {
-          ev.evdwl += epairhalf;
-        }
-      }
-      if (eflag_atom) {
-        auto v_eatom = ScatterViewHelper<DUP,decltype(dup_eatom),decltype(ndup_eatom)>::get(dup_eatom,ndup_eatom);
-        auto a_eatom = v_eatom.template access<ScatterAccess>();
-        if (NEIGHFLAG!=FULL) {
-          if (NEWTON_PAIR || i < nlocal) a_eatom[i] += epairhalf;
-          if (NEWTON_PAIR || j < nlocal) a_eatom[j] += epairhalf;
-        } else {
-          a_eatom[i] += epairhalf;
-        }
-      }
-    }
-
-    if (VFLAG) {
-      const KK_FLOAT v0 = delx*delx*fpair;
-      const KK_FLOAT v1 = dely*dely*fpair;
-      const KK_FLOAT v2 = delz*delz*fpair;
-      const KK_FLOAT v3 = delx*dely*fpair;
-      const KK_FLOAT v4 = delx*delz*fpair;
-      const KK_FLOAT v5 = dely*delz*fpair;
-
-      if (vflag_global) {
-        if (NEIGHFLAG!=FULL) {
-          if (NEWTON_PAIR || i < nlocal) {
-            ev.v[0] += 0.5*v0;
-            ev.v[1] += 0.5*v1;
-            ev.v[2] += 0.5*v2;
-            ev.v[3] += 0.5*v3;
-            ev.v[4] += 0.5*v4;
-            ev.v[5] += 0.5*v5;
-          }
-          if (NEWTON_PAIR || j < nlocal) {
-            ev.v[0] += 0.5*v0;
-            ev.v[1] += 0.5*v1;
-            ev.v[2] += 0.5*v2;
-            ev.v[3] += 0.5*v3;
-            ev.v[4] += 0.5*v4;
-            ev.v[5] += 0.5*v5;
-          }
-        } else {
-          ev.v[0] += 0.5*v0;
-          ev.v[1] += 0.5*v1;
-          ev.v[2] += 0.5*v2;
-          ev.v[3] += 0.5*v3;
-          ev.v[4] += 0.5*v4;
-          ev.v[5] += 0.5*v5;
-        }
-      }
-
-      if (vflag_atom) {
-        auto v_vatom = ScatterViewHelper<DUP,decltype(dup_vatom),decltype(ndup_vatom)>::get(dup_vatom,ndup_vatom);
-        auto a_vatom = v_vatom.template access<ScatterAccess>();
-        if (NEIGHFLAG!=FULL) {
-          if (NEWTON_PAIR || i < nlocal) {
-            a_vatom(i,0) += 0.5*v0;
-            a_vatom(i,1) += 0.5*v1;
-            a_vatom(i,2) += 0.5*v2;
-            a_vatom(i,3) += 0.5*v3;
-            a_vatom(i,4) += 0.5*v4;
-            a_vatom(i,5) += 0.5*v5;
-          }
-          if (NEWTON_PAIR || j < nlocal) {
-            a_vatom(j,0) += 0.5*v0;
-            a_vatom(j,1) += 0.5*v1;
-            a_vatom(j,2) += 0.5*v2;
-            a_vatom(j,3) += 0.5*v3;
-            a_vatom(j,4) += 0.5*v4;
-            a_vatom(j,5) += 0.5*v5;
-          }
-        } else {
-          a_vatom(i,0) += 0.5*v0;
-          a_vatom(i,1) += 0.5*v1;
-          a_vatom(i,2) += 0.5*v2;
-          a_vatom(i,3) += 0.5*v3;
-          a_vatom(i,4) += 0.5*v4;
-          a_vatom(i,5) += 0.5*v5;
-        }
-      }
-    }
-  }
-
-  // NOLINTNEXTLINE
-  KOKKOS_INLINE_FUNCTION
   void operator()(const int &ii, value_type &ev) const {
     using DispersionD3::AUTOANG;
 
@@ -650,7 +682,8 @@ struct PairDispersionD3KernelA {
         }
 
         if (EVFLAG) {
-          ev_tally(ev, i, j, evdwl, fpair, delx, dely, delz);
+          DispersionD3::ev_tally<NEIGHFLAG,NEWTON_PAIR>(*this, ev, i, j, evdwl, fpair,
+                                                        delx, dely, delz);
         }
       }
     }
@@ -745,104 +778,6 @@ struct PairDispersionD3KernelB {
 
   // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
-  void ev_tally(value_type &ev, const int &i, const int &j,
-        const KK_FLOAT &epair, const KK_FLOAT &fpair, const KK_FLOAT &delx,
-                  const KK_FLOAT &dely, const KK_FLOAT &delz) const
-  {
-    const int EFLAG = eflag;
-    const int VFLAG = vflag_either;
-
-    if (EFLAG) {
-      const KK_FLOAT epairhalf = 0.5 * epair;
-      if (eflag_global) {
-        if (NEIGHFLAG!=FULL && (NEWTON_PAIR || j < nlocal)) {
-          ev.evdwl += epair;
-        } else {
-          ev.evdwl += epairhalf;
-        }
-      }
-      if (eflag_atom) {
-        auto v_eatom = ScatterViewHelper<DUP,decltype(dup_eatom),decltype(ndup_eatom)>::get(dup_eatom,ndup_eatom);
-        auto a_eatom = v_eatom.template access<ScatterAccess>();
-        if (NEIGHFLAG!=FULL) {
-          if (NEWTON_PAIR || i < nlocal) a_eatom[i] += epairhalf;
-          if (NEWTON_PAIR || j < nlocal) a_eatom[j] += epairhalf;
-        } else {
-          a_eatom[i] += epairhalf;
-        }
-      }
-    }
-
-    if (VFLAG) {
-      const KK_FLOAT v0 = delx*delx*fpair;
-      const KK_FLOAT v1 = dely*dely*fpair;
-      const KK_FLOAT v2 = delz*delz*fpair;
-      const KK_FLOAT v3 = delx*dely*fpair;
-      const KK_FLOAT v4 = delx*delz*fpair;
-      const KK_FLOAT v5 = dely*delz*fpair;
-
-      if (vflag_global) {
-        if (NEIGHFLAG!=FULL) {
-          if (NEWTON_PAIR || i < nlocal) {
-            ev.v[0] += 0.5*v0;
-            ev.v[1] += 0.5*v1;
-            ev.v[2] += 0.5*v2;
-            ev.v[3] += 0.5*v3;
-            ev.v[4] += 0.5*v4;
-            ev.v[5] += 0.5*v5;
-          }
-          if (NEWTON_PAIR || j < nlocal) {
-            ev.v[0] += 0.5*v0;
-            ev.v[1] += 0.5*v1;
-            ev.v[2] += 0.5*v2;
-            ev.v[3] += 0.5*v3;
-            ev.v[4] += 0.5*v4;
-            ev.v[5] += 0.5*v5;
-          }
-        } else {
-          ev.v[0] += 0.5*v0;
-          ev.v[1] += 0.5*v1;
-          ev.v[2] += 0.5*v2;
-          ev.v[3] += 0.5*v3;
-          ev.v[4] += 0.5*v4;
-          ev.v[5] += 0.5*v5;
-        }
-      }
-
-      if (vflag_atom) {
-        auto v_vatom = ScatterViewHelper<DUP,decltype(dup_vatom),decltype(ndup_vatom)>::get(dup_vatom,ndup_vatom);
-        auto a_vatom = v_vatom.template access<ScatterAccess>();
-        if (NEIGHFLAG!=FULL) {
-          if (NEWTON_PAIR || i < nlocal) {
-            a_vatom(i,0) += 0.5*v0;
-            a_vatom(i,1) += 0.5*v1;
-            a_vatom(i,2) += 0.5*v2;
-            a_vatom(i,3) += 0.5*v3;
-            a_vatom(i,4) += 0.5*v4;
-            a_vatom(i,5) += 0.5*v5;
-          }
-          if (NEWTON_PAIR || j < nlocal) {
-            a_vatom(j,0) += 0.5*v0;
-            a_vatom(j,1) += 0.5*v1;
-            a_vatom(j,2) += 0.5*v2;
-            a_vatom(j,3) += 0.5*v3;
-            a_vatom(j,4) += 0.5*v4;
-            a_vatom(j,5) += 0.5*v5;
-          }
-        } else {
-          a_vatom(i,0) += 0.5*v0;
-          a_vatom(i,1) += 0.5*v1;
-          a_vatom(i,2) += 0.5*v2;
-          a_vatom(i,3) += 0.5*v3;
-          a_vatom(i,4) += 0.5*v4;
-          a_vatom(i,5) += 0.5*v5;
-        }
-      }
-    }
-  }
-
-  // NOLINTNEXTLINE
-  KOKKOS_INLINE_FUNCTION
   void operator()(const int &ii, value_type &ev) const {
     using DispersionD3::AUTOANG;
     using DispersionD3::K1;
@@ -899,8 +834,7 @@ struct PairDispersionD3KernelB {
         }
 
         if (EVFLAG) {
-          const KK_FLOAT epair = 0.0;
-          ev_tally(ev, i, j, epair, fpair, delx, dely, delz);
+          DispersionD3::v_tally<NEIGHFLAG,NEWTON_PAIR>(*this, ev, i, j, fpair, delx, dely, delz);
         }
       }
     }

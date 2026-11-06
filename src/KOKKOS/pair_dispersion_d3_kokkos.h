@@ -32,12 +32,6 @@ PairStyle(dispersion/d3/kk/host,PairDispersionD3Kokkos<LMPHostType>);
 
 namespace LAMMPS_NS {
 
-using DispersionD3::AUTOANG;
-using DispersionD3::AUTOANG6;
-using DispersionD3::AUTOEV;
-using DispersionD3::K1;
-using DispersionD3::K3;
-
 /* ---------------------------------------------------------------------- */
 //    Functor to initialize cn and dc6 arrays
 /* ---------------------------------------------------------------------- */
@@ -164,6 +158,9 @@ struct PairDispersionD3CoordinationNumberKernel {
   // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(const int &ii) const {
+    using DispersionD3::AUTOANG;
+    using DispersionD3::K1;
+
     auto a_cn = dup_cn.template access<ScatterAccess>();
 
     int i = d_ilist(ii);
@@ -319,6 +316,10 @@ struct PairDispersionD3KernelA {
   void get_dC6_kokkos(KK_FLOAT &c6, KK_FLOAT &dc6i, KK_FLOAT &dc6j,
       const int &iat, const int &jat, const KK_FLOAT &cni, const KK_FLOAT &cnj) const
   {
+    using DispersionD3::AUTOANG6;
+    using DispersionD3::AUTOEV;
+    using DispersionD3::K3;
+
     KK_FLOAT c6_ref, cni_ref, cnj_ref;
     KK_FLOAT c6mem, r_save, r;
     KK_FLOAT expterm, term;
@@ -488,6 +489,8 @@ struct PairDispersionD3KernelA {
   // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(const int &ii, value_type &ev) const {
+    using DispersionD3::AUTOANG;
+
     auto v_f = ScatterViewHelper<DUP,decltype(dup_f),decltype(ndup_f)>::get(dup_f,ndup_f);
     auto a_f = v_f.template access<ScatterAccess>();
 
@@ -841,6 +844,9 @@ struct PairDispersionD3KernelB {
   // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(const int &ii, value_type &ev) const {
+    using DispersionD3::AUTOANG;
+    using DispersionD3::K1;
+
     auto v_f = ScatterViewHelper<DUP,decltype(dup_f),decltype(ndup_f)>::get(dup_f,ndup_f);
     auto a_f = v_f.template access<ScatterAccess>();
 

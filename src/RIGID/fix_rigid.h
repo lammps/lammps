@@ -89,6 +89,8 @@ class FixRigid : public Fix {
   // principal axes of each in space coords
   double **angmom;        // angular momentum of each in space coords
   double **omega;         // angular velocity of each in space coords
+  double **acc_vir;
+  // cm and rotational accelerations (for virial calculation)
   double **torque;        // torque on each rigid body in space coords
   double **quat;          // quaternion of each rigid body
   imageint *imagebody;    // image flags of xcm of each rigid body
@@ -140,6 +142,7 @@ class FixRigid : public Fix {
   void image_shift();
   virtual void set_xv();
   virtual void set_v();
+  virtual void compute_accelerations();
   void setup_bodies_static();
   void setup_bodies_dynamic();
   void setup_bodies_early();

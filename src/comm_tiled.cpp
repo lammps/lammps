@@ -1272,6 +1272,15 @@ void CommTiled::forward_comm(Pair *pair, int size)
   if (size) nsize = size;
   else nsize = pair->comm_forward;
 
+  // grow buffers if this communication is wider than the one borders() sized
+  // them for: a pair style may set comm_forward only when it communicates
+  // (pair mliap/kk forwards model features of a width known only at run
+  // time), after Comm::init() recorded maxforward.  Same bounds as in
+  // borders(): buf_send holds one message, buf_recv all messages of a swap
+
+  if (nsize*smaxone > maxsend) grow_send(nsize*smaxone,0);
+  if (nsize*rmaxall > maxrecv) grow_recv(nsize*rmaxall);
+
   for (int iswap = 0; iswap < nswap; iswap++) {
     nsend = nsendproc[iswap] - sendself[iswap];
     nrecv = nrecvproc[iswap] - sendself[iswap];
@@ -1320,6 +1329,13 @@ void CommTiled::reverse_comm(Pair *pair, int size)
 
   if (size) nsize = size;
   else nsize = MAX(pair->comm_reverse, pair->comm_reverse_off);
+
+  // grow buffers if this communication is wider than the one borders() sized
+  // them for (see forward_comm(Pair *) above); in the reverse direction
+  // buf_send holds one received message and buf_recv all sent messages
+
+  if (nsize*rmaxone > maxsend) grow_send(nsize*rmaxone,0);
+  if (nsize*smaxall > maxrecv) grow_recv(nsize*smaxall);
 
   for (int iswap = nswap-1; iswap >= 0; iswap--) {
     nsend = nsendproc[iswap] - sendself[iswap];

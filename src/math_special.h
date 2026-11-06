@@ -15,6 +15,7 @@
 #define LMP_MATH_SPECIAL_H
 
 #include <cmath>
+#include <limits>
 
 
 
@@ -166,7 +167,7 @@ namespace LAMMPS_NS::MathSpecial {
 
   /* Version of pow(x,n) for an exponent that is only known at run time
    *
-   * Dispatches to powint() when the exponent happens to have an integer
+   * Dispatches to powint() when the exponent has a safely representable integer
    * value, and to std::pow() otherwise.  Useful where a force field
    * parameter is a floating point number that is an integer for most
    * parameter sets.  Follows the powint() convention of returning 0 for
@@ -181,7 +182,10 @@ namespace LAMMPS_NS::MathSpecial {
     if (n == 0.0) return 1.0;
     if (x == 0.0) return 0.0;
     const double rounded = std::round(n);
-    if (n == rounded) return powint(x, static_cast<int>(rounded));
+    if ((n == rounded) &&
+        (rounded > static_cast<double>(std::numeric_limits<int>::min())) &&
+        (rounded < static_cast<double>(std::numeric_limits<int>::max())))
+      return powint(x, static_cast<int>(rounded));
     return std::pow(x, n);
   }
 

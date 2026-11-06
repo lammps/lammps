@@ -15,6 +15,7 @@
 #ifndef LMP_MATH_SPECIAL_KOKKOS_H
 #define LMP_MATH_SPECIAL_KOKKOS_H
 
+#include <climits>
 #include <cmath>
 #include "kokkos_type.h"
 
@@ -226,7 +227,7 @@ namespace LAMMPS_NS::MathSpecialKokkos {
   /* Version of pow(x,n) for an exponent that is only known at run time
    *
    * Device capable equivalent of MathSpecial::powauto().  Dispatches to
-   * powint() when the exponent happens to have an integer value, and to
+   * powint() for safely representable integer exponents, and to
    * Kokkos::pow() otherwise.  Follows the powint() convention of returning
    * 0 for x == 0, which differs from pow() for a negative exponent.
    *
@@ -242,7 +243,10 @@ namespace LAMMPS_NS::MathSpecialKokkos {
     if (n == static_cast<T>(0)) return static_cast<T>(1);
     if (x == static_cast<T>(0)) return static_cast<T>(0);
     const T rounded = Kokkos::round(n);
-    if (n == rounded) return powint(x, static_cast<int>(rounded));
+    if ((n == rounded) &&
+        (rounded > static_cast<T>(INT_MIN)) &&
+        (rounded < static_cast<T>(INT_MAX)))
+      return powint(x, static_cast<int>(rounded));
     return Kokkos::pow(x, n);
   }
 

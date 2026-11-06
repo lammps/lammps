@@ -405,7 +405,7 @@ void PairDispersionD3OMP::eval_first_phase(int iifrom, int iito, ThrData * const
 
         if (EFLAG) evdwl = -(s6 * e6 + s8 * e8) * factor_lj;
 
-        double rest = (s6 * e6 + s8 * e8) / C6;
+        double rest = factor_lj * (s6 * e6 + s8 * e8) / C6;
 
         // Update thread-local dc6
         double dc6_contrib_i = rest * c6_res[1];
@@ -448,12 +448,11 @@ void PairDispersionD3OMP::eval_second_phase(int iifrom, int iito, ThrData * cons
   auto * _noalias const f = (dbl3_t *) thr->get_f()[0];
   const int * _noalias const type = atom->type;
   const int nlocal = atom->nlocal;
-  const double * _noalias const special_lj = force->special_lj;
   const int * _noalias const ilist = list->ilist;
   const int * _noalias const numneigh = list->numneigh;
   const int * const * const firstneigh = list->firstneigh;
 
-  double xtmp,ytmp,ztmp,delx,dely,delz,rsq,factor_lj,dcn,rcovij,expterm,fpair,fxtmp,fytmp,fztmp,r;
+  double xtmp,ytmp,ztmp,delx,dely,delz,rsq,dcn,rcovij,expterm,fpair,fxtmp,fytmp,fztmp,r;
 
   // Loop over assigned center atoms
   for (int ii = iifrom; ii < iito; ii++) {
@@ -469,7 +468,6 @@ void PairDispersionD3OMP::eval_second_phase(int iifrom, int iito, ThrData * cons
     // Neighbor atom
     for (int jj = 0; jj < jnum; jj++) {
       int j = jlist[jj];
-      factor_lj = special_lj[sbmask(j)];
       j &= NEIGHMASK;
 
       delx = xtmp - x[j].x;
@@ -492,7 +490,6 @@ void PairDispersionD3OMP::eval_second_phase(int iifrom, int iito, ThrData * cons
         }
 
         fpair = dcn * (dc6[i] + dc6[j]) / r;
-        fpair *= factor_lj;
 
         fxtmp += delx * fpair;
         fytmp += dely * fpair;

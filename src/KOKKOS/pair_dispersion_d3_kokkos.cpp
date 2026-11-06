@@ -510,7 +510,6 @@ void PairDispersionD3Kokkos<DeviceType>::launch_kernel_B(EV_FLOAT &ev)
       dup_f, ndup_f,
       dup_eatom, ndup_eatom,
       dup_vatom, ndup_vatom,
-      special_lj,
       nlocal,
       eflag, vflag_either,
       eflag_global, eflag_atom,

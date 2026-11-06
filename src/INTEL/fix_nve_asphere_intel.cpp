@@ -101,8 +101,6 @@ void FixNVEAsphereIntel::initial_integrate(int /*vflag*/)
   #if defined(LMP_SIMD_COMPILER)
 #if defined(USE_OMP_SIMD)
   #pragma omp simd
-#else
-  #pragma simd
 #endif
   #pragma vector aligned
   #endif
@@ -116,8 +114,6 @@ void FixNVEAsphereIntel::initial_integrate(int /*vflag*/)
     #if defined(LMP_SIMD_COMPILER)
 #if defined(USE_OMP_SIMD)
     #pragma omp simd
-#else
-    #pragma simd
 #endif
     #pragma vector aligned
     #endif
@@ -130,8 +126,6 @@ void FixNVEAsphereIntel::initial_integrate(int /*vflag*/)
     #if defined(LMP_SIMD_COMPILER)
 #if defined(USE_OMP_SIMD)
     #pragma omp simd
-#else
-    #pragma simd
 #endif
     #pragma vector aligned
     #endif
@@ -159,8 +153,6 @@ void FixNVEAsphereIntel::final_integrate()
   #if defined(LMP_SIMD_COMPILER)
 #if defined(USE_OMP_SIMD)
   #pragma omp simd
-#else
-  #pragma simd
 #endif
   #pragma vector aligned
   #endif

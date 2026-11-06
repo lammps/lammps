@@ -24,7 +24,8 @@ Factors affecting serial performance (in no specific order):
 * Compiler optimization: most of LAMMPS is written to be easy to modify
   and thus compiler optimization can speed up calculations. However, too
   aggressive compiler optimization can produce incorrect results or
-  crashes (during compilation or at runtime).
+  crashes (during compilation or at runtime).  See :doc:`Compiler optimization
+  <Speed_compiler>` for measured gains.
 * Source code improvements: styles in the OPT, OPENMP, and INTEL package
   can be faster than their base implementation due to improved data
   access patterns, cache efficiency, or vectorization. Compiler optimization

@@ -1473,6 +1473,8 @@ void FixAmoebaBiTorsion::read_data_section(char *keyword, int n, char *buf,
       error->all(FLERR, Error::NOLASTLINE,
                  "Incorrect {} format in data file: {}", keyword, e.what());
     }
+    if ((itype < 1) || (itype > nbitypes))
+      error->all(FLERR, Error::NOLASTLINE, "Invalid BiTorsion type {} in data file", itype);
 
     atom1 += id_offset;
     atom2 += id_offset;

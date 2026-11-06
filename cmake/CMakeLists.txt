@@ -145,6 +145,10 @@ get_filename_component(LAMMPS_CXX_COMPILER_NAME "${CMAKE_CXX_COMPILER}" NAME CAC
 if((PKG_KOKKOS) AND (Kokkos_ENABLE_CUDA) AND (LAMMPS_CXX_COMPILER_NAME STREQUAL "nvcc_wrapper"))
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Xcudafe --diag_suppress=unrecognized_pragma,--diag_suppress=128,--diag_suppress=186")
 endif()
+# when configured with g++, Kokkos sends the code using it through nvcc_wrapper, too.  g++ ignores this flag for the rest.
+if((PKG_KOKKOS) AND (Kokkos_ENABLE_CUDA) AND ((LAMMPS_CXX_COMPILER_NAME STREQUAL "nvcc_wrapper") OR (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")))
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-deprecated-gpu-targets")
+endif()
 
 # we *require* C++17 without extensions
 # Kokkos also requires at least C++20 (currently)

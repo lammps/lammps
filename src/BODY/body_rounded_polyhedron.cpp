@@ -44,8 +44,8 @@ BodyRoundedPolyhedron::BodyRoundedPolyhedron(LAMMPS *lmp, int narg, char **arg) 
 
   // nmin and nmax are minimum and maximum number of vertices
 
-  int nmin = utils::inumeric(FLERR,arg[1],false,lmp);
-  int nmax = utils::inumeric(FLERR,arg[2],false,lmp);
+  nmin = utils::inumeric(FLERR,arg[1],false,lmp);
+  nmax = utils::inumeric(FLERR,arg[2],false,lmp);
   if (nmin <= 0 || nmin > nmax) error->all(FLERR,"Invalid body rounded/polyhedron command");
 
   size_forward = 0;
@@ -219,6 +219,16 @@ void BodyRoundedPolyhedron::data_body(int ibonus, int ninteger, int ndouble,
   if (ndouble != nentries)
     error->one(FLERR,"Incorrect # of floating-point values in Bodies section of data file");
 
+  if (nsub < nmin || nsub > nmax)
+    error->one(FLERR,"Body with {} vertices is outside the range {} to {} of its atom style",
+               nsub, nmin, nmax);
+
+  // edges and faces are ignored for bodies with 1 or 2 vertices
+
+  if (nsub < 3) nfac = 0;
+  else if (ned < 0 || ned > 3*nmax || nfac < 0)
+    error->one(FLERR,"Incorrect integer value in Bodies section of data file");
+
   bonus->ninteger = 3;
   bonus->ivalue = icp->get(bonus->iindex);
   bonus->ivalue[0] = nsub;
@@ -227,6 +237,9 @@ void BodyRoundedPolyhedron::data_body(int ibonus, int ninteger, int ndouble,
   if (nsub < 3) bonus->ndouble = 3*nsub + 2 + 1 + 1;
   else bonus->ndouble = 3*nsub + 2*nedges + MAX_FACE_SIZE*nfac + 1 + 1;
   bonus->dvalue = dcp->get(bonus->ndouble,bonus->dindex);
+  if (!bonus->dvalue)
+    error->one(FLERR,"Body with {} vertices, {} edges, and {} faces does not fit "
+               "the range {} to {} of its atom style", nsub, ned, nfac, nmin, nmax);
 
   // diagonalize inertia tensor
 

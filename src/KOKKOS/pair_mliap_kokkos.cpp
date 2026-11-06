@@ -205,7 +205,7 @@ void PairMLIAPKokkos<DeviceType>::settings(int narg, char ** arg)
       if (model != nullptr) error->all(FLERR,"Illegal multiple pair_style mliap model definitions");
       if (descriptor != nullptr) error->all(FLERR,"Illegal multiple pair_style mliap descriptor definitions");
       if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "pair_style mliap unified", error);
-      MLIAPBuildUnifiedKokkos_t<DeviceType> build = build_unified(arg[iarg+1], dynamic_cast<MLIAPDataKokkos<DeviceType>*>(data), lmp);
+      MLIAPBuildUnifiedKokkos_t<DeviceType> build = build_unified(arg[iarg+1], MLIAPDataKokkos<DeviceType>::cast(data), lmp);
       if (iarg+3 > narg) {
         ghostneigh = 0;
       } else {
@@ -666,6 +666,21 @@ void PairMLIAPKokkos<DeviceType>::unpack_reverse_comm(int nv, int *idx, double *
       copy_to[gstart++] += static_cast<CommType>(fill[start++]);
   }
 }
+
+/* ----------------------------------------------------------------------
+   convert a pointer to the base class into one to this class, nullptr if
+   it points to an instance of another class.  this must be done here,
+   where the class is explicitly instantiated: elsewhere the dynamic_cast
+   uses a hidden local copy of the type information with the C++ ABI of
+   macOS on arm64, so the linker warns about different visibility settings
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+PairMLIAPKokkos<DeviceType> *PairMLIAPKokkos<DeviceType>::cast(PairMLIAP *ptr)
+{
+  return dynamic_cast<PairMLIAPKokkos<DeviceType> *>(ptr);
+}
+
 namespace LAMMPS_NS {
 template class PairMLIAPKokkos<LMPDeviceType>;
 template int PairMLIAPKokkos<LMPDeviceType>::forward_comm<float>(float*,float*,const int);

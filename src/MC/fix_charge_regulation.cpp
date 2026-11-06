@@ -100,6 +100,10 @@ FixChargeRegulation::FixChargeRegulation(LAMMPS *lmp, int narg, char **arg) :
   // necessary to specify the free ion types
   cation_type = utils::expand_type_int(FLERR, arg[3], Atom::ATOM, lmp);
   anion_type = utils::expand_type_int(FLERR, arg[4], Atom::ATOM, lmp);
+  if (cation_type > atom->ntypes)
+    error->all(FLERR, 3, "Invalid cation type {} for fix charge/regulation", cation_type);
+  if (anion_type > atom->ntypes)
+    error->all(FLERR, 4, "Invalid anion type {} for fix charge/regulation", anion_type);
 
   // set defaults and read optional arguments
   options(narg - 5, &arg[5]);

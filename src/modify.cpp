@@ -40,6 +40,24 @@ static constexpr double BIG = 1.0e20;
 
 static constexpr int INTERNAL_MASK = POST_FORCE_GROUP | ENERGY_COUPLE | ENERGY_GLOBAL | ENERGY_ATOM;
 
+namespace {
+// true if stored == canonical + "/kk/host", "/kk/device" or "/kk"
+// (exact terminal match, one suffix only)
+bool restart_style_kokkos_compat(const std::string &stored, const std::string &canonical)
+{
+  static const char *const kksuffix[3] = {"/kk/host", "/kk/device", "/kk"};
+  if (canonical.empty()) return false;
+  for (const char *sfx : kksuffix) {
+    const std::size_t n = strlen(sfx);
+    if ((stored.size() == canonical.size() + n) &&
+        (stored.compare(0, canonical.size(), canonical) == 0) &&
+        (stored.compare(canonical.size(), n, sfx) == 0))
+      return true;
+  }
+  return false;
+}
+}    // namespace
+
 /* ----------------------------------------------------------------------
    process-global registries of fix and compute style factory functions.
    Shared by all LAMMPS instances and persistent across the "clear" command.
@@ -911,18 +929,35 @@ Fix *Modify::add_fix(int narg, char **arg, int trysuffix)
   // check if Fix is in restart_global list
   // if yes, pass state info to the Fix so it can reset itself
 
-  for (int i = 0; i < nfix_restart_global; i++)
-    if ((strcmp(id_restart_global[i], newfix->id) == 0) &&
-        (utils::strip_style_suffix(newfix->style, lmp) == style_restart_global[i])) {
-      newfix->restart(state_restart_global[i]);
-      used_restart_global[i] = 1;
-      newfix->restart_reset = 1;
-      if (comm->me == 0)
-        utils::logmesg(lmp,
-                       "Resetting global fix info from restart file:\n"
-                       "  fix style: {}, fix ID: {}\n",
-                       newfix->style, newfix->id);
+  // a restart file written by an older version from a "-sf kk -pk kokkos pair/only on"
+  //   run stores the non-pair style with its suffix (e.g. "nvt/kk/host"); accept such
+  //   an entry only for the same fix ID, when KOKKOS is active, and when the stored
+  //   style is the same base style plus one KOKKOS suffix
+
+  for (int i = 0; i < nfix_restart_global; i++) {
+    if (strcmp(id_restart_global[i], newfix->id) != 0) continue;
+    const std::string canonical = utils::strip_style_suffix(newfix->style, lmp);
+    bool compat = false;
+    if (canonical != style_restart_global[i]) {
+      if (!lmp->kokkos || !restart_style_kokkos_compat(style_restart_global[i], canonical))
+        continue;
+      compat = true;
     }
+    newfix->restart(state_restart_global[i]);
+    used_restart_global[i] = 1;
+    newfix->restart_reset = 1;
+    if (comm->me == 0) {
+      utils::logmesg(lmp,
+                     "Resetting global fix info from restart file:\n"
+                     "  fix style: {}, fix ID: {}\n",
+                     newfix->style, newfix->id);
+      if (compat)
+        utils::logmesg(lmp,
+                       "  (restart file fix style {} accepted as {}: same fix ID and base style,"
+                       " written with the KOKKOS non-pair suffix)\n",
+                       style_restart_global[i], canonical);
+    }
+  }
 
   // check if Fix is in restart_peratom list
   // if yes, loop over atoms so they can extract info from atom->extra array

@@ -320,7 +320,7 @@ void PairDispersionD3OMP::eval_first_phase(int iifrom, int iito, ThrData * const
         double tmp6, tmp8, fpair1, fpair2, fpair;
         t6 = t8 = e6 = e8 = evdwl = fpair = fpair1 = fpair2 = 0.0;
 
-        // Damping code selection - now using the passed dampingCode parameter
+        // select the damping function
         switch (dampingCode) {
           // Written to avoid using sqrt and pow()
           case 1: /* Original damping */

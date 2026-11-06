@@ -1,7 +1,11 @@
 .. index:: fix qtpie/reaxff
+.. index:: fix qtpie/reaxff/kk
+.. index:: fix qtpie/reaxff/omp
 
 fix qtpie/reaxff command
 ========================
+
+Accelerator Variants: *qtpie/reaxff/kk*, *qtpie/reaxff/omp*
 
 Syntax
 """"""
@@ -21,10 +25,14 @@ Syntax
 
   .. parsed-literal::
 
-     keyword = *scale* or *maxiter* or *nowarn*
+     keyword = *scale* or *dual* or *maxiter* or *nowarn* or *matfree* or *xlmd* or *xlcg* or *xldamp* or *xlkappa*
        *scale* beta = set value of scaling factor *beta* (determines strength of electric polarization)
+       *dual* = process S and T matrix in parallel (only for qtpie/reaxff/omp)
        *maxiter* N = limit the number of iterations to *N*
        *nowarn* = do not print a warning message if the maximum number of iterations is reached
+       *matfree* = use a matrix-free approach for applying the H matrix (only for qtpie/reaxff/kk)
+       *xlmd* value = *yes* or *no* = whether or not to use the extended-Lagrangian propagation of the charges
+       *xlcg*, *xldamp*, *xlkappa* = settings of the extended-Lagrangian propagation, see :doc:`fix qeq/reaxff <fix_qeq_reaxff>`
 
 Examples
 """"""""
@@ -125,9 +133,26 @@ Empty lines or any text following the pound sign (#) are ignored. An example
     1  0.2240  # O
     2  0.5434  # H
 
+.. versionchanged:: TBD
+
+Overlap integrals smaller than :math:`10^{-10}` are neglected.  This
+corresponds to a maximum distance that is determined by the smallest
+Gaussian orbital exponent.  The overlap integrals are computed from a
+neighbor list with this cutoff, so the communication cutoff must be at
+least this distance plus the neighbor list skin distance (see the
+:doc:`neighbor <neighbor>` command).  Otherwise, LAMMPS stops with an
+error message that gives the required value, which can then be set with
+the :doc:`comm_modify cutoff <comm_modify>` command.
+
 The optional *scale* keyword sets the value of :math:`\beta` in the equation for
 :math:`\tilde{\chi}_{\mathrm{r}i}`. This keyword only affects the computed charges
 when :doc:`fix efield <fix_efield>` is used. The default value is 1.0.
+
+.. versionadded:: TBD
+
+The optional *dual* keyword allows to perform the optimization of the S
+and T matrices in parallel.  This is only supported for the
+*qtpie/reaxff/omp* style.  Otherwise they are processed separately.
 
 The optional *maxiter* keyword allows changing the max number
 of iterations in the linear solver. The default value is 200.
@@ -138,6 +163,30 @@ useful for comparing serial and parallel results where having the
 same fixed number of iterations is desired, which can be achieved
 by using a very small tolerance and setting *maxiter* to the desired
 number of iterations.
+
+.. versionadded:: TBD
+
+The optional *matfree* keyword replaces the explicit construction of
+the H matrix with a matrix-free approach, where the matrix elements are
+computed again each time the matrix is applied.  This reduces the memory
+requirements at the cost of performance.  This is only supported for
+the *qtpie/reaxff/kk* style.
+
+.. versionadded:: TBD
+
+The optional *xlmd*, *xlcg*, *xldamp*, and *xlkappa* keywords enable
+and control the extended-Lagrangian propagation of the charges, which
+reduces the cost of the charge equilibration several-fold.  They work
+the same way as for :doc:`fix qeq/reaxff <fix_qeq_reaxff>`.
+
+.. versionchanged:: TBD
+
+If the fix group does not contain all atoms, only the charges of the
+atoms in the fix group are equilibrated.  The charges of all other atoms
+are not changed, but they still contribute to the electrostatic
+potential at the atoms in the fix group, i.e. they act as fixed external
+charges.  All accelerated variants of this fix follow the same
+convention.
 
 .. note::
 
@@ -158,6 +207,12 @@ No parameter of this fix can be used with the *start/stop* keywords of
 the :doc:`run <run>` command.
 
 This fix is invoked during :doc:`energy minimization <minimize>`.
+
+----------
+
+.. include:: accel_styles.rst
+
+----------
 
 Restrictions
 """"""""""""
@@ -192,7 +247,7 @@ Related commands
 Default
 """""""
 
-scale = 1.0 and maxiter = 200
+scale = 1.0, maxiter = 200, and xlmd = no
 
 ----------
 

@@ -32,7 +32,7 @@ FixDPDenergyKokkos<DeviceType>::FixDPDenergyKokkos(LAMMPS *lmp, int narg, char *
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
   datamask_read = EMPTY_MASK;
   datamask_modify = EMPTY_MASK;
-  pairDPDEKK = dynamic_cast<decltype(pairDPDEKK)>(pairDPDE);
+  pairDPDEKK = PairDPDfdtEnergyKokkos<DeviceType>::cast(pairDPDE);
   if (!pairDPDEKK)
     error->all(FLERR,"Must use pair_style dpd/fdt/energy/kk with fix dpd/energy/kk");
 }

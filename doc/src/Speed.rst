@@ -25,6 +25,7 @@ for certain kinds of hardware, including multicore CPUs and GPUs.
 
    Speed_bench
    Speed_measure
+   Speed_compiler
    Speed_tips
    Speed_packages
    Speed_compare

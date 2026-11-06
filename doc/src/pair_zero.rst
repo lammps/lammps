@@ -1,8 +1,11 @@
 .. index:: pair_style zero
+.. index:: pair_style zero/intel
 .. index:: pair_style zero/coul
 
 pair_style zero command
 =======================
+
+Accelerator Variants: *zero/intel*
 
 pair_style zero/coul command
 ============================
@@ -55,6 +58,11 @@ In this case, only the global cutoff will be used.
 
 The optional *full* flag builds a full neighbor list instead of the default
 half neighbor list.
+
+The bond, angle, dihedral, and improper styles of the :doc:`INTEL
+package <Speed_intel>` require a pair style of the INTEL package.  When
+no pair interactions are needed, pair style *zero/intel* can be used
+for that purpose.
 
 .. versionadded:: 2Sep2026
 

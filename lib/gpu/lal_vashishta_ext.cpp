@@ -49,7 +49,7 @@ int vashishta_gpu_init(const int ntypes, const int inum, const int nall, const i
   int procs_per_gpu=VashishtaMF.device->procs_per_gpu();
 
 
-  VashishtaMF.device->init_message(screen,"vashishta/gpu",first_gpu,last_gpu);
+  VashishtaMF.device->init_message(screen,"vashishta",first_gpu,last_gpu);
 
   bool message=false;
   if (VashishtaMF.device->replica_me()==0 && screen)

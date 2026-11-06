@@ -49,13 +49,20 @@ class ThrData {
   double get_time(enum Timer::ttype flag);
 
   // erase accumulator contents and hook up force arrays
-  void init_force(int, double **, double **, double *, double *, double *);
+  void init_force(int, double **, double **, double *, double *, double *, double *, double **,
+                  int);
 
   // give access to per-thread offset arrays
   [[nodiscard]] double **get_f() const { return _f; };
   [[nodiscard]] double **get_torque() const { return _torque; };
+  [[nodiscard]] double *get_erforce() const { return _erforce; };
   [[nodiscard]] double *get_de() const { return _de; };
   [[nodiscard]] double *get_drho() const { return _drho; };
+  [[nodiscard]] double *get_edpd_flux() const { return _edpd_flux; };
+  [[nodiscard]] double **get_cc_flux() const { return _cc_flux; };
+
+  // per-thread centroid stress of pair styles that tally it themselves
+  [[nodiscard]] double **get_cvatom_pair() const { return cvatom_pair; };
 
   // setup and erase per atom arrays
   void init_adp(int, double *, double **, double **);    // ADP (+ EAM)
@@ -116,6 +123,8 @@ class ThrData {
   double *_erforce;
   double *_de;
   double *_drho;
+  double *_edpd_flux;
+  double **_cc_flux;
 
   // these are maintained by individual pair styles
   double **_mu, **_lambda;      // ADP (+ EAM)

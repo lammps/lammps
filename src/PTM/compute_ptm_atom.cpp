@@ -209,10 +209,10 @@ static int get_neighbours(void* vdata, size_t central_index, size_t atom_index, 
 
   for (int jj = 0; jj < jnum; jj++) {
     int j = jlist[jj];
+    j &= NEIGHMASK;
     if (!(mask[j] & group2bit))
       continue;
 
-    j &= NEIGHMASK;
     if (j == (int)atom_index)
       continue;
 

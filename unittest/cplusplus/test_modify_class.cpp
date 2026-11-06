@@ -168,8 +168,8 @@ TEST_F(ModifyTest, PostForceInvocationOrder)
         command("fix af all addforce 1.0 0.0 0.0");
         command("run 0 post no");
     });
-    EXPECT_DOUBLE_EQ(lmp->atom->f[0][0], 1.0);
-    EXPECT_DOUBLE_EQ(lmp->atom->f[0][1], 0.0);
+    EXPECT_KKFLOAT_EQ(lmp->atom->f[0][0], 1.0);
+    EXPECT_KKFLOAT_EQ(lmp->atom->f[0][1], 0.0);
 
     HIDE_OUTPUT([&] {
         command("unfix sf");
@@ -178,14 +178,14 @@ TEST_F(ModifyTest, PostForceInvocationOrder)
         command("fix sf all setforce 0.0 0.0 0.0");
         command("run 0 post no");
     });
-    EXPECT_DOUBLE_EQ(lmp->atom->f[0][0], 0.0);
+    EXPECT_KKFLOAT_EQ(lmp->atom->f[0][0], 0.0);
 
     // same through the minimizer path (min_setup and min_post_force)
 
     HIDE_OUTPUT([&] {
         command("minimize 0.0 0.0 1 1");
     });
-    EXPECT_DOUBLE_EQ(lmp->atom->f[0][0], 0.0);
+    EXPECT_KKFLOAT_EQ(lmp->atom->f[0][0], 0.0);
 
     HIDE_OUTPUT([&] {
         command("unfix sf");
@@ -194,7 +194,7 @@ TEST_F(ModifyTest, PostForceInvocationOrder)
         command("fix af all addforce 1.0 0.0 0.0");
         command("minimize 0.0 0.0 1 1");
     });
-    EXPECT_DOUBLE_EQ(lmp->atom->f[0][0], 1.0);
+    EXPECT_KKFLOAT_EQ(lmp->atom->f[0][0], 1.0);
 }
 
 TEST_F(ModifyTest, EndOfStepOrderAndNevery)
@@ -255,7 +255,7 @@ TEST_F(ModifyTest, UnfixCompactsAndKeepsOrder)
     HIDE_OUTPUT([&] {
         command("run 0 post no");
     });
-    EXPECT_DOUBLE_EQ(lmp->atom->f[0][0], 1.0);
+    EXPECT_KKFLOAT_EQ(lmp->atom->f[0][0], 1.0);
     EXPECT_FALSE(modify->has_fixes(END_OF_STEP));
     EXPECT_TRUE(modify->has_fixes(POST_FORCE_ANY));
 
@@ -293,8 +293,8 @@ TEST_F(ModifyTest, ReplaceSameIdSameStyle)
     HIDE_OUTPUT([&] {
         command("run 0 post no");
     });
-    EXPECT_DOUBLE_EQ(lmp->atom->f[0][0], 1.0);
-    EXPECT_DOUBLE_EQ(lmp->atom->f[0][1], 1.0);
+    EXPECT_KKFLOAT_EQ(lmp->atom->f[0][0], 1.0);
+    EXPECT_KKFLOAT_EQ(lmp->atom->f[0][1], 1.0);
 
     // a different style for the same ID is an error, list is unchanged
     TEST_FAILURE(".*Replacing a fix, but new style != old style.*",
@@ -334,7 +334,7 @@ TEST_F(ModifyTest, FailedReplaceLeavesListValid)
     HIDE_OUTPUT([&] {
         command("run 0 post no");
     });
-    EXPECT_DOUBLE_EQ(lmp->atom->f[0][0], 1.0);
+    EXPECT_KKFLOAT_EQ(lmp->atom->f[0][0], 1.0);
 }
 
 TEST_F(ModifyTest, ReplaceFixKeepsSlot)
@@ -388,7 +388,7 @@ TEST_F(ModifyTest, ReplaceFixKeepsSlot)
     HIDE_OUTPUT([&] {
         command("run 0 post no");
     });
-    EXPECT_DOUBLE_EQ(lmp->atom->f[0][0], 0.0);
+    EXPECT_KKFLOAT_EQ(lmp->atom->f[0][0], 0.0);
 }
 
 TEST_F(ModifyTest, CallbackListsFollowFixOrder)
@@ -604,9 +604,9 @@ TEST_F(ModifyTest, GroupFixRunsFirstInPostForce)
         EXPECT_EQ(inside, (mask[i] & groupbit) != 0);
         if (inside) {
             ++ninside;
-            EXPECT_DOUBLE_EQ(f[i][0], 0.0);
-            EXPECT_DOUBLE_EQ(f[i][1], 0.0);
-            EXPECT_DOUBLE_EQ(f[i][2], 0.0);
+            EXPECT_KKFLOAT_EQ(f[i][0], 0.0);
+            EXPECT_KKFLOAT_EQ(f[i][1], 0.0);
+            EXPECT_KKFLOAT_EQ(f[i][2], 0.0);
         } else {
             ++noutside;
         }

@@ -46,11 +46,11 @@ class PairCoulDielKokkos : public PairCoulDiel {
   struct params_coul_diel {
 // NOLINTNEXTLINE
     KOKKOS_INLINE_FUNCTION
-    params_coul_diel() {cutsq=0;sigmae=0;rme=0;offset=0;};
+    params_coul_diel() {cutsq=0;sigmae=0;rme=0;};
 // NOLINTNEXTLINE
     KOKKOS_INLINE_FUNCTION
-    params_coul_diel(int /*i*/) {cutsq=0;sigmae=0;rme=0;offset=0;};
-    KK_FLOAT cutsq,sigmae,rme,offset;
+    params_coul_diel(int /*i*/) {cutsq=0;sigmae=0;rme=0;};
+    KK_FLOAT cutsq,sigmae,rme;
   };
 
  protected:

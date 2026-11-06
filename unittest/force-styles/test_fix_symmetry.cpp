@@ -585,12 +585,19 @@ TEST_F(FixSymmetryTest, ScrewAxisNonzeroTranslation)
 // --------------------------------------------------------------------------
 TEST_F(FixSymmetryTest, SupercellScrewAxis)
 {
+    HIDE_OUTPUT([&] {
+        command("units lj");
+        command("atom_style atomic");
+        command("boundary p p p");
+        command("atom_modify map array");
+        command("region box block 0 6 0 6 0 12");
+        command("create_box 1 box");
+    });
+
     std::string bad = write_symfile(
         "p21_bad.json", R"({ "group_name": "P2_1", "ops": [ "x,y,z", "-x,-y,z+1/4" ] })");
     TEST_FAILURE("the operators do not form a group: the combination of operators 2 and 2 is "
                  "missing",
-                 command("atom_modify map array");
-                 command("region box block 0 6 0 6 0 12"); command("create_box 1 box");
                  command(fmt::format("fix sym all symmetry {}", bad)););
     LAMMPS_NS::platform::unlink(bad);
 

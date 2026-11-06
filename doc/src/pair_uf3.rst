@@ -1,10 +1,11 @@
 .. index:: pair_style uf3
 .. index:: pair_style uf3/kk
+.. index:: pair_style uf3/omp
 
 pair_style uf3 command
 ======================
 
-Accelerator Variants: *uf3/kk*
+Accelerator Variants: *uf3/kk*, *uf3/omp*
 
 Syntax
 """"""

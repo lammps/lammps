@@ -79,9 +79,9 @@ void PairDispersionD3OMP::calc_coordination_number()
     // Calculate coordination number with the helper functions
     // The flags need to be constants for the template instantiation
     if (force->newton_pair) {
-        eval_coordination<1>(ifrom,ito,thr);
-    } else{
-        eval_coordination<0>(ifrom,ito,thr);
+      eval_coordination<1>(ifrom,ito,thr);
+    } else {
+      eval_coordination<0>(ifrom,ito,thr);
     }
 
     thr->timer(Timer::PAIR);
@@ -498,9 +498,9 @@ void PairDispersionD3OMP::eval_second_phase(int iifrom, int iito, ThrData * cons
         fytmp += dely * fpair;
         fztmp += delz * fpair;
         if (NEWTON_PAIR || j < nlocal) {
-            f[j].x -= delx * fpair;
-            f[j].y -= dely * fpair;
-            f[j].z -= delz * fpair;
+          f[j].x -= delx * fpair;
+          f[j].y -= dely * fpair;
+          f[j].z -= delz * fpair;
         }
 
         // Update virial (no energy contributions in this phase)

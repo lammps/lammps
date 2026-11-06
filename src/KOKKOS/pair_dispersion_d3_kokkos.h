@@ -199,8 +199,6 @@ struct PairDispersionD3CoordinationNumberKernel {
     a_cn(i) += cn_i;
   }
 };
-
-
 /* ----------------------------------------------------------------------
    Kernel A: compute energy/force  and dC6
 ------------------------------------------------------------------------- */
@@ -754,8 +752,6 @@ struct PairDispersionD3KernelB {
   static int sbmask(const int &j) {
     return j >> SBBITS & 3;
   }
-
-
   // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void ev_tally(value_type &ev, const int &i, const int &j,
@@ -988,8 +984,6 @@ class PairDispersionD3Kokkos : public PairDispersionD3, public KokkosBase {
   NonDupScatterView<KK_ACC_FLOAT*, typename DAT::t_kkacc_1d::array_layout> ndup_eatom; // non-dup energy
   NonDupScatterView<KK_ACC_FLOAT*[6], typename DAT::t_kkacc_1d_6::array_layout> ndup_vatom; // non-dup virial
   NonDupScatterView<KK_FLOAT*, typename DAT::t_kkfloat_1d::array_layout> ndup_dc6; // non-dup dC6
-
-
   DAT::tdual_kkfloat_1d k_cn;   // coordination numbers (dual view)
   DAT::tdual_kkfloat_1d k_dc6;  // dC6 values (dual view)
   typename AT::t_kkfloat_1d d_cn;   // device CN

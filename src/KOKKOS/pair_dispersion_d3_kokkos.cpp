@@ -202,7 +202,7 @@ void PairDispersionD3Kokkos<DeviceType>::allocate()
 
 /* ----------------------------------------------------------------------
    Coeff: read from pair_coeff
-          pair_coeff * * path_r0ab.csv path_c6ab.csv functional element1 element2 ...
+          pair_coeff * * element1 element2 ...
 ------------------------------------------------------------------------- */
 
 template<class DeviceType>

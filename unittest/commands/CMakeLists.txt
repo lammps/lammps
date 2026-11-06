@@ -52,6 +52,26 @@ target_link_libraries(test_fix_spring_chunk PRIVATE lammps GTest::GMock)
 add_test(NAME FixSpringChunk COMMAND test_fix_spring_chunk)
 add_kokkos_test(NAME FixSpringChunk COMMAND test_fix_spring_chunk)
 
+# tests for the inertial spin dynamics styles of the SPIN package
+if(PKG_SPIN)
+  add_executable(test_tspin test_tspin.cpp)
+  target_link_libraries(test_tspin PRIVATE lammps GTest::GMock)
+  add_test(NAME TSpin COMMAND test_tspin)
+  set_tests_properties(TSpin PROPERTIES LABELS "spin")
+  add_mpi_test(NAME TSpinTemperatureMPI NUM_PROCS 4
+               COMMAND $<TARGET_FILE:test_tspin>
+               --gtest_filter=TSpinTest.TemperatureUsesActiveSpinsAndGroup:TSpinTest.TemperatureCountsZeroModulusAndRecountsMasses)
+  if(TEST TSpinTemperatureMPI)
+    set_property(TEST TSpinTemperatureMPI APPEND PROPERTY LABELS "spin")
+  endif()
+  add_mpi_test(NAME TSpinIntegratorCompatibilityMPI NUM_PROCS 4
+               COMMAND $<TARGET_FILE:test_tspin>
+               --gtest_filter=TSpinTest.MixedSpinIntegratorsAreRejected:TSpinTest.SingleSpinIntegratorKeepsDipoleLatticeForces)
+  if(TEST TSpinIntegratorCompatibilityMPI)
+    set_property(TEST TSpinIntegratorCompatibilityMPI APPEND PROPERTY LABELS "spin")
+  endif()
+endif()
+
 add_executable(test_kspace_auto_slab test_kspace_auto_slab.cpp)
 target_compile_definitions(test_kspace_auto_slab PRIVATE -DTEST_INPUT_FOLDER=${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(test_kspace_auto_slab PRIVATE lammps GTest::GMock)

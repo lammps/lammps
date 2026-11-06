@@ -118,3 +118,16 @@ mpirun -np 4 ../../../src/lmp_mpi -in in.spin.iron_min
 cp log.lammps log.${DATE}.spin.iron_min.g++.4
 rm log.lammps log.cite dump*.lammpstrj
 cd ..
+
+# inertial spin dynamics
+cd tspin/
+../../../src/lmp_serial -in in.spin.tspin
+cp log.lammps log.${DATE}.spin.tspin.g++.1
+mpirun -np 4 ../../../src/lmp_mpi -in in.spin.tspin
+cp log.lammps log.${DATE}.spin.tspin.g++.4
+../../../src/lmp_serial -in in.spin.tspin_nvt
+cp log.lammps log.${DATE}.spin.tspin_nvt.g++.1
+mpirun -np 4 ../../../src/lmp_mpi -in in.spin.tspin_nvt
+cp log.lammps log.${DATE}.spin.tspin_nvt.g++.4
+rm log.lammps log.cite
+cd ..

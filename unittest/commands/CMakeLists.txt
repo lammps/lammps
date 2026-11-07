@@ -124,6 +124,18 @@ if(PKG_COLLOID)
   endif()
 endif()
 
+if(PKG_EXTRA-PAIR)
+  add_executable(test_dispersion_d3 test_dispersion_d3.cpp)
+  target_link_libraries(test_dispersion_d3 PRIVATE lammps GTest::GTest)
+  add_test(NAME DispersionD3Regression COMMAND test_dispersion_d3)
+endif()
+
+if(PKG_EXTRA-PAIR AND PKG_MOLECULE)
+  add_executable(test_dispersion_d3_special_bonds test_dispersion_d3_special_bonds.cpp)
+  target_link_libraries(test_dispersion_d3_special_bonds PRIVATE lammps GTest::GTest)
+  add_test(NAME DispersionD3SpecialBonds COMMAND test_dispersion_d3_special_bonds)
+endif()
+
 add_executable(test_pair_ldd test_pair_ldd.cpp)
 target_link_libraries(test_pair_ldd PRIVATE lammps GTest::GMock)
 add_test(NAME PairLDD COMMAND test_pair_ldd)

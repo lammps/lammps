@@ -1,7 +1,11 @@
 .. index:: pair_style dispersion/d3
+.. index:: pair_style dispersion/d3/kk
+.. index:: pair_style dispersion/d3/omp
 
 pair_style dispersion/d3 command
 ================================
+
+Accelerator Variants: *dispersion/d3/kk*, *dispersion/d3/omp*
 
 Syntax
 """"""
@@ -105,6 +109,17 @@ provide are the chemical symbols of the atoms.  The number of chemical
 symbols given must be equal to the number of atom types used and must
 match their ordering as atom types.
 
+----------
+
+.. include:: accel_styles.rst
+
+----------
+
+.. versionchanged:: TBD
+
+The :doc:`special_bonds <special_bonds>` scaling factors multiply each
+pair's dispersion energy and its coordination-number derivatives. Forces
+include the coordination dependence of these scaled energies.
 
 Mixing, shift, table, tail correction, restart, rRESPA info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""

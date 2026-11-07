@@ -1,7 +1,7 @@
 ---
 lammps_version: 30 Sep 2026
 date_generated: Sun Oct 11 09:30:26 2026
-epsilon: 7.5e-08
+epsilon: 5.0e-12
 skip_tests:
 prerequisites: |
   pair dispersion/d3

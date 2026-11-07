@@ -59,6 +59,12 @@ bool reduced_precision(Backend backend)
         !Info::has_accelerator_feature("KOKKOS", "precision", "double");
 }
 
+bool single_precision(Backend backend)
+{
+    return is_kokkos(backend) &&
+        Info::has_accelerator_feature("KOKKOS", "precision", "single");
+}
+
 std::unique_ptr<LAMMPS> make_lammps(Backend backend)
 {
     LAMMPS::argv args = {"DispersionD3Regression", "-log", "none", "-screen", "none", "-nocite"};
@@ -110,15 +116,17 @@ Result measure(LAMMPS &lmp)
 void expect_match(const Result &reference, const Result &candidate, Backend backend)
 {
     const double tolerance = reduced_precision(backend) ? 3.0e-5 : 1.0e-10;
+    // global sums in single precision need a different tolerance
+    const double global_tolerance = single_precision(backend) ? 1.0e-3 : tolerance;
     ASSERT_TRUE(std::isfinite(reference.energy));
     ASSERT_TRUE(std::isfinite(candidate.energy));
     EXPECT_NEAR(reference.energy, candidate.energy,
-                tolerance * std::max(1.0, std::abs(reference.energy)));
+                global_tolerance * std::max(1.0, std::abs(reference.energy)));
     for (std::size_t i = 0; i < reference.virial.size(); ++i) {
         ASSERT_TRUE(std::isfinite(reference.virial[i]));
         ASSERT_TRUE(std::isfinite(candidate.virial[i]));
         EXPECT_NEAR(reference.virial[i], candidate.virial[i],
-                    tolerance * std::max(1.0, std::abs(reference.virial[i])));
+                    global_tolerance * std::max(1.0, std::abs(reference.virial[i])));
     }
     ASSERT_EQ(reference.forces.size(), candidate.forces.size());
     for (std::size_t i = 0; i < reference.forces.size(); ++i) {

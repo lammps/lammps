@@ -165,7 +165,7 @@ namespace LAMMPS_NS::MathSpecial {
     return (n > 0) ? yy : 1.0 / yy;
   }
 
-  /* Version of pow(x,n) for an exponent that is only known at run time
+  /*! Version of pow(x,n) for an exponent that is only known at run time
    *
    * Dispatches to powint() when the exponent has a safely representable integer
    * value, and to std::pow() otherwise.  Useful where a force field

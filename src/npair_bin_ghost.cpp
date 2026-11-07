@@ -54,10 +54,10 @@ void NPairBinGhost<HALF>::build(NeighList *list)
   int xbin, ybin, zbin, xbin2, ybin2, zbin2;
   int *neighptr;
 
-  double **x = atom->x;
-  int *type = atom->type;
+  const double (*const x)[3] = (const double (*)[3]) atom->x[0];
+  const int *const type = atom->type;
   int *mask = atom->mask;
-  tagint *tag = atom->tag;
+  const tagint *const tag = atom->tag;
   tagint *molecule = atom->molecule;
   tagint **special = atom->special;
   int **nspecial = atom->nspecial;
@@ -72,11 +72,22 @@ void NPairBinGhost<HALF>::build(NeighList *list)
     moltemplate = 1;
   else
     moltemplate = 0;
+  const bool atomic = (molecular == Atom::ATOMIC);
 
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;
   int **firstneigh = list->firstneigh;
   MyPage<int> *ipage = list->ipage;
+  const int oneatom = list->oneatom;
+
+  const int *const bins = this->bins;
+  const int *const binhead = this->binhead;
+  const int *const stencil = this->stencil;
+  const int nstencil = this->nstencil;
+
+  // whether type t has the same neighbor cutoff to all types, see copy_neighbor_info()
+  const int *const ucut_type = this->ucut_type;
+  const int *const ucut_ghost_type = this->ucut_ghost_type;
 
   int inum = 0;
   ipage->reset();
@@ -98,6 +109,9 @@ void NPairBinGhost<HALF>::build(NeighList *list)
 
     if (i < nlocal) {
       ibin = atom2bin[i];
+      const double *const cutneighsq_i = cutneighsq[itype];
+      const double cutsq_u = cutneighsq_i[1];
+      const bool uniform_cut = !exclude && (ucut_type[itype] != 0);
 
       // loop over all atoms in surrounding bins in stencil including self
       // when i is a ghost atom, must check if stencil bin is out of bounds
@@ -118,36 +132,47 @@ void NPairBinGhost<HALF>::build(NeighList *list)
             if (i == j) continue;
           }
 
-          jtype = type[j];
-          if (exclude && exclusion(i, j, itype, jtype, mask, molecule)) continue;
+          // skip type[j] load when !exclude and all cutoffs from itype match
+          if (!uniform_cut) {
+            jtype = type[j];
+            if (exclude && exclusion(i, j, itype, jtype, mask, molecule)) continue;
+          }
 
           delx = xtmp - x[j][0];
           dely = ytmp - x[j][1];
           delz = ztmp - x[j][2];
           rsq = delx * delx + dely * dely + delz * delz;
 
-          if (rsq <= cutneighsq[itype][jtype]) {
-            if (molecular != Atom::ATOMIC) {
-              if (!moltemplate)
-                which = find_special(special[i], nspecial[i], tag[j]);
-              else if ((imol >= 0) && onemols[imol]->special)
-                which = find_special(onemols[imol]->special[iatom],
-                                     onemols[imol]->nspecial[iatom], tag[j] - tagprev);
-              else
-                which = 0;
-              if (which == 0)
-                neighptr[n++] = j;
-              else if (domain->minimum_image_check(delx, dely, delz))
-                neighptr[n++] = j;
-              else if (which > 0)
-                neighptr[n++] = j ^ (which << SBBITS);
-            } else
+          const double cutsq_ij = uniform_cut ? cutsq_u : cutneighsq_i[jtype];
+          if (atomic) {
+            if (n < oneatom) {
+              neighptr[n] = j;
+              n += (rsq <= cutsq_ij);
+            } else if (rsq <= cutsq_ij)
+              n++;
+          } else if (rsq <= cutsq_ij) {
+            if (!moltemplate)
+              which = find_special(special[i], nspecial[i], tag[j]);
+            else if ((imol >= 0) && onemols[imol]->special)
+              which = find_special(onemols[imol]->special[iatom],
+                                   onemols[imol]->nspecial[iatom], tag[j] - tagprev);
+            else
+              which = 0;
+            if (which == 0)
               neighptr[n++] = j;
+            else if (domain->minimum_image_check(delx, dely, delz))
+              neighptr[n++] = j;
+            else if (which > 0)
+              neighptr[n++] = j ^ (which << SBBITS);
           }
         }
       }
     } else {
-      ibin = coord2bin(x[i], xbin, ybin, zbin);
+      ibin = coord2bin(atom->x[i], xbin, ybin, zbin);
+      const double *const cutneighghostsq_i = cutneighghostsq[itype];
+      const double cutsq_u = cutneighghostsq_i[1];
+      const bool uniform_cut = !exclude && (ucut_ghost_type[itype] != 0);
+
       for (k = 0; k < nstencil; k++) {
         xbin2 = xbin + stencilxyz[k][0];
         ybin2 = ybin + stencilxyz[k][1];
@@ -162,15 +187,23 @@ void NPairBinGhost<HALF>::build(NeighList *list)
             if (i == j) continue;
           }
 
-          jtype = type[j];
-          if (exclude && exclusion(i, j, itype, jtype, mask, molecule)) continue;
+          if (!uniform_cut) {
+            jtype = type[j];
+            if (exclude && exclusion(i, j, itype, jtype, mask, molecule)) continue;
+          }
 
           delx = xtmp - x[j][0];
           dely = ytmp - x[j][1];
           delz = ztmp - x[j][2];
           rsq = delx * delx + dely * dely + delz * delz;
 
-          if (rsq <= cutneighghostsq[itype][jtype]) neighptr[n++] = j;
+          // the ghost cutoff is often much shorter than the stencil, so few candidates
+          // are accepted and the branch is cheaper than an unconditional store
+          const double cutsq_ij = uniform_cut ? cutsq_u : cutneighghostsq_i[jtype];
+          if (rsq <= cutsq_ij) {
+            if (n < oneatom) neighptr[n] = j;
+            n++;
+          }
         }
       }
     }

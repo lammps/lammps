@@ -35,6 +35,7 @@
 #include "force.h"
 #include "kokkos.h"
 #include "math_const.h"
+#include "math_special_kokkos.h"
 #include "memory_kokkos.h"
 #include "neigh_list_kokkos.h"
 #include "neigh_request.h"
@@ -821,11 +822,11 @@ KK_FLOAT PairTersoffKokkos<DeviceType>::ters_bij_k(const ParamKokkos& param, con
   const KK_FLOAT tmp = param.beta * bo;
   if (tmp > param.c1) return static_cast<KK_FLOAT>(1.0)/Kokkos::sqrt(tmp);
   if (tmp > param.c2)
-    return (static_cast<KK_FLOAT>(1.0) - Kokkos::pow(tmp,-param.powern) / (static_cast<KK_FLOAT>(2.0)*param.powern))/Kokkos::sqrt(tmp);
+    return (static_cast<KK_FLOAT>(1.0) - MathSpecialKokkos::powauto(tmp,-param.powern) / (static_cast<KK_FLOAT>(2.0)*param.powern))/Kokkos::sqrt(tmp);
   if (tmp < param.c4) return static_cast<KK_FLOAT>(1.0);
   if (tmp < param.c3)
-    return static_cast<KK_FLOAT>(1.0) - Kokkos::pow(tmp,param.powern)/(static_cast<KK_FLOAT>(2.0)*param.powern);
-  return Kokkos::pow(static_cast<KK_FLOAT>(1.0) + Kokkos::pow(tmp,param.powern), static_cast<KK_FLOAT>(-1.0)/(static_cast<KK_FLOAT>(2.0)*param.powern));
+    return static_cast<KK_FLOAT>(1.0) - MathSpecialKokkos::powauto(tmp,param.powern)/(static_cast<KK_FLOAT>(2.0)*param.powern);
+  return Kokkos::pow(static_cast<KK_FLOAT>(1.0) + MathSpecialKokkos::powauto(tmp,param.powern), static_cast<KK_FLOAT>(-1.0)/(static_cast<KK_FLOAT>(2.0)*param.powern));
 }
 
 /* ---------------------------------------------------------------------- */
@@ -843,12 +844,12 @@ KK_FLOAT PairTersoffKokkos<DeviceType>::ters_dbij(const ParamKokkos& param, cons
            // error in negligible 2nd term fixed 2/21/2022
            // (1.0 - 0.5*(1.0 +  1.0/(2.0*param.powern)) *
            (static_cast<KK_FLOAT>(1.0) - (static_cast<KK_FLOAT>(1.0) + static_cast<KK_FLOAT>(0.5)/(param.powern)) *
-           Kokkos::pow(tmp,-param.powern)));
+           MathSpecialKokkos::powauto(tmp,-param.powern)));
   if (tmp < param.c4) return static_cast<KK_FLOAT>(0.0);
   if (tmp < param.c3)
-    return -static_cast<KK_FLOAT>(0.5)*param.beta * Kokkos::pow(tmp,param.powern-static_cast<KK_FLOAT>(1.0));
+    return -static_cast<KK_FLOAT>(0.5)*param.beta * MathSpecialKokkos::powauto(tmp,param.powern-static_cast<KK_FLOAT>(1.0));
 
-  const KK_FLOAT tmp_n = Kokkos::pow(tmp,param.powern);
+  const KK_FLOAT tmp_n = MathSpecialKokkos::powauto(tmp,param.powern);
   return static_cast<KK_FLOAT>(-0.5) * Kokkos::pow(static_cast<KK_FLOAT>(1.0)+tmp_n, static_cast<KK_FLOAT>(-1.0)-(static_cast<KK_FLOAT>(0.5)/(param.powern)))*tmp_n / bo;
 }
 
@@ -870,7 +871,7 @@ void PairTersoffKokkos<DeviceType>::ters_bij_k_and_ters_dbij(const ParamKokkos& 
   auto prm_ijk_pn = param.powern;
 
   if (tmp > param.c2) {
-    auto tmp_pow_neg_prm_ijk_pn =  Kokkos::pow(tmp,-prm_ijk_pn);
+    auto tmp_pow_neg_prm_ijk_pn =  MathSpecialKokkos::powauto(tmp,-prm_ijk_pn);
     bij =  (static_cast<KK_FLOAT>(1.0) - tmp_pow_neg_prm_ijk_pn / (static_cast<KK_FLOAT>(2.0)*prm_ijk_pn))/Kokkos::sqrt(tmp);
     prefactor =  param.beta * (factor *
            (static_cast<KK_FLOAT>(1.0) - static_cast<KK_FLOAT>(0.5)*(static_cast<KK_FLOAT>(1.0) +  static_cast<KK_FLOAT>(0.5)/(prm_ijk_pn)) *
@@ -884,15 +885,17 @@ void PairTersoffKokkos<DeviceType>::ters_bij_k_and_ters_dbij(const ParamKokkos& 
     return;
   }
   if (tmp < param.c3) {
-    auto tmp_pow_prm_ijk_pn_less_one =  Kokkos::pow(tmp,prm_ijk_pn-static_cast<KK_FLOAT>(1.0));
+    auto tmp_pow_prm_ijk_pn_less_one =  MathSpecialKokkos::powauto(tmp,prm_ijk_pn-static_cast<KK_FLOAT>(1.0));
     bij =  static_cast<KK_FLOAT>(1.0) - tmp_pow_prm_ijk_pn_less_one*tmp/(static_cast<KK_FLOAT>(2.0)*prm_ijk_pn);
     prefactor = static_cast<KK_FLOAT>(-0.5)*param.beta * tmp_pow_prm_ijk_pn_less_one;
     return;
   }
 
-  const KK_FLOAT tmp_n = Kokkos::pow(tmp,param.powern);
-  bij = Kokkos::pow(static_cast<KK_FLOAT>(1.0) + tmp_n, static_cast<KK_FLOAT>(-0.5)/(prm_ijk_pn));
-  prefactor =  static_cast<KK_FLOAT>(-0.5) * Kokkos::pow(static_cast<KK_FLOAT>(1.0)+tmp_n, static_cast<KK_FLOAT>(-1.0)-(static_cast<KK_FLOAT>(0.5)/(prm_ijk_pn)))*tmp_n / bo;
+  const KK_FLOAT tmp_n = MathSpecialKokkos::powauto(tmp,param.powern);
+  const KK_FLOAT onetmp_n = static_cast<KK_FLOAT>(1.0) + tmp_n;
+  bij = Kokkos::pow(onetmp_n, static_cast<KK_FLOAT>(-0.5)/(prm_ijk_pn));
+  // x^(a-1) = x^a / x
+  prefactor =  static_cast<KK_FLOAT>(-0.5) * bij / onetmp_n * tmp_n / bo;
 }
 
 /* ---------------------------------------------------------------------- */

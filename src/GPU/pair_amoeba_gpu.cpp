@@ -28,6 +28,7 @@
 #include "info.h"
 #include "lammps_gpu.h"
 #include "math_const.h"
+#include "math_special.h"
 #include "my_page.h"
 #include "neigh_list.h"
 #include "neighbor.h"
@@ -39,6 +40,7 @@
 using namespace LAMMPS_NS;
 using namespace LAMMPS_GPU;
 using namespace MathConst;
+using MathSpecial::cube;
 
 // same as in amoeba_induce.cpp
 enum{INDUCE,RSD,SETUP_AMOEBA,SETUP_HIPPO,KMPOLE,AMGROUP};   // forward comm
@@ -816,7 +818,7 @@ void PairAmoebaGPU::udirect2b_cpu()
         damp = pdi * pdamp[jtype];
         if (damp != 0.0) {
           pgamma = MIN(pti,thole[jtype]);
-          damp = pgamma * pow(r/damp,3.0);
+          damp = pgamma * cube(r/damp);
           if (damp < 50.0) {
             expdamp = exp(-damp);
             scale3 = 1.0 - expdamp;

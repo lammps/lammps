@@ -26,6 +26,7 @@
 #include "force.h"
 #include "kokkos.h"
 #include "math_const.h"
+#include "math_special_kokkos.h"
 #include "memory_kokkos.h"
 #include "neigh_list_kokkos.h"
 #include "neigh_request.h"
@@ -496,8 +497,8 @@ void PairSWMODKokkos<DeviceType>::twobody(const Param& param, const KK_FLOAT& rs
   }
 
   rinvsq = static_cast<KK_FLOAT>(1.0)/rsq;
-  rp = Kokkos::pow(r,static_cast<KK_FLOAT>(-param.powerp));
-  rq = Kokkos::pow(r,static_cast<KK_FLOAT>(-param.powerq));
+  rp = MathSpecialKokkos::powauto(r,static_cast<KK_FLOAT>(-param.powerp));
+  rq = MathSpecialKokkos::powauto(r,static_cast<KK_FLOAT>(-param.powerq));
   rainv = static_cast<KK_FLOAT>(1.0) / (r - static_cast<KK_FLOAT>(param.cut));
   rainvsq = rainv*rainv*r;
   expsrainv = Kokkos::exp(static_cast<KK_FLOAT>(param.sigma) * rainv);

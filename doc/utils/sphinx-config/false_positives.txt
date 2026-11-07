@@ -1462,6 +1462,7 @@ gdot
 GeC
 Geesthacht
 Geier
+GEMC
 gencode
 Geocomputing
 georg
@@ -2200,6 +2201,7 @@ Leimkuhler
 Leite
 leiu
 lemonchiffon
+Lemmon
 Lenart
 lennard
 Lennard
@@ -2278,6 +2280,7 @@ Littmark
 Liu
 Livermore
 lj
+LJTS
 llammps
 lld
 LLVM
@@ -2461,6 +2464,7 @@ mbx
 mc
 mcmoves
 McLachlan
+McLinden
 mcmoves
 mctc
 md
@@ -3358,6 +3362,7 @@ postfixed
 postfixes
 Postma
 Potapkin
+Potoff
 potentiostat
 potin
 Pourtois
@@ -3739,6 +3744,7 @@ Rudzinski
 Runge
 runtime
 Rupp
+Rutkai
 Rutuparna
 rx
 rxd
@@ -4212,6 +4218,7 @@ thermochemical
 thermochemistry
 thermodynamically
 thermopotentiostat
+Thermophys
 Thermophysical
 thermostatted
 thermostatting
@@ -4223,6 +4230,7 @@ Thiaville
 Thibaudeau
 Thijsse
 Thirumalai
+Thol
 thr
 Threadripper
 threebody
@@ -4557,6 +4565,7 @@ Vorselaars
 Voth
 Voyiatzis
 vpz
+Vrabec
 vratio
 Vries
 Vsevolod

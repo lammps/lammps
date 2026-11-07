@@ -1,53 +1,52 @@
-# 3d Lennard-Jones melt to vapor-liquid mixture GEMC
-# mpirun -np 5 ./lmp -in in.gemc.lj -p 1 4
+# vapor-liquid coexistence of the Lennard-Jones fluid truncated and
+# shifted at 2.5 sigma with Gibbs ensemble Monte Carlo (GEMC)
+#
+# requires two partitions, one for each box, e.g.:
+#   mpirun -np 2 lmp -in in.gemc.lj -partition 1 1
+#   mpirun -np 4 lmp -in in.gemc.lj -partition 1 3
+#
+# coexistence densities from the equation of state of Thol et al. (2015):
+#   T = 0.9: vapor 0.0453, liquid 0.664
 
-variable        temp index 1.0 
-variable        ntranslate index 10
-variable        nexchange index 10 
-variable        nvolume index 10
-variable        displace index 0.5
-variable        max_dlogvolratio index 0.5
-variable        nsteps index 10000
+variable        T index 0.9                  # temperature
+variable        nsteps index 20000           # number of MC cycles
+variable        rho world 0.05 0.65          # initial densities of the boxes
+variable        N world 100 400              # initial numbers of atoms
+variable        L equal (v_N/v_rho)^(1.0/3.0)
 
 units           lj
 atom_style      atomic
 
-# initialize gas state in partition 1
-
-partition       yes 1 lattice fcc 0.05
-partition       yes 1 region box block 0 1 0 1 0 1
-
-# initialize liquid state in partition 2
-
-partition       yes 2 lattice fcc 0.6
-partition       yes 2 region box block 0 3 0 3 0 3
-
+region          box block 0 ${L} 0 ${L} 0 ${L}
 create_box      1 box
-create_atoms    1 box
+create_atoms    1 random ${N} 4321 NULL overlap 0.9 maxtry 1000
 mass            1 1.0
 
-velocity        all create 3.0 87287 loop geom 
-
 pair_style      lj/cut 2.5
-pair_coeff      1 1 1.0 1.0 2.5
+pair_modify     shift yes
+pair_coeff      1 1 1.0 1.0
 
 neighbor        0.3 bin
-neigh_modify    every 1 delay 5 check yes
+neigh_modify    every 1 delay 0 check yes
 
-fix             1 all nve
+# remove overlaps from random placement
 
-thermo          50
-thermo_style    custom step temp pe etotal press vol atoms density
-run             250
-unfix           1
+minimize        1.0e-4 1.0e-6 100 1000
+reset_timestep  0
 
-velocity        all create 0.0 87287 loop geom
+# pure Monte Carlo: every step attempt on average 100 translations,
+# 100 atom exchanges, and 2 volume exchanges
 
-#   args: nevery ntranslate nexchange nvolume box_temp displace max_dlogvolratio seed 
-fix              2 all gemc 1 ${ntranslate} ${nexchange} ${nvolume} ${temp} ${displace} ${max_dlogvolratio} 29494
+#   args:        N  M   X  V  T    displace maxdlogvolratio seed
+fix             mc all gemc 1  100 100 2 ${T} 0.3      0.05            29494
+compute_modify  thermo_temp dynamic/dof yes
 
-variable        mydensity equal density
-fix             3 all ave/time 1 50 50 v_mydensity ave window 20
-thermo_style    custom step temp pe etotal press vol atoms density f_3
+# number density and cumulative move attempts/successes of this box
+
+variable        rho_n equal atoms/vol
+thermo_style    custom step atoms vol pe v_rho_n f_mc[1] f_mc[2] &
+                f_mc[3] f_mc[4] f_mc[5] f_mc[6]
+thermo_modify   norm no
+thermo          1000
 
 run             ${nsteps}

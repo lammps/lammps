@@ -40,6 +40,7 @@ class PairTersoffMOD : public PairTersoff {
   double ters_fc_d(double, Param *) override;
   double ters_bij(double, Param *) override;
   double ters_bij_d(double, Param *) override;
+  void ters_bij_and_d(double, Param *, double &, double &) override;
   void ters_zetaterm_d(double, double *, double, double, double *, double, double, double *,
                        double *, double *, Param *) override;
 

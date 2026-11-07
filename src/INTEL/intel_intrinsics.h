@@ -48,7 +48,12 @@ enum CalculationMode {AVX512, AVX, AVX2, SSE, NONE};
         #ifdef __AVX__
         static const CalculationMode mode = AVX;
         #else
-        static const CalculationMode mode = SSE;
+          // the SSE code requires SSE4.1, use the scalar code without it
+          #ifdef __SSE4_1__
+          static const CalculationMode mode = SSE;
+          #else
+          static const CalculationMode mode = NONE;
+          #endif
         #endif
       #endif
     #endif
@@ -73,11 +78,7 @@ struct vector_ops {};
 // Intrinsic routines for AVX-512
 #if defined(__AVX512F__)
 // Integer vector class
-#ifdef __INTEL_LLVM_COMPILER
 #pragma pack(push,16)
-#else
-#pragma pack(push,64)
-#endif
 struct ivec32x16 {
   __m512i vec;
   ivec32x16() {}
@@ -151,12 +152,8 @@ struct vector_ops<double, AVX512> {
       return _mm512_invsqrt_pd(a);
     }
     static fvec sincos(fvec *cos, const fvec &a) {
-      #if __INTEL_COMPILER+0 < 1500
       *reinterpret_cast<__m512d *>(cos) = _mm512_cos_pd(a);
       return _mm512_sin_pd(a);
-      #else
-      return _mm512_sincos_pd(reinterpret_cast<__m512d *>(cos), a);
-      #endif
     }
     static fscal reduce_add(const fvec &a) {
       return _mm512_reduce_add_pd(a);
@@ -291,12 +288,8 @@ struct vector_ops<float, AVX512> {
       return _mm512_invsqrt_ps(a);
     }
     static fvec sincos(fvec *cos, const fvec &a) {
-      #if __INTEL_COMPILER+0 < 1500
       *reinterpret_cast<__m512 *>(cos) = _mm512_cos_ps(a);
       return _mm512_sin_ps(a);
-      #else
-      return _mm512_sincos_ps(reinterpret_cast<__m512 *>(cos), a);
-      #endif
     }
     static fscal reduce_add(const fvec &a) {
       return _mm512_reduce_add_ps(a);

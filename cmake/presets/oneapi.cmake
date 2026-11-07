@@ -2,7 +2,11 @@
 
 set(CMAKE_CXX_COMPILER "icpx" CACHE STRING "" FORCE)
 set(CMAKE_C_COMPILER "icx" CACHE STRING "" FORCE)
-set(CMAKE_Fortran_COMPILER "ifx" CACHE STRING "" FORCE)
+# prefer ifx over flang and gfortran, if available
+find_program(INTEL_FORTRAN NAMES ifx flang gfortran)
+if(INTEL_FORTRAN)
+  set(CMAKE_Fortran_COMPILER ${INTEL_FORTRAN} CACHE STRING "" FORCE)
+endif()
 set(MPI_CXX "icpx" CACHE STRING "" FORCE)
 set(MPI_CXX_COMPILER "mpicxx" CACHE STRING "" FORCE)
 

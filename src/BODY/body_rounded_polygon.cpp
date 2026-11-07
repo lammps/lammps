@@ -47,8 +47,8 @@ BodyRoundedPolygon::BodyRoundedPolygon(LAMMPS *lmp, int narg, char **arg) :
 
   // nmin and nmax are minimum and maximum number of vertices
 
-  int nmin = utils::inumeric(FLERR,arg[1],false,lmp);
-  int nmax = utils::inumeric(FLERR,arg[2],false,lmp);
+  nmin = utils::inumeric(FLERR,arg[1],false,lmp);
+  nmax = utils::inumeric(FLERR,arg[2],false,lmp);
   if (nmin <= 0 || nmin > nmax) error->all(FLERR,"Invalid body rounded/polygon command");
 
   size_forward = 0;
@@ -60,10 +60,14 @@ BodyRoundedPolygon::BodyRoundedPolygon(LAMMPS *lmp, int narg, char **arg) :
 
   size_border = 1 + 3*nmax + 2*nmax + 1 + 1;
 
+  // bodies with 1 or 2 vertices store only 2 doubles for edge ends
+
+  const int ndouble_min = (nmin < 3) ? 3*nmin+2+1+1 : 3*nmin+2*nmin+1+1;
+
   // NOTE: need to set appropriate nnbin param for dcp
 
   icp = new MyPoolChunk<int>(1,1);
-  dcp = new MyPoolChunk<double>(3*nmin+2*nmin+1+1,3*nmax+2*nmax+1+1);
+  dcp = new MyPoolChunk<double>(ndouble_min,3*nmax+2*nmax+1+1);
   maxexchange = 1 + 3*nmax+2*nmax+1+1;      // icp max + dcp max
 
   memory->create(imflag,2*nmax,"body/rounded/polygon:imflag");
@@ -174,6 +178,10 @@ void BodyRoundedPolygon::data_body(int ibonus, int ninteger, int ndouble,
   int nentries = 6 + 3*nsub + 1;
   if (ndouble != nentries)
     error->one(FLERR,"Incorrect # of floating-point values in Bodies section of data file");
+
+  if (nsub < nmin || nsub > nmax)
+    error->one(FLERR,"Body with {} vertices is outside the range {} to {} of its atom style",
+               nsub, nmin, nmax);
 
   bonus->ninteger = 1;
   bonus->ivalue = icp->get(bonus->iindex);

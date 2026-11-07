@@ -128,6 +128,7 @@ if(PKG_EXTRA-PAIR)
   add_executable(test_dispersion_d3 test_dispersion_d3.cpp)
   target_link_libraries(test_dispersion_d3 PRIVATE lammps GTest::GTest)
   add_test(NAME DispersionD3Regression COMMAND test_dispersion_d3)
+  add_kokkos_test(NAME DispersionD3Regression COMMAND test_dispersion_d3)
 endif()
 
 if(PKG_EXTRA-PAIR AND PKG_MOLECULE)

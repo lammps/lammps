@@ -23,8 +23,7 @@ if(LAMMPS_CXX_COMPILER_NAME STREQUAL "hipcc")
   target_compile_options(colvars PRIVATE "$<$<COMPILE_LANGUAGE:CXX>:SHELL:-x c++>")
 endif()
 if(BUILD_OMP)
-  # Enable OpenMP for Colvars as well
-  target_compile_options(colvars PRIVATE ${OpenMP_CXX_FLAGS})
+  # Enable OpenMP for Colvars as well; the imported target also provides the compiler flags
   target_link_libraries(colvars PRIVATE OpenMP::OpenMP_CXX)
 endif()
 

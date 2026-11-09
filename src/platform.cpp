@@ -1043,13 +1043,21 @@ bool platform::file_is_writable(const std::string &path)
 std::string platform::file_redirect(const std::string &path)
 {
 #if defined(_WIN32)
-  // read the first (and only) line and see if it is a valid path
+  // read the first (and only) line and see if it is a valid path.  As for a symbolic link,
+  // a relative path is relative to the folder of the redirect file; it is also tried
+  // relative to the current working directory, where both are the same for files in it.
   SafeFilePtr fp = fopen(path.c_str(), "r");
   if (fp) {
     char buffer[1024];
     if (fgets(buffer, 1024, fp)) {
       auto target = utils::trim(buffer);
-      if (platform::file_is_readable(target)) return target;
+      if (!target.empty()) {
+        if (!std::filesystem::path(target).is_absolute()) {
+          auto relative = platform::path_join(platform::path_dirname(path), target);
+          if (platform::file_is_readable(relative)) return relative;
+        }
+        if (platform::file_is_readable(target)) return target;
+      }
     }
   }
 #endif

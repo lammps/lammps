@@ -1,0 +1,112 @@
+LAMMPS (30 Sep 2026 - Development - patch_2Sep2026-1419-gacdb212708)
+  using 1 OpenMP thread(s) per MPI task
+# Rigid-body test: a grid of 8-atom rigid cubes
+# Reduced version of the system used to validate fix rigid/small/kk.
+# Run the non-Kokkos and Kokkos versions and compare the thermo output:
+#   lmp -in in.rigid.cubes
+#   lmp -k on -sf kk -in in.rigid.cubes
+# (data.rigid.cubes is produced by gen_cubes.py)
+
+units           lj
+atom_style      molecular
+atom_modify     map array
+
+read_data       data.rigid.cubes
+Reading data file ...
+  orthogonal box = (0 0 0) to (20 20 20)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  1000 atoms
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0        0        0       
+  special bond factors coul:  0        0        0       
+     0 = max # of 1-2 neighbors
+     0 = max # of 1-3 neighbors
+     0 = max # of 1-4 neighbors
+     1 = max # of special neighbors
+  special bonds CPU = 0.000 seconds
+  read_data CPU = 0.040 seconds
+
+pair_style      lj/cut 2.5
+pair_coeff      1 1 1.0 1.0
+
+# rigid bodies do not feel internal forces; exclude intra-body neighbor pairs
+neigh_modify    exclude molecule/intra all
+
+velocity        all create 1.5 4928459 mom yes rot yes
+
+fix             1 all rigid/npt/small molecule temp 1.5 1.5 0.5 iso 1.0 1.0 5.0
+Fix rigid/npt/small setup ...
+  create bodies CPU = 0.000 seconds
+  125 rigid bodies with 1000 atoms
+  1.7320508 = max distance from body owner to body atom
+
+thermo_style    custom step temp pe ke etotal press vol
+thermo          200
+timestep        0.0005
+run             4000
+Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 2.8
+  ghost atom cutoff = 2.8
+  binsize = 1.4, bins = 15 15 15
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cut, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 11.42 | 11.42 | 11.42 Mbytes
+   Step          Temp          PotEng         KinEng         TotEng         Press          Volume    
+         0   1.4457086      0              0.53997217     0.53997217     0.93475486     8000         
+       200   1.4542036      0              0.54314504     0.54314504     0.024106556    7901.2755    
+       400   1.4792919     -3.5024432e-05  0.55251552     0.5524805      0.025578033    7615.4651    
+       600   1.5201098     -0.0026517715   0.56776103     0.56510926     0.027079825    7175.1215    
+       800   1.5766831     -0.012641732    0.58889115     0.57624942     0.026354626    6635.5143    
+      1000   1.6448496     -0.032478506    0.61435134     0.58187283     0.021112324    6064.9025    
+      1200   1.7195674     -0.067733901    0.64225842     0.57452452     0.0069178623   5519.2408    
+      1400   1.8012225     -0.12358092     0.67275662     0.5491757     -0.0067930711   5019.8841    
+      1600   1.9246185     -0.19242576     0.718845       0.52641924     0.013441247    4565.9418    
+      1800   2.0285496     -0.21992641     0.75766328     0.53773687     0.21889569     4158.0312    
+      2000   2.4801644     -0.35318286     0.92634139     0.57315853     0.17775104     3801.9335    
+      2200   2.6828037     -0.44908075     1.0020272      0.55294642     0.23908743     3491.3438    
+      2400   2.8510217     -0.54729508     1.0648566      0.51756153     0.39275302     3219.5626    
+      2600   3.1523386     -0.65407637     1.1773985      0.5233221      0.50664086     2983.6364    
+      2800   3.3442724     -0.77553425     1.2490857      0.47355148     0.45862701     2778.4627    
+      3000   3.4491585     -0.86224114     1.2882607      0.42601954     0.66272056     2597.7329    
+      3200   3.5736663     -0.93622368     1.3347644      0.3985407      0.87888259     2441.1404    
+      3400   3.6575937     -0.98966692     1.3661112      0.37644432     1.1146965      2307.7562    
+      3600   3.9167502     -1.1670026      1.4629062      0.29590356     0.60102474     2193.6196    
+      3800   3.7220433     -1.2008917      1.3901832      0.18929148     0.89054369     2090.3074    
+      4000   3.6842085     -1.2600887      1.3760519      0.11596314     1.0859426      1998.238     
+Loop time of 1.1692 on 1 procs for 4000 steps with 1000 atoms
+
+Performance: 147792.989 tau/day, 3421.134 timesteps/s, 3.421 Matom-step/s
+99.6% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.40091    | 0.40091    | 0.40091    |   0.0 | 34.29
+Bond    | 0.00024016 | 0.00024016 | 0.00024016 |   0.0 |  0.02
+Neigh   | 0.11329    | 0.11329    | 0.11329    |   0.0 |  9.69
+Comm    | 0.033223   | 0.033223   | 0.033223   |   0.0 |  2.84
+Output  | 0.0002736  | 0.0002736  | 0.0002736  |   0.0 |  0.02
+Modify  | 0.60205    | 0.60205    | 0.60205    |   0.0 | 51.49
+Other   |            | 0.01921    |            |       |  1.64
+
+Nlocal:           1000 ave        1000 max        1000 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:           2015 ave        2015 max        2015 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:          19119 ave       19119 max       19119 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 19119
+Ave neighs/atom = 19.119
+Ave special neighs/atom = 0
+Neighbor list builds = 103
+Dangerous builds = 0
+Total wall time: 0:00:01

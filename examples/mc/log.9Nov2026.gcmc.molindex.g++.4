@@ -1,0 +1,382 @@
+LAMMPS (30 Sep 2026 - Development - patch_2Sep2026-1419-gacdb212708)
+  using 1 OpenMP thread(s) per MPI task
+# GCMC for H2O/CO2 molecular fluid, rigid/nvt/small dynamics
+# both molecules are in the same molecule template, the molindex
+# keyword selects which molecule each fix gcmc command inserts,
+# so that both can share the same fix rigid/nvt/small command
+# Rigid SPC/E water model
+# [H.J.C. Berendsen, J.R. Grigera, and T.P. Straatsma,
+# The missing term in effective pair potentials,
+# J. Phys. Chem., 91, 6269-6271 (1987)].
+# Rigid CO2 TraPPE model
+# [J.J. Potoff and J.I. Siepmann, Vapor-liquid equilibria of
+# mixtures containing alkanes, carbon dioxide and
+# nitrogen AIChE J., 47,1676-1682 (2001)].
+
+# variables available on command line
+
+variable        muh2o index -8.0
+variable        muco2 index -8.30
+variable        disp index 0.5
+variable        temp index 338.0
+variable        lbox index 15.0
+
+# global model settings
+
+units           real
+atom_style      full
+boundary        p p p
+pair_style      lj/cut/coul/long  14
+pair_modify     mix arithmetic tail yes
+kspace_style    ewald 0.0001
+bond_style      harmonic
+angle_style     harmonic
+
+# box, start molecules on random places
+
+region          box block 0 ${lbox} 0 ${lbox} 0 ${lbox} units box
+region          box block 0 15.0 0 ${lbox} 0 ${lbox} units box
+region          box block 0 15.0 0 15.0 0 ${lbox} units box
+region          box block 0 15.0 0 15.0 0 15.0 units box
+create_box      4 box                                       bond/types 2                                angle/types 2                               extra/bond/per/atom 2                       extra/angle/per/atom 1                      extra/special/per/atom 2
+Created orthogonal box = (0 0 0) to (15 15 15)
+  1 by 2 by 2 MPI processor grid
+
+# molecule template with both molecules for fix rigid/nvt/small and fix gcmc
+molecule        mols H2O.txt CO2.txt toff 2 boff 1 aoff 1
+Read molecule template mols:
+# Water molecule. SPC/E model.
+  1 molecules
+  0 fragments
+  0 bodies
+  3 atoms with max type 2
+  2 bonds with max type 1
+  1 angles with max type 1
+  0 dihedrals with max type 0
+  0 impropers with max type 0
+Read molecule template mols:
+# CO2 molecule file. TraPPE model.
+  1 molecules
+  0 fragments
+  0 bodies
+  3 atoms with max type 4
+  2 bonds with max type 2
+  1 angles with max type 2
+  0 dihedrals with max type 0
+  0 impropers with max type 0
+# separate molecule templates for creating the initial molecules
+molecule        co2mol CO2.txt toff 2 boff 1 aoff 1
+Read molecule template co2mol:
+# CO2 molecule file. TraPPE model.
+  1 molecules
+  0 fragments
+  0 bodies
+  3 atoms with max type 4
+  2 bonds with max type 2
+  1 angles with max type 2
+  0 dihedrals with max type 0
+  0 impropers with max type 0
+molecule        h2omol H2O.txt
+Read molecule template h2omol:
+# Water molecule. SPC/E model.
+  1 molecules
+  0 fragments
+  0 bodies
+  3 atoms with max type 2
+  2 bonds with max type 1
+  1 angles with max type 1
+  0 dihedrals with max type 0
+  0 impropers with max type 0
+
+create_atoms    0 random 8  42 box mol co2mol 46 overlap 1.7 units box
+Created 24 atoms
+  using box units in orthogonal box = (0 0 0) to (15 15 15)
+  create_atoms CPU = 0.005 seconds
+create_atoms    0 random 20 24 box mol h2omol 64 overlap 1.7 units box
+Created 60 atoms
+  using box units in orthogonal box = (0 0 0) to (15 15 15)
+  create_atoms CPU = 0.000 seconds
+
+# rigid SPC/E water model
+pair_coeff      1 1 0.15535 3.166
+pair_coeff      2 2 0.0000 0.0000
+
+bond_coeff      1     0       1.0
+angle_coeff     1     0       109.47
+
+# rigid CO2 TraPPE model
+pair_coeff      3   3  0.053649   2.8
+pair_coeff      4   4  0.156973   3.05
+bond_coeff      2       0       1.16
+angle_coeff     2       0       180
+
+# masses
+# H2O
+mass 1 15.9994
+mass 2 1.0087
+# CO2
+mass 3 12.0107
+mass 4 15.9994
+
+# MD settings
+
+group           h2o type 1 2
+60 atoms in group h2o
+group           co2 type 3 4
+24 atoms in group co2
+group           mobile union h2o co2
+84 atoms in group mobile
+neighbor        2.0 bin
+neigh_modify    every 1 delay 0 check yes
+velocity        all create ${temp} 54654 mom yes rot yes loop geom
+velocity        all create 338.0 54654 mom yes rot yes loop geom
+timestep        0.2500
+
+# rigid constraints with thermostat
+
+fix             myrigid all rigid/nvt/small molecule temp ${temp} ${temp} $(dt*100) mol mols
+fix             myrigid all rigid/nvt/small molecule temp 338.0 ${temp} $(dt*100) mol mols
+fix             myrigid all rigid/nvt/small molecule temp 338.0 338.0 $(dt*100) mol mols
+fix             myrigid all rigid/nvt/small molecule temp 338.0 338.0 25 mol mols
+Fix rigid/nvt/small setup ...
+  create bodies CPU = 0.000 seconds
+  28 rigid bodies with 84 atoms
+  1.16 = max distance from body owner to body atom
+
+# dynamically update  fix rigid/nvt/small temperature ndof
+fix_modify      myrigid dynamic/dof yes
+
+# forcing MD engine to compute ndof
+run             0
+Ewald initialization ...
+  using 12-bit tables for long-range coulomb
+  G vector (1/distance) = 0.16929433
+  estimated absolute RMS force accuracy = 0.038571276
+  estimated relative force accuracy = 0.00011615625
+  KSpace vectors: actual max1d max3d = 16 2 62
+                  kxmax kymax kzmax  = 2 2 2
+Generated 6 of 6 mixed pair_coeff terms from arithmetic mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 16
+  ghost atom cutoff = 16
+  binsize = 8, bins = 2 2 2
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cut/coul/long, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 16.18 | 16.18 | 16.19 Mbytes
+   Step          Temp          E_pair         E_mol          TotEng         Press     
+         0   360.80029      137.61281      0              193.89611      16317.86     
+Loop time of 2.4435e-06 on 4 procs for 0 steps with 84 atoms
+
+92.1% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0          | 0          | 0          |   0.0 |  0.00
+Bond    | 0          | 0          | 0          |   0.0 |  0.00
+Kspace  | 0          | 0          | 0          |   0.0 |  0.00
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0          | 0          | 0          |   0.0 |  0.00
+Output  | 0          | 0          | 0          |   0.0 |  0.00
+Modify  | 0          | 0          | 0          |   0.0 |  0.00
+Other   |            | 2.444e-06  |            |       |100.00
+
+Nlocal:             21 ave          26 max          11 min
+Histogram: 1 0 0 0 0 0 0 1 0 2
+Nghost:           1815 ave        1881 max        1753 min
+Histogram: 2 0 0 0 0 0 0 0 1 1
+Neighs:        4481.25 ave        6621 max        2342 min
+Histogram: 1 0 0 0 1 1 0 0 0 1
+
+Total # of neighbors = 17925
+Ave neighs/atom = 213.39286
+Ave special neighs/atom = 2
+Neighbor list builds = 0
+Dangerous builds = 0
+# rigid/nvt/small changes dof, so rescale velocities to the target temperature
+velocity        all scale ${temp}
+velocity        all scale 338.0
+WARNING: Changing velocities of atoms in rigid bodies. This has no effect unless rigid bodies are rebuilt (src/velocity.cpp:102)
+
+# dynamically update default temperature ndof
+compute_modify  thermo_temp dynamic/dof yes
+
+thermo          1000
+run             10000 ## relaxation
+Ewald initialization ...
+  using 12-bit tables for long-range coulomb
+  G vector (1/distance) = 0.16929433
+  estimated absolute RMS force accuracy = 0.038571276
+  estimated relative force accuracy = 0.00011615625
+  KSpace vectors: actual max1d max3d = 16 2 62
+                  kxmax kymax kzmax  = 2 2 2
+Generated 6 of 6 mixed pair_coeff terms from arithmetic mixing rule
+Per MPI rank memory allocation (min/avg/max) = 16.18 | 16.18 | 16.19 Mbytes
+   Step          Temp          E_pair         E_mol          TotEng         Press     
+         0   338            137.61281      0              190.33936      869.44125    
+      1000   307.07463     -95.343592      0             -47.441262      8.8156594    
+      2000   360.5534      -116.38714      0             -60.142349      227.35483    
+      3000   304.76683     -133.42678      0             -85.884454     -552.16311    
+      4000   325.40656     -127.1293       0             -76.367268     -289.85649    
+      5000   333.02841     -130.95519      0             -79.004184     -781.81209    
+      6000   466.5026      -126.11617      0             -53.343763      186.40584    
+      7000   289.25191     -130.2068       0             -85.084738     -300.77729    
+      8000   329.46187     -138.39715      0             -87.002511      98.723704    
+      9000   283.169       -148.2148       0             -104.04165     -883.82631    
+     10000   330.25335     -144.8221       0             -93.303988      154.9965     
+Loop time of 3.05137 on 4 procs for 10000 steps with 84 atoms
+
+Performance: 70.788 ns/day, 0.339 hours/ns, 3277.221 timesteps/s, 275.287 katom-step/s
+89.4% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.59506    | 0.66233    | 0.78431    |   8.9 | 21.71
+Bond    | 0.0084486  | 0.0098945  | 0.011869   |   1.3 |  0.32
+Kspace  | 0.19879    | 0.32161    | 0.39155    |  12.9 | 10.54
+Neigh   | 0.015621   | 0.015664   | 0.01571    |   0.0 |  0.51
+Comm    | 0.5557     | 0.55953    | 0.56528    |   0.5 | 18.34
+Output  | 0.00050997 | 0.00051396 | 0.00051805 |   0.0 |  0.02
+Modify  | 1.4246     | 1.428      | 1.4315     |   0.2 | 46.80
+Other   |            | 0.05383    |            |       |  1.76
+
+Nlocal:             21 ave          31 max          12 min
+Histogram: 1 0 0 0 2 0 0 0 0 1
+Nghost:        1786.75 ave        1891 max        1678 min
+Histogram: 1 0 0 0 1 0 1 0 0 1
+Neighs:        4373.75 ave        4741 max        3714 min
+Histogram: 1 0 0 0 0 0 0 1 1 1
+
+Total # of neighbors = 17495
+Ave neighs/atom = 208.27381
+Ave special neighs/atom = 2
+Neighbor list builds = 91
+Dangerous builds = 0
+
+# gcmc
+# MD steps need to be long for relaxation
+variable        tfac equal 5.0/3.0 # (3 trans + 2 rot)/(3 trans)
+## CO2 GCMC
+fix             CO2gcmc co2 gcmc 1000 10 0 0 54341 ${temp} ${muco2} ${disp} mol                 mols molindex 2 tfac_insert ${tfac} group mobile rigid myrigid
+fix             CO2gcmc co2 gcmc 1000 10 0 0 54341 338.0 ${muco2} ${disp} mol                 mols molindex 2 tfac_insert ${tfac} group mobile rigid myrigid
+fix             CO2gcmc co2 gcmc 1000 10 0 0 54341 338.0 -8.30 ${disp} mol                 mols molindex 2 tfac_insert ${tfac} group mobile rigid myrigid
+fix             CO2gcmc co2 gcmc 1000 10 0 0 54341 338.0 -8.30 0.5 mol                 mols molindex 2 tfac_insert ${tfac} group mobile rigid myrigid
+fix             CO2gcmc co2 gcmc 1000 10 0 0 54341 338.0 -8.30 0.5 mol                 mols molindex 2 tfac_insert 1.66666666666667 group mobile rigid myrigid
+
+## H2O GCMC
+fix             H2Ogcmc h2o gcmc 1000 10 0 0 14345 ${temp} ${muh2o} ${disp} mol                 mols molindex 1 tfac_insert ${tfac} group mobile rigid myrigid
+fix             H2Ogcmc h2o gcmc 1000 10 0 0 14345 338.0 ${muh2o} ${disp} mol                 mols molindex 1 tfac_insert ${tfac} group mobile rigid myrigid
+fix             H2Ogcmc h2o gcmc 1000 10 0 0 14345 338.0 -8.0 ${disp} mol                 mols molindex 1 tfac_insert ${tfac} group mobile rigid myrigid
+fix             H2Ogcmc h2o gcmc 1000 10 0 0 14345 338.0 -8.0 0.5 mol                 mols molindex 1 tfac_insert ${tfac} group mobile rigid myrigid
+fix             H2Ogcmc h2o gcmc 1000 10 0 0 14345 338.0 -8.0 0.5 mol                 mols molindex 1 tfac_insert 1.66666666666667 group mobile rigid myrigid
+
+# atom counts
+variable        nh2o    equal count(h2o)/3
+variable        nco2    equal count(co2)/3
+variable        nmob    equal count(mobile)/3
+
+# output
+# CO2
+variable        CO2tacc equal f_CO2gcmc[2]/(f_CO2gcmc[1]+0.1)
+variable        CO2iacc equal f_CO2gcmc[4]/(f_CO2gcmc[3]+0.1)
+variable        CO2dacc equal f_CO2gcmc[6]/(f_CO2gcmc[5]+0.1)
+variable        CO2racc equal f_CO2gcmc[8]/(f_CO2gcmc[7]+0.1)
+# H2o
+variable        H2Otacc equal f_H2Ogcmc[2]/(f_H2Ogcmc[1]+0.1)
+variable        H2Oiacc equal f_H2Ogcmc[4]/(f_H2Ogcmc[3]+0.1)
+variable        H2Odacc equal f_H2Ogcmc[6]/(f_H2Ogcmc[5]+0.1)
+variable        H2Oracc equal f_H2Ogcmc[8]/(f_H2Ogcmc[7]+0.1)
+
+thermo_style    custom step temp press pe ke density atoms v_H2Oiacc v_H2Odacc v_H2Otacc v_H2Oracc v_CO2iacc v_CO2dacc v_CO2tacc v_CO2racc v_nh2o v_nco2 v_nmob
+thermo          1000
+
+# dump            mdump all custom 100 traj.lammpstrj id mol type xu yu zu
+
+# run
+
+run             30000
+Ewald initialization ...
+  using 12-bit tables for long-range coulomb
+  G vector (1/distance) = 0.16929433
+  estimated absolute RMS force accuracy = 0.038571276
+  estimated relative force accuracy = 0.00011615625
+  KSpace vectors: actual max1d max3d = 16 2 62
+                  kxmax kymax kzmax  = 2 2 2
+Generated 6 of 6 mixed pair_coeff terms from arithmetic mixing rule
+WARNING: Fix gcmc using full_energy option (src/MC/fix_gcmc.cpp:573)
+0 atoms in group FixGCMC:gcmc_exclusion_group:CO2gcmc
+0 atoms in group FixGCMC:rotation_gas_atoms:CO2gcmc
+WARNING: Fix gcmc using full_energy option (src/MC/fix_gcmc.cpp:573)
+0 atoms in group FixGCMC:gcmc_exclusion_group:H2Ogcmc
+0 atoms in group FixGCMC:rotation_gas_atoms:H2Ogcmc
+WARNING: Neighbor exclusions used with KSpace solver may give inconsistent Coulombic energies (src/neighbor.cpp:668)
+Per MPI rank memory allocation (min/avg/max) = 16.18 | 16.25 | 16.46 Mbytes
+   Step          Temp          Press          PotEng         KinEng        Density        Atoms      v_H2Oiacc      v_H2Odacc      v_H2Otacc      v_H2Oracc      v_CO2iacc      v_CO2dacc      v_CO2tacc      v_CO2racc        v_nh2o         v_nco2         v_nmob    
+     10000   330.25335      1224.7391     -144.8221       51.51811       0.35051492            84   0              0              0              0              0              0              0              0              20             8              28           
+     11000   369.89176     -635.62673     -163.35429      61.744316      0.38103257            90   0.16393443     0              0              0              0.16393443     0              0              0              21             9              30           
+     12000   348.62851      902.47151     -152.98759      62.351721      0.39876152            96   0.24793388     0              0              0              0.21978022     0.09009009     0              0              23             9              32           
+     13000   371.07148     -437.13579     -172.07698      64.153429      0.38989705            93   0.1863354      0.070921986    0              0              0.21276596     0.1242236      0              0              22             9              31           
+     14000   348.59189     -529.16943     -188.04464      63.73062       0.43320341            99   0.14218009     0.052356021    0              0              0.31413613     0.14218009     0              0              22             11             33           
+     15000   353.19429      326.75835     -197.15695      66.32672       0.45485659           102   0.10676157     0.045248869    0              0              0.31674208     0.10676157     0              0              22             12             34           
+     16000   350.03182     -260.64916     -196.02022      69.906351      0.47258554           108   0.1607717      0.034364261    0              0              0.26819923     0.08797654     0              0              24             12             36           
+     17000   287.90807     -84.149931     -198.48511      59.501816      0.4686613            111   0.19390582     0.029325513    0              0              0.24922118     0.1312336      0              0              26             11             37           
+     18000   303.43898      1722.4323     -219.64249      64.21907       0.49031449           114   0.16241299     0.026954178    0              0              0.2425876      0.11600928     0              0              26             12             38           
+     19000   287.76313      1037.6712     -221.38091      60.61555       0.50310319           114   0.15184382     0.045351474    0              0              0.22675737     0.10845987     0              0              25             13             38           
+     20000   342.41014      187.54427     -240.11236      70.425512      0.48145001           111   0.13972056     0.03992016     0              0              0.1996008      0.11976048     0              0              25             12             37           
+     21000   329.33613      531.67784     -221.68478      66.100356      0.45979683           108   0.12259194     0.037664783    0              0              0.18832392     0.12259194     0              0              25             11             36           
+     22000   335.10224      577.65011     -229.64338      70.920205      0.49031449           114   0.12480499     0.035650624    0              0              0.18302829     0.11647255     0              0              26             12             38           
+     23000   343.89923     -767.52838     -249.76873      76.540673      0.52083214           120   0.12838802     0.03327787     0              0              0.19667171     0.12480499     0              0              27             13             40           
+     24000   346.36341      713.15817     -257.01411      82.595483      0.57300298           129   0.13315579     0.030721966    0              0              0.22503516     0.13024602     0              0              28             15             43           
+     25000   390.60058      82.579695     -244.22901      93.144492      0.57300298           129   0.12804097     0.027739251    0              0              0.21887825     0.11673152     0              0              28             15             43           
+     26000   365.98059      651.64709     -251.58329      89.091687      0.59465616           132   0.12775842     0.04048583     0              0              0.21491783     0.11097411     0              0              28             16             44           
+     27000   350.60176     -976.5587      -254.17366      85.347976      0.59465616           132   0.12208657     0.037453184    0              0              0.20706456     0.10215664     0              0              28             16             44           
+     28000   335.83676      452.50783     -266.52276      83.755822      0.60352063           135   0.12232416     0.036540804    0              0              0.19744483     0.095642933    0              0              29             16             45           
+     29000   331.26847      970.13465     -279.21056      84.262262      0.62517381           138   0.11988012     0.033296337    0              0              0.2020202      0.089020772    0              0              29             17             46           
+     30000   361.14047      351.40363     -273.65899      90.066426      0.60352063           135   0.11310085     0.031880978    0              0              0.19128587     0.094250707    0              0              29             16             45           
+     31000   361.76072     -15.451849     -276.60844      92.377791      0.61238511           138   0.12025902     0.029382958    0              0              0.17804154     0.091659028    0              0              30             16             46           
+     32000   419.47252      511.09872     -284.27205      111.28274      0.65569147           144   0.11393514     0.028275212    0              0              0.18331806     0.090009001    0              0              30             18             48           
+     33000   373.5788      -76.352865     -301.18517      101.33464      0.66455594           147   0.11754828     0.0270027      0              0              0.17841213     0.084674005    0              0              31             18             49           
+     34000   337.33783     -1635.2075     -293.34531      88.15234       0.62124958           141   0.11372868     0.025619129    0              0              0.16934801     0.098280098    0              0              31             16             47           
+     35000   364.18705     -900.02156     -294.27522      95.168515      0.62124958           141   0.10760953     0.024979184    0              0              0.16246954     0.094413847    0              0              31             16             47           
+     36000   325.85452     -1073.409      -290.85241      86.770399      0.64290276           144   0.10518407     0.023603462    0              0              0.17309205     0.097670924    0              0              31             17             48           
+     37000   312.12632     -578.6933      -310.41326      84.665423      0.66455594           147   0.10861694     0.030280091    0              0              0.1715138      0.095518001    0              0              31             18             49           
+     38000   329.45889      250.16033     -305.3736       89.366949      0.66455594           147   0.10555947     0.028964518    0              0              0.16534867     0.092133239    0              0              31             18             49           
+     39000   366.72784      1158.9951     -294.88366      99.476289      0.66455594           147   0.10060362     0.028348689    0              0              0.16300496     0.087189805    0              0              31             18             49           
+     40000   317.87171      444.91799     -315.40719      86.223882      0.66455594           147   0.09733939     0.027378508    0              0              0.15323118     0.086608927    0              0              31             18             49           
+Loop time of 16.0048 on 4 procs for 30000 steps with 147 atoms
+
+Performance: 40.488 ns/day, 0.593 hours/ns, 1874.438 timesteps/s, 275.542 katom-step/s
+88.7% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 4.0609     | 4.4264     | 4.917      |  17.0 | 27.66
+Bond    | 0.0301     | 0.037566   | 0.047277   |   3.2 |  0.23
+Kspace  | 1.2628     | 1.7524     | 2.1162     |  27.1 | 10.95
+Neigh   | 0.25234    | 0.2532     | 0.25408    |   0.2 |  1.58
+Comm    | 1.9237     | 1.9363     | 1.9526     |   0.7 | 12.10
+Output  | 0.0031366  | 0.0031897  | 0.0032235  |   0.1 |  0.02
+Modify  | 7.3612     | 7.3842     | 7.3993     |   0.5 | 46.14
+Other   |            | 0.2116     |            |       |  1.32
+
+Nlocal:          36.75 ave          48 max          21 min
+Histogram: 1 0 0 0 1 0 0 0 1 1
+Nghost:        3255.25 ave        3421 max        3078 min
+Histogram: 1 0 0 0 1 0 1 0 0 1
+Neighs:        13605.5 ave       17387 max        7983 min
+Histogram: 1 0 0 0 1 0 0 0 0 2
+
+Total # of neighbors = 54422
+Ave neighs/atom = 370.21769
+Ave special neighs/atom = 2
+Neighbor list builds = 943
+Dangerous builds = 0
+Total wall time: 0:00:19

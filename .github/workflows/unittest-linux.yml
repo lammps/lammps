@@ -81,10 +81,12 @@ jobs:
         cmake --build build
         ccache -s
 
+    # gcc on this runner image targets x86-64-v3 by default, so it contracts into FMA instructions,
+    # and the tests labeled unstable are made for results without FMA
     - name: Run Tests
       working-directory: build
       shell: bash
-      run: ctest -V --output-junit junit-linux-x86_64-bigbig.xml
+      run: ctest -V -LE unstable --output-junit junit-linux-x86_64-bigbig.xml
 
     # test results from pull request branches are only for the submitters,
     # only post-merge results are published for downstream reporting

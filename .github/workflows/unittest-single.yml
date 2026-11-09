@@ -58,10 +58,14 @@ jobs:
         source linuxenv/bin/activate
         python3 -m pip install numpy
         python3 -m pip install pyyaml
+        # gcc on this runner image targets x86-64-v3 by default, so it contracts into FMA instructions.
+        # With FMA, single precision FFTs exceed some KSpace test tolerances.
         cmake -S cmake -B build \
               -C cmake/presets/gcc.cmake \
               -C cmake/presets/most.cmake \
               -C cmake/presets/nolib.cmake \
+              -D CMAKE_CXX_FLAGS_RELWITHDEBINFO="-g -O2 -DNDEBUG -ffp-contract=off" \
+              -D CMAKE_C_FLAGS_RELWITHDEBINFO="-g -O2 -DNDEBUG -ffp-contract=off" \
               -D CMAKE_CXX_COMPILER_LAUNCHER=ccache \
               -D CMAKE_C_COMPILER_LAUNCHER=ccache \
               -D BUILD_SHARED_LIBS=on \

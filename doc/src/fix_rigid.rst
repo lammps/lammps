@@ -473,6 +473,23 @@ relaxed.  For example, a value of 10.0 means to relax the pressure in
 a timespan of (roughly) 10 time units (e.g. :math:`\tau` or fs or ps
 - see the :doc:`units <units>` command).
 
+.. versionchanged:: TBD
+
+The 6 fix rigid styles *rigid/nvt* *rigid/npt*, *rigid/nph*,
+*rigid/nvt/small*, *rigid/npt/small*, and *rigid/nph/small* follow the equations of
+:ref:`Kamberaj <Kamberaj>` so that the conserved quantity reported by
+the thermo keyword *econserve* stays constant.  The force on the
+barostat includes the factor of the dimension that was missing before, so
+for the same *Pdamp* the box responds faster (by about the square root
+of the number of barostatted dimensions) than in earlier versions.  The
+thermostat chain coupled to the barostat is now integrated as in the
+paper, and it targets one unit of thermal energy for each dimension
+that changes independently.  The pressure seen by the barostat no longer
+includes the change in rigid-body velocities caused by the thermostat
+and barostat themselves.  For these reasons, NPT and NPH trajectories,
+and the pressure reported for NVT runs, differ from those of earlier
+versions.
+
 Regardless of what atoms are in the fix group (the only atoms which
 are time integrated), a global pressure or stress tensor is computed
 for all atoms.  Similarly, when the size of the simulation box is
@@ -862,6 +879,15 @@ The 6 NVT, NPT, NPH rigid fixes compute a global scalar which can be
 accessed by various :doc:`output commands <Howto_output>`.  The scalar
 is the same cumulative energy change due to these fixes described
 above.  The scalar value calculated by this fix is "extensive".
+
+.. versionchanged:: TBD
+
+The scalar of the 6 fix rigid styles *rigid/nvt* *rigid/npt*, *rigid/nph*,
+*rigid/nvt/small*, *rigid/npt/small*, and *rigid/nph/small*  is now only the
+energy of the thermostat and barostat variables.  Earlier versions also
+added the temperature (*rigid/nvt*, *rigid/npt*, *rigid/nph*) or a
+kinetic energy (the *small* styles), so that *econserve* was not
+conserved.
 
 The :doc:`fix_modify <fix_modify>` *virial* option is supported by
 these fixes to add the contribution due to the added forces on atoms

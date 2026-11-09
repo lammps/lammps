@@ -256,6 +256,15 @@ void FixRigidNHSmall::init()
     // set initial volume and reference cell, if not already done
 
     pdim = p_flag[0] + p_flag[1] + p_flag[2];
+
+    // number of independent strain rates acted on by the barostat chain,
+    //   1 for iso / couple xyz, pdim-1 for couple xy, yz, xz, pdim otherwise
+    // this is the diagonal-cell analogue of the d^2 strain degrees of freedom
+    // in Eq. (28) of Kamberaj et al. and reduces to Eq. (18) for iso
+
+    if (pcouple == XYZ) pdof_b = 1;
+    else if (pcouple == XY || pcouple == YZ || pcouple == XZ) pdof_b = pdim - 1;
+    else pdof_b = pdim;
     if (vol0 == 0.0) {
       if (domain->dimension == 2) vol0 = domain->xprd * domain->yprd;
       else vol0 = domain->xprd * domain->yprd * domain->zprd;
@@ -402,7 +411,15 @@ void FixRigidNHSmall::setup(int vflag)
 
 /* ----------------------------------------------------------------------
    perform preforce velocity Verlet integration
-   see Kamberaj paper for step references
+
+   Kamberaj, Low, Neal, J Chem Phys 122, 224114 (2005), Eq. (64) Step 1,
+   with the rotational part written for the (P,Q) quaternion momenta of
+   Miller et al. as in Eq. (66).  Notation (paper -> code):
+     xi_eps       -> epsilon_dot[i]      (one strain rate per dimension)
+     d/g_f xi_eps -> mtk_term2 = sum_i epsilon_dot[i] / g_f
+     xi_1^(t,r)   -> eta_dot_t[0], eta_dot_r[0]
+     xi_eta_1     -> eta_dot_b[0]
+     dt/2         -> dtq,   dt -> dtv,   dt/2 F/m -> dtf/m
 ------------------------------------------------------------------------- */
 
 void FixRigidNHSmall::initial_integrate(int vflag)
@@ -411,11 +428,21 @@ void FixRigidNHSmall::initial_integrate(int vflag)
   double dtfm,mbody[3],tbody[3],fquat[4];
   double dtf2 = dtf * 2.0;
 
-  // advance the barostat to the half step before scaling particle momenta
+  // Step 1 (1)-(2): advance the barostat velocity by a half step
+  //   (1) xi~_eps(t+dt/2) = xi_eps(t) + dt/2 G_eps(t)/W
+  //   (2) xi_eps(t+dt/2)  = exp(-dt/2 xi_eta_1(t)) xi~_eps(t+dt/2)
+  //   this must precede the particle momentum scaling in (5) and (10)
 
   if (pstat_flag) nh_epsilon_dot(0);
 
   // compute scale variables
+  //   scale_t: translational factor of Step 1 (5)
+  //     exp(-dt/2 [xi_1^(t)(t) + (1 + d/g_f) xi_eps(t+dt/2)])
+  //   scale_r: rotational factor of Step 1 (10), Eq. (66) 2nd line
+  //     exp(-dt/2 [xi_1^(r)(t) + d/g_f xi_eps(t+dt/2)])
+  //   scale_v: second term of Step 1 (6), Eq. (63)
+  //     dt exp(dt/2 xi_eps) sinh(dt/2 xi_eps)/(dt/2 xi_eps)
+  //   the sinh(x)/x factor is evaluated as a Maclaurin series
 
   scale_t[0] = scale_t[1] = scale_t[2] = 1.0;
   scale_v[0] = scale_v[1] = scale_v[2] = 1.0;
@@ -442,9 +469,10 @@ void FixRigidNHSmall::initial_integrate(int vflag)
     scale_v[2] = dtv * exp(tmp) * maclaurin_series(tmp);
   }
 
+  // Step 1 (3): epsilon(t+dt) = epsilon(t) + dt xi_eps(t+dt/2)
   // remap simulation box and xcm by full step
-  //   xcm: scaled according to the first term of the RHS of (6) in Step 1
-  //        (Kamberaj et al. page 224114-16)
+  //   xcm: scaled according to the first term of the RHS of (6) in Step 1,
+  //        q -> exp(dt xi_eps(t+dt/2)) q  (Kamberaj et al. page 224114-16)
 
   if (pstat_flag) remap();
 
@@ -454,6 +482,8 @@ void FixRigidNHSmall::initial_integrate(int vflag)
     Body *b = &body[ibody];
 
     // step 1.1 - update vcm by 1/2 step
+    //   Step 1 (4): v~(t+dt/2) = v(t) + dt/2 F(t)/m
+    //   Step 1 (5): v(t+dt/2)  = scale_t v~(t+dt/2)
 
     dtfm = dtf / b->mass;
     b->vcm[0] += dtfm * b->fcm[0];
@@ -467,6 +497,10 @@ void FixRigidNHSmall::initial_integrate(int vflag)
     }
 
     // step 1.2 - update xcm by full step
+    //   Step 1 (6), Eq. (63):
+    //   q(t+dt) = exp(dt xi_eps) q(t)
+    //           + dt exp(dt/2 xi_eps) sinh(dt/2 xi_eps)/(dt/2 xi_eps) v(t+dt/2)
+    //   the first term was applied by remap() above
 
     if (!pstat_flag) {
       b->xcm[0] += dtv * b->vcm[0];
@@ -479,6 +513,10 @@ void FixRigidNHSmall::initial_integrate(int vflag)
     }
 
     // step 1.3 - apply torque (body coords) to quaternion momentum
+    //   Step 1 (7) in the (P,Q) form of Eq. (66):
+    //   P~ = P(t) + dt/2 2 M[Q(t)] T^(4)(t)
+    //   then the Step 1 (10) friction, Eq. (66) 2nd line:
+    //   P~ = exp(-dt/2 [xi_1^(r)(t) + d/g_f xi_eps(t+dt/2)]) P~
 
     MathExtra::transpose_matvec(b->ex_space,b->ey_space,b->ez_space,
                                 b->torque,tbody);
@@ -497,6 +535,9 @@ void FixRigidNHSmall::initial_integrate(int vflag)
     }
 
     // step 1.4 to 1.13 - use no_squish rotate to update p and q
+    //   Step 1 (8),(9),(11) in the (P,Q) form of Eq. (66): free rotation
+    //   split symmetrically as R_3(dt/2) R_2(dt/2) R_1(dt) R_2(dt/2) R_3(dt/2),
+    //   P~ = cos(dt phi_k/2) P~ + sin(dt phi_k/2) D_k P~ and the same for Q
 
     no_squish_rotate(3,b->conjqm,b->quat,b->inertia,dtq);
     no_squish_rotate(2,b->conjqm,b->quat,b->inertia,dtq);
@@ -505,8 +546,8 @@ void FixRigidNHSmall::initial_integrate(int vflag)
     no_squish_rotate(3,b->conjqm,b->quat,b->inertia,dtq);
 
     // update exyz_space
-    // transform p back to angmom
-    // update angular velocity
+    // transform p back to angmom: P = 2 M S^(4), Eq. (6)
+    // update angular velocity: omega = I^-1 S
 
     MathExtra::q_to_exyz(b->quat,b->ex_space,b->ey_space,
                          b->ez_space);
@@ -528,6 +569,8 @@ void FixRigidNHSmall::initial_integrate(int vflag)
   comm->forward_comm(this, INITIAL_BUFSZ);
 
   // accumulate translational and rotational kinetic energies
+  //   2 K_t = sum_i p_i^2/m_i and 2 K_r = sum_i S_i^T I^-1 S_i,
+  //   used in G_1^(t,r) of Eq. (9) and G_eps of Eq. (16)
 
   if (tstat_flag || pstat_flag) {
 
@@ -550,7 +593,7 @@ void FixRigidNHSmall::initial_integrate(int vflag)
 
   // compute target temperature
   // update thermostat chains using akin_t and akin_r
-  // refer to update_nhcp() in Kamberaj et al.
+  // Step 1 (12): UPDATE_NHCP(t -> t+dt), Eq. (58)
 
   if (tstat_flag) {
     compute_temp_target();
@@ -559,7 +602,7 @@ void FixRigidNHSmall::initial_integrate(int vflag)
   }
 
   // update thermostat chains coupled with barostat
-  // refer to update_nhcb() in Kamberaj et al.
+  // Step 1 (13): UPDATE_NHCB(t -> t+dt), Eq. (65)
 
   if (pstat_flag) {
     nhc_press_integrate();
@@ -568,6 +611,17 @@ void FixRigidNHSmall::initial_integrate(int vflag)
   // virial setup before call to set_xv
 
   v_init(vflag);
+
+  // remove the thermostat/barostat part of the vcm change in Step 1 (5),
+  //   v(t+dt/2) - [v(t) + dt/2 F/m] = (1 - 1/scale_t) v(t+dt/2),
+  //   from the constraint force that set_xv() infers from the velocity change
+  // ghost bodies already hold the updated vcm from the forward comm above
+
+  if (tstat_flag || pstat_flag) {
+    double factor[3];
+    for (int k = 0; k < 3; k++) factor[k] = 1.0 - 1.0/scale_t[k];
+    exclude_scaling_from_virial(factor);
+  }
 
   // set coords/orient and velocity/rotation of atoms in rigid bodies
   // from xcm, quarternion and omega
@@ -581,7 +635,10 @@ void FixRigidNHSmall::initial_integrate(int vflag)
   }
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   perform postforce velocity Verlet integration
+   Kamberaj et al., Eq. (64) Step 2, rotational part as in Eq. (66)
+------------------------------------------------------------------------- */
 
 void FixRigidNHSmall::final_integrate()
 {
@@ -593,6 +650,10 @@ void FixRigidNHSmall::final_integrate()
   double dtf2 = dtf * 2.0;
 
   // compute scale variables
+  //   scale_t: translational factor of Step 2 (5)
+  //     exp(-dt/2 [xi_1^(t)(t+dt) + (1 + d/g_f) xi_eps(t+dt/2)])
+  //   scale_r: rotational factor of Step 2 (1), Eq. (66) 2nd last line
+  //     exp(-dt/2 [xi_1^(r)(t+dt) + d/g_f xi_eps(t+dt/2)])
 
   scale_t[0] = scale_t[1] = scale_t[2] = 1.0;
   scale_r = 1.0;
@@ -614,6 +675,17 @@ void FixRigidNHSmall::final_integrate()
 
   if (!earlyflag) compute_forces_and_torques();
 
+  // remove the thermostat/barostat part of the vcm change in Step 2 (5),
+  //   (scale_t - 1) v(t+dt/2), from the constraint force that set_v()
+  //   infers from the velocity change; vcm of local and ghost bodies still
+  //   holds v(t+dt/2) from the forward comm in initial_integrate()
+
+  if (tstat_flag || pstat_flag) {
+    double factor[3];
+    for (int k = 0; k < 3; k++) factor[k] = scale_t[k] - 1.0;
+    exclude_scaling_from_virial(factor);
+  }
+
   // update vcm and angmom
   // include Langevin thermostat forces
   // fflag,tflag = 0 for some dimensions in 2d
@@ -622,6 +694,8 @@ void FixRigidNHSmall::final_integrate()
     Body *b = &body[ibody];
 
     // update vcm by 1/2 step
+    //   Step 2 (5): v~(t+dt) = scale_t v(t+dt/2)
+    //   Step 2 (6): v(t+dt)  = v~(t+dt) + dt/2 F(t+dt)/m
 
     dtfm = dtf / b->mass;
     if (tstat_flag || pstat_flag) {
@@ -636,6 +710,10 @@ void FixRigidNHSmall::final_integrate()
 
     // update conjqm, then transform to angmom, set velocity again
     // virial is already setup from initial_integrate
+    //   Step 2 (1) and (4) in the (P,Q) form of Eq. (66), last two lines:
+    //   P~ = exp(-dt/2 [xi_1^(r)(t+dt) + d/g_f xi_eps(t+dt/2)]) P(t+dt/2)
+    //   P(t+dt) = P~ + dt/2 2 M[Q(t+dt)] T^(4)(t+dt)
+    //   the free rotation of Step 2 (2)-(3) was already done in Step 1
 
     MathExtra::transpose_matvec(b->ex_space,b->ey_space,
                                 b->ez_space,b->torque,tbody);
@@ -700,6 +778,7 @@ void FixRigidNHSmall::final_integrate()
 
   // compute current and target pressures
   // update epsilon dot using akin_t and akin_r
+  //   Step 2 (7)-(8) with G_eps(t+dt) from P_int(t+dt) and K(t+dt)
 
   if (pstat_flag) {
     if (pstyle == ISO) {
@@ -718,7 +797,15 @@ void FixRigidNHSmall::final_integrate()
   }
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   UPDATE_NHCP(t -> t+dt): particle thermostat chains, Kamberaj et al. Eq. (58)
+   applied n_c x n_ys times with dt -> w_j dt / n_c (Yoshida-Suzuki, Table 1):
+     wdti1 = w_j dt/n_c,  wdti2 = wdti1/2,  wdti4 = wdti1/4
+   each chain link xi_k obeys d(xi_k)/dt = G_k/Q_k - xi_{k+1} xi_k (Eq. 8);
+   for constant xi_{k+1} its exact flow over tau, with x = tau xi_{k+1}/2, is
+     xi_k -> exp(-2x) xi_k + tau G_k exp(-x) sinh(x)/x,   Eq. (56)
+   and here tau = dt/2, so x = wdti4 * xi_{k+1}, s = exp(-x), s2 = s*s
+------------------------------------------------------------------------- */
 
 void FixRigidNHSmall::nhc_temp_integrate()
 {
@@ -731,7 +818,8 @@ void FixRigidNHSmall::nhc_temp_integrate()
   gfkt_t = nf_t * kt;
   gfkt_r = nf_r * kt;
 
-  // update thermostat masses
+  // update thermostat masses, Eq. (10)
+  //   Q_p1^(t,r) = g_f^(t,r) k_B T_0 / nu_p^2,  Q_pk = k_B T_0 / nu_p^2 (k >= 2)
 
   double t_mass = boltz * t_target / (t_freq * t_freq);
   q_t[0] = nf_t * t_mass;
@@ -739,7 +827,10 @@ void FixRigidNHSmall::nhc_temp_integrate()
   for (i = 1; i < t_chain; i++)
     q_t[i] = q_r[i] = t_mass;
 
-  // update force of thermostats coupled to particles
+  // update force of thermostats coupled to particles, Eq. (9)
+  //   G_1^(t) = sum_i p_i^2/m_i - g_f^(t) k_B T_0
+  //   G_1^(r) = sum_i S_i^T I^-1 S_i - g_f^(r) k_B T_0
+  //   (f_eta = G/Q)
 
   f_eta_t[0] = (akin_t * mvv2e - gfkt_t) / q_t[0];
   f_eta_r[0] = (akin_r * mvv2e - gfkt_r) / q_r[0];
@@ -750,6 +841,10 @@ void FixRigidNHSmall::nhc_temp_integrate()
     for (j = 0; j < t_order; j++) {
 
       // update thermostat velocities half step
+      //   Eq. (58) (1),(4): xi_M(t+dt/2) = xi_M(t) + dt/2 G_M(t)/Q_M
+      //   Eq. (58) (2),(5): xi_{M-k}(t+dt/2) = exp(-dt/4 xi_{M-k+1})
+      //     [exp(-dt/4 xi_{M-k+1}) xi_{M-k} + dt/2 G_{M-k}
+      //      sinh(dt/4 xi_{M-k+1})/(dt/4 xi_{M-k+1})],  k = 1..M-1
 
       eta_dot_t[t_chain-1] += wdti2[j] * f_eta_t[t_chain-1];
       eta_dot_r[t_chain-1] += wdti2[j] * f_eta_r[t_chain-1];
@@ -771,13 +866,16 @@ void FixRigidNHSmall::nhc_temp_integrate()
       }
 
       // update thermostat positions a full step
+      //   Eq. (58) (3),(6): s_k(t+dt) = s_k(t) + dt xi_k(t+dt/2),  k = 1..M
 
       for (k = 0; k < t_chain; k++) {
         eta_t[k] += wdti1[j] * eta_dot_t[k];
         eta_r[k] += wdti1[j] * eta_dot_r[k];
       }
 
-      // update thermostat forces
+      // update thermostat forces, Eq. (9)
+      //   G_k = Q_{p,k-1} xi_{k-1}^2 - k_B T_0,  k = 2..M
+      //   the paper prints Q^(r) in G_k^(t); the translational chain needs Q^(t)
 
       for (k = 1; k < t_chain; k++) {
         f_eta_t[k] = q_t[k-1] * eta_dot_t[k-1] * eta_dot_t[k-1] - kt;
@@ -787,6 +885,10 @@ void FixRigidNHSmall::nhc_temp_integrate()
       }
 
       // update thermostat velocities a full step
+      //   Eq. (58) (7),(9): xi_k(t+dt) = exp(-dt/4 xi_{k+1}(t+dt/2))
+      //     [exp(-dt/4 xi_{k+1}) xi_k(t+dt/2) + dt/2 G_k(t+dt/2)
+      //      sinh(dt/4 xi_{k+1})/(dt/4 xi_{k+1})],  k = 1..M-1
+      //   Eq. (58) (8),(10): xi_M(t+dt) = xi_M(t+dt/2) + dt/2 G_M(t+dt/2)/Q_M
 
       for (k = 0; k < t_chain-1; k++) {
         tmp = wdti4[j] * eta_dot_t[k+1];
@@ -812,16 +914,23 @@ void FixRigidNHSmall::nhc_temp_integrate()
   }
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   UPDATE_NHCB(t -> t+dt): barostat thermostat chain, Kamberaj et al. Eq. (65)
+   same flow as Eq. (58) with the particle chain variables replaced by the
+   barostat chain variables (eta_k, xi_eta_k, Q_bk, G_eta_k), so with
+   x = wdti4 * xi_eta_{k+1} = (dt/4) xi_eta_{k+1} the update needs
+   s = exp(-x), s2 = s*s = exp(-dt/2 xi_eta_{k+1}), ms = sinh(x)/x
+------------------------------------------------------------------------- */
 
 void FixRigidNHSmall::nhc_press_integrate()
 {
   int i,j,k;
   double tmp,s,s2,ms,kecurrent;
   double kt = boltz * t_target;
-  double lkt_press = kt;
+  double lkt_press = pdof_b * kt;
 
-  // update thermostat masses
+  // update thermostat masses, Eq. (19)
+  //   Q_b1 = d^2 k_B T_0 / nu_b^2,  Q_bk = k_B T_0 / nu_b^2 (k >= 2)
 
   int dimension = domain->dimension;
   double tb_mass = kt / (p_freq_max * p_freq_max);
@@ -833,6 +942,14 @@ void FixRigidNHSmall::nhc_press_integrate()
   }
 
   // update forces acting on thermostat
+  //   barostat mass, Eq. (17): W = (g_f + d) k_B T_0 / nu_b^2
+  //   Eq. (18): G_eta_1 = W xi_eps^2 - k_B T_0
+  //   with one strain rate per barostatted dimension this becomes
+  //   G_eta_1 = (1/pdim) sum_i W_i epsilon_dot_i^2 - n k_B T_0,  n = pdof_b,
+  //   which for an isotropic cell (all epsilon_dot_i = xi_eps, n = 1) is
+  //   Eq. (18); for independent dimensions it is the diagonal analogue of
+  //   Eq. (28), G_eta_1 = W_g Tr(xi_eps^T xi_eps) - d^2 k_B T_0, with the
+  //   n strain rates of a diagonal cell in place of the d^2 of a full tensor
 
   kecurrent = 0.0;
   for (i = 0; i < 3; i++)
@@ -850,24 +967,31 @@ void FixRigidNHSmall::nhc_press_integrate()
     for (j = 0; j < t_order; j++) {
 
       // update thermostat velocities a half step
+      //   Eq. (65) (1): xi_eta_M(t+dt/2) = xi_eta_M(t) + dt/2 G_eta_M(t)/Q_bM
+      //   Eq. (65) (2): xi_eta_{M-k}(t+dt/2) = exp(-dt/4 xi_eta_{M-k+1})
+      //     [exp(-dt/4 xi_eta_{M-k+1}) xi_eta_{M-k} + dt/2 G_eta_{M-k}
+      //      sinh(dt/4 xi_eta_{M-k+1})/(dt/4 xi_eta_{M-k+1})],  k = 1..M-1
+      //   both exponentials are exp(-dt/4 xi), i.e. s = exp(-tmp)
 
       eta_dot_b[p_chain-1] += wdti2[j] * f_eta_b[p_chain-1];
 
       for (k = 1; k < p_chain; k++) {
         tmp = wdti4[j] * eta_dot_b[p_chain-k];
         ms = maclaurin_series(tmp);
-        s = exp(-0.5 * tmp);
+        s = exp(-1.0 * tmp);
         s2 = s * s;
         eta_dot_b[p_chain-k-1] = eta_dot_b[p_chain-k-1] * s2 +
           wdti2[j] * f_eta_b[p_chain-k-1] * s * ms;
       }
 
       // update thermostat positions
+      //   Eq. (65) (3): eta_k(t+dt) = eta_k(t) + dt xi_eta_k(t+dt/2),  k = 1..M
 
       for (k = 0; k < p_chain; k++)
         eta_b[k] += wdti1[j] * eta_dot_b[k];
 
       // update thermostat forces
+      //   Eq. (18): G_eta_k = Q_b{k-1} xi_eta_{k-1}^2 - k_B T_0,  k = 2..M
 
       for (k = 1; k < p_chain; k++) {
         f_eta_b[k] = q_b[k-1] * eta_dot_b[k-1] * eta_dot_b[k-1] - kt;
@@ -875,11 +999,15 @@ void FixRigidNHSmall::nhc_press_integrate()
       }
 
       // update thermostat velocites a full step
+      //   Eq. (65) (4): xi_eta_k(t+dt) = exp(-dt/4 xi_eta_{k+1}(t+dt/2))
+      //     [exp(-dt/4 xi_eta_{k+1}) xi_eta_k(t+dt/2) + dt/2 G_eta_k(t+dt/2)
+      //      sinh(dt/4 xi_eta_{k+1})/(dt/4 xi_eta_{k+1})],  k = 1..M-1
+      //   Eq. (65) (5): xi_eta_M(t+dt) = xi_eta_M(t+dt/2) + dt/2 G_eta_M/Q_bM
 
       for (k = 0; k < p_chain-1; k++) {
         tmp = wdti4[j] * eta_dot_b[k+1];
         ms = maclaurin_series(tmp);
-        s = exp(-0.5 * tmp);
+        s = exp(-1.0 * tmp);
         s2 = s * s;
         eta_dot_b[k] = eta_dot_b[k] * s2 + wdti2[j] * f_eta_b[k] * s * ms;
         tmp = q_b[k] * eta_dot_b[k] * eta_dot_b[k] - kt;
@@ -892,71 +1020,54 @@ void FixRigidNHSmall::nhc_press_integrate()
 }
 
 /* ----------------------------------------------------------------------
-   compute kinetic energy in the extended Hamiltonian
-   conserved quantity = sum of returned energy and potential energy
+   compute the energy of the thermostat and barostat reservoirs
+   this is H_NPT (Eq. 22) or H_NVT (Eq. 12) of Kamberaj et al. minus H_NVE
+   H_NVE = K_t + K_r + U is not included: thermo keyword etotal already
+   holds it, since the atomic kinetic energy of a rigid body equals
+   K_t + K_r of the body, so conserved quantity = econserve = etotal + ecouple
 -----------------------------------------------------------------------*/
 
 double FixRigidNHSmall::compute_scalar()
 {
-  int i,k;
+  int i;
   double kt = boltz * t_target;
-  double energy,ke_t,ke_q,tmp,Pkq[4];
+  double energy = 0.0;
 
-  double *vcm,*quat;
+  // fix rigid/nve/small: keep the previous scalar, the kinetic energy
+  //   sum_b M_b V_b^2 + sum_b sum_k h_k (h_k of Eq. 7), unchanged by these fixes
 
-  // compute the kinetic parts of H_NVE in Kameraj et al (JCP 2005, pp 224114)
-
-  // translational and rotational kinetic energies
-
-  ke_t = 0.0;
-  ke_q = 0.0;
-
-  for (i = 0; i < nlocal_body; i++) {
-    vcm = body[i].vcm;
-    quat = body[i].quat;
-    ke_t += body[i].mass * (vcm[0]*vcm[0] + vcm[1]*vcm[1] +
-      vcm[2]*vcm[2]);
-
-    for (k = 1; k < 4; k++) {
-      if (k == 1) {
-        Pkq[0] = -quat[1];
-        Pkq[1] =  quat[0];
-        Pkq[2] =  quat[3];
-        Pkq[3] = -quat[2];
-      } else if (k == 2) {
-        Pkq[0] = -quat[2];
-        Pkq[1] = -quat[3];
-        Pkq[2] =  quat[0];
-        Pkq[3] =  quat[1];
-      } else if (k == 3) {
-        Pkq[0] = -quat[3];
-        Pkq[1] =  quat[2];
-        Pkq[2] = -quat[1];
-        Pkq[3] =  quat[0];
+  if (!tstat_flag && !pstat_flag) {
+    double ke_t = 0.0, ke_q = 0.0, tmp, Pkq[4];
+    for (i = 0; i < nlocal_body; i++) {
+      double *vcm = body[i].vcm;
+      double *quat = body[i].quat;
+      ke_t += body[i].mass * (vcm[0]*vcm[0] + vcm[1]*vcm[1] + vcm[2]*vcm[2]);
+      for (int k = 1; k < 4; k++) {
+        if (k == 1) {
+          Pkq[0] = -quat[1]; Pkq[1] =  quat[0]; Pkq[2] =  quat[3]; Pkq[3] = -quat[2];
+        } else if (k == 2) {
+          Pkq[0] = -quat[2]; Pkq[1] = -quat[3]; Pkq[2] =  quat[0]; Pkq[3] =  quat[1];
+        } else {
+          Pkq[0] = -quat[3]; Pkq[1] =  quat[2]; Pkq[2] = -quat[1]; Pkq[3] =  quat[0];
+        }
+        tmp = body[i].conjqm[0]*Pkq[0] + body[i].conjqm[1]*Pkq[1] +
+          body[i].conjqm[2]*Pkq[2] + body[i].conjqm[3]*Pkq[3];
+        tmp *= tmp;
+        if (fabs(body[i].inertia[k-1]) < 1e-6) tmp = 0.0;
+        else tmp /= (8.0 * body[i].inertia[k-1]);
+        ke_q += tmp;
       }
-
-      tmp = body[i].conjqm[0]*Pkq[0] + body[i].conjqm[1]*Pkq[1] +
-        body[i].conjqm[2]*Pkq[2] + body[i].conjqm[3]*Pkq[3];
-      tmp *= tmp;
-
-      if (fabs(body[i].inertia[k-1]) < 1e-6) tmp = 0.0;
-      else tmp /= (8.0 * body[i].inertia[k-1]);
-      ke_q += tmp;
     }
+    double ke[2] = {ke_t, ke_q}, keall[2];
+    MPI_Allreduce(ke,keall,2,MPI_DOUBLE,MPI_SUM,world);
+    return (keall[0] + keall[1]) * mvv2e;
   }
-
-  double ke[2],keall[2];
-  ke[0] = ke_t;
-  ke[1] = ke_q;
-  MPI_Allreduce(ke,keall,2,MPI_DOUBLE,MPI_SUM,world);
-  ke_t = keall[0];
-  ke_q = keall[1];
-
-  energy = (ke_t + ke_q) * mvv2e;
 
   if (tstat_flag) {
 
-    // thermostat chain energy: from equation 12 in Kameraj et al (JCP 2005)
+    // thermostat chain energy, Eq. (12) in Kamberaj et al (JCP 2005)
+    //   k_B T_0 [g_f^(t) s_1^(t) + g_f^(r) s_1^(r) + sum_{k=2}^M (s_k^(t) + s_k^(r))]
+    //   + sum_{k=1}^M [Q_pk^(t) (xi_k^(t))^2/2 + Q_pk^(r) (xi_k^(r))^2/2]
 
     energy += kt * (nf_t * eta_t[0] + nf_r * eta_r[0]);
 
@@ -971,7 +1082,10 @@ double FixRigidNHSmall::compute_scalar()
 
   if (pstat_flag) {
 
-    // using equation 22 in Kameraj et al for H_NPT
+    // barostat energy, Eq. (22) in Kamberaj et al for H_NPT
+    //   H_NPT = H_NVT + W xi_eps^2/2 + P_0 V + sum_{k=1}^M [k_B T_0 eta_k + Q_bk xi_eta_k^2/2]
+    // W xi_eps^2/2 -> (1/(2 pdim)) sum_i W_i epsilon_dot_i^2 with one strain rate
+    //   per barostatted dimension; this matches the force in nh_epsilon_dot()
 
     double e = 0.0;
     for (i = 0; i < 3; i++)
@@ -983,9 +1097,17 @@ double FixRigidNHSmall::compute_scalar()
     if (domain->dimension == 2) vol = domain->xprd * domain->yprd;
     else vol = domain->xprd * domain->yprd * domain->zprd;
 
-    double p0 = (p_target[0] + p_target[1] + p_target[2]) / 3.0;
-    energy += p0 * vol / nktv2p;
+    // P_0 must be the same target pressure that enters G_eps in nh_epsilon_dot(),
+    // i.e. the mean over the barostatted dimensions only, or P_0 V does not cancel
 
+    energy += p_hydro * vol / nktv2p;
+
+    // barostat chain: n k_B T_0 eta_1 + k_B T_0 sum_{k=2}^M eta_k + sum_k Q_bk xi_eta_k^2/2
+    //   with n = pdof_b; for iso n = 1 as in Eq. (22); for independent dimensions
+    //   n matches the n k_B T_0 target of G_eta_1 (diagonal analogue of Eqs. 28, 30,
+    //   where the eta_1 coefficient must equal the d^2 of Eq. 28 for H to be conserved)
+
+    energy += (pdof_b - 1) * kt * eta_b[0];
     for (i = 0;  i < p_chain; i++) {
       energy += kt * eta_b[i];
       energy += 0.5 * q_b[i] * (eta_dot_b[i] * eta_dot_b[i]);
@@ -1117,7 +1239,13 @@ void FixRigidNHSmall::compute_press_target()
 /* ----------------------------------------------------------------------
    update epsilon_dot:
      flag = 0: advance half step then scale (Eq. 64, Step 1 1-2)
+       (1) xi~_eps(t+dt/2) = xi_eps(t) + dt/2 G_eps(t)/W
+       (2) xi_eps(t+dt/2)  = exp(-dt/2 xi_eta_1(t)) xi~_eps(t+dt/2)
      flag = 1: scale then advance half step (Eq. 64, Step 2 7-8)
+       (7) xi~_eps(t+dt) = exp(-dt/2 xi_eta_1(t+dt)) xi_eps(t+dt/2)
+       (8) xi_eps(t+dt)  = xi~_eps(t+dt) + dt/2 G_eps(t+dt)/W
+     the paper prints dt/2 G_eps in (1) and (8); the operator of Eq. (62)
+     is exp(dt/2 G_eps/W d/d xi_eps), so the division by W is required
 -----------------------------------------------------------------------*/
 
 void FixRigidNHSmall::nh_epsilon_dot(int flag)
@@ -1131,24 +1259,75 @@ void FixRigidNHSmall::nh_epsilon_dot(int flag)
   else volume = domain->xprd*domain->yprd*domain->zprd;
 
   // MTK terms
+  //   mtk_term1 = (2 K_t + 2 K_r) / g_f, the last term of G_eps in Eq. (16)
 
   mtk_term1 = (akin_t + akin_r) * mvv2e / g_f;
 
   scale = exp(-1.0 * dtq * eta_dot_b[0]);
 
+  // barostat force, Eq. (16):
+  //   G_eps = d V (P_int - P_0) + d/g_f (2 K_t + 2 K_r)
+  //         = d [(P_int - P_0) V + mtk_term1]
+  // with one strain rate per barostatted dimension the factor d becomes pdim,
+  //   d(epsilon_dot_i)/dt = pdim [(P_i - P_0) V + mtk_term1] / W_i - xi_eta_1 epsilon_dot_i
+  // so that, together with the energy (1/(2 pdim)) sum_i W_i epsilon_dot_i^2
+  // in compute_scalar(), Eq. (22) is conserved; for an isotropic cell this
+  // is exactly d(xi_eps)/dt = G_eps/W - xi_eta_1 xi_eps of Eq. (15)
+  //
+  // P_int is the molecular pressure (2 K_t + sum_i q_i . F_i)/(d V); the
+  // rotational kinetic energy printed in Eq. (21) must not enter it, or
+  // Eq. (22) is not conserved.  The atomic pressure with the rigid-body
+  // constraint virial equals this molecular pressure, as long as the
+  // constraint virial excludes the thermostat/barostat velocity scaling
+  // (see exclude_scaling_from_virial())
+
   for (i = 0; i < 3; i++)
     if (p_flag[i]) {
       f_epsilon = (p_current[i]-p_hydro)*volume / nktv2p + mtk_term1;
+      f_epsilon *= pdim;
       f_epsilon /= epsilon_mass[i];
       if (flag) epsilon_dot[i] *= scale;
       epsilon_dot[i] += dtq * f_epsilon;
       if (!flag) epsilon_dot[i] *= scale;
     }
 
+  // mtk_term2 = d/g_f xi_eps, the coupling in Eqs. (14) and (15)
+
   mtk_term2 = 0.0;
   for (i = 0; i < 3; i++)
     if (p_flag[i]) mtk_term2 += epsilon_dot[i];
   mtk_term2 /= g_f;
+}
+
+/* ----------------------------------------------------------------------
+   keep the thermostat/barostat scaling of vcm out of the constraint virial
+   set_xv() and set_v() infer the constraint force on each atom from its
+   velocity change, fc = m (v_new - v_old)/dtf - f.  The friction terms
+   -xi_1^(t) p and -(1 + d/g_f) xi_eps p of Eq. (15) also change vcm, but
+   they are not constraint forces.  Left in, they add
+     -1/(d V) sum_k c_k sum_b M_b X_bk V_bk
+   to the pressure (c_k = friction rate along k), which does not vanish as
+   dt -> 0 and enters dH/dt = d V xi_eps (P_atomic - P_mol) directly.
+   Shifting v_old by factor[k] * vcm[k] for every atom of a body removes
+   exactly this translational part from the inferred force.
+   atom2body may point to a ghost body, whose vcm is current from the
+   forward comm.  The atom velocities are reset by set_xv()/set_v() right after.
+------------------------------------------------------------------------- */
+
+void FixRigidNHSmall::exclude_scaling_from_virial(const double *factor)
+{
+  if (!evflag) return;
+
+  double **v = atom->v;
+  int nlocal = atom->nlocal;
+
+  for (int i = 0; i < nlocal; i++) {
+    if (atom2body[i] < 0) continue;
+    const double *vcm = body[atom2body[i]].vcm;
+    v[i][0] += factor[0] * vcm[0];
+    v[i][1] += factor[1] * vcm[1];
+    v[i][2] += factor[2] * vcm[2];
+  }
 }
 
 /* ---------------------------------------------------------------------- */

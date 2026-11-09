@@ -52,6 +52,7 @@ template <class DeviceType> class FixRigidNHSmallKokkos : public FixRigidSmallKo
                                    const double scale_v[3]);
   void nh_final_integrate_bodies(const double scale_r, const double scale_t[3]);
   void nh_akin(double &akin_t_out, double &akin_r_out);
+  void exclude_scaling_from_virial(const double *);
 
  protected:
   using Range1D = Kokkos::RangePolicy<DeviceType>;
@@ -145,6 +146,7 @@ template <class DeviceType> class FixRigidNHSmallKokkos : public FixRigidSmallKo
   double vol0;          // reference volume
   double t0;            // reference temperature
   int pdim, g_f;        // number of barostatted dims, total DoFs
+  int pdof_b;           // number of independent barostat strain rates
   double p_hydro;       // hydrostatic target pressure
   double p_freq_max;    // maximum barostat frequency
 

@@ -77,6 +77,7 @@ class FixRigidNHSmall : public FixRigidSmall {
   void compute_press_target();
   void nh_epsilon_dot(int);
   void exclude_scaling_from_virial(const double *);
+  void molecular_pressure_correction(double *);
   void compute_dof();
 
   void allocate_chain();

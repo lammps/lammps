@@ -16,6 +16,7 @@
    Contributing author: Trung Dac Nguyen (ORNL) for the host fix rigid/nh/small
    references: Kamberaj et al., J. Chem. Phys. 122, 224114 (2005)
                Miller et al., J Chem Phys. 116, 8649-8659 (2002)
+               Glaser et al., Comput. Mater. Sci. 173, 109430 (2020)
 ------------------------------------------------------------------------- */
 
 #include "fix_rigid_nh_small_kokkos.h"
@@ -381,7 +382,7 @@ void FixRigidNHSmallKokkos<DeviceType>::setup(int vflag)
     atomKK->sync(execution_space,temperature->datamask_modify);
     atomKK->sync(execution_space,pressure->datamask_modify);
 
-    couple();
+    couple(1);
     pressure->addstep(update->ntimestep+1);
   }
 
@@ -1122,15 +1123,130 @@ double FixRigidNHSmallKokkos<DeviceType>::compute_scalar()
   return energy;
 }
 
+/* ----------------------------------------------------------------------
+   difference between the molecular and the atomic pressure, diagonal components
+     V (P_mol - P_atomic)_kk = sum_b M_b V_bk^2 - sum_i m_i v_ik^2
+                             - W_fix,kk - sum_i d_ik f_ik
+   Glaser et al., Comput Mater Sci 173, 109430 (2020), Eqs. (14), (23)-(24)
+   see FixRigidNHSmall::molecular_pressure_correction() for details
+   hostflag = 1: use the host body[] and atom arrays (during setup)
+   hostflag = 0: reduce on the device (during a run)
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+void FixRigidNHSmallKokkos<DeviceType>::molecular_pressure_correction(double *dp, int hostflag)
+{
+  const int nlocal = atom->nlocal;
+  const double l_mvv2e = mvv2e;
+  double w[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+
+  if (hostflag) {
+    int hostmask = V_MASK | F_MASK | TYPE_MASK;
+    if (atom->rmass) hostmask |= RMASS_MASK;
+    atomKK->sync(Host, hostmask);
+    double **v = atom->v;
+    double **f = atom->f;
+    double *rmass = atom->rmass;
+    double *mass = atom->mass;
+    int *type = atom->type;
+    double delta[3], massone;
+
+    for (int i = 0; i < nlocal; i++) {
+      if (this->atom2body[i] < 0) continue;
+      Body *b = &body[this->atom2body[i]];
+      massone = rmass ? rmass[i] : mass[type[i]];
+      MathExtra::matvec(b->ex_space,b->ey_space,b->ez_space,this->displace[i],delta);
+      for (int k = 0; k < 3; k++)
+        w[k] -= massone * v[i][k] * v[i][k] * l_mvv2e + delta[k] * f[i][k];
+    }
+    for (int ibody = 0; ibody < nlocal_body; ibody++) {
+      Body *b = &body[ibody];
+      for (int k = 0; k < 3; k++) w[3+k] += b->mass * b->vcm[k] * b->vcm[k] * l_mvv2e;
+    }
+
+  } else {
+    int devmask = V_MASK | F_MASK | TYPE_MASK;
+    if (atom->rmass) devmask |= RMASS_MASK;
+    atomKK->sync(execution_space, devmask);
+    if (!atom->rmass) atomKK->k_mass.template sync<DeviceType>();
+
+    auto l_v = atomKK->k_v.template view<DeviceType>();
+    auto l_f = atomKK->k_f.template view<DeviceType>();
+    auto l_type = atomKK->k_type.template view<DeviceType>();
+    auto l_rmass = atomKK->k_rmass.template view<DeviceType>();
+    auto l_mass = atomKK->k_mass.template view<DeviceType>();
+    auto l_atom2body = this->d_atom2body;
+    auto l_displace = this->d_displace;
+    auto l_body = this->d_body;
+    const int rmassflag = atom->rmass ? 1 : 0;
+
+    double w0 = 0.0, w1 = 0.0, w2 = 0.0;
+    Kokkos::parallel_reduce("fix rigid/nh/small molecular pressure atoms",
+      Range1D(0, nlocal),
+      KOKKOS_LAMBDA(const int i, double &a0, double &a1, double &a2) {
+        const int ibody = l_atom2body(i);
+        if (ibody < 0) return;
+        const Body &b = l_body(ibody);
+        const double m = rmassflag ? static_cast<double>(l_rmass(i))
+                                   : static_cast<double>(l_mass(l_type(i)));
+        const double d0 = l_displace(i,0), d1 = l_displace(i,1), d2 = l_displace(i,2);
+        const double dx = b.ex_space[0]*d0 + b.ey_space[0]*d1 + b.ez_space[0]*d2;
+        const double dy = b.ex_space[1]*d0 + b.ey_space[1]*d1 + b.ez_space[1]*d2;
+        const double dz = b.ex_space[2]*d0 + b.ey_space[2]*d1 + b.ez_space[2]*d2;
+        const double vx = l_v(i,0), vy = l_v(i,1), vz = l_v(i,2);
+        a0 -= m * vx * vx * l_mvv2e + dx * static_cast<double>(l_f(i,0));
+        a1 -= m * vy * vy * l_mvv2e + dy * static_cast<double>(l_f(i,1));
+        a2 -= m * vz * vz * l_mvv2e + dz * static_cast<double>(l_f(i,2));
+      }, w0, w1, w2);
+
+    double b0 = 0.0, b1 = 0.0, b2 = 0.0;
+    Kokkos::parallel_reduce("fix rigid/nh/small molecular pressure bodies",
+      Range1D(0, nlocal_body),
+      KOKKOS_LAMBDA(const int ibody, double &a0, double &a1, double &a2) {
+        const Body &b = l_body(ibody);
+        a0 += b.mass * b.vcm[0] * b.vcm[0] * l_mvv2e;
+        a1 += b.mass * b.vcm[1] * b.vcm[1] * l_mvv2e;
+        a2 += b.mass * b.vcm[2] * b.vcm[2] * l_mvv2e;
+      }, b0, b1, b2);
+
+    w[0] = w0; w[1] = w1; w[2] = w2;
+    w[3] = b0; w[4] = b1; w[5] = b2;
+  }
+
+  if (this->thermo_virial && this->vflag_global)
+    for (int k = 0; k < 3; k++) w[k] -= this->virial[k];
+
+  double wall[6];
+  MPI_Allreduce(w,wall,6,MPI_DOUBLE,MPI_SUM,world);
+
+  double volume;
+  if (domain->dimension == 2) volume = domain->xprd * domain->yprd;
+  else volume = domain->xprd * domain->yprd * domain->zprd;
+
+  for (int k = 0; k < 3; k++) dp[k] = (wall[k] + wall[3+k]) * nktv2p / volume;
+}
+
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-void FixRigidNHSmallKokkos<DeviceType>::couple()
+void FixRigidNHSmallKokkos<DeviceType>::couple(int hostflag)
 {
-  double *tensor = pressure->vector;
+  // P_int of Eq. (16) is the molecular pressure (2 K_t + sum_b R_b . F_b)/(d V),
+  // so correct the atomic pressure of the pressure compute for rigid bodies
+  // hostflag = 1 in setup(), before the body data is pushed to the device
+
+  double dp[3];
+  molecular_pressure_correction(dp, hostflag);
+
+  double tensor[3];
+  if (pstyle != ISO)
+    for (int k = 0; k < 3; k++) tensor[k] = pressure->vector[k] + dp[k];
 
   if (pstyle == ISO) {
-    p_current[0] = p_current[1] = p_current[2] = pressure->scalar;
+    double dpiso;
+    if (domain->dimension == 2) dpiso = 0.5 * (dp[0] + dp[1]);
+    else dpiso = (dp[0] + dp[1] + dp[2]) / 3.0;
+    p_current[0] = p_current[1] = p_current[2] = pressure->scalar + dpiso;
   } else if (pcouple == XYZ) {
     double ave = 1.0/3.0 * (tensor[0] + tensor[1] + tensor[2]);
     p_current[0] = p_current[1] = p_current[2] = ave;

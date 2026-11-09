@@ -16,6 +16,7 @@
    Contributing author: Tony Sheh (U Michigan), Trung Dac Nguyen (U Michigan)
    references: Kamberaj et al., J. Chem. Phys. 122, 224114 (2005)
                Miller et al., J Chem Phys. 116, 8649-8659 (2002)
+               Glaser et al., Comput. Mater. Sci. 173, 109430 (2020)
 ------------------------------------------------------------------------- */
 
 #include "fix_rigid_nh.h"
@@ -1087,14 +1088,89 @@ double FixRigidNH::compute_scalar()
   return energy;
 }
 
+/* ----------------------------------------------------------------------
+   difference between the molecular and the atomic pressure, diagonal components
+   With the equations of motion (15)-(19) of Kamberaj et al., the time
+   derivative of H_NPT in Eq. (22) is
+     dH_NPT/dt = xi_eps [d V P_int - 2 K_t - sum_b R_b . F_b]
+   so H_NPT is conserved only if d V P_int = 2 K_t + sum_b R_b . F_b,
+   i.e. Eq. (21) without its rotational term.  The pressure compute returns the
+   atomic pressure (sum_i m_i v_i^2 + sum_i r_i . f_i + W_fix)/(d V), where W_fix
+   is the constraint virial this fix infers from velocity changes.  For each
+   diagonal component k, with d_i = r_i - R_b the displacement of atom i from the
+   center of mass of its body, the molecular pressure follows from
+     V (P_mol - P_atomic)_kk = sum_b M_b V_bk^2 - sum_i m_i v_ik^2
+                             - W_fix,kk - sum_i d_ik f_ik
+   sums over atoms run only over atoms in rigid bodies; other atoms keep their
+   atomic contributions.  This assumes the pressure compute includes the kinetic
+   term of all atoms and all virial contributions (the default).
+   This is the molecular pressure of Glaser et al., Comput Mater Sci 173,
+   109430 (2020), Eq. (14), with the configurational part from the atomic
+   virial minus sum_i F_i . R(Omega_i) r_i^rest as in their Eqs. (23)-(24)
+   and Algorithm 2.  Unlike the atomic virial with constraint forces inferred
+   from velocity changes, it does not depend on the order of the update
+   operations in the integrator (their Section 3.1).
+------------------------------------------------------------------------- */
+
+void FixRigidNH::molecular_pressure_correction(double *dp)
+{
+  double **v = atom->v;
+  double **f = atom->f;
+  double *rmass = atom->rmass;
+  double *mass = atom->mass;
+  int *type = atom->type;
+  int nlocal = atom->nlocal;
+
+  double w[3] = {0.0, 0.0, 0.0};
+  double delta[3], massone;
+
+  for (int i = 0; i < nlocal; i++) {
+    if (body[i] < 0) continue;
+    const int ibody = body[i];
+    massone = rmass ? rmass[i] : mass[type[i]];
+    MathExtra::matvec(ex_space[ibody],ey_space[ibody],ez_space[ibody],displace[i],delta);
+    for (int k = 0; k < 3; k++)
+      w[k] -= massone * v[i][k] * v[i][k] * mvv2e + delta[k] * f[i][k];
+  }
+
+  if (thermo_virial && vflag_global)
+    for (int k = 0; k < 3; k++) w[k] -= virial[k];
+
+  double wall[3];
+  MPI_Allreduce(w,wall,3,MPI_DOUBLE,MPI_SUM,world);
+
+  // body translational kinetic term; bodies are replicated on every rank
+
+  for (int ibody = 0; ibody < nbody; ibody++)
+    for (int k = 0; k < 3; k++)
+      wall[k] += masstotal[ibody] * vcm[ibody][k] * vcm[ibody][k] * mvv2e;
+
+  double volume;
+  if (domain->dimension == 2) volume = domain->xprd * domain->yprd;
+  else volume = domain->xprd * domain->yprd * domain->zprd;
+
+  for (int k = 0; k < 3; k++) dp[k] = wall[k] * nktv2p / volume;
+}
+
 /* ---------------------------------------------------------------------- */
 
 void FixRigidNH::couple()
 {
-  double *tensor = pressure->vector;
+  // P_int of Eq. (16) is the molecular pressure (2 K_t + sum_b R_b . F_b)/(d V),
+  // so correct the atomic pressure of the pressure compute for rigid bodies
+
+  double dp[3];
+  molecular_pressure_correction(dp);
+
+  double tensor[3];
+  if (pstyle != ISO)
+    for (int k = 0; k < 3; k++) tensor[k] = pressure->vector[k] + dp[k];
 
   if (pstyle == ISO) {
-    p_current[0] = p_current[1] = p_current[2] = pressure->scalar;
+    double dpiso;
+    if (domain->dimension == 2) dpiso = 0.5 * (dp[0] + dp[1]);
+    else dpiso = (dp[0] + dp[1] + dp[2]) / 3.0;
+    p_current[0] = p_current[1] = p_current[2] = pressure->scalar + dpiso;
   } else if (pcouple == XYZ) {
     double ave = 1.0/3.0 * (tensor[0] + tensor[1] + tensor[2]);
     p_current[0] = p_current[1] = p_current[2] = ave;
@@ -1241,10 +1317,8 @@ void FixRigidNH::nh_epsilon_dot(int flag)
   //
   // P_int is the molecular pressure (2 K_t + sum_i q_i . F_i)/(d V); the
   // rotational kinetic energy printed in Eq. (21) must not enter it, or
-  // Eq. (22) is not conserved.  The atomic pressure with the rigid-body
-  // constraint virial equals this molecular pressure, as long as the
-  // constraint virial excludes the thermostat/barostat velocity scaling
-  // (see exclude_scaling_from_virial())
+  // Eq. (22) is not conserved.  p_current holds this molecular pressure,
+  // see couple() and molecular_pressure_correction()
 
   for (i = 0; i < 3; i++)
     if (p_flag[i]) {
@@ -1272,9 +1346,12 @@ void FixRigidNH::nh_epsilon_dot(int flag)
    they are not constraint forces.  Left in, they add
      -1/(d V) sum_k c_k sum_b M_b X_bk V_bk
    to the pressure (c_k = friction rate along k), which does not vanish as
-   dt -> 0 and enters dH/dt = d V xi_eps (P_atomic - P_mol) directly.
+   dt -> 0.
    Shifting v_old by factor[k] * vcm[k] for every atom of a body removes
    exactly this translational part from the inferred force.
+   The barostat itself uses the molecular pressure (see couple()), which
+   does not depend on this virial; the shift keeps the pressure reported by
+   the pressure compute free of the thermostat/barostat scaling.
    The atom velocities are reset by set_xv()/set_v() right after.
 ------------------------------------------------------------------------- */
 

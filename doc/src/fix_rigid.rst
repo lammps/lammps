@@ -475,7 +475,7 @@ a timespan of (roughly) 10 time units (e.g. :math:`\tau` or fs or ps
 
 .. versionchanged:: TBD
 
-The 6 fix rigid styles *rigid/nvt* *rigid/npt*, *rigid/nph*,
+The 6 fix rigid styles *rigid/nvt*, *rigid/npt*, *rigid/nph*,
 *rigid/nvt/small*, *rigid/npt/small*, and *rigid/nph/small* follow the equations of
 :ref:`Kamberaj <Kamberaj>` so that the conserved quantity reported by
 the thermo keyword *econserve* stays constant.  The force on the
@@ -484,11 +484,21 @@ for the same *Pdamp* the box responds faster (by about the square root
 of the number of barostatted dimensions) than in earlier versions.  The
 thermostat chain coupled to the barostat is now integrated as in the
 paper, and it targets one unit of thermal energy for each dimension
-that changes independently.  The pressure seen by the barostat no longer
-includes the change in rigid-body velocities caused by the thermostat
-and barostat themselves.  For these reasons, NPT and NPH trajectories,
-and the pressure reported for NVT runs, differ from those of earlier
-versions.
+that changes independently.  The barostat now acts on the molecular
+pressure of the rigid bodies :ref:`(Glaser) <Glaser>`: the kinetic part uses only the
+center-of-mass motion of each body, and the virial uses the total
+force on each body at its center of mass.  Atoms that are not part of a
+rigid body contribute as usual.  The pressure reported by the pressure
+compute is still the atomic pressure, but it no longer includes the
+change in rigid-body velocities caused by the thermostat and barostat
+themselves.  For these reasons, NPT and NPH trajectories, and the
+pressure reported for NVT runs, differ from those of earlier versions.
+
+The molecular pressure is obtained by correcting the result of the
+pressure compute used by the fix, so a compute assigned with the
+*press* option of :doc:`fix_modify <fix_modify>` must include the
+kinetic energy of all atoms and all virial contributions, as the
+default :doc:`compute pressure <compute_pressure>` does.
 
 Regardless of what atoms are in the fix group (the only atoms which
 are time integrated), a global pressure or stress tensor is computed
@@ -882,8 +892,8 @@ above.  The scalar value calculated by this fix is "extensive".
 
 .. versionchanged:: TBD
 
-The scalar of the 6 fix rigid styles *rigid/nvt* *rigid/npt*, *rigid/nph*,
-*rigid/nvt/small*, *rigid/npt/small*, and *rigid/nph/small*  is now only the
+The scalar of the 6 fix rigid styles *rigid/nvt*, *rigid/npt*, *rigid/nph*,
+*rigid/nvt/small*, *rigid/npt/small*, and *rigid/nph/small* is now only the
 energy of the thermostat and barostat variables.  Earlier versions also
 added the temperature (*rigid/nvt*, *rigid/npt*, *rigid/nph*) or a
 kinetic energy (the *small* styles), so that *econserve* was not
@@ -1033,6 +1043,11 @@ meaning all rigid bodies are acted on by center-of-mass force and
 torque.  Also Tchain = Pchain = 10, Titer = 1, Torder = 3, reinit = yes.
 
 ----------
+
+.. _Glaser:
+
+**(Glaser)** Glaser, Zha, Anderson, Glotzer, Travesset, Comput Mater Sci,
+173, 109430 (2020).
 
 .. _Hoover:
 

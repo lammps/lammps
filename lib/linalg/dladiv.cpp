@@ -19,9 +19,9 @@ int dladiv_(doublereal *a, doublereal *b, doublereal *c__, doublereal *d__, doub
     d__1 = abs(*c__), d__2 = abs(*d__);
     cd = max(d__1, d__2);
     s = 1.;
-    ov = dlamch_((char *)"Overflow threshold", (ftnlen)18);
-    un = dlamch_((char *)"Safe minimum", (ftnlen)12);
-    eps = dlamch_((char *)"Epsilon", (ftnlen)7);
+    ov = dlamch_((char *)"O", (ftnlen)1);
+    un = dlamch_((char *)"S", (ftnlen)1);
+    eps = dlamch_((char *)"E", (ftnlen)1);
     be = 2. / (eps * eps);
     if (ab >= ov * .5) {
         aa *= .5;

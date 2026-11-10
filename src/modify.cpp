@@ -763,7 +763,7 @@ void Modify::reset_grid()
 
 void Modify::image_flip(int flipxy, int flipxz, int flipyz)
 {
-  for (int i = 0; i < nfix; i++) fix[i]->image_flip(flipxy, flipxz, flipyz);
+  for (std::size_t i = 0; i < fixes.size(); i++) fixes[i]->image_flip(flipxy, flipxz, flipyz);
 }
 
 /* ----------------------------------------------------------------------

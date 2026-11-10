@@ -111,6 +111,7 @@ Commands
    units
    variable
    velocity
+   velocity_tspin
    write_coeff
    write_data
    write_dump

@@ -106,7 +106,7 @@ int dlasd7_(integer *icompq, integer *nl, integer *nr, integer *sqre, integer *k
         vf[i__] = vfw[idxi];
         vl[i__] = vlw[idxi];
     }
-    eps = dlamch_((char *)"Epsilon", (ftnlen)7);
+    eps = dlamch_((char *)"E", (ftnlen)1);
     d__1 = abs(*alpha), d__2 = abs(*beta);
     tol = max(d__1, d__2);
     d__2 = (d__1 = d__[n], abs(d__1));

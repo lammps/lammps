@@ -30,7 +30,7 @@ int dtrexc_(char *compq, integer *n, doublereal *t, integer *ldt, doublereal *q,
         *info = -2;
     } else if (*ldt < max(1, *n)) {
         *info = -4;
-    } else if (*ldq < 1 || wantq && *ldq < max(1, *n)) {
+    } else if (*ldq < 1 || (wantq && *ldq < max(1, *n))) {
         *info = -6;
     } else if ((*ifst < 1 || *ifst > *n) && *n > 0) {
         *info = -7;

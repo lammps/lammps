@@ -121,15 +121,15 @@ int dstemr_(char *jobz, char *range, integer *n, doublereal *d__, doublereal *e,
         *info = -8;
     } else if (indeig && (iiu < iil || iiu > *n)) {
         *info = -9;
-    } else if (*ldz < 1 || wantz && *ldz < *n) {
+    } else if (*ldz < 1 || (wantz && *ldz < *n)) {
         *info = -13;
     } else if (*lwork < lwmin && !lquery) {
         *info = -17;
     } else if (*liwork < liwmin && !lquery) {
         *info = -19;
     }
-    safmin = dlamch_((char *)"Safe minimum", (ftnlen)12);
-    eps = dlamch_((char *)"Precision", (ftnlen)9);
+    safmin = dlamch_((char *)"S", (ftnlen)1);
+    eps = dlamch_((char *)"P", (ftnlen)1);
     smlnum = safmin / eps;
     bignum = 1. / smlnum;
     rmin = sqrt(smlnum);
@@ -194,7 +194,7 @@ int dstemr_(char *jobz, char *range, integer *n, doublereal *d__, doublereal *e,
             r2 = e[2];
             laeswap = TRUE_;
         }
-        if (alleig || valeig && r2 > wl && r2 <= wu || indeig && iil == 1) {
+        if (alleig || (valeig && r2 > wl && r2 <= wu) || (indeig && iil == 1)) {
             ++(*m);
             w[*m] = r2;
             if (wantz && !zquery) {
@@ -219,7 +219,7 @@ int dstemr_(char *jobz, char *range, integer *n, doublereal *d__, doublereal *e,
                 }
             }
         }
-        if (alleig || valeig && r1 > wl && r1 <= wu || indeig && iiu == 2) {
+        if (alleig || (valeig && r1 > wl && r1 <= wu) || (indeig && iiu == 2)) {
             ++(*m);
             w[*m] = r1;
             if (wantz && !zquery) {

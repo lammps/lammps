@@ -270,8 +270,6 @@ void NPairIntel::bin_newton(NeighList *list,
             #if defined(LMP_SIMD_COMPILER)
 #if defined(USE_OMP_SIMD)
             #pragma omp simd
-#else
-            #pragma simd
 #endif
             #endif
             for (int jj = bstart; jj < bend; jj++)
@@ -280,8 +278,6 @@ void NPairIntel::bin_newton(NeighList *list,
           #if defined(LMP_SIMD_COMPILER)
 #if defined(USE_OMP_SIMD)
           #pragma omp simd
-#else
-          #pragma simd
 #endif
           #pragma vector aligned
           #endif
@@ -309,8 +305,6 @@ void NPairIntel::bin_newton(NeighList *list,
             #if defined(LMP_SIMD_COMPILER)
 #if defined(USE_OMP_SIMD)
             #pragma omp simd
-#else
-            #pragma simd
 #endif
             #endif
             for (int jj = bstart; jj < bend; jj++) {
@@ -481,8 +475,6 @@ void NPairIntel::bin_newton(NeighList *list,
           #else
 #if defined(USE_OMP_SIMD)
           #pragma omp simd
-#else
-          #pragma simd
 #endif
           #endif
           #pragma vector aligned
@@ -518,8 +510,6 @@ void NPairIntel::bin_newton(NeighList *list,
             #else
 #if defined(USE_OMP_SIMD)
             #pragma omp simd
-#else
-            #pragma simd
 #endif
             #endif
             #pragma vector aligned

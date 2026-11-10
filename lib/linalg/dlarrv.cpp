@@ -125,8 +125,8 @@ int dlarrv_(integer *n, doublereal *vl, doublereal *vu, doublereal *d__, doubler
         zusedu = *dou + 1;
     }
     zusedw = zusedu - zusedl + 1;
-    dlaset_((char *)"Full", n, &zusedw, &c_b5, &c_b5, &z__[zusedl * z_dim1 + 1], ldz, (ftnlen)4);
-    eps = dlamch_((char *)"Precision", (ftnlen)9);
+    dlaset_((char *)"F", n, &zusedw, &c_b5, &c_b5, &z__[zusedl * z_dim1 + 1], ldz, (ftnlen)1);
+    eps = dlamch_((char *)"P", (ftnlen)1);
     rqtol = eps * 2.;
     tryrqc = TRUE_;
     if (*dol == 1 && *dou == *m) {
@@ -229,8 +229,8 @@ int dlarrv_(integer *n, doublereal *vl, doublereal *vu, doublereal *d__, doubler
                     i__3 = in - 1;
                     dcopy_(&i__3, &z__[ibegin + (j + 1) * z_dim1], &c__1, &l[ibegin], &c__1);
                     sigma = z__[iend + (j + 1) * z_dim1];
-                    dlaset_((char *)"Full", &in, &c__2, &c_b5, &c_b5, &z__[ibegin + j * z_dim1], ldz,
-                            (ftnlen)4);
+                    dlaset_((char *)"F", &in, &c__2, &c_b5, &c_b5, &z__[ibegin + j * z_dim1], ldz,
+                            (ftnlen)1);
                 }
                 i__3 = iend - 1;
                 for (j = ibegin; j <= i__3; ++j) {

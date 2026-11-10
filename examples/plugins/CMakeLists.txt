@@ -64,10 +64,6 @@ endif()
 #endif()
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Need -restrict with Intel compilers
-if(CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -restrict")
-endif()
 
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR})
 include(CheckIncludeFileCXX)

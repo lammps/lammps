@@ -48,7 +48,7 @@ int dsymm_(char *side, char *uplo, integer *m, integer *n, doublereal *alpha, do
         xerbla_((char *)"DSYMM ", &info, (ftnlen)6);
         return 0;
     }
-    if (*m == 0 || *n == 0 || *alpha == 0. && *beta == 1.) {
+    if (*m == 0 || *n == 0 || (*alpha == 0. && *beta == 1.)) {
         return 0;
     }
     if (*alpha == 0.) {

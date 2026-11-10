@@ -70,8 +70,6 @@ void FixNVEIntel::initial_integrate(int /*vflag*/)
     #if defined(LMP_SIMD_COMPILER)
 #if defined(USE_OMP_SIMD)
     #pragma omp simd
-#else
-    #pragma simd
 #endif
     #pragma vector aligned
     #endif
@@ -84,8 +82,6 @@ void FixNVEIntel::initial_integrate(int /*vflag*/)
     #if defined(LMP_SIMD_COMPILER)
 #if defined(USE_OMP_SIMD)
     #pragma omp simd
-#else
-    #pragma simd
 #endif
     #pragma vector aligned
     #endif
@@ -98,8 +94,6 @@ void FixNVEIntel::initial_integrate(int /*vflag*/)
     #if defined(LMP_SIMD_COMPILER)
 #if defined(USE_OMP_SIMD)
     #pragma omp simd
-#else
-    #pragma simd
 #endif
     #pragma vector aligned
     #endif
@@ -126,8 +120,6 @@ void FixNVEIntel::final_integrate()
     #if defined(LMP_SIMD_COMPILER)
 #if defined(USE_OMP_SIMD)
     #pragma omp simd
-#else
-    #pragma simd
 #endif
     #pragma vector aligned
     #endif
@@ -138,8 +130,6 @@ void FixNVEIntel::final_integrate()
     #if defined(LMP_SIMD_COMPILER)
 #if defined(USE_OMP_SIMD)
     #pragma omp simd
-#else
-    #pragma simd
 #endif
     #pragma vector aligned
     #endif
@@ -151,8 +141,6 @@ void FixNVEIntel::final_integrate()
     #if defined(LMP_SIMD_COMPILER)
 #if defined(USE_OMP_SIMD)
     #pragma omp simd
-#else
-    #pragma simd
 #endif
     #pragma vector aligned
     #endif

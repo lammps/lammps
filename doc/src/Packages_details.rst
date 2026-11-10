@@ -361,6 +361,8 @@ overview.
 * :doc:`atom_style body <atom_style>`
 * :doc:`fix nve/body <fix_nve_body>`
 * :doc:`pair_style body/nparticle <pair_body_nparticle>`
+* :doc:`pair_style body/rounded/polyhedron/granular <pair_body_rounded_polyhedron_granular>` (requires the GRANULAR package)
+* :doc:`fix wall/body/polyhedron/granular <fix_wall_body_polyhedron_granular>` (requires the GRANULAR package)
 * ``examples/body``
 
 ----------
@@ -1315,11 +1317,6 @@ You need to have an Intel compiler, version 14 or higher to take full
 advantage of this package. While compilation with GNU compilers is
 supported, performance will be sub-optimal.
 
-.. note::
-
-   the INTEL package contains styles that require using the
-   -restrict flag, when compiling with Intel compilers.
-
 **Author:** Mike Brown (Intel).
 
 **Install:**
@@ -1896,11 +1893,6 @@ MISC package
 A variety of compute, fix, pair, bond styles with specialized
 capabilities that don't align with other packages.  Do a directory
 listing, ``ls src/MISC``, to see the list of commands.
-
-.. note::
-
-   the MISC package contains styles that require using the
-   -restrict flag, when compiling with Intel compilers.
 
 **Supporting info:**
 

@@ -100,9 +100,9 @@ int dtrevc3_(char *side, char *howmny, logical *select, integer *n, doublereal *
         *info = -4;
     } else if (*ldt < max(1, *n)) {
         *info = -6;
-    } else if (*ldvl < 1 || leftv && *ldvl < *n) {
+    } else if (*ldvl < 1 || (leftv && *ldvl < *n)) {
         *info = -8;
-    } else if (*ldvr < 1 || rightv && *ldvr < *n) {
+    } else if (*ldvr < 1 || (rightv && *ldvr < *n)) {
         *info = -10;
     } else {
         i__2 = 1, i__3 = *n * 3;
@@ -163,9 +163,9 @@ int dtrevc3_(char *side, char *howmny, logical *select, integer *n, doublereal *
     } else {
         nb = 1;
     }
-    unfl = dlamch_((char *)"Safe minimum", (ftnlen)12);
+    unfl = dlamch_((char *)"S", (ftnlen)1);
     ovfl = 1. / unfl;
-    ulp = dlamch_((char *)"Precision", (ftnlen)9);
+    ulp = dlamch_((char *)"P", (ftnlen)1);
     smlnum = unfl * (*n / ulp);
     bignum = (1. - ulp) / smlnum;
     work[1] = 0.;

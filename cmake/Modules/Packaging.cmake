@@ -40,7 +40,7 @@ if(EXISTS /usr/musl/share/cmake/linux-musl.cmake)
     COMMAND ${CMAKE_COMMAND} -E tar czvf lammps-linux-x86_64-${LAMMPS_RELEASE}.tar.gz lammps-static
     COMMENT "Building fully static Linux binaries with MUSL"
     WORKING_DIRECTORY "${CMAKE_BINARY_DIR}"
-    BYPRODUCTS lammps-linux-x86_64-${PROJECT_VERSION}.tar.gz)
+    BYPRODUCTS lammps-linux-x86_64-${LAMMPS_RELEASE}.tar.gz)
 else()
   add_custom_target(musl
     COMMAND ${CMAKE_COMMAND} -E echo "Could not find the musl Linux-2-Linux compiler in /usr/musl."

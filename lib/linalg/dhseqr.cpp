@@ -64,7 +64,7 @@ int dhseqr_(char *job, char *compz, integer *n, integer *ilo, integer *ihi, doub
         *info = -5;
     } else if (*ldh < max(1, *n)) {
         *info = -7;
-    } else if (*ldz < 1 || wantz && *ldz < max(1, *n)) {
+    } else if (*ldz < 1 || (wantz && *ldz < max(1, *n))) {
         *info = -11;
     } else if (*lwork < max(1, *n) && !lquery) {
         *info = -13;

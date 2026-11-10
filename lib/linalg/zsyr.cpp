@@ -29,7 +29,7 @@ int zsyr_(char *uplo, integer *n, doublecomplex *alpha, doublecomplex *x, intege
         xerbla_((char *)"ZSYR  ", &info, (ftnlen)6);
         return 0;
     }
-    if (*n == 0 || alpha->r == 0. && alpha->i == 0.) {
+    if (*n == 0 || (alpha->r == 0. && alpha->i == 0.)) {
         return 0;
     }
     if (*incx <= 0) {

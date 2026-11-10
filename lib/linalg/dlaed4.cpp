@@ -42,7 +42,7 @@ int dlaed4_(integer *n, integer *i__, doublereal *d__, doublereal *z__, doublere
         dlaed5_(i__, &d__[1], &z__[1], &delta[1], rho, dlam);
         return 0;
     }
-    eps = dlamch_((char *)"Epsilon", (ftnlen)7);
+    eps = dlamch_((char *)"E", (ftnlen)1);
     rhoinv = 1. / *rho;
     if (*i__ == *n) {
         ii = *n - 1;

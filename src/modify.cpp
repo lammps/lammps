@@ -112,10 +112,12 @@ void Modify::init()
   // perform check whether extscalar, extvector, and extarray have been
   //   set when scalar_flag, vector_flag, or array_flag are true.
   // loop re-reads the list size since a compute init() may add computes
+  //   (e.g. compute snap), so it cannot be a range-based for loop: adding
+  //   may reallocate the vector and the new computes must be initialized, too
 
-  for (auto &icompute : computes) {
-    icompute->init();
-    icompute->init_flags();
+  for (std::size_t i = 0; i < computes.size(); i++) {
+    computes[i]->init();
+    computes[i]->init_flags();
   }
   addstep_compute_all(update->ntimestep);
 
@@ -127,10 +129,12 @@ void Modify::init()
   // perform check whether extscalar, extvector, and extarray have been
   //   set when scalar_flag, vector_flag, or array_flag are true.
   // loop re-reads the list size since a fix init() may add fixes
+  //   (e.g. fix reaxff/species), so it cannot be a range-based for loop: adding
+  //   may reallocate the vector and the new fixes must be initialized, too
 
-  for (auto &ifix : fixes) {
-    ifix->init();
-    ifix->init_flags();
+  for (std::size_t i = 0; i < fixes.size(); i++) {
+    fixes[i]->init();
+    fixes[i]->init_flags();
   }
 
   // set global flag if any fix has its restart_pbc flag set

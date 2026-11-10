@@ -1,0 +1,37 @@
+Inertial spin dynamics (TSPIN) examples
+=====================================
+
+These inputs demonstrate the TSPIN styles for auxiliary equilibrium sampling
+with variable spin magnitudes.  They use a bcc iron lattice with an EAM
+potential and independent on-site modulus springs supplied by fix spring/tspin.
+They exercise integration and temperature control without an external magnetic
+machine-learning potential.  A physical magnetic material model also needs
+appropriate magnetic interactions.
+
+  in.spin.tspin       NVE integration with fix nve/tspin.  The conserved
+                      energy includes the lattice potential energy, the
+                      modulus spring energy, the lattice kinetic energy,
+                      and the auxiliary spin kinetic energy.
+
+  in.spin.tspin_nvt   The same system under fix nvt/tspin, which drives the
+                      lattice and the spins with two independent Nose-Hoover
+                      chains at a common target temperature.
+
+Both inputs require the SPIN and MANYBODY packages and use the included
+Fe_mm.eam.fs potential.  Run them from this directory:
+
+  lmp -in in.spin.tspin
+  lmp -in in.spin.tspin_nvt
+
+The thermodynamic keyword ke excludes the auxiliary spin kinetic energy.
+The inputs report it with compute temp/tspin and include it explicitly in the
+variable etot.  That variable is econserve+c_ts[1]: for the isolated NVE input,
+econserve equals etotal; for the Nose-Hoover input, it also includes the
+thermostat contribution.  The modulus spring energy is included in pe with
+fix_modify pin energy yes.
+
+fix langevin/tspin provides an alternative stochastic spin bath when combined
+with fix nve/tspin.  It acts only on the spin velocities; temperature control
+of the lattice must be specified separately.  That bath does not tally its
+energy exchange, so econserve+c_ts[1] is not a conserved energy for this
+alternative combination.

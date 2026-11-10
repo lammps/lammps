@@ -304,6 +304,10 @@ void FixNVESpin::initial_integrate(int /*vflag*/)
     }
   }
 
+  // per-timestep preparation of fix setforce/spin (instead of per spin)
+
+  if (setforce_spin_flag) locksetforcespin->setup_single_setforce_spin();
+
   // update half s for all atoms
 
   if (sector_flag) {                            // sectoring seq. update

@@ -121,13 +121,14 @@ void FixSetForceSpin::post_force(int /*vflag*/)
   }
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   per-timestep preparation for single_setforce_spin()
+   called once by fix nve/spin before its spin updates, instead of
+     once per spin: the region and the array size do not change in between
+------------------------------------------------------------------------- */
 
-void FixSetForceSpin::single_setforce_spin(int i, double fmi[3])
+void FixSetForceSpin::setup_single_setforce_spin()
 {
-  double **x = atom->x;
-  int *mask = atom->mask;
-
   // update region if necessary
 
   if (region) region->prematch();
@@ -139,6 +140,17 @@ void FixSetForceSpin::single_setforce_spin(int i, double fmi[3])
     memory->destroy(sforce);
     memory->create(sforce, maxatom, 3, "setforce:sforce");
   }
+}
+
+/* ----------------------------------------------------------------------
+   set the magnetic force of spin i
+   setup_single_setforce_spin() must have been called on this timestep
+------------------------------------------------------------------------- */
+
+void FixSetForceSpin::single_setforce_spin(int i, double fmi[3])
+{
+  double **x = atom->x;
+  int *mask = atom->mask;
 
   foriginal[0] = foriginal[1] = foriginal[2] = 0.0;
   force_flag = 0;

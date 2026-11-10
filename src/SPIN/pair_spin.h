@@ -23,6 +23,7 @@ class PairSpin : public Pair {
 
  public:
   PairSpin(class LAMMPS *);
+  ~PairSpin() override;
 
   void settings(int, char **) override;
   void coeff(int, char **) override {}
@@ -42,6 +43,7 @@ class PairSpin : public Pair {
  protected:
   double hbar;         // Planck constant (eV.ps.rad-1)
   int lattice_flag;    // flag for mech force computation
+  int *typeflag_spin;  // 1 if this style has coefficients for an atom type
 
   virtual void allocate() {}
 };

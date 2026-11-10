@@ -29,6 +29,7 @@ class FixSetForceSpin : public FixSetForce {
   FixSetForceSpin(class LAMMPS *, int, char **);
   void post_force(int) override;
   void post_force_respa(int, int, int) override;
+  void setup_single_setforce_spin();
   void single_setforce_spin(int, double *);
 };
 

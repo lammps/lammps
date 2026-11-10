@@ -48,7 +48,7 @@ int dlasd4_(integer *n, integer *i__, doublereal *d__, doublereal *z__, doublere
         dlasd5_(i__, &d__[1], &z__[1], &delta[1], rho, sigma, &work[1]);
         return 0;
     }
-    eps = dlamch_((char *)"Epsilon", (ftnlen)7);
+    eps = dlamch_((char *)"E", (ftnlen)1);
     rhoinv = 1. / *rho;
     tau2 = 0.;
     if (*i__ == *n) {

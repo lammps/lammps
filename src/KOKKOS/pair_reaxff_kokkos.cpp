@@ -4247,6 +4247,11 @@ void PairReaxFFKokkos<DeviceType>::PackBondBuffer(DAT::tdual_double_1d k_buf, in
   k_buf.sync_host();
   k_nbuf_local.sync_host();
   nbuf_local = k_nbuf_local.view_host()();
+
+  // without local atoms the functor never sets the size: the buffer then holds
+  // only the number of atoms in buf[0], as in FixReaxFFBonds::PassBuffer()
+
+  if (nlocal == 0) nbuf_local = 1;
 }
 
 /* ---------------------------------------------------------------------- */

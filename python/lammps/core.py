@@ -179,8 +179,8 @@ class lammps:
 
     try:
       if ptr is not None:
-        self.lib = CDLL("",RTLD_GLOBAL)
-    except OSError:
+        self.lib = CDLL(None,RTLD_GLOBAL)
+    except (OSError, TypeError):
       self.lib = None
 
     # load liblammps.so unless name is given

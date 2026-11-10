@@ -69,6 +69,8 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
   create_attribute = 1;
   dof_flag = 1;
   centroidstressflag = CENTROID_NOTAVAIL;
+  deform_vremap = 0;
+  deform_groupbit = 0;
 
   // perform initial allocation of atom-based arrays
   // register with Atom class

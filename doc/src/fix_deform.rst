@@ -653,10 +653,12 @@ box without explicit remapping of their coordinates.
    For NEMD simulations, if a :doc:`fix rigid <fix_rigid>` or
    :doc:`fix rigid/small <fix_rigid>` command is defined for rigid
    bodies and you intend for the rigid bodies to flow with the box
-   deformation you should set *remap* to *v* and use either the NVT or
-   Langevin thermostat options provided by the fix rigid commands and
-   their variants.  The center-of-mass velocities of each rigid body
-   will only be remapped if the entire rigid body is in the fix group
+   deformation you should set *remap* to *v* and use the Langevin
+   thermostat option provided by the fix rigid commands and their variants.
+   The Langevin thermostat subtracts the streaming vecocity before
+   thermostatting it. This is not done in the Nose/Hoover thermostat
+   options. The center-of-mass velocities of each rigid body will
+   only be remapped if the entire rigid body is in the fix group
    defined by the :doc:`fix deform <fix_deform>` command.  In this
    case, it is an error to define any rigid body as a mix of atoms
    inside and outside the fix group defined by :doc:`fix deform

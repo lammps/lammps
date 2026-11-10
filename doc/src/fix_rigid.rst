@@ -586,6 +586,12 @@ rigid bodies) with :doc:`fix deform <fix_deform>` and using :doc:`fix
 langevin <fix_langevin>` as a thermostat with an assigned temperature
 bias via :doc:`compute temp/deform <compute_temp_deform>`.
 
+The Nose/Hoover thermostat of the rigid styles (*temp* keyword) does
+not subtract the streaming velocity, so it counts the flow as thermal
+motion.  The Kokkos versions of the *rigid/small* styles do not yet
+support :doc:`fix deform <fix_deform>` with *remap v* and stop with an
+error.
+
 The *temp* and *tparam* keywords apply a Nose/Hoover thermostat to the
 NVT time integration performed by the 2 NVT rigid styles.  They cannot
 be used with the 4 NVE rigid styles.  The desired temperature at each

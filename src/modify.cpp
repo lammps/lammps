@@ -113,9 +113,9 @@ void Modify::init()
   //   set when scalar_flag, vector_flag, or array_flag are true.
   // loop re-reads the list size since a compute init() may add computes
 
-  for (std::size_t i = 0; i < computes.size(); i++) {
-    computes[i]->init();
-    computes[i]->init_flags();
+  for (auto &icompute : computes) {
+    icompute->init();
+    icompute->init_flags();
   }
   addstep_compute_all(update->ntimestep);
 
@@ -128,9 +128,9 @@ void Modify::init()
   //   set when scalar_flag, vector_flag, or array_flag are true.
   // loop re-reads the list size since a fix init() may add fixes
 
-  for (std::size_t i = 0; i < fixes.size(); i++) {
-    fixes[i]->init();
-    fixes[i]->init_flags();
+  for (auto &ifix : fixes) {
+    ifix->init();
+    ifix->init_flags();
   }
 
   // set global flag if any fix has its restart_pbc flag set
@@ -212,12 +212,12 @@ void Modify::setup(int vflag)
     ifix->setup(vflag);
   });
 
-  for (std::size_t i = 0; i < computes.size(); i++) computes[i]->setup();
+  for (auto &icompute : computes) icompute->setup();
 
   if (update->whichflag == 1)
-    for (std::size_t i = 0; i < fixes.size(); i++) fixes[i]->setup(vflag);
+    for (auto &ifix : fixes) ifix->setup(vflag);
   else if (update->whichflag == 2)
-    for (std::size_t i = 0; i < fixes.size(); i++) fixes[i]->min_setup(vflag);
+    for (auto &ifix : fixes) ifix->min_setup(vflag);
 
   // runtime check for type label self-consistency
 
@@ -478,7 +478,7 @@ void Modify::energy_atom(int nlocal, double *energy)
 
 void Modify::post_run()
 {
-  for (std::size_t i = 0; i < fixes.size(); i++) fixes[i]->post_run();
+  for (auto &ifix : fixes) ifix->post_run();
 }
 
 /* ----------------------------------------------------------------------
@@ -492,10 +492,10 @@ void Modify::post_run()
 
 void Modify::create_attribute(int n)
 {
-  for (std::size_t i = 0; i < fixes.size(); i++)
-    if (fixes[i]->create_attribute) fixes[i]->set_arrays(n);
-  for (std::size_t i = 0; i < computes.size(); i++)
-    if (computes[i]->create_attribute) computes[i]->set_arrays(n);
+  for (auto &ifix : fixes)
+    if (ifix->create_attribute) ifix->set_arrays(n);
+  for (auto &icompute : computes)
+    if (icompute->create_attribute) icompute->set_arrays(n);
   input->variable->set_arrays(n);
 }
 
@@ -751,10 +751,10 @@ int Modify::min_reset_ref()
 
 void Modify::reset_grid()
 {
-  for (std::size_t i = 0; i < fixes.size(); i++)
-    if (fixes[i]->pergrid_flag) fixes[i]->reset_grid();
-  for (std::size_t i = 0; i < computes.size(); i++)
-    if (computes[i]->pergrid_flag) computes[i]->reset_grid();
+  for (auto &ifix : fixes)
+    if (ifix->pergrid_flag) ifix->reset_grid();
+  for (auto &icompute : computes)
+    if (icompute->pergrid_flag) icompute->reset_grid();
 }
 
 /* ----------------------------------------------------------------------
@@ -763,7 +763,7 @@ void Modify::reset_grid()
 
 void Modify::image_flip(int flipxy, int flipxz, int flipyz)
 {
-  for (std::size_t i = 0; i < fixes.size(); i++) fixes[i]->image_flip(flipxy, flipxz, flipyz);
+  for (auto &ifix : fixes) ifix->image_flip(flipxy, flipxz, flipyz);
 }
 
 /* ----------------------------------------------------------------------
@@ -1430,8 +1430,8 @@ void Modify::addstep_compute(bigint newstep)
 
 void Modify::addstep_compute_all(bigint newstep)
 {
-  for (std::size_t i = 0; i < computes.size(); i++)
-    if (computes[i]->timeflag) computes[i]->addstep(newstep);
+  for (auto &icompute : computes)
+    if (icompute->timeflag) icompute->addstep(newstep);
 }
 
 /* ----------------------------------------------------------------------

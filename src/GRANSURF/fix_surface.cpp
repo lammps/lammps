@@ -343,6 +343,7 @@ void FixSurface::extract_from_stlfile(char *filename, int stype, int smol,
     error->all(FLERR, Error::NOLASTLINE, "Fix surface cannot use an STL file for 2d simulations");
 
   if (stype < 1) error->all(FLERR, Error::NOLASTLINE, "STL surface type must be >= 1");
+  if (smol < 0) error->all(FLERR, Error::NOLASTLINE, "STL surface molecule ID must be >= 0");
 
   // read tris from STL file
   // stltris = tri coords internal to STL reader

@@ -118,7 +118,7 @@ int dsyevr_(char *jobz, char *range, char *uplo, integer *n, doublereal *a, inte
         }
     }
     if (*info == 0) {
-        if (*ldz < 1 || wantz && *ldz < *n) {
+        if (*ldz < 1 || (wantz && *ldz < *n)) {
             *info = -15;
         } else if (*lwork < lwmin && !lquery) {
             *info = -18;
@@ -166,8 +166,8 @@ int dsyevr_(char *jobz, char *range, char *uplo, integer *n, doublereal *a, inte
         }
         return 0;
     }
-    safmin = dlamch_((char *)"Safe minimum", (ftnlen)12);
-    eps = dlamch_((char *)"Precision", (ftnlen)9);
+    safmin = dlamch_((char *)"S", (ftnlen)1);
+    eps = dlamch_((char *)"P", (ftnlen)1);
     smlnum = safmin / eps;
     bignum = 1. / smlnum;
     rmin = sqrt(smlnum);
@@ -221,7 +221,7 @@ int dsyevr_(char *jobz, char *range, char *uplo, integer *n, doublereal *a, inte
     indiwo = indifl + *n;
     dsytrd_(uplo, n, &a[a_offset], lda, &work[indd], &work[inde], &work[indtau], &work[indwk],
             &llwork, &iinfo, (ftnlen)1);
-    if ((alleig || indeig && *il == 1 && *iu == *n) && ieeeok == 1) {
+    if ((alleig || (indeig && *il == 1 && *iu == *n)) && ieeeok == 1) {
         if (!wantz) {
             dcopy_(n, &work[indd], &c__1, &w[1], &c__1);
             i__1 = *n - 1;

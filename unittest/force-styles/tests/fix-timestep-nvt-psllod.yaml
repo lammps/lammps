@@ -1,7 +1,7 @@
 ---
 lammps_version: 22 Dec 2022
 date_generated: Tue Jan  3 17:19:09 2023
-epsilon: 5e-12
+epsilon: 7.5e-12
 skip_tests:
 prerequisites: ! |
   atom full

@@ -56,6 +56,7 @@ PairGranular::PairGranular(LAMMPS *lmp) : Pair(lmp)
   svector = new double[single_extra];
 
   neighprev = 0;
+  history_single = nullptr;
   freeze_group_bit = 0;
   nmax = 0;
   mass_rigid = nullptr;
@@ -102,6 +103,7 @@ id_dummy = utils::strdup(std::string("NEIGH_HISTORY_GRANULAR_DUMMY") + std::to_s
 PairGranular::~PairGranular()
 {
   delete[] svector;
+  delete[] history_single;
 
   if (!fix_history) modify->delete_fix(id_dummy);
   else modify->delete_fix(id_history);
@@ -217,6 +219,24 @@ void PairGranular::compute(int eflag, int vflag)
       jtype = type[j];
       model = models_list[types_indices[itype][jtype]];
 
+      // quick rejection of pairs that are not in contact unless the
+      // contact model has interactions beyond contact (e.g. JKR)
+
+      if (!model->beyond_contact) {
+        const double delx = x[i][0] - x[j][0];
+        const double dely = x[i][1] - x[j][1];
+        const double delz = x[i][2] - x[j][2];
+        const double radsum = radius[i] + radius[j];
+        if (delx * delx + dely * dely + delz * delz >= radsum * radsum) {
+          if (use_history) {
+            touch[jj] = 0;
+            history = &allhistory[size_history * jj];
+            for (k = 0; k < size_history; k++) history[k] = 0.0;
+          }
+          continue;
+        }
+      }
+
       // Reset model and copy initial geometric data
       model->xi = x[i];
       model->xj = x[j];
@@ -322,6 +342,9 @@ void PairGranular::allocate()
   memory->create(cutsq,n+1,n+1,"pair:cutsq");
   memory->create(cutoff_type,n+1,n+1,"pair:cutoff_type");
   memory->create(types_indices,n+1,n+1,"pair:types_indices");
+  for (int i = 0; i <= n; i++)
+    for (int j = 0; j <= n; j++)
+      types_indices[i][j] = -1;
 
   maxmodels = n * n + 1; // should never need any more space
   models_list = (GranularModel **) memory->smalloc(maxmodels * sizeof(GranularModel *), "pair:models_list");
@@ -386,7 +409,6 @@ void PairGranular::coeff(int narg, char **arg)
       iarg = model->add_sub_model(arg, iarg + 1, narg, TWISTING);
     } else if (strcmp(arg[iarg], "heat") == 0) {
       iarg = model->add_sub_model(arg, iarg + 1, narg, HEAT);
-      heat_flag = 1;
     } else if (strcmp(arg[iarg], "cutoff") == 0) {
       if (iarg + 1 >= narg)
         error->all(FLERR, "Illegal pair_coeff command, not enough parameters for cutoff keyword");
@@ -435,6 +457,7 @@ void PairGranular::init_style()
   if (comm->ghost_velocity == 0)
     error->all(FLERR,"Pair granular requires ghost atoms store velocity");
 
+  set_heat_flag();
   if (heat_flag) {
     if (!atom->temperature_flag)
       error->all(FLERR,"Heat conduction in pair granular requires atom style with temperature property");
@@ -482,6 +505,10 @@ void PairGranular::init_style()
     // E.g. JKR + linear_nohistory
     size_history = MAX(size_history, 1);
   }
+
+  delete[] history_single;
+  history_single = nullptr;
+  if (use_history) history_single = new double[size_history];
 
   for (int n = 0; n < nmodels; n++) {
     model = models_list[n];
@@ -610,8 +637,9 @@ double PairGranular::init_one(int i, int j)
 
   model = models_list[types_indices[i][j]];
   // Check if heat model is defined for all type combinations
-  if (heat_flag && !model->heat_model)
-    error->all(FLERR, "Must specify a heat model for all pair types");
+  if (heat_flag && (model->sub_models[HEAT]->name == "none"))
+    error->all(FLERR, "Must specify a heat model for all pair types, missing for types {} and {}",
+               i, j);
 
   // It is possible that cut[i][j] at this point is still 0.0.
   // This can happen when
@@ -777,6 +805,12 @@ double PairGranular::single(int i, int j, int itype, int jtype,
     }
     history = &allhistory[size_history * neighprev];
     model->touch = fix_history->firstflag[i][neighprev];
+
+    // some sub-models rescale the history when the force reaches its limit,
+    // so work on a copy to leave the stored history of the contact unchanged
+
+    for (int k = 0; k < size_history; k++) history_single[k] = history[k];
+    history = history_single;
   }
 
   int touchflag = model->check_contact();
@@ -822,11 +856,6 @@ double PairGranular::single(int i, int j, int itype, int jtype,
   // Calculate normal component, normalized by r
   fforce = model->Fntot * model->rinv;
 
-  double dq = 0;
-  if (heat_flag) {
-    dq = model->dq;
-  }
-
   // set single_extra quantities
   svector[0] = model->fs[0];
   svector[1] = model->fs[1];
@@ -840,7 +869,6 @@ double PairGranular::single(int i, int j, int itype, int jtype,
   svector[9] = model->dx[0];
   svector[10] = model->dx[1];
   svector[11] = model->dx[2];
-  svector[12] = dq;
 
   // add submodel-specific quantities
   for (int n = 0; n < model->nsvector; n++)
@@ -898,13 +926,24 @@ double PairGranular::memory_usage()
 void PairGranular::transfer_history(double* source, double* target, int itype, int jtype)
 {
   class GranularModel* model = models_list[types_indices[itype][jtype]];
-  if (model->nondefault_history_transfer) {
-    for (int i = 0; i < model->size_history; i++) {
-      target[i] = model->transfer_history_factor[i] * source[i];
-    }
-  } else {
-    for (int i = 0; i < model->size_history; i++) {
-      target[i] = -source[i];
+
+  // by default the partner sees the negative of our values
+
+  for (int i = 0; i < size_history; i++) target[i] = -source[i];
+
+  // sub models that need a different rule overwrite their own slice.  Locate
+  // it through history_index: the slice a sub model occupies is assigned from
+  // the largest size over all models of this pair style, so a model that is
+  // missing a sub model another model has still leaves room for it.  Indexing
+  // by this model's own cumulative sizes instead would address the wrong
+  // values as soon as the models are not all built the same way.
+
+  for (int m = 0; m < NSUBMODELS; m++) {
+    auto *sub = model->sub_models[m];
+    if (!sub->nondefault_history_transfer) continue;
+    for (int k = 0; k < sub->size_history; k++) {
+      const int idx = sub->history_index + k;
+      target[idx] = sub->transfer_history_factor[k] * source[idx];
     }
   }
 }
@@ -939,4 +978,19 @@ void PairGranular::prune_models()
     models_list[nmodels-1] = nullptr;
     nmodels -= 1;
   }
+}
+
+/* ----------------------------------------------------------------------
+   enable heat conduction if any explicitly set pair of atom types uses a
+   heat model.  this is derived from the models, so it is also set after
+   reading a restart file and reset when pair coefficients are replaced.
+------------------------------------------------------------------------- */
+
+void PairGranular::set_heat_flag()
+{
+  heat_flag = 0;
+  for (int i = 1; i <= atom->ntypes; i++)
+    for (int j = i; j <= atom->ntypes; j++)
+      if (setflag[i][j] && (models_list[types_indices[i][j]]->sub_models[HEAT]->name != "none"))
+        heat_flag = 1;
 }

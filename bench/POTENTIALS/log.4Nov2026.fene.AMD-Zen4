@@ -1,0 +1,94 @@
+LAMMPS (30 Sep 2026 - Development - 8e29ee3d)
+  using 1 OpenMP thread(s) per MPI task
+# FENE beadspring benchmark
+
+units		lj
+atom_style	bond
+special_bonds   fene
+
+read_data	data.fene
+Reading data file ...
+  orthogonal box = (-16.796 -16.796 -16.796) to (16.796 16.796 16.796)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  32000 atoms
+  reading velocities ...
+  32000 velocities
+  scanning bonds ...
+  1 = max bonds/atom
+  orthogonal box = (-16.796 -16.796 -16.796) to (16.796 16.796 16.796)
+  1 by 1 by 1 MPI processor grid
+  reading bonds ...
+  31680 bonds
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0        1        1       
+  special bond factors coul:  0        1        1       
+     2 = max # of 1-2 neighbors
+     2 = max # of special neighbors
+  special bonds CPU = 0.004 seconds
+  read_data CPU = 0.162 seconds
+
+neighbor	0.4 bin
+neigh_modify    delay 0 every 1
+
+bond_style      fene
+bond_coeff	1 30.0 1.5 1.0 1.0
+
+pair_style	lj/cut 1.12
+pair_modify	shift yes
+pair_coeff	1 1 1.0 1.0 1.12
+
+fix		1 all nve
+fix		2 all langevin 1.0 1.0 10.0 904297
+
+timestep	0.012
+
+run		100
+Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+WARNING: Communication cutoff 1.52 is shorter than a bond length based estimate of 1.855. This may lead to errors. (src/comm.cpp:706)
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 1.52
+  ghost atom cutoff = 1.52
+  binsize = 0.76, bins = 45 45 45
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cut, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d
+      bin: standard
+WARNING: Communication cutoff 1.52 is shorter than a bond length based estimate of 1.855. This may lead to errors. (src/comm.cpp:706)
+Per MPI rank memory allocation (min/avg/max) = 13.2 | 13.2 | 13.2 Mbytes
+   Step          Temp          E_pair         E_mol          TotEng         Press     
+         0   0.97029772     0.44484087     20.494523      22.394765      4.6721833    
+       100   0.9729966      0.4361122      20.507698      22.40326       4.6548819    
+Loop time of 0.811875 on 1 procs for 100 steps with 32000 atoms
+
+Performance: 127704.414 tau/day, 123.172 timesteps/s, 3.941 Matom-step/s
+99.5% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.14968    | 0.14968    | 0.14968    |   0.0 | 18.44
+Bond    | 0.036608   | 0.036608   | 0.036608   |   0.0 |  4.51
+Neigh   | 0.40932    | 0.40932    | 0.40932    |   0.0 | 50.42
+Comm    | 0.014097   | 0.014097   | 0.014097   |   0.0 |  1.74
+Output  | 0.00013234 | 0.00013234 | 0.00013234 |   0.0 |  0.02
+Modify  | 0.19373    | 0.19373    | 0.19373    |   0.0 | 23.86
+Other   |            | 0.008302   |            |       |  1.02
+
+Nlocal:          32000 ave       32000 max       32000 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:           9493 ave        9493 max        9493 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:         155873 ave      155873 max      155873 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 155873
+Ave neighs/atom = 4.8710312
+Ave special neighs/atom = 1.98
+Neighbor list builds = 25
+Dangerous builds = 0
+Total wall time: 0:00:01

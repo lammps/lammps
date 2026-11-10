@@ -26,6 +26,7 @@
 #include "domain.h"
 #include "error.h"
 #include "finish.h"
+#include "fix.h"
 #include "force.h"
 #include "group.h"
 #include "improper.h"
@@ -271,7 +272,6 @@ void ThirdOrder::openfile(const char* filename)
     if (!fp) error->one(FLERR,"Cannot open third_order file: {}", utils::getsyserror());
   }
 
-
   file_opened = 1;
 }
 
@@ -495,11 +495,8 @@ void ThirdOrder::update_force()
   neighbor->ago = 0;
   if (modify->get_fix_by_id("package_intel")) neighbor->decide();
   force_clear();
-  int n_post_force = modify->n_post_force_any;
-  int n_pre_force = modify->n_pre_force;
-  int n_pre_reverse = modify->n_pre_reverse;
 
-  if (n_pre_force) {
+  if (modify->has_fixes(FixConst::PRE_FORCE)) {
     modify->pre_force(vflag);
     timer->stamp(Timer::MODIFY);
   }
@@ -519,7 +516,7 @@ void ThirdOrder::update_force()
     force->kspace->compute(eflag,vflag);
     timer->stamp(Timer::KSPACE);
   }
-  if (n_pre_reverse) {
+  if (modify->has_fixes(FixConst::PRE_REVERSE)) {
     modify->pre_reverse(eflag,vflag);
     timer->stamp(Timer::MODIFY);
   }
@@ -530,7 +527,7 @@ void ThirdOrder::update_force()
 
   // force modifications
 
-  if (n_post_force) {
+  if (modify->has_fixes(FixConst::POST_FORCE_ANY)) {
     modify->post_force(vflag);
     timer->stamp(Timer::MODIFY);
   }

@@ -31,7 +31,7 @@ int dsymv_(char *uplo, integer *n, doublereal *alpha, doublereal *a, integer *ld
         xerbla_((char *)"DSYMV ", &info, (ftnlen)6);
         return 0;
     }
-    if (*n == 0 || *alpha == 0. && *beta == 1.) {
+    if (*n == 0 || (*alpha == 0. && *beta == 1.)) {
         return 0;
     }
     if (*incx > 0) {

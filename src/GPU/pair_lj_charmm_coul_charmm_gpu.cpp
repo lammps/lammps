@@ -93,7 +93,7 @@ void PairLJCharmmCoulCharmmGPU::compute(int eflag, int vflag)
 void PairLJCharmmCoulCharmmGPU::init_style()
 {
   if (!atom->q_flag)
-    error->all(FLERR, "Pair style lj/charmm/coul/long/gpu requires atom attribute q");
+    error->all(FLERR, "Pair style lj/charmm/coul/charmm/gpu requires atom attribute q");
 
   // Repeated cutsq calculation in init_one() is required for GPU package
 
@@ -103,19 +103,24 @@ void PairLJCharmmCoulCharmmGPU::init_style()
     }
   }
 
+  // require cut_lj_inner < cut_lj, cut_coul_inner < cut_coul
+
+  if (cut_lj_inner >= cut_lj || cut_coul_inner >= cut_coul)
+    error->all(FLERR, "Pair inner cutoff >= Pair outer cutoff");
+
   cut_lj_innersq = cut_lj_inner * cut_lj_inner;
   cut_coul_innersq = cut_coul_inner * cut_coul_inner;
   cut_ljsq = cut_lj * cut_lj;
   cut_coulsq = cut_coul * cut_coul;
   cut_bothsq = MAX(cut_ljsq, cut_coulsq);
 
+  // the GPU kernels use the inverse of the switching denominators, but
+  // denom_lj and denom_coul must stay as they are for single()
+
   denom_lj =
       (cut_ljsq - cut_lj_innersq) * (cut_ljsq - cut_lj_innersq) * (cut_ljsq - cut_lj_innersq);
-  denom_lj = 1.0 / denom_lj;
-
   denom_coul = (cut_coulsq - cut_coul_innersq) * (cut_coulsq - cut_coul_innersq) *
       (cut_coulsq - cut_coul_innersq);
-  denom_coul = 1.0 / denom_coul;
 
   double cell_size = sqrt(cut_bothsq) + neighbor->skin;
 
@@ -134,7 +139,7 @@ void PairLJCharmmCoulCharmmGPU::init_style()
       crm_gpu_init(atom->ntypes + 1, cut_bothsq, lj1, lj2, lj3, lj4, force->special_lj,
                    atom->nlocal, atom->nlocal + atom->nghost, mnf, maxspecial, cell_size, gpu_mode,
                    screen, cut_ljsq, cut_coulsq, force->special_coul, force->qqrd2e, cut_lj_innersq,
-                   cut_coul_innersq, denom_lj, denom_coul, epsilon, sigma, arithmetic);
+                   cut_coul_innersq, 1.0 / denom_lj, 1.0 / denom_coul, epsilon, sigma, arithmetic);
   GPU_EXTRA::check_flag(success, error, world);
 
   if (gpu_mode == GPU_FORCE) neighbor->add_request(this, NeighConst::REQ_FULL);

@@ -37,8 +37,8 @@ BodyNparticle::BodyNparticle(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg != 3) error->all(FLERR,"Invalid body nparticle command");
 
-  int nmin = utils::inumeric(FLERR,arg[1],false,lmp);
-  int nmax = utils::inumeric(FLERR,arg[2],false,lmp);
+  nmin = utils::inumeric(FLERR,arg[1],false,lmp);
+  nmax = utils::inumeric(FLERR,arg[2],false,lmp);
   if (nmin <= 0 || nmin > nmax)
     error->all(FLERR,"Invalid body nparticle command");
 
@@ -117,6 +117,10 @@ void BodyNparticle::data_body(int ibonus, int ninteger, int ndouble,
     error->one(FLERR,"Incorrect integer value in Bodies section of data file");
   if (ndouble != 6 + 3*nsub)
     error->one(FLERR,"Incorrect # of floating-point values in Bodies section of data file");
+
+  if (nsub < nmin || nsub > nmax)
+    error->one(FLERR,"Body with {} sub-particles is outside the range {} to {} of its atom style",
+               nsub, nmin, nmax);
 
   bonus->ninteger = 1;
   bonus->ivalue = icp->get(bonus->iindex);

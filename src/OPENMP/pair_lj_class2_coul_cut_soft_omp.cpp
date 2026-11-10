@@ -130,10 +130,10 @@ void PairLJClass2CoulCutSoftOMP::eval(int iifrom, int iito, ThrData * const thr)
         } else forcecoul = 0.0;
 
         if (rsq < cut_ljsq[itype][jtype]) {
-          denlj = lj3[itype][jtype] + pow(rsq, 3) * pow(sigma[itype][jtype], -6.0);
           r4sig6 = rsq*rsq / lj2[itype][jtype];
+          denlj = lj3[itype][jtype] + rsq*r4sig6;
           forcelj = lj1[itype][jtype] * epsilon[itype][jtype] *
-           (18.0*r4sig6*pow(denlj, -2.5) - 18.0*r4sig6*pow(denlj, -2));
+            18.0*r4sig6*(1.0/sqrt(denlj) - 1.0)/(denlj*denlj);
         } else forcelj = 0.0;
 
         fpair = factor_coul*forcecoul + factor_lj*forcelj;
@@ -152,8 +152,7 @@ void PairLJClass2CoulCutSoftOMP::eval(int iifrom, int iito, ThrData * const thr)
             ecoul = factor_coul * qqrd2e * lj1[itype][jtype] * qtmp*q[j] / denc;
           else ecoul = 0.0;
           if (rsq < cut_ljsq[itype][jtype]) {
-            denlj = lj3[itype][jtype] + pow(rsq, 3) * pow(sigma[itype][jtype], -6.0);
-            evdwl = lj1[itype][jtype] * epsilon[itype][jtype] * (2.0/(denlj*sqrt(denlj)) - 3.0/denlj) -
+            evdwl = lj1[itype][jtype] * epsilon[itype][jtype] * (2.0/sqrt(denlj) - 3.0)/denlj -
               offset[itype][jtype];
             evdwl *= factor_lj;
           } else evdwl = 0.0;

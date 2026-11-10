@@ -29,6 +29,7 @@
 #include "improper.h"
 #include "kokkos.h"
 #include "kspace.h"
+#include "fix.h"
 #include "modify.h"
 #include "neighbor.h"
 #include "pair.h"
@@ -96,9 +97,6 @@ void ThirdOrderKokkos::command(int narg, char **arg)
 
 void ThirdOrderKokkos::update_force()
 {
-  int n_pre_force = modify->n_pre_force;
-  int n_pre_reverse = modify->n_pre_reverse;
-  int n_post_force = modify->n_post_force_any;
 
   lmp->kokkos->auto_sync = 0;
 
@@ -113,7 +111,7 @@ void ThirdOrderKokkos::update_force()
   if ((modify->get_fix_by_id("package_intel")) != nullptr)
     neighbor->decide();
 
-  if (n_pre_force) {
+  if (modify->has_fixes(FixConst::PRE_FORCE)) {
     modify->pre_force(vflag);
     timer->stamp(Timer::MODIFY);
   }
@@ -287,7 +285,7 @@ void ThirdOrderKokkos::update_force()
 
   exclude_guard.release();
 
-  if (n_pre_reverse) {
+  if (modify->has_fixes(FixConst::PRE_REVERSE)) {
     modify->pre_reverse(eflag,vflag);
     timer->stamp(Timer::MODIFY);
   }
@@ -297,7 +295,7 @@ void ThirdOrderKokkos::update_force()
   }
   // force modifications
 
-  if (n_post_force) {
+  if (modify->has_fixes(FixConst::POST_FORCE_ANY)) {
     modify->post_force(vflag);
     timer->stamp(Timer::MODIFY);
   }

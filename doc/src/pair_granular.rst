@@ -110,9 +110,9 @@ and their required arguments are:
 5. :ref:`jkr <jkr_normal_model>` : :math:`E`, :math:`\eta_{n0}` (or :math:`e`), :math:`\nu`, :math:`\gamma`
 6. :ref:`mdr <mdr_normal_model>` : :math:`E`, :math:`\nu`, :math:`Y`, :math:`\Delta\gamma`,
    :math:`\psi_b`, :math:`\eta_{n0}`
-7. :ref:`epa_linear <epa_linear_normal_model>` : :math:`k_1`, :math:`\eta_{n0}` (or :math:`e`), :math:`\hat{k_2}`,
+7. :ref:`epa/linear <epa_linear_normal_model>` : :math:`k_1`, :math:`\eta_{n0}` (or :math:`e`), :math:`\hat{k_2}`,
    :math:`k_c`, :math:`\phi_f`, :math:`f_0`
-8. :ref:`epa_nonlinear <epa_nonlinear_normal_model>` : :math:`E`, :math:`\eta_{n0}` (or :math:`e`), :math:`\nu`,
+8. :ref:`epa/nonlinear <epa_nonlinear_normal_model>` : :math:`E`, :math:`\eta_{n0}` (or :math:`e`), :math:`\nu`,
    :math:`\lambda_p`, :math:`f_0`, :math:`k_{adh}`, :math:`m`, :math:`n`
 
 .. note::
@@ -302,7 +302,7 @@ interactions is set to :math:`\mu_2`, the friction coefficient for
 type1-type2 interactions is computed as :math:`\sqrt{\mu_1\mu_2}`
 (unless explicitly specified to a different value by a *pair_coeff 1 2
 ...* command).  The exception to this is elastic modulus, only
-applicable to *hertz/material*, *dmt*, *jkr* and *epa_linear*
+applicable to *hertz/material*, *dmt*, *jkr* and *epa/nonlinear*
 normal contact models. In that case, the effective elastic modulus is
 computed as:
 

@@ -44,10 +44,6 @@ using namespace ucl_hip;
 using namespace ucl_cudadr;
 #endif
 
-#ifdef USE_CUDPP
-#include "cudpp.h"
-#endif
-
 #include "lal_precision.h"
 
 namespace LAMMPS_AL {
@@ -124,9 +120,6 @@ class Atom {
 
   /// Return the total amount of host memory used by class in bytes
   double host_memory_usage() const;
-
-  /// Sort arrays for neighbor list calculation on device
-  void sort_neighbor(const int num_atoms);
 
   /// Add copy times to timers
   inline void acc_timers() {
@@ -535,9 +528,7 @@ class Atom {
   UCL_Vector<int,int> type_cast;
   #endif
 
-  /// Cell list identifiers for device nbor builds
-  UCL_D_Vec<unsigned> dev_cell_id;
-  /// Cell list identifiers for device nbor builds
+  /// Particle identifiers sorted by cell for device nbor builds
   UCL_D_Vec<int> dev_particle_id;
 
   /// Atom tag information for device nbor builds
@@ -575,19 +566,6 @@ class Atom {
   double _time_cast, _time_transfer;
 
   double _max_gpu_bytes;
-
-  #ifdef USE_CUDPP
-  CUDPPConfiguration sort_config;
-  CUDPPHandle sort_plan;
-  #endif
-
-  #ifdef USE_HIP_DEVICE_SORT
-  unsigned* sort_out_keys = nullptr;
-  int* sort_out_values = nullptr;
-  void* sort_temp_storage = nullptr;
-  size_t sort_temp_storage_size = 0;
-  size_t sort_out_size = 0;
-  #endif
 };
 
 }

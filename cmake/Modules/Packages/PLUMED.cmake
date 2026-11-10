@@ -1,5 +1,8 @@
 # Plumed2 support for PLUMED package
 
+if(POLICY CMP0009)
+  cmake_policy(SET CMP0009 NEW)
+endif()
 # set policy to use the time of extraction as timestamps of files unpacked from downloaded
 # archives, so that updating an archive version triggers rebuilding all dependent objects
 if(POLICY CMP0135)

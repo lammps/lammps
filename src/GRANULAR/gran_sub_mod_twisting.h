@@ -16,48 +16,46 @@
 
 #include "gran_sub_mod.h"
 
-
 namespace LAMMPS_NS::Granular_NS {
 
-  class GranSubModTwisting : public GranSubMod {
-   public:
-    GranSubModTwisting(class GranularModel *, class LAMMPS *);
-    virtual double calculate_forces() = 0;
-  };
+class GranSubModTwisting : public GranSubMod {
+ public:
+  GranSubModTwisting(class GranularModel *, class LAMMPS *);
+  virtual double calculate_forces() = 0;
+};
 
-  /* ---------------------------------------------------------------------- */
+/* ---------------------------------------------------------------------- */
 
-  class GranSubModTwistingNone : public GranSubModTwisting {
-   public:
-    GranSubModTwistingNone(class GranularModel *, class LAMMPS *);
-    double calculate_forces() override {return 0.0;};
-  };
+class GranSubModTwistingNone : public GranSubModTwisting {
+ public:
+  GranSubModTwistingNone(class GranularModel *, class LAMMPS *);
+  double calculate_forces() override { return 0.0; };
+};
 
-  /* ---------------------------------------------------------------------- */
+/* ---------------------------------------------------------------------- */
 
-  class GranSubModTwistingMarshall : public GranSubModTwisting {
-   public:
-    GranSubModTwistingMarshall(class GranularModel *, class LAMMPS *);
-    void init() override;
-    double calculate_forces() override;
+class GranSubModTwistingMarshall : public GranSubModTwisting {
+ public:
+  GranSubModTwistingMarshall(class GranularModel *, class LAMMPS *);
+  void init() override;
+  double calculate_forces() override;
 
-   protected:
-    double k_tang, mu_tang;
-  };
+ protected:
+  double k_tang, mu_tang;
+};
 
-  /* ---------------------------------------------------------------------- */
+/* ---------------------------------------------------------------------- */
 
-  class GranSubModTwistingSDS : public GranSubModTwisting {
-   public:
-    GranSubModTwistingSDS(class GranularModel *, class LAMMPS *);
-    void coeffs_to_local() override;
-    double calculate_forces() override;
+class GranSubModTwistingSDS : public GranSubModTwisting {
+ public:
+  GranSubModTwistingSDS(class GranularModel *, class LAMMPS *);
+  void coeffs_to_local() override;
+  double calculate_forces() override;
 
-   protected:
-    double k, mu, damp;
-  };
+ protected:
+  double k, mu, damp;
+};
 
-} // namespace LAMMPS_NS::Granular_NS
-
+}    // namespace LAMMPS_NS::Granular_NS
 
 #endif /*GRAN_SUB_MOD_TWISTING_H */

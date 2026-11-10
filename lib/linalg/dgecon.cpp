@@ -34,7 +34,7 @@ int dgecon_(char *norm, integer *n, doublereal *a, integer *lda, doublereal *ano
     a -= a_offset;
     --work;
     --iwork;
-    hugeval = dlamch_((char *)"Overflow", (ftnlen)8);
+    hugeval = dlamch_((char *)"O", (ftnlen)1);
     *info = 0;
     onenrm = *(unsigned char *)norm == '1' || lsame_(norm, (char *)"O", (ftnlen)1, (ftnlen)1);
     if (!onenrm && !lsame_(norm, (char *)"I", (ftnlen)1, (ftnlen)1)) {
@@ -65,7 +65,7 @@ int dgecon_(char *norm, integer *n, doublereal *a, integer *lda, doublereal *ano
         *info = -5;
         return 0;
     }
-    smlnum = dlamch_((char *)"Safe minimum", (ftnlen)12);
+    smlnum = dlamch_((char *)"S", (ftnlen)1);
     ainvnm = 0.;
     *(unsigned char *)normin = 'N';
     if (onenrm) {

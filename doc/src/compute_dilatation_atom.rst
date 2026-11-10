@@ -25,10 +25,10 @@ Description
 
 Define a computation that calculates the per-atom dilatation for each
 atom in a group.  This is a quantity relevant for :doc:`Peridynamics
-models <pair_peri>`.  See `this document <PDF/PDLammps_overview.pdf>`_
+models <pair_peri>`.  See the :doc:`Peridynamics Howto <Howto_peri>`
 for an overview of LAMMPS commands for Peridynamics modeling.
 
-For small deformation, dilatation of is the measure of the volumetric
+For small deformation, dilatation is a measure of the volumetric
 strain.
 
 The dilatation :math:`\theta` for each peridynamic particle :math:`i` is
@@ -53,7 +53,8 @@ any command that uses per-atom values from a compute as input.  See
 the :doc:`Howto output <Howto_output>` page for an overview of
 LAMMPS output options.
 
-The per-atom vector values are unitless numbers :math:`(\theta \ge 0.0)`.
+The per-atom vector values are unitless numbers, which are negative
+under compression.
 
 Restrictions
 """"""""""""

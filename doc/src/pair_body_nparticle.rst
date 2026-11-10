@@ -78,7 +78,7 @@ where :math:`R_c` is the cutoff.  As explained above, an interaction involving
 one or two body sub-particles may be computed even for :math:`r > R_c`.
 
 For style *body*, the following coefficients must be defined for each
-pair of atoms types via the :doc:`pair_coeff <pair_coeff>` command as in
+pair of atom types via the :doc:`pair_coeff <pair_coeff>` command as in
 the examples above, or in the data file or restart files read by the
 :doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
 commands:

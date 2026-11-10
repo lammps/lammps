@@ -25,15 +25,15 @@ Description
 
 Define a computation that calculates the per-atom plasticity for each
 atom in a group.  This is a quantity relevant for
-:doc:`Peridynamics models <pair_peri>`.
-See `this document <PDF/PDLammps_overview.pdf>`_
-for an overview of LAMMPS commands for Peridynamics modeling.
+:doc:`Peridynamics models <pair_peri>`.  See the :doc:`Peridynamics
+Howto <Howto_peri>` for an overview of LAMMPS commands for Peridynamics
+modeling.
 
 The plasticity for a Peridynamic particle is the so-called consistency
 parameter (:math:`\lambda`).  For elastic deformation, :math:`\lambda = 0`,
 otherwise :math:`\lambda > 0` for plastic deformation.  For details, see
-:ref:`(Mitchell) <Mitchell>` and the PDF doc included in the LAMMPS
-distribution in `doc/PDF/PDLammps_EPS.pdf <PDF/PDLammps_EPS.pdf>`_.
+:ref:`(Mitchell) <Mitchell>` and the :ref:`EPS model section <peri_eps>`
+of the Peridynamics Howto.
 
 This command can be invoked for one of the Peridynamic
 :doc:`pair styles <pair_peri>`: peri/eps.

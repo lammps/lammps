@@ -47,11 +47,11 @@ class PairCoulLongSoftKokkos : public PairCoulLongSoft {
   struct params_coul{
 // NOLINTNEXTLINE
     KOKKOS_INLINE_FUNCTION
-    params_coul() {cutsq=0;lam1=0;lam2=0;};
+    params_coul() {cutsq=0;lam1=0;lam2=0;scale=0;};
 // NOLINTNEXTLINE
     KOKKOS_INLINE_FUNCTION
-    params_coul(int /*i*/) {cutsq=0;lam1=0;lam2=0;};
-    KK_FLOAT cutsq, lam1, lam2;
+    params_coul(int /*i*/) {cutsq=0;lam1=0;lam2=0;scale=0;};
+    KK_FLOAT cutsq, lam1, lam2, scale;
   };
 
  protected:

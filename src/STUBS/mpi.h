@@ -53,6 +53,7 @@
 
 #define MPI_UNDEFINED (-1)
 #define MPI_COMM_NULL (-1)
+#define MPI_COMM_SELF 0
 #define MPI_GROUP_EMPTY (-1)
 #define MPI_GROUP_NULL (-1)
 #define MPI_PROC_NULL (-2)

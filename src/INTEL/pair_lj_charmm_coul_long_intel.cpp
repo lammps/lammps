@@ -41,6 +41,8 @@ PairLJCharmmCoulLongIntel::PairLJCharmmCoulLongIntel(LAMMPS *lmp) :
   PairLJCharmmCoulLong(lmp)
 {
   suffix_flag |= Suffix::INTEL;
+  // parameters are copied to packed arrays in init_style(), fix adapt would not update them
+  reinitflag = 0;
   respa_enable = 0;
   cut_respa = nullptr;
 }
@@ -261,9 +263,6 @@ void PairLJCharmmCoulLongIntel::eval(const int vflag,
 #if defined(USE_OMP_SIMD)
         #pragma omp simd reduction(+:fxtmp, fytmp, fztmp, fwtmp, sevdwl, \
                                    secoul, sv0, sv1, sv2, sv3, sv4, sv5)
-#else
-        #pragma simd reduction(+:fxtmp, fytmp, fztmp, fwtmp, sevdwl, \
-                               secoul, sv0, sv1, sv2, sv3, sv4, sv5)
 #endif
         #pragma vector aligned
         #endif

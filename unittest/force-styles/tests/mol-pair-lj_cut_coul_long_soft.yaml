@@ -2,7 +2,7 @@
 lammps_version: 2 Sep 2026
 date_generated: Wed Sep  9 17:33:26 2026
 epsilon: 7.5e-12
-skip_tests: gpu
+skip_tests:
 prerequisites: |
   atom full
   pair lj/cut/coul/long/soft

@@ -98,7 +98,7 @@ command-line flags, holds the factory of commands and creates and
 initializes an instance of the Variable class.
 
 To execute a command, a specific class instance, derived from
-:cpp:class:`Command`, is created, then its ``command()`` member
+:cpp:class:`!Command`, is created, then its ``command()`` member
 function executed, and finally the class instance is deleted.
 
 \endverbatim
@@ -1058,7 +1058,8 @@ void Input::include()
 
     infile = fopen(line,"r");
     if (infile == nullptr)
-      error->one(FLERR, Error::ARGZERO, "Cannot open input script {}: {}", line, utils::getsyserror());
+      error->one(FLERR, Error::NOLASTLINE, "Cannot open input script in 'include {}' command: {}",
+                 line, utils::getsyserror());
 
     infiles[nfile++] = infile;
   }
@@ -1764,7 +1765,7 @@ void Input::package()
     auto *fixomp = modify->get_fix_by_id("package_omp");
     if (fixomp) {
       int dim = 0;
-      auto *styles = (const char *) fixomp->extract("styles_in_use", dim);
+      const auto *styles = (const char *) fixomp->extract("styles_in_use", dim);
       if (styles && styles[0])
         error->all(FLERR, Error::ARGZERO,
                    "Cannot change OPENMP package settings while styles with OpenMP support are "

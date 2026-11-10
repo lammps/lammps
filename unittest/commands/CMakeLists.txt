@@ -52,6 +52,26 @@ target_link_libraries(test_fix_spring_chunk PRIVATE lammps GTest::GMock)
 add_test(NAME FixSpringChunk COMMAND test_fix_spring_chunk)
 add_kokkos_test(NAME FixSpringChunk COMMAND test_fix_spring_chunk)
 
+# tests for the inertial spin dynamics styles of the SPIN package
+if(PKG_SPIN)
+  add_executable(test_tspin test_tspin.cpp)
+  target_link_libraries(test_tspin PRIVATE lammps GTest::GMock)
+  add_test(NAME TSpin COMMAND test_tspin)
+  set_tests_properties(TSpin PROPERTIES LABELS "spin")
+  add_mpi_test(NAME TSpinTemperatureMPI NUM_PROCS 4
+               COMMAND $<TARGET_FILE:test_tspin>
+               --gtest_filter=TSpinTest.TemperatureUsesActiveSpinsAndGroup:TSpinTest.TemperatureCountsZeroModulusAndRecountsMasses)
+  if(TEST TSpinTemperatureMPI)
+    set_property(TEST TSpinTemperatureMPI APPEND PROPERTY LABELS "spin")
+  endif()
+  add_mpi_test(NAME TSpinIntegratorCompatibilityMPI NUM_PROCS 4
+               COMMAND $<TARGET_FILE:test_tspin>
+               --gtest_filter=TSpinTest.MixedSpinIntegratorsAreRejected:TSpinTest.SingleSpinIntegratorKeepsDipoleLatticeForces)
+  if(TEST TSpinIntegratorCompatibilityMPI)
+    set_property(TEST TSpinIntegratorCompatibilityMPI APPEND PROPERTY LABELS "spin")
+  endif()
+endif()
+
 add_executable(test_kspace_auto_slab test_kspace_auto_slab.cpp)
 target_compile_definitions(test_kspace_auto_slab PRIVATE -DTEST_INPUT_FOLDER=${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(test_kspace_auto_slab PRIVATE lammps GTest::GMock)
@@ -105,10 +125,33 @@ target_link_libraries(test_set_property PRIVATE lammps GTest::GMock)
 add_test(NAME SetProperty COMMAND test_set_property)
 add_kokkos_test(NAME SetProperty COMMAND test_set_property)
 
+if(PKG_COLLOID)
+  add_executable(test_pair_lubricate_poly test_pair_lubricate_poly.cpp)
+  target_link_libraries(test_pair_lubricate_poly PRIVATE lammps GTest::GMock)
+  add_test(NAME PairLubricatePoly COMMAND test_pair_lubricate_poly)
+  add_mpi_test(NAME PairLubricatePolyMPI NUM_PROCS 4 COMMAND $<TARGET_FILE:test_pair_lubricate_poly>)
+
+  add_executable(test_pair_brownian_poly test_pair_brownian_poly.cpp)
+  target_link_libraries(test_pair_brownian_poly PRIVATE lammps GTest::GMock)
+  add_test(NAME PairBrownianPoly COMMAND test_pair_brownian_poly)
+  add_mpi_test(NAME PairBrownianPolyMPI NUM_PROCS 4 COMMAND $<TARGET_FILE:test_pair_brownian_poly>)
+
+  if(PKG_OPENMP)
+    add_test(NAME PairLubricatePolyOMP COMMAND test_pair_lubricate_poly)
+    add_test(NAME PairBrownianPolyOMP COMMAND test_pair_brownian_poly)
+    set_tests_properties(PairLubricatePolyOMP PairBrownianPolyOMP PROPERTIES
+                         ENVIRONMENT "LAMMPS_ACCELERATOR_ARGS=-sf omp -pk omp 2")
+  endif()
+endif()
+
 add_executable(test_pair_ldd test_pair_ldd.cpp)
 target_link_libraries(test_pair_ldd PRIVATE lammps GTest::GMock)
 add_test(NAME PairLDD COMMAND test_pair_ldd)
 add_kokkos_test(NAME PairLDD COMMAND test_pair_ldd)
+
+add_executable(test_pair_body_granular test_pair_body_granular.cpp)
+target_link_libraries(test_pair_body_granular PRIVATE lammps GTest::GMock)
+add_test(NAME PairBodyGranular COMMAND test_pair_body_granular)
 
 add_executable(test_labelmap test_labelmap.cpp)
 target_compile_definitions(test_labelmap PRIVATE -DTEST_INPUT_FOLDER=${CMAKE_CURRENT_SOURCE_DIR})
@@ -196,6 +239,13 @@ if(PKG_REAXFF)
                        ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR}")
   add_kokkos_test(NAME ReaxFFOutput COMMAND test_reaxff_output
                   ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR}")
+endif()
+
+if(PKG_REAXFF OR PKG_QEQ)
+  add_executable(test_qeq_subgroup test_qeq_subgroup.cpp)
+  target_link_libraries(test_qeq_subgroup PRIVATE lammps GTest::GMock)
+  add_test(NAME QEqSubgroup COMMAND test_qeq_subgroup)
+  add_kokkos_test(NAME QEqSubgroup COMMAND test_qeq_subgroup)
 endif()
 
 add_executable(test_mpi_load_balancing test_mpi_load_balancing.cpp)

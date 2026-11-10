@@ -24,7 +24,7 @@ Syntax
       zero or more keyword/value pairs may be appended
       keywords = *neigh* or *newton* or *pair/only* or *binsize* or *gpuID* or *tpa* or *blocksize* or *omp* or *platform* or *device_type* or *ocl_args* or *split* (deprecated)
         *neigh* value = *yes* or *no* or *hybrid*
-          *yes* = neighbor list build on GPU (default)
+          *yes* = neighbor list build on GPU (default), same as *hybrid*
           *no* = neighbor list build on CPU
           *hybrid* = perform binning on the CPU but build neighbor list on the GPU
         *newton* = *off* or *on*
@@ -53,7 +53,7 @@ Syntax
     *intel* args = Narg keyword value ...
       Narg = accepted for backward compatibility and ignored
       zero or more keyword/value pairs may be appended
-      keywords = *mode* or *omp* or *lrt* or *pppm_table*
+      keywords = *mode* or *omp* or *lrt* or *pppm_table* or *ftz*
         *mode* value = *single* or *mixed* or *double*
           single = perform force calculations in single precision
           mixed = perform force calculations in mixed precision
@@ -66,6 +66,9 @@ Syntax
         *pppm_table* value = *yes* or *no*
           *yes* = Precompute pppm values in table (doesn't change accuracy)
           *no* = Compute pppm values on the fly
+        *ftz* value = *yes* or *no*
+          *yes* = flush very small (subnormal) floating-point numbers to zero
+          *no* = keep subnormal floating-point numbers
     *kokkos* args = keyword value ...
       zero or more keyword/value pairs may be appended
       keywords = *neigh* or *neigh/qeq* or *neigh/thread* or *neigh/transpose* or *newton* or *binsize* or *comm* or *comm/exchange* or *comm/forward* or *comm/pair/forward* or *comm/fix/forward* or *comm/compute/forward* or *comm/reverse* or *comm/pair/reverse* or *comm/fix/reverse* or *sort* or *atom/map* or *gpu/aware* or *pair/only*
@@ -228,7 +231,8 @@ computation will be built.  If *neigh* is *yes*, which is the default,
 neighbor list building is performed on the GPU.  If *neigh* is *no*,
 neighbor list building is instead performed on the CPU.  If *neigh* is
 *hybrid* the binning step of the neighbor list build is performed on the
-CPU and the list themselves on the GPU.  GPU neighbor list building
+CPU and the list themselves on the GPU.  Since binning on the GPU is no
+longer supported, *yes* and *hybrid* are equivalent.  GPU neighbor list building
 currently is not fully compatible with a triclinic box; if the behavior
 is significantly different from the CPU case, use the *neigh no*
 setting.  GPU neighbor lists are not accessible for commands that are
@@ -415,6 +419,21 @@ The *pppm_table* keyword with the argument yes allows to use a
 pre-computed table to efficiently spread the charge to the PPPM grid.
 This feature is enabled by default but can be turned off using the
 keyword with the argument *no*.
+
+.. versionadded:: TBD
+
+The *ftz* keyword determines whether very small floating-point numbers
+(subnormal numbers) are flushed to zero.  On most CPUs, calculations
+with subnormal numbers are much slower than with normal numbers, and
+some styles in the INTEL package can produce many of them, e.g. in
+mixed precision.  With *yes*, which is the default, LAMMPS sets the CPU
+to flush subnormal numbers to zero while the INTEL package is in use,
+and it restores the previous setting with the :doc:`clear <clear>`
+command or when the LAMMPS instance is closed.  When LAMMPS is used as
+a library, this can also affect calculations outside of LAMMPS in the
+same process (e.g. in a Python script that uses LAMMPS as a module).
+With *no*, subnormal numbers are kept, also in a LAMMPS executable that
+was compiled with the ``-ftz`` flag of the Intel compilers.
 
 KOKKOS package settings
 ^^^^^^^^^^^^^^^^^^^^^^^
@@ -862,7 +881,7 @@ For the INTEL package, the default parameters and settings are:
 
 .. parsed-literal::
 
-   omp = 0, mode = mixed, lrt = no, pppm_table = yes
+   omp = 0, mode = mixed, lrt = no, pppm_table = yes, ftz = yes
 
 These settings are made automatically if the "-sf intel"
 :doc:`command-line switch <Run_options>` is used.  If it is not used, you

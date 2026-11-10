@@ -30,3 +30,8 @@ if(PKG_OPENMP)
 endif()
 add_test(NAME NeighborClass COMMAND test_neighbor_class)
 set_tests_properties(NeighborClass PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR}")
+
+add_executable(test_modify_class test_modify_class.cpp)
+target_link_libraries(test_modify_class PRIVATE lammps GTest::GMock)
+add_test(NAME ModifyClass COMMAND test_modify_class)
+add_kokkos_test(NAME ModifyClass COMMAND test_modify_class)

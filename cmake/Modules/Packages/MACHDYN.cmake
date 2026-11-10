@@ -44,3 +44,4 @@ if((CMAKE_CXX_COMPILER_ID STREQUAL "PGI") OR (CMAKE_CXX_COMPILER_ID STREQUAL "NV
 endif()
 
 target_compile_definitions(lammps PRIVATE -DEIGEN_NO_CUDA)
+target_compile_definitions(lammps PRIVATE -DEIGEN_NO_HIP)

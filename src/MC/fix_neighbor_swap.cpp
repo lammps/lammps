@@ -450,7 +450,7 @@ void FixNeighborSwap::pre_exchange()
   comm->exchange();
   comm->borders();
   if (domain->triclinic) domain->lamda2x(atom->nlocal + atom->nghost);
-  if (modify->n_pre_neighbor) modify->pre_neighbor();
+  if (modify->has_fixes(FixConst::PRE_NEIGHBOR)) modify->pre_neighbor();
   neighbor->build(1);
 
   // energy_stored = energy of current state
@@ -555,7 +555,7 @@ int FixNeighborSwap::attempt_swap()
     comm->exchange();
     comm->borders();
     if (domain->triclinic) domain->lamda2x(atom->nlocal + atom->nghost);
-    if (modify->n_pre_neighbor) modify->pre_neighbor();
+    if (modify->has_fixes(FixConst::PRE_NEIGHBOR)) modify->pre_neighbor();
     neighbor->build(1);
   } else {
     comm->forward_comm(this);
@@ -620,7 +620,7 @@ double FixNeighborSwap::energy_full()
   int eflag = ENERGY_GLOBAL | ENERGY_ONLY;
   int vflag = VIRIAL_NONE;
 
-  if (modify->n_pre_force) modify->pre_force(vflag);
+  if (modify->has_fixes(FixConst::PRE_FORCE)) modify->pre_force(vflag);
 
   if (force->pair) force->pair->compute(eflag, vflag);
 
@@ -633,7 +633,7 @@ double FixNeighborSwap::energy_full()
 
   if (force->kspace) force->kspace->compute(eflag, vflag);
 
-  if (modify->n_post_force_any) modify->post_force(vflag);
+  if (modify->has_fixes(FixConst::POST_FORCE_ANY)) modify->post_force(vflag);
 
   update->eflag_global = update->ntimestep;
   double total_energy = c_pe->compute_scalar();

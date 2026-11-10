@@ -131,7 +131,7 @@ namespace LAMMPS_NS::MathSpecial {
     return x * x * x;
   }
 
-  /* Fast inline version of pow(-1.0, n)
+  /*! Fast inline version of pow(-1.0, n)
    *
    *  \param   n argument (integer)
    *  \return  -1 if n is odd, 1.0 if n is even */
@@ -141,7 +141,7 @@ namespace LAMMPS_NS::MathSpecial {
     return (n & 1) ? -1.0 : 1.0;
   }
 
-  /* Fast inline version of pow(x,n) for integer n
+  /*! Fast inline version of pow(x,n) for integer n
    *
    * This is a version of pow(x,n) optimized for n being integer.
    * Speedups of up to 10x faster than pow(x,y) have been measured.

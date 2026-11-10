@@ -12,9 +12,8 @@ session with the ``import`` command.
 
 .. warning::
 
-   Alternative interfaces such as :py:class:`PyLammps <lammps.PyLammps>` and
-   :py:class:`IPyLammps <lammps.IPyLammps>` classes have been deprecated and
-   will be removed in a future version of LAMMPS.
+   The alternative interfaces provided by the ``PyLammps`` and ``IPyLammps``
+   classes have been removed in LAMMPS version 10Sep2025.
 
 .. _mpi4py_url: https://mpi4py.readthedocs.io
 

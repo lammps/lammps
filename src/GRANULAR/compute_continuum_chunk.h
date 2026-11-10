@@ -37,8 +37,10 @@ class ComputeContinuumChunk : public ComputeChunk {
   void compute_array() override;
   double memory_usage() override;
 
-  void allocate() override;
   std::string get_thermo_colname(int) override;
+
+ protected:
+  void allocate() override;
 
  private:
   std::vector<std::tuple<int, int, int>> values;

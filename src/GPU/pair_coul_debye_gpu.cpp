@@ -35,7 +35,8 @@ using namespace LAMMPS_GPU;
 
 /* ---------------------------------------------------------------------- */
 
-PairCoulDebyeGPU::PairCoulDebyeGPU(LAMMPS *lmp) : PairCoulDebye(lmp), gpu_mode(GPU_FORCE)
+PairCoulDebyeGPU::PairCoulDebyeGPU(LAMMPS *lmp) :
+    PairCoulDebye(lmp), gpu_mode(GPU_FORCE), update_coeffs(false)
 {
   respa_enable = 0;
   suffix_flag |= Suffix::GPU;
@@ -56,6 +57,11 @@ PairCoulDebyeGPU::~PairCoulDebyeGPU()
 void PairCoulDebyeGPU::compute(int eflag, int vflag)
 {
   ev_init(eflag, vflag);
+
+  if (update_coeffs) {
+    cdebye_gpu_reinit(atom->ntypes + 1, scale);
+    update_coeffs = false;
+  }
 
   int nall = atom->nlocal + atom->nghost;
   int inum;
@@ -132,11 +138,13 @@ void PairCoulDebyeGPU::init_style()
 
 /* ---------------------------------------------------------------------- */
 
-void PairCoulDebyeGPU::reinit()
+double PairCoulDebyeGPU::init_one(int i, int j)
 {
-  Pair::reinit();
+  // the parameters may have been changed, e.g. by fix adapt,
+  // so copy them to the GPU again before the next compute()
 
-  cdebye_gpu_reinit(atom->ntypes + 1, scale);
+  update_coeffs = true;
+  return PairCoulDebye::init_one(i, j);
 }
 
 /* ---------------------------------------------------------------------- */

@@ -524,15 +524,16 @@ void PairSurfGranular::init_style()
     error->all(FLERR, Error::NOLASTLINE,
                "Pair style surf/granular requires ghost atoms store velocity");
 
+  set_heat_flag();
   if (heat_flag) {
     if (!atom->temperature_flag)
       error->all(FLERR, Error::NOLASTLINE,
-                 "Heat conduction in pair style surf/granularular requires atom style with "
+                 "Heat conduction in pair style surf/granular requires atom style with "
                  "temperature property");
     if (!atom->heatflow_flag)
       error->all(
           FLERR, Error::NOLASTLINE,
-          "Heat conduction in pair surf/granularular requires atom style with heatflow property");
+          "Heat conduction in pair style surf/granular requires atom style with heatflow property");
   }
 
   // allocate history and initialize models

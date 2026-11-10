@@ -1,10 +1,12 @@
 .. index:: pair_style dpd/coul/slater/long
 .. index:: pair_style dpd/coul/slater/long/gpu
+.. index:: pair_style dpd/coul/slater/long/kk
+.. index:: pair_style dpd/coul/slater/long/omp
 
 pair_style dpd/coul/slater/long command
 =======================================
 
-Accelerator Variants: *dpd/coul/slater/long/gpu*
+Accelerator Variants: *dpd/coul/slater/long/gpu*, *dpd/coul/slater/long/kk*, *dpd/coul/slater/long/omp*
 
 Syntax
 """"""
@@ -94,11 +96,10 @@ reciprocal space.  *C* is the same Coulomb conversion factor used in
 the Coulombic formulas described on the :doc:`pair_coul <pair_coul>`
 doc page.
 
-The following parameters must be defined for each pair of atoms types
-via the :doc:`pair_coeff <pair_coeff>` command as in the examples
-above, or in the data file or restart files read by the
-:doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
-commands:
+The following parameters must be defined for each pair of atom types via
+the :doc:`pair_coeff <pair_coeff>` command as in the examples above, or
+in the data file or restart files read by the :doc:`read_data
+<read_data>` or :doc:`read_restart <read_restart>` commands:
 
 * A (force units)
 * :math:`\gamma` (force/velocity units)

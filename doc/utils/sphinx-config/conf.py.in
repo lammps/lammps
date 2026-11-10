@@ -192,17 +192,39 @@ pygments_style = 'default'
 #keep_warnings = False
 
 # warn about all missing references (default False)
-nitpicky = False
+nitpicky = True
 
-# ignore known missing references
-nitpicky_ignore = {
+# ignore known missing references in nitpicky mode (sphinx-build -n):
+# names from the C/C++ runtime, MPI, or LAMMPS that are not (yet) documented in the manual
+nitpick_ignore = {
     ('cpp:identifier', 'Error'),
     ('cpp:identifier', 'FILE'),
+    ('cpp:identifier', 'FixExternalFnPtr'),
     ('cpp:identifier', 'LAMMPS_NS'),
+    ('cpp:identifier', 'LAMMPS_NS::MathSpecial'),
+    ('cpp:identifier', 'LAMMPS_NS::platform'),
     ('cpp:identifier', 'LAMMPS_NS::utils'),
     ('cpp:identifier', 'MPI_Comm'),
+    ('cpp:identifier', 'MathEigen'),
+    ('cpp:identifier', 'TOKENIZER_DEFAULT_SEPARATORS'),
+    ('cpp:identifier', 'bigint'),
+    ('cpp:identifier', 'exception'),
+    ('cpp:identifier', 'int64_t'),
     ('cpp:identifier', 'size_t'),
+    ('cpp:identifier', 'tagint'),
     ('envvar', 'DUMMY'),
+    ('std:ref', 'lmptype_8h'),
+}
+
+nitpick_ignore_regex = {
+    # sphinx-fortran turns the data types of all arguments into references
+    ('f:type', r'.*'),
+    # types from other python modules
+    ('py:class', r'(ctypes|numpy|IPython)\..*'),
+    # informal type names and descriptions in docstrings of the python module
+    ('py:class', r'.*[ *].*'),
+    ('py:class', r'string|strings|integer|double|dictionary|function|optional|pointer|NoneType'),
+    ('py:class', r'POINTER|c_\w+|MPI_Comm|command_wrapper|lammps\.c?_?(tagint|imageint)'),
 }
 
 # -- Options for HTML output ----------------------------------------------
@@ -325,21 +347,25 @@ else:
 mathjax_path = 'mathjax/tex-mml-chtml.js'
 
 # also load the MathJax fonts from the html tree instead of from the internet.
+# turn off the speech and braille generation, which would load about 1.2 MB
+# (uncompressed) of extra data on every page with math.  screen readers still
+# get the math through the hidden MathML added with the "assistiveMml" setting.
 # this setting is called mathjax4_config since Sphinx 9.0 and mathjax3_config before
 import sphinx
-mathjax_font_config = {'loader': {'paths': {'mathjax-newcm': '[mathjax]/mathjax-newcm-font'}}}
-if sphinx.version_info >= (9, 0):
-  mathjax4_config = mathjax_font_config
-else:
-  mathjax3_config = mathjax_font_config
 
-# hack to enable use of \AA in :math:
+_mathjax_config = {
+  'loader': {'paths': {'mathjax-newcm': '[mathjax]/mathjax-newcm-font'}},
+  'startup': {'polyfillHasOwn': True},
+  'options': {'menuOptions': {'settings': {'enrich': False, 'speech': False,
+                                           'braille': False, 'assistiveMml': True}}}
+}
+if sphinx.version_info >= (9, 0):
+  mathjax4_config = _mathjax_config
+else:
+  mathjax3_config = _mathjax_config
+
 # add :lammps: role for inline LAMMPS code highlight
 rst_prolog = r"""
-
-.. only:: html
-
-   :math:`\renewcommand{\AA}{\text{Å}}`
 
 .. role:: lammps(code)
     :language: LAMMPS

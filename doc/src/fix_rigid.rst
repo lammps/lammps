@@ -560,6 +560,14 @@ can set *Tstart* and *Tstop* to 0.0, which means only the viscous drag
 term in the Langevin thermostat will be applied.  See the discussion
 on the :doc:`fix viscous <fix_viscous>` page for details.
 
+.. note::
+
+   When the *langevin* keyword is used with fix rigid versus fix
+   rigid/small, different dynamics will result for parallel runs.  This
+   is because of the way random numbers are used in the two cases.  The
+   dynamics for the two cases should be statistically similar, but will
+   not be identical, even for a single timestep.
+
 .. versionchanged:: TBD
 
 When Langevin thermostatting is used with :doc:`fix deform

@@ -8,6 +8,9 @@ The package with the tools to do the translation and the matching
 original Fortran sources are at https://github.com/lammps/linalg.
 Please note that even through the files are C++ source code the
 resulting library will follow the Fortran binary conventions.
+The exceptions are ZDOTC, ZDOTU, ZLADIV, and DROUNDUP_LWORK, which follow
+the conventions of f2c, so Fortran code calling those functions needs to
+be compiled with the -ff2c flag of gfortran.
 
 Note that this is an *incomplete* subset of full BLAS/LAPACK.
 

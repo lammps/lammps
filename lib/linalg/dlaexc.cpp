@@ -75,13 +75,13 @@ int dlaexc_(logical *wantq, integer *n, doublereal *t, integer *ldt, doublereal 
     } else {
         nd = *n1 + *n2;
         dlacpy_((char *)"F", &nd, &nd, &t[*j1 + *j1 * t_dim1], ldt, d__, &c__4, (ftnlen)1);
-        dnorm = dlange_((char *)"Max", &nd, &nd, d__, &c__4, &work[1], (ftnlen)3);
+        dnorm = dlange_((char *)"M", &nd, &nd, d__, &c__4, &work[1], (ftnlen)1);
         eps = dlamch_((char *)"P", (ftnlen)1);
         smlnum = dlamch_((char *)"S", (ftnlen)1) / eps;
         d__1 = eps * 10. * dnorm;
         thresh = max(d__1, smlnum);
-        dlasy2_(&c_false, &c_false, &c_n1, n1, n2, d__, &c__4, &d__[*n1 + 1 + (*n1 + 1 << 2) - 5],
-                &c__4, &d__[(*n1 + 1 << 2) - 4], &c__4, &scale, x, &c__2, &xnorm, &ierr);
+        dlasy2_(&c_false, &c_false, &c_n1, n1, n2, d__, &c__4, &d__[*n1 + 1 + ((*n1 + 1) << 2) - 5],
+                &c__4, &d__[((*n1 + 1) << 2) - 4], &c__4, &scale, x, &c__2, &xnorm, &ierr);
         k = *n1 + *n1 + *n2 - 3;
         switch (k) {
             case 1:

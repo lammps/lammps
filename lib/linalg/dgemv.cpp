@@ -36,7 +36,7 @@ int dgemv_(char *trans, integer *m, integer *n, doublereal *alpha, doublereal *a
         xerbla_((char *)"DGEMV ", &info, (ftnlen)6);
         return 0;
     }
-    if (*m == 0 || *n == 0 || *alpha == 0. && *beta == 1.) {
+    if (*m == 0 || *n == 0 || (*alpha == 0. && *beta == 1.)) {
         return 0;
     }
     if (lsame_(trans, (char *)"N", (ftnlen)1, (ftnlen)1)) {

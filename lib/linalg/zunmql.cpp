@@ -109,7 +109,7 @@ int zunmql_(char *side, char *trans, integer *m, integer *n, integer *k, doublec
                 &iinfo, (ftnlen)1, (ftnlen)1);
     } else {
         iwt = nw * nb + 1;
-        if (left && notran || !left && !notran) {
+        if ((left && notran) || (!left && !notran)) {
             i1 = 1;
             i2 = *k;
             i3 = nb;

@@ -175,7 +175,7 @@ int dlaqr0_(logical *wantt, logical *wantz, integer *n, integer *ilo, integer *i
                     &h__[kv + kt * h_dim1], ldh, &nve, &h__[kwv + h_dim1], ldh, &work[1], lwork);
             kbot -= ld;
             ks = kbot - ls + 1;
-            if (ld == 0 || ld * 100 <= nw * nibble && kbot - ktop + 1 > min(nmin, nwmax)) {
+            if (ld == 0 || (ld * 100 <= nw * nibble && kbot - ktop + 1 > min(nmin, nwmax))) {
                 i__4 = 2, i__5 = kbot - ktop;
                 i__2 = min(nsmax, nsr), i__3 = max(i__4, i__5);
                 ns = min(i__2, i__3);

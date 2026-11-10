@@ -96,8 +96,8 @@ int dlarrd_(char *range, char *order, integer *n, doublereal *vl, doublereal *vu
     eps = dlamch_((char *)"P", (ftnlen)1);
     uflow = dlamch_((char *)"U", (ftnlen)1);
     if (*n == 1) {
-        if (irange == 1 || irange == 2 && d__[1] > *vl && d__[1] <= *vu ||
-            irange == 3 && *il == 1 && *iu == 1) {
+        if (irange == 1 || (irange == 2 && d__[1] > *vl && d__[1] <= *vu) ||
+            (irange == 3 && *il == 1 && *iu == 1)) {
             *m = 1;
             w[1] = d__[1];
             werr[1] = 0.;
@@ -190,7 +190,7 @@ int dlarrd_(char *range, char *order, integer *n, doublereal *vl, doublereal *vu
             if (*wu >= d__[ibegin] - *pivmin) {
                 ++nwu;
             }
-            if (irange == 1 || *wl < d__[ibegin] - *pivmin && *wu >= d__[ibegin] - *pivmin) {
+            if (irange == 1 || (*wl < d__[ibegin] - *pivmin && *wu >= d__[ibegin] - *pivmin)) {
                 ++(*m);
                 w[*m] = d__[ibegin];
                 werr[*m] = 0.;
@@ -355,7 +355,7 @@ int dlarrd_(char *range, char *order, integer *n, doublereal *vl, doublereal *vu
             toofew = TRUE_;
         }
     }
-    if (irange == 1 && *m != *n || irange == 3 && *m != *iu - *il + 1) {
+    if ((irange == 1 && *m != *n) || (irange == 3 && *m != *iu - *il + 1)) {
         toofew = TRUE_;
     }
     if (lsame_(order, (char *)"E", (ftnlen)1, (ftnlen)1) && *nsplit > 1) {

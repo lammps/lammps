@@ -361,6 +361,8 @@ overview.
 * :doc:`atom_style body <atom_style>`
 * :doc:`fix nve/body <fix_nve_body>`
 * :doc:`pair_style body/nparticle <pair_body_nparticle>`
+* :doc:`pair_style body/rounded/polyhedron/granular <pair_body_rounded_polyhedron_granular>` (requires the GRANULAR package)
+* :doc:`fix wall/body/polyhedron/granular <fix_wall_body_polyhedron_granular>` (requires the GRANULAR package)
 * ``examples/body``
 
 ----------
@@ -1315,11 +1317,6 @@ You need to have an Intel compiler, version 14 or higher to take full
 advantage of this package. While compilation with GNU compilers is
 supported, performance will be sub-optimal.
 
-.. note::
-
-   the INTEL package contains styles that require using the
-   -restrict flag, when compiling with Intel compilers.
-
 **Author:** Mike Brown (Intel).
 
 **Install:**
@@ -1896,11 +1893,6 @@ MISC package
 A variety of compute, fix, pair, bond styles with specialized
 capabilities that don't align with other packages.  Do a directory
 listing, ``ls src/MISC``, to see the list of commands.
-
-.. note::
-
-   the MISC package contains styles that require using the
-   -restrict flag, when compiling with Intel compilers.
 
 **Supporting info:**
 
@@ -3031,7 +3023,10 @@ SPIN package
 **Contents:**
 
 Model atomic magnetic spins classically, coupled to atoms moving in
-the usual manner via MD.  Various pair, fix, and compute styles.
+the usual manner via MD.  Various pair, fix, and compute styles.  Both
+fixed-modulus Landau-Lifshitz spin dynamics and inertial spin dynamics,
+in which the spin modulus is a dynamical degree of freedom, are
+supported.
 
 **Author:** Julien Tranchida (Sandia).
 
@@ -3049,7 +3044,15 @@ the usual manner via MD.  Various pair, fix, and compute styles.
 * :doc:`fix nve/spin <fix_nve_spin>`
 * :doc:`fix langevin/spin <fix_langevin_spin>`
 * :doc:`fix precession/spin <fix_precession_spin>`
+* :doc:`fix nve/tspin <fix_nve_tspin>`
+* :doc:`fix nvt/tspin <fix_nvt_tspin>`
+* :doc:`fix npt/tspin <fix_nvt_tspin>`
+* :doc:`fix nph/tspin <fix_nvt_tspin>`
+* :doc:`fix langevin/tspin <fix_langevin_tspin>`
+* :doc:`fix spring/tspin <fix_spring_tspin>`
 * :doc:`compute spin <compute_spin>`
+* :doc:`compute temp/tspin <compute_temp_tspin>`
+* :doc:`velocity/tspin <velocity_tspin>`
 * :doc:`neb/spin <neb_spin>`
 * ``examples/SPIN``
 

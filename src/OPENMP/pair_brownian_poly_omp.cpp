@@ -116,14 +116,15 @@ void PairBrownianPolyOMP::compute(int eflag, int vflag)
       }
       double vol_T = dims[0]*dims[1]*dims[2];
       double vol_f = vol_P/vol_T;
+
+      // R0 and RT0 are multiplied by the radius of each particle (cubed for RT0)
+
       if (flaglog == 0) {
-        R0  = 6*MY_PI*mu*rad*(1.0 + 2.16*vol_f);
-        RT0 = 8*MY_PI*mu*cube(rad);
-        //RS0 = 20.0/3.0*MY_PI*mu*pow(rad,3)*(1.0 + 3.33*vol_f + 2.80*vol_f*vol_f);
+        R0  = 6*MY_PI*mu*(1.0 + 2.16*vol_f);
+        RT0 = 8*MY_PI*mu;
       } else {
-        R0  = 6*MY_PI*mu*rad*(1.0 + 2.725*vol_f - 6.583*vol_f*vol_f);
-        RT0 = 8*MY_PI*mu*cube(rad)*(1.0 + 0.749*vol_f - 2.469*vol_f*vol_f);
-        //RS0 = 20.0/3.0*MY_PI*mu*pow(rad,3)*(1.0 + 3.64*vol_f - 6.95*vol_f*vol_f);
+        R0  = 6*MY_PI*mu*(1.0 + 2.725*vol_f - 6.583*vol_f*vol_f);
+        RT0 = 8*MY_PI*mu*(1.0 + 0.749*vol_f - 2.469*vol_f*vol_f);
       }
     }
 
@@ -187,7 +188,7 @@ void PairBrownianPolyOMP::eval(int iifrom, int iito, ThrData * const thr)
 {
   int i,j,ii,jj,jnum,itype,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz,fx,fy,fz,tx,ty,tz;
-  double rsq,r,h_sep,beta0,beta1,radi,radj;
+  double rsq,r,gap,h_sep,beta0,beta1,radi,radj;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   const double * const * const x = atom->x;
@@ -195,14 +196,16 @@ void PairBrownianPolyOMP::eval(int iifrom, int iito, ThrData * const thr)
   double * const * const torque = thr->get_torque();
   const double * const radius = atom->radius;
   const int * const type = atom->type;
+  const tagint * const tag = atom->tag;
   const int nlocal = atom->nlocal;
+  const bigint step = update->ntimestep;
 
   RanMars &rng = *random_thr[thr->get_tid()];
 
   double vxmu2f = force->vxmu2f;
   double randr;
   double prethermostat;
-  double xl[3],a_sq,a_sh,a_pu,Fbmag;
+  double a_sq,a_sh,a_pu,Fbmag;
   double p1[3],p2[3],p3[3];
 
   // scale factor for Brownian moments
@@ -256,41 +259,56 @@ void PairBrownianPolyOMP::eval(int iifrom, int iito, ThrData * const thr)
       if (rsq < cutsq[itype][jtype]) {
         r = sqrt(rsq);
 
-        // scalar resistances a_sq and a_sh
+        // the random numbers and the reference frame of a pair do not depend on
+        // which of the two atoms is atom i, so that the two atoms get equal and
+        // opposite forces.  the atom with the lower ID is the reference atom,
+        // csgn = 1 if atom i is the reference atom and -1 otherwise, and the
+        // unit vector e points from the other atom to the reference atom.
 
-        h_sep = r - radi-radj;
+        const double csgn = (tag[i] < tag[j]) ? 1.0 : -1.0;
+        const double rref = (csgn > 0.0) ? radi : radj;
+        const double roth = (csgn > 0.0) ? radj : radi;
+        const double ex = csgn*delx/r;
+        const double ey = csgn*dely/r;
+        const double ez = csgn*delz/r;
+        const uint64_t key = pair_key(tag[i],tag[j],step,seed);
 
+        // gap between the particle surfaces
         // if less than minimum gap, use minimum gap instead
 
-        if (r < cut_inner[itype][jtype])
-          h_sep = cut_inner[itype][jtype] - radi-radj;
+        if (r < cut_inner[itype][jtype]) gap = cut_inner[itype][jtype] - (radi+radj);
+        else gap = r - (radi+radj);
 
-        // scale h_sep by radi
+        // scale gap by the radius of the reference atom
 
-        h_sep = h_sep/radi;
-        beta0 = radj/radi;
+        h_sep = gap/rref;
+        beta0 = roth/rref;
         beta1 = 1.0 + beta0;
 
-        // scalar resistances
+        // scalar resistances as in pair style lubricate/poly
+        // log terms use the gap xi = 2*gap/(radi+radj) of Jeffrey and Onishi
 
         if (FLAGLOG) {
+          const double logxi = log(0.5*beta1/h_sep);
           a_sq = beta0*beta0/beta1/beta1/h_sep +
-            (1.0+7.0*beta0+beta0*beta0)/5.0/cube(beta1)*log(1.0/h_sep);
+            beta0*(1.0+7.0*beta0+beta0*beta0)/5.0/cube(beta1)*logxi;
           a_sq += (1.0+18.0*beta0-29.0*beta0*beta0+18.0*cube(beta0) +
-                   powint(beta0,4))/21.0/powint(beta1,4)*h_sep*log(1.0/h_sep);
-          a_sq *= 6.0*MY_PI*mu*radi;
-          a_sh = 4.0*beta0*(2.0+beta0+2.0*beta0*beta0)/15.0/cube(beta1) *
-            log(1.0/h_sep);
+                   powint(beta0,4))/21.0/powint(beta1,4)*h_sep*logxi;
+          a_sq *= 6.0*MY_PI*mu*rref;
+          a_sh = 4.0*beta0*(2.0+beta0+2.0*beta0*beta0)/15.0/cube(beta1)*logxi;
           a_sh += 4.0*(16.0-45.0*beta0+58.0*beta0*beta0-45.0*cube(beta0) +
-                       16.0*powint(beta0,4))/375.0/powint(beta1,4) *
-            h_sep*log(1.0/h_sep);
-          a_sh *= 6.0*MY_PI*mu*radi;
-          a_pu = beta0*(4.0+beta0)/10.0/beta1/beta1*log(1.0/h_sep);
-          a_pu += (32.0-33.0*beta0+83.0*beta0*beta0+43.0 *
-                   cube(beta0))/250.0/cube(beta1)*h_sep*log(1.0/h_sep);
-          a_pu *= 8.0*MY_PI*mu*cube(radi);
+                       16.0*powint(beta0,4))/375.0/powint(beta1,4)*h_sep*logxi;
+          a_sh *= 6.0*MY_PI*mu*rref;
 
-        } else a_sq = 6.0*MY_PI*mu*radi*(beta0*beta0/beta1/beta1/h_sep);
+          // rotational resistance of atom i
+
+          const double beta0i = radj/radi;
+          const double beta1i = 1.0 + beta0i;
+          a_pu = 2.0*beta0i/5.0/beta1i*logxi;
+          a_pu += 2.0*(8.0+6.0*beta0i+33.0*beta0i*beta0i)/125.0/square(beta1i) *
+            gap/radi*logxi;
+          a_pu *= 8.0*MY_PI*mu*cube(radi);
+        } else a_sq = 6.0*MY_PI*mu*rref*(beta0*beta0/beta1/beta1/h_sep);
 
         // generate the Pairwise Brownian Force: a_sq
 
@@ -298,13 +316,13 @@ void PairBrownianPolyOMP::eval(int iifrom, int iito, ThrData * const thr)
 
         // generate a random number
 
-        randr = rng.uniform()-0.5;
+        randr = pair_uniform(key,0)-0.5;
 
         // contribution due to Brownian motion
 
-        fx = Fbmag*randr*delx/r;
-        fy = Fbmag*randr*dely/r;
-        fz = Fbmag*randr*delz/r;
+        fx = Fbmag*randr*ex;
+        fy = Fbmag*randr*ey;
+        fz = Fbmag*randr*ez;
 
         // add terms due to a_sh
 
@@ -312,7 +330,7 @@ void PairBrownianPolyOMP::eval(int iifrom, int iito, ThrData * const thr)
 
           // generate two orthogonal vectors to the line of centers
 
-          p1[0] = delx/r; p1[1] = dely/r; p1[2] = delz/r;
+          p1[0] = ex; p1[1] = ey; p1[2] = ez;
           set_3_orthogonal_vectors(p1,p2,p3);
 
           // magnitude
@@ -321,12 +339,12 @@ void PairBrownianPolyOMP::eval(int iifrom, int iito, ThrData * const thr)
 
           // force in each of the two directions
 
-          randr = rng.uniform()-0.5;
+          randr = pair_uniform(key,1)-0.5;
           fx += Fbmag*randr*p2[0];
           fy += Fbmag*randr*p2[1];
           fz += Fbmag*randr*p2[2];
 
-          randr = rng.uniform()-0.5;
+          randr = pair_uniform(key,2)-0.5;
           fx += Fbmag*randr*p3[0];
           fy += Fbmag*randr*p3[1];
           fz += Fbmag*randr*p3[2];
@@ -338,33 +356,26 @@ void PairBrownianPolyOMP::eval(int iifrom, int iito, ThrData * const thr)
         fy = vxmu2f*fy;
         fz = vxmu2f*fz;
 
-        // sum to total force
+        // sum to total force: -F on the reference atom, +F on the other atom
 
-        f[i][0] -= fx;
-        f[i][1] -= fy;
-        f[i][2] -= fz;
+        f[i][0] -= csgn*fx;
+        f[i][1] -= csgn*fy;
+        f[i][2] -= csgn*fz;
 
         // torque due to the Brownian Force
 
         if (FLAGLOG) {
 
-          // location of the point of closest approach on I from its center
+          // torque = xl_cross_F with xl = -csgn*radi*e, the location of the
+          // point of closest approach on I from its center, and -csgn*F
 
-          xl[0] = -delx/r*radi;
-          xl[1] = -dely/r*radi;
-          xl[2] = -delz/r*radi;
+          tx = radi*(ey*fz - ez*fy);
+          ty = radi*(ez*fx - ex*fz);
+          tz = radi*(ex*fy - ey*fx);
 
-          // torque = xl_cross_F
-
-          tx = xl[1]*fz - xl[2]*fy;
-          ty = xl[2]*fx - xl[0]*fz;
-          tz = xl[0]*fy - xl[1]*fx;
-
-          // torque is same on both particles
-
-          torque[i][0] -= tx;
-          torque[i][1] -= ty;
-          torque[i][2] -= tz;
+          torque[i][0] += tx;
+          torque[i][1] += ty;
+          torque[i][2] += tz;
 
           // torque due to a_pu
 
@@ -372,28 +383,27 @@ void PairBrownianPolyOMP::eval(int iifrom, int iito, ThrData * const thr)
 
           // force in each direction
 
-          randr = rng.uniform()-0.5;
+          randr = pair_uniform(key,3)-0.5;
           tx = Fbmag*randr*p2[0];
           ty = Fbmag*randr*p2[1];
           tz = Fbmag*randr*p2[2];
 
-          randr = rng.uniform()-0.5;
+          randr = pair_uniform(key,4)-0.5;
           tx += Fbmag*randr*p3[0];
           ty += Fbmag*randr*p3[1];
           tz += Fbmag*randr*p3[2];
 
           // torque has opposite sign on two particles
 
-          torque[i][0] -= tx;
-          torque[i][1] -= ty;
-          torque[i][2] -= tz;
-
+          torque[i][0] -= csgn*tx;
+          torque[i][1] -= csgn*ty;
+          torque[i][2] -= csgn*tz;
         }
 
         // set j = nlocal so that only I gets tallied
 
         if (EVFLAG) ev_tally_xyz_thr(this,i,nlocal,nlocal,/* newton_pair */ 0,
-                                     0.0,0.0,-fx,-fy,-fz,delx,dely,delz,thr);
+                                     0.0,0.0,-csgn*fx,-csgn*fy,-csgn*fz,delx,dely,delz,thr);
       }
     }
   }

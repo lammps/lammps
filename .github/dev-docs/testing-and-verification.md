@@ -147,10 +147,20 @@ numerically; both can be emulated on an x86-64 machine in a separate build direc
 | GCC contracts `a*b + c` into fused multiply-add (FMA) by default | `-D CMAKE_CXX_FLAGS="-mfma -ffp-contract=fast"` |
 | plain `char` is UNSIGNED (signed on x86-64 and macOS) | `-D CMAKE_CXX_FLAGS=-funsigned-char` |
 
-The macOS runner (`macos-26-intel`) is x86-64: a macOS-only failure comes from Apple's
-libm or clang (e.g. a last-bit difference in `sin()`), never from FMA or char
-signedness.  A clang build on Linux (`cmake/presets/clang.cmake`) covers the compiler
-part.
+The macOS job on pull requests (`macos-26`) is arm64 with the current AppleClang, so it
+also uses FMA, but plain `char` is signed and OpenMP is not enabled.
+`unittest-arm64.yml` runs only on pushes to `develop`, so in a pull request macOS is the
+only arm64 job, and a failure only there can still be FMA: emulate it with a clang build
+(`cmake/presets/clang.cmake`) and `-D CMAKE_CXX_FLAGS="-mfma -ffp-contract=on"`.  A
+failure this does not reproduce can come from Apple's libm (e.g. a last-bit difference
+in `sin()`) or the compiler version.
+
+The unit tests of `develop` also run on macOS on x86-64 as a nightly task next to the
+benchmarks and other tests, not as a GitHub workflow, with the results at
+https://download.lammps.org/coverage/macos-x86_64-junit.html.  That machine runs macOS 12
+with Apple clang 14, so together with the pull request job a wide range of compiler
+versions is covered.  Its build has OpenMP and does not use FMA, so a failure there does
+not come from FMA.
 
 Triage a failure seen on only one platform in this order, and do NOT tag the test
 `unstable` before doing so -- the tag hides real portability bugs:

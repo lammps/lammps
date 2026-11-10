@@ -704,10 +704,14 @@ void MEAM::meam_force(int i, int eflag_global, int eflag_atom, int vflag_global,
                     if (cikj >= Cmin && cikj <= Cmax) {
                       cikj = (cikj - Cmin) / delc;
                       sikj = dfcut(cikj, dfc);
-                      dCfunc2(rij2, rik2, rjk2, dCikj1, dCikj2);
-                      a = sij / delc * dfc / sikj;
-                      dsij1 = a * dCikj1;
-                      dsij2 = a * dCikj2;
+                      // sikj = dfc = 0 for cikj within rounding of Cmin while sij > 0,
+                      // see getscreen().  the contribution vanishes in this limit.
+                      if (sikj > 0.0) {
+                        dCfunc2(rij2, rik2, rjk2, dCikj1, dCikj2);
+                        a = sij / delc * dfc / sikj;
+                        dsij1 = a * dCikj1;
+                        dsij2 = a * dCikj2;
+                      }
                     }
                   }
                 }

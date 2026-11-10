@@ -261,6 +261,7 @@ TEST_F(LibraryObjects, eval)
     EXPECT_EQ(lammps_has_error(lmp), 0);
     EXPECT_DOUBLE_EQ(lammps_eval(lmp, "count(all)"), 36.0);
     EXPECT_EQ(lammps_has_error(lmp), 0);
-    EXPECT_DOUBLE_EQ(lammps_eval(lmp, "pe"), -3.9848867644689534);
+    // the lattice constant comes from pow(), whose last bit differs between C libraries
+    EXPECT_NEAR(lammps_eval(lmp, "pe"), -3.9848867644689534, 1.0e-13);
     EXPECT_EQ(lammps_has_error(lmp), 0);
 }

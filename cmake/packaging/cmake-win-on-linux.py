@@ -242,7 +242,7 @@ if revflag == 'stable' or revflag == 'release' or rev2.match(revflag):
     verseq = verexp.match(vertxt).groups()
     version = "".join(verseq)
 elif revflag == 'develop' or revflag == 'maintenance':
-    version = time.strftime('%Y-%m-%d')
+    version = system("git describe HEAD").strip()
 
 if not pythonflag and not guiflag:
   print("Configuring pace plugin build with CMake")
@@ -287,13 +287,14 @@ if not pythonflag and not guiflag:
     shutil.move(exe,os.path.join('..',os.path.basename(exe)))
   print("Done")
 
-print("Building PDF manual")
 os.chdir(os.path.join(gitdir,"doc"))
-txt = system("make upgrade")
-if verbose: print(txt)
-txt = system("make pdf")
-if verbose: print(txt)
-shutil.move("Manual.pdf",os.path.join(builddir,"LAMMPS-Manual.pdf"))
+if not os.path.exists("Manual.pdf"):
+    print("Building PDF manual")
+    txt = system("make upgrade")
+    if verbose: print(txt)
+    txt = system("make pdf")
+    if verbose: print(txt)
+shutil.copy("Manual.pdf",os.path.join(builddir,"LAMMPS-Manual.pdf"))
 print("Done")
 
 # switch back to build folder and copy/process files for inclusion in installer

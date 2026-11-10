@@ -45,12 +45,14 @@ each atom in the chunk.  This can be useful in several scenarios:
 
 Examples are given below.
 
-In LAMMPS, chunks are collections of atoms defined by a :doc:`compute chunk/atom <compute_chunk_atom>` command, which assigns each atom
-to a single chunk (or no chunk).  The ID for this command is specified
-as chunkID.  For example, a single chunk could be the atoms in a
-molecule or atoms in a spatial bin.  See the :doc:`compute chunk/atom <compute_chunk_atom>` and :doc:`Howto chunk <Howto_chunk>`
-doc pages for details of how chunks can be defined and examples of how
-they can be used to measure properties of a system.
+In LAMMPS, chunks are collections of atoms defined by a :doc:`compute
+chunk/atom <compute_chunk_atom>` command, which assigns each atom to a
+single chunk (or no chunk).  The ID for this command is specified as
+chunkID.  For example, a single chunk could be the atoms in a molecule
+or atoms in a spatial bin.  See the :doc:`compute chunk/atom
+<compute_chunk_atom>` and :doc:`Howto chunk <Howto_chunk>` doc pages
+for details of how chunks can be defined and examples of how they can
+be used to measure properties of a system.
 
 For inputs that are computes, they must be a compute that calculates
 per-chunk values.  These are computes whose style names end in
@@ -96,8 +98,8 @@ to n (inclusive).  A trailing asterisk means all indices from n to N
 
 Using a wildcard is the same as if the individual columns of the array
 had been listed one by one.  E.g. these 2 compute chunk/spread/atom
-commands are equivalent, since the :doc:`compute com/chunk <compute_com_chunk>` command creates a per-atom array
-with 3 columns:
+commands are equivalent, since the :doc:`compute com/chunk
+<compute_com_chunk>` command creates a per-atom array with 3 columns:
 
 .. code-block:: LAMMPS
 

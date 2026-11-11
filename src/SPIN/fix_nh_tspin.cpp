@@ -505,20 +505,19 @@ int FixNHTSpin::size_restart_global()
 void FixNHTSpin::write_restart(FILE *fp)
 {
   const int nsize = size_restart_global();
-  auto list = new double[nsize];
+  std::vector<double> list(nsize, 0.0);
 
   // the parent class writes its own state first, in its own layout
 
-  int n = pack_restart_data(list);
+  int n = pack_restart_data(list.data());
   for (int ich = 0; ich < mtchain; ich++) list[n++] = etas[ich];
   for (int ich = 0; ich < mtchain; ich++) list[n++] = etas_dot[ich];
 
   if (comm->me == 0) {
     int size = n * sizeof(double);
     fwrite(&size, sizeof(int), 1, fp);
-    fwrite(list, sizeof(double), n, fp);
+    fwrite(list.data(), sizeof(double), n, fp);
   }
-  delete[] list;
 }
 
 /* ---------------------------------------------------------------------- */

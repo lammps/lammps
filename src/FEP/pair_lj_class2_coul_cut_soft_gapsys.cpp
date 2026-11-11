@@ -22,6 +22,7 @@
 #include "error.h"
 #include "force.h"
 #include "math_const.h"
+#include "math_special.h"
 #include "memory.h"
 #include "neigh_list.h"
 #include "neighbor.h"
@@ -31,6 +32,8 @@
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
+using MathSpecial::cube;
+using MathSpecial::square;
 
 /* ---------------------------------------------------------------------- */
 
@@ -141,7 +144,7 @@ void PairLJClass2CoulCutSoftGapsys::compute(int eflag, int vflag)
         forcecoul = forcelj = 0.0;
         if (rsq < cut_inner_q * cut_inner_q) {
           forcecoul = qqrd2e * qtmp * q[j];
-          forcecoul *= rsq * (-2.0 / pow(cut_inner_q, 3) + 3.0 / (pow(cut_inner_q, 2) * sqrt(rsq)));
+          forcecoul *= rsq * (-2.0 / cube(cut_inner_q) + 3.0 / (square(cut_inner_q) * sqrt(rsq)));
           if (eflag) {
             ecoul = factor_coul * qqrd2e * qtmp * q[j];
             ecoul *= ((rsq / cut_inner_q - 3.0 * sqrt(rsq)) / cut_inner_q + 3.0) / cut_inner_q;
@@ -551,7 +554,7 @@ double PairLJClass2CoulCutSoftGapsys::single(int i, int j, int itype, int jtype,
   r2inv = 1.0 / rsq;
   if (rsq < cut_inner_q * cut_inner_q) {
     forcecoul = force->qqrd2e * atom->q[i] * atom->q[j];
-    forcecoul *= -2.0 / pow(cut_inner_q, 3) + 3.0 / (pow(cut_inner_q, 2) * sqrt(rsq));
+    forcecoul *= -2.0 / cube(cut_inner_q) + 3.0 / (square(cut_inner_q) * sqrt(rsq));
     phicoul = force->qqrd2e * atom->q[i] * atom->q[j];
     phicoul *=
         (rsq / (cut_inner_q * cut_inner_q) - 3.0 * sqrt(rsq) / cut_inner_q + 3.0) / cut_inner_q;

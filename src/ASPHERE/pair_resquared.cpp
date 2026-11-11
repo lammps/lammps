@@ -23,6 +23,7 @@
 #include "error.h"
 #include "force.h"
 #include "math_extra.h"
+#include "math_special.h"
 #include "memory.h"
 #include "neigh_list.h"
 #include "neighbor.h"
@@ -30,6 +31,8 @@
 #include <cmath>
 
 using namespace LAMMPS_NS;
+using MathSpecial::cube;
+using MathSpecial::powint;
 
 /* ---------------------------------------------------------------------- */
 
@@ -730,12 +733,12 @@ double PairRESquared::resquared_analytic(const int i, const int j, const RE2Vars
   Ur = (shape1[type[i]][0] + stemp) * (shape1[type[i]][1] + stemp) * (shape1[type[i]][2] + stemp) *
       (shape1[type[j]][0] + stemp) * (shape1[type[j]][1] + stemp) * (shape1[type[j]][2] + stemp);
   Ur = (1.0 + b_alpha * tprod) * sprod / Ur;
-  Ur = epsilon[type[i]][type[j]] * Ur * pow(sigh, 6.0) / 2025.0;
+  Ur = epsilon[type[i]][type[j]] * Ur * powint(sigh, 6) / 2025.0;
 
   // force
 
   sec = sigma[type[i]][type[j]] * eta * chi;
-  sigma12p3 = pow(sigma12, 3.0);
+  sigma12p3 = cube(sigma12);
   sigma1p3 = sigma1p2 * sigma1;
   sigma2p3 = sigma2p2 * sigma2;
   vsigma1[0] = -sigma1p3 * v1[0];
@@ -969,8 +972,8 @@ double PairRESquared::resquared_lj(const int i, const int j, const RE2Vars &wi, 
   sigh = sigma[type[i]][type[j]] / h12;
   tprod = chi * sigh;
 
-  h12p3 = pow(h12, 3.0);
-  double sigmap3 = pow(sigma[type[i]][type[j]], 3.0);
+  h12p3 = cube(h12);
+  double sigmap3 = cube(sigma[type[i]][type[j]]);
   double stemp = h12 / 2.0;
   Ua = (shape1[type[i]][0] + stemp) * (shape1[type[i]][1] + stemp) * (shape1[type[i]][2] + stemp) *
       h12p3 / 8.0;
@@ -981,12 +984,12 @@ double PairRESquared::resquared_lj(const int i, const int j, const RE2Vars &wi, 
   Ur = (shape1[type[i]][0] + stemp) * (shape1[type[i]][1] + stemp) * (shape1[type[i]][2] + stemp) *
       h12p3 / 60.0;
   Ur = (1.0 + b_alpha * tprod) * lshape[type[i]] / Ur;
-  Ur = epsilon[type[i]][type[j]] * Ur * sigmap3 * pow(sigh, 6.0) * solv_f_r;
+  Ur = epsilon[type[i]][type[j]] * Ur * sigmap3 * powint(sigh, 6) * solv_f_r;
 
   // force
 
   sec = sigma[type[i]][type[j]] * chi;
-  sigma12p3 = pow(sigma12, 3.0);
+  sigma12p3 = cube(sigma12);
   fourw[0] = 4.0 * w[0];
   fourw[1] = 4.0 * w[1];
   fourw[2] = 4.0 * w[2];

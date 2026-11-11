@@ -25,6 +25,7 @@
 #include "force.h"
 #include "kokkos.h"
 #include "math_const.h"
+#include "math_special_kokkos.h"
 #include "memory_kokkos.h"
 #include "neigh_list_kokkos.h"
 #include "neigh_request.h"
@@ -418,7 +419,7 @@ void PairTersoffZBLKokkos<DeviceType>::tersoff_zbl_compute(const int &ii, EV_FLO
 
     // ZBL repulsive portion
 
-    const KK_FLOAT esq = Kokkos::pow(global_e,static_cast<KK_FLOAT>(2.0));
+    const KK_FLOAT esq = MathSpecialKokkos::square(global_e);
     const KK_FLOAT a_ij = (static_cast<KK_FLOAT>(0.8854)*global_a_0) /
             static_cast<KK_FLOAT>(pow(d_params(iparam_ij).Z_i,0.23) + pow(d_params(iparam_ij).Z_j,0.23));
     const KK_FLOAT premult = (static_cast<KK_FLOAT>(d_params(iparam_ij).Z_i) * static_cast<KK_FLOAT>(d_params(iparam_ij).Z_j) * esq)/
@@ -514,9 +515,10 @@ void PairTersoffZBLKokkos<DeviceType>::tersoff_zbl_compute(const int &ii, EV_FLO
 
     const KK_FLOAT fa = ters_fa_k(d_params(iparam_ij),rij);
     const KK_FLOAT dfa = ters_dfa(d_params(iparam_ij),rij);
-    const KK_FLOAT bij = ters_bij_k(d_params(iparam_ij),bo_ij);
+    KK_FLOAT bij, dbij;
+    ters_bij_k_and_ters_dbij(d_params(iparam_ij),bo_ij,bij,dbij);
     const KK_FLOAT fatt = -static_cast<KK_FLOAT>(0.5)*bij * dfa / rij_orig;
-    const KK_FLOAT prefactor = static_cast<KK_FLOAT>(0.5)*fa * ters_dbij(d_params(iparam_ij),bo_ij);
+    const KK_FLOAT prefactor = static_cast<KK_FLOAT>(0.5)*fa * dbij;
 
     f_x += static_cast<KK_ACC_FLOAT>(delx1*fatt);
     f_y += static_cast<KK_ACC_FLOAT>(dely1*fatt);
@@ -771,11 +773,11 @@ KK_FLOAT PairTersoffZBLKokkos<DeviceType>::ters_bij_k(const Param& param, const 
   const KK_FLOAT powern_kk = static_cast<KK_FLOAT>(param.powern);
   if (tmp > static_cast<KK_FLOAT>(param.c1)) return static_cast<KK_FLOAT>(1.0)/Kokkos::sqrt(tmp);
   if (tmp > static_cast<KK_FLOAT>(param.c2))
-    return (static_cast<KK_FLOAT>(1.0) - Kokkos::pow(tmp,-powern_kk) / (static_cast<KK_FLOAT>(2.0)*powern_kk))/Kokkos::sqrt(tmp);
+    return (static_cast<KK_FLOAT>(1.0) - MathSpecialKokkos::powauto(tmp,-powern_kk) / (static_cast<KK_FLOAT>(2.0)*powern_kk))/Kokkos::sqrt(tmp);
   if (tmp < static_cast<KK_FLOAT>(param.c4)) return 1.0;
   if (tmp < static_cast<KK_FLOAT>(param.c3))
-    return static_cast<KK_FLOAT>(1.0) - Kokkos::pow(tmp,powern_kk)/(static_cast<KK_FLOAT>(2.0)*powern_kk);
-  return Kokkos::pow(static_cast<KK_FLOAT>(1.0) + Kokkos::pow(tmp,powern_kk), static_cast<KK_FLOAT>(-1.0)/(static_cast<KK_FLOAT>(2.0)*powern_kk));
+    return static_cast<KK_FLOAT>(1.0) - MathSpecialKokkos::powauto(tmp,powern_kk)/(static_cast<KK_FLOAT>(2.0)*powern_kk);
+  return Kokkos::pow(static_cast<KK_FLOAT>(1.0) + MathSpecialKokkos::powauto(tmp,powern_kk), static_cast<KK_FLOAT>(-1.0)/(static_cast<KK_FLOAT>(2.0)*powern_kk));
 }
 
 /* ---------------------------------------------------------------------- */
@@ -794,13 +796,37 @@ KK_FLOAT PairTersoffZBLKokkos<DeviceType>::ters_dbij(const Param& param, const K
            // error in negligible 2nd term fixed 2/21/2022
            // (1.0 - 0.5*(1.0 +  1.0/(2.0*param.powern)) *
            (static_cast<KK_FLOAT>(1.0) - (static_cast<KK_FLOAT>(1.0) + static_cast<KK_FLOAT>(1.0)/(static_cast<KK_FLOAT>(2.0)*powern_kk)) *
-           Kokkos::pow(tmp,-powern_kk)));
+           MathSpecialKokkos::powauto(tmp,-powern_kk)));
   if (tmp < static_cast<KK_FLOAT>(param.c4)) return 0.0;
   if (tmp < static_cast<KK_FLOAT>(param.c3))
-    return -static_cast<KK_FLOAT>(0.5)*static_cast<KK_FLOAT>(param.beta) * Kokkos::pow(tmp,powern_kk-static_cast<KK_FLOAT>(1.0));
+    return -static_cast<KK_FLOAT>(0.5)*static_cast<KK_FLOAT>(param.beta) * MathSpecialKokkos::powauto(tmp,powern_kk-static_cast<KK_FLOAT>(1.0));
 
-  const KK_FLOAT tmp_n = Kokkos::pow(tmp,powern_kk);
+  const KK_FLOAT tmp_n = MathSpecialKokkos::powauto(tmp,powern_kk);
   return -static_cast<KK_FLOAT>(0.5) * Kokkos::pow(static_cast<KK_FLOAT>(1.0)+tmp_n, -static_cast<KK_FLOAT>(1.0)-(static_cast<KK_FLOAT>(1.0)/(static_cast<KK_FLOAT>(2.0)*powern_kk)))*tmp_n / bo;
+}
+
+/* ----------------------------------------------------------------------
+   bond order and its derivative together: outside the asymptotic ranges
+   the derivative reuses the powers of the bond order, x^(a-1) = x^a / x
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+// NOLINTNEXTLINE
+KOKKOS_INLINE_FUNCTION
+void PairTersoffZBLKokkos<DeviceType>::ters_bij_k_and_ters_dbij(const Param& param, const KK_FLOAT &bo, KK_FLOAT &bij, KK_FLOAT &dbij) const
+{
+  const KK_FLOAT tmp = static_cast<KK_FLOAT>(param.beta) * bo;
+  if ((tmp > static_cast<KK_FLOAT>(param.c2)) || (tmp < static_cast<KK_FLOAT>(param.c3))) {
+    bij = ters_bij_k(param,bo);
+    dbij = ters_dbij(param,bo);
+    return;
+  }
+
+  const KK_FLOAT powern_kk = static_cast<KK_FLOAT>(param.powern);
+  const KK_FLOAT tmp_n = MathSpecialKokkos::powauto(tmp,powern_kk);
+  const KK_FLOAT onetmp_n = static_cast<KK_FLOAT>(1.0) + tmp_n;
+  bij = Kokkos::pow(onetmp_n, static_cast<KK_FLOAT>(-1.0)/(static_cast<KK_FLOAT>(2.0)*powern_kk));
+  dbij = -static_cast<KK_FLOAT>(0.5) * bij / onetmp_n * tmp_n / bo;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1022,8 +1048,8 @@ KK_FLOAT PairTersoffZBLKokkos<DeviceType>::fermi_d_k(const Param& param, const K
   const KK_FLOAT ZBLcut_kk = static_cast<KK_FLOAT>(param.ZBLcut);
   return ZBLexpscale_kk * Kokkos::exp(-ZBLexpscale_kk *
          (r - ZBLcut_kk)) /
-         Kokkos::pow(static_cast<KK_FLOAT>(1.0) + Kokkos::exp(-ZBLexpscale_kk *
-         (r - ZBLcut_kk)),static_cast<KK_FLOAT>(2.0));
+         MathSpecialKokkos::square(static_cast<KK_FLOAT>(1.0) + Kokkos::exp(-ZBLexpscale_kk *
+         (r - ZBLcut_kk)));
 }
 
 /* ---------------------------------------------------------------------- */

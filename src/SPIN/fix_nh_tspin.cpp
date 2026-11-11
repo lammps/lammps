@@ -258,7 +258,6 @@ void FixNHTSpin::setup(int vflag)
 
 double FixNHTSpin::compute_spin_temp()
 {
-  double **sp = atom->sp;
   double **s_dot = atom->darray[index_vs];
   double *s_mass = atom->dvector[index_sm];
   int *mask = atom->mask;
@@ -285,7 +284,6 @@ double FixNHTSpin::compute_spin_temp()
 
 void FixNHTSpin::nh_vs_scale(double factor)
 {
-  double **sp = atom->sp;
   double **s_dot = atom->darray[index_vs];
   double *s_mass = atom->dvector[index_sm];
   int *mask = atom->mask;
@@ -531,7 +529,7 @@ void FixNHTSpin::restart(char *buf)
 
   // the spin chain state follows whatever the parent class consumed
 
-  auto list = (double *) buf;
+  auto *list = (double *) buf;
   int n = FixNH::size_restart_global();
   for (int ich = 0; ich < mtchain; ich++) etas[ich] = list[n++];
   for (int ich = 0; ich < mtchain; ich++) etas_dot[ich] = list[n++];

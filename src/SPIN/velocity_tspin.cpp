@@ -195,7 +195,6 @@ void VelocityTSpin::create(double t_desired, int seed)
 
 void VelocityTSpin::zero_mean(int itype)
 {
-  double **sp = atom->sp;
   double **s_dot = atom->darray[index_vs];
   int *type = atom->type;
   int *mask = atom->mask;

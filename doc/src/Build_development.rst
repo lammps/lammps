@@ -151,8 +151,6 @@ for more details.
 
 ----------
 
-.. _compilation:
-
 Monitor compilation flags (CMake only)
 --------------------------------------
 
@@ -172,8 +170,6 @@ Another way of doing this without reconfiguration is adding the
    cmake --build build --verbose
 
 ----------
-
-.. _iwyu_processing:
 
 Report missing and unneeded '#include' statements (CMake only)
 --------------------------------------------------------------
@@ -208,8 +204,6 @@ This may first run some compilation, as the analysis is dependent
 on recording all commands required to do the compilation.
 
 ----------
-
-.. _sanitizer:
 
 Address, Leak, Undefined Behavior, and Thread Sanitizer Support (CMake only)
 ----------------------------------------------------------------------------
@@ -260,10 +254,14 @@ pull requests are submitted to `the LAMMPS repository on GitHub
   same results over a given number of steps and operations within a
   given error margin).
 
-The tests are currently run as GitHub Actions and their configuration
-files are in the ``.github/workflows/`` folder of the LAMMPS git tree.
-The test status of these tests is reported with the corresponding pull
-request and the pull request *cannot* be merged without all tests passing.
+The tests are currently run in part as GitHub Actions and their
+configuration files are in the ``.github/workflows/`` folder of the
+LAMMPS git tree. Extensive unit testing is also run on the CI testing
+cluster at Temple University which uses `buildbot <buildbot.net>`_.  You
+can see the status of the CI testing cluster at http://ci.lammps.org/.
+The test status of all these tests is reported with the corresponding
+pull request and the pull request *cannot* be merged without all tests
+passing.
 
 In addition, there is a nightly test run using the ``develop`` branch to
 generate code coverage data for the included tests (see below), provided
@@ -284,6 +282,10 @@ the two pass mode, but will select only shorter runs and no more than
 runs significantly faster compared to the full test run.  These test
 runs can also be performed with instrumented LAMMPS binaries (see
 previous section).
+
+A summary of all collected testing results and their trends, as well as
+code and development status related information is collected in the
+`LAMMPS Testing Dashboard <https://dashboard.lammps.org>`_ website.
 
 The unit testing facility is integrated into the CMake build process of
 the LAMMPS source code distribution itself.  It can be enabled by
@@ -563,7 +565,9 @@ tool chain, compiler optimization.  Those tests are flagged with a "slow"
 and/or "unstable" label, and thus those tests can be selectively
 excluded with the ``-LE`` flag to ``ctest`` (see description of the most
 commonly used ``ctest`` flags) or specifically selected using the ``-L``
-flag.
+flag.  With the Intel compilers, some of the tests with the "unstable"
+label fail, so they should be skipped with ``ctest -LE unstable`` or
+their failures can be ignored.
 
 .. admonition:: Recommendations and notes for YAML files
    :class: note
@@ -662,6 +666,74 @@ file I/O, and it reduces the disk space requirements significantly (see
 the note in the section on unit testing above).  Using an alternate
 linker has an algorithmic improvement through using symbol resolution
 algorithms with lower algorithmic complexity.
+
+Distribute unit tests across multiple NVIDIA GPUs
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. versionadded:: TBD
+
+When LAMMPS is compiled with the GPU package or the KOKKOS package with
+GPU support, running tests in parallel with ``ctest -jN`` will run *all*
+tests on the *same* (first available) GPU.  This can lead to false
+negative tests due to insufficient resources on the GPU or undesired
+interactions between multiple GPU kernels.  In case of using NVIDIA
+GPUs, *different* GPUs can be exposed by setting the ``CUDA_VISIBLE_DEVICES``
+environment variable.
+
+With CMake 3.29 or later on Linux and similar operating systems, tests
+can instead be distributed over multiple NVIDIA GPUs through the `CTest
+resource allocation feature
+<https://cmake.org/cmake/help/latest/manual/ctest.1.html#resource-allocation>`_
+where available GPUs are listed as entries with an assigned "slots" value
+in a resource file.  Then every test requests one slot of a GPU and is run
+through a launcher script that sets the assigned GPU.  This will restrict
+the number of concurrent runs to the total number of available slots in
+the resource file. Thus a command like ``ctest -j 8`` runs at most 4
+concurrent tests, if there are only 4 slots configured in the resource file.
+
+The `resource specification file
+<https://cmake.org/cmake/help/latest/manual/ctest.1.html#resource-specification-file>`_
+is in JSON format and its location is set with the CMake variable
+``LAMMPS_TEST_RESOURCE_SPEC_FILE`` and defaults to
+``ctest-resources.json`` in the build folder.  If the file does not
+exist, CMake generates it from the output of the ``nvidia-smi`` command
+with one slot for each GPU it reports.  Such a generated file looks as
+follows:
+
+.. code-block:: json
+
+   {
+     "version": { "major": 1, "minor": 0 },
+     "local": [
+       {
+         "gpus": [
+           { "id": "0", "slots": 1, "name": "Tesla V100-SXM2-16GB", "pci_bus_id": "00000000:1A:00.0" },
+           { "id": "1", "slots": 1, "name": "Tesla V100-SXM2-16GB", "pci_bus_id": "00000000:3A:00.0" }
+         ]
+       }
+     ]
+   }
+
+An existing file is used unchanged, so it can be edited and also be
+shared between multiple build folders.  The ``id`` of an entry is the
+index of the GPU as reported by ``nvidia-smi``.  An entry may be removed
+to keep that GPU free, e.g. for the graphics display of a workstation,
+or the ``slots`` value may be increased to let multiple tests share the same
+GPU.  With KOKKOS/CUDA, however, sharing a GPU from multiple tests may
+(currently in fall 2026) lead to data corruption and spurious failed
+tests.  The ``name`` and ``pci_bus_id`` entries are for information only.
+If no GPU is found, no file is written and the tests are run without
+resource allocation.  Setting ``LAMMPS_TEST_RESOURCE_SPEC_FILE`` to an
+empty string also disables this feature.
+
+If the ``CUDA_VISIBLE_DEVICES`` environment variable is already set
+when running ``ctest``, the tests stay on the GPUs listed there: the GPU
+assigned by CTest then selects the entries of that list in turn, and
+CUDA interprets them as usual (i.e. in the order set by
+``CUDA_DEVICE_ORDER``).  When that list has fewer entries than the
+resource file has slots, concurrent tests may share a GPU.  To avoid
+this, use a resource file that lists only the desired GPUs, e.g. with
+``ctest --resource-spec-file <file>``.
 
 Tests for other components and utility functions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

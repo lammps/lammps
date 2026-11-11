@@ -1,9 +1,10 @@
 ---
-  # configuration for checking that all example input scripts parse, set up, and
-  # take one step without crashing: run_tests.py --preflight-only appends -skiprun
-  # to the arguments below, so the loops of all run and minimize commands end
-  # after one step.  Two MPI processes exercise the domain decomposition and the
-  # initial communication, matching the GitHub actions runners (check-examples.yml).
+  # configuration for checking that all example input scripts parse and execute all
+  # commands except run and minimize without crashing: run_tests.py --preflight-only
+  # appends -skiprun to the arguments below, which makes LAMMPS skip run and minimize
+  # commands entirely (before their setup).  Two MPI processes exercise the domain
+  # decomposition when atoms are read or created, matching the GitHub actions runners
+  # (check-examples.yml).
   lmp_binary: ""
   nprocs: "2"
   args: "-cite none"
@@ -23,46 +24,34 @@
   # in addition to the entries shared with the other configurations, this skips
   # input scripts that cannot work with -skiprun or in an ephemeral CI runner:
   # - inputs reading files that only a full run of another input script writes
-  #   (in.gREM, in.pinning)
+  #   (in.gREM)
   # - inputs needing training data or models that are not in the repository
   #   (in.fitpod.InP, in.kim-sm.melt)
   # - inputs querying openkim.org over the network (in.kim-query, in.kim-pm-query*)
   # - commands running their own outer loops that -skiprun does not shorten, so
   #   they hit the timeout (in.hyper.global, in.hyper.local)
   # - embedded python that needs modules or an environment that is not always
-  #   available (in.fix_python*, in.python*, in.mliap.unified*)
-  # - deleting computes that only exist after complete runs (in.compute,
-  #   in.mliap.*.compute, in.reaxff.tatb*, in.bpm.peri.*)
+  #   available (in.python*, in.mliap.unified*)
   # - serial only (in.pod.compute)
+  # inputs that fail in parallel because of limits checked when a run is set up
+  # are not listed here: with -skiprun no run is ever set up
   skip:
     [
-      in.*pod.InP,
       in.disp,
       in.disp2,
       in.dos,
-      in.dpdrx-shardlow,
-      in.dsring2,
       in.*_imd*,
       in.bucky-plus-cnt*,
       in.gREM,
-      in.pinning,
       in.fitpod.InP,
       in.kim-sm.melt,
       in.kim-query,
       in.kim-pm-query*,
       in.hyper.global,
       in.hyper.local,
-      in.fix_python*,
       in.python*,
-      in.spin.iron-nve,
-      in.spin.nvt_lattice,
-      in.spin.nvt_spin,
       in.mliap.unified*,
-      in.compute,
-      in.mliap.*.compute,
-      in.reaxff.tatb*,
       in.pod.compute,
-      in.widom.spce,
     ]
 
   timeout: 120

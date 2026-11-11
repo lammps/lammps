@@ -39,7 +39,7 @@ namespace ReaxFF {
     reax_atom *atom;
 
     system->numH = 0;
-    if (control->hbond_cut > 0)
+    if (control->hbond_cut > 0) {
       for (i = 0; i < system->n; ++i) {
         atom = &(system->my_atoms[i]);
         if (atom->type < 0) continue;
@@ -47,6 +47,11 @@ namespace ReaxFF {
           atom->Hindex = system->numH++;
         else atom->Hindex = -1;
       }
+
+      // hydrogen bond lists are only built for local atoms.  set the index
+      // of ghost atoms, since Validate_Lists() checks all atoms
+      for (i = system->n; i < system->N; ++i) system->my_atoms[i].Hindex = -1;
+    }
   }
 
   void Reset_Simulation_Data(simulation_data* data)

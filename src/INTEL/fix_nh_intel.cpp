@@ -103,8 +103,6 @@ void FixNHIntel::remap()
     #if defined(LMP_SIMD_COMPILER)
 #if defined(USE_OMP_SIMD)
     #pragma omp simd
-#else
-    #pragma simd
 #endif
     #pragma vector aligned
     #endif
@@ -121,8 +119,6 @@ void FixNHIntel::remap()
     #if defined(LMP_SIMD_COMPILER)
 #if defined(USE_OMP_SIMD)
     #pragma omp simd
-#else
-    #pragma simd
 #endif
     #pragma vector aligned
     #endif
@@ -290,8 +286,6 @@ void FixNHIntel::remap()
     #if defined(LMP_SIMD_COMPILER)
 #if defined(USE_OMP_SIMD)
     #pragma omp simd
-#else
-    #pragma simd
 #endif
     #pragma vector aligned
     #endif
@@ -305,8 +299,6 @@ void FixNHIntel::remap()
     #if defined(LMP_SIMD_COMPILER)
 #if defined(USE_OMP_SIMD)
     #pragma omp simd
-#else
-    #pragma simd
 #endif
     #pragma vector aligned
     #endif
@@ -440,8 +432,6 @@ void FixNHIntel::nh_v_press()
     #if defined(LMP_SIMD_COMPILER)
 #if defined(USE_OMP_SIMD)
     #pragma omp simd
-#else
-    #pragma simd
 #endif
     #pragma vector aligned
     #endif
@@ -455,8 +445,6 @@ void FixNHIntel::nh_v_press()
     #if defined(LMP_SIMD_COMPILER)
 #if defined(USE_OMP_SIMD)
     #pragma omp simd
-#else
-    #pragma simd
 #endif
     #pragma vector aligned
     #endif
@@ -483,8 +471,6 @@ void FixNHIntel::nve_v()
   #if defined(LMP_SIMD_COMPILER)
 #if defined(USE_OMP_SIMD)
   #pragma omp simd
-#else
-  #pragma simd
 #endif
   #pragma vector aligned
   #endif
@@ -507,8 +493,6 @@ void FixNHIntel::nve_x()
     #if defined(LMP_SIMD_COMPILER)
 #if defined(USE_OMP_SIMD)
     #pragma omp simd
-#else
-    #pragma simd
 #endif
     #pragma vector aligned
     #endif
@@ -518,8 +502,6 @@ void FixNHIntel::nve_x()
     #if defined(LMP_SIMD_COMPILER)
 #if defined(USE_OMP_SIMD)
     #pragma omp simd
-#else
-    #pragma simd
 #endif
     #pragma vector aligned
     #endif
@@ -547,8 +529,6 @@ void FixNHIntel::nh_v_temp()
     #if defined(LMP_SIMD_COMPILER)
 #if defined(USE_OMP_SIMD)
     #pragma omp simd
-#else
-    #pragma simd
 #endif
     #pragma vector aligned
     #endif
@@ -558,8 +538,6 @@ void FixNHIntel::nh_v_temp()
     #if defined(LMP_SIMD_COMPILER)
 #if defined(USE_OMP_SIMD)
     #pragma omp simd
-#else
-    #pragma simd
 #endif
     #pragma vector aligned
     #endif

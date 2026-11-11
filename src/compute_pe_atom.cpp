@@ -23,6 +23,7 @@
 #include "improper.h"
 #include "kspace.h"
 #include "memory.h"
+#include "fix.h"
 #include "modify.h"
 #include "pair.h"
 #include "update.h"
@@ -163,7 +164,7 @@ void ComputePEAtom::compute_peratom()
   // add in per-atom contributions from relevant fixes
   // always only for owned atoms, not ghost
 
-  if (fixflag && modify->n_energy_atom) modify->energy_atom(nlocal, energy);
+  if (fixflag && modify->has_fixes(FixConst::ENERGY_ATOM)) modify->energy_atom(nlocal, energy);
 
   // communicate ghost energy between neighbor procs
 

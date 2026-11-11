@@ -487,6 +487,140 @@ Unlike the LPS model, the PMB model has a Poisson ratio of
 the input for the PMB model, which requires only the bulk modulus of the
 material, whereas the LPS model requires both the bulk and shear moduli.
 
+.. _peri_ves:
+
+Viscoelastic Solid (VES) Model
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The linear peridynamic viscoelastic solid (VES) model of pair style
+*peri/ves* extends the LPS model by a viscoelastic response to shear
+deformation.  The model and its time integration were developed by
+:ref:`(Mitchell) <Mitchell2011_2>`, and it was implemented in
+LAMMPS by R. Rahman and J. T. Foster.  The response to a volume change
+is the same as for the LPS model, while the deviatoric part of the force
+scalar state consists of an elastic and a viscous part:
+
+.. math::
+
+   \underline{t} = \frac{3K\theta}{m}\underline{\omega}\,\underline{x} +
+   (1 - \lambda)\,\alpha\,\underline{\omega}\,\underline{e}^\mathrm{d} +
+   \lambda\,\alpha\,\underline{\omega} \left( \underline{e}^\mathrm{d} -
+   \underline{e}^\mathrm{b} \right),
+
+with :math:`\alpha = 15G/m` as for the LPS model and a dimensionless
+parameter :math:`0 \leq \lambda \leq 1`.  The *back extension* scalar
+state :math:`\underline{e}^\mathrm{b}` follows the deviatoric extension
+state with the relaxation time :math:`\tau_b`:
+
+.. math::
+
+   \tau_b \, \frac{\partial \underline{e}^\mathrm{b}}{\partial t} =
+   \underline{e}^\mathrm{d} - \underline{e}^\mathrm{b}.
+
+For deformations that are fast compared to :math:`\tau_b`, the back
+extension cannot follow, and the material responds with the full shear
+modulus *G*.  For slow deformations, the back extension is close to the
+deviatoric extension, the last term vanishes, and the material responds
+with the reduced shear modulus :math:`(1 - \lambda) G`.  For
+:math:`\lambda = 0`, the VES model is identical to the LPS model.
+
+In LAMMPS, the deviatoric extension and the back extension of each bond
+are stored at the end of every time step, and the back extension is
+initially zero.  Assuming that the deviatoric extension changes linearly
+during a time step of length :math:`\Delta t`, the evolution equation of
+the back extension is integrated exactly :ref:`(Mitchell)
+<Mitchell2011_2>`:
+
+.. math::
+
+   \underline{e}^\mathrm{b}_{n+1} = (1 - d)\, \underline{e}^\mathrm{d}_n
+   + d\, \underline{e}^\mathrm{b}_n + \beta \left(
+   \underline{e}^\mathrm{d}_{n+1} - \underline{e}^\mathrm{d}_n \right),
+   \qquad d = \exp\left( -\frac{\Delta t}{\tau_b} \right), \qquad
+   \beta = 1 - \frac{\tau_b}{\Delta t} \left( 1 - d \right),
+
+where :math:`n` is the timestep number.  The parameters
+:math:`\lambda` and :math:`\tau_b` are the *m_lambdai* and *m_taubi*
+coefficients of the :doc:`pair_coeff <pair_coeff>` command for pair
+style *peri/ves*.
+
+.. _peri_eps:
+
+Elastic-Plastic Solid (EPS) Model
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The elastic-plastic solid (EPS) model of pair style *peri/eps* extends
+the LPS model by plastic deformation, following the ordinary state-based
+plasticity model of :ref:`(Mitchell2) <Mitchell2011a_2>`.  It was
+also implemented in LAMMPS by R. Rahman and J. T. Foster.  As for the
+VES model, the response to a volume change is the same as for the LPS
+model.  The deviatoric extension state is split into an elastic and a
+plastic part, :math:`\underline{e}^\mathrm{d} = \underline{e}^\mathrm{de}
++ \underline{e}^\mathrm{dp}`, and only the elastic part contributes to
+the force scalar state:
+
+.. math::
+
+   \underline{t} = \frac{3K\theta}{m}\underline{\omega}\,\underline{x} +
+   \underline{t}^\mathrm{d}, \qquad \underline{t}^\mathrm{d} =
+   \alpha\,\underline{\omega} \left( \underline{e}^\mathrm{d} -
+   \underline{e}^\mathrm{dp} \right).
+
+The material yields when the yield function
+
+.. math::
+
+   f\left(\underline{t}^\mathrm{d}\right) =
+   \frac{\left\Vert \underline{t}^\mathrm{d} \right\Vert^2}{2} - \psi_0,
+   \qquad \left\Vert \underline{t}^\mathrm{d} \right\Vert^2 =
+   \int_{\mathcal{H}_\mathbf{x}} \left(
+   \underline{t}^\mathrm{d}\left<\boldsymbol{\xi}\right> \right)^2
+   {d}V_{\boldsymbol{\xi}}, \qquad \psi_0 = \frac{25\,
+   \sigma_Y^2}{8\pi\delta^5},
+
+becomes positive, where :math:`\sigma_Y` is the yield stress and
+:math:`\delta` the horizon.  The time integration uses an elastic trial
+step followed by a return to the yield surface.  In each time step, the
+trial deviatoric force state is computed with the plastic extension of
+the previous step:
+
+.. math::
+
+   \underline{t}^\mathrm{d}_\mathrm{trial} = \alpha\,\underline{\omega}
+   \left( \underline{e}^\mathrm{d}_{n+1} - \underline{e}^\mathrm{dp}_n
+   \right).
+
+If :math:`f(\underline{t}^\mathrm{d}_\mathrm{trial}) \leq 0`, the step is
+elastic, :math:`\underline{t}^\mathrm{d}_{n+1} =
+\underline{t}^\mathrm{d}_\mathrm{trial}`, and the plastic extension does
+not change.  Otherwise, the step is plastic, and the force state is
+scaled back to the yield surface, while the plastic extension grows:
+
+.. math::
+
+   \Delta\lambda = \frac{1}{\alpha} \left(
+   \frac{\left\Vert \underline{t}^\mathrm{d}_\mathrm{trial}
+   \right\Vert}{\sqrt{2\psi_0}} - 1 \right), \qquad
+   \underline{t}^\mathrm{d}_{n+1} = \sqrt{2\psi_0}\,
+   \frac{\underline{t}^\mathrm{d}_\mathrm{trial}}{\left\Vert
+   \underline{t}^\mathrm{d}_\mathrm{trial} \right\Vert}, \qquad
+   \underline{e}^\mathrm{dp}_{n+1} = \underline{e}^\mathrm{dp}_n +
+   \Delta\lambda \, \underline{t}^\mathrm{d}_{n+1}.
+
+In LAMMPS, the plastic extension of each bond is stored at the end of
+every time step, and it is initially zero.  Since the influence function
+used in LAMMPS (see the note in the LPS section above) has units of
+inverse length, while :ref:`(Mitchell2) <Mitchell2011a_2>` assumes
+a dimensionless influence function, the increment of the plastic
+extension of a bond is multiplied by half of its reference length
+:math:`\left\Vert \boldsymbol{\xi} \right\Vert / 2`.  The sum of the
+increments :math:`\Delta\lambda` of a particle can be output with
+:doc:`compute plasticity/atom <compute_plasticity_atom>`.  Please also
+see the note about the limitations of the current implementation on the
+:doc:`pair_style peri <pair_peri>` page.  The yield stress
+:math:`\sigma_Y` is the *m_yield_stress* coefficient of the
+:doc:`pair_coeff <pair_coeff>` command for pair style *peri/eps*.
+
 .. _peridamage:
 
 Damage
@@ -878,7 +1012,11 @@ optionally be computed and output with a LAMMPS data dump. To do this,
 your input script must contain the command :doc:`compute damage/atom
 <compute_damage_atom>` This enables a LAMMPS per-atom compute to
 calculate the damage associated with each particle every time a LAMMPS
-:doc:`data dump <dump>` frame is written.
+:doc:`data dump <dump>` frame is written.  Similarly, the dilatation
+:math:`\theta` of the LPS, VES, and EPS models and the plasticity
+:math:`\lambda` of the EPS model can be output with :doc:`compute
+dilatation/atom <compute_dilatation_atom>` and :doc:`compute
+plasticity/atom <compute_plasticity_atom>`, respectively.
 
 Visualizing Simulation Results
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -1229,3 +1367,15 @@ perturbed using the :doc:`displace_atoms <displace_atoms>` command.
 .. _Seleson2010:
 
 **(Seleson 2010)** Seleson, Parks, Int J Mult Comp Eng 9(6), pp. 689-706, 2011.
+
+.. _Mitchell2011_2:
+
+**(Mitchell)** Mitchell, A non-local, ordinary-state-based
+viscoelasticity model for peridynamics, Sandia National Lab Report
+SAND2011-8064 (2011).
+
+.. _Mitchell2011a_2:
+
+**(Mitchell2)** Mitchell, A nonlocal, ordinary, state-based
+plasticity model for peridynamics, Sandia National Lab Report
+SAND2011-3166 (2011).

@@ -540,7 +540,7 @@ void PairEDPD::read_restart_settings(FILE *fp)
   delete random;
   random = new RanMars(lmp, (int) (((bigint) seed + comm->me - 1) % 900000000 + 1));
   delete randomT;
-  randomT = new RanMars(lmp, (int) (((bigint) seed + comm->me - 1) % 900000000 + 1));
+  randomT = new RanMars(lmp, (int) ((2 * (bigint) seed + comm->me - 1) % 900000000 + 1));
 }
 
 /* ----------------------------------------------------------------------

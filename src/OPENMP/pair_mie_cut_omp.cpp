@@ -18,6 +18,7 @@
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
+#include "math_special.h"
 #include "neigh_list.h"
 #include "suffix.h"
 
@@ -25,6 +26,7 @@
 
 #include "omp_compat.h"
 using namespace LAMMPS_NS;
+using MathSpecial::powauto;
 
 /* ---------------------------------------------------------------------- */
 
@@ -124,8 +126,8 @@ void PairMIECutOMP::eval(int iifrom, int iito, ThrData *const thr)
 
       if (rsq < cutsq[itype][jtype]) {
         r2inv = 1.0 / rsq;
-        rgamA = pow(r2inv, (gamA[itype][jtype] / 2.0));
-        rgamR = pow(r2inv, (gamR[itype][jtype] / 2.0));
+        rgamA = powauto(r2inv, gamA[itype][jtype] / 2.0);
+        rgamR = powauto(r2inv, gamR[itype][jtype] / 2.0);
         forcemie = (mie1[itype][jtype] * rgamR - mie2[itype][jtype] * rgamA);
         fpair = factor_mie * forcemie * r2inv;
 

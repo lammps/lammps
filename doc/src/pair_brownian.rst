@@ -47,7 +47,10 @@ Description
 Styles *brownian* and *brownian/poly* compute Brownian forces and
 torques on finite-size spherical particles.  The former requires
 monodisperse spherical particles; the latter allows for polydisperse
-spherical particles.
+spherical particles.  For particles of different size, *brownian/poly*
+uses the near-contact expansions of the two-sphere resistance functions
+of :ref:`(Jeffrey and Onishi) <Jeffrey3>`, see also :ref:`(Kim and
+Karrila) <KimKarrila3>`.
 
 These pair styles are designed to be used with either the
 :doc:`pair_style lubricate <pair_lubricate>` or :doc:`pair_style
@@ -64,20 +67,14 @@ numbers for the thermostatting procedure.
 The *flagHI* and *flagVF* settings are optional.  Neither should be
 used, or both must be defined.
 
-.. versionchanged:: 4Jul2026
+.. versionchanged:: TBD
 
-For *brownian/poly* the pairwise random Brownian force is now generated
-once per pair from a deterministic random number stream (keyed on the
-pair of atom IDs and the timestep) and applied equal and opposite to
-both particles, so that linear momentum is conserved exactly and the
-system is no longer heated spuriously.  In addition the near-field
-resistance functions now use the symmetric Jeffrey & Onishi gap so the
-force magnitude is independent of which particle is taken as the
-reference, consistent with :doc:`pair_style lubricate/poly
-<pair_lubricate>`.  Previously the random force on the two members of a
-pair was drawn independently (violating Newton's third law) and the
-resistance was evaluated with one particle's radius as the reference
-length, both of which were incorrect for polydisperse systems.
+For *brownian/poly* the random force between two particles acts equal
+and opposite on both of them, so the pairwise Brownian forces conserve
+linear momentum.  The random numbers for a pair of particles depend only
+on their atom IDs, the timestep, and the *seed*, and thus not on the
+number of MPI processes or OpenMP threads.  The resistance functions are
+those of :doc:`pair_style lubricate/poly <pair_lubricate>`.
 
 ----------
 
@@ -137,8 +134,8 @@ LAMMPS was built with that package.  See the :doc:`Build package
 Only spherical monodisperse particles are allowed for pair_style
 brownian.
 
-Only spherical particles are allowed for pair_style brownian/poly.  The
-volume fraction correction is not supported by pair_style brownian/poly.
+Only spherical particles are allowed for pair_style brownian/poly.  It
+requires atom IDs and :doc:`newton pair off <newton>`.
 
 .. versionchanged:: 30Sep2026
 
@@ -165,3 +162,14 @@ Default
 
 The default settings for the optional args are flagHI = 1 and flagVF =
 1.
+
+----------
+
+.. _Jeffrey3:
+
+**(Jeffrey)** Jeffrey and Onishi, J Fluid Mech, 139, 261-290 (1984).
+
+.. _KimKarrila3:
+
+**(Kim and Karrila)** Kim and Karrila, Microhydrodynamics: Principles and
+Selected Applications, Butterworth-Heinemann, Boston (1991).

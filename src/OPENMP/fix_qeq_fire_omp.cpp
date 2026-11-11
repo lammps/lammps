@@ -97,24 +97,29 @@ double FixQEqFireOMP::compute_eneg()
     for (int ii = 0; ii < inum; ii++) {
       const int i = ilist[ii];
       const int itype = type[i];
-      if (mask[i] & groupbit) {
-        qf[i] += chi[itype] + eta[itype] * q[i];
+      const bool igroup = mask[i] & groupbit;
+      if (igroup) qf[i] += chi[itype] + eta[itype] * q[i];
 
-        const int *jlist = firstneigh[i];
-        const int jnum = numneigh[i];
+      // include the rows of atoms outside the group, since the half neighbor
+      // list may store their pairs with atoms in the group there
 
-        for (int jj = 0; jj < jnum; jj++) {
-          const int j = jlist[jj] & NEIGHMASK;
-          const double dx = x[i][0] - x[j][0];
-          const double dy = x[i][1] - x[j][1];
-          const double dz = x[i][2] - x[j][2];
-          const double rsq = dx*dx + dy*dy + dz*dz;
-          if (rsq > cutoff_sq) continue;
+      const int *jlist = firstneigh[i];
+      const int jnum = numneigh[i];
 
-          const double rinv = 1.0 / sqrt(rsq);
-          qf[i] += q[j] * rinv;
-          qf_t[j] += q[i] * rinv;
-        }
+      for (int jj = 0; jj < jnum; jj++) {
+        const int j = jlist[jj] & NEIGHMASK;
+        const bool jgroup = mask[j] & groupbit;
+        if (!igroup && !jgroup) continue;
+
+        const double dx = x[i][0] - x[j][0];
+        const double dy = x[i][1] - x[j][1];
+        const double dz = x[i][2] - x[j][2];
+        const double rsq = dx*dx + dy*dy + dz*dz;
+        if (rsq > cutoff_sq) continue;
+
+        const double rinv = 1.0 / sqrt(rsq);
+        if (igroup) qf[i] += q[j] * rinv;
+        if (jgroup) qf_t[j] += q[i] * rinv;
       }
     }
 

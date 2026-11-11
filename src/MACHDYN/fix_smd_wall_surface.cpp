@@ -52,16 +52,21 @@ FixSMDWallSurface::FixSMDWallSurface(LAMMPS *lmp, int narg, char **arg) :
 
   filename = strdup(arg[3]);
   wall_particle_type = utils::inumeric(FLERR, arg[4], false, lmp);
+  if ((wall_particle_type < 1) || (wall_particle_type > atom->ntypes))
+    error->all(FLERR, 4, "Invalid atom type {} for fix smd/wall_surface", wall_particle_type);
   wall_molecule_id = utils::inumeric(FLERR, arg[5], false, lmp);
-  if (wall_molecule_id < 65535) { error->one(FLERR, "wall molcule id must be >= 65535\n"); }
+  if (wall_molecule_id < 65535)
+    error->all(FLERR, "Fix smd/wall_surface wall molecule ID must be >= 65535");
 
-  if (comm->me == 0) {
-    printf("\n>>========>>========>>========>>========>>========>>========>>========>>========\n");
-    printf("fix smd/wall_surface reads trianglulated surface from file: %s\n", filename);
-    printf("fix smd/wall_surface has particle type %d \n", wall_particle_type);
-    printf("fix smd/wall_surface has molecule id %d \n", wall_molecule_id);
-    printf(">>========>>========>>========>>========>>========>>========>>========>>========\n");
-  }
+  if (comm->me == 0)
+    utils::logmesg(
+        lmp,
+        "\n>>========>>========>>========>>========>>========>>========>>========>>========\n"
+        "fix smd/wall_surface reads triangulated surface from file: {}\n"
+        "fix smd/wall_surface has particle type {}\n"
+        "fix smd/wall_surface has molecule id {}\n"
+        ">>========>>========>>========>>========>>========>>========>>========>>========\n",
+        filename, wall_particle_type, wall_molecule_id);
 }
 
 /* ---------------------------------------------------------------------- */

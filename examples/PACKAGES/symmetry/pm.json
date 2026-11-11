@@ -1,0 +1,5 @@
+{
+  "_comment": "space group Pm: mirror plane perpendicular to y through the origin of the box",
+  "group_name": "Pm",
+  "ops": [ "x,y,z", "x,-y,z" ]
+}

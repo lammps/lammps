@@ -327,8 +327,40 @@ minimization will not keep the defined body(s) rigid during the
 minimization.  Note that if bonds, angles, etc internal to a rigid body
 have been turned off (e.g. via :doc:`neigh_modify exclude
 <neigh_modify>`), they will not contribute to the potential energy which
-is probably not what is desired.  One can approximate a minimization with
-rigid bodies by performing simulated annealing.
+is probably not what is desired.
+
+.. versionadded:: TBD
+
+Instead, a system with rigid bodies can be relaxed with damped dynamics.
+With a target temperature of 0.0, the *langevin* keyword of :doc:`fix
+rigid/small <fix_rigid>` applies only a drag force and torque to the
+translational and rotational motion of the bodies.  Starting from zero
+velocities, the bodies then move downhill until the forces and torques
+on them vanish.  The force and torque of each body are available from
+:doc:`compute rigid/local <compute_rigid_local>`, so :doc:`fix halt
+<fix_halt>` can stop the run once the system is relaxed.  For example:
+
+.. code-block:: LAMMPS
+
+   velocity        all set 0.0 0.0 0.0
+   fix             1 all rigid/small molecule langevin 0.0 0.0 100.0 12345
+   compute         body all rigid/local 1 fx fy fz tqx tqy tqz
+   compute         sq all reduce sumsq c_body[*] inputs local
+   variable        fnorm equal sqrt(c_sq[1]+c_sq[2]+c_sq[3])
+   variable        tnorm equal sqrt(c_sq[4]+c_sq[5]+c_sq[6])
+   variable        done equal (v_fnorm<0.1)&&(v_tnorm<0.1)
+   fix             2 all halt 10 v_done == 1 error continue
+   run             100000
+
+Like the force tolerance of the minimize command, the two variables
+*fnorm* and *tnorm* are the two-norms over the whole system, so the
+threshold has to be chosen with the number of bodies in mind.  The
+damping time (here 100.0 time units) affects how fast the system relaxes
+and, similar to the choice of minimization algorithm, which of the
+nearby local energy minima is reached: with strong damping (a short
+damping time), the bodies follow the forces and torques like in a
+steepest descent minimization; with weaker damping, they can move past
+shallow minima.
 
 Pair potentials that produce torque on a particle (e.g. :doc:`granular
 potentials <pair_gran>` or the :doc:`GayBerne potential <pair_gayberne>`

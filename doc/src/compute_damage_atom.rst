@@ -25,7 +25,7 @@ Description
 
 Define a computation that calculates the per-atom damage for each atom
 in a group.  This is a quantity relevant for :doc:`Peridynamics models
-<pair_peri>`.  See `this document <PDF/PDLammps_overview.pdf>`_ for an
+<pair_peri>`.  See the :doc:`Peridynamics Howto <Howto_peri>` for an
 overview of LAMMPS commands for Peridynamics modeling.
 
 The "damage" of a Peridynamics particles is based on the bond breakage

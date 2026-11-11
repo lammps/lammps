@@ -33,7 +33,7 @@ int zsymv_(char *uplo, integer *n, doublecomplex *alpha, doublecomplex *a, integ
         xerbla_((char *)"ZSYMV ", &info, (ftnlen)6);
         return 0;
     }
-    if (*n == 0 || alpha->r == 0. && alpha->i == 0. && (beta->r == 1. && beta->i == 0.)) {
+    if (*n == 0 || (alpha->r == 0. && alpha->i == 0. && (beta->r == 1. && beta->i == 0.))) {
         return 0;
     }
     if (*incx > 0) {

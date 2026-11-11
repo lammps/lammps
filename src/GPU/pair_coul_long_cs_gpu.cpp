@@ -35,7 +35,8 @@ using namespace LAMMPS_GPU;
 
 /* ---------------------------------------------------------------------- */
 
-PairCoulLongCSGPU::PairCoulLongCSGPU(LAMMPS *lmp) : PairCoulLongCS(lmp), gpu_mode(GPU_FORCE)
+PairCoulLongCSGPU::PairCoulLongCSGPU(LAMMPS *lmp) :
+    PairCoulLongCS(lmp), gpu_mode(GPU_FORCE), update_coeffs(false)
 {
   respa_enable = 0;
   suffix_flag |= Suffix::GPU;
@@ -56,6 +57,11 @@ PairCoulLongCSGPU::~PairCoulLongCSGPU()
 void PairCoulLongCSGPU::compute(int eflag, int vflag)
 {
   ev_init(eflag, vflag);
+
+  if (update_coeffs) {
+    clcs_gpu_reinit(atom->ntypes + 1, scale);
+    update_coeffs = false;
+  }
 
   int nall = atom->nlocal + atom->nghost;
   int inum;
@@ -137,11 +143,13 @@ void PairCoulLongCSGPU::init_style()
 
 /* ---------------------------------------------------------------------- */
 
-void PairCoulLongCSGPU::reinit()
+double PairCoulLongCSGPU::init_one(int i, int j)
 {
-  Pair::reinit();
+  // the parameters may have been changed, e.g. by fix adapt,
+  // so copy them to the GPU again before the next compute()
 
-  clcs_gpu_reinit(atom->ntypes + 1, scale);
+  update_coeffs = true;
+  return PairCoulLongCS::init_one(i, j);
 }
 
 /* ---------------------------------------------------------------------- */

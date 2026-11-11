@@ -37,7 +37,7 @@ int dlaln2_(logical *ltrans, integer *na, integer *nw, doublereal *smin, doubler
     x_dim1 = *ldx;
     x_offset = 1 + x_dim1;
     x -= x_offset;
-    smlnum = 2. * dlamch_((char *)"Safe minimum", (ftnlen)12);
+    smlnum = 2. * dlamch_((char *)"S", (ftnlen)1);
     bignum = 1. / smlnum;
     smini = max(*smin, smlnum);
     *info = 0;

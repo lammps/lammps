@@ -11,7 +11,7 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    :columns: 4
 
    * :doc:`accelerate/cos <fix_accelerate_cos>`
-   * :doc:`acks2/reaxff (k) <fix_acks2_reaxff>`
+   * :doc:`acks2/reaxff (ko) <fix_acks2_reaxff>`
    * :doc:`adapt <fix_adapt>`
    * :doc:`adapt/fep <fix_adapt_fep>`
    * :doc:`addforce (k) <fix_addforce>`
@@ -113,6 +113,7 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`langevin/drude <fix_langevin_drude>`
    * :doc:`langevin/eff <fix_langevin_eff>`
    * :doc:`langevin/spin <fix_langevin_spin>`
+   * :doc:`langevin/tspin <fix_langevin_tspin>`
    * :doc:`lb/fluid <fix_lb_fluid>`
    * :doc:`lb/momentum <fix_lb_momentum>`
    * :doc:`lb/viscous <fix_lb_viscous>`
@@ -162,6 +163,9 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`nve/sphere (ko) <fix_nve_sphere>`
    * :doc:`nve/bpm/sphere <fix_nve_bpm_sphere>`
    * :doc:`nve/spin <fix_nve_spin>`
+   * :doc:`nve/tspin <fix_nve_tspin>`
+   * :doc:`nph/tspin <fix_nvt_tspin>`
+   * :doc:`npt/tspin <fix_nvt_tspin>`
    * :doc:`nve/tri <fix_nve_tri>`
    * :doc:`nvk (k) <fix_nvk>`
    * :doc:`nvt (giko) <fix_nh>`
@@ -172,6 +176,7 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`nvt/sllod (iko) <fix_nvt_sllod>`
    * :doc:`nvt/sllod/eff <fix_nvt_sllod_eff>`
    * :doc:`nvt/sphere (ko) <fix_nvt_sphere>`
+   * :doc:`nvt/tspin <fix_nvt_tspin>`
    * :doc:`nvt/uef <fix_nh_uef>`
    * :doc:`oneway (k) <fix_oneway>`
    * :doc:`orient/bcc (o) <fix_orient>`
@@ -206,7 +211,7 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`qeq/point (o) <fix_qeq>`
    * :doc:`qeq/point/xlmd (o) <fix_qeq>`
    * :doc:`qeq/reaxff (ko) <fix_qeq_reaxff>`
-   * :doc:`qeq/rel/reaxff <fix_qeq_rel_reaxff>`
+   * :doc:`qeq/rel/reaxff (ko) <fix_qeq_rel_reaxff>`
    * :doc:`qeq/shielded (o) <fix_qeq>`
    * :doc:`qeq/shielded/xlmd (o) <fix_qeq>`
    * :doc:`qeq/slater (o) <fix_qeq>`
@@ -214,7 +219,7 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`qmmm <fix_qmmm>`
    * :doc:`qmmm/xtb <fix_qmmm_xtb>`
    * :doc:`qtb <fix_qtb>`
-   * :doc:`qtpie/reaxff <fix_qtpie_reaxff>`
+   * :doc:`qtpie/reaxff (ko) <fix_qtpie_reaxff>`
    * :doc:`rattle <fix_shake>`
    * :doc:`reaxff/bonds (k) <fix_reaxff_bonds>`
    * :doc:`reaxff/species (k) <fix_reaxff_species>`
@@ -259,11 +264,13 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`spring/chunk <fix_spring_chunk>`
    * :doc:`spring/rg (k) <fix_spring_rg>`
    * :doc:`spring/self (k) <fix_spring_self>`
+   * :doc:`spring/tspin <fix_spring_tspin>`
    * :doc:`srd <fix_srd>`
    * :doc:`store/force (k) <fix_store_force>`
    * :doc:`store/state <fix_store_state>`
    * :doc:`surface/global <fix_surface_global>`
    * :doc:`surface/local <fix_surface_local>`
+   * :doc:`symmetry <fix_symmetry>`
    * :doc:`tdpd/source <fix_dpd_source>`
    * :doc:`temp/berendsen (k) <fix_temp_berendsen>`
    * :doc:`temp/csld (k) <fix_temp_csvr>`
@@ -289,6 +296,7 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`viscous/sphere (k) <fix_viscous_sphere>`
    * :doc:`wall/body/polygon <fix_wall_body_polygon>`
    * :doc:`wall/body/polyhedron <fix_wall_body_polyhedron>`
+   * :doc:`wall/body/polyhedron/granular <fix_wall_body_polyhedron_granular>`
    * :doc:`wall/colloid <fix_wall>`
    * :doc:`wall/ees <fix_wall_ees>`
    * :doc:`wall/flow (k) <fix_wall_flow>`

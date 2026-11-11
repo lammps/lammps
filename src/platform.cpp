@@ -360,8 +360,17 @@ std::string platform::compiler_info()
 {
   std::string buf = "(Unknown)";
 #if defined(__INTEL_LLVM_COMPILER)
-  double version = static_cast<double>(__INTEL_LLVM_COMPILER) * 0.01;
-  buf = fmt::format("Intel LLVM C++ {:.1f} / {}", version, __VERSION__);
+  // __INTEL_LLVM_COMPILER is VVVVRP before version 2021.2.0 and VVVVRRPP since
+#if __INTEL_LLVM_COMPILER < 1000000L
+  constexpr int major = __INTEL_LLVM_COMPILER / 100;
+  constexpr int minor = (__INTEL_LLVM_COMPILER / 10) % 10;
+  constexpr int patch = __INTEL_LLVM_COMPILER % 10;
+#else
+  constexpr int major = __INTEL_LLVM_COMPILER / 10000;
+  constexpr int minor = (__INTEL_LLVM_COMPILER / 100) % 100;
+  constexpr int patch = __INTEL_LLVM_COMPILER % 100;
+#endif
+  buf = fmt::format("Intel LLVM C++ {}.{}.{} / {}", major, minor, patch, __VERSION__);
 #elif defined(__ibmxl__)
   buf = fmt::format("IBM XL C/C++ (Clang) {}.{}.{}", __ibmxl_version__, __ibmxl_release__,
                     __ibmxl_modification__);
@@ -369,13 +378,6 @@ std::string platform::compiler_info()
   buf = fmt::format("Clang C++ {}", __VERSION__);
 #elif defined(__PGI)
   buf = fmt::format("PGI C++ {}.{}", __PGIC__, __PGIC_MINOR__);
-#elif defined(__INTEL_COMPILER)
-#if !defined(__VERSION__)
-#define __VERSION__ __INTEL_COMPILER_BUILD_DATE
-#endif
-  double version = static_cast<double>(__INTEL_COMPILER) * 0.01;
-  buf = fmt::format("Intel Classic C++ {:.2f}.{} / {}", version, __INTEL_COMPILER_UPDATE,
-                    __VERSION__);
 #elif defined(__MINGW64__)
   buf = fmt::format("MinGW-w64 64bit {}.{} / GNU C++ {}", __MINGW64_VERSION_MAJOR,
                     __MINGW64_VERSION_MINOR, __VERSION__);
@@ -1071,13 +1073,21 @@ bool platform::file_is_executable(const std::string &path)
 std::string platform::file_redirect(const std::string &path)
 {
 #if defined(_WIN32)
-  // read the first (and only) line and see if it is a valid path
+  // read the first (and only) line and see if it is a valid path.  As for a symbolic link,
+  // a relative path is relative to the folder of the redirect file; it is also tried
+  // relative to the current working directory, where both are the same for files in it.
   SafeFilePtr fp = fopen(path.c_str(), "r");
   if (fp) {
     char buffer[1024];
     if (fgets(buffer, 1024, fp)) {
       auto target = utils::trim(buffer);
-      if (platform::file_is_readable(target)) return target;
+      if (!target.empty()) {
+        if (!std::filesystem::path(target).is_absolute()) {
+          auto relative = platform::path_join(platform::path_dirname(path), target);
+          if (platform::file_is_readable(relative)) return relative;
+        }
+        if (platform::file_is_readable(target)) return target;
+      }
     }
   }
 #endif

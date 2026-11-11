@@ -29,7 +29,7 @@ int dlar1v_(integer *n, integer *b1, integer *bn, doublereal *lambda, doublereal
     --ld;
     --l;
     --d__;
-    eps = dlamch_((char *)"Precision", (ftnlen)9);
+    eps = dlamch_((char *)"P", (ftnlen)1);
     if (*r__ == 0) {
         r1 = *b1;
         r2 = *bn;

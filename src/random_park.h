@@ -25,6 +25,7 @@ class RanPark : protected Pointers {
   double gaussian();
   void reset(int);
   void reset(int, double *);
+  void reset_rank(int, int);
   int state();
 
  private:

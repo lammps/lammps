@@ -1,6 +1,6 @@
 // clang-format off
 #ifndef LMP_INTEL_AIREBO_SCALAR
-# if defined(__INTEL_COMPILER) || defined(__INTEL_LLVM_COMPILER)
+# if defined(__INTEL_LLVM_COMPILER)
 #  if defined(__AVX512F__)
 #   define LMP_INTEL_AIREBO_512
 #  elif defined(__AVX__)

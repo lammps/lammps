@@ -87,7 +87,7 @@ cd doc
 make html          # must complete without sphinx/docutils warnings or bad references
 make pdf           # requires pdflatex; must also complete cleanly
 make spelling      # must report no issues
-make anchor_check  # duplicate anchors
+make anchor_check  # duplicate anchors (error), unused anchors (list only)
 make style_check   # style lists complete
 make check         # anchor/style/package/char/role checks in one target
 ```

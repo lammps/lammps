@@ -29,8 +29,8 @@ contact radius is used only to prevent particles belonging to
 different physical bodies from penetrating each other. It is used by
 the contact pair styles, e.g., smd/hertz and smd/tri_surface.
 
-See `this PDF guide <PDF/MACHDYN_LAMMPS_userguide.pdf>`_ to using Smooth
-Mach Dynamics in LAMMPS.
+See the :doc:`Howto machdyn <Howto_machdyn>` page for an introduction
+to using Smooth Mach Dynamics in LAMMPS.
 
 The value of the contact radius will be 0.0 for particles not in the
 specified compute group.

@@ -47,8 +47,8 @@ be run for 0 timesteps in order to properly register the new particles
 in the system. See the "funnel_flow" example in the MACHDYN examples
 directory.
 
-See `this PDF guide <PDF/MACHDYN_LAMMPS_userguide.pdf>`_ to use Smooth Mach
-Dynamics in LAMMPS.
+See the :doc:`Howto machdyn <Howto_machdyn>` page for an introduction
+to using Smooth Mach Dynamics in LAMMPS.
 
 Dump image info
 """""""""""""""

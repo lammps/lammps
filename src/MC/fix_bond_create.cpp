@@ -179,7 +179,7 @@ FixBondCreate::FixBondCreate(LAMMPS *lmp, int narg, char **arg) :
 
   bondcount = nullptr;
   FixBondCreate::grow_arrays(atom->nmax);
-  atom->add_callback(Atom::GROW);
+  atom->add_callback(this, Atom::GROW);
   countflag = 0;
 
   // set comm sizes needed by this fix
@@ -218,7 +218,7 @@ FixBondCreate::~FixBondCreate()
 {
   // unregister callbacks to this fix from Atom class
 
-  atom->delete_callback(id,Atom::GROW);
+  atom->delete_callback(this, Atom::GROW);
 
   delete random;
 

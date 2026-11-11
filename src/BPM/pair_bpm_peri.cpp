@@ -12,8 +12,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Claude Opus 4.8 (Anthropic), under the direction of
-   Joel Clemmer (SNL) and Axel Kohlmeyer (Temple U).
+   Contributing authors: Joel Clemmer (SNL) and Axel Kohlmeyer (Temple U).
 
    Short-range contact pair style for the BPM peridynamics model. It supplies
    the repulsive contact force between non-bonded pairs of nearby atoms.
@@ -45,6 +44,7 @@ PairBPMPeri::PairBPMPeri(LAMMPS *_lmp) : Pair(_lmp), kspring(nullptr), cut(nullp
 {
   writedata = 1;
   single_enable = 1;
+  no_virial_fdotr_compute = 1;
 }
 
 /* ---------------------------------------------------------------------- */

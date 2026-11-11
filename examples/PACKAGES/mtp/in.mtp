@@ -7,7 +7,7 @@ read_data data.quartz
 replicate 2 2 2
 
 pair_style mtp
-pair_coeff      * * ../../../potentials/SiO.mtp 0 1
+pair_coeff      * * SiO.mtp 0 1
 
 velocity all create 300.0 12345 mom yes rot yes
 fix 1 all nve

@@ -24,6 +24,7 @@
 #include "error.h"
 #include "force.h"
 #include "kokkos.h"
+#include "math_special_kokkos.h"
 #include "memory_kokkos.h"
 #include "neigh_list_kokkos.h"
 #include "neigh_request.h"
@@ -528,9 +529,9 @@ void PairBondValKokkos<DeviceType>::operator()(TagPairBondValKernelA<NEIGHFLAG,N
     if((params(itype,jtype).alpha)!=static_cast<KK_FLOAT>(0.0)){
         if (rsq < (d_cutsq(itype,jtype))) {
           KK_FLOAT r = Kokkos::sqrt(rsq);
-          s0tmp += static_cast<KK_ACC_FLOAT>(Kokkos::pow((params(itype,jtype).r0)/r,(params(itype,jtype).alpha)));
+          s0tmp += static_cast<KK_ACC_FLOAT>(MathSpecialKokkos::powauto((params(itype,jtype).r0)/r,(params(itype,jtype).alpha)));
           if (NEWTON_PAIR || j < nlocal) {
-            a_s0[j] += static_cast<KK_ACC_FLOAT>(Kokkos::pow((params(jtype,itype).r0)/r,(params(jtype,itype).alpha)));
+            a_s0[j] += static_cast<KK_ACC_FLOAT>(MathSpecialKokkos::powauto((params(jtype,itype).r0)/r,(params(jtype,itype).alpha)));
           }
         }
     }
@@ -605,7 +606,7 @@ void PairBondValKokkos<DeviceType>::operator()(TagPairBondValKernelAB<EFLAG>, co
     if((params(itype,jtype).alpha)!=static_cast<KK_FLOAT>(0.0)){
         if (rsq < (d_cutsq(itype,jtype))) {
           KK_FLOAT r = Kokkos::sqrt(rsq);
-          s0tmp += static_cast<KK_ACC_FLOAT>(Kokkos::pow((params(itype,jtype).r0)/r,(params(itype,jtype).alpha)));
+          s0tmp += static_cast<KK_ACC_FLOAT>(MathSpecialKokkos::powauto((params(itype,jtype).r0)/r,(params(itype,jtype).alpha)));
           }
     }
   }
@@ -673,7 +674,7 @@ void PairBondValKokkos<DeviceType>::operator()(TagPairBondValKernelC<NEIGHFLAG,N
         if (rsq < (d_cutsq(itype,jtype))) {
           const KK_FLOAT r = Kokkos::sqrt(rsq);
           const KK_FLOAT recip = static_cast<KK_FLOAT>(1.0)/r;
-          const KK_FLOAT Aij = (params(itype,jtype).alpha)*Kokkos::pow((params(itype,jtype).r0)*recip,(params(itype,jtype).alpha))*recip;
+          const KK_FLOAT Aij = (params(itype,jtype).alpha)*MathSpecialKokkos::powauto((params(itype,jtype).r0)*recip,(params(itype,jtype).alpha))*recip;
           const KK_FLOAT psip = (d_fp[i]+d_fp[j])*Aij;
           const KK_FLOAT fpair = psip*recip;
 

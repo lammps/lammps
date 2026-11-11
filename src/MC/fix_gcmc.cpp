@@ -1444,7 +1444,6 @@ void FixGCMC::attempt_molecule_insertion()
   // Sample a uniform 3d orientation using a unit quaternion.
   // Quaternion component order: (w, x, y, z).
   double rotmat[3][3],quat[4];
-  //sample_insertion_quaternion_legacy(quat);
   sample_insertion_quaternion_uniform(quat);
   MathExtra::quat_to_mat(quat,rotmat);
 
@@ -2283,7 +2282,6 @@ void FixGCMC::attempt_molecule_insertion_full()
   // Sample a uniform 3d orientation using a unit quaternion.
   // Quaternion component order: (w, x, y, z).
   double rotmat[3][3],quat[4];
-  //sample_insertion_quaternion_legacy(quat);
   sample_insertion_quaternion_uniform(quat);
   MathExtra::quat_to_mat(quat, rotmat);
 

@@ -2884,26 +2884,6 @@ void *FixGCMC::extract(const char *name, int &dim)
 /* ----------------------------------------------------------------------
 ------------------------------------------------------------------------- */
 
-void FixGCMC::sample_insertion_quaternion_legacy(double *quat)
-{
-  double axis[3];
-  double rsq;
-
-  do {
-    axis[0] = 2.0 * random_equal->uniform() - 1.0;
-    axis[1] = 2.0 * random_equal->uniform() - 1.0;
-    axis[2] = 2.0 * random_equal->uniform() - 1.0;
-    rsq = MathExtra::dot3(axis, axis);
-  } while (rsq > 1.0 || rsq == 0.0);
-
-  const double theta = MY_2PI * random_equal->uniform();
-  MathExtra::norm3(axis);
-  MathExtra::axisangle_to_quat(axis, theta, quat);
-}
-
-/* ----------------------------------------------------------------------
-------------------------------------------------------------------------- */
-
 void FixGCMC::sample_insertion_quaternion_uniform(double *quat)
 {
   const double u1 = random_equal->uniform();

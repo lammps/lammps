@@ -1,4 +1,4 @@
-LAMMPS (30 Sep 2026 - Development - patch_30Sep2026-584-g503edac323-modified)
+LAMMPS (30 Sep 2026 - Development - patch_30Sep2026-934-g2bfeaf994b)
 OMP_NUM_THREADS environment is not set. Defaulting to 1 thread.
   using 1 OpenMP thread(s) per MPI task
 # Test correctness GCMC restart
@@ -70,20 +70,20 @@ Per MPI rank memory allocation (min/avg/max) = 0.4341 | 0.4341 | 0.4341 Mbytes
    Step          Temp          Press          PotEng         KinEng        Density        Atoms   
          0   0              0              0             -0              0                      0 
        100   2.1893396      0.84076801    -3.2711903      3.2349943      0.536                 67 
-Loop time of 0.0743097 on 1 procs for 100 steps with 67 atoms
+Loop time of 0.064555 on 1 procs for 100 steps with 67 atoms
 
-Performance: 581350.807 tau/day, 1345.719 timesteps/s, 90.163 katom-step/s
-97.7% CPU use with 1 MPI tasks x 1 OpenMP threads
+Performance: 669196.809 tau/day, 1549.067 timesteps/s, 103.787 katom-step/s
+99.7% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.0018239  | 0.0018239  | 0.0018239  |   0.0 |  2.45
-Neigh   | 0.0055896  | 0.0055896  | 0.0055896  |   0.0 |  7.52
-Comm    | 0.00043241 | 0.00043241 | 0.00043241 |   0.0 |  0.58
-Output  | 6.072e-06  | 6.072e-06  | 6.072e-06  |   0.0 |  0.01
-Modify  | 0.066309   | 0.066309   | 0.066309   |   0.0 | 89.23
-Other   |            | 0.0001491  |            |       |  0.20
+Pair    | 0.001461   | 0.001461   | 0.001461   |   0.0 |  2.26
+Neigh   | 0.005576   | 0.005576   | 0.005576   |   0.0 |  8.64
+Comm    | 0.000393   | 0.000393   | 0.000393   |   0.0 |  0.61
+Output  | 6e-06      | 6e-06      | 6e-06      |   0.0 |  0.01
+Modify  | 0.05707    | 0.05707    | 0.05707    |   0.0 | 88.41
+Other   |            | 4.9e-05    |            |       |  0.08
 
 Nlocal:             67 ave          67 max          67 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -112,20 +112,20 @@ Per MPI rank memory allocation (min/avg/max) = 3.148 | 3.148 | 3.148 Mbytes
    Step          Temp          Press          PotEng         KinEng        Density        Atoms   
        100   2.1893396      0.84076801    -3.2711903      3.2349943      0.536                 67 
       1100   2.1019921      1.4800716     -3.5483156      3.1097965      0.584                 73 
-Loop time of 0.754539 on 1 procs for 1000 steps with 73 atoms
+Loop time of 0.662785 on 1 procs for 1000 steps with 73 atoms
 
-Performance: 572534.852 tau/day, 1325.312 timesteps/s, 96.748 katom-step/s
-99.3% CPU use with 1 MPI tasks x 1 OpenMP threads
+Performance: 651795.077 tau/day, 1508.785 timesteps/s, 110.141 katom-step/s
+99.8% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.019401   | 0.019401   | 0.019401   |   0.0 |  2.57
-Neigh   | 0.056056   | 0.056056   | 0.056056   |   0.0 |  7.43
-Comm    | 0.0044237  | 0.0044237  | 0.0044237  |   0.0 |  0.59
-Output  | 9.598e-06  | 9.598e-06  | 9.598e-06  |   0.0 |  0.00
-Modify  | 0.67328    | 0.67328    | 0.67328    |   0.0 | 89.23
-Other   |            | 0.001365   |            |       |  0.18
+Pair    | 0.015428   | 0.015428   | 0.015428   |   0.0 |  2.33
+Neigh   | 0.057179   | 0.057179   | 0.057179   |   0.0 |  8.63
+Comm    | 0.00415    | 0.00415    | 0.00415    |   0.0 |  0.63
+Output  | 2.8e-05    | 2.8e-05    | 2.8e-05    |   0.0 |  0.00
+Modify  | 0.58552    | 0.58552    | 0.58552    |   0.0 | 88.34
+Other   |            | 0.000483   |            |       |  0.07
 
 Nlocal:             73 ave          73 max          73 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -202,20 +202,20 @@ Per MPI rank memory allocation (min/avg/max) = 3.08 | 3.08 | 3.08 Mbytes
    Step          Temp          Press          PotEng         KinEng        Density        Atoms   
        100   2.1893396      0.84076801    -3.2711903      3.2349943      0.536                 67 
       1100   2.1019921      1.4800716     -3.5483156      3.1097965      0.584                 73 
-Loop time of 0.753409 on 1 procs for 1000 steps with 73 atoms
+Loop time of 0.656396 on 1 procs for 1000 steps with 73 atoms
 
-Performance: 573393.455 tau/day, 1327.300 timesteps/s, 96.893 katom-step/s
-99.0% CPU use with 1 MPI tasks x 1 OpenMP threads
+Performance: 658139.294 tau/day, 1523.471 timesteps/s, 111.213 katom-step/s
+99.8% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.019347   | 0.019347   | 0.019347   |   0.0 |  2.57
-Neigh   | 0.056548   | 0.056548   | 0.056548   |   0.0 |  7.51
-Comm    | 0.0042919  | 0.0042919  | 0.0042919  |   0.0 |  0.57
-Output  | 1.0069e-05 | 1.0069e-05 | 1.0069e-05 |   0.0 |  0.00
-Modify  | 0.6718     | 0.6718     | 0.6718     |   0.0 | 89.17
-Other   |            | 0.001407   |            |       |  0.19
+Pair    | 0.015444   | 0.015444   | 0.015444   |   0.0 |  2.35
+Neigh   | 0.057436   | 0.057436   | 0.057436   |   0.0 |  8.75
+Comm    | 0.00415    | 0.00415    | 0.00415    |   0.0 |  0.63
+Output  | 3.5e-05    | 3.5e-05    | 3.5e-05    |   0.0 |  0.01
+Modify  | 0.57884    | 0.57884    | 0.57884    |   0.0 | 88.18
+Other   |            | 0.000493   |            |       |  0.08
 
 Nlocal:             73 ave          73 max          73 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -300,7 +300,7 @@ Read molecule template h2omol:
 create_atoms   	0 box mol h2omol 464563 units box
 Created 24 atoms
   using box units in orthogonal box = (0 0 0) to (10 10 10)
-  create_atoms CPU = 0.001 seconds
+  create_atoms CPU = 0.000 seconds
 
 # rigid SPC/E water model
 
@@ -388,45 +388,44 @@ Neighbor list info ...
 Per MPI rank memory allocation (min/avg/max) = 11.63 | 11.63 | 11.63 Mbytes
    Step          Temp          Press          PotEng         KinEng        Density        Atoms   
          0   518.26667      1859.8567     -4.1890526      23.172817      0.23910963            24 
-WARNING: Using kspace solver on system with no charge (src/kspace.cpp:318)
-       100   453.61712     -1229.2128     -135.9171       55.438006      0.62766279            63 
-Loop time of 0.997992 on 1 procs for 100 steps with 63 atoms
+       100   487.95645     -2556.1775     -123.98694      56.725714      0.59777409            60 
+Loop time of 0.671997 on 1 procs for 100 steps with 60 atoms
 
-Performance: 8.657 ns/day, 2.772 hours/ns, 100.201 timesteps/s, 6.313 katom-step/s
-99.6% CPU use with 1 MPI tasks x 1 OpenMP threads
+Performance: 12.857 ns/day, 1.867 hours/ns, 148.810 timesteps/s, 8.929 katom-step/s
+99.8% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.015115   | 0.015115   | 0.015115   |   0.0 |  1.51
-Bond    | 6.619e-05  | 6.619e-05  | 6.619e-05  |   0.0 |  0.01
-Kspace  | 0.00051587 | 0.00051587 | 0.00051587 |   0.0 |  0.05
-Neigh   | 0.0061394  | 0.0061394  | 0.0061394  |   0.0 |  0.62
-Comm    | 0.00093401 | 0.00093401 | 0.00093401 |   0.0 |  0.09
-Output  | 1.2344e-05 | 1.2344e-05 | 1.2344e-05 |   0.0 |  0.00
-Modify  | 0.97511    | 0.97511    | 0.97511    |   0.0 | 97.71
-Other   |            | 0.0001029  |            |       |  0.01
+Pair    | 0.012353   | 0.012353   | 0.012353   |   0.0 |  1.84
+Bond    | 3.3e-05    | 3.3e-05    | 3.3e-05    |   0.0 |  0.00
+Kspace  | 0.000384   | 0.000384   | 0.000384   |   0.0 |  0.06
+Neigh   | 0.004193   | 0.004193   | 0.004193   |   0.0 |  0.62
+Comm    | 0.00071    | 0.00071    | 0.00071    |   0.0 |  0.11
+Output  | 1e-05      | 1e-05      | 1e-05      |   0.0 |  0.00
+Modify  | 0.65426    | 0.65426    | 0.65426    |   0.0 | 97.36
+Other   |            | 5.3e-05    |            |       |  0.01
 
-Nlocal:             63 ave          63 max          63 min
+Nlocal:             60 ave          60 max          60 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
-Nghost:           4797 ave        4797 max        4797 min
+Nghost:           4461 ave        4461 max        4461 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
-Neighs:          33976 ave       33976 max       33976 min
+Neighs:          30828 ave       30828 max       30828 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
 
-Total # of neighbors = 33976
-Ave neighs/atom = 539.30159
+Total # of neighbors = 30828
+Ave neighs/atom = 513.8
 Ave special neighs/atom = 2
-Neighbor list builds = 995
+Neighbor list builds = 1020
 Dangerous builds = 0
 write_restart   ${restartfile}
 write_restart   restart.gcmc.h2o
 System init for write_restart ...
 Ewald initialization ...
   using 12-bit tables for long-range coulomb
-  G vector (1/distance) = 0.17752356
-  estimated absolute RMS force accuracy = 0.03320641
-  estimated relative force accuracy = 0.00010000012
+  G vector (1/distance) = 0.17717266
+  estimated absolute RMS force accuracy = 0.033206404
+  estimated relative force accuracy = 0.0001000001
   KSpace vectors: actual max1d max3d = 16 2 62
                   kxmax kymax kzmax  = 2 2 2
 Generated 0 of 1 mixed pair_coeff terms from arithmetic mixing rule
@@ -439,56 +438,56 @@ run             ${nsteps}
 run             100
 Ewald initialization ...
   using 12-bit tables for long-range coulomb
-  G vector (1/distance) = 0.17752356
-  estimated absolute RMS force accuracy = 0.03320641
-  estimated relative force accuracy = 0.00010000012
+  G vector (1/distance) = 0.17717266
+  estimated absolute RMS force accuracy = 0.033206404
+  estimated relative force accuracy = 0.0001000001
   KSpace vectors: actual max1d max3d = 16 2 62
                   kxmax kymax kzmax  = 2 2 2
 Generated 0 of 1 mixed pair_coeff terms from arithmetic mixing rule
 0 atoms in group FixGCMC:rotation_gas_atoms:mygcmc
 WARNING: Neighbor exclusions used with KSpace solver may give inconsistent Coulombic energies (src/neighbor.cpp:668)
-Per MPI rank memory allocation (min/avg/max) = 12.12 | 12.12 | 12.12 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 12.11 | 12.11 | 12.11 Mbytes
    Step          Temp          Press          PotEng         KinEng        Density        Atoms   
-       100   453.61712     -1139.0475     -135.57728      55.438006      0.62766279            63 
-       200   514.09608      531.04166     -223.32493      81.218407      0.80699501            81 
-Loop time of 1.9802 on 1 procs for 100 steps with 81 atoms
+       100   487.95645     -2470.8016     -123.65534      56.725714      0.59777409            60 
+       200   526.47052     -3407.3971     -181.89797      73.757505      0.7173289             72 
+Loop time of 1.34598 on 1 procs for 100 steps with 72 atoms
 
-Performance: 4.363 ns/day, 5.501 hours/ns, 50.500 timesteps/s, 4.090 katom-step/s
-99.6% CPU use with 1 MPI tasks x 1 OpenMP threads
+Performance: 6.419 ns/day, 3.739 hours/ns, 74.296 timesteps/s, 5.349 katom-step/s
+99.9% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.034351   | 0.034351   | 0.034351   |   0.0 |  1.73
-Bond    | 0.00010064 | 0.00010064 | 0.00010064 |   0.0 |  0.01
-Kspace  | 0.00083544 | 0.00083544 | 0.00083544 |   0.0 |  0.04
-Neigh   | 0.012058   | 0.012058   | 0.012058   |   0.0 |  0.61
-Comm    | 0.001458   | 0.001458   | 0.001458   |   0.0 |  0.07
-Output  | 1.3687e-05 | 1.3687e-05 | 1.3687e-05 |   0.0 |  0.00
-Modify  | 1.9312     | 1.9312     | 1.9312     |   0.0 | 97.53
-Other   |            | 0.0001546  |            |       |  0.01
+Pair    | 0.02485    | 0.02485    | 0.02485    |   0.0 |  1.85
+Bond    | 5.5e-05    | 5.5e-05    | 5.5e-05    |   0.0 |  0.00
+Kspace  | 0.000568   | 0.000568   | 0.000568   |   0.0 |  0.04
+Neigh   | 0.008291   | 0.008291   | 0.008291   |   0.0 |  0.62
+Comm    | 0.001131   | 0.001131   | 0.001131   |   0.0 |  0.08
+Output  | 6e-06      | 6e-06      | 6e-06      |   0.0 |  0.00
+Modify  | 1.311      | 1.311      | 1.311      |   0.0 | 97.40
+Other   |            | 6.6e-05    |            |       |  0.00
 
-Nlocal:             81 ave          81 max          81 min
+Nlocal:             72 ave          72 max          72 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
-Nghost:           6019 ave        6019 max        6019 min
+Nghost:           5385 ave        5385 max        5385 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
-Neighs:          56176 ave       56176 max       56176 min
+Neighs:          44401 ave       44401 max       44401 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
 
-Total # of neighbors = 56176
-Ave neighs/atom = 693.53086
+Total # of neighbors = 44401
+Ave neighs/atom = 616.68056
 Ave special neighs/atom = 2
 Neighbor list builds = 1020
 Dangerous builds = 0
 variable        tmp equal temp
 variable        tref equal ${tmp}
-variable        tref equal 514.096081246074
+variable        tref equal 526.47051690964
 variable        tmp equal press
 variable        pref equal ${tmp}
-variable        pref equal 531.041660966155
+variable        pref equal -3407.39713377972
 variable        tmp equal sum(f_mygcmc)
 variable        gcmcref equal ${tmp}
-variable        gcmcref equal 2107
+variable        gcmcref equal 2140
 clear
 OMP_NUM_THREADS environment is not set. Defaulting to 1 thread.
   using 1 OpenMP thread(s) per MPI task
@@ -505,9 +504,9 @@ Reading restart file ...
   restoring pair style lj/cut/coul/long from restart
   restoring bond style harmonic from restart
   restoring angle style harmonic from restart
-  63 atoms
-  122 bonds
-  61 angles
+  60 atoms
+  156 bonds
+  78 angles
 Finding 1-2 1-3 1-4 neighbors ...
   special bond factors lj:    0        0        0       
   special bond factors coul:  0        0        0       
@@ -516,7 +515,7 @@ Finding 1-2 1-3 1-4 neighbors ...
      1 = max # of 1-4 neighbors
      3 = max # of special neighbors
   special bonds CPU = 0.000 seconds
-  read_restart CPU = 0.000 seconds
+  read_restart CPU = 0.001 seconds
 molecule        h2omol H2O.txt
 Read molecule template h2omol:
 # Water molecule. SPC/E model.
@@ -539,7 +538,7 @@ Finding SHAKE clusters ...
        0 = # of size 2 clusters
        0 = # of size 3 clusters
        0 = # of size 4 clusters
-      21 = # of frozen angles
+      20 = # of frozen angles
   find clusters CPU = 0.000 seconds
 
 # important to make temperature dofs dynamic
@@ -569,9 +568,9 @@ run             ${nsteps}
 run             100
 Ewald initialization ...
   using 12-bit tables for long-range coulomb
-  G vector (1/distance) = 0.17752356
-  estimated absolute RMS force accuracy = 0.03320641
-  estimated relative force accuracy = 0.00010000012
+  G vector (1/distance) = 0.17717266
+  estimated absolute RMS force accuracy = 0.033206404
+  estimated relative force accuracy = 0.0001000001
   KSpace vectors: actual max1d max3d = 16 2 62
                   kxmax kymax kzmax  = 2 2 2
 Generated 0 of 1 mixed pair_coeff terms from arithmetic mixing rule
@@ -592,48 +591,48 @@ Neighbor list info ...
       pair build: half/bin/newton
       stencil: half/bin/3d
       bin: standard
-Per MPI rank memory allocation (min/avg/max) = 11.78 | 11.78 | 11.78 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 11.77 | 11.77 | 11.77 Mbytes
    Step          Temp          Press          PotEng         KinEng        Density        Atoms   
-       100   453.61712     -1139.0475     -135.57728      55.438006      0.62766279            63 
-       200   514.09608      531.04175     -223.32493      81.218407      0.80699501            81 
-Loop time of 1.91792 on 1 procs for 100 steps with 81 atoms
+       100   487.95645     -2470.8017     -123.65534      56.725714      0.59777409            60 
+       200   526.47051     -3407.3968     -181.89796      73.757504      0.7173289             72 
+Loop time of 1.34324 on 1 procs for 100 steps with 72 atoms
 
-Performance: 4.505 ns/day, 5.328 hours/ns, 52.140 timesteps/s, 4.223 katom-step/s
-99.6% CPU use with 1 MPI tasks x 1 OpenMP threads
+Performance: 6.432 ns/day, 3.731 hours/ns, 74.447 timesteps/s, 5.360 katom-step/s
+99.8% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.034081   | 0.034081   | 0.034081   |   0.0 |  1.78
-Bond    | 3.2181e-05 | 3.2181e-05 | 3.2181e-05 |   0.0 |  0.00
-Kspace  | 0.00077873 | 0.00077873 | 0.00077873 |   0.0 |  0.04
-Neigh   | 0.011764   | 0.011764   | 0.011764   |   0.0 |  0.61
-Comm    | 0.0014112  | 0.0014112  | 0.0014112  |   0.0 |  0.07
-Output  | 1.1923e-05 | 1.1923e-05 | 1.1923e-05 |   0.0 |  0.00
-Modify  | 1.8697     | 1.8697     | 1.8697     |   0.0 | 97.49
-Other   |            | 0.0001552  |            |       |  0.01
+Pair    | 0.025098   | 0.025098   | 0.025098   |   0.0 |  1.87
+Bond    | 8e-06      | 8e-06      | 8e-06      |   0.0 |  0.00
+Kspace  | 0.000588   | 0.000588   | 0.000588   |   0.0 |  0.04
+Neigh   | 0.008182   | 0.008182   | 0.008182   |   0.0 |  0.61
+Comm    | 0.001145   | 0.001145   | 0.001145   |   0.0 |  0.09
+Output  | 1.7e-05    | 1.7e-05    | 1.7e-05    |   0.0 |  0.00
+Modify  | 1.3081     | 1.3081     | 1.3081     |   0.0 | 97.39
+Other   |            | 7e-05      |            |       |  0.01
 
-Nlocal:             81 ave          81 max          81 min
+Nlocal:             72 ave          72 max          72 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
-Nghost:           6019 ave        6019 max        6019 min
+Nghost:           5385 ave        5385 max        5385 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
-Neighs:          56176 ave       56176 max       56176 min
+Neighs:          44401 ave       44401 max       44401 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
 
-Total # of neighbors = 56176
-Ave neighs/atom = 693.53086
+Total # of neighbors = 44401
+Ave neighs/atom = 616.68056
 Ave special neighs/atom = 2
 Neighbor list builds = 1020
 Dangerous builds = 0
 variable        tmp equal temp
 variable        terror equal ${tmp} - v_tref
-variable        terror equal 514.096080869544 - v_tref
+variable        terror equal 526.470514892218 - v_tref
 variable        tmp equal press
 variable        perror equal ${tmp} - v_pref
-variable        perror equal 531.041752589705 - v_pref
+variable        perror equal -3407.39683791913 - v_pref
 variable        tmp equal sum(f_mygcmc)
 variable        gcmcerror equal ${tmp} - v_gcmcref
-variable        gcmcerror equal 2107 - v_gcmcref
+variable        gcmcerror equal 2140 - v_gcmcref
 clear
 OMP_NUM_THREADS environment is not set. Defaulting to 1 thread.
   using 1 OpenMP thread(s) per MPI task
@@ -641,10 +640,10 @@ OMP_NUM_THREADS environment is not set. Defaulting to 1 thread.
 # report restart errors
 
 print "H2O: change in temperature from restart = ${terror} "
-H2O: change in temperature from restart = -3.76530010726128e-07 
+H2O: change in temperature from restart = -2.01742193439713e-06 
 print "H2O: change in pressure from restart = ${perror} "
-H2O: change in pressure from restart = 9.16235500199036e-05 
+H2O: change in pressure from restart = 0.000295860590085795 
 print "H2O: change in fix GCMC from restart = ${gcmcerror} "
 H2O: change in fix GCMC from restart = 0 
 
-Total wall time: 0:00:06
+Total wall time: 0:00:04

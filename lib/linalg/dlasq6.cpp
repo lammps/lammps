@@ -17,13 +17,13 @@ int dlasq6_(integer *i0, integer *n0, doublereal *z__, integer *pp, doublereal *
     if (*n0 - *i0 - 1 <= 0) {
         return 0;
     }
-    safmin = dlamch_((char *)"Safe minimum", (ftnlen)12);
+    safmin = dlamch_((char *)"S", (ftnlen)1);
     j4 = (*i0 << 2) + *pp - 3;
     emin = z__[j4 + 4];
     d__ = z__[j4];
     *dmin__ = d__;
     if (*pp == 0) {
-        i__1 = *n0 - 3 << 2;
+        i__1 = (*n0 - 3) << 2;
         for (j4 = *i0 << 2; j4 <= i__1; j4 += 4) {
             z__[j4 - 2] = d__ + z__[j4 - 1];
             if (z__[j4 - 2] == 0.) {
@@ -44,7 +44,7 @@ int dlasq6_(integer *i0, integer *n0, doublereal *z__, integer *pp, doublereal *
             emin = min(d__1, d__2);
         }
     } else {
-        i__1 = *n0 - 3 << 2;
+        i__1 = (*n0 - 3) << 2;
         for (j4 = *i0 << 2; j4 <= i__1; j4 += 4) {
             z__[j4 - 3] = d__ + z__[j4];
             if (z__[j4 - 3] == 0.) {
@@ -67,7 +67,7 @@ int dlasq6_(integer *i0, integer *n0, doublereal *z__, integer *pp, doublereal *
     }
     *dnm2 = d__;
     *dmin2 = *dmin__;
-    j4 = (*n0 - 2 << 2) - *pp;
+    j4 = ((*n0 - 2) << 2) - *pp;
     j4p2 = j4 + (*pp << 1) - 1;
     z__[j4 - 2] = *dnm2 + z__[j4p2];
     if (z__[j4 - 2] == 0.) {

@@ -246,7 +246,12 @@ LAMMPS.
       variables individually, if you want to experiment with alternate
       optimization flags.  You should specify all 3 compilers, so that
       the (few) LAMMPS source files written in C or Fortran are built
-      with a compiler consistent with the one used for the C++ files:
+      with a compiler consistent with the one used for the C++ files.
+      The presets ``gcc-opt.cmake``, ``clang-opt.cmake``, and
+      ``oneapi-opt.cmake`` select more aggressive optimization; see
+      :doc:`Compiler optimization <Speed_compiler>` for their benefits
+      and limitations.  The CMake variables for the compilers and their
+      flags are:
 
       .. code-block:: bash
 

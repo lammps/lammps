@@ -17,7 +17,7 @@ Reading data file ...
   reading atoms ...
   2 atoms
   2 bodies
-  read_data CPU = 0.001 seconds
+  read_data CPU = 0.000 seconds
 
 replicate   $r $r $r
 replicate   3 $r $r
@@ -27,7 +27,7 @@ Replication is creating a 3x3x3 = 27 times larger system...
   orthogonal box = (0 0 0) to (18 18 18)
   1 by 1 by 1 MPI processor grid
   54 atoms
-  replicate CPU = 0.001 seconds
+  replicate CPU = 0.000 seconds
 
 velocity    all create 1.2 187287 dist gaussian mom yes rot yes
 
@@ -90,41 +90,41 @@ Neighbor list info ...
 Per MPI rank memory allocation (min/avg/max) = 8.008 | 8.008 | 8.008 Mbytes
    Step         KinEng         PotEng         TotEng          c_p2         c_1_temp   
          0   1.7666667     -0.0044872981   1.7621794      0.010010092    0.59439252   
-      1000   3.1303913     -0.17101207     2.9593793      0.019783012    1.1565764    
-      2000   3.0589382     -0.22310353     2.8358346      0.020955475    1.2364893    
-      3000   3.3264303     -0.26313707     3.0632932      0.022316105    1.3085832    
-      4000   2.6430624     -0.27772044     2.365342       0.035308973    1.0848374    
-      5000   3.1977395     -0.31711507     2.8806244      0.021121316    1.2359622    
-      6000   3.0179213     -0.32690259     2.6910187      0.025628081    1.1713119    
-      7000   2.5677649     -0.36221254     2.2055524      0.026881573    1.0308782    
-      8000   3.4345272     -0.3792121      3.0553151      0.017902861    1.3561594    
-      9000   2.7667957     -0.37098726     2.3958084      0.022321809    1.127845     
-     10000   2.8144489     -0.3298068      2.4846421      0.019268916    1.1965864    
-Loop time of 13.7475 on 1 procs for 10000 steps with 54 atoms
+      1000   3.132481      -0.16498753     2.9674935      0.021950688    1.1575848    
+      2000   3.0057633     -0.20759882     2.7981645      0.027404367    1.2110623    
+      3000   3.1858407     -0.25244283     2.9333978      0.019366025    1.2635275    
+      4000   2.5082308     -0.24162237     2.2666084      0.021696294    1.0111921    
+      5000   3.0985618     -0.26865232     2.8299094      0.02972853     1.2282072    
+      6000   3.1692254     -0.2906027      2.8786227      0.030736821    1.2364006    
+      7000   3.0515217     -0.31687607     2.7346457      0.018869347    1.1541262    
+      8000   3.2017733     -0.33277191     2.8690014      0.022659953    1.1865301    
+      9000   2.6973985     -0.35088514     2.3465133      0.013904721    1.044849     
+     10000   2.8926879     -0.33640956     2.5562784      0.01767595     1.2748007    
+Loop time of 13.1743 on 1 procs for 10000 steps with 54 atoms
 
-Performance: 62847.812 tau/day, 727.405 timesteps/s, 39.280 katom-step/s
+Performance: 65582.199 tau/day, 759.053 timesteps/s, 40.989 katom-step/s
 100.0% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 13.593     | 13.593     | 13.593     |   0.0 | 98.87
-Neigh   | 0.0049384  | 0.0049384  | 0.0049384  |   0.0 |  0.04
-Comm    | 0.057716   | 0.057716   | 0.057716   |   0.0 |  0.42
-Output  | 0.00012601 | 0.00012601 | 0.00012601 |   0.0 |  0.00
-Modify  | 0.082801   | 0.082801   | 0.082801   |   0.0 |  0.60
-Other   |            | 0.009341   |            |       |  0.07
+Pair    | 13.025     | 13.025     | 13.025     |   0.0 | 98.87
+Neigh   | 0.0053588  | 0.0053588  | 0.0053588  |   0.0 |  0.04
+Comm    | 0.058322   | 0.058322   | 0.058322   |   0.0 |  0.44
+Output  | 0.00013578 | 0.00013578 | 0.00013578 |   0.0 |  0.00
+Modify  | 0.077446   | 0.077446   | 0.077446   |   0.0 |  0.59
+Other   |            | 0.007688   |            |       |  0.06
 
 Nlocal:             54 ave          54 max          54 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
-Nghost:            105 ave         105 max         105 min
+Nghost:            174 ave         174 max         174 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
-Neighs:            169 ave         169 max         169 min
+Neighs:            171 ave         171 max         171 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
 
-Total # of neighbors = 169
-Ave neighs/atom = 3.1296296
-Neighbor list builds = 256
+Total # of neighbors = 171
+Ave neighs/atom = 3.1666667
+Neighbor list builds = 299
 Dangerous builds = 0
 
 Total wall time: 0:00:13

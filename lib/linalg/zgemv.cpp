@@ -40,7 +40,7 @@ int zgemv_(char *trans, integer *m, integer *n, doublecomplex *alpha, doublecomp
         return 0;
     }
     if (*m == 0 || *n == 0 ||
-        alpha->r == 0. && alpha->i == 0. && (beta->r == 1. && beta->i == 0.)) {
+        (alpha->r == 0. && alpha->i == 0. && (beta->r == 1. && beta->i == 0.))) {
         return 0;
     }
     noconj = lsame_(trans, (char *)"T", (ftnlen)1, (ftnlen)1);

@@ -19,7 +19,7 @@ doublereal dlapy2_(doublereal *x, doublereal *y)
     if (y_is_nan__) {
         ret_val = *y;
     }
-    hugeval = dlamch_((char *)"Overflow", (ftnlen)8);
+    hugeval = dlamch_((char *)"O", (ftnlen)1);
     if (!(x_is_nan__ || y_is_nan__)) {
         xabs = abs(*x);
         yabs = abs(*y);

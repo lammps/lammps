@@ -453,6 +453,8 @@ void PairExTeP::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   map_element2type(narg-3,arg+3);
+  if (nelements > MAXTYPES)
+    error->all(FLERR, "Pair style extep supports only up to {} elements", MAXTYPES);
 
   // read potential file and initialize potential parameters
 

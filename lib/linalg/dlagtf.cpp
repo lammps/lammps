@@ -34,7 +34,7 @@ int dlagtf_(integer *n, doublereal *a, doublereal *lambda, doublereal *b, double
         }
         return 0;
     }
-    eps = dlamch_((char *)"Epsilon", (ftnlen)7);
+    eps = dlamch_((char *)"E", (ftnlen)1);
     tl = max(*tol, eps);
     scale1 = abs(a[1]) + abs(b[1]);
     i__1 = *n - 1;

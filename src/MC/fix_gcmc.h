@@ -155,7 +155,6 @@ class FixGCMC : public Fix {
 
   void grow_molecule_arrays(int);
   int local_index(tagint);
-  void sample_insertion_quaternion_legacy(double *);
   void sample_insertion_quaternion_uniform(double *);
 };
 

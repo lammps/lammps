@@ -125,7 +125,7 @@ void FixLangevinTSpin::setup(int vflag)
   if (utils::strmatch(update->integrate_style, "^verlet"))
     post_force(vflag);
   else {
-    auto respa = dynamic_cast<Respa *>(update->integrate);
+    auto *respa = dynamic_cast<Respa *>(update->integrate);
     respa->copy_flevel_f(ilevel_respa);
     post_force_respa(vflag, ilevel_respa, 0);
     respa->copy_f_flevel(ilevel_respa);

@@ -23,6 +23,7 @@
 #include "error.h"
 #include "force.h"
 #include "math_const.h"
+#include "math_special.h"
 #include "memory.h"
 #include "neigh_list.h"
 #include "neighbor.h"
@@ -34,6 +35,7 @@
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
+using MathSpecial::powauto;
 
 /* ---------------------------------------------------------------------- */
 
@@ -116,8 +118,8 @@ void PairMIECut::compute(int eflag, int vflag)
 
       if (rsq < cutsq[itype][jtype]) {
         r2inv = 1.0/rsq;
-        rgamA = pow(r2inv,(gamA[itype][jtype]/2.0));
-        rgamR = pow(r2inv,(gamR[itype][jtype]/2.0));
+        rgamA = powauto(r2inv,gamA[itype][jtype]/2.0);
+        rgamR = powauto(r2inv,gamR[itype][jtype]/2.0);
         forcemie =  (mie1[itype][jtype]*rgamR - mie2[itype][jtype]*rgamA);
         fpair = factor_mie*forcemie*r2inv;
 
@@ -197,8 +199,8 @@ void PairMIECut::compute_inner()
       if (rsq < cut_out_off_sq) {
         jtype = type[j];
         r2inv = 1.0/rsq;
-        rgamA = pow(r2inv,(gamA[itype][jtype]/2.0));
-        rgamR = pow(r2inv,(gamR[itype][jtype]/2.0));
+        rgamA = powauto(r2inv,gamA[itype][jtype]/2.0);
+        rgamR = powauto(r2inv,gamR[itype][jtype]/2.0);
         forcemie =  (mie1[itype][jtype]*rgamR - mie2[itype][jtype]*rgamA);
         fpair = factor_mie*forcemie*r2inv;
         if (rsq > cut_out_on_sq) {
@@ -276,8 +278,8 @@ void PairMIECut::compute_middle()
       if (rsq < cut_out_off_sq && rsq > cut_in_off_sq) {
         jtype = type[j];
         r2inv = 1.0/rsq;
-        rgamA = pow(r2inv,(gamA[itype][jtype]/2.0));
-        rgamR = pow(r2inv,(gamR[itype][jtype]/2.0));
+        rgamA = powauto(r2inv,gamA[itype][jtype]/2.0);
+        rgamR = powauto(r2inv,gamR[itype][jtype]/2.0);
         forcemie =  (mie1[itype][jtype]*rgamR - mie2[itype][jtype]*rgamA);
         fpair = factor_mie*forcemie*r2inv;
         if (rsq < cut_in_on_sq) {
@@ -358,8 +360,8 @@ void PairMIECut::compute_outer(int eflag, int vflag)
       if (rsq < cutsq[itype][jtype]) {
         if (rsq > cut_in_off_sq) {
         r2inv = 1.0/rsq;
-        rgamA = pow(r2inv,(gamA[itype][jtype]/2.0));
-        rgamR = pow(r2inv,(gamR[itype][jtype]/2.0));
+        rgamA = powauto(r2inv,gamA[itype][jtype]/2.0);
+        rgamR = powauto(r2inv,gamR[itype][jtype]/2.0);
         forcemie =  (mie1[itype][jtype]*rgamR - mie2[itype][jtype]*rgamA);
           fpair = factor_mie*forcemie*r2inv;
           if (rsq < cut_in_on_sq) {
@@ -379,8 +381,8 @@ void PairMIECut::compute_outer(int eflag, int vflag)
 
         if (eflag) {
           r2inv = 1.0/rsq;
-        rgamA = pow(r2inv,(gamA[itype][jtype]/2.0));
-        rgamR = pow(r2inv,(gamR[itype][jtype]/2.0));
+        rgamA = powauto(r2inv,gamA[itype][jtype]/2.0);
+        rgamR = powauto(r2inv,gamR[itype][jtype]/2.0);
           evdwl = (mie3[itype][jtype]*rgamR - mie4[itype][jtype]*rgamA) -
             offset[itype][jtype];
           evdwl *= factor_mie;
@@ -389,8 +391,8 @@ void PairMIECut::compute_outer(int eflag, int vflag)
         if (vflag) {
           if (rsq <= cut_in_off_sq) {
         r2inv = 1.0/rsq;
-        rgamA = pow(r2inv,(gamA[itype][jtype]/2.0));
-        rgamR = pow(r2inv,(gamR[itype][jtype]/2.0));
+        rgamA = powauto(r2inv,gamA[itype][jtype]/2.0);
+        rgamR = powauto(r2inv,gamR[itype][jtype]/2.0);
         forcemie =  (mie1[itype][jtype]*rgamR - mie2[itype][jtype]*rgamA);
             fpair = factor_mie*forcemie*r2inv;
           } else if (rsq < cut_in_on_sq)
@@ -683,8 +685,8 @@ double PairMIECut::single(int /*i*/, int /*j*/, int itype, int jtype, double rsq
   double r2inv,rgamR,rgamA,forcemie,phimie;
 
   r2inv = 1.0/rsq;
-  rgamA = pow(r2inv,(gamA[itype][jtype]/2.0));
-  rgamR = pow(r2inv,(gamR[itype][jtype]/2.0));
+  rgamA = powauto(r2inv,gamA[itype][jtype]/2.0);
+  rgamR = powauto(r2inv,gamR[itype][jtype]/2.0);
   forcemie =  (mie1[itype][jtype]*rgamR - mie2[itype][jtype]*rgamA);
   fforce = factor_mie*forcemie*r2inv;
 

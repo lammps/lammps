@@ -1831,10 +1831,10 @@ also typically :ref:`install the OPENMP package <openmp>`, as it can be
 used in tandem with the INTEL package to good effect, as explained
 on the :doc:`Speed_intel` page.
 
-When using Intel compilers version 16.0 or later is required.  You can
-also use the GNU or Clang compilers and they will provide performance
-improvements over regular styles and OPENMP styles, but less so than
-with the Intel compilers.  Please also note, that some compilers have
+You can also use the GNU or Clang compilers instead of the Intel
+compilers and they will provide performance improvements over regular
+styles and OPENMP styles, but less so than with the Intel compilers.
+Please also note, that some compilers have
 been found to apply memory alignment constraints incompletely or
 incorrectly and thus can cause segmentation faults in otherwise correct
 code when using features from the INTEL package.
@@ -1853,12 +1853,18 @@ code when using features from the INTEL package.
       With the LLVM based Intel compilers (``icx`` and ``icpx``), CMake
       adds the flags ``-xHost`` and ``-qopt-zmm-usage=high`` and compiles
       the INTEL package sources with ``-fp-model=fast=2``.  The ``-xHost``
-      flag is omitted when a target architecture is already selected in
-      ``CMAKE_CXX_FLAGS``, e.g. when compiling for a different CPU.  The
+      flag is omitted when a target architecture is already selected with
+      ``-x``, ``-ax``, or ``-march=`` in ``CMAKE_CXX_FLAGS`` or in the flags
+      for the build type (e.g. ``CMAKE_CXX_FLAGS_RELWITHDEBINFO``), for
+      example when compiling for a different CPU.  The
       main program of the LAMMPS executable is compiled with ``-ftz``, so
       that very small floating-point numbers (subnormals) are flushed to
       zero, which avoids a large slowdown of some INTEL package styles in
-      mixed precision.
+      mixed precision.  In addition, the INTEL package itself sets the CPU
+      to flush subnormal numbers to zero while it is in use, with any
+      compiler, so that this also applies when LAMMPS is used as a
+      library (see the *ftz* keyword of the :doc:`package <package>`
+      command).
 
    .. tab:: Traditional make
 

@@ -17,7 +17,8 @@ pair_coeff	* * CdTe.bop.table Cd Te
 mass		1 112.4
 mass		2 127.6
 
-comm_modify	cutoff 14.7
+# pair style bop needs a communication cutoff of more than 3x its cutoff
+comm_modify	cutoff 14.71
 
 velocity	all create 1000.0 376847 loop geom
 

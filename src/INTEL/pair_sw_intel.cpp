@@ -317,8 +317,6 @@ void PairSWIntel::eval(const int vflag,
         #if defined(LMP_SIMD_COMPILER)
 #if defined(USE_OMP_SIMD)
         #pragma omp simd reduction(+:fxtmp, fytmp, fztmp, fwtmp, sevdwl)
-#else
-        #pragma simd reduction(+:fxtmp, fytmp, fztmp, fwtmp, sevdwl)
 #endif
         #pragma vector aligned
         #endif
@@ -1027,12 +1025,6 @@ void PairSWIntel::init_style()
     pack_force_const(force_const_single, fix->get_single_buffers());
     fix->get_single_buffers()->need_tag(1);
   }
-
-
-  #if defined(__INTEL_COMPILER)
-  if (__INTEL_COMPILER_BUILD_DATE < 20141023)
-    error->all(FLERR, "Intel compiler versions before 15 Update 1 not supported for sw/intel");
-  #endif
 }
 
 /* ---------------------------------------------------------------------- */

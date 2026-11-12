@@ -4,7 +4,9 @@ name: "Unittest for Linux on ARM64"
 on:
   push:
     branches: [develop]
-
+  pull_request:
+    branches:
+      - develop
   workflow_dispatch:
 
 concurrency:

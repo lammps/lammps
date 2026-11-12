@@ -15,7 +15,7 @@
 
 header:
   schema-version: 2.2.0
-  last-updated: '2026-10-03'
+  last-updated: '2026-11-01'
   last-reviewed: '2026-10-03'
   url: https://raw.githubusercontent.com/lammps/lammps/develop/.github/security-insights.yml
   comment: |
@@ -97,7 +97,11 @@ repository:
     changelog: https://github.com/lammps/lammps/releases
     distribution-points:
       - uri: https://github.com/lammps/lammps/releases
-        comment: Source code and pre-compiled packages for each release
+        comment: |
+          Source code and pre-compiled packages for each release.  Releases
+          published after 30 Sep 2026 also include a list of the SHA-256
+          checksums of all files (SHA256SUMS) and a GPG signature for it
+          (SHA256SUMS.asc).
       - uri: https://download.lammps.org/tars/
         comment: Source code archives with SHA-256 checksums
     attestations:

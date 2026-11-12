@@ -702,7 +702,7 @@ void FixAveGrid::end_of_step()
 
 void FixAveGrid::atom2grid()
 {
-  int i,j,m,n,ix,iy,iz;
+  int i,j,m,ix,iy,iz;
 
   double **count2d = grid_sample->count2d;
   double **vec2d = grid_sample->vec2d;
@@ -1048,7 +1048,7 @@ void FixAveGrid::atom2grid()
           maxvar = atom->nmax;
           memory->create(vresult,maxvar,"ave/grid:vresult");
         }
-        input->variable->compute_atom(n,igroup,vresult,1,0);
+        input->variable->compute_atom(input->variable->find(ids[m]),igroup,vresult,1,0);
         ovector = vresult;
       }
 

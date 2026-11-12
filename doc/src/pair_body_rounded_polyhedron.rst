@@ -22,7 +22,7 @@ Syntax
    cutoff = global separation cutoff for interactions (distance units), see below for definition
    zero or more keywords may be appended
    keyword = *history*
-     *history* = keep track of the tangential deformation at the contacts (no value)
+     *history* = keep track of the tangential deformation of each pair of particles in contact (no value)
 
 Examples
 """"""""
@@ -152,7 +152,13 @@ the faces penetrate each other by more than the contact distance, the
 region fades out, and the individual contacts of the vertices and edges
 take over.  Similarly, the crossing of two edges within 5 degrees of
 parallel has a reduced weight, which vanishes for parallel edges, while
-the contacts at the ends of their overlap keep the remaining weight.
+the contacts at the ends of their overlap keep the remaining weight.  The
+cohesive force of a crossing also grows from zero at the ends of the
+edges to its full value at a fifth of the contact distance from them, so
+that a crossing does not start to attract the particles with a finite
+force when its nearest points reach the end of an edge.  The repulsive
+force, the damping, and the friction of a crossing keep its weight, since
+the crossing may be the only contact that keeps the particles apart.
 These weights also apply to the damping, the friction, the energy, and
 the contact area of the scaling factor :math:`j_a`.  This deviates from
 :ref:`Wang <pair-Wang>`, e.g. two faces of a tetrahedron and a cube in
@@ -242,7 +248,9 @@ step, keeping its magnitude, following Eq. 17 of
 deformation is reset to zero when the particles are no longer in
 contact.  As in :doc:`pair_style gran/hooke/history
 <pair_gran>`, the tangential deformations are stored by an internal
-fix NEIGH_HISTORY.  The damping forces are unchanged.  This extends the model of :ref:`Wang <pair-Wang>` and makes
+fix NEIGH_HISTORY, with a single value of :math:`\xi` per pair of
+particles, not per contact, so that the contacts of a pair are not
+tracked individually.  The damping forces are unchanged.  This extends the model of :ref:`Wang <pair-Wang>` and makes
 static packings of particles with friction possible.  The input script
 *in.heap3d* in the *examples/body* directory demonstrates this: cubes
 and tetrahedra poured onto a floor, with the *history* keyword also used
@@ -363,7 +371,8 @@ for pair interactions.
 Related commands
 """"""""""""""""
 
-:doc:`pair_coeff <pair_coeff>`
+:doc:`pair_coeff <pair_coeff>`, :doc:`pair_style
+body/rounded/polyhedron/granular <pair_body_rounded_polyhedron_granular>`
 
 Default
 """""""

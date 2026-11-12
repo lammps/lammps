@@ -84,7 +84,7 @@ int dlaed2_(integer *k, integer *n, integer *n1, doublereal *d__, doublereal *q,
     }
     imax = idamax_(n, &z__[1], &c__1);
     jmax = idamax_(n, &d__[1], &c__1);
-    eps = dlamch_((char *)"Epsilon", (ftnlen)7);
+    eps = dlamch_((char *)"E", (ftnlen)1);
     d__3 = (d__1 = d__[jmax], abs(d__1)), d__4 = (d__2 = z__[imax], abs(d__2));
     tol = eps * 8. * max(d__3, d__4);
     if (*rho * (d__1 = z__[imax], abs(d__1)) <= tol) {

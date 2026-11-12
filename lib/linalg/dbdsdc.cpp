@@ -88,9 +88,9 @@ int dbdsdc_(char *uplo, char *compq, integer *n, doublereal *d__, doublereal *e,
         *info = -2;
     } else if (*n < 0) {
         *info = -3;
-    } else if (*ldu < 1 || icompq == 2 && *ldu < *n) {
+    } else if (*ldu < 1 || (icompq == 2 && *ldu < *n)) {
         *info = -7;
-    } else if (*ldvt < 1 || icompq == 2 && *ldvt < *n) {
+    } else if (*ldvt < 1 || (icompq == 2 && *ldvt < *n)) {
         *info = -9;
     }
     if (*info != 0) {
@@ -173,7 +173,7 @@ int dbdsdc_(char *uplo, char *compq, integer *n, doublereal *d__, doublereal *e,
     }
     dlascl_((char *)"G", &c__0, &c__0, &orgnrm, &c_b15, n, &c__1, &d__[1], n, &ierr, (ftnlen)1);
     dlascl_((char *)"G", &c__0, &c__0, &orgnrm, &c_b15, &nm1, &c__1, &e[1], &nm1, &ierr, (ftnlen)1);
-    eps = dlamch_((char *)"Epsilon", (ftnlen)7) * .9;
+    eps = dlamch_((char *)"E", (ftnlen)1) * .9;
     mlvl = (integer)(log((doublereal)(*n) / (doublereal)(smlsiz + 1)) / log(2.)) + 1;
     smlszp = smlsiz + 1;
     if (icompq == 1) {

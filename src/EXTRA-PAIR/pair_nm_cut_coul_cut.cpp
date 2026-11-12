@@ -24,6 +24,7 @@
 #include "force.h"
 #include "info.h"
 #include "math_const.h"
+#include "math_special.h"
 #include "memory.h"
 #include "neigh_list.h"
 #include "neighbor.h"
@@ -33,6 +34,7 @@
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
+using MathSpecial::powauto;
 
 /* ---------------------------------------------------------------------- */
 
@@ -131,11 +133,11 @@ void PairNMCutCoulCut::compute(int eflag, int vflag)
 
         if (rsq < cut_ljsq[itype][jtype]) {
           r = sqrt(rsq);
-          rminv = pow(r2inv,mm[itype][jtype]/2.0);
-          rninv = pow(r2inv,nn[itype][jtype]/2.0);
+          rminv = powauto(r,-mm[itype][jtype]);
+          rninv = powauto(r,-nn[itype][jtype]);
           forcenm = e0nm[itype][jtype]*nm[itype][jtype] *
-            (r0n[itype][jtype]/pow(r,nn[itype][jtype]) -
-             r0m[itype][jtype]/pow(r,mm[itype][jtype]));
+            (r0n[itype][jtype]*rninv -
+             r0m[itype][jtype]*rminv);
         } else forcenm = 0.0;
 
         fpair = (factor_coul*forcecoul + factor_lj*forcenm) * r2inv;
@@ -458,7 +460,7 @@ double PairNMCutCoulCut::single(int i, int j, int itype, int jtype,
                                 double factor_coul, double factor_lj,
                                 double &fforce)
 {
-  double r2inv,r,forcecoul,forcenm,phicoul,phinm;
+  double r2inv,r,rminv,rninv,forcecoul,forcenm,phicoul,phinm;
 
   r2inv = 1.0/rsq;
   if (rsq < cut_coulsq[itype][jtype])
@@ -466,9 +468,11 @@ double PairNMCutCoulCut::single(int i, int j, int itype, int jtype,
   else forcecoul = 0.0;
   if (rsq < cut_ljsq[itype][jtype]) {
     r = sqrt(rsq);
+    rninv = powauto(r,-nn[itype][jtype]);
+    rminv = powauto(r,-mm[itype][jtype]);
     forcenm = e0nm[itype][jtype]*nm[itype][jtype] *
-      (r0n[itype][jtype]/pow(r,nn[itype][jtype]) -
-       r0m[itype][jtype]/pow(r,mm[itype][jtype]));
+      (r0n[itype][jtype]*rninv -
+       r0m[itype][jtype]*rminv);
   } else forcenm = 0.0;
   fforce = (factor_coul*forcecoul + factor_lj*forcenm) * r2inv;
 
@@ -479,8 +483,8 @@ double PairNMCutCoulCut::single(int i, int j, int itype, int jtype,
   }
   if (rsq < cut_ljsq[itype][jtype]) {
     phinm = e0nm[itype][jtype] *
-      (mm[itype][jtype]*r0n[itype][jtype]/pow(r,nn[itype][jtype]) -
-       nn[itype][jtype]*r0m[itype][jtype]/pow(r,mm[itype][jtype])) -
+      (mm[itype][jtype]*r0n[itype][jtype]*rninv -
+       nn[itype][jtype]*r0m[itype][jtype]*rminv) -
       offset[itype][jtype];
     eng += factor_lj*phinm;
   }

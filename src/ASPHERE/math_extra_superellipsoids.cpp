@@ -19,8 +19,11 @@
 
 #include "math_const.h"
 #include "math_extra.h"
+#include "math_special.h"
 
 #include <cmath>
+
+using LAMMPS_NS::MathSpecial::powauto;
 
 namespace {
 constexpr double TIKHONOV_SCALE = 1e-14;
@@ -205,16 +208,16 @@ double shape_and_derivatives_local_superquad(const double* xlocal, const double*
   double z_c = fabs(xlocal[2] * c_inv);
   double n1 = block[0];
   double n2 = block[1];
-  double x_a_pow_n2_m2 = pow(x_a, n2 - 2.0);
+  double x_a_pow_n2_m2 = powauto(x_a, n2 - 2.0);
   double x_a_pow_n2_m1 = x_a_pow_n2_m2 * x_a;
-  double y_b_pow_n2_m2 = pow(y_b, n2 - 2.0);
+  double y_b_pow_n2_m2 = powauto(y_b, n2 - 2.0);
   double y_b_pow_n2_m1 = y_b_pow_n2_m2 * y_b;
 
   double nu = (x_a_pow_n2_m1 * x_a) + (y_b_pow_n2_m1 * y_b);
-  double nu_pow_n1_n2_m2 = pow(nu, n1/n2 - 2.0);
+  double nu_pow_n1_n2_m2 = powauto(nu, n1/n2 - 2.0);
   double nu_pow_n1_n2_m1 = nu_pow_n1_n2_m2 * nu;
 
-  double z_c_pow_n1_m2 = pow(z_c, n1 -2.0);
+  double z_c_pow_n1_m2 = powauto(z_c, n1 - 2.0);
   double z_c_pow_n1_m1 = z_c_pow_n1_m2 * z_c;
 
   // Equation (14)
@@ -250,11 +253,11 @@ double shape_and_derivatives_local_n1equaln2(const double* xlocal, const double*
   double x_a = fabs(xlocal[0] * a_inv);
   double y_b = fabs(xlocal[1] * b_inv);
   double z_c = fabs(xlocal[2] * c_inv);
-  double x_a_pow_n_m2 = pow(x_a, n - 2.0);
+  double x_a_pow_n_m2 = powauto(x_a, n - 2.0);
   double x_a_pow_n_m1 = x_a_pow_n_m2 * x_a;
-  double y_b_pow_n_m2 = pow(y_b, n - 2.0);
+  double y_b_pow_n_m2 = powauto(y_b, n - 2.0);
   double y_b_pow_n_m1 = y_b_pow_n_m2 * y_b;
-  double z_c_pow_n_m2 = pow(z_c, n - 2.0);
+  double z_c_pow_n_m2 = powauto(z_c, n - 2.0);
   double z_c_pow_n_m1 = z_c_pow_n_m2 * z_c;
 
   // Equation (14)
@@ -663,16 +666,16 @@ double shape_and_gradient_local_superquad_surfacesearch(const double* xlocal, co
   double z_c = fabs(xlocal[2] * c_inv);
   double n1 = block[0];
   double n2 = block[1];
-  double x_a_pow_n2_m2 = pow(x_a, n2 - 2.0);
+  double x_a_pow_n2_m2 = powauto(x_a, n2 - 2.0);
   double x_a_pow_n2_m1 = x_a_pow_n2_m2 * x_a;
-  double y_b_pow_n2_m2 = pow(y_b, n2 - 2.0);
+  double y_b_pow_n2_m2 = powauto(y_b, n2 - 2.0);
   double y_b_pow_n2_m1 = y_b_pow_n2_m2 * y_b;
 
   double nu = (x_a_pow_n2_m1 * x_a) + (y_b_pow_n2_m1 * y_b);
-  double nu_pow_n1_n2_m2 = pow(nu, n1/n2 - 2.0);
+  double nu_pow_n1_n2_m2 = powauto(nu, n1/n2 - 2.0);
   double nu_pow_n1_n2_m1 = nu_pow_n1_n2_m2 * nu;
 
-  double z_c_pow_n1_m2 = pow(z_c, n1 -2.0);
+  double z_c_pow_n1_m2 = powauto(z_c, n1 - 2.0);
   double z_c_pow_n1_m1 = z_c_pow_n1_m2 * z_c;
 
   // Equation (14)
@@ -706,11 +709,11 @@ double shape_and_gradient_local_n1equaln2_surfacesearch(const double* xlocal, co
   double x_a = fabs(xlocal[0] * a_inv);
   double y_b = fabs(xlocal[1] * b_inv);
   double z_c = fabs(xlocal[2] * c_inv);
-  double x_a_pow_n_m2 = pow(x_a, n - 2.0);
+  double x_a_pow_n_m2 = powauto(x_a, n - 2.0);
   double x_a_pow_n_m1 = x_a_pow_n_m2 * x_a;
-  double y_b_pow_n_m2 = pow(y_b, n - 2.0);
+  double y_b_pow_n_m2 = powauto(y_b, n - 2.0);
   double y_b_pow_n_m1 = y_b_pow_n_m2 * y_b;
-  double z_c_pow_n_m2 = pow(z_c, n - 2.0);
+  double z_c_pow_n_m2 = powauto(z_c, n - 2.0);
   double z_c_pow_n_m1 = z_c_pow_n_m2 * z_c;
 
   // Equation (14)

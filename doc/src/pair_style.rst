@@ -125,6 +125,7 @@ accelerated styles exist.
 * :doc:`body/nparticle <pair_body_nparticle>` - interactions between body particles
 * :doc:`body/rounded/polygon <pair_body_rounded_polygon>` - granular-style 2d polygon potential
 * :doc:`body/rounded/polyhedron <pair_body_rounded_polyhedron>` - granular-style 3d polyhedron potential
+* :doc:`body/rounded/polyhedron/granular <pair_body_rounded_polyhedron_granular>` - 3d polyhedron potential with the contact models of pair style granular
 * :doc:`bondval <pair_bondval>` - Bond-Valence potential
 * :doc:`bondval/vec <pair_bondval>` - Bond-Valence vector potential
 * :doc:`bop <pair_bop>` - BOP potential of Pettifor

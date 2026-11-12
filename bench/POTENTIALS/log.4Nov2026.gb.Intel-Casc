@@ -1,0 +1,121 @@
+LAMMPS (30 Sep 2026 - Development - patch_30Sep2026-846-g8e29ee3d8c5)
+  using 1 OpenMP thread(s) per MPI task
+# Gay-Berne benchmark
+# biaxial ellipsoid mesogens in isotropic phase
+# shape: 2 1.5 1
+# cutoff 4.0 with skin 0.8
+# NPT, T=2.4, P=8.0
+
+units	      lj
+atom_style    ellipsoid
+
+# creation
+#lattice	      sc 0.22
+#region	      box block 0 32 0 32 0 32
+#create_box    1 box
+#create_atoms  1 box
+#set	      group all quat/random 982381
+
+read_data     data.gb
+Reading data file ...
+  orthogonal box = (2.1957493 2.1957493 2.1957493) to (50.812373 50.812373 50.812373)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  32768 atoms
+  reading velocities ...
+  32768 velocities
+  32768 ellipsoids
+  read_data CPU = 0.551 seconds
+
+compute	      rot all temp/asphere
+group	      spheroid type 1
+32768 atoms in group spheroid
+variable      dof equal count(spheroid)+3
+compute_modify rot extra/dof ${dof}
+compute_modify rot extra/dof 32771
+
+velocity      all create 2.4 41787 loop geom
+
+pair_style    gayberne 1.0 3.0 1.0 4.0
+pair_coeff    1 1 1.0 1.0 1.0 0.5 0.2 1.0 0.5 0.2
+
+neighbor      0.8 bin
+
+timestep      0.002
+thermo	      20
+
+# equilibration
+#fix	      1 all npt/asphere temp 2.4 2.4 0.1 iso 5.0 8.0 0.1
+#compute_modify 1_temp extra/dof ${dof}
+#run	      100
+#write_restart tmp.restart
+
+fix	      1 all npt/asphere temp 2.4 2.4 0.2 iso 8.0 8.0 0.2
+run	      100
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+
+- pair gayberne command: https://doi.org/10.1063/1.3058435
+
+@Article{Brown09,
+ author =  {W. M. Brown and M. K. Petersen and S. J. Plimpton and G. S. Grest},
+ title =   {Liquid Crystal Nanodroplets in Solution},
+ journal = {J.~Chem.\ Phys.},
+ year =    2009,
+ volume =  130,
+ number =  4,
+ pages =   {044901}
+}
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 4.8
+  ghost atom cutoff = 4.8
+  binsize = 2.4, bins = 21 21 21
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair gayberne, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 28.98 | 28.98 | 28.98 Mbytes
+   Step          Temp          E_pair         E_mol          TotEng         Press          Volume    
+         0   2.4            0.50438568     0              4.1042758      6.7818168      114909.09    
+        20   2.7357797      0.26044978     0              4.363994       6.8299173      111715.2     
+        40   2.9201268      0.2257049      0              4.6057615      7.0767796      109473.26    
+        60   2.9820022      0.19733756     0              4.6702044      7.1507023      108393.79    
+        80   3.014852       0.15114765     0              4.6732876      7.1699472      107672.25    
+       100   3.0206698      0.105676       0              4.6365424      7.1543436      107184.84    
+Loop time of 74.7318 on 1 procs for 100 steps with 32768 atoms
+
+Performance: 231.227 tau/day, 1.338 timesteps/s, 43.847 katom-step/s
+99.8% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 73.584     | 73.584     | 73.584     |   0.0 | 98.46
+Neigh   | 0.41375    | 0.41375    | 0.41375    |   0.0 |  0.55
+Comm    | 0.073722   | 0.073722   | 0.073722   |   0.0 |  0.10
+Output  | 0.0005424  | 0.0005424  | 0.0005424  |   0.0 |  0.00
+Modify  | 0.63341    | 0.63341    | 0.63341    |   0.0 |  0.85
+Other   |            | 0.02685    |            |       |  0.04
+
+Nlocal:          32768 ave       32768 max       32768 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:          25695 ave       25695 max       25695 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    2.30298e+06 ave 2.30298e+06 max 2.30298e+06 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 2302981
+Ave neighs/atom = 70.281403
+Neighbor list builds = 6
+Dangerous builds = 0
+Total wall time: 0:01:16

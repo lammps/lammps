@@ -816,9 +816,10 @@ are:
    * - unstable
      - The test exhibits numerically unstable behavior on some
        platforms, e.g. ARM64; Until a proper correction is found, tests
-       can be skipped with ``ctest -LE unstable``.  Please check the
-       causes discussed in :ref:`unittest_portable` before adding
-       this tag.
+       can be skipped with ``ctest -LE unstable``.  With the Intel
+       compilers, some of these tests fail, so they should be skipped
+       or their failures can be ignored.  Please check the causes
+       discussed in :ref:`unittest_portable` before adding this tag.
    * - generated
      - Automatically added whenever reference data is generated or
        regenerated; it marks data that has not been reviewed and

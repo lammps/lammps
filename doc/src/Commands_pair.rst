@@ -11,7 +11,7 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    :columns: 3
 
    * :doc:`none <pair_none>`
-   * :doc:`zero <pair_zero>`
+   * :doc:`zero (i) <pair_zero>`
    * :doc:`zero/coul <pair_zero>`
    * :doc:`hybrid (ko) <pair_hybrid>`
    * :doc:`hybrid/molecular (o) <pair_hybrid>`
@@ -39,6 +39,7 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`body/nparticle (o) <pair_body_nparticle>`
    * :doc:`body/rounded/polygon (o) <pair_body_rounded_polygon>`
    * :doc:`body/rounded/polyhedron (o) <pair_body_rounded_polyhedron>`
+   * :doc:`body/rounded/polyhedron/granular (o) <pair_body_rounded_polyhedron_granular>`
    * :doc:`bondval (ko) <pair_bondval>`
    * :doc:`bondval/vec (ko) <pair_bondval>`
    * :doc:`bop <pair_bop>`

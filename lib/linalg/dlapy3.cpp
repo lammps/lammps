@@ -9,7 +9,7 @@ doublereal dlapy3_(doublereal *x, doublereal *y, doublereal *z__)
     doublereal w, xabs, yabs, zabs;
     extern doublereal dlamch_(char *, ftnlen);
     doublereal hugeval;
-    hugeval = dlamch_((char *)"Overflow", (ftnlen)8);
+    hugeval = dlamch_((char *)"O", (ftnlen)1);
     xabs = abs(*x);
     yabs = abs(*y);
     zabs = abs(*z__);

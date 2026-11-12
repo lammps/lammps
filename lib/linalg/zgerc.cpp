@@ -32,7 +32,7 @@ int zgerc_(integer *m, integer *n, doublecomplex *alpha, doublecomplex *x, integ
         xerbla_((char *)"ZGERC ", &info, (ftnlen)6);
         return 0;
     }
-    if (*m == 0 || *n == 0 || alpha->r == 0. && alpha->i == 0.) {
+    if (*m == 0 || *n == 0 || (alpha->r == 0. && alpha->i == 0.)) {
         return 0;
     }
     if (*incy > 0) {

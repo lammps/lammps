@@ -27,7 +27,7 @@ int dlasq5_(integer *i0, integer *n0, doublereal *z__, integer *pp, doublereal *
         *dmin1 = -z__[j4];
         if (*ieee) {
             if (*pp == 0) {
-                i__1 = *n0 - 3 << 2;
+                i__1 = (*n0 - 3) << 2;
                 for (j4 = *i0 << 2; j4 <= i__1; j4 += 4) {
                     z__[j4 - 2] = d__ + z__[j4 - 1];
                     temp = z__[j4 + 1] / z__[j4 - 2];
@@ -38,7 +38,7 @@ int dlasq5_(integer *i0, integer *n0, doublereal *z__, integer *pp, doublereal *
                     emin = min(d__1, emin);
                 }
             } else {
-                i__1 = *n0 - 3 << 2;
+                i__1 = (*n0 - 3) << 2;
                 for (j4 = *i0 << 2; j4 <= i__1; j4 += 4) {
                     z__[j4 - 3] = d__ + z__[j4];
                     temp = z__[j4 + 2] / z__[j4 - 3];
@@ -51,7 +51,7 @@ int dlasq5_(integer *i0, integer *n0, doublereal *z__, integer *pp, doublereal *
             }
             *dnm2 = d__;
             *dmin2 = *dmin__;
-            j4 = (*n0 - 2 << 2) - *pp;
+            j4 = ((*n0 - 2) << 2) - *pp;
             j4p2 = j4 + (*pp << 1) - 1;
             z__[j4 - 2] = *dnm2 + z__[j4p2];
             z__[j4] = z__[j4p2 + 2] * (z__[j4p2] / z__[j4 - 2]);
@@ -66,7 +66,7 @@ int dlasq5_(integer *i0, integer *n0, doublereal *z__, integer *pp, doublereal *
             *dmin__ = min(*dmin__, *dn);
         } else {
             if (*pp == 0) {
-                i__1 = *n0 - 3 << 2;
+                i__1 = (*n0 - 3) << 2;
                 for (j4 = *i0 << 2; j4 <= i__1; j4 += 4) {
                     z__[j4 - 2] = d__ + z__[j4 - 1];
                     if (d__ < 0.) {
@@ -80,7 +80,7 @@ int dlasq5_(integer *i0, integer *n0, doublereal *z__, integer *pp, doublereal *
                     emin = min(d__1, d__2);
                 }
             } else {
-                i__1 = *n0 - 3 << 2;
+                i__1 = (*n0 - 3) << 2;
                 for (j4 = *i0 << 2; j4 <= i__1; j4 += 4) {
                     z__[j4 - 3] = d__ + z__[j4];
                     if (d__ < 0.) {
@@ -96,7 +96,7 @@ int dlasq5_(integer *i0, integer *n0, doublereal *z__, integer *pp, doublereal *
             }
             *dnm2 = d__;
             *dmin2 = *dmin__;
-            j4 = (*n0 - 2 << 2) - *pp;
+            j4 = ((*n0 - 2) << 2) - *pp;
             j4p2 = j4 + (*pp << 1) - 1;
             z__[j4 - 2] = *dnm2 + z__[j4p2];
             if (*dnm2 < 0.) {
@@ -126,7 +126,7 @@ int dlasq5_(integer *i0, integer *n0, doublereal *z__, integer *pp, doublereal *
         *dmin1 = -z__[j4];
         if (*ieee) {
             if (*pp == 0) {
-                i__1 = *n0 - 3 << 2;
+                i__1 = (*n0 - 3) << 2;
                 for (j4 = *i0 << 2; j4 <= i__1; j4 += 4) {
                     z__[j4 - 2] = d__ + z__[j4 - 1];
                     temp = z__[j4 + 1] / z__[j4 - 2];
@@ -140,7 +140,7 @@ int dlasq5_(integer *i0, integer *n0, doublereal *z__, integer *pp, doublereal *
                     emin = min(d__1, emin);
                 }
             } else {
-                i__1 = *n0 - 3 << 2;
+                i__1 = (*n0 - 3) << 2;
                 for (j4 = *i0 << 2; j4 <= i__1; j4 += 4) {
                     z__[j4 - 3] = d__ + z__[j4];
                     temp = z__[j4 + 2] / z__[j4 - 3];
@@ -156,7 +156,7 @@ int dlasq5_(integer *i0, integer *n0, doublereal *z__, integer *pp, doublereal *
             }
             *dnm2 = d__;
             *dmin2 = *dmin__;
-            j4 = (*n0 - 2 << 2) - *pp;
+            j4 = ((*n0 - 2) << 2) - *pp;
             j4p2 = j4 + (*pp << 1) - 1;
             z__[j4 - 2] = *dnm2 + z__[j4p2];
             z__[j4] = z__[j4p2 + 2] * (z__[j4p2] / z__[j4 - 2]);
@@ -171,7 +171,7 @@ int dlasq5_(integer *i0, integer *n0, doublereal *z__, integer *pp, doublereal *
             *dmin__ = min(*dmin__, *dn);
         } else {
             if (*pp == 0) {
-                i__1 = *n0 - 3 << 2;
+                i__1 = (*n0 - 3) << 2;
                 for (j4 = *i0 << 2; j4 <= i__1; j4 += 4) {
                     z__[j4 - 2] = d__ + z__[j4 - 1];
                     if (d__ < 0.) {
@@ -188,7 +188,7 @@ int dlasq5_(integer *i0, integer *n0, doublereal *z__, integer *pp, doublereal *
                     emin = min(d__1, d__2);
                 }
             } else {
-                i__1 = *n0 - 3 << 2;
+                i__1 = (*n0 - 3) << 2;
                 for (j4 = *i0 << 2; j4 <= i__1; j4 += 4) {
                     z__[j4 - 3] = d__ + z__[j4];
                     if (d__ < 0.) {
@@ -207,7 +207,7 @@ int dlasq5_(integer *i0, integer *n0, doublereal *z__, integer *pp, doublereal *
             }
             *dnm2 = d__;
             *dmin2 = *dmin__;
-            j4 = (*n0 - 2 << 2) - *pp;
+            j4 = ((*n0 - 2) << 2) - *pp;
             j4p2 = j4 + (*pp << 1) - 1;
             z__[j4 - 2] = *dnm2 + z__[j4p2];
             if (*dnm2 < 0.) {

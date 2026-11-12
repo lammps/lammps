@@ -102,9 +102,9 @@ int dlaqr2_(logical *wantt, logical *wantz, integer *n, integer *ktop, integer *
     if (*nw < 1) {
         return 0;
     }
-    safmin = dlamch_((char *)"SAFE MINIMUM", (ftnlen)12);
+    safmin = dlamch_((char *)"S", (ftnlen)1);
     safmax = 1. / safmin;
-    ulp = dlamch_((char *)"PRECISION", (ftnlen)9);
+    ulp = dlamch_((char *)"P", (ftnlen)1);
     smlnum = safmin * ((doublereal)(*n) / ulp);
     i__1 = *nw, i__2 = *kbot - *ktop + 1;
     jw = min(i__1, i__2);

@@ -30,6 +30,7 @@
 #include "domain.h"
 #include "error.h"
 #include "info.h"
+#include "math_special.h"
 #include "memory.h"
 #include "neigh_list.h"
 #include "neighbor.h"
@@ -45,6 +46,7 @@ using namespace SMD_Kernels;
 using namespace std;
 using namespace LAMMPS_NS;
 using namespace SMD_Math;
+using MathSpecial::powint;
 
 #include <Eigen/Eigen>
 using namespace Eigen;
@@ -520,7 +522,7 @@ void PairULSPH::compute(int eflag, int vflag) {
                                         if (p > 0.0) { // we are in tension
                                                 r_ref = contact_radius[i] + contact_radius[j];
                                                 weight = Kernel_Cubic_Spline(r, h) / Kernel_Cubic_Spline(r_ref, h);
-                                                weight = pow(weight, 4.0);
+                                                weight = powint(weight, 4);
                                                 S -= artificial_pressure[itype][jtype] * weight * p * eye;
                                         }
                                 }
@@ -532,7 +534,7 @@ void PairULSPH::compute(int eflag, int vflag) {
                                 if (artificial_stress[itype][jtype] > 0.0) {
                                         ini_dist = contact_radius[i] + contact_radius[j];
                                         weight = Kernel_Cubic_Spline(r, h) / Kernel_Cubic_Spline(ini_dist, h);
-                                        weight = pow(weight, 4.0);
+                                        weight = powint(weight, 4);
 
                                         es.compute(S);
                                         D = es.eigenvalues().asDiagonal();
@@ -901,13 +903,21 @@ void PairULSPH::coeff(int narg, char **arg) {
 
   if (!allocated) allocate();
 
+  itype = utils::inumeric(FLERR, arg[0],false,lmp);
+  jtype = utils::inumeric(FLERR, arg[1],false,lmp);
+  if ((itype < 1) || (itype > atom->ntypes))
+    error->all(FLERR, Error::ARGZERO,
+               "Invalid atom type {} in pair_coeff command for pair style smd/ulsph", itype);
+  if ((jtype < 1) || (jtype > atom->ntypes))
+    error->all(FLERR, 1,
+               "Invalid atom type {} in pair_coeff command for pair style smd/ulsph", jtype);
+
   /*
    * if parameters are give in i,i form, i.e., no a cross interaction, set material parameters
    */
 
-  if (utils::inumeric(FLERR, arg[0], false, lmp) == utils::inumeric(FLERR, arg[1], false, lmp)) {
+  if (itype == jtype) {
 
-    itype = utils::inumeric(FLERR, arg[0],false,lmp);
     eos[itype] = viscosity[itype] = strength[itype] = NONE;
 
     if (comm->me == 0)
@@ -1238,9 +1248,6 @@ void PairULSPH::coeff(int narg, char **arg) {
     /*
      * we are reading a cross-interaction line for particle types i, j
      */
-
-    itype = utils::inumeric(FLERR, arg[0],false,lmp);
-    jtype = utils::inumeric(FLERR, arg[1],false,lmp);
 
     if (strcmp(arg[2], "*CROSS") != 0)
       error->all(FLERR, "ulsph cross interaction between particle type {} and {} requested, however, *CROSS keyword is missing",

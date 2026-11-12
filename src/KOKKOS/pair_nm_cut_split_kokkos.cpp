@@ -19,6 +19,7 @@
 #include "error.h"
 #include "force.h"
 #include "kokkos.h"
+#include "math_special_kokkos.h"
 #include "memory_kokkos.h"
 #include "neigh_request.h"
 #include "neighbor.h"
@@ -152,7 +153,7 @@ compute_fpair(const KK_FLOAT &rsq, const int &, const int &, const int &itype, c
     const KK_FLOAT r0n = (STACKPARAMS?m_params[itype][jtype].r0n:params(itype,jtype).r0n);
     const KK_FLOAT r0m = (STACKPARAMS?m_params[itype][jtype].r0m:params(itype,jtype).r0m);
 
-    forcenm = e0nm*nm*(r0n/Kokkos::pow(r,nn) - r0m/Kokkos::pow(r,mm));
+    forcenm = e0nm*nm*(r0n*MathSpecialKokkos::powauto(r,-nn) - r0m*MathSpecialKokkos::powauto(r,-mm));
 
   } else {
 
@@ -186,8 +187,9 @@ compute_evdwl(const KK_FLOAT &rsq, const int &, const int &, const int &itype, c
     const KK_FLOAT r0m = (STACKPARAMS?m_params[itype][jtype].r0m:params(itype,jtype).r0m);
     const KK_FLOAT offset = (STACKPARAMS?m_params[itype][jtype].offset:params(itype,jtype).offset);
 
-    const KK_FLOAT rminv = Kokkos::pow(r2inv,mm/static_cast<KK_FLOAT>(2.0));
-    const KK_FLOAT rninv = Kokkos::pow(r2inv,nn/static_cast<KK_FLOAT>(2.0));
+    const KK_FLOAT r = Kokkos::sqrt(rsq);
+    const KK_FLOAT rminv = MathSpecialKokkos::powauto(r,-mm);
+    const KK_FLOAT rninv = MathSpecialKokkos::powauto(r,-nn);
 
     return e0nm*(mm*r0n*rninv - nn*r0m*rminv) - offset;
   }

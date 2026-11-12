@@ -34,8 +34,11 @@ listed at the end; build and test commands live in `.github/copilot-instructions
 
 4. **Use `Kokkos::` math functions in device kernels** (`Kokkos::sqrt`, `Kokkos::exp`,
    `Kokkos::pow`, `Kokkos::log`, ...), never `std::` -- `std::pow` and friends fail to
-   compile for GPU targets. `powint()` from `math_special.h` is host-only; replace it with
-   explicit repeated multiplication in device code.
+   compile for GPU targets. `powint()` and the other functions from `math_special.h` are
+   host-only; in device code use their device versions from `math_special_kokkos.h`
+   (`MathSpecialKokkos::square()`, `cube()`, `powint()`, `powauto()`, `expmsq()`, ...)
+   or explicit repeated multiplication.  `powauto()` is for exponents that are only known
+   at run time but are integers for most parameter sets.
 
 5. **Name new style files after the CPU base style file** (`fix_drag.h` ->
    `src/KOKKOS/fix_drag_kokkos.{h,cpp}`): CMake's `RegisterStylesExt()` compiles

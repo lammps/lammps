@@ -59,9 +59,9 @@ int dlahqr_(logical *wantt, logical *wantz, integer *n, integer *ilo, integer *i
     }
     nh = *ihi - *ilo + 1;
     nz = *ihiz - *iloz + 1;
-    safmin = dlamch_((char *)"SAFE MINIMUM", (ftnlen)12);
+    safmin = dlamch_((char *)"S", (ftnlen)1);
     safmax = 1. / safmin;
-    ulp = dlamch_((char *)"PRECISION", (ftnlen)9);
+    ulp = dlamch_((char *)"P", (ftnlen)1);
     smlnum = safmin * ((doublereal)nh / ulp);
     if (*wantt) {
         i1 = 1;

@@ -57,7 +57,7 @@ int zunm2r_(char *side, char *trans, integer *m, integer *n, integer *k, doublec
     if (*m == 0 || *n == 0 || *k == 0) {
         return 0;
     }
-    if (left && !notran || !left && notran) {
+    if ((left && !notran) || (!left && notran)) {
         i1 = 1;
         i2 = *k;
         i3 = 1;

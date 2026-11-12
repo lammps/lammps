@@ -26,12 +26,14 @@
 #include "math_const.h"
 #include "memory.h"
 #include "error.h"
+#include "math_special.h"
 
 #include <cmath>
 #include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
+using MathSpecial::powauto;
 
 /* ---------------------------------------------------------------------- */
 
@@ -116,12 +118,12 @@ void PairNMCut::compute(int eflag, int vflag)
         r2inv = 1.0/rsq;
         r = sqrt(rsq);
 
-        rminv = pow(r2inv,mm[itype][jtype]/2.0);
-        rninv = pow(r2inv,nn[itype][jtype]/2.0);
+        rminv = powauto(r,-mm[itype][jtype]);
+        rninv = powauto(r,-nn[itype][jtype]);
 
         forcenm = e0nm[itype][jtype]*nm[itype][jtype] *
-          (r0n[itype][jtype]/pow(r,nn[itype][jtype]) -
-           r0m[itype][jtype]/pow(r,mm[itype][jtype]));
+          (r0n[itype][jtype]*rninv -
+           r0m[itype][jtype]*rminv);
         fpair = factor_lj*forcenm*r2inv;
 
         f[i][0] += delx*fpair;
@@ -404,19 +406,21 @@ double PairNMCut::single(int /*i*/, int /*j*/, int itype, int jtype,
                       double rsq, double /*factor_coul*/, double factor_lj,
                       double &fforce)
 {
-  double r2inv,r,forcenm,phinm;
+  double r2inv,r,rminv,rninv,forcenm,phinm;
 
   r2inv = 1.0/rsq;
   r = sqrt(rsq);
+  rninv = powauto(r,-nn[itype][jtype]);
+  rminv = powauto(r,-mm[itype][jtype]);
 
   forcenm = e0nm[itype][jtype]*nm[itype][jtype] *
-    (r0n[itype][jtype]/pow(r,nn[itype][jtype]) -
-     r0m[itype][jtype]/pow(r,mm[itype][jtype]));
+    (r0n[itype][jtype]*rninv -
+     r0m[itype][jtype]*rminv);
   fforce = factor_lj*forcenm*r2inv;
 
   phinm = e0nm[itype][jtype] *
-    (mm[itype][jtype] * r0n[itype][jtype]/pow(r,nn[itype][jtype]) -
-     nn[itype][jtype]*r0m[itype][jtype] /pow(r,mm[itype][jtype])) -
+    (mm[itype][jtype] * r0n[itype][jtype]*rninv -
+     nn[itype][jtype]*r0m[itype][jtype]*rminv) -
     offset[itype][jtype];
   return factor_lj*phinm;
 }

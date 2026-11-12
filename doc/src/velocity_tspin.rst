@@ -36,7 +36,7 @@ Examples
 Description
 """""""""""
 
-.. versionadded:: TBD
+.. versionadded:: 11Nov2026
 
 Initialize auxiliary spin velocities for TSPIN at the specified
 temperature.  Unlike the ordinary :doc:`velocity <velocity>` command,

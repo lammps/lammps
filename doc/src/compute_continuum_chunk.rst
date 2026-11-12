@@ -61,7 +61,7 @@ Examples
 Description
 """""""""""
 
-.. versionadded:: TBD
+.. versionadded:: 11Nov2026
 
 Define a computation that calculates coarse-grained continuum fields for
 chunks of atoms on demand using the construction in

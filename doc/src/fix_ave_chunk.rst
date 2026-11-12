@@ -474,7 +474,7 @@ the strings that will be printed as the first three lines of the output
 file, assuming the *file* keyword was used.  LAMMPS uses default
 values for each of these, so they do not need to be specified.
 
-.. versionchanged:: TBD
+.. versionchanged:: 11Nov2026
 
 By default, these header lines are as follows:
 

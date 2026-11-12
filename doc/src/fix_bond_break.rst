@@ -171,7 +171,7 @@ This fix is part of the MC package.  It is only enabled if LAMMPS was
 built with that package.  See the :doc:`Build package <Build_package>`
 doc page for more info.
 
-.. versionchanged:: TBD
+.. versionchanged:: 11Nov2026
 
 When this fix removes impropers that contain a broken bond, it assumes that the first atom of an improper
 is its central atom, bonded to the other three atoms.  Thus it cannot

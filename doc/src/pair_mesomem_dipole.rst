@@ -31,7 +31,7 @@ Example input scripts available: examples/PACKAGES/mesomem, https://gitlab.tudel
 Description
 """""""""""
 
-.. versionadded:: TBD
+.. versionadded:: 11Nov2026
 
 The *mesomem/dipole* style computes the MesoMem interaction
 :ref:`(Sillano) <Sillano>` for a solvent-free, one-particle-thick,

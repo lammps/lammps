@@ -79,14 +79,14 @@ electronic charge.
 The optional *maxiter* keyword allows changing the max number
 of iterations in the linear solver. The default value is 200.
 
-.. versionchanged:: TBD
+.. versionchanged:: 11Nov2026
 
 The optional *nowarn* keyword silences the warning message printed
 when the maximum number of iterations was reached.  This can be
 useful for simulations where the iteration limit is set
 intentionally low.
 
-.. versionchanged:: TBD
+.. versionchanged:: 11Nov2026
 
 If the fix group does not contain all atoms, only the charges of the
 atoms in the fix group are equilibrated.  The charges of all other atoms

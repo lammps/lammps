@@ -119,7 +119,7 @@ With the default values of the parameters, this corresponds to about 10 KB.
 For the meaning of the additional optional keywords, see the
 :doc:`fix ave/correlate <fix_ave_correlate>` doc page.
 
-.. versionchanged:: TBD
+.. versionchanged:: 11Nov2026
 
 By default, the header lines of the output file are as follows:
 

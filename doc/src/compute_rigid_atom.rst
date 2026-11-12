@@ -46,7 +46,7 @@ Examples
 Description
 """""""""""
 
-.. versionadded:: TBD
+.. versionadded:: 11Nov2026
 
 Define a calculation that stores one or more rigid-body values with
 each atom in rigid bodies defined by the :doc:`fix rigid/small

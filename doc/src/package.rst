@@ -420,7 +420,7 @@ pre-computed table to efficiently spread the charge to the PPPM grid.
 This feature is enabled by default but can be turned off using the
 keyword with the argument *no*.
 
-.. versionadded:: TBD
+.. versionadded:: 11Nov2026
 
 The *ftz* keyword determines whether very small floating-point numbers
 (subnormal numbers) are flushed to zero.  On most CPUs, calculations
@@ -848,7 +848,7 @@ The *omp* style of this command can only be invoked if LAMMPS was built
 with the OPENMP package.  See the :doc:`Build package <Build_package>`
 doc page for more info.
 
-.. versionchanged:: TBD
+.. versionchanged:: 11Nov2026
 
 The *omp* style of this command cannot be used again while styles with
 OpenMP support (e.g. a pair style with the */omp* suffix) are defined,

@@ -48,7 +48,7 @@ Examples
 Description
 """""""""""
 
-.. versionadded:: TBD
+.. versionadded:: 11Nov2026
 
 These fixes extend :doc:`fix nvt, npt and nph <fix_nh>` to inertial
 spin dynamics.  As described for :doc:`fix nve/tspin <fix_nve_tspin>`,

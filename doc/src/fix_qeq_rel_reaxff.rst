@@ -125,7 +125,7 @@ example *gfile* for a system with two atom types is
     1  0.2240  # O
     2  0.5434  # H
 
-.. versionchanged:: TBD
+.. versionchanged:: 11Nov2026
 
 Overlap integrals smaller than :math:`10^{-10}` are neglected.  This
 corresponds to a maximum distance that is determined by the smallest
@@ -139,7 +139,7 @@ the :doc:`comm_modify cutoff <comm_modify>` command.
 The optional *scale* keyword sets the value of :math:`\beta` in the
 equation for :math:`\chi_{\mathrm{r}i}`. The default value is 1.0.
 
-.. versionadded:: TBD
+.. versionadded:: 11Nov2026
 
 The optional *dual* keyword allows to perform the optimization of the S
 and T matrices in parallel.  This is only supported for the
@@ -154,7 +154,7 @@ comparing serial and parallel results where having the same fixed number
 of iterations is desired, which can be achieved by using a very small
 tolerance and setting *maxiter* to the desired number of iterations.
 
-.. versionadded:: TBD
+.. versionadded:: 11Nov2026
 
 The optional *matfree* keyword replaces the explicit construction of
 the H matrix with a matrix-free approach, where the matrix elements are
@@ -162,14 +162,14 @@ computed again each time the matrix is applied.  This reduces the memory
 requirements at the cost of performance.  This is only supported for
 the *qeq/rel/reaxff/kk* style.
 
-.. versionadded:: TBD
+.. versionadded:: 11Nov2026
 
 The optional *xlmd*, *xlcg*, *xldamp*, and *xlkappa* keywords enable
 and control the extended-Lagrangian propagation of the charges, which
 reduces the cost of the charge equilibration several-fold.  They work
 the same way as for :doc:`fix qeq/reaxff <fix_qeq_reaxff>`.
 
-.. versionchanged:: TBD
+.. versionchanged:: 11Nov2026
 
 If the fix group does not contain all atoms, only the charges of the
 atoms in the fix group are equilibrated.  The charges of all other atoms

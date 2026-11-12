@@ -670,7 +670,7 @@ algorithms with lower algorithmic complexity.
 Distribute unit tests across multiple NVIDIA GPUs
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. versionadded:: TBD
+.. versionadded:: 11Nov2026
 
 When LAMMPS is compiled with the GPU package or the KOKKOS package with
 GPU support, running tests in parallel with ``ctest -jN`` will run *all*

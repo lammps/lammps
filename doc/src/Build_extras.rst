@@ -207,7 +207,7 @@ requires the following settings:
       default system locations.  You must specify ``JPG_LIB`` with a
       list of graphics libraries to include in the link.
 
-.. versionchanged:: TBD
+.. versionchanged:: 11Nov2026
 
 The :doc:`dump movie <dump_image>` command outputs movie files in a
 variety of movie formats by sending images through a pipe to the
@@ -309,7 +309,7 @@ back ends.  The back end specific ``HIP_ARCH`` (for ``GPU_API=hip``)
 variable is still accepted for backward compatibility, but its use is
 deprecated and prints a warning.
 
-.. versionchanged:: TBD
+.. versionchanged:: 11Nov2026
 
 For ``GPU_API=cuda`` or ``GPU_API=hip`` with ``HIP_PLATFORM=nvidia``, the
 supported ``GPU_ARCH`` setting for different GPU hardware are as follows:
@@ -335,7 +335,7 @@ When compiling for OpenCL, OpenCL version 1.2 or later is required and
 the GPU must be supported by the GPU driver and OpenCL runtime bundled
 with the driver.
 
-.. versionchanged:: TBD
+.. versionchanged:: 11Nov2026
 
 Building with ``GPU_API=cuda`` uses the native CUDA support in CMake
 (available since version 3.27) and the host compiler used by ``nvcc`` is
@@ -380,7 +380,7 @@ devices for OpenCL (and LAMMPS would require two MPI processes to use both
 sockets with the GPU library - each with its own device ID as output by
 ocl_get_devices).  OpenCL version 1.2 or later is required.
 
-.. versionchanged:: TBD
+.. versionchanged:: 11Nov2026
 
 Building with ``GPU_API=hip`` requires ROCm version 6.0 or later
 (tested with versions 6.4 and 7.1).  For AMD GPUs (``HIP_PLATFORM=amd``)

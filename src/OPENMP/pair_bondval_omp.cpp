@@ -13,6 +13,7 @@
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
+#include "math_special.h"
 #include "memory.h"
 #include "neigh_list.h"
 #include "suffix.h"
@@ -22,6 +23,7 @@
 
 #include "omp_compat.h"
 using namespace LAMMPS_NS;
+using MathSpecial::powauto;
 
 /* ---------------------------------------------------------------------- */
 
@@ -134,8 +136,8 @@ void PairBondValOMP::eval(int iifrom, int iito, ThrData *const thr)
       if (alpha[itype][jtype] != 0.0) {
         if (rsq < cutsq[itype][jtype]) {
           const double r = sqrt(rsq);
-          s0_t[i] += pow(r0[itype][jtype] / r, alpha[itype][jtype]);
-          if (NEWTON_PAIR || j < nlocal) s0_t[j] += pow(r0[jtype][itype] / r, alpha[jtype][itype]);
+          s0_t[i] += powauto(r0[itype][jtype] / r, alpha[itype][jtype]);
+          if (NEWTON_PAIR || j < nlocal) s0_t[j] += powauto(r0[jtype][itype] / r, alpha[jtype][itype]);
         }
       }
     }
@@ -223,7 +225,7 @@ void PairBondValOMP::eval(int iifrom, int iito, ThrData *const thr)
           const double r = sqrt(rsq);
           const double recip = 1.0 / r;
           const double Aij =
-              alpha[itype][jtype] * pow(r0[itype][jtype] * recip, alpha[itype][jtype]) * recip;
+              alpha[itype][jtype] * powauto(r0[itype][jtype] * recip, alpha[itype][jtype]) * recip;
           const double psip = (fp[i] + fp[j]) * Aij;
           const double fpair = psip * recip;
 

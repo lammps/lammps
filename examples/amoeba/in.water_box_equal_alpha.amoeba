@@ -1,11 +1,19 @@
 # water box with AMOEBA: equal Ewald coefficients for the permanent
-# multipoles and the induced dipoles, and the ASPC induced dipole predictor
+# multipoles and the induced dipoles, with each of the three induced
+# dipole predictors in turn
 #
-# amoeba_water_box_equal.key sets pewald-alpha = ewald-alpha = 0.4 and
-# polar-predict aspc; otherwise it is the same as amoeba_water_box.key.
+# amoeba_water_box_<predictor>.key sets pewald-alpha = ewald-alpha = 0.4
+# and polar-predict <predictor>; otherwise it is the same as
+# amoeba_water_box.key.  Each run starts from the same data file, so the
+# three runs differ only by the predictor, which changes the results by
+# less than the convergence of the induced dipoles (polar-eps).
 # Step 0 reproduces in.water_box.amoeba (ewald-alpha 0.4, pewald-alpha 0.5)
 # up to the Ewald convergence of the two settings.
 
+variable        predictor index gear aspc lsqr
+label           loop
+
+clear
 units           real
 boundary        p p p
 
@@ -27,7 +35,7 @@ read_data       data.water_box.amoeba fix amtype NULL "Tinker Types"
 # force field
 
 pair_style      amoeba
-pair_coeff      * * amoeba_water.prm amoeba_water_box_equal.key
+pair_coeff      * * amoeba_water.prm amoeba_water_box_${predictor}.key
 
 special_bonds   lj/coul 0.5 0.5 0.5 one/five yes
 
@@ -43,4 +51,8 @@ thermo_style    custom step temp epair ebond eangle edihed eimp &
 fix             1 all nve
 
 thermo          10
-run             100
+print           "=== predictor ${predictor}"
+run             50
+
+next            predictor
+jump            SELF loop

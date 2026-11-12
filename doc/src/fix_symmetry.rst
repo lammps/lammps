@@ -34,7 +34,7 @@ Example input scripts available: examples/PACKAGES/symmetry
 Description
 """""""""""
 
-.. versionadded:: 11Nov2026
+.. versionadded:: 13Nov2026
 
 This fix keeps the atoms in its group exactly symmetric under the
 operations of a crystallographic space group :ref:`(Wyckoff)

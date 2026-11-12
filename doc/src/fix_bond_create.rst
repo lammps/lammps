@@ -302,7 +302,7 @@ This fix is part of the MC package.  It is only enabled if LAMMPS was
 built with that package.  See the :doc:`Build package <Build_package>`
 doc page for more info.
 
-.. versionchanged:: 11Nov2026
+.. versionchanged:: 13Nov2026
 
 When this fix creates impropers, it assumes that the first atom of an improper
 is its central atom, bonded to the other three atoms.  Thus it cannot

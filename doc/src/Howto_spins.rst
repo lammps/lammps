@@ -53,7 +53,7 @@ to the spins to perform a minimization of the spin configuration.
 Inertial spin dynamics (TSPIN)
 ------------------------------
 
-.. versionadded:: 11Nov2026
+.. versionadded:: 13Nov2026
 
 TSPIN provides auxiliary inertial dynamics for equilibrium sampling of
 spin-lattice systems with variable spin magnitudes.  Both the direction

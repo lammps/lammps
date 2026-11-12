@@ -67,7 +67,7 @@ numbers for the thermostatting procedure.
 The *flagHI* and *flagVF* settings are optional.  Neither should be
 used, or both must be defined.
 
-.. versionchanged:: 11Nov2026
+.. versionchanged:: 13Nov2026
 
 For *brownian/poly* the random force between two particles acts equal
 and opposite on both of them, so the pairwise Brownian forces conserve

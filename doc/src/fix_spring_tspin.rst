@@ -27,7 +27,7 @@ Examples
 Description
 """""""""""
 
-.. versionadded:: 11Nov2026
+.. versionadded:: 13Nov2026
 
 Apply a harmonic restoring potential to the magnitude of each
 magnetic spin in the group,

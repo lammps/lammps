@@ -224,7 +224,7 @@ files parameterized for Tinker units.  Their numeric parameters are
 converted by LAMMPS to its real units :doc:`units <units>`.  Thus you
 can only use these pair styles with real units.
 
-.. versionchanged:: 11Nov2026
+.. versionchanged:: 13Nov2026
 
 The HIPPO Pauli repulsion follows the convention of Tinker version 8.9
 (2021) and later, whose PRM files have repulsion sizes 8 times larger

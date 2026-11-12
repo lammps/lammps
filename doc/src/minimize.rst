@@ -329,7 +329,7 @@ have been turned off (e.g. via :doc:`neigh_modify exclude
 <neigh_modify>`), they will not contribute to the potential energy which
 is probably not what is desired.
 
-.. versionadded:: 11Nov2026
+.. versionadded:: 13Nov2026
 
 Instead, a system with rigid bodies can be relaxed with damped dynamics.
 With a target temperature of 0.0, the *langevin* keyword of :doc:`fix

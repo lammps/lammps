@@ -83,7 +83,7 @@ Mixing, shift, table, tail correction, restart, rRESPA info
 This pair style does not support parameter mixing. Coefficients must
 be given explicitly for each type of particle pairs.
 
-.. versionchanged:: 11Nov2026
+.. versionchanged:: 13Nov2026
 
 The :doc:`pair_modify <pair_modify>` shift option is not relevant for
 this pair style, since the energy goes to zero at large distances

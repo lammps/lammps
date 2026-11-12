@@ -77,7 +77,7 @@ and the Intel compilers have been successfully used on Linux, macOS, and
 Windows.  Also, the Nvidia HPC SDK (formerly PGI compilers) will compile
 LAMMPS (tested on Linux).
 
-.. versionchanged:: 11Nov2026
+.. versionchanged:: 13Nov2026
 
 The legacy Intel compilers (``icc`` and ``icpc`` on Linux, ``icl`` on
 Windows), also known as "Intel Classic" compilers, have been

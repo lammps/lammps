@@ -113,7 +113,7 @@ must be done.
    which can migrate atoms between processors.  It is an error to use
    the *pre no* option in these cases.
 
-.. versionchanged:: 11Nov2026
+.. versionchanged:: 13Nov2026
 
 LAMMPS stops with an error when *pre* is set to "no" and fixes, computes,
 or dumps have been added, deleted, or modified (e.g. with the

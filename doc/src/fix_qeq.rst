@@ -286,7 +286,7 @@ parameters and *Nevery*, *cutoff*, and *tolerance* are the same.
 Style *qeq/point* is typically faster, *qeq/dynamic* scales better on
 larger sizes, and *qeq/fire* is faster than *qeq/dynamic*\ .
 
-.. versionchanged:: 11Nov2026
+.. versionchanged:: 13Nov2026
 
 If the fix group does not contain all atoms, only the charges of the
 atoms in the fix group are equilibrated.  The charges of all other atoms
@@ -328,7 +328,7 @@ the cutoff is 8 A and the taper width is 2 A, the Coulomb integrals are
 smoothly rescaled from their actual value at r=6 A to zero at r=8 A. For
 backward compatibility, the default taper width is zero.
 
-.. versionadded:: 11Nov2026
+.. versionadded:: 13Nov2026
 
 The *qeq/point/xlmd*, *qeq/shielded/xlmd*, and *qeq/slater/xlmd* styles
 use the same charge models as their parent styles, but employ an

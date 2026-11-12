@@ -13,7 +13,8 @@
 
 #ifdef COMPUTE_CLASS
 // clang-format off
-ComputeStyle(pace,ComputePACE);
+ComputeStyle(pace,ComputePACE<0>);
+ComputeStyle(pace/atom,ComputePACE<1>);
 // clang-format on
 #else
 
@@ -24,25 +25,28 @@ ComputeStyle(pace,ComputePACE);
 
 namespace LAMMPS_NS {
 
-class ComputePACE : public Compute {
+// PERATOM = 0: compute pace, global array of descriptors, forces, and virial
+// PERATOM = 1: compute pace/atom, per-atom array of descriptors
+// compute_array() is only used for PERATOM = 0, compute_peratom() only for PERATOM = 1
+template <int PERATOM> class ComputePACE : public Compute {
  public:
   ComputePACE(class LAMMPS *, int, char **);
   ~ComputePACE() override;
   void init() override;
   void init_list(int, class NeighList *) override;
   void compute_array() override;
+  void compute_peratom() override;
   double memory_usage() override;
 
  private:
   int natoms, nmax, size_peratom, lastcol;
   int nvalues, yoffset, zoffset;
   int ndims_peratom, ndims_force, ndims_virial;
-  double **cutsq;
   class NeighList *list;
   double **pace, **paceall;
   double **pace_peratom;
-  int *map;    // map types to [0,nelements)
-  int bikflag, bik_rows, dgradflag, dgrad_rows;
+  double **pace_atom;
+  int bikflag, bik_rows, dgradflag;
   double cutmax;
 
   Compute *c_pe;

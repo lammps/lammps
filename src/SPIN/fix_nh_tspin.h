@@ -34,7 +34,6 @@ class FixNHTSpin : public FixNH {
   double compute_scalar() override;
   void reset_dt() override;
   void write_restart(FILE *) override;
-  int size_restart_global() override;
   void restart(char *) override;
 
   // read by PairSpin::init_style()
@@ -60,6 +59,7 @@ class FixNHTSpin : public FixNH {
   void nve_x() override;
   void nh_v_temp() override;
   void nhc_temp_integrate() override;
+  int size_restart_global() override;
 
   void nhc_spin_integrate();
   double compute_spin_temp();

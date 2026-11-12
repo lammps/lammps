@@ -103,7 +103,7 @@ void ComputeRigidAtom::init()
 {
   // set fixrigid
 
-  auto ifix = modify->get_fix_by_id(idrigid);
+  auto *ifix = modify->get_fix_by_id(idrigid);
   if (!ifix) error->all(FLERR,"Fix ID {} for compute rigid/atom does not exist", idrigid);
   fixrigid = dynamic_cast<FixRigidSmall *>(ifix);
   if (!fixrigid)

@@ -394,10 +394,10 @@ void FixSRD::init()
   for (const auto &ifix : modify->get_fix_list()) {
     if (ifix->box_change & BOX_CHANGE_SIZE) change_size = 1;
     if (ifix->box_change & BOX_CHANGE_SHAPE) change_shape = 1;
-    if (strcmp(ifix->style, "deform") == 0) {
+    if (utils::strmatch(ifix->style, "^deform")) {
       deformflag = 1;
       auto *deform = dynamic_cast<FixDeform *>(ifix);
-      if ((deform->box_change & BOX_CHANGE_SHAPE) && deform->remapflag != Domain::V_REMAP)
+      if (deform && (deform->box_change & BOX_CHANGE_SHAPE) && deform->remapflag != Domain::V_REMAP)
         error->all(FLERR, Error::NOLASTLINE,
                    "Using fix srd with inconsistent fix deform remap option");
     }
@@ -885,7 +885,7 @@ void FixSRD::reset_velocities()
       iz = MAX(iz, binlo[2]);
       iz = MIN(iz, binhi[2]);
 
-      if (deformflag) {
+      if (domain->deform_vremap && (mask[i] & domain->deform_groupbit)) {
         // shift velocities in last bins
         if (domain->xperiodic && ix == nbin1x) {
           v[i][0] -= h_rate[0];
@@ -1072,11 +1072,11 @@ void FixSRD::reset_velocities()
       }
   }
 
-  // undo velocity remap (only if using PUT or tstat no)
-  if (deformflag && (unbiasflag || !tstat)) {
-    domain->x2lamda(nlocal);
+  // undo velocity shift of particles in the last bins
+  if (domain->deform_vremap) {
+    if (triclinic) domain->x2lamda(nlocal);
     for (i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
+      if ((mask[i] & groupbit) && (mask[i] & domain->deform_groupbit)) {
         ix = static_cast<int>((x[i][0] - corner[0]) * bininv1x);
         ix = MAX(ix, binlo[0]);
         ix = MIN(ix, binhi[0]);
@@ -1086,6 +1086,9 @@ void FixSRD::reset_velocities()
         iz = static_cast<int>((x[i][2] - corner[2]) * bininv1z);
         iz = MAX(iz, binlo[2]);
         iz = MIN(iz, binhi[2]);
+
+        ibin = (iz - binlo[2]) * nbiny * nbinx + (iy - binlo[1]) * nbinx + (ix - binlo[0]);
+        if (tstat && deformflag && !unbiasflag && vbin[ibin].n > 1) continue;
 
         if (domain->xperiodic && ix == nbin1x) {
           v[i][0] += h_rate[0];
@@ -1101,7 +1104,7 @@ void FixSRD::reset_velocities()
         }
       }
     }
-    domain->lamda2x(nlocal);
+    if (triclinic) domain->lamda2x(nlocal);
   }
 }
 
@@ -3484,13 +3487,19 @@ void FixSRD::setup_velocity_shift(int ishift, int dynamic)
   // set xctr for all nbins in lamda units so can later compute vstream of bin
 
   if (tstat && deformflag) {
+    double clamda[3] = {corner[0], corner[1], corner[2]};
+    if (triclinic == 0) {
+      clamda[0] = (corner[0] - domain->boxlo[0]) * domain->h_inv[0];
+      clamda[1] = (corner[1] - domain->boxlo[1]) * domain->h_inv[1];
+      clamda[2] = (corner[2] - domain->boxlo[2]) * domain->h_inv[2];
+    }
     m = 0;
     for (k = 0; k < nbinz; k++)
       for (j = 0; j < nbiny; j++)
         for (i = 0; i < nbinx; i++) {
-          vbin[m].xctr[0] = corner[0] + (i + binlo[0] + 0.5) / nbin1x;
-          vbin[m].xctr[1] = corner[1] + (j + binlo[1] + 0.5) / nbin1y;
-          vbin[m].xctr[2] = corner[2] + (k + binlo[2] + 0.5) / nbin1z;
+          vbin[m].xctr[0] = clamda[0] + (i + binlo[0] + 0.5) / nbin1x;
+          vbin[m].xctr[1] = clamda[1] + (j + binlo[1] + 0.5) / nbin1y;
+          vbin[m].xctr[2] = clamda[2] + (k + binlo[2] + 0.5) / nbin1z;
           m++;
         }
   }

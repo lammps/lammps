@@ -108,7 +108,7 @@ using namespace FixConst;
 
 // Developer interface: retained interaction strength after compression
 // failure. Change this constant and rebuild for convergence studies.
-static constexpr double DEGRADATION_RATIO = 0.1;
+static constexpr double DEGRADATION_RATIO = 0.015;
 static_assert(DEGRADATION_RATIO > 0.0 && DEGRADATION_RATIO <= 1.0,
               "DEGRADATION_RATIO must be greater than 0 and at most 1");
 

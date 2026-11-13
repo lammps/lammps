@@ -54,8 +54,10 @@ class FixShakeKokkos : public FixShake, public KokkosBase {
 
   FixShakeKokkos(class LAMMPS *, int, char **);
   ~FixShakeKokkos() override;
+  int setmask() override;
   void init() override;
   void pre_neighbor() override;
+  void min_pre_neighbor() override;
   void min_setup(int) override;
   void min_post_force(int) override;
   void post_force(int) override;

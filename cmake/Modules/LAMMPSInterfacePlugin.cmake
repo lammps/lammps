@@ -14,6 +14,16 @@ set(LAMMPS_SOURCE_DIR ""  CACHE PATH "Location of LAMMPS sources folder")
 if(NOT LAMMPS_SOURCE_DIR)
   message(FATAL_ERROR "Must set LAMMPS_SOURCE_DIR")
 endif()
+# top level folder of the LAMMPS sources, as in the main build, where the package modules find
+# their helper scripts and patches.  Also make the find modules of LAMMPS (e.g. FindFFTW3.cmake)
+# available, since the package modules expect their targets.
+get_filename_component(LAMMPS_DIR ${LAMMPS_SOURCE_DIR}/.. ABSOLUTE)
+list(APPEND CMAKE_MODULE_PATH ${LAMMPS_DIR}/cmake/Modules)
+
+# compile with optimization by default, as the main build does
+if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CXX_FLAGS)
+  set(CMAKE_BUILD_TYPE RelWithDebInfo CACHE STRING "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel." FORCE)
+endif()
 
 # by default, install into $HOME/.local (not /usr/local),
 # so that no root access (and sudo) is needed

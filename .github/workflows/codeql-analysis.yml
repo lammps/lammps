@@ -43,6 +43,9 @@ jobs:
       with:
         languages: ${{ matrix.language }}
         config-file: ./.github/codeql/${{ matrix.language }}.yml
+        # each run stored a TRAP cache of 1.2 GB per commit, the largest part of the
+        # 10 GB of Actions caches of the repository, and evicted the ccache caches
+        trap-caching: false
 
     - name: Create Build Environment
       if: ${{ matrix.language == 'cpp' }}

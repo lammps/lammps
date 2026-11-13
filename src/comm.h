@@ -98,6 +98,11 @@ class Comm : protected Pointers {
   virtual void forward_comm(class Dump *, int size = 0) = 0;
   virtual void reverse_comm(class Dump *, int size = 0) = 0;
 
+  // forward/reverse comm from a Pair with a size only known at call time
+
+  virtual void forward_comm_dynamic(class Pair *, int) = 0;
+  virtual void reverse_comm_dynamic(class Pair *, int) = 0;
+
   // forward comm of an array
 
   virtual void forward_comm_array(int, double **) = 0;

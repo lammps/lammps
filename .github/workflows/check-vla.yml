@@ -67,7 +67,8 @@ jobs:
               -D CMAKE_CXX_COMPILER_LAUNCHER=ccache \
               -D CMAKE_C_COMPILER_LAUNCHER=ccache \
               -D CMAKE_BUILD_TYPE=Debug \
-              -D CMAKE_CXX_FLAGS_DEBUG="-Og -g -Werror=vla" \
+              -D CMAKE_CXX_FLAGS_DEBUG="-Og -Werror=vla" \
+              -D CMAKE_C_FLAGS_DEBUG="-Og" \
               -D DOWNLOAD_POTENTIALS=off \
               -D BUILD_MPI=on \
               -D BUILD_SHARED_LIBS=off \

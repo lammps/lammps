@@ -99,6 +99,15 @@ enum {TIME_PACK, TIME_HOST_NEIGHBOR, TIME_HOST_PAIR, TIME_IMBALANCE};
 
 #endif
 
+#if defined(LMP_HCC_COMPILER) && defined(LMP_HCC_USE_AVXCD)
+#if !defined(__AVX512F__) || !defined(__AVX512CD__)
+#error HCC AVX-CD requires an AVX-512F/CD compilation target
+#endif
+#if !defined(_LMP_INTEL_OFFLOAD) && !defined(LMP_USE_AVXCD)
+#define LMP_USE_AVXCD
+#endif
+#endif
+
 #define INTEL_DATA_ALIGN 64
 #define INTEL_ONEATOM_FACTOR 1
 #define INTEL_NBOR_PAD INTEL_VECTOR_WIDTH

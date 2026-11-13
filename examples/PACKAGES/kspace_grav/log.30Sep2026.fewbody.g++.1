@@ -1,0 +1,166 @@
+LAMMPS (30 Sep 2026 - Development - patch_30Sep2026-820-g7dbed49448-modified)
+# Periodic three-body orbit in a periodic box with Ewald gravity (G = 1).
+# The box side L sets the size of the periodic correction, ~ (r/L)^3.
+#
+# Runs 'Hill 3 months/yr' of R. J. Vanderbei, Ann. N.Y. Acad. Sci. 1017, 422 (2004)
+
+variable L      index 10.0
+variable dt     index 0.001
+variable nsteps index 10000
+variable every  index 100
+variable thermo index 200
+
+units           lj
+atom_style      atomic
+boundary        p p p
+atom_modify     map array
+
+read_data       data.hill3
+Reading data file ...
+  orthogonal box = (-5 -5 -5) to (5 5 5)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  3 atoms
+  reading velocities ...
+  3 velocities
+  read_data CPU = 0.000 seconds
+variable        h equal 0.5*${L}
+variable        h equal 0.5*10.0
+change_box      all x final -$h $h y final -$h $h z final -$h $h units box
+change_box      all x final -5 $h y final -$h $h z final -$h $h units box
+change_box      all x final -5 5 y final -$h $h z final -$h $h units box
+change_box      all x final -5 5 y final -5 $h z final -$h $h units box
+change_box      all x final -5 5 y final -5 5 z final -$h $h units box
+change_box      all x final -5 5 y final -5 5 z final -5 $h units box
+change_box      all x final -5 5 y final -5 5 z final -5 5 units box
+Changing box ...
+  orthogonal box = (-5 -5 -5) to (5 5 5)
+  orthogonal box = (-5 -5 -5) to (5 5 5)
+  orthogonal box = (-5 -5 -5) to (5 5 5)
+
+# real-space cutoff scales with the box, G vector is chosen from the accuracy
+variable        rc equal 0.4*${L}
+variable        rc equal 0.4*10.0
+pair_style      grav/long ${rc}
+pair_style      grav/long 4
+pair_coeff      * *
+kspace_style    ewald/grav 1.0e-10
+
+neighbor        0.5 bin
+neigh_modify    every 1 delay 0 check yes
+
+fix             1 all nve
+timestep        ${dt}
+timestep        0.001
+
+thermo_style    custom step time pe ke etotal
+thermo_modify   norm no format float %20.15g
+thermo          ${thermo}
+thermo          200
+
+#dump            1 all custom ${every} traj.L${L}.dump id x y z
+#dump_modify     1 sort id format float %.16g
+
+run             ${nsteps}
+run             10000
+Ewald initialization ...
+  using polynomial approximation for long-range coulomb
+  G vector (1/distance) = 1.1214187
+  estimated absolute RMS force accuracy = 1.002812e-10
+  estimated relative force accuracy = 1.002812e-10
+  KSpace vectors: actual max1d max3d = 10239 17 21437
+                  kxmax kymax kzmax  = 17 17 17
+Generated 0 of 3 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 4.5
+  ghost atom cutoff = 4.5
+  binsize = 2.25, bins = 5 5 5
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair grav/long, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 32.35 | 32.35 | 32.35 Mbytes
+   Step          Time          PotEng         KinEng         TotEng    
+         0                     0    -1.85141459568563     1.59406274173092    -0.25735185395471
+       200                   0.2    -1.80692701802169      1.5495755417271   -0.257351476294586
+       400                   0.4    -1.76707467565921     1.50972342565102   -0.257351250008189
+       600                   0.6    -1.84504899160702     1.58769736969323    -0.25735162191379
+       800                   0.8    -1.87795771276734     1.62060581401482   -0.257351898752514
+      1000                     1    -1.75847213803343     1.50112083414911   -0.257351303884321
+      1200                   1.2    -1.69708021970892     1.43972909490724   -0.257351124801684
+      1400                   1.4    -1.76650296223985     1.50915148870777   -0.257351473532081
+      1600                   1.6    -1.80256598273276     1.54521426453911   -0.257351718193641
+      1800                   1.8    -1.71374863988458     1.45639738949066   -0.257351250393924
+      2000                     2    -1.68523215266015     1.42788102653375   -0.257351126126394
+      2200                   2.2    -1.78752473390198     1.53017320249583   -0.257351531406149
+      2400                   2.4     -1.8557204195209     1.59836853580868   -0.257351883712214
+      2600                   2.6    -1.77950570684647     1.52215429146721   -0.257351415379257
+      2800                   2.8    -1.74563704490734     1.48828574959602   -0.257351295311317
+      3000                     3    -1.80859797520485     1.55124629451428   -0.257351680690567
+      3200                   3.2    -1.79496732170811     1.53761560528567    -0.25735171642244
+      3400                   3.4    -1.67484782864544     1.41749662218048   -0.257351206464958
+      3600                   3.6     -1.6385846282796     1.38123350978313   -0.257351118496465
+      3800                   3.8    -1.72156379783022     1.46421232382337   -0.257351474006855
+      4000                     4    -1.76749796874469     1.51014627671496   -0.257351692029731
+      4200                   4.2    -1.70455738322089     1.44720608208489   -0.257351301135999
+      4400                   4.4    -1.69970702727126     1.44235580010467   -0.257351227166596
+      4600                   4.6    -1.80282235331597     1.54547069115927   -0.257351662156701
+      4800                   4.8    -1.84052370470571     1.58317183952636   -0.257351865179348
+      5000                     5      -1.746182892314     1.48883154045297   -0.257351351861036
+      5200                   5.2    -1.71450108806935     1.45714983903361   -0.257351249035738
+      5400                   5.4    -1.78095378768426      1.5236021673314   -0.257351620352862
+      5600                   5.6     -1.7738853852691     1.51653373956136   -0.257351645707738
+      5800                   5.8    -1.67137446321451     1.41402329252215   -0.257351170692367
+      6000                     6    -1.66019554524596     1.40284443883492   -0.257351106411042
+      6200                   6.2    -1.77308089596547     1.51572936206254   -0.257351533902928
+      6400                   6.4    -1.83341164492195     1.57605986345526   -0.257351781466697
+      6600                   6.6    -1.76892645680769     1.51157512689773   -0.257351329909954
+      6800                   6.8    -1.77230181868553     1.51495052626599   -0.257351292419535
+      7000                     7    -1.87088742960289     1.61353562474436   -0.257351804858529
+      7200                   7.2    -1.85700608474778     1.59965432133335   -0.257351763414432
+      7400                   7.4    -1.73593796028151     1.47858675373536    -0.25735120654615
+      7600                   7.6    -1.72125207961317     1.46390088107994   -0.257351198533231
+      7800                   7.8    -1.80316458431879     1.54581292877982   -0.257351655538972
+      8000                     8    -1.78514417910257     1.52779259686175   -0.257351582240824
+      8200                   8.2     -1.6889338056269     1.43158266965915   -0.257351135967746
+      8400                   8.4    -1.70559380138146     1.44824262772339   -0.257351173658067
+      8600                   8.6    -1.82666363373306     1.56931191971815   -0.257351714014915
+      8800                   8.8    -1.84622076295369     1.58886900652134   -0.257351756432349
+      9000                     9    -1.76495655815304     1.50760524875177   -0.257351309401266
+      9200                   9.2    -1.77537279584023     1.51802141251058   -0.257351383329649
+      9400                   9.4    -1.84174721397317     1.58439537362777   -0.257351840345398
+      9600                   9.6    -1.77521913254932     1.51786758039766   -0.257351552151658
+      9800                   9.8    -1.66106725217327     1.40371612120959   -0.257351130963681
+     10000                    10    -1.66906614379318      1.4117149391922   -0.257351204600981
+Loop time of 1.36032 on 1 procs for 10000 steps with 3 atoms
+
+Performance: 635142.486 tau/day, 7351.186 timesteps/s, 22.054 katom-step/s
+99.9% CPU use with 1 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.0024881  | 0.0024881  | 0.0024881  |   0.0 |  0.18
+Kspace  | 1.3485     | 1.3485     | 1.3485     |   0.0 | 99.13
+Neigh   | 0.00021424 | 0.00021424 | 0.00021424 |   0.0 |  0.02
+Comm    | 0.0022395  | 0.0022395  | 0.0022395  |   0.0 |  0.16
+Output  | 0.0026153  | 0.0026153  | 0.0026153  |   0.0 |  0.19
+Modify  | 0.0019711  | 0.0019711  | 0.0019711  |   0.0 |  0.14
+Other   |            | 0.002267   |            |       |  0.17
+
+Nlocal:              3 ave           3 max           3 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:              2 ave           2 max           2 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:              3 ave           3 max           3 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 3
+Ave neighs/atom = 1
+Neighbor list builds = 49
+Dangerous builds = 0
+Total wall time: 0:00:01

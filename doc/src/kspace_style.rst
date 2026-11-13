@@ -6,6 +6,7 @@
 .. index:: kspace_style ewald/disp/dipole
 .. index:: kspace_style ewald/omp
 .. index:: kspace_style ewald/electrode
+.. index:: kspace_style ewald/grav
 .. index:: kspace_style esp
 .. index:: kspace_style pppm
 .. index:: kspace_style pppm/kk
@@ -50,7 +51,7 @@ Syntax
 
    kspace_style style value
 
-* style = *none* or *ewald* or ewald/gpu or *ewald/dipole* or *ewald/dipole/spin* or *ewald/disp* or *ewald/disp/dipole* or *ewald/omp* or *ewald/electrode* or *pppm* or *pppm/cg* or *pppm/disp* or *pppm/tip4p* or *pppm/xtb* or *pppm/tip4p/xtb* or *pppm/stagger* or *pppm/disp/tip4p* or *pppm/gpu* or *pppm/intel* or *pppm/disp/intel* or *pppm/kk* or *pppm/omp* or *pppm/cg/omp* or *pppm/disp/tip4p/omp* or *pppm/tip4p/kk* or *pppm/tip4p/omp* or *pppm/dielectric* or *pppm/disp/dielectric* or *pppm/electrode* or *pppm/electrode/intel* or *pppm/rk* or *msm* or *msm/cg* or *msm/omp* or *msm/cg/omp* or *msm/dielectric* or *scafacos* or *zero*
+* style = *none* or *ewald* or ewald/gpu or *ewald/dipole* or *ewald/dipole/spin* or *ewald/disp* or *ewald/disp/dipole* or *ewald/omp* or *ewald/electrode* or *ewald/grav* or *pppm* or *pppm/cg* or *pppm/disp* or *pppm/tip4p* or *pppm/xtb* or *pppm/tip4p/xtb* or *pppm/stagger* or *pppm/disp/tip4p* or *pppm/gpu* or *pppm/intel* or *pppm/disp/intel* or *pppm/kk* or *pppm/omp* or *pppm/cg/omp* or *pppm/disp/tip4p/omp* or *pppm/tip4p/kk* or *pppm/tip4p/omp* or *pppm/dielectric* or *pppm/disp/dielectric* or *pppm/electrode* or *pppm/electrode/intel* or *pppm/rk* or *msm* or *msm/cg* or *msm/omp* or *msm/cg/omp* or *msm/dielectric* or *scafacos* or *zero*
 
   .. parsed-literal::
 
@@ -70,6 +71,8 @@ Syntax
        *ewald/omp* value = accuracy
          accuracy = desired relative error in forces
        *ewald/electrode* value = accuracy
+         accuracy = desired relative error in forces
+       *ewald/grav* value = accuracy
          accuracy = desired relative error in forces
        *esp* value1 value2 = splitting_accuracy spreading_accuracy
           splitting_accuracy = desired relative error in forces from kernel splitting part
@@ -151,6 +154,7 @@ Examples
    kspace_style pppm 1.0e-4
    kspace_style pppm/cg 1.0e-5 1.0e-6
    kspace_style msm 1.0e-4
+   kspace_style ewald/grav 1.0e-8
    kspace_style scafacos fmm 1.0e-4
    kspace_style none
    kspace_style zero 1.0e-6
@@ -160,6 +164,8 @@ Used in input scripts:
    .. parsed-literal::
 
       examples/peptide/in.peptide
+      examples/PACKAGES/ewald_grav/in.jeans
+      examples/PACKAGES/ewald_grav/in.fewbody
 
 Description
 """""""""""
@@ -231,6 +237,27 @@ for dipole-dipole interactions, see :ref:`(Toukmaji) <Toukmaji>`.
 The *ewald/dipole/spin* style adds long-range standard Ewald
 summations for magnetic dipole-dipole interactions between
 magnetic spins.
+
+.. versionadded:: TBD
+
+The *ewald/grav* style performs an Ewald summation for Newtonian gravity
+between point masses in a periodic system :ref:`(Hernquist)
+<kspaceHernquist1991>`.  It must be used with :doc:`pair_style grav/long
+<pair_grav_long>`, which computes the real-space part and sets the
+gravitational constant G.  The masses of the atoms take the place of the
+charges, so the atoms do not need a charge, and the interaction is
+attractive.  The :doc:`dielectric <dielectric>` command has no effect on
+this style.
+
+Since all masses are positive, the system always has a net "charge",
+the total mass M.  As in comoving cosmological simulations, the masses
+move in a uniform negative background of the same total mass, which
+makes the periodic problem well defined.  The background contributes
+the constant energy :math:`G \pi M^2 / (2 \alpha^2 V)`, where
+:math:`\alpha` is the Ewald splitting parameter and V the volume, and
+it contributes to the pressure.  Both are included.  The accuracy is
+relative to the force between two unit masses at unit distance, G in
+the current units.
 
 ----------
 
@@ -600,6 +627,12 @@ support non-orthogonal (triclinic symmetry) simulation boxes. However,
 triclinic simulation cells may not yet be supported by all suffix
 versions of these styles.
 
+The *ewald/grav* style supports triclinic simulation boxes, but not the
+:doc:`kspace_modify <kspace_modify>` *slab* option.  It requires
+:doc:`pair_style grav/long <pair_grav_long>`.  The total mass that
+enters the background terms is updated when the number of atoms
+changes, but not when the masses of existing atoms change during a run.
+
 The *pppm/xtb* and *pppm/tip4p/xtb* styles currently require an orthorhombic
 simulation box, as does :doc:`fix qmmm/xtb <fix_qmmm_xtb>`.
 
@@ -657,7 +690,7 @@ virial, so this contribution is not included.
 Related commands
 """"""""""""""""
 
-:doc:`kspace_modify <kspace_modify>`, :doc:`pair_style lj/cut/coul/esp <pair_lj_cut_coul>`, :doc:`pair_style lj/cut/coul/long <pair_lj_cut_coul>`, :doc:`pair_style lj/charmm/coul/long <pair_charmm>`, :doc:`pair_style lj/long/coul/long <pair_lj_long>`, :doc:`pair_style buck/coul/long <pair_buck>`
+:doc:`kspace_modify <kspace_modify>`, :doc:`pair_style lj/cut/coul/esp <pair_lj_cut_coul>`, :doc:`pair_style lj/cut/coul/long <pair_lj_cut_coul>`, :doc:`pair_style lj/charmm/coul/long <pair_charmm>`, :doc:`pair_style lj/long/coul/long <pair_lj_long>`, :doc:`pair_style buck/coul/long <pair_buck>`, :doc:`pair_style grav/long <pair_grav_long>`
 
 Default
 """""""
@@ -718,6 +751,10 @@ and Computation 5, 2322 (2009)
 .. _Veld:
 
 **(In 't Veld)** In 't Veld, Ismail, Grest, J Chem Phys, 127, 144711 (2007).
+
+.. _kspaceHernquist1991:
+
+**(Hernquist)** L. Hernquist, F. R. Bouchet, and Y. Suto, ApJS, 75, 231 (1991).
 
 .. _Toukmaji:
 

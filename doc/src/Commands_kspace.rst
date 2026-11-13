@@ -17,6 +17,7 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`ewald/dipole <kspace_style>`
    * :doc:`ewald/dipole/spin <kspace_style>`
    * :doc:`ewald/electrode <kspace_style>`
+   * :doc:`ewald/grav <kspace_style>`
    * :doc:`msm (o) <kspace_style>`
    * :doc:`msm/cg (o) <kspace_style>`
    * :doc:`msm/dielectric <kspace_style>`

@@ -22,6 +22,8 @@ FixStyle(widom,FixWidom);
 
 #include "fix.h"
 
+#include <vector>
+
 namespace LAMMPS_NS {
 
 class FixWidom : public Fix {
@@ -92,6 +94,14 @@ class FixWidom : public Fix {
 
   class Compute *c_pe;
 
+  bool bin_flag = false;
+  int nbinx = 0, nbiny = 0, nbinz = 0;
+  double binlo[3]{}, binhi[3]{}, binsize = 0.0, bininv = 0.0;
+  std::vector<int> binoffset, binatoms, atom_bin, neigh_cand;
+  std::vector<double> energy_buf;
+
+  void build_bins();
+  void accumulate_insertions(int);
   void options(int, char **);
   int local_index(tagint);
 };

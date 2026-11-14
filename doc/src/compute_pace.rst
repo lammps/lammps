@@ -106,7 +106,7 @@ be modeled after the potential files in :doc:`pace pair_style <pair_pace>`,
 and have the same format. Details on how to generate the coefficient files
 to train ACE models may be found in `FitSNAP <https://github.com/FitSNAP/FitSNAP>`_.
 
-.. versionadded:: TBD
+.. versionadded:: 13Nov2026
 
 Style *pace/atom* computes only the per-atom ACE descriptors
 :math:`B_{i,\boldsymbol{\nu}}` and exposes them as a per-atom array with one
@@ -211,7 +211,7 @@ Also, each row contains only non-zero entries for the
 columns corresponding to the type of that atom. This is not true in the case
 of *dgradflag* = 1 (see below).
 
-.. versionchanged:: TBD
+.. versionchanged:: 13Nov2026
 
 In earlier versions of LAMMPS, the global array produced with *bikflag* = 1
 and *dgradflag* = 0 was corrupted: the descriptor gradient rows were written

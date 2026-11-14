@@ -35,7 +35,7 @@ Examples
 Description
 """""""""""
 
-.. versionadded:: TBD
+.. versionadded:: 13Nov2026
 
 Style *body/rounded/polyhedron/granular* computes the interactions
 between 3d body particles of style *rounded/polyhedron* with the

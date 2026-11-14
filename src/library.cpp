@@ -6788,7 +6788,7 @@ int lammps_config_has_omp_support()
 
 \verbatim embed:rst
 
-.. versionchanged:: TBD
+.. versionchanged:: 13Nov2026
 
 This function now checks whether the ``gzip`` program is installed and
 executable instead of whether support for compressed files was enabled
@@ -6850,7 +6850,7 @@ int lammps_config_has_jpeg_support() {
 
 \verbatim embed:rst
 
-.. versionchanged:: TBD
+.. versionchanged:: 13Nov2026
 
 This function now checks whether the ``ffmpeg`` program is installed and
 executable instead of whether support for it was enabled at compile time.

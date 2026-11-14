@@ -2,19 +2,18 @@
 name: "Windows Unit Tests"
 
 on:
-  push:
-    branches:
-      - develop
-      - maintenance
   pull_request:
     branches:
+      - stable
       - develop
-
   workflow_dispatch:
 
 concurrency:
   group: ${{ github.event_name }}-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: ${{github.event_name == 'pull_request'}}
+
+permissions:
+  contents: read
 
 jobs:
   build:
@@ -29,6 +28,7 @@ jobs:
       uses: actions/checkout@v7
       with:
         fetch-depth: 2
+        persist-credentials: false
 
     - name: Enable MSVC++
       uses: lammps/setup-msvc-dev@v4

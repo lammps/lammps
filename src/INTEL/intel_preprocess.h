@@ -31,9 +31,9 @@
 
 #if defined(__INTEL_COMPILER) || defined(__INTEL_LLVM_COMPILER)
 #define LMP_SIMD_COMPILER
-#if (__INTEL_COMPILER_BUILD_DATE > 20160720)
-#define LMP_INTEL_USE_SIMDOFF
-#endif
+// LMP_INTEL_USE_SIMDOFF is not defined: with the LLVM based Intel compilers, the vectorized
+// loops of the bond, angle, dihedral, and improper styles that it enables lose part of the
+// energy sum in their "omp simd reduction" when vectorized, so they report wrong energies
 #pragma warning (disable:3948)
 #pragma warning (disable:3949)
 #pragma warning (disable:13200)

@@ -131,6 +131,12 @@ CPU base's bare helper creation -- prefer that pattern for new styles.
 - Missing explicit template instantiation at the bottom of the `.cpp` file
   (`template class <Name>Kokkos<LMPDeviceType>;` plus the `LMPHostType` line under
   `#ifdef LMP_KOKKOS_GPU`).
+- `dynamic_cast` (or `typeid`) to a `<Name>Kokkos<DeviceType>` class outside the `.cpp`
+  file with its explicit instantiation: with the C++ ABI of macOS on arm64 the type
+  information is then a hidden local copy and the linker warns about "direct access
+  ... to global weak symbol".  Call the static `<Name>Kokkos<DeviceType>::cast()`
+  member instead, and add one (defined next to the explicit instantiation) if the
+  class does not have it yet.
 - Not rebuilding with `make purge` after switching between Make and CMake builds.
 - Overflow-prone `exp()` with a positive argument in `KK_FLOAT` code: in mixed/single
   precision the float overload returns inf above ~88.7 and the forces turn to NaN

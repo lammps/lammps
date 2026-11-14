@@ -864,6 +864,9 @@ void PairAmoeba::file_atomtype(const std::vector<std::string> &words, int nline)
 
   int itype = utils::inumeric(FLERR, words[1], false, lmp);
   int iclass = utils::inumeric(FLERR, words[2], false, lmp);
+  if (itype < 1 || iclass < 1)
+    error->all(FLERR, "{} PRM file atom type or class index on line {} is invalid: {}",
+               utils::uppercase(mystyle), nline, utils::join_words(words, " "));
 
   // grow per-type and per-class vecs/arrays as needed
 
@@ -926,8 +929,14 @@ void PairAmoeba::file_vdwl_pair(const std::vector<std::string> &words, int nline
     memory->grow(vdwl_eps_pair, max_vdwl_pair, "amoeba:vdwl_eps_pair");
   }
 
-  vdwl_class_pair[nvdwl_pair][0] = utils::inumeric(FLERR, words[1], false, lmp);
-  vdwl_class_pair[nvdwl_pair][1] = utils::inumeric(FLERR, words[2], false, lmp);
+  int iclass = utils::inumeric(FLERR, words[1], false, lmp);
+  int jclass = utils::inumeric(FLERR, words[2], false, lmp);
+  if (iclass < 1 || iclass > n_amclass || jclass < 1 || jclass > n_amclass)
+    error->all(FLERR, "{} PRM file VDWPR class index on line {} is invalid: {}",
+               utils::uppercase(mystyle), nline, utils::join_words(words, " "));
+
+  vdwl_class_pair[nvdwl_pair][0] = iclass;
+  vdwl_class_pair[nvdwl_pair][1] = jclass;
   vdwl_sigma_pair[nvdwl_pair] = utils::numeric(FLERR, words[3], false, lmp);
   vdwl_eps_pair[nvdwl_pair] = utils::numeric(FLERR, words[4], false, lmp);
   nvdwl_pair++;

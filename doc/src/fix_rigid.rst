@@ -568,7 +568,7 @@ on the :doc:`fix viscous <fix_viscous>` page for details.
    dynamics for the two cases should be statistically similar, but will
    not be identical, even for a single timestep.
 
-.. versionchanged:: TBD
+.. versionchanged:: 13Nov2026
 
 When Langevin thermostatting is used with :doc:`fix deform
 <fix_deform>` to model a system undergoing shear, the Langevin

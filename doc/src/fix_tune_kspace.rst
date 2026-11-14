@@ -36,7 +36,7 @@ Examples
 Description
 """""""""""
 
-.. versionchanged:: TBD
+.. versionchanged:: 13Nov2026
 
 This fix tests several kspace styles (Ewald and PPPM, and optionally
 MSM and ESP), and automatically selects the fastest style to use for
@@ -87,7 +87,7 @@ This fix starts with kspace parameters that are set by the user with the
 commands. The prescribed accuracy will be maintained by this fix throughout
 the simulation.
 
-.. versionadded:: TBD
+.. versionadded:: 13Nov2026
 
 The *msm* and *esp* keywords select whether the :doc:`kspace styles
 <kspace_style>` *msm* and *esp* are tested, too.  Each kspace style is

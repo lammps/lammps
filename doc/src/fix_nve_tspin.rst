@@ -38,7 +38,7 @@ Examples
 Description
 """""""""""
 
-.. versionadded:: TBD
+.. versionadded:: 13Nov2026
 
 Perform velocity-Verlet integration of auxiliary inertial spin dynamics
 for equilibrium sampling, as described in :ref:`(Tspin) <Tspin1>`.

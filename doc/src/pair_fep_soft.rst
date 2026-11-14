@@ -583,7 +583,7 @@ requires the following pair coefficients:
 
 The cutoff is optional.  If not specified, the global cutoff is used.
 
-.. versionadded:: TBD
+.. versionadded:: 13Nov2026
 
 The pair style *lj/class2/soft/gapsys* applies the same soft-core
 treatment to the 9-6 potential of :doc:`pair_style lj/class2
@@ -621,7 +621,7 @@ For distances shorter than :math:`r_{inner}`, the energy is computed by
 This pair style requires the same pair coefficients as
 *lj/cut/soft/gapsys*.
 
-.. versionadded:: TBD
+.. versionadded:: 13Nov2026
 
 The pair styles *lj/cut/coul/cut/soft/gapsys* and
 *lj/class2/coul/cut/soft/gapsys* combine the Lennard-Jones part of

@@ -24,7 +24,7 @@ Examples
 Description
 """""""""""
 
-.. versionadded:: TBD
+.. versionadded:: 13Nov2026
 
 Define a computation that calculates the instantaneous kinetic
 temperature and the kinetic energy of the auxiliary spin degrees of

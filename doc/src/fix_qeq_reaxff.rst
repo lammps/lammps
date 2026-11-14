@@ -96,7 +96,7 @@ of QEq iterations is desired, which can be achieved by using a very
 small tolerance and setting *maxiter* to the desired number of
 iterations.
 
-.. versionadded:: TBD
+.. versionadded:: 13Nov2026
 
 The optional *xlmd* keyword with the value *yes* enables the
 extended-Lagrangian propagation of the charges, which is explained in
@@ -135,7 +135,7 @@ requirements because it avoids the overheads of storing the matrix.
 This is only supported for the *qeq/reaxff/kk* style, with both full and
 half qeq neighbor lists supported.
 
-.. versionadded:: TBD
+.. versionadded:: 13Nov2026
 
 The following estimates for using the *xlmd* and *matfree* keywords are
 from the PETN crystal benchmark in the ``bench/POTENTIALS`` folder for a
@@ -152,7 +152,7 @@ step, the simulation was still up to 35% faster on GPUs and about as
 fast on the CPU.  The actual savings depend on the individual system,
 the *tolerance*, the hardware, and the number of MPI processes or GPUs.
 
-.. versionchanged:: TBD
+.. versionchanged:: 13Nov2026
 
 If the fix group does not contain all atoms, only the charges of the
 atoms in the fix group are equilibrated.  The charges of all other atoms

@@ -89,11 +89,14 @@ the packages that have been compiled successfully so far.
 
 It is possible to use both the integrated CMake support of the Visual
 Studio IDE or use an external CMake installation (e.g. downloaded from
-cmake.org) to create build files and compile LAMMPS from the command-line.
+cmake.org) to create build files and compile LAMMPS from the
+command-line.
 
 Compilation via command-line and unit tests are checked automatically
-for the LAMMPS development branch through
-`GitHub Actions <https://github.com/lammps/lammps/actions/workflows/compile-msvc.yml>`_.
+for the LAMMPS development branch through `automated unit tests
+<https://ci.lammps.org/#/builders/27>`_ on the LAMMPS CI cluster.  On
+request of a LAMMPS developer, the tests can also be run for pull
+requests.
 
 .. note::
 

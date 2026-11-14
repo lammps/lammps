@@ -34,6 +34,8 @@ selected examples.  Please see the chapter about :doc:`building LAMMPS
 <Build>` for descriptions of specific flags and options for LAMMPS in
 general and for specific packages.
 
+.. versionchanged:: 13Nov2026
+
 CMake can be used through either the command-line interface (CLI)
 program ``cmake``, a text mode interactive user interface (TUI)
 program ``ccmake``, or a graphical user interface (GUI) program

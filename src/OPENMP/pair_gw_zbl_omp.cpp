@@ -79,7 +79,7 @@ void PairGWZBLOMP::eval(int iifrom, int iito, ThrData * const thr)
   tagint itag,jtag;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
   double rsq,rsq1,rsq2;
-  double delr1[3],delr2[3],fi[3],fj[3],fk[3];
+  double fi[3],fj[3],fk[3];
   double zeta_ij,prefactor;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
@@ -94,6 +94,12 @@ void PairGWZBLOMP::eval(int iifrom, int iito, ThrData * const thr)
   ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
+  const double cutshortsq = cutmax*cutmax;
+
+  // each thread has its own short neighbor list
+  int maxshort_thr = maxshort;
+  ShortNeigh *neighshort_thr;
+  memory->create(neighshort_thr,maxshort_thr,"pair_thr:neighshort_thr");
 
   double fxtmp,fytmp,fztmp;
 
@@ -112,10 +118,33 @@ void PairGWZBLOMP::eval(int iifrom, int iito, ThrData * const thr)
 
     jlist = firstneigh[i];
     jnum = numneigh[i];
+    int numshort = 0;
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
       j &= NEIGHMASK;
+
+      delx = xtmp - x[j].x;
+      dely = ytmp - x[j].y;
+      delz = ztmp - x[j].z;
+      rsq = delx*delx + dely*dely + delz*delz;
+
+      // collect the neighbors within the largest cutoff for the three-body terms
+
+      if (rsq <= cutshortsq) {
+        ShortNeigh &s = neighshort_thr[numshort++];
+        s.del[0] = -delx;
+        s.del[1] = -dely;
+        s.del[2] = -delz;
+        s.rsq = rsq;
+        s.j = j;
+        s.jtype = map[type[j]];
+        if (numshort >= maxshort_thr) {
+          maxshort_thr += maxshort_thr/2;
+          memory->grow(neighshort_thr,maxshort_thr,"pair_thr:neighshort_thr");
+        }
+      }
+
       jtag = tag[j];
 
       if (itag > jtag) {
@@ -129,12 +158,6 @@ void PairGWZBLOMP::eval(int iifrom, int iito, ThrData * const thr)
       }
 
       jtype = map[type[j]];
-
-      delx = xtmp - x[j].x;
-      dely = ytmp - x[j].y;
-      delz = ztmp - x[j].z;
-      rsq = delx*delx + dely*dely + delz*delz;
-
       iparam_ij = elem3param[itype][jtype][jtype];
       if (rsq > params[iparam_ij].cutsq) continue;
 
@@ -156,33 +179,29 @@ void PairGWZBLOMP::eval(int iifrom, int iito, ThrData * const thr)
 
     double fjxtmp,fjytmp,fjztmp;
 
-    for (jj = 0; jj < jnum; jj++) {
-      j = jlist[jj];
-      j &= NEIGHMASK;
-      jtype = map[type[j]];
+    for (jj = 0; jj < numshort; jj++) {
+      ShortNeigh &s1 = neighshort_thr[jj];
+      j = s1.j;
+      jtype = s1.jtype;
       iparam_ij = elem3param[itype][jtype][jtype];
 
-      delr1[0] = x[j].x - xtmp;
-      delr1[1] = x[j].y - ytmp;
-      delr1[2] = x[j].z - ztmp;
-      rsq1 = delr1[0]*delr1[0] + delr1[1]*delr1[1] + delr1[2]*delr1[2];
+      double *const delr1 = s1.del;
+      rsq1 = s1.rsq;
       if (rsq1 > params[iparam_ij].cutsq) continue;
 
       // accumulate bondorder zeta for each i-j interaction via loop over k
 
       zeta_ij = 1.0;
 
-      for (kk = 0; kk < jnum; kk++) {
+      for (kk = 0; kk < numshort; kk++) {
         if (jj == kk) continue;
-        k = jlist[kk];
-        k &= NEIGHMASK;
-        ktype = map[type[k]];
+        ShortNeigh &s2 = neighshort_thr[kk];
+        k = s2.j;
+        ktype = s2.jtype;
         iparam_ijk = elem3param[itype][jtype][ktype];
 
-        delr2[0] = x[k].x - xtmp;
-        delr2[1] = x[k].y - ytmp;
-        delr2[2] = x[k].z - ztmp;
-        rsq2 = delr2[0]*delr2[0] + delr2[1]*delr2[1] + delr2[2]*delr2[2];
+        double *const delr2 = s2.del;
+        rsq2 = s2.rsq;
         if (rsq2 > params[iparam_ijk].cutsq) continue;
 
         zeta_ij += zeta(&params[iparam_ijk],rsq1,rsq2,delr1,delr2);
@@ -204,17 +223,15 @@ void PairGWZBLOMP::eval(int iifrom, int iito, ThrData * const thr)
 
       // attractive term via loop over k
 
-      for (kk = 0; kk < jnum; kk++) {
+      for (kk = 0; kk < numshort; kk++) {
         if (jj == kk) continue;
-        k = jlist[kk];
-        k &= NEIGHMASK;
-        ktype = map[type[k]];
+        ShortNeigh &s2 = neighshort_thr[kk];
+        k = s2.j;
+        ktype = s2.jtype;
         iparam_ijk = elem3param[itype][jtype][ktype];
 
-        delr2[0] = x[k].x - xtmp;
-        delr2[1] = x[k].y - ytmp;
-        delr2[2] = x[k].z - ztmp;
-        rsq2 = delr2[0]*delr2[0] + delr2[1]*delr2[1] + delr2[2]*delr2[2];
+        double *const delr2 = s2.del;
+        rsq2 = s2.rsq;
         if (rsq2 > params[iparam_ijk].cutsq) continue;
 
         attractive(&params[iparam_ijk],prefactor,
@@ -240,6 +257,7 @@ void PairGWZBLOMP::eval(int iifrom, int iito, ThrData * const thr)
     f[i].y += fytmp;
     f[i].z += fztmp;
   }
+  memory->destroy(neighshort_thr);
 }
 
 /* ---------------------------------------------------------------------- */

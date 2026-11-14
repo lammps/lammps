@@ -39,7 +39,10 @@ static constexpr int DELTA = 4;
 
 /* ---------------------------------------------------------------------- */
 
-PairTersoffMOD::PairTersoffMOD(LAMMPS *lmp) : PairTersoff(lmp) {}
+PairTersoffMOD::PairTersoffMOD(LAMMPS *lmp) : PairTersoff(lmp)
+{
+  zterm_flag = 0;
+}
 
 /* ---------------------------------------------------------------------- */
 

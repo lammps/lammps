@@ -370,7 +370,6 @@ void FixQEqReaxFFOMP::sparse_matvec(sparse_matrix *A, double *x, double *b)
   {
     int i, j, itr_j;
     int ii;
-    int nlocal = atom->nlocal;
     int nall = atom->nlocal + atom->nghost;
 
     int nthreads = comm->nthreads;
@@ -380,48 +379,36 @@ void FixQEqReaxFFOMP::sparse_matvec(sparse_matrix *A, double *x, double *b)
     int tid = 0;
 #endif
 
+    double *const bt = b_temp[tid];
+    for (i = 0; i < nall; ++i) bt[i] = 0.0;
+
+    // the rows of atoms outside the fix group only contain neighbors in the group
+
 #if defined(_OPENMP)
-#pragma omp for schedule(dynamic,50)
+#pragma omp for schedule(static)
 #endif
     for (ii = 0; ii < nn; ++ii) {
       i = ilist[ii];
-      if (atom->mask[i] & groupbit) b[i] = eta[atom->type[i]] * x[i];
-      else b[i] = 0.0;
-    }
-
-#if defined(_OPENMP)
-#pragma omp for schedule(dynamic,50)
-#endif
-    for (i = nlocal; i < nall; ++i) b[i] = 0.0;
-
-#if defined(_OPENMP)
-#pragma omp for schedule(dynamic,50)
-#endif
-    for (i = 0; i < nall; ++i)
-      for (int t=0; t<nthreads; t++) b_temp[t][i] = 0.0;
-
-    // Wait for b accumulated and b_temp zeroed.
-#if defined(_OPENMP)
-#pragma omp barrier
-#pragma omp for schedule(dynamic,50)
-#endif
-    for (ii = 0; ii < nn; ++ii) {
-      i = ilist[ii];
-      for (itr_j=A->firstnbr[i]; itr_j<A->firstnbr[i]+A->numnbrs[i]; itr_j++) {
+      const double x_i = x[i];
+      double bi = (atom->mask[i] & groupbit) ? eta[atom->type[i]] * x_i : 0.0;
+      const int end_j = A->firstnbr[i] + A->numnbrs[i];
+      for (itr_j = A->firstnbr[i]; itr_j < end_j; itr_j++) {
         j = A->jlist[itr_j];
-        b[i] += A->val[itr_j] * x[j];
-
-        b_temp[tid][j] += A->val[itr_j] * x[i];
+        const double val = A->val[itr_j];
+        bi += val * x[j];
+        bt[j] += val * x_i;
       }
+      bt[i] += bi;
     }
 
-    // Wait till b_temp accumulated
 #if defined(_OPENMP)
-#pragma omp barrier
-#pragma omp for schedule(dynamic,50)
+#pragma omp for schedule(static)
 #endif
-    for (i = 0; i < nall; ++i)
-      for (int t = 0; t < nthreads; ++t) b[i] += b_temp[t][i];
+    for (i = 0; i < nall; ++i) {
+      double sum = 0.0;
+      for (int t = 0; t < nthreads; ++t) sum += b_temp[t][i];
+      b[i] = sum;
+    }
 
   } //end omp parallel
 }
@@ -710,8 +697,6 @@ void FixQEqReaxFFOMP::dual_sparse_matvec(sparse_matrix *A, double *x1, double *x
   {
     int i, j, itr_j;
     int ii;
-    int indxI, indxJ;
-    int nlocal = atom->nlocal;
     int nall = atom->nlocal + atom->nghost;
 
     int nthreads = comm->nthreads;
@@ -721,70 +706,44 @@ void FixQEqReaxFFOMP::dual_sparse_matvec(sparse_matrix *A, double *x1, double *x
     int tid = 0;
 #endif
 
+    double *const bt = b_temp[tid];
+    for (i = 0; i < 2 * nall; ++i) bt[i] = 0.0;
+
+    // the rows of atoms outside the fix group only contain neighbors in the group
+
 #if defined(_OPENMP)
-#pragma omp for schedule(dynamic,50)
+#pragma omp for schedule(static)
 #endif
     for (ii = 0; ii < nn; ++ii) {
       i = ilist[ii];
-      indxI = 2 * i;
+      const double x1_i = x1[i];
+      const double x2_i = x2[i];
+      double b0 = 0.0, b1 = 0.0;
       if (atom->mask[i] & groupbit) {
-        b[indxI] = eta[atom->type[i]] * x1[i];
-        b[indxI+1] = eta[atom->type[i]] * x2[i];
-      } else {
-        b[indxI] = b[indxI+1] = 0.0;
+        const double eta_i = eta[atom->type[i]];
+        b0 = eta_i * x1_i;
+        b1 = eta_i * x2_i;
       }
-    }
-
-#if defined(_OPENMP)
-#pragma omp for schedule(dynamic,50)
-#endif
-    for (i = nlocal; i < nall; ++i) {
-      indxI = 2 * i;
-      b[indxI]   = 0;
-      b[indxI+1] = 0;
-    }
-
-#if defined(_OPENMP)
-#pragma omp for schedule(dynamic,50)
-#endif
-    for (i = 0; i < nall; ++i) {
-      indxI = 2 * i;
-      for (int t=0; t<nthreads; t++) {
-        b_temp[t][indxI] = 0.0;
-        b_temp[t][indxI+1] = 0.0;
-      }
-    }
-
-    // Wait for b accumulated and b_temp zeroed
-#if defined(_OPENMP)
-#pragma omp barrier
-#pragma omp for schedule(dynamic,50)
-#endif
-    for (ii = 0; ii < nn; ++ii) {
-      i = ilist[ii];
-      indxI = 2 * i;
-      for (itr_j=A->firstnbr[i]; itr_j<A->firstnbr[i]+A->numnbrs[i]; itr_j++) {
+      const int end_j = A->firstnbr[i] + A->numnbrs[i];
+      for (itr_j = A->firstnbr[i]; itr_j < end_j; itr_j++) {
         j = A->jlist[itr_j];
-        indxJ = 2 * j;
-        b[indxI] += A->val[itr_j] * x1[j];
-        b[indxI+1] += A->val[itr_j] * x2[j];
-
-        b_temp[tid][indxJ] += A->val[itr_j] * x1[i];
-        b_temp[tid][indxJ+1] += A->val[itr_j] * x2[i];
+        const double val = A->val[itr_j];
+        b0 += val * x1[j];
+        b1 += val * x2[j];
+        bt[2*j] += val * x1_i;
+        bt[2*j+1] += val * x2_i;
       }
+      bt[2*i] += b0;
+      bt[2*i+1] += b1;
     }
 
-    // Wait till b_temp accumulated
 #if defined(_OPENMP)
-#pragma omp barrier
-#pragma omp for schedule(dynamic,50)
+#pragma omp for schedule(static)
 #endif
-    for (i = 0; i < nall; ++i) {
-      indxI = 2 * i;
-      for (int t = 0; t < nthreads; ++t) {
-        b[indxI] += b_temp[t][indxI];
-        b[indxI+1] += b_temp[t][indxI+1];
-      }
+    for (i = 0; i < 2 * nall; ++i) {
+      double sum = 0.0;
+      for (int t = 0; t < nthreads; ++t) sum += b_temp[t][i];
+      b[i] = sum;
     }
 
   } // omp parallel
@@ -800,8 +759,6 @@ void FixQEqReaxFFOMP::dual_sparse_matvec(sparse_matrix *A, double *x, double *b)
   {
     int i, j, itr_j;
     int ii;
-    int indxI, indxJ;
-    int nlocal = atom->nlocal;
     int nall = atom->nlocal + atom->nghost;
 
     int nthreads = comm->nthreads;
@@ -811,70 +768,44 @@ void FixQEqReaxFFOMP::dual_sparse_matvec(sparse_matrix *A, double *x, double *b)
     int tid = 0;
 #endif
 
+    double *const bt = b_temp[tid];
+    for (i = 0; i < 2 * nall; ++i) bt[i] = 0.0;
+
+    // the rows of atoms outside the fix group only contain neighbors in the group
+
 #if defined(_OPENMP)
-#pragma omp for schedule(dynamic,50)
+#pragma omp for schedule(static)
 #endif
     for (ii = 0; ii < nn; ++ii) {
       i = ilist[ii];
-      indxI = 2 * i;
+      const double x1_i = x[2*i];
+      const double x2_i = x[2*i+1];
+      double b0 = 0.0, b1 = 0.0;
       if (atom->mask[i] & groupbit) {
-        b[indxI] = eta[atom->type[i]] * x[indxI];
-        b[indxI+1] = eta[atom->type[i]] * x[indxI+1];
-      } else {
-        b[indxI] = b[indxI+1] = 0.0;
+        const double eta_i = eta[atom->type[i]];
+        b0 = eta_i * x1_i;
+        b1 = eta_i * x2_i;
       }
-    }
-
-#if defined(_OPENMP)
-#pragma omp for schedule(dynamic,50)
-#endif
-    for (i = nlocal; i < nall; ++i) {
-      indxI = 2 * i;
-      b[indxI]   = 0;
-      b[indxI+1] = 0;
-    }
-
-#if defined(_OPENMP)
-#pragma omp for schedule(dynamic,50)
-#endif
-    for (i = 0; i < nall; ++i) {
-      indxI = 2 * i;
-      for (int t=0; t<nthreads; t++) {
-        b_temp[t][indxI] = 0.0;
-        b_temp[t][indxI+1] = 0.0;
-      }
-    }
-
-    // Wait for b accumulated and b_temp zeroed
-#if defined(_OPENMP)
-#pragma omp barrier
-#pragma omp for schedule(dynamic,50)
-#endif
-    for (ii = 0; ii < nn; ++ii) {
-      i = ilist[ii];
-      indxI = 2 * i;
-      for (itr_j=A->firstnbr[i]; itr_j<A->firstnbr[i]+A->numnbrs[i]; itr_j++) {
+      const int end_j = A->firstnbr[i] + A->numnbrs[i];
+      for (itr_j = A->firstnbr[i]; itr_j < end_j; itr_j++) {
         j = A->jlist[itr_j];
-        indxJ = 2 * j;
-        b[indxI] += A->val[itr_j] * x[indxJ];
-        b[indxI+1] += A->val[itr_j] * x[indxJ+1];
-
-        b_temp[tid][indxJ] += A->val[itr_j] * x[indxI];
-        b_temp[tid][indxJ+1] += A->val[itr_j] * x[indxI+1];
+        const double val = A->val[itr_j];
+        b0 += val * x[2*j];
+        b1 += val * x[2*j+1];
+        bt[2*j] += val * x1_i;
+        bt[2*j+1] += val * x2_i;
       }
+      bt[2*i] += b0;
+      bt[2*i+1] += b1;
     }
 
-    // Wait till b_temp accumulated
 #if defined(_OPENMP)
-#pragma omp barrier
-#pragma omp for schedule(dynamic,50)
+#pragma omp for schedule(static)
 #endif
-    for (i = 0; i < nall; ++i) {
-      indxI = 2 * i;
-      for (int t = 0; t < nthreads; ++t) {
-        b[indxI] += b_temp[t][indxI];
-        b[indxI+1] += b_temp[t][indxI+1];
-      }
+    for (i = 0; i < 2 * nall; ++i) {
+      double sum = 0.0;
+      for (int t = 0; t < nthreads; ++t) sum += b_temp[t][i];
+      b[i] = sum;
     }
   } // omp parallel
 }

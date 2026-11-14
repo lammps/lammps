@@ -635,8 +635,6 @@ void PairSWIntel::eval(const int vflag,
 
       acc_t * const dforce = &(f[0].x);
       for (int i = iifrom; i < iito; i += iip) {
-        SIMD_int ilistv = SIMD_load(ilist + i);
-        SIMD_int goffset = ilistv * 16;
         SIMD_mask imask;
         if (swidth == 16)
           imask = 0xFFFF;
@@ -644,6 +642,8 @@ void PairSWIntel::eval(const int vflag,
           imask = 0xFF;
         const int rem = iito - i;
         if (rem < swidth) imask = imask >> (swidth - rem);
+        SIMD_int ilistv = SIMD_loaduz(imask, ilist + i);
+        SIMD_int goffset = ilistv * 16;
         SIMD_flt_t xtmp, ytmp, ztmp;
         SIMD_int itype, itype_offset;
 
@@ -656,13 +656,13 @@ void PairSWIntel::eval(const int vflag,
 
         #ifdef LMP_INTEL_3BODY_FAST
         const int* ng = firstneigh + cnumneigh[i] - swidth;
-        const SIMD_int jnum = SIMD_loadz(imask, numneigh + i);
+        const SIMD_int jnum = SIMD_loaduz(imask, numneigh + i);
         #else
-        SIMD_int ng = SIMD_load(cnumneigh + i);
+        SIMD_int ng = SIMD_loaduz(imask, cnumneigh + i);
         const SIMD_int jnum = SIMD_gatherz(imask, numneigh, ilistv);
         ng = ng - 1;
         #endif
-        const SIMD_int jnumhalf = SIMD_loadz(imask, numneighhalf + i);
+        const SIMD_int jnumhalf = SIMD_loaduz(imask, numneighhalf + i);
         const int jnum_max = SIMD_max(jnum);
 
         SIMD_acc_t fxtmp = SIMD_set((acc_t)0);

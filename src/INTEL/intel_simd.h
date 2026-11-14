@@ -218,6 +218,10 @@ namespace ip_simd {
     return _mm512_load_pd((double *)p);
   }
 
+  inline SIMD_int SIMD_loaduz(const SIMD_mask &m, const int *p) {
+    return _mm512_maskz_loadu_epi32(m, p);
+  }
+
   inline SIMD_int SIMD_loadz(const SIMD_mask &m, const int *p) {
     return _mm512_maskz_load_epi32(m, p);
   }

@@ -145,6 +145,30 @@ cdef create_array(device, void *pointer, shape,is_int):
 
 
 
+cdef exchange_pointers(copy_from, copy_to):
+    """Return the data pointers of copy_from and copy_to for forward_exchange()
+    and reverse_exchange(), and whether they hold 32-bit floats.  Only this lookup
+    falls back from PyTorch tensors to CuPy arrays, so that errors raised by the
+    exchange itself are not mistaken for an unknown array type."""
+    try:
+        # PyTorch tensors
+        copy_from_ptr = copy_from.data_ptr()
+        copy_to_ptr = copy_to.data_ptr()
+        float32, float64 = torch.float32, torch.float64
+    except (AttributeError, NameError):
+        # CuPy arrays
+        copy_from_ptr = copy_from.data.ptr
+        copy_to_ptr = copy_to.data.ptr
+        float32, float64 = np.float32, np.float64
+
+    if copy_from.dtype == float32:
+        return copy_from_ptr, copy_to_ptr, True
+    elif copy_from.dtype == float64:
+        return copy_from_ptr, copy_to_ptr, False
+    else:
+        raise TypeError(f"Unsupported comms type: ({copy_from.dtype})")
+
+
 # Cython implementation of MLIAPData
 # Automatically converts between C arrays and numpy when needed
 cdef class MLIAPDataPy:
@@ -201,28 +225,11 @@ cdef class MLIAPDataPy:
         if copy_from_dtype != copy_to_dtype:
             raise TypeError(f"Types of ({copy_from_dtype})copy_from and ({copy_to_dtype})copy_to mismatch")
 
-        try:
-            #Attempt assuming PyTorch data
-            copy_from_ptr = copy_from.data_ptr()
-            copy_to_ptr = copy_to.data_ptr()
-
-            if copy_from_dtype == torch.float32:
-                self.data.forward_exchange( <float*>copy_from_ptr, <float*>copy_to_ptr, vec_len)
-            elif copy_from_dtype == torch.float64:
-                self.data.forward_exchange( <double*>copy_from_ptr, <double*>copy_to_ptr, vec_len)
-            else:
-                raise TypeError(f"Unsupported comms type: ({copy_from_dtype})")
-        except:
-            #Attempt assuming Numpy data
-            copy_from_ptr = copy_from.data.ptr
-            copy_to_ptr = copy_to.data.ptr
-
-            if copy_from_dtype == np.float32:
-                self.data.forward_exchange( <float*>copy_from_ptr, <float*>copy_to_ptr, vec_len)
-            elif copy_from_dtype == np.float64:
-                self.data.forward_exchange( <double*>copy_from_ptr, <double*>copy_to_ptr, vec_len)
-            else:
-                raise TypeError(f"Unsupported comms type: ({copy_from_dtype})")
+        copy_from_ptr, copy_to_ptr, is_float32 = exchange_pointers(copy_from, copy_to)
+        if is_float32:
+            self.data.forward_exchange( <float*>copy_from_ptr, <float*>copy_to_ptr, vec_len)
+        else:
+            self.data.forward_exchange( <double*>copy_from_ptr, <double*>copy_to_ptr, vec_len)
 
     def reverse_exchange(self, copy_from, copy_to, vec_len):
         cdef uintptr_t copy_from_ptr, copy_to_ptr;
@@ -232,28 +239,11 @@ cdef class MLIAPDataPy:
         if copy_from_dtype != copy_to_dtype:
             raise TypeError(f"Types of ({copy_from_dtype})copy_from and ({copy_to_dtype})copy_to mismatch")
 
-        try:
-            #Attempt assuming PyTorch data
-            copy_from_ptr = copy_from.data_ptr()
-            copy_to_ptr = copy_to.data_ptr()
-
-            if copy_from_dtype == torch.float32:
-                self.data.reverse_exchange( <float*>copy_from_ptr, <float*>copy_to_ptr, vec_len)
-            elif copy_from_dtype == torch.float64:
-                self.data.reverse_exchange( <double*>copy_from_ptr, <double*>copy_to_ptr, vec_len)
-            else:
-                raise TypeError(f"Unsupported comms type: ({copy_from_dtype})")
-        except:
-            #Attempt assuming Numpy data
-            copy_from_ptr = copy_from.data.ptr
-            copy_to_ptr = copy_to.data.ptr
-
-            if copy_from_dtype == np.float32:
-                self.data.reverse_exchange( <float*>copy_from_ptr, <float*>copy_to_ptr, vec_len)
-            elif copy_from_dtype == np.float64:
-                self.data.reverse_exchange( <double*>copy_from_ptr, <double*>copy_to_ptr, vec_len)
-            else:
-                raise TypeError(f"Unsupported comms type: ({copy_from_dtype})")
+        copy_from_ptr, copy_to_ptr, is_float32 = exchange_pointers(copy_from, copy_to)
+        if is_float32:
+            self.data.reverse_exchange( <float*>copy_from_ptr, <float*>copy_to_ptr, vec_len)
+        else:
+            self.data.reverse_exchange( <double*>copy_from_ptr, <double*>copy_to_ptr, vec_len)
         
     @property
     def f(self):

@@ -474,6 +474,80 @@ TEST_F(LatticeRegionTest, lattice_custom)
                  command("lattice custom 1.0 a3 1.0 1.0 1.0 basis 0.0 0.0 0.0"););
 }
 
+TEST_F(LatticeRegionTest, lattice_triclinic_negative_x)
+{
+    BEGIN_HIDE_OUTPUT();
+    command("units lj");
+    command("boundary p p p");
+    command("lattice custom 1.0 triclinic/general "
+            "a1 -1 0 0 a2 0 -1 0 a3 0 0 1 basis 0 0 0");
+    command("create_box 1 NULL 0 3 0 3 0 3");
+    END_HIDE_OUTPUT();
+
+    auto *domain = lmp->domain;
+    ASSERT_EQ(domain->triclinic_general, 1);
+    for (int i = 0; i < 3; ++i) {
+        ASSERT_NEAR(domain->boxlo[i], 0.0, 1.0e-12);
+        ASSERT_NEAR(domain->boxhi[i], 3.0, 1.0e-12);
+    }
+    ASSERT_NEAR(domain->xy, 0.0, 1.0e-12);
+    ASSERT_NEAR(domain->xz, 0.0, 1.0e-12);
+    ASSERT_NEAR(domain->yz, 0.0, 1.0e-12);
+    ASSERT_NEAR(domain->xprd * domain->yprd * domain->zprd, 27.0, 1.0e-12);
+}
+
+TEST_F(LatticeRegionTest, lattice_triclinic_negative_x_tilted)
+{
+    BEGIN_HIDE_OUTPUT();
+    command("lattice custom 1.0 triclinic/general "
+            "a1 -2 0 0 a2 0.5 -3 -4 a3 0.25 -5.5 1 basis 0 0 0");
+    command("create_box 1 NULL -1 2 -2 1 -0.5 0.5");
+    END_HIDE_OUTPUT();
+
+    auto *domain = lmp->domain;
+    ASSERT_EQ(domain->triclinic_general, 1);
+    ASSERT_NEAR(domain->boxlo[0], 0.875, 1.0e-12);
+    ASSERT_NEAR(domain->boxlo[1], 8.75, 1.0e-12);
+    ASSERT_NEAR(domain->boxlo[2], 7.5, 1.0e-12);
+    ASSERT_NEAR(domain->xprd, 6.0, 1.0e-12);
+    ASSERT_NEAR(domain->yprd, 15.0, 1.0e-12);
+    ASSERT_NEAR(domain->zprd, 5.0, 1.0e-12);
+    ASSERT_NEAR(domain->xy, -1.5, 1.0e-12);
+    ASSERT_NEAR(domain->xz, -0.25, 1.0e-12);
+    ASSERT_NEAR(domain->yz, 2.5, 1.0e-12);
+    ASSERT_NEAR(domain->xprd * domain->yprd * domain->zprd, 450.0, 1.0e-12);
+
+    double x[3] = {-0.1875, 5.125, 4.75};
+    domain->general_to_restricted_coords(x);
+    ASSERT_NEAR(x[0], 1.9375, 1.0e-12);
+    ASSERT_NEAR(x[1], 13.125, 1.0e-12);
+    ASSERT_NEAR(x[2], 8.75, 1.0e-12);
+    domain->restricted_to_general_coords(x);
+    ASSERT_NEAR(x[0], -0.1875, 1.0e-12);
+    ASSERT_NEAR(x[1], 5.125, 1.0e-12);
+    ASSERT_NEAR(x[2], 4.75, 1.0e-12);
+}
+
+TEST_F(LatticeRegionTest, lattice_triclinic_negative_x_2d)
+{
+    BEGIN_HIDE_OUTPUT();
+    command("dimension 2");
+    command("lattice custom 1.0 triclinic/general "
+            "a1 -1 0 0 a2 0 -1 0 a3 0 0 1 basis 0 0 0");
+    command("create_box 1 NULL 0 3 0 2 -0.5 0.5");
+    END_HIDE_OUTPUT();
+
+    auto *domain = lmp->domain;
+    ASSERT_EQ(domain->triclinic_general, 1);
+    ASSERT_NEAR(domain->xprd, 3.0, 1.0e-12);
+    ASSERT_NEAR(domain->yprd, 2.0, 1.0e-12);
+    ASSERT_NEAR(domain->boxlo[2], -0.5, 1.0e-12);
+    ASSERT_NEAR(domain->boxhi[2], 0.5, 1.0e-12);
+    ASSERT_NEAR(domain->xy, 0.0, 1.0e-12);
+    ASSERT_NEAR(domain->xz, 0.0, 1.0e-12);
+    ASSERT_NEAR(domain->yz, 0.0, 1.0e-12);
+}
+
 TEST_F(LatticeRegionTest, region_fail)
 {
     BEGIN_HIDE_OUTPUT();

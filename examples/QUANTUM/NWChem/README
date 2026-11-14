@@ -27,17 +27,6 @@ Step 1: Build LAMMPS
 The MDI and molecule packags are needed.  Copy the final LAMMPS
 executable into the examples/QUANTUM/NWChem directory.
 
-Traditional make:
-
-% cd ~/lammps/lib/mdi
-% python Install.py -m mpi
-% cd ~/lammps/src
-% make yes-mdi yes-molecule
-% make -j mpi
-% cp lmp_mpi ~/lammps/examples/QUANTUM/NWChem
-
-CMake:
-
 % cd ~/lammps
 % cmake -S cmake -B build -D PKG_MDI=on -D PKG_MOLECULE=on
 % cmake --build build

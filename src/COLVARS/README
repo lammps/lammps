@@ -9,9 +9,7 @@ distributions.
 The package uses the "Colvars" library, whose source code is included
 in the LAMMPS source code distribution and must be linked with LAMMPS.
 See the lib/colvars/README file and the LAMMPS manual for information
-on building LAMMPS with external libraries.  The settings in the
-Makefile.lammps file in that directory must be correct for LAMMPS to
-build correctly with this package installed.
+on building LAMMPS with external libraries.
 
 The files in the COLVARS package folder implement an interface
 between LAMMPS and Colvars, originally written by Axel Kohlmeyer
@@ -22,12 +20,17 @@ More info about the Colvars library can be found at:
 
 https://github.com/colvars/colvars
 
-and in the reference article:
+and in the reference articles:
 
 Using collective variables to drive molecular dynamics simulations,
 G. Fiorin, M. L. Klein, and J. Henin,
 Molecular Physics 111, 3345 (2013)
 https://doi.org/10.1080/00268976.2013.813594
+
+Expanded Functionality and Portability for the Colvars Library.
+G. Fiorin, F. Marinelli, L. R. Forrest, H. Chen, C. Chipot, A. Kohlmeyer, H. Santuz, J. Henin.
+J Phys Chem B. 128(45), 11108, (2024)
+https://doi.org/10.1021/acs.jpcb.4c05604
 
 A reference manual for the package and library is included with the
 LAMMPS doc pages:
@@ -43,4 +46,4 @@ regarding this package.
 
 ---------------------------------
 
-Version: 2016-12-22
+Version: 2026-10-17

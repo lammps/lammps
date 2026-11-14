@@ -952,8 +952,7 @@ endif()
 
 ###############################################################################
 # Install LAMMPS lib and python module into site-packages folder with
-# "install-python" target.  Behaves exactly like "make install-python" for
-# conventional build.  Only available, if a shared library is built.
+# "install-python" target. Only available, if a shared library is built.
 # This is primarily for people that only want to use the Python wrapper.
 ###############################################################################
 if(BUILD_SHARED_LIBS)

@@ -28,7 +28,10 @@ cmake --build build -j 4
 # Executable: build/lmp
 ```
 
-- Use `-S cmake` (NOT `-S .`); never run cmake or make in the repository root or `src/`.
+- Use `-S cmake` (NOT `-S .`); never run cmake in the repository root or `src/`.
+  CMake is the only build system; `src/Makefile` only provides the style checks
+  below and `make purge` (removes leftovers of the removed legacy make build, which
+  make CMake refuse to configure).
 - Presets are in `cmake/presets/` (`basic.cmake`, `gcc.cmake`, `most.cmake`, ...); they
   can be combined with repeated `-C` options.
 - Enable packages with `-D PKG_<NAME>=on` (e.g. `-D PKG_MOLECULE=on`); LAMMPS has 80+
@@ -43,14 +46,14 @@ cmake --build build -j 4
   `-D MPI_CXX_COMPILER=mpicxx` explicitly.  LAMMPS uses its bundled KISS FFT by
   default; FFTW3 is optional, not required.
 - Build times: basic preset ~3-5 minutes; most packages ~10-15 minutes.
-- The legacy GNU make build (`cd src && make serial`) and switching between the two
-  build systems: `.github/instructions/build-system.instructions.md`.
+- How CMake collects package sources and styles, and conventions for CMake modules:
+  `.github/instructions/build-system.instructions.md`.
 
 ## Testing & Validation
 
 **Style checks (run before every commit/PR):**
 ```bash
-cd src && make check            # all checks
+cd src && make check            # all checks, incl. doc checks (needs doxygen, creates doc/docenv)
 cd src && make check-whitespace # most common CI failure
 cd src && make fix-whitespace   # auto-fix whitespace
 cd src && make fix-permissions  # auto-fix file permissions
@@ -126,7 +129,7 @@ automatically: read them before starting the corresponding kind of work.
 | Working on ... | Read |
 |---|---|
 | C++ code in `src/`, `lib/`, `unittest/`; adding styles | `.github/instructions/source-code.instructions.md` (auto) |
-| build system (`cmake/`, legacy make) | `.github/instructions/build-system.instructions.md` (auto) |
+| build system (`cmake/`, `src/Makefile`) | `.github/instructions/build-system.instructions.md` (auto) |
 | `src/KOKKOS/` styles (rules, policies) | `.github/instructions/kokkos.instructions.md` (auto) |
 | porting a style to KOKKOS | `.github/dev-docs/kokkos-porting-guide.md` + `accelerator-porting-backlog.md` |
 | porting/auditing `src/OPENMP/` (`/omp`) styles | `.github/dev-docs/openmp-porting.md` + `accelerator-porting-backlog.md` |

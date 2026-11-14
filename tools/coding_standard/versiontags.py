@@ -24,8 +24,6 @@ include:
     - python/**
     - src/**
     - tools/lammps-gui/**
-exclude:
-    - src/Make.sh
 patterns:
     - "*.c"
     - "*.cpp"

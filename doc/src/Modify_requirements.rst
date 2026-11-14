@@ -213,30 +213,17 @@ features or not have the option to install newer compilers or libraries.
 Build system (strict)
 ---------------------
 
-LAMMPS currently supports two build systems: one that is based on
-:doc:`traditional Makefiles <Build_make>` and one that is based on
-:doc:`CMake <Build_cmake>`.  As of fall 2025, it is no longer required
-to support the traditional :doc:`traditional GNU make build system
-<Build_make>`.  New packages may choose to only support :doc:`building
-with CMake <Build_cmake>`.  Additions to existing packages must follow
-the requirements set by that package.
+Building LAMMPS from source uses :doc:`CMake <Build_cmake>`.  As of fall
+2026, the :doc:`legacy GNU make based build system <Build_make>` has
+been removed.  New packages must be integrated into the build system in
+a similar fashion to existing packages.  Additions to existing packages
+must follow the requirements set by that package.
 
-For a single pair of header and implementation files that are an
-independent feature, it is usually only required to add them to
-``src/.gitignore``.
-
-For traditional make, if your contributed files or package depend on
-other LAMMPS style files or packages also being installed (e.g. because
-your file is a derived class from the other LAMMPS class), then an
-``Install.sh`` file is also needed to check for those dependencies and
-modifications to ``src/Depend.sh`` to trigger the checks.  See other
-README and Install.sh files in other directories as examples.
-
-Similarly, for CMake support, changes may need to be made to
-``cmake/CMakeLists.txt``, some of the files in ``cmake/presets``, and
-possibly a file with specific instructions needs to be added to
-``cmake/Modules/Packages/``.  Please check out how this is handled for
-existing packages and ask the LAMMPS developers if you need assistance.
+Changes may need to be made to ``cmake/CMakeLists.txt``, some of the
+files in ``cmake/presets``, and possibly a file with specific
+instructions needs to be added to ``cmake/Modules/Packages/``.  Please
+check out how this is handled for existing packages and ask the LAMMPS
+developers if you need assistance.
 
 .. _ReqNaming:
 

@@ -12,26 +12,17 @@ directory itself, but there are plenty of :doc:`packages <Packages>`,
 which can be included or excluded when LAMMPS is built.  See the
 :doc:`Include packages in build <Build_package>` section of the manual
 for more information about that part of the build process.  LAMMPS
-currently supports building with :doc:`conventional makefiles
-<Build_make>` and through :doc:`CMake <Build_cmake>`.  Those procedures
-differ in how packages are enabled or disabled for inclusion into a
-LAMMPS binary, so they cannot be mixed.  The source files for each
-package are in all-uppercase subdirectories of the ``src`` folder, for
-example ``src/MOLECULE`` or ``src/EXTRA-MOLECULE``.  The ``src/STUBS``
-subdirectory is not a package but contains a dummy MPI library, that is
-used when building a serial version of the code. The ``src/MAKE``
-directory and its subdirectories contain makefiles with settings and
-flags for a variety of configuration and machines for the build process
-with traditional makefiles.
+requires building with :doc:`CMake <Build_cmake>`.  The source files for
+each package are in all-uppercase subdirectories of the ``src`` folder,
+for example ``src/MOLECULE`` or ``src/EXTRA-MOLECULE``.  The
+``src/STUBS`` subdirectory is not a package but contains a dummy MPI
+library, that is used when building a serial version of the code.
 
-The ``lib`` directory contains the source code for several supporting
-libraries or files with configuration settings to use globally installed
-libraries, that are required by some optional packages.  They may
-include python scripts that can transparently download additional source
-code on request.  Each subdirectory, like ``lib/colvars`` or ``lib/gpu``,
-contains the source files, some of which are in different languages such
-as Fortran or CUDA. These libraries included in the LAMMPS build, if the
-corresponding package is installed.
+The ``lib`` directory contains the source code or header files of
+several supporting libraries that are required by some optional
+packages.  Each subdirectory, like ``lib/colvars`` or ``lib/gpu``,
+contains the source files.  These libraries are included in the LAMMPS
+build, if the corresponding package is enabled.
 
 LAMMPS C++ source files almost always come in pairs, such as
 ``src/run.cpp`` (implementation file) and ``src/run.h`` (header file).
@@ -41,8 +32,9 @@ the :doc:`run <run>` command in a LAMMPS input script.  As this example
 illustrates, source file and class names often have a one-to-one
 correspondence with a command used in a LAMMPS input script.  Some
 source files and classes do not have a corresponding input script
-command, for example ``src/force.cpp`` and the :cpp:class:`!LAMMPS_NS::Force`
-class.  They are discussed in the next section.
+command, for example ``src/force.cpp`` and the
+:cpp:class:`!LAMMPS_NS::Force` class.  They are discussed in the next
+section.
 
 The names of all source files are in lower case and may use the
 underscore character '_' to separate words. Apart from bundled,

@@ -19,14 +19,10 @@ only available option. Adding support for a different QM code will
 require to write a new version of the top-level wrapper code, pwqmmm.c,
 and also an interface layer into the QM code similar to the one in QE.
 
-LAMMPS has support for two build systems, the traditional make based
-one and a newer one based on CMake.  You have to build LAMMPS as a
-library with the QMMM package included and for that you need to
-also build the libqmmm.a library in this folder.
-
-Below you will find some description of the steps needed in either case.
-However you build LAMMPS and the liblammps and libqmmm libraries, you
-will need to perform the remaining steps manually, as outlined below.
+You have to build LAMMPS with CMake as a shared library with the QMMM
+package included, which also compiles the file libqmmm.c in this folder
+into the LAMMPS library.  The remaining steps need to be performed
+manually, as outlined below.
 
 -------------------------------------------------
 
@@ -43,9 +39,6 @@ molecules as included in the two example folders.
 -------------------------------------------------
 
 Building the QM/MM executable has to be done in multiple stages
-
-Building with CMake for LAMMPS
-==============================
 
 Step 1)
 
@@ -95,7 +88,7 @@ on the QM atoms only.
 Step 3)
 
 Go back to this folder (lib/qmmm) and now review the file
-Makefile.gfortran-cmake and make adjustments to the makefile variables
+Makefile.gfortran and make adjustments to the makefile variables
 according to the comments in the file.  You probably need to adjust
 the QETOPDIR variable to point to the location of your QE
 compilation/installation.
@@ -108,13 +101,6 @@ If this is successful, you should be able to run a QM/MM calculation
 and can try the examples in the example-mc and example-ec folders:
 
   mpirun -np 4 ../pwqmmm.x qmmm.inp 2
-
-
-Building with traditional make for LAMMPS
-=========================================
-
-The QMMM package no longer supports building with the traditional
-make build system.  Please use CMake instead.
 
 -------------------------------------------------
 
@@ -218,4 +204,4 @@ slout    water_single.out  # output file for MM slave (or NULL to print to scree
 
 ---------------------------------
 
-Version: 2025-08-04
+Version: 2026-10-17

@@ -9,20 +9,21 @@ LAMMPS Python Tutorial
 Overview
 --------
 
-The :py:class:`lammps <lammps.lammps>` Python module is a wrapper class for the
-LAMMPS :ref:`C language library interface API <lammps_c_api>` which is written using
-`Python ctypes <ctypes_>`_.  The design choice of this wrapper class is to
-follow the C language API closely with only small changes related to Python
-specific requirements and to better accommodate object-oriented programming.
+The :py:class:`lammps <lammps.lammps>` Python module is a wrapper class
+for the LAMMPS :ref:`C language library interface API <lammps_c_api>`
+which is written using `Python ctypes <ctypes_>`_.  The design choice of
+this wrapper class is to follow the C language API closely with only
+small changes related to Python specific requirements and to better
+accommodate object-oriented programming.
 
 In addition to this flat `ctypes <ctypes_>`_ interface, the
 :py:class:`lammps <lammps.lammps>` wrapper class exposes a discoverable
 API that doesn't require as much knowledge of the underlying C language
 library interface or LAMMPS C++ code implementation.
 
-Finally, the API exposes some additional features for `IPython integration
-<ipython_>`_ into `Jupyter notebooks <jupyter_>`_, e.g. for embedded
-visualization output from :doc:`dump style image <dump_image>`.
+Finally, the API exposes some additional features for `IPython
+integration <ipython_>`_ into `Jupyter notebooks <jupyter_>`_, e.g. for
+embedded visualization output from :doc:`dump style image <dump_image>`.
 
 .. _ctypes: https://docs.python.org/3/library/ctypes.html
 .. _ipython: https://ipython.org/
@@ -51,51 +52,23 @@ This library is then loaded by the Python interface.  In this example we
 enable the :ref:`MOLECULE package <PKG-MOLECULE>` and compile LAMMPS
 with :ref:`PNG and JPEG output support <graphics>` enabled.
 
-.. tabs::
+.. code-block:: bash
 
-   .. tab:: CMake build
+   cd $LAMMPS_DIR
 
-      .. code-block:: bash
-
-         cd $LAMMPS_DIR
-
-         # MPI, PNG, JPEG, and FFMPEG support are auto-detected
-         cmake -S cmake -B build-shared -D PKG_MOLECULE=on -D PKG_PYTHON=on \
-               -D PKG_GRAPHICS=on -D BUILD_SHARED_LIBS=on
-         cmake --build build-shared
-
-   .. tab:: Traditional make
-
-      .. code-block:: bash
-
-         cd $LAMMPS_DIR/src
-
-         # add LAMMPS packages if necessary
-         make yes-MOLECULE
-         make yes-PYTHON
-         make yes-GRAPHICS
-
-         # compile shared library using Makefile
-         make mpi mode=shlib LMP_INC="-DLAMMPS_PNG -DLAMMPS_JPEG" JPG_LIB="-lpng -ljpeg"
+   # MPI, PNG, JPEG, and FFMPEG support are auto-detected
+   cmake -S cmake -B build -D PKG_MOLECULE=on -D PKG_PYTHON=on \
+         -D PKG_GRAPHICS=on -D BUILD_SHARED_LIBS=on
+   cmake --build build
 
 Step 2: Installing the LAMMPS Python module
 """""""""""""""""""""""""""""""""""""""""""
 
 Next install the LAMMPS Python module into your current Python installation with:
 
-.. tabs::
+.. code-block:: bash
 
-   .. tab:: CMake build
-
-      .. code-block:: bash
-
-         cmake --build build-shared --target install-python
-
-   .. tab:: Traditional make
-
-      .. code-block:: bash
-
-         make install-python
+   cmake --build build --target install-python
 
 This will create a so-called `"wheel"
 <https://packaging.python.org/en/latest/discussions/package-formats/#what-is-a-wheel>`_
@@ -142,7 +115,8 @@ Benefits of using a virtual environment
 
 * isolation of your system Python installation from your development installation
 * installation can happen in your user directory without root access (useful for HPC clusters)
-* installing packages through pip allows you to get newer versions of packages than e.g., through the apt or dnf package managers (and without root access)
+* installing packages through pip allows you to get newer versions of packages than e.g.,
+  through the apt or dnf package managers (and without root access)
 * you can even install specific old versions of a package if necessary
 
 **Prerequisite (e.g. on Ubuntu)**
@@ -171,16 +145,15 @@ executable to the location in the virtual environment with:
 
 .. code-block:: bash
 
-   cmake -S cmake -B build-shared -D Python_EXECUTABLE=$(which python)
+   cmake -S cmake -B build -D Python_EXECUTABLE=$(which python)
 
-Then install the LAMMPS Python module (for the traditional make build
-use ``make install-python`` in the ``src`` folder instead) and other
-useful packages into the virtual environment:
+Then install the LAMMPS Python module and other useful packages into
+the virtual environment:
 
 .. code-block:: bash
 
    # install LAMMPS package in virtual environment
-   cmake --build build-shared --target install-python
+   cmake --build build --target install-python
 
    # install other useful packages
    pip install matplotlib jupyterlab mpi4py pandas

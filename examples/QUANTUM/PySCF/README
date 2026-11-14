@@ -46,17 +46,6 @@ Step 1: Build LAMMPS
 The MDI, molecule, and kspace packages are needed.  Copy the final
 LAMMPS executable into the examples/QUANTUM/PySCF directory.
 
-Traditional make:
-
-% cd ~/lammps/lib/mdi
-% python Install.py -m mpi
-% cd ~/lammps/src
-% make yes-mdi yes-molecule yes-kspace
-% make -j mpi
-% cp lmp_mpi ~/lammps/examples/QUANTUM/PySCF
-
-CMake:
-
 % cd ~/lammps
 % cmake -S cmake -B build -D PKG_MDI=on -D PKG_MOLECULE=on -D PKG_KSPACE=on
 % cmake --build build

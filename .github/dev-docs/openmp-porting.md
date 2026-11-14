@@ -33,11 +33,12 @@ deliberately do not.  What remains to port, ranked by effort, is in
 
 ## Registration mechanics (all automatic -- do NOT edit build files)
 
-- CMake `RegisterStylesExt` (`StyleHeaderUtils.cmake`) scans `*_omp.h` style
-  headers; `src/OPENMP/Install.sh` step 1 auto-installs `*_omp.{h,cpp}` and
-  skips children of uninstalled parent packages; `src/.gitignore` already has
-  `/*_omp.h` `/*_omp.cpp` wildcards.  Just drop the files into `src/OPENMP/`
-  and RECONFIGURE (`cmake -S cmake -B <build>`) so the glob re-registers.
+- CMake `RegisterStylesExt` (`StyleHeaderUtils.cmake`) registers
+  `<base>_omp.{h,cpp}` when `<base>.h` is a style header of the build, so
+  children of disabled parent packages are skipped automatically.  Just drop the
+  files into `src/OPENMP/` and RECONFIGURE (`cmake -S cmake -B <build>`) so the
+  glob re-registers.  Only helper files without a style macro must be added to
+  `cmake/Modules/Packages/OPENMP.cmake` (inside `if(PKG_<NAME>)` if needed).
 - Docs for a new `/omp` variant: add the `o` letter in the matching
   `Commands_*.rst` cell (no commas, e.g. `(ko)`), an `.. index:: <name>/omp`
   entry, and append `, *<name>/omp*` to the style page's `Accelerator Variants:`

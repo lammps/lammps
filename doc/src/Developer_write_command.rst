@@ -15,12 +15,13 @@ print out error messages.  The ``Command::command()`` method processes the
 arguments passed to the command in the input and executes it.  Any other
 methods would be for the convenience of implementation of the new command.
 
-In general, new command styles should be added to the :ref:`EXTRA-COMMAND
-package <PKG-EXTRA-COMMAND>`.  If you feel that your contribution should be
-added to a different package, please consult with the :doc:`LAMMPS
-developers <Intro_authors>` first.  The contributed code needs to support
-the :doc:`traditional GNU make build process <Build_make>` **and** the
-:doc:`CMake build process <Build_cmake>`.
+In general, new command styles should be added to the
+:ref:`EXTRA-COMMAND package <PKG-EXTRA-COMMAND>`.  If you feel that your
+contribution should be added to a different package, please consult with
+the :doc:`LAMMPS developers <Intro_authors>` first.  The contributed
+code needs to support the :doc:`CMake build process <Build_cmake>`.
+This is usually automatic unless the new style uses some external
+library.
 
 ----
 
@@ -38,11 +39,9 @@ Interfacing the *libcurl* library
 """""""""""""""""""""""""""""""""
 
 Rather than implementing the various protocols for downloading files, we
-rely on an external library: `libcurl library <https://curl.se/libcurl/>`_.
-This requires that the library and its headers are installed.  For the
-traditional GNU make build system, this simply requires edits to the machine
-makefile to add compilation flags like for other libraries.  For the CMake
-based build system, we need to add some lines to the file
+rely on the external `libcurl library
+<https://curl.se/libcurl/>`_.  This requires that the library and its
+headers are installed.  To find and link it, we need to add some lines to the file
 ``cmake/Modules/Packages/EXTRA-COMMAND.cmake``:
 
 .. code-block:: cmake

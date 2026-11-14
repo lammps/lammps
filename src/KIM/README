@@ -9,22 +9,19 @@ Ryan Elliott is the main developer for the KIM API and he also
 maintains the code that implements these commands.
 
 Using this package requires the KIM-API library and its models
-(interatomic potentials) to be downloaded and installed on your
-system.  The library can be downloaded and built in lib/kim or
-elsewhere on your system, which must be done before building LAMMPS
-with this package.  Details of the download, build, and install
-process for the KIM-API are given in the lib/kim/README file, and
-scripts are provided to help automate the process.  Also see the
-LAMMPS manual for general information on building LAMMPS with external
-libraries.  The settings in the Makefile.lammps file in lib/kim must
-be correct for LAMMPS to build correctly with this package installed.
-However, the default settings should be correct in most cases and the
-Makefile.lammps file usually will not need to be changed.
+(interatomic potentials) to be downloaded and installed on your system.
+The library can be automatically downloaded and built during the
+compilation of LAMMPS or installed separately on your system, which must
+be done before building LAMMPS with this package.  Outside of testing
+LAMMPS, it is generally recommended to perform a separate installation of
+the KIM-API so that its tools are available directly.  Details of the
+download, build, and install process for the KIM-API are given in the
+KIM-API documentation.  Also see the LAMMPS manual for general
+information on building LAMMPS with packages requiring external
+libraries. Once you have successfully built LAMMPS with this package,
+you can test it using one of the input files in the examples dir:
 
-Once you have successfully built LAMMPS with this package and the KIM
-library you can test it using an input files in the examples dir:
+./build/lmp -in lammps/examples/kim/in.kim-ex.melt
 
-./lmp_serial -in lammps/examples/kim/in.kim.lj
-
-These commands were written by Ryan S. Elliott (UMN), Ellad B. Tadmor
-(UMN) and Axel Kohlmeyer (Temple U).
+These commands were written by Ryan S. Elliott (UMN), Ellad B. Tadmor (UMN),
+Yaser Afshar (UMN), Ilia Nikiforov (UMN), and Axel Kohlmeyer (Temple U).

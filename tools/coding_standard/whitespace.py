@@ -33,21 +33,8 @@ include:
     - tools/lammps-gui
     - unittest/**
 exclude:
-    - lib/colvars/Install.py
-    - lib/gpu/geryon/file_to_cstr.sh
-    - lib/hdnnp
-    - lib/kim
     - lib/kokkos
-    - lib/latte
-    - lib/machdyn
-    - lib/mdi
-    - lib/mscg
-    - lib/pace
-    - lib/plumed
-    - lib/quip
-    - lib/scafacos
-    - lib/voronoi
-    - src/Make.sh
+
 patterns:
     - "*.c"
     - "*.cmake"

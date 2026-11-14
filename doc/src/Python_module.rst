@@ -6,9 +6,9 @@ The ``lammps`` Python module
 The LAMMPS Python interface is implemented as a module called :py:mod:`lammps`
 which is defined in the ``lammps`` package in the ``python`` folder of the
 LAMMPS source code distribution.  After compilation of LAMMPS, the module can
-be installed into a Python system folder or a user folder with ``make
-install-python``.  Components of the module can then loaded into a Python
-session with the ``import`` command.
+be installed into a Python system folder or a user folder with ``cmake
+--build build --target install-python``.  Components of the module can
+then be loaded into a Python session with the ``import`` command.
 
 .. warning::
 

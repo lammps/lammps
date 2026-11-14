@@ -11,12 +11,10 @@ This package uses an external library in lib/kokkos.  However the
 LAMMPS with this package installed, so no special pre-build of the
 library is necessary.  See the lib/kokkos/README file and the LAMMPS
 manual for information on building LAMMPS with external libraries.
-The settings in the Makefile.lammps file in that directory must be
-correct for LAMMPS to build correctly with this package installed.
 
 This package was developed primarily by Christian Trott (Sandia) with
-contributions of various styles by others, including Sikandar Mashayak
-(UIUC).  It is now maintained by Stan Moore (Sandia).  The underlying
-Kokkos library was written primarily by Carter Edwards,
- Christian Trott, and Dan Sunderland (all Sandia).
+contributions of various styles by many others.  It is now maintained
+by Stan Moore (Sandia).  The underlying Kokkos library was written
+primarily by Carter Edwards, Christian Trott, and Dan Sunderland
+(all Sandia) and is now maintained by the Kokkos development team.
 

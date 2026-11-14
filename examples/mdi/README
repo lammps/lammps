@@ -38,21 +38,14 @@ and a shared library.  The former is needed to use LAMMPS as an MDI
 driver or as an MDI engine in stand-alone mode.  The latter is needed
 to use LAMMPS as an MDI engine in plugin mode.
 
-Build via regular make:
-
-% cd lammps/src
-% make lib-mdi args="-m mpi"    # download, install MDI in lib/mdi w/ MPI support
-% make yes-mdi                  # include MDI package in LAMMPS build
-% make mode=shlib mpi           # creates lmp_mpi and liblammps.so
-
 Build via CMake:
 
 cd lammps
 cmake -S cmake -B build -D PKG_MDI=on -D BUILD_SHARED_LIBS=on
 cmake --build build             # creates lmp and liblammps.so
 
-Both of these build procedures build LAMMPS both as an executable
-(lmp_mpi) and as a shared library (liblammps.so).
+This builds the LAMMPS executable (lmp) and the shared
+ library (liblammps.so).
 
 -------------------------------------------------
 

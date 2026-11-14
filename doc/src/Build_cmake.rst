@@ -14,47 +14,21 @@ itself, the text mode or graphical user interface, to change the
 generated output files for different build tools and development
 environments is on a :doc:`separate page <Howto_cmake>`.
 
-.. note::
+.. versionchanged:: TBD
 
-   LAMMPS currently requires CMake version 3.27 or later.
+LAMMPS currently requires CMake version 3.27 or later.
+
+.. versionremoved:: TBD
+
+Support for the legacy GNU make-based build system was removed.
 
 .. warning::
 
-   You **must not** mix the :doc:`traditional make based <Build_make>`
-   LAMMPS build procedure with using CMake.  No packages may be
-   installed or a build been previously attempted in the LAMMPS source
-   directory by using ``make <machine>``.  CMake will detect if this is
-   the case and generate an error.  To remove conflicting files from the
-   ``src`` you can use the command ``make no-all purge`` which will
-   uninstall all packages and delete all auto-generated files.
-
-
-Advantages of using CMake
-^^^^^^^^^^^^^^^^^^^^^^^^^
-
-CMake is the preferred way of compiling LAMMPS in contrast to the legacy
-build system based on GNU make and through :doc:`(manually customized)
-makefiles <Build_make>`.  Using CMake has multiple advantages that are
-specifically helpful for people with limited experience in compiling
-software or for people that want to modify or extend LAMMPS.
-
-- CMake can detect available hardware, tools, features, and libraries
-  and adapt the LAMMPS default build configuration accordingly.
-- CMake can generate files for different build tools and integrated
-  development environments (IDE).
-- CMake supports customization of settings with a command-line, text
-  mode, or graphical user interface.  No manual editing of files,
-  knowledge of file formats or complex command-line syntax is required.
-- All enabled components are compiled in a single build operation.
-- Automated dependency tracking for all files and configuration options.
-- Support for true out-of-source compilation.  Multiple configurations
-  and settings with different choices of LAMMPS packages, settings, or
-  compilers can be configured and built concurrently from the same
-  source tree.
-- Simplified packaging of LAMMPS for Linux distributions, environment
-  modules, or automated build tools like `Spack <https://spack.io>`_
-  or `Homebrew <https://brew.sh/>`_.
-- Integration of automated unit and regression testing.
+   Files generated or copied by the :doc:`legacy make-based
+   <Build_make>` build procedure for LAMMPS conflict with using CMake.
+   Since the legacy build system has been removed, they serve no purpose
+   and any leftover files can be identified and deleted with the command
+   ``make -C src purge``.
 
 Getting started
 ^^^^^^^^^^^^^^^

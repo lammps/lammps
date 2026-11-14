@@ -17,7 +17,6 @@ a.out
 __pycache__
 .ipynb_checkpoints
 
-Obj_*
 log.lammps
 log.cite
 *.bz2
@@ -56,8 +55,6 @@ out/RelWithDebInfo
 out/Release
 out/x86
 out/x64
-src/Makefile.package-e
-src/Makefile.package.settings-e
 /cmake/build/x64-Debug-Clang
 /install/x64-GUI-MSVC
 /install

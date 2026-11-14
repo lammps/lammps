@@ -32,9 +32,10 @@ necessary to create accelerated compute styles except for the
 to avoid time consuming data transfers between GPU and host.  If you
 feel that your contribution should be added to a different package,
 please consult with the :doc:`LAMMPS developers <Intro_authors>` first.
-The contributed code needs to support the :doc:`traditional GNU make
-build process <Build_make>` **and** the :doc:`CMake build process
-<Build_cmake>`.
+The contributed code needs to support the :doc:`CMake build process
+<Build_cmake>`.  This is usually automatic unless the new style uses
+some external library.
+
 
 ----
 

@@ -64,16 +64,17 @@ Creating or deleting a LAMMPS object
 With the Fortran interface, the creation of a :cpp:class:`LAMMPS
 <LAMMPS_NS::LAMMPS>` instance is included in the constructor for
 creating the :f:func:`lammps` derived type.  To import the definition of
-that type and its type-bound procedures, you need to add a ``USE LIBLAMMPS``
-statement.  Internally, it will call either
+that type and its type-bound procedures, you need to add a ``USE
+LIBLAMMPS`` statement.  Internally, it will call either
 :cpp:func:`lammps_open_fortran` or :cpp:func:`lammps_open_no_mpi` from
 the C library API to create the class instance.  All arguments are
-optional and :cpp:func:`lammps_mpi_init` will be called automatically
-if it is needed.  Similarly, optional calls to
+optional and :cpp:func:`lammps_mpi_init` will be called automatically if
+it is needed.  Similarly, optional calls to
 :cpp:func:`lammps_mpi_finalize`, :cpp:func:`lammps_kokkos_finalize`,
-:cpp:func:`lammps_python_finalize`, and :cpp:func:`lammps_plugin_finalize`
-are integrated into the :f:func:`close` function and triggered with the
-optional logical argument set to ``.TRUE.``. Here is a simple example:
+:cpp:func:`lammps_python_finalize`, and
+:cpp:func:`lammps_plugin_finalize` are integrated into the
+:f:func:`close` function and triggered with the optional logical
+argument set to ``.TRUE.``. Here is a simple example:
 
 .. code-block:: fortran
 
@@ -135,8 +136,8 @@ Once a LAMMPS instance is created, it is possible to "drive" the LAMMPS
 simulation by telling LAMMPS to read commands from a file or to pass
 individual or multiple commands from strings or lists of strings.  This
 is done similarly to how it is implemented in the :doc:`C library
-interface <Library_execute>`. Before handing off the calls to the
-C library interface, the corresponding Fortran versions of the calls
+interface <Library_execute>`. Before handing off the calls to the C
+library interface, the corresponding Fortran versions of the calls
 (:f:func:`file`, :f:func:`command`, :f:func:`commands_list`, and
 :f:func:`commands_string`) have to make copies of the strings passed as
 arguments so that they can be modified to be compatible with the
@@ -181,13 +182,13 @@ Accessing system properties
 
 The C library interface allows the :doc:`extraction of different kinds
 of information <Library_properties>` about the active simulation
-instance and also---in some cases---to apply modifications to it, and the
-Fortran interface provides access to the same data using Fortran-style,
-C-interoperable data types.  In some cases, the Fortran library interface makes
-pointers to internal LAMMPS data structures accessible; when accessing them
-through the library interfaces, special care is needed to avoid data corruption
-and crashes.  Please see the documentation of the individual type-bound
-procedures for details.
+instance and also---in some cases---to apply modifications to it, and
+the Fortran interface provides access to the same data using
+Fortran-style, C-interoperable data types.  In some cases, the Fortran
+library interface makes pointers to internal LAMMPS data structures
+accessible; when accessing them through the library interfaces, special
+care is needed to avoid data corruption and crashes.  Please see the
+documentation of the individual type-bound procedures for details.
 
 Below is an example demonstrating some of the possible uses.
 

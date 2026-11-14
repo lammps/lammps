@@ -56,9 +56,8 @@ valgrind               suppression files for use with valgrind's memcheck tool
 vim                    add-ons to VIM editor for editing LAMMPS input scripts
 xmgrace                a collection of scripts to generate xmgrace plots
 
-For tools that are single C, C++, or Fortran files, a Makefile for
-building them is included in this directory.  You may need to edit it
-for the compilers and paths on your system.
+Use -D BUILD_TOOLS=on during CMake configuration to enable building most
+of the tools.
 
 For tools in their own sub-directories, see their README file for info
 on how to build and use it.

@@ -22,8 +22,7 @@ the code relevant for acceleration is re-implemented.  Those should then
 be added to the corresponding accelerator package (:ref:`KOKKOS
 <PKG-KOKKOS>`, :ref:`OPENMP <PKG-OPENMP>`, :ref:`INTEL <PKG-INTEL>`).
 
-The contributed code needs to support the :doc:`traditional GNU make
-build process <Build_make>` **and** the :doc:`CMake build process
+The contributed code needs to support the :doc:`CMake build process
 <Build_cmake>`.  This is usually automatic unless the new style uses
 some external library, which is uncommon for bonded interactions.
 

@@ -1,34 +1,14 @@
 Packages with extra build options
 =================================
 
-When building with some packages, additional steps may be required,
-in addition to
+When building with some packages, additional steps may be required, in
+addition to
 
-.. list-table::
-   :align: center
-   :header-rows: 1
-   :widths: 50 50
-   :width: 80%
+.. code-block:: bash
 
-   * - CMake build
-     - Traditional make
-   * - .. code-block:: bash
-
-          cmake -S cmake -B build -D PKG_NAME=on
-
-     - .. code-block:: bash
-
-          make yes-name
+   cmake -S cmake -B build -D PKG_NAME=on
 
 as described on the :doc:`Build_package <Build_package>` page.
-
-For a CMake build there may be additional optional or required
-variables to set.
-
-.. versionchanged:: 10Sep2025
-
-The traditional build system with GNU make no longer supports packages
-that require extra steps in the ``lammps/lib`` directory.
 
 This is the list of packages that may require additional steps.
 
@@ -84,32 +64,21 @@ a ``/gz`` suffix.  There are also styles using the
 '/zstd' suffix.  The zstd library version must be at least 1.4.  Older
 versions use an incompatible API and thus LAMMPS will fail to compile.
 
-.. tabs::
+If CMake cannot find the zlib library or include files, you can set
+these variables:
 
-   .. tab:: CMake build
+.. code-block:: bash
 
-      If CMake cannot find the zlib library or include files, you can set
-      these variables:
+   -D ZLIB_INCLUDE_DIR=path    # path to zlib.h header file
+   -D ZLIB_LIBRARY=path        # path to libz.a (.so) file
 
-      .. code-block:: bash
-
-         -D ZLIB_INCLUDE_DIR=path    # path to zlib.h header file
-         -D ZLIB_LIBRARY=path        # path to libz.a (.so) file
-
-      Support for Zstandard compression is auto-detected and for that
-      CMake depends on the `pkg-config
-      <https://www.freedesktop.org/wiki/Software/pkg-config/>`_ tool to
-      identify the necessary flags to compile with this library, so the
-      corresponding ``libzstandard.pc`` file must be in a folder where
-      ``pkg-config`` can find it, which may require adding it to the
-      ``PKG_CONFIG_PATH`` environment variable.
-
-   .. tab:: Traditional make
-
-      .. versionchanged:: 10Sep2025
-
-      The COMPRESS package no longer supports the traditional make build.
-      You need to build LAMMPS with CMake.
+Support for Zstandard compression is auto-detected and for that
+CMake depends on the `pkg-config
+<https://www.freedesktop.org/wiki/Software/pkg-config/>`_ tool to
+identify the necessary flags to compile with this library, so the
+corresponding ``libzstd.pc`` file must be in a folder where
+``pkg-config`` can find it, which may require adding it to the
+``PKG_CONFIG_PATH`` environment variable.
 
 ----------
 
@@ -121,31 +90,22 @@ FENIX package
 .. versionadded:: 2Sep2026
 
 To build with this package you must have the `Fenix library
-<https://github.com/sandialabs/fenix>`_ available on your system. The Fenix
-library must be newer than version 1 (currently meaning built from the default
-"develop" branch). Older versions use an incompatible API and this LAMMPS will
-fail to compile.
+<https://github.com/sandialabs/fenix>`_ available on your system. The
+Fenix library must be newer than version 1 (currently meaning built from
+the default "develop" branch).  Older versions use an incompatible API
+and thus LAMMPS will fail to compile.
 
-.. tabs::
+.. code-block:: bash
 
-   .. tab:: CMake build
+   -D PKG_FENIX=value  # enables FENIX package
+                       # value = on or off (default)
 
-      .. code-block:: bash
+If CMake cannot find the Fenix library or include files, you can set the
+following:
 
-         -D WITH_FENIX=value # enables FENIX package
-                             # value = on or off (default)
+.. code-block:: bash
 
-      If CMake cannot find the Fenix library or include files, you can set the
-      following:
-
-      .. code-block:: bash
-
-         -D FENIX_ROOT=/path/to/fenix/install
-
-   .. tab:: Traditional make
-
-      The Fenix package does not support the traditional make build. You need to
-      build LAMMPS with CMake.
+   -D FENIX_ROOT=/path/to/fenix/install
 
 ----------
 
@@ -165,47 +125,25 @@ graphics/labels <fix_graphics_labels>` can read images in JPEG or PNG
 format in addition to PPM format files.  Using these additional options
 requires the following settings:
 
-.. tabs::
+.. code-block:: bash
 
-   .. tab:: CMake build
+   -D WITH_JPEG=value    # on or off
+                         # default = yes if CMake finds JPEG development files, else no
+   -D WITH_PNG=value     # on or off
+                         # default = yes if CMake finds PNG and ZLIB development files,
+                         # else no
 
-      .. code-block:: bash
+Usually these settings are all that is needed.  If CMake cannot find the
+graphics header and library files, you can set these variables:
 
-         -D WITH_JPEG=value    # on or off
-                               # default = yes if CMake finds JPEG development files, else no
-         -D WITH_PNG=value     # on or off
-                               # default = yes if CMake finds PNG and ZLIB development files,
-                               # else no
+.. code-block:: bash
 
-      Usually these settings are all that is needed.  If CMake cannot
-      find the graphics header and library files, you can set these
-      variables:
-
-      .. code-block:: bash
-
-         -D JPEG_INCLUDE_DIR=path    # path to jpeglib.h header file
-         -D JPEG_LIBRARY=path        # path to libjpeg.a (.so) file
-         -D PNG_INCLUDE_DIR=path     # path to png.h header file
-         -D PNG_LIBRARY=path         # path to libpng.a (.so) file
-         -D ZLIB_INCLUDE_DIR=path    # path to zlib.h header file
-         -D ZLIB_LIBRARY=path        # path to libz.a (.so) file
-
-   .. tab:: Traditional make
-
-      .. code-block:: make
-
-         LMP_INC = -DLAMMPS_JPEG -DLAMMPS_PNG <other LMP_INC settings>
-
-         JPG_INC = -I/usr/local/include   # path to jpeglib.h, png.h, zlib.h headers
-                                          # if make cannot find them
-         JPG_PATH = -L/usr/lib            # paths to libjpeg.a, libpng.a, libz.a (.so)
-                                          # files if make cannot find them
-         JPG_LIB = -ljpeg -lpng -lz       # library names
-
-      As with CMake, you do not need to set ``JPG_INC`` or ``JPG_PATH``,
-      if make can find the graphics header and library files in their
-      default system locations.  You must specify ``JPG_LIB`` with a
-      list of graphics libraries to include in the link.
+   -D JPEG_INCLUDE_DIR=path    # path to jpeglib.h header file
+   -D JPEG_LIBRARY=path        # path to libjpeg.a (.so) file
+   -D PNG_INCLUDE_DIR=path     # path to png.h header file
+   -D PNG_LIBRARY=path         # path to libpng.a (.so) file
+   -D ZLIB_INCLUDE_DIR=path    # path to zlib.h header file
+   -D ZLIB_LIBRARY=path        # path to libz.a (.so) file
 
 .. versionchanged:: 13Nov2026
 
@@ -232,14 +170,11 @@ standard runtime library.
 .. _gpu:
 
 GPU package
----------------------
+-----------
 
 To build with this package, you must choose options for precision and
 which GPU hardware to build for. The GPU package currently supports
 three different types of back ends: OpenCL, CUDA and HIP.
-
-CMake build
-^^^^^^^^^^^
 
 .. code-block:: bash
 
@@ -354,17 +289,16 @@ Please note that the GPU library accesses the CUDA driver library
 directly, so it needs to be linked with the CUDA driver library
 (``libcuda.so``) that ships with the Nvidia driver.  If you are
 compiling LAMMPS on the head node of a GPU cluster, this library may not
-be installed, so you may need to copy it over from one of the compute
-nodes (best into this directory).  Recent versions of the CUDA toolkit
-starting from CUDA 9 provide a dummy ``libcuda.so`` library (typically
-under ``$(CUDA_HOME)/lib64/stubs``), that can be used for linking.  If
+be installed.  Recent versions of the CUDA toolkit starting from CUDA 9
+provide a dummy ``libcuda.so`` library (typically under
+``$(CUDA_HOME)/lib64/stubs``), that CMake will then use for linking.  If
 you are compiling LAMMPS with the ``-D BUILD_SHARED_LIBS=ON`` setting,
 you may get to see ``ld: warning: libcuda.so.1, needed by
 liblammps.so.0, not found``.  This may be worked around by also setting:
 ``-DCMAKE_EXE_LINKER_FLAGS=-Wl,--unresolved-symbols=ignore-in-shared-libs``.
 
 To support the CUDA multi-process server (MPS) you can set the define
-``-DCUDA_MPS_SUPPORT``.
+``-DCUDA_MPS_SUPPORT=on``.
 
 If you are compiling for OpenCL, the default setting is to download,
 build, and link with a static OpenCL ICD loader library and standard
@@ -468,7 +402,7 @@ only use this option in preparations to run on Aurora system at Argonne.
 .. _kim:
 
 KIM package
----------------------
+-----------
 
 To build with this package, the KIM API v2.0+ must be downloaded
 and built on your system. See
@@ -491,43 +425,33 @@ channel as ``conda install kim-property`` if LAMMPS is built in Conda. More
 detailed information is available at:
 `kim-property installation <https://github.com/openkim/kim-property#installing-kim-property>`_.
 
-.. tabs::
+.. code-block:: bash
 
-   .. tab:: CMake build
+   -D DOWNLOAD_KIM=value           # download OpenKIM API v2 for build
+                                   # value = on or off (default: on, if no
+                                   # installed library is found)
+   -D LMP_DEBUG_CURL=value         # set libcurl verbose mode on/off
+                                   # value = off (default) or on
+   -D LMP_NO_SSL_CHECK=value       # tell libcurl to not verify the peer
+                                   # value = off (default) or on
+   -D KIM_EXTRA_UNITTESTS=value    # enables extra unit tests
+                                   # value = off (default) or on
 
-      .. code-block:: bash
+If ``DOWNLOAD_KIM`` is set to ``on``, the KIM API library
+will be downloaded and built inside the CMake build directory.  Note that
+in most cases it is recommended that you do not use this option, and instead
+provide a KIM API installation yourself before building LAMMPS.  If
+the KIM library is already installed on your system (in a location
+where CMake cannot find it), you may need to set the
+``PKG_CONFIG_PATH`` environment variable so that libkim-api can be
+found, or run the command ``source kim-api-activate``.  If CMake cannot find
+the KIM API when configuring for the first time (or after clearing the
+CMake cache), the default value of the ``DOWNLOAD_KIM`` option will be ``on``.
 
-         -D DOWNLOAD_KIM=value           # download OpenKIM API v2 for build
-                                         # value = off (default) or on
-         -D LMP_DEBUG_CURL=value         # set libcurl verbose mode on/off
-                                         # value = off (default) or on
-         -D LMP_NO_SSL_CHECK=value       # tell libcurl to not verify the peer
-                                         # value = off (default) or on
-         -D KIM_EXTRA_UNITTESTS=value    # enables extra unit tests
-                                         # value = off (default) or on
-
-      If ``DOWNLOAD_KIM`` is set to ``on``, the KIM API library
-      will be downloaded and built inside the CMake build directory.  Note that
-      in most cases it is recommended that you do not use this option, and instead
-      provide a KIM API installation yourself before building LAMMPS.  If
-      the KIM library is already installed on your system (in a location
-      where CMake cannot find it), you may need to set the
-      ``PKG_CONFIG_PATH`` environment variable so that libkim-api can be
-      found, or run the command ``source kim-api-activate``.  If CMake cannot find
-      the KIM API when configuring for the first time (or after clearing the
-      CMake cache), the default value of the ``DOWNLOAD_KIM`` option will be ``on``.
-
-      Extra unit tests can only be available if they are explicitly requested
-      (``KIM_EXTRA_UNITTESTS`` is set to ``on``) and the prerequisites
-      are met. See :ref:`KIM Extra unit tests <kim_extra_unittests>` for
-      more details on this.
-
-   .. tab:: Traditional make
-
-      .. versionchanged:: 10Sep2025
-
-      The KIM package no longer supports the traditional make build.
-      You need to build LAMMPS with CMake.
+Extra unit tests can only be available if they are explicitly requested
+(``KIM_EXTRA_UNITTESTS`` is set to ``on``) and the prerequisites
+are met. See :ref:`KIM Extra unit tests <kim_extra_unittests>` for
+more details on this.
 
 Debugging OpenKIM web queries in LAMMPS
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -841,112 +765,101 @@ They must be specified in uppercase.
 
 This list was last updated for version 5.2.1 of the Kokkos library.
 
-.. tabs::
+For multicore CPUs using OpenMP, set these variables.
 
-   .. tab:: Basic CMake build settings:
+.. code-block:: bash
 
-      For multicore CPUs using OpenMP, set these 2 variables.
+   -D Kokkos_ARCH_<HOSTARCH>=on   # <HOSTARCH> = HOST from list above (optional)
+   -D Kokkos_ENABLE_OPENMP=on
+   -D BUILD_OMP=on
 
-      .. code-block:: bash
+Please note that enabling OpenMP for KOKKOS requires that OpenMP is
+also :ref:`enabled for the rest of LAMMPS <build_serial>`.
 
-         -D Kokkos_ARCH_HOSTARCH=on   # HOSTARCH = HOST from list above
-         -D Kokkos_ENABLE_OPENMP=on
-         -D BUILD_OMP=on
+For Intel KNLs using OpenMP, set these variables:
 
-      Please note that enabling OpenMP for KOKKOS requires that OpenMP is
-      also :ref:`enabled for the rest of LAMMPS <build_serial>`.
+.. code-block:: bash
 
-      For Intel KNLs using OpenMP, set these variables:
+   -D Kokkos_ARCH_KNL=on
+   -D Kokkos_ENABLE_OPENMP=on
 
-      .. code-block:: bash
+For NVIDIA GPUs using CUDA, set these variables:
 
-         -D Kokkos_ARCH_KNL=on
-         -D Kokkos_ENABLE_OPENMP=on
+.. code-block:: bash
 
-      For NVIDIA GPUs using CUDA, set these variables:
+   -D Kokkos_ARCH_HOSTARCH=on    # HOSTARCH = HOST from list above
+   -D Kokkos_ARCH_GPUARCH=on     # GPUARCH = GPU from list above
+   -D Kokkos_ENABLE_CUDA=on
+   -D Kokkos_ENABLE_OPENMP=on
 
-      .. code-block:: bash
+This will also enable executing FFTs on the GPU, either via the
+internal KISSFFT library, or - by preference - with the cuFFT
+library bundled with the CUDA toolkit, depending on whether CMake
+can identify its location.
 
-         -D Kokkos_ARCH_HOSTARCH=on    # HOSTARCH = HOST from list above
-         -D Kokkos_ARCH_GPUARCH=on     # GPUARCH = GPU from list above
-         -D Kokkos_ENABLE_CUDA=on
-         -D Kokkos_ENABLE_OPENMP=on
+For AMD or NVIDIA GPUs using HIP, set these variables:
 
-      This will also enable executing FFTs on the GPU, either via the
-      internal KISSFFT library, or - by preference - with the cuFFT
-      library bundled with the CUDA toolkit, depending on whether CMake
-      can identify its location.
+.. code-block:: bash
 
-      For AMD or NVIDIA GPUs using HIP, set these variables:
+   -D Kokkos_ARCH_HOSTARCH=on    # HOSTARCH = HOST from list above
+   -D Kokkos_ARCH_GPUARCH=on     # GPUARCH = GPU from list above
+   -D Kokkos_ENABLE_HIP=on
+   -D Kokkos_ENABLE_OPENMP=on
 
-      .. code-block:: bash
+This will enable FFTs on the GPU, either by the internal KISSFFT library
+or with the hipFFT wrapper library, which will call out to the
+platform-appropriate vendor library: rocFFT on AMD GPUs or cuFFT on
+NVIDIA GPUs.
 
-         -D Kokkos_ARCH_HOSTARCH=on    # HOSTARCH = HOST from list above
-         -D Kokkos_ARCH_GPUARCH=on     # GPUARCH = GPU from list above
-         -D Kokkos_ENABLE_HIP=on
-         -D Kokkos_ENABLE_OPENMP=on
+For Intel GPUs using SYCL, set these variables:
 
-      This will enable FFTs on the GPU, either by the internal KISSFFT library
-      or with the hipFFT wrapper library, which will call out to the
-      platform-appropriate vendor library: rocFFT on AMD GPUs or cuFFT on
-      NVIDIA GPUs.
+.. code-block:: bash
 
-      For Intel GPUs using SYCL, set these variables:
+   -D Kokkos_ARCH_HOSTARCH=on    # HOSTARCH = HOST from list above
+   -D Kokkos_ARCH_GPUARCH=on     # GPUARCH = GPU from list above
+   -D Kokkos_ENABLE_SYCL=on
+   -D Kokkos_ENABLE_OPENMP=on
+   -D FFT_KOKKOS=MKL_GPU
 
-      .. code-block:: bash
+This will enable FFTs on the GPU using the oneMKL library.
 
-         -D Kokkos_ARCH_HOSTARCH=on    # HOSTARCH = HOST from list above
-         -D Kokkos_ARCH_GPUARCH=on     # GPUARCH = GPU from list above
-         -D Kokkos_ENABLE_SYCL=on
-         -D Kokkos_ENABLE_OPENMP=on
-         -D FFT_KOKKOS=MKL_GPU
+To simplify compilation, seven preset files are included in the
+``cmake/presets`` folder, ``kokkos-serial.cmake``,
+``kokkos-openmp.cmake``, ``kokkos-cuda.cmake``,
+``kokkos-cuda-nowrapper.cmake``, ``kokkos-hip.cmake``,
+``kokkos-sycl-nvidia.cmake``, and ``kokkos-sycl-intel.cmake``.
+They will enable the KOKKOS package and enable some hardware
+choices.  For GPU support those preset files may need to be
+customized to match the hardware used.  For some platforms,
+e.g. CUDA, the Kokkos library will try to auto-detect a suitable
+configuration.  So to compile with CUDA device parallelization
+with some common packages enabled, you can do the following:
 
-      This will enable FFTs on the GPU using the oneMKL library.
+.. code-block:: bash
 
-      To simplify compilation, seven preset files are included in the
-      ``cmake/presets`` folder, ``kokkos-serial.cmake``,
-      ``kokkos-openmp.cmake``, ``kokkos-cuda.cmake``,
-      ``kokkos-cuda-nowrapper.cmake``, ``kokkos-hip.cmake``,
-      ``kokkos-sycl-nvidia.cmake``, and ``kokkos-sycl-intel.cmake``.
-      They will enable the KOKKOS package and enable some hardware
-      choices.  For GPU support those preset files may need to be
-      customized to match the hardware used.  For some platforms,
-      e.g. CUDA, the Kokkos library will try to auto-detect a suitable
-      configuration.  So to compile with CUDA device parallelization
-      with some common packages enabled, you can do the following:
+   cmake -S cmake -B build-kokkos-cuda -C cmake/presets/basic.cmake \
+         -C cmake/presets/kokkos-cuda-nowrapper.cmake
+   cmake --build build-kokkos-cuda
 
-      .. code-block:: bash
+The ``kokkos-openmp.cmake`` preset can be combined with any of the
+others, but it is not possible to combine multiple GPU
+acceleration settings (CUDA, HIP, SYCL) into a single executable.
 
-         cmake -S cmake -B build-kokkos-cuda -C cmake/presets/basic.cmake \
-               -C cmake/presets/kokkos-cuda-nowrapper.cmake
-         cmake --build build-kokkos-cuda
+The ``kokkos-packages.cmake`` preset enables all packages that
+contain styles with KOKKOS support.  It does not enable the KOKKOS
+package itself or select a back end, so it needs to be combined
+with one of the presets listed above, for example:
 
-      The ``kokkos-openmp.cmake`` preset can be combined with any of the
-      others, but it is not possible to combine multiple GPU
-      acceleration settings (CUDA, HIP, SYCL) into a single executable.
+.. code-block:: bash
 
-      The ``kokkos-packages.cmake`` preset enables all packages that
-      contain styles with KOKKOS support.  It does not enable the KOKKOS
-      package itself or select a back end, so it needs to be combined
-      with one of the presets listed above, for example:
+   cmake -S cmake -B build-kokkos -C cmake/presets/gcc.cmake \
+         -C cmake/presets/kokkos-openmp.cmake \
+         -C cmake/presets/kokkos-packages.cmake
 
-      .. code-block:: bash
-
-         cmake -S cmake -B build-kokkos -C cmake/presets/gcc.cmake \
-               -C cmake/presets/kokkos-openmp.cmake \
-               -C cmake/presets/kokkos-packages.cmake
-
-      The ML-IAP package also contains styles with KOKKOS support, but
-      those require ``KOKKOS_PREC=double`` (the default), so the package
-      is not included in the preset.  You can add ``-D PKG_ML-IAP=on``
-      for double precision builds.
-
-   .. tab:: Basic traditional make settings:
-
-      .. versionchanged:: 11Feb2026
-
-      The KOKKOS package no longer supports the traditional make build.
-      You need to build LAMMPS with CMake.
+The ML-IAP package also contains styles with KOKKOS support, but
+those require ``KOKKOS_PREC=double`` (the default), so the package
+is not included in the preset.  You can add ``-D PKG_ML-IAP=on``
+for double precision builds.
 
 Advanced KOKKOS compilation settings
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -1039,26 +952,12 @@ LEPTON package
 
 To build with this package, you must build the Lepton library which is
 included in the LAMMPS source distribution in the ``lib/lepton`` folder.
+No additional settings are normally needed besides ``-D PKG_LEPTON=on``.
 
-.. tabs::
-
-   .. tab:: CMake build
-
-      This is the recommended build procedure for using Lepton in
-      LAMMPS. No additional settings are normally needed besides
-      ``-D PKG_LEPTON=on``.
-
-      On x86 hardware the Lepton library will also include a just-in-time
-      compiler for faster execution.  This is auto detected but can
-      be explicitly disabled by setting ``-D LEPTON_ENABLE_JIT=off``
-      (or enabled by setting it to yes).
-
-   .. tab:: Traditional make
-
-      .. versionchanged:: 10Sep2025
-
-      The LEPTON package no longer supports the traditional make build.
-      You need to build LAMMPS with CMake.
+On x86 hardware the Lepton library will also include a just-in-time
+compiler for faster execution.  This is auto detected but can
+be explicitly disabled by setting ``-D LEPTON_ENABLE_JIT=off``
+(or enabled by setting it to ``on``).
 
 ----------
 
@@ -1070,28 +969,18 @@ MACHDYN package
 To build with this package, you must download the Eigen3 library.
 Eigen3 is a template library, so you do not need to build it.
 
-.. tabs::
+.. code-block:: bash
 
-   .. tab:: CMake build
+   -D DOWNLOAD_EIGEN3=value      # download Eigen3, value = on or off
+                                 # (default: on, if Eigen3 is not found)
+   -D Eigen3_DIR=path            # folder with the Eigen3Config.cmake file
+                                 # (only needed if at custom location)
 
-      .. code-block:: bash
-
-         -D DOWNLOAD_EIGEN3            # download Eigen3, value = off (default) or on
-         -D EIGEN3_INCLUDE_DIR=path    # path to Eigen library (only needed if a
-                                       # custom location)
-
-      If ``DOWNLOAD_EIGEN3`` is set, the Eigen3 library will be
-      downloaded and inside the CMake build directory.  If the Eigen3
-      library is already on your system (in a location where CMake
-      cannot find it), set ``EIGEN3_INCLUDE_DIR`` to the directory the
-      ``Eigen3`` include file is in.
-
-   .. tab:: Traditional make
-
-      .. versionchanged:: 10Sep2025
-
-      The MACHDYN package no longer supports the traditional make build.
-      You need to build LAMMPS with CMake.
+If ``DOWNLOAD_EIGEN3`` is set, the Eigen3 library will be downloaded and
+unpacked inside the CMake build directory.  If the Eigen3 library is
+already on your system (in a location where CMake cannot find it), set
+``Eigen3_DIR`` to the folder containing the ``Eigen3Config.cmake`` file
+(or ``Eigen3_ROOT`` to the Eigen3 installation folder).
 
 ----------
 
@@ -1109,39 +998,17 @@ Python support, which in turn requires to include the :ref:`PYTHON
 ``cythonize`` command.  This feature requires compiling LAMMPS with
 Python version 3.6 or later.
 
-.. tabs::
+.. code-block:: bash
 
-   .. tab:: CMake build
+   -D MLIAP_ENABLE_PYTHON=value   # enable mliappy model (default is autodetect)
 
-      .. code-block:: bash
-
-         -D MLIAP_ENABLE_PYTHON=value   # enable mliappy model (default is autodetect)
-
-      Without this setting, CMake will check whether it can find a
-      suitable Python version and the ``cythonize`` command and choose
-      the default accordingly.  During the build procedure the provided
-      .pyx file(s) will be automatically translated to C++ code and compiled.
-      Please do **not** run ``cythonize`` manually in the ``src/ML-IAP`` folder,
-      as that can lead to compilation errors if Python support is not enabled.
-      If you did it by accident, please remove the generated .cpp and .h files.
-
-   .. tab:: Traditional make
-
-      The build uses the ``lib/python/Makefile.mliap_python`` file in the
-      compile/link process to add a rule to update the files generated by
-      the ``cythonize`` command in case the corresponding .pyx file(s) were
-      modified.  You may need to modify ``lib/python/Makefile.lammps``
-      if the LAMMPS build fails.
-
-      To enable building the ML-IAP package with Python support enabled,
-      you need to add ``-DMLIAP_PYTHON`` to the ``LMP_INC`` variable in
-      your machine makefile.  You may have to manually run the
-      ``cythonize`` command on .pyx file(s) in the ``src`` folder, if
-      this is not automatically done during installing the ML-IAP
-      package.  Please do **not** run ``cythonize`` in the ``src/ML-IAP``
-      folder, as that can lead to compilation errors if Python support
-      is not enabled.  If you did this by accident, please remove the
-      generated .cpp and .h files.
+Without this setting, CMake will check whether it can find a
+suitable Python version and the ``cythonize`` command and choose
+the default accordingly.  During the build procedure the provided
+.pyx file(s) will be automatically translated to C++ code and compiled.
+Please do **not** run ``cythonize`` manually in the ``src/ML-IAP`` folder,
+as that can lead to compilation errors if Python support is not enabled.
+If you did it by accident, please remove the generated .cpp and .h files.
 
 ----------
 
@@ -1150,18 +1017,7 @@ Python version 3.6 or later.
 OPT package
 ---------------------
 
-.. tabs::
-
-   .. tab:: CMake build
-
-      No additional settings are needed besides ``-D PKG_OPT=on``
-
-   .. tab:: Traditional make
-
-      The compiler flag ``-restrict`` must be used to build LAMMPS with
-      the OPT package when using Intel compilers.  It should be added to
-      the ``CCFLAGS`` line of your ``Makefile.machine``.  See
-      ``src/MAKE/OPTIONS/Makefile.opt`` for an example.
+No additional settings are needed besides ``-D PKG_OPT=on``
 
 ----------
 
@@ -1170,33 +1026,20 @@ OPT package
 PYTHON package
 ---------------------------
 
-Building with the PYTHON package requires you have a the Python
+Building with the PYTHON package requires that you have the Python
 development headers and library available on your system, which
-needs to be Python version 3.6 or later.  See ``lib/python/README``
-for additional details.
+needs to be Python version 3.6 or later.
 
-.. tabs::
+.. code-block:: bash
 
-   .. tab:: CMake build
+   -D Python_EXECUTABLE=path   # path to Python executable to use
 
-      .. code-block:: bash
-
-         -D Python_EXECUTABLE=path   # path to Python executable to use
-
-      Without this setting, CMake will guess the default Python version
-      on your system.  To use a different Python version, you can either
-      create a virtualenv, activate it and then run cmake.  Or you can
-      set the Python_EXECUTABLE variable to specify which Python
-      interpreter should be used.  Note note that you will also need to
-      have the development headers installed for this version,
-      e.g. python3-devel.
-
-   .. tab:: Traditional make
-
-      .. versionchanged:: 10Sep2025
-
-      The PYTHON package no longer supports the traditional make build.
-      You need to build LAMMPS with CMake.
+Without this setting, CMake will guess the default Python version on
+your system.  To use a different Python version, you can either set
+``Python_EXECUTABLE`` or create a virtualenv, activate it, and then run
+cmake.  Note that you will also
+need to have the development headers installed for this version,
+e.g. python3-devel.
 
 ----------
 
@@ -1209,33 +1052,22 @@ To build with this package, you must download and build the
 `Voro++ library <https://math.lbl.gov/voro++/>`_ or install a
 binary package provided by your operating system.
 
-.. tabs::
+.. code-block:: bash
 
-   .. tab:: CMake build
+   -D DOWNLOAD_VORO=value    # download Voro++ for build
+                             # value = on or off (default: on, if no
+                             # installed library is found)
+   -D VORO_LIBRARY=path      # Voro++ library file
+                             # (only needed if at custom location)
+   -D VORO_INCLUDE_DIR=path  # Voro++ include directory
+                             # (only needed if at custom location)
 
-      .. code-block:: bash
-
-         -D DOWNLOAD_VORO=value    # download Voro++ for build
-                                   # value = off (default) or on
-         -D VORO_LIBRARY=path      # Voro++ library file
-                                   # (only needed if at custom location)
-         -D VORO_INCLUDE_DIR=path  # Voro++ include directory
-                                   # (only needed if at custom location)
-
-      If ``DOWNLOAD_VORO`` is set, the Voro++ library will be downloaded
-      and built inside the CMake build directory.  If the Voro++ library
-      is already on your system (in a location CMake cannot find it),
-      ``VORO_LIBRARY`` is the filename (plus path) of the Voro++ library
-      file, not the directory the library file is in.
-      ``VORO_INCLUDE_DIR`` is the directory the Voro++ include file is
-      in.
-
-   .. tab:: Traditional make
-
-      .. versionchanged:: 10Sep2025
-
-      The VORONOI package no longer supports the traditional make build.
-      You need to build LAMMPS with CMake.
+If ``DOWNLOAD_VORO`` is set, the Voro++ library will be downloaded and
+built inside the CMake build directory.  If the Voro++ library is
+already on your system (in a location CMake cannot find it),
+``VORO_LIBRARY`` is the filename (plus path) of the Voro++ library file,
+not the directory the library file is in.  ``VORO_INCLUDE_DIR`` is the
+directory the Voro++ include file is in.
 
 ----------
 
@@ -1250,33 +1082,12 @@ sure that you have ADIOS built either with or without MPI to match if
 you build LAMMPS with or without MPI.  ADIOS compilation settings for
 LAMMPS are automatically detected, if the PATH and LD_LIBRARY_PATH
 environment variables have been updated for the local ADIOS installation
-and the instructions below are followed for the respective build
-systems.
+and the instructions below are followed.
 
-.. tabs::
+.. code-block:: bash
 
-   .. tab:: CMake build
-
-      .. code-block:: bash
-
-         -D ADIOS2_DIR=path        # path is where ADIOS 2.x is installed
-         -D PKG_ADIOS=on
-
-   .. tab:: Traditional make
-
-      Turn on the ADIOS package before building LAMMPS. If the
-      ADIOS 2.x software is installed in PATH, there is nothing else to
-      do:
-
-      .. code-block:: bash
-
-         make yes-adios
-
-      otherwise, set ADIOS2_DIR environment variable when turning on the package:
-
-      .. code-block:: bash
-
-         ADIOS2_DIR=path make yes-adios   # path is where ADIOS 2.x is installed
+   -D ADIOS2_DIR=path        # path is where ADIOS 2.x is installed (optional)
+   -D PKG_ADIOS=on
 
 ----------
 
@@ -1285,27 +1096,9 @@ systems.
 APIP package
 -----------------------------
 
-The APIP package depends on the library of the
-:ref:`ML-PACE <ml-pace>` package.
-The code for the library can be found
-at: `https://github.com/ICAMS/lammps-user-pace/ <https://github.com/ICAMS/lammps-user-pace/>`_
-
-.. tabs::
-
-   .. tab:: CMake build
-
-      No additional settings are needed besides ``-D PKG_APIP=on``
-      and ``-D PKG_ML-PACE=on``.
-      One can use a local version of the ML-PACE library instead of
-      automatically downloading the library as described :ref:`here <ml-pace>`.
-
-
-   .. tab:: Traditional make
-
-      .. versionchanged:: 10Sep2025
-
-      The APIP package no longer supports the traditional make
-      build.  You need to build LAMMPS with CMake.
+The APIP package depends on the library of the :ref:`ML-PACE <ml-pace>`
+package.  No additional settings are needed besides ``-D PKG_APIP=on``
+and ``-D PKG_ML-PACE=on``.
 
 ----------
 
@@ -1314,30 +1107,16 @@ at: `https://github.com/ICAMS/lammps-user-pace/ <https://github.com/ICAMS/lammps
 COLVARS package
 ---------------
 
-This package enables the use of the `Colvars <https://colvars.github.io/>`_
-module included in the LAMMPS source distribution.
+This package enables the use of the `Colvars
+<https://colvars.github.io/>`_ module included in the LAMMPS source
+distribution.  No additional settings are normally needed besides ``-D
+PKG_COLVARS=on``. The following CMake variables are available.
 
+.. code-block:: bash
 
-.. tabs::
-
-   .. tab:: CMake build
-
-      This is the recommended build procedure for using Colvars in
-      LAMMPS. No additional settings are normally needed besides ``-D
-      PKG_COLVARS=on``. The following CMake variables are available.
-
-      .. code-block:: bash
-
-         -D PKG_COLVARS=on           # enable the package itself
-         -D COLVARS_LEPTON=on        # use the Lepton library for custom expression (on by default)
-         -D COLVARS_DEBUG=off        # enable debugging message (verbose, off by default)
-
-   .. tab:: Traditional make
-
-      .. versionchanged:: 10Sep2025
-
-      The COLVARS package no longer supports the traditional make build.
-      You need to build LAMMPS with CMake.
+   -D PKG_COLVARS=on           # enable the package itself
+   -D COLVARS_LEPTON=on        # use the Lepton library for custom expression (on by default)
+   -D COLVARS_DEBUG=off        # enable debugging message (verbose, off by default)
 
 ----------
 
@@ -1348,30 +1127,22 @@ ELECTRODE package
 
 This package depends on the KSPACE package.
 
-.. tabs::
+.. code-block:: bash
 
-   .. tab:: CMake build
+   -D PKG_ELECTRODE=on           # enable the package itself
+   -D PKG_KSPACE=on              # the ELECTRODE package requires KSPACE
+   -D USE_INTERNAL_LINALG=value  # value = off (default) or on; on means to use the
+                                 # bundled linalg library instead of BLAS/LAPACK
 
-      .. code-block:: bash
+Features in the ELECTRODE package are dependent on code in the
+KSPACE package so the latter one *must* be enabled.
 
-         -D PKG_ELECTRODE=on           # enable the package itself
-         -D PKG_KSPACE=on              # the ELECTRODE package requires KSPACE
-         -D USE_INTERNAL_LINALG=value  #
-
-      Features in the ELECTRODE package are dependent on code in the
-      KSPACE package so the latter one *must* be enabled.
-
-      The ELECTRODE package also requires LAPACK (and BLAS) and CMake
-      can identify their locations and pass that info to the ELECTRODE
-      build script.  But on some systems this may cause problems when
-      linking or the dependency is not desired.  Try enabling
-      ``USE_INTERNAL_LINALG`` in those cases to use the bundled linear
-      algebra library and work around the limitation.
-
-   .. tab:: Traditional make
-
-      The ELECTRODE package no longer supports the traditional make
-      build.  You need to build LAMMPS with CMake.
+The ELECTRODE package also requires LAPACK (and BLAS) and CMake
+can identify their locations and pass that info to the ELECTRODE
+build script.  But on some systems this may cause problems when
+linking or the dependency is not desired.  Try enabling
+``USE_INTERNAL_LINALG`` in those cases to use the bundled linear
+algebra library and work around the limitation.
 
 ----------
 
@@ -1394,32 +1165,22 @@ the CMake script files in the ``examples/PACKAGES/mbx/plugin`` folder and
 then load this plugin at runtime with the :doc:`plugin command
 <plugin>`.
 
-.. tabs::
+.. versionchanged:: 30Mar2026
 
-   .. tab:: CMake build
+   Replaced MD5 checksums with SHA-256
 
-      .. versionchanged:: 30Mar2026
-
-         Replaced MD5 checksums with SHA-256
-
-      By default the MBX library will be downloaded from the git
-      repository and built automatically when the MBX package is enabled
-      with ``-D PKG_MBX=on``.  The location for the sources may be
-      customized by setting the variable ``MBXLIB_URL`` when configuring
-      with CMake (e.g. to use a local archive on machines without
-      internet access).  Since CMake checks the validity of the archive
-      using a SHA-256 checksum you may also need to set the
-      ``MBXLIB_SHA256`` variable to the corresponding checksum
-      (e.g. computed with ``sha256sum``) if you provide a different
-      library version than what is downloaded automatically.
-      Both settings are cached and thus retained in the build folder
-      (see :ref:`this explanation <err0039>` for details).
-
-
-   .. tab:: Traditional make
-
-      The MBX package does not support the traditional make
-      build.  You need to build LAMMPS with CMake to use it.
+By default the MBX library will be downloaded from the git
+repository and built automatically when the MBX package is enabled
+with ``-D PKG_MBX=on``.  The location for the sources may be
+customized by setting the variable ``MBXLIB_URL`` when configuring
+with CMake (e.g. to use a local archive on machines without
+internet access).  Since CMake checks the validity of the archive
+using a SHA-256 checksum you may also need to set the
+``MBXLIB_SHA256`` variable to the corresponding checksum
+(e.g. computed with ``sha256sum``) if you provide a different
+library version than what is downloaded automatically.
+Both settings are cached and thus retained in the build folder
+(see :ref:`this explanation <err0039>` for details).
 
 ----------
 
@@ -1428,43 +1189,32 @@ then load this plugin at runtime with the :doc:`plugin command
 ML-PACE package
 -----------------------------
 
-This package requires a library that can be downloaded and built
-in lib/pace or somewhere else, which must be done before building
-LAMMPS with this package. The code for the library can be found
-at: `https://github.com/ICAMS/lammps-user-pace/ <https://github.com/ICAMS/lammps-user-pace/>`_
+This package requires a library that can be downloaded and built in
+lib/pace or somewhere else, which must be done before building LAMMPS
+with this package.  The code for the library can be found at:
+`https://github.com/ICAMS/lammps-user-pace/
+<https://github.com/ICAMS/lammps-user-pace/>`_
 
 Instead of including the ML-PACE package directly into LAMMPS, it
 is also possible to skip this step and build the ML-PACE package as
 a plugin using the CMake script files in the ``examples/PACKAGES/pace/plugin``
 folder and then load this plugin at runtime with the :doc:`plugin command <plugin>`.
 
-.. tabs::
+.. versionchanged:: 30Mar2026
 
-   .. tab:: CMake build
+   Replaced MD5 checksums with SHA-256
 
-      .. versionchanged:: 30Mar2026
-
-         Replaced MD5 checksums with SHA-256
-
-      By default the library will be downloaded from the git repository
-      and built automatically when the ML-PACE package is enabled with
-      ``-D PKG_ML-PACE=on``.  The location for the sources may be
-      customized by setting the variable ``PACELIB_URL`` when
-      configuring with CMake (e.g. to use a local archive on machines
-      without internet access).    Since CMake checks the validity of the archive
-      using a SHA-256 checksum you may also need to set the
-      ``PACELIB_SHA256`` variable to the corresponding checksum
-      (e.g. computed with ``sha256sum``) if you provide a different
-      library version than what is downloaded automatically.
-      Both settings are cached and thus retained in the build folder
-      (see :ref:`this explanation <err0039>` for details).
-
-   .. tab:: Traditional make
-
-      .. versionchanged:: 10Sep2025
-
-      The ML-PACE package no longer supports the traditional make
-      build.  You need to build LAMMPS with CMake.
+By default the library will be downloaded from the git repository and
+built automatically when the ML-PACE package is enabled with ``-D
+PKG_ML-PACE=on``.  The location for the sources may be customized by
+setting the variable ``PACELIB_URL`` when configuring with CMake
+(e.g. to use a local archive on machines without internet access).
+Since CMake checks the validity of the archive using a SHA-256 checksum
+you may also need to set the ``PACELIB_SHA256`` variable to the
+corresponding checksum (e.g. computed with ``sha256sum``) if you provide
+a different library version than what is downloaded automatically.  Both
+settings are cached and thus retained in the build folder (see
+:ref:`this explanation <err0039>` for details).
 
 ----------
 
@@ -1473,18 +1223,7 @@ folder and then load this plugin at runtime with the :doc:`plugin command <plugi
 ML-POD package
 -----------------------------
 
-.. tabs::
-
-   .. tab:: CMake build
-
-      No additional settings are needed besides ``-D PKG_ML-POD=on``.
-
-   .. tab:: Traditional make
-
-      .. versionchanged:: 10Sep2025
-
-      The ML-POD package no longer supports the traditional make
-      build.  You need to build LAMMPS with CMake.
+No additional settings are needed besides ``-D PKG_ML-POD=on``.
 
 ----------
 
@@ -1499,41 +1238,31 @@ potentials, additional files with specific licensing conditions need
 to be downloaded and configured.  The automatic download will from
 within CMake will download the non-commercial use version.
 
-.. tabs::
+.. code-block:: bash
 
-   .. tab:: CMake build
+   -D DOWNLOAD_QUIP=value       # download QUIP library for build
+                                # value = on or off (default: on, if no
+                                # installed library is found)
+   -D QUIP_LIBRARY=path         # path to libquip.a
+                                # (only needed if a custom location)
+   -D USE_INTERNAL_LINALG=value # Use the internal linear algebra library
+                                # instead of LAPACK
+                                # value = off (default) or on
 
-      .. code-block:: bash
+CMake will try to download and build the QUIP library from GitHub,
+if it is not found on the local machine. This requires to have git
+installed. It will use the same compilers and flags as used for
+compiling LAMMPS.  Currently this is only supported for the GNU
+and the Intel compilers. Set the ``QUIP_LIBRARY`` variable if you
+want to use a previously compiled and installed QUIP library and
+CMake cannot find it.
 
-         -D DOWNLOAD_QUIP=value       # download QUIP library for build
-                                      # value = off (default) or on
-         -D QUIP_LIBRARY=path         # path to libquip.a
-                                      # (only needed if a custom location)
-         -D USE_INTERNAL_LINALG=value # Use the internal linear algebra library
-                                      # instead of LAPACK
-                                      # value = off (default) or on
-
-      CMake will try to download and build the QUIP library from GitHub,
-      if it is not found on the local machine. This requires to have git
-      installed. It will use the same compilers and flags as used for
-      compiling LAMMPS.  Currently this is only supported for the GNU
-      and the Intel compilers. Set the ``QUIP_LIBRARY`` variable if you
-      want to use a previously compiled and installed QUIP library and
-      CMake cannot find it.
-
-      The QUIP library requires LAPACK (and BLAS) and CMake can identify
-      their locations and pass that info to the QUIP build script. But
-      on some systems this triggers a (current) limitation of CMake and
-      the configuration will fail. Try enabling ``USE_INTERNAL_LINALG`` in
-      those cases to use the bundled linear algebra library and work around
-      the limitation.
-
-   .. tab:: Traditional make
-
-      .. versionchanged:: 10Sep2025
-
-      The ML-QUIP package no longer supports the traditional make
-      build.  You need to build LAMMPS with CMake.
+The QUIP library requires LAPACK (and BLAS) and CMake can identify
+their locations and pass that info to the QUIP build script. But
+on some systems this triggers a (current) limitation of CMake and
+the configuration will fail. Try enabling ``USE_INTERNAL_LINALG`` in
+those cases to use the bundled linear algebra library and work around
+the limitation.
 
 ----------
 
@@ -1571,94 +1300,69 @@ runtime. This mode of linking is particularly convenient for doing
 PLUMED development and comparing multiple PLUMED versions as these sorts
 of comparisons can be done without recompiling the hosting MD code. All
 three linkage modes are supported by LAMMPS on selected operating
-systems (e.g. Linux) and using either CMake or traditional make
-build. The "static" mode should be the most portable, while the
-"runtime" mode support in LAMMPS makes the most assumptions about
-operating system and compiler environment. If one mode does not work,
-try a different one, switch to a different build system, consider a
-global PLUMED installation or consider downloading PLUMED during the
+systems (e.g. Linux).  The "static" mode should be the most portable,
+while the "runtime" mode support in LAMMPS makes the most assumptions
+about operating system and compiler environment. If one mode does not
+work, try a different one, consider
+a global PLUMED installation or consider downloading PLUMED during the
 LAMMPS build.
 
-Instead of including the PLUMED package directly into LAMMPS, it
-is also possible to skip this step and build the PLUMED package as
-a plugin using the CMake script files in the ``examples/PACKAGES/plumed/plugin``
-folder and then load this plugin at runtime with the :doc:`plugin command <plugin>`.
+Instead of including the PLUMED package directly into LAMMPS, it is also
+possible to skip this step and build the PLUMED package as a plugin
+using the CMake script files in the ``examples/PACKAGES/plumed/plugin``
+folder and then load this plugin at runtime with the :doc:`plugin
+command <plugin>`.
 
-.. tabs::
+When the ``-D PKG_PLUMED=on`` flag is included in the cmake
+command you must ensure that `the GNU Scientific Library (GSL)
+<https://www.gnu.org/software/gsl/>`_ is installed in locations
+that are accessible in your environment.  There are then two
+additional variables that control the manner in which PLUMED is
+obtained and linked into LAMMPS.
 
-   .. tab:: CMake build
+.. code-block:: bash
 
-      When the ``-D PKG_PLUMED=on`` flag is included in the cmake
-      command you must ensure that `the GNU Scientific Library (GSL)
-      <https://www.gnu.org/software/gsl/>` is installed in locations
-      that are accessible in your environment.  There are then two
-      additional variables that control the manner in which PLUMED is
-      obtained and linked into LAMMPS.
+   -D DOWNLOAD_PLUMED=value   # download PLUMED for build
+                              # value = on or off (default: on, if no
+                              # installed library is found)
+   -D PLUMED_MODE=value       # Linkage mode for PLUMED
+                              # value = static (default), shared,
+                              #         or runtime
 
-      .. code-block:: bash
+If ``DOWNLOAD_PLUMED`` is set to ``on``, the PLUMED library will be
+downloaded (the version of PLUMED that will be downloaded is
+hard-coded to a vetted version of PLUMED, usually a recent stable
+release version) and built inside the CMake build directory.  If
+``DOWNLOAD_PLUMED`` is set to "no" (the default), CMake will try
+to detect and link to an installed version of PLUMED.  For this to
+work, the PLUMED library has to be installed into a location where
+the ``pkg-config`` tool can find it or the ``PKG_CONFIG_PATH``
+environment variable has to be set up accordingly.  PLUMED should
+be installed in such a location if you compile it using the
+default make; make install commands.
 
-         -D DOWNLOAD_PLUMED=value   # download PLUMED for build
-                                    # value = off (default) or on
-         -D PLUMED_MODE=value       # Linkage mode for PLUMED
-                                    # value = static (default), shared,
-                                    #         or runtime
-
-      If ``DOWNLOAD_PLUMED`` is set to ``on``, the PLUMED library will be
-      downloaded (the version of PLUMED that will be downloaded is
-      hard-coded to a vetted version of PLUMED, usually a recent stable
-      release version) and built inside the CMake build directory.  If
-      ``DOWNLOAD_PLUMED`` is set to "no" (the default), CMake will try
-      to detect and link to an installed version of PLUMED.  For this to
-      work, the PLUMED library has to be installed into a location where
-      the ``pkg-config`` tool can find it or the ``PKG_CONFIG_PATH``
-      environment variable has to be set up accordingly.  PLUMED should
-      be installed in such a location if you compile it using the
-      default make; make install commands.
-
-      The ``PLUMED_MODE`` setting determines the linkage mode for the
-      PLUMED library.  The allowed values for this flag are "static"
-      (default), "shared", or "runtime".  If you want to switch the
-      linkage mode, just re-run CMake with a different setting. For a
-      discussion of PLUMED linkage modes, please see above.  When
-      ``DOWNLOAD_PLUMED`` is enabled the static linkage mode is
-      recommended.
-
-   .. tab:: Traditional make
-
-      .. versionchanged:: 10Sep2025
-
-      The PLUMED package no longer supports the traditional make
-      build.  You need to build LAMMPS with CMake.
+The ``PLUMED_MODE`` setting determines the linkage mode for the
+PLUMED library.  The allowed values for this flag are "static"
+(default), "shared", or "runtime".  If you want to switch the
+linkage mode, just re-run CMake with a different setting. For a
+discussion of PLUMED linkage modes, please see above.  When
+``DOWNLOAD_PLUMED`` is enabled the static linkage mode is
+recommended.
 
 ----------
 
 .. _h5md:
 
 H5MD package
----------------------------------
+------------
 
 To build with this package you must have the HDF5 software package
 installed on your system, which should include the h5cc compiler and
 the HDF5 library.
 
-.. tabs::
+No additional settings are needed besides ``-D PKG_H5MD=on``.
 
-   .. tab:: CMake build
-
-      No additional settings are needed besides ``-D PKG_H5MD=on``.
-
-      This should auto-detect the H5MD library on your system.  Several
-      advanced CMake H5MD options exist if you need to specify where it
-      is installed.  Use the ccmake (terminal window) or cmake-gui
-      (graphical) tools to see these options and set them interactively
-      from their user interfaces.
-
-   .. tab:: Traditional make
-
-      .. versionchanged:: 10Sep2025
-
-      The H5MD package no longer supports the traditional make
-      build.  You need to build LAMMPS with CMake.
+This should detect the HDF5 installation on your system or error out.
 
 ----------
 
@@ -1669,51 +1373,46 @@ ML-HDNNP package
 
 To build with the ML-HDNNP package it is required to download and build the
 external `n2p2 <https://github.com/CompPhysVienna/n2p2>`_ library ``v2.1.4``
-(or higher). The LAMMPS build process offers an automatic download and
+(or higher).  The LAMMPS build process offers an automatic download and
 compilation of *n2p2* or allows you to choose the installation directory of
-*n2p2* manually. Please see the boxes below for the CMake and traditional build
-system for detailed information.
+*n2p2* manually. Please see below for detailed information.
 
-In case of a manual installation of *n2p2* you only need to build the *n2p2* core
-library ``libnnp`` and interface library ``libnnpif``. When using GCC it should
-suffice to execute ``make libnnpif`` in the *n2p2* ``src`` directory. For more
-details please see ``lib/hdnnp/README`` and the `n2p2 build documentation
+In case of a manual installation of *n2p2* you only need to build the
+*n2p2* core library ``libnnp`` and interface library ``libnnpif``.  When
+using GCC it should suffice to execute ``make libnnpif`` in the *n2p2*
+``src`` directory. For more details see the `n2p2 build documentation
 <https://compphysvienna.github.io/n2p2/topics/build.html>`_.
 
-.. tabs::
+.. code-block:: bash
 
-   .. tab:: CMake build
+   -D DOWNLOAD_N2P2=value    # download n2p2 for build
+                             # value = on or off (default: on, if no
+                             # installed library is found)
+   -D N2P2_DIR=path          # n2p2 base directory
+                             # (only needed if a custom location)
 
-      .. code-block:: bash
+If ``DOWNLOAD_N2P2`` is set, the *n2p2* library will be downloaded and
+built inside the CMake build directory.  If the *n2p2* library is already
+on your system (in a location CMake cannot find it), set the ``N2P2_DIR``
+to path where *n2p2* is located. If *n2p2* is located directly in
+``lib/hdnnp/n2p2`` it will be automatically found by CMake.
 
-         -D DOWNLOAD_N2P2=value    # download n2p2 for build
-                                   # value = off (default) or on
-         -D N2P2_DIR=path          # n2p2 base directory
-                                   # (only needed if a custom location)
+.. admonition:: Ninja-build
+   :class: note
 
-      If ``DOWNLOAD_N2P2`` is set, the *n2p2* library will be downloaded and
-      built inside the CMake build directory.  If the *n2p2* library is already
-      on your system (in a location CMake cannot find it), set the ``N2P2_DIR``
-      to path where *n2p2* is located. If *n2p2* is located directly in
-      ``lib/hdnnp/n2p2`` it will be automatically found by CMake.
+   Building the *n2p2* library automatically requires the ``Unix Makefiles``
+   back end of CMake and is not compatible with, e.g. ``-G Ninja``.
 
-      .. admonition:: Failure to build n2p2 due to git branch names
-         :class: note
+.. admonition:: Failure to build n2p2 due to git branch names
+   :class: note
 
-         Some script code inside the *n2p2* library build processes the
-         current branch name used by git and that will fail for LAMMPS
-         repository branch names containing the forward slash '/'
-         character, for example: ``user/update-n2p2``.  The workaround
-         is to change the (local) branch name, e.g. for the given
-         example with: ``git branch -m user/update-n2p2
-         user_update-n2p2``
-
-   .. tab:: Traditional make
-
-      .. versionchanged:: 10Sep2025
-
-      The ML-HDNNP package no longer supports the traditional make
-      build.  You need to build LAMMPS with CMake.
+   Some script code inside the *n2p2* library build processes the
+   current branch name used by git and that will fail for LAMMPS
+   repository branch names containing the forward slash '/'
+   character, for example: ``user/update-n2p2``.  The workaround
+   is to change the (local) branch name, e.g. for the given
+   example with: ``git branch -m user/update-n2p2
+   user_update-n2p2``
 
 ----------
 
@@ -1728,7 +1427,8 @@ The ML-RUNNER package provides an interface to the
 (Ruhr University Neural Network Energy Representation) library for
 high-dimensional neural network potentials (HDNNP).
 
-**Prerequisites**
+Prerequisites
+^^^^^^^^^^^^^
 
 * **Fortran Compiler:** Since the RuNNer library is written in Fortran, a working Fortran compiler must be available on your system and detectable by CMake.
 * **BLAS/LAPACK:** RuNNer requires BLAS and LAPACK libraries for linear algebra operations.
@@ -1739,54 +1439,46 @@ high-dimensional neural network potentials (HDNNP).
   use the same FFT library settings and link to the same library.  In both cases the
   Fortran 03 wrapper file ``fftw3.f03`` must be in the Fortran compiler include path.
 
-**Building RuNNer**
+Building RuNNer
+^^^^^^^^^^^^^^^
 
 By default, the LAMMPS build process automatically downloads and compiles the
 RuNNer library as a static library. Alternatively, you can point LAMMPS to a
 pre-compiled version already present on your system.
 
-.. tabs::
+**Basic Options:**
 
-   .. tab:: CMake build
+.. code-block:: bash
 
-      **Basic Options:**
+   -D PKG_ML-RUNNER=on        # enable the package itself
+   -D DOWNLOAD_RUNNER=on      # on (default): clone the stable version of the official RuNNer repo.
+                              # off: Use a pre-compiled RuNNer library.
+   -D RUNNER_SHARED_LIB=on     # off (default): Look for static library (.a).
+                               # on: Look for shared library (.so).
 
-      .. code-block:: bash
+**Manual Library Configuration (if DOWNLOAD_RUNNER=off):**
 
-         -D PKG_ML-RUNNER=on        # enable the package itself
-         -D DOWNLOAD_RUNNER=on      # on (default): clone the stable version of the official RuNNer repo.
-                                    # off: Use a pre-compiled RuNNer library.
-         -D RUNNER_SHARED_LIB=on     # off (default): Look for static library (.a).
-                                     # on: Look for shared library (.so).
+.. code-block:: bash
 
-      **Manual Library Configuration (if DOWNLOAD_RUNNER=off):**
+   -D RUNNER_LIB_DIR=path      # Directory containing the RuNNer library.
+                               # (default: empty, search the folders in
+                               # LD_LIBRARY_PATH, LIBRARY_PATH, and the
+                               # standard system library folders)
+   -D RUNNER_LIB_NAME=name     # Filename of the library (without extension).
+                               # (default: libRuNNer_mpi)
 
-      .. code-block:: bash
+**FFT Library Selection:**
 
-         -D RUNNER_LIB_DIR=path      # Directory containing the RuNNer library.
-                                     # (default: empty, search the folders in
-                                     # LD_LIBRARY_PATH, LIBRARY_PATH, and the
-                                     # standard system library folders)
-         -D RUNNER_LIB_NAME=name     # Filename of the library (without extension).
-                                     # (default: libRuNNer_mpi)
+The build system uses the FFT selection from the KSPACE package.
+Only MKL and FFTW3 are currently supported
 
-      **FFT Library Selection:**
+.. code-block:: bash
 
-      The build system uses the FFT selection from the KSPACE package.
-      Only MKL and FFTW3 are currently supported
+   -D FFT=value                # FFTW3 or MKL
+   -D FFT_MKL_THREADS=on       # required with MKL (default)
+   -D FFT_FFTW_THREADS=on      # required with FFTW3 (default)
 
-      .. code-block:: bash
-
-         -D FFT=value                # FFTW3 or MKL
-         -D FFT_MKL_THREADS=on       # required with MKL (default)
-         -D FFT_FFTW_THREADS=on      # required with FFTW3 (default)
-
-   .. tab:: Traditional make
-
-      The ML-RUNNER package does not support the traditional make build system.
-      You must build LAMMPS with CMake.
-
-**Detailed Option Table**
+**Detailed Option Table:**
 
 .. list-table::
    :widths: 25 50 25
@@ -1824,7 +1516,7 @@ pre-compiled version already present on your system.
 .. _intel:
 
 INTEL package
------------------------------------
+-------------
 
 This package optimizes styles for x86 CPUs.  You should
 also typically :ref:`install the OPENMP package <openmp>`, as it can be
@@ -1840,44 +1532,26 @@ incorrectly and thus can cause segmentation faults in otherwise correct
 code when using features from the INTEL package.
 
 
-.. tabs::
+.. code-block:: bash
 
-   .. tab:: CMake build
+   -D INTEL_LRT_MODE=value # value = threads, none, or c++17
 
-      .. code-block:: bash
+.. versionchanged:: 30Sep2026
 
-         -D INTEL_LRT_MODE=value # value = threads, none, or c++17
-
-      .. versionchanged:: 30Sep2026
-
-      With the LLVM based Intel compilers (``icx`` and ``icpx``), CMake
-      adds the flags ``-xHost`` and ``-qopt-zmm-usage=high`` and compiles
-      the INTEL package sources with ``-fp-model=fast=2``.  The ``-xHost``
-      flag is omitted when a target architecture is already selected with
-      ``-x``, ``-ax``, or ``-march=`` in ``CMAKE_CXX_FLAGS`` or in the flags
-      for the build type (e.g. ``CMAKE_CXX_FLAGS_RELWITHDEBINFO``), for
-      example when compiling for a different CPU.  The
-      main program of the LAMMPS executable is compiled with ``-ftz``, so
-      that very small floating-point numbers (subnormals) are flushed to
-      zero, which avoids a large slowdown of some INTEL package styles in
-      mixed precision.  In addition, the INTEL package itself sets the CPU
-      to flush subnormal numbers to zero while it is in use, with any
-      compiler, so that this also applies when LAMMPS is used as a
-      library (see the *ftz* keyword of the :doc:`package <package>`
-      command).
-
-   .. tab:: Traditional make
-
-      Choose compiler flags in Makefile.machine via the following
-      settings.  See ``src/MAKE/OPTIONS/Makefile.intel_cpu*`` files for
-      examples and ``src/INTEL/README`` for additional information.
-
-      .. code-block:: make
-
-         OPTFLAGS =  -xHost -O2 -fp-model fast=2 -no-prec-div -qoverride-limits -qopt-zmm-usage=high
-         CCFLAGS =   -g -qopenmp -DLAMMPS_MEMALIGN=64 -fno-alias -ansi-alias -restrict $(OPTFLAGS)
-         LINKFLAGS = -g -qopenmp $(OPTFLAGS)
-         LIB =       -ltbbmalloc
+With the LLVM based Intel compilers (``icx`` and ``icpx``), CMake
+adds the flags ``-xHost`` and ``-qopt-zmm-usage=high`` and compiles
+the INTEL package sources with ``-fp-model=fast=2``.  The ``-xHost``
+flag is omitted when a target architecture is already selected with
+``-x``, ``-ax``, or ``-march=`` in ``CMAKE_CXX_FLAGS`` or in the flags
+for the build type (e.g. ``CMAKE_CXX_FLAGS_RELWITHDEBINFO``), for
+example when compiling for a different CPU.flag.  The main program
+of the LAMMPS executable is compiled with ``-ftz``, so that very
+small floating-point numbers (subnormals) are flushed to zero,
+which avoids a large slowdown of some INTEL package styles in
+mixed precision.  In addition, the INTEL package itself sets the CPU
+to flush subnormal numbers to zero while it is in use, with any
+compiler, so that this also applies when LAMMPS is used as a library
+(see the *ftz* keyword of the :doc:`package <package>` command).
 
 In Long-range thread mode (LRT) a modified verlet style is used, that
 operates the Kspace calculation in a separate thread concurrently to
@@ -1900,21 +1574,11 @@ TBB and MKL.
 MDI package
 -----------
 
-.. tabs::
+.. code-block:: bash
 
-   .. tab:: CMake build
-
-      .. code-block:: bash
-
-         -D DOWNLOAD_MDI=value    # download MDI Library for build
-                                  # value = off (default) or on
-
-   .. tab:: Traditional make
-
-      .. versionchanged:: 10Sep2025
-
-      The MDI package no longer supports the traditional make build.
-      You need to build LAMMPS with CMake.
+   -D DOWNLOAD_MDI=value    # download MDI Library for build
+                            # value = on or off (default: on, if no
+                            # installed library is found)
 
 ----------
 
@@ -1928,119 +1592,62 @@ synchronously (communication with IMD clients is done in the main
 process) or asynchronously (the fix spawns a separate thread that can
 communicate with IMD clients concurrently to the LAMMPS execution).
 
-.. tabs::
+.. code-block:: bash
 
-   .. tab:: CMake build
-
-      .. code-block:: bash
-
-         -D LAMMPS_ASYNC_IMD=value  # Run IMD server asynchronously
-                                    # value = off (default) or on
-
-   .. tab:: Traditional make
-
-      To enable asynchronous mode the ``-DLAMMPS_ASYNC_IMD`` define
-      needs to be added to the ``LMP_INC`` variable in the
-      ``Makefile.machine`` you are using.  For example:
-
-      .. code-block:: make
-
-         LMP_INC = -DLAMMPS_ASYNC_IMD -DLAMMPS_MEMALIGN=64
+   -D LAMMPS_ASYNC_IMD=value  # Run IMD server asynchronously
+                              # value = off (default) or on
 
 ----------
 
 .. _molfile:
 
 MOLFILE package
----------------------------------------
+---------------
 
-.. tabs::
+.. code-block:: bash
 
-   .. tab:: CMake build
+   -D MOLFILE_INCLUDE_DIR=path   # (optional) path where VMD molfile
+                                 # plugin headers are installed
+   -D PKG_MOLFILE=on
 
-      .. code-block:: bash
-
-         -D MOLFILE_INCLUDE_DIR=path   # (optional) path where VMD molfile
-                                       # plugin headers are installed
-         -D PKG_MOLFILE=on
-
-      Using ``-D PKG_MOLFILE=on`` enables the package, and setting
-      ``-D MOLFILE_INCLUDE_DIR`` allows to provide a custom location for
-      the molfile plugin header files. These should match the ABI of the
-      plugin files used, and thus one typically sets them to include
-      folder of the local VMD installation in use. LAMMPS ships with a
-      couple of default header files that correspond to a popular VMD
-      version, usually the latest release.
-
-   .. tab:: Traditional make
-
-      .. versionchanged:: 10Sep2025
-
-      The MOLFILE package no longer supports the traditional make
-      build.  You need to build LAMMPS with CMake.
+Using ``-D PKG_MOLFILE=on`` enables the package, and setting
+``-D MOLFILE_INCLUDE_DIR`` allows to provide a custom location for
+the molfile plugin header files. These should match the ABI of the
+plugin files used, and thus one typically sets them to include
+folder of the local VMD installation in use. LAMMPS ships with a
+couple of default header files that correspond to a popular VMD
+version, usually the latest release.
 
 ----------
 
 .. _netcdf:
 
 NETCDF package
--------------------------------------
+--------------
 
 To build with this package you must have the NetCDF library installed
 on your system.
 
-.. tabs::
+No additional settings are needed besides ``-D PKG_NETCDF=on``.
 
-   .. tab:: CMake build
-
-      No additional settings are needed besides ``-D PKG_NETCDF=on``.
-
-      This should auto-detect the NETCDF library if it is installed on
-      your system at standard locations.  Several advanced CMake NETCDF
-      options exist if you need to specify where it was installed.  Use
-      the ``ccmake`` (terminal window) or ``cmake-gui`` (graphical)
-      tools to see these options and set them interactively from their
-      user interfaces.
-
-   .. tab:: Traditional make
-
-      .. versionchanged:: 10Sep2025
-
-      The NETCDF package no longer supports the traditional make build.
-      You need to build LAMMPS with CMake.
+This should auto-detect the NETCDF library if it is installed on
+your system at standard locations.  Several advanced CMake NETCDF
+options exist if you need to specify where it was installed.  Use
+the ``ccmake`` (terminal window) or ``cmake-gui`` (graphical)
+tools to see these options and set them interactively from their
+user interfaces.
 
 ----------
 
 .. _openmp:
 
 OPENMP package
--------------------------------
+--------------
 
-.. tabs::
-
-   .. tab:: CMake build
-
-      No additional settings are required besides ``-D
-      PKG_OPENMP=on``.  If CMake detects OpenMP compiler support, the
-      OPENMP code will be compiled with multi-threading support
-      enabled, otherwise as optimized serial code.
-
-   .. tab:: Traditional make
-
-      To enable multi-threading support in the OPENMP package (and
-      other styles supporting OpenMP) the following compile and link
-      flags must be added to your Makefile.machine file.  See
-      ``src/MAKE/OPTIONS/Makefile.omp`` for an example.
-
-      .. parsed-literal::
-
-         CCFLAGS: -fopenmp               # for GNU and Clang Compilers
-         CCFLAGS: -qopenmp -restrict     # for Intel compilers on Linux
-         LINKFLAGS: -fopenmp             # for GNU and Clang Compilers
-         LINKFLAGS: -qopenmp             # for Intel compilers on Linux
-
-      For other platforms and compilers, please consult the
-      documentation about OpenMP support for your compiler.
+No additional settings are required besides ``-D PKG_OPENMP=on``.  If
+CMake detects OpenMP compiler support, the OPENMP code will be compiled
+with multi-threading support enabled, otherwise as optimized serial
+code.
 
 .. admonition:: Adding OpenMP support on macOS
    :class: note
@@ -2063,7 +1670,7 @@ OPENMP package
 .. _qmmm:
 
 QMMM package
----------------------------------
+------------
 
 For using LAMMPS to do QM/MM simulations via the QMMM package you
 need to build LAMMPS as a library.  A LAMMPS executable with :doc:`fix
@@ -2078,35 +1685,23 @@ and LAMMPS versions.  The current interface and makefiles have last been
 verified to work in February 2020 with Quantum Espresso versions 6.3 to
 6.5.
 
-.. tabs::
+It is recommended to build a shared LAMMPS library, since any libraries
+built from the sources in the *lib* folder (including the essential
+libqmmm.a) are not included in the static LAMMPS library and are
+(currently) not installed, while their code is included in the shared
+LAMMPS library.  Thus a typical command to configure building LAMMPS for
+QMMM would be:
 
-   .. tab:: CMake build
+.. code-block:: bash
 
-      When using CMake, building a LAMMPS library is required and it is
-      recommended to build a shared library, since any libraries built
-      from the sources in the *lib* folder (including the essential
-      libqmmm.a) are not included in the static LAMMPS library and are
-      (currently) not installed, while their code is included in the
-      shared LAMMPS library.  Thus a typical command to configure
-      building LAMMPS for QMMM would be:
+   cmake -S cmake -B build -C cmake/presets/basic.cmake \
+         -D PKG_QMMM=on -D BUILD_SHARED_LIBS=on
 
-      .. code-block:: bash
-
-         cmake -S cmake -B build -C cmake/presets/basic.cmake \
-               -D PKG_QMMM=on -D BUILD_SHARED_LIBS=on
-
-      After completing the LAMMPS build and also configuring and
-      compiling Quantum ESPRESSO with external library support (via
-      "make couple"), go back to the ``lib/qmmm`` folder and follow the
-      instructions on the README file to build the combined LAMMPS/QE
-      QM/MM executable (pwqmmm.x) in the ``lib/qmmm`` folder.
-
-   .. tab:: Traditional make
-
-      .. versionchanged:: 10Sep2025
-
-      The QMMM package no longer supports the traditional make build.
-      You need to build LAMMPS with CMake.
+After completing the LAMMPS build and also configuring and
+compiling Quantum ESPRESSO with external library support (via
+"make couple"), go back to the ``lib/qmmm`` folder and follow the
+instructions on the README file to build the combined LAMMPS/QE
+QM/MM executable (pwqmmm.x) in the ``lib/qmmm`` folder.
 
 ----------
 
@@ -2116,9 +1711,10 @@ QMMM-XTB package
 ----------------
 
 The QMMM-XTB package provides in-process GFN1-xTB and GFN2-xTB QM/MM
-coupling through `libxtb <https://github.com/grimme-lab/xtb>`_.  It requires
-the KSPACE package, libxtb 6.7 or newer, mctc-lib, and BLAS.  The ``xtb.pc``
-and ``mctc-lib.pc`` files must be available to ``pkg-config``.
+coupling through `libxtb <https://github.com/grimme-lab/xtb>`_.  It
+requires the KSPACE package, libxtb 6.7 or newer, mctc-lib, and BLAS.
+The ``xtb.pc`` and ``mctc-lib.pc`` files must be available to
+``pkg-config``.
 
 The package uses libxtb's Fortran module interface because its public C API
 does not expose the atom-dependent potential callback required during every
@@ -2127,38 +1723,29 @@ installed and must be compatible with the Fortran compiler used to build
 LAMMPS.  A normal libxtb installation may omit these private modules; rebuild
 libxtb with the Meson option ``-Dinstall_modules=true`` when necessary.
 
-.. tabs::
+If libxtb and mctc-lib are installed in nonstandard locations, add
+their ``pkgconfig`` directories to ``PKG_CONFIG_PATH``.  Then configure
+LAMMPS with both KSPACE and QMMM-XTB enabled and identify the directory
+containing the libxtb Fortran modules:
 
-   .. tab:: CMake build
+.. code-block:: bash
 
-      If libxtb and mctc-lib are installed in nonstandard locations, add
-      their ``pkgconfig`` directories to ``PKG_CONFIG_PATH``.  Then configure
-      LAMMPS with both KSPACE and QMMM-XTB enabled and identify the directory
-      containing the libxtb Fortran modules:
+   export PKG_CONFIG_PATH=/path/to/xtb/lib/pkgconfig:/path/to/mctc/lib/pkgconfig
+   cmake -S cmake -B build \
+     -D PKG_KSPACE=on \
+     -D PKG_QMMM-XTB=on \
+     -D XTB_FORTRAN_MODULE_DIR=/path/to/xtb-modules
+   cmake --build build
 
-      .. code-block:: bash
+``XTB_FORTRAN_MODULE_DIR`` may be omitted when the module files are in
+a directory reported by ``xtb.pc``.  Configuration stops with an error
+if compatible module files cannot be found.  CMake locates BLAS through
+its standard ``find_package(BLAS)`` mechanism.
 
-         export PKG_CONFIG_PATH=/path/to/xtb/lib/pkgconfig:/path/to/mctc/lib/pkgconfig
-         cmake -S cmake -B build \
-           -D PKG_KSPACE=on \
-           -D PKG_QMMM-XTB=on \
-           -D XTB_FORTRAN_MODULE_DIR=/path/to/xtb-modules
-         cmake --build build
-
-      ``XTB_FORTRAN_MODULE_DIR`` may be omitted when the module files are in
-      a directory reported by ``xtb.pc``.  Configuration stops with an error
-      if compatible module files cannot be found.  CMake locates BLAS through
-      its standard ``find_package(BLAS)`` mechanism.
-
-      At runtime, the dynamic loader must be able to find libxtb and its
-      dependencies.  Set ``XTBPATH`` to the directory containing
-      ``param_gfn1-xtb.txt`` and ``param_gfn2-xtb.txt`` when those files are
-      not installed in libxtb's default data location.
-
-   .. tab:: Traditional make
-
-      The QMMM-XTB package does not support the traditional make
-      build.  You need to build LAMMPS with CMake to use it.
+At runtime, the dynamic loader must be able to find libxtb and its
+dependencies.  Set ``XTBPATH`` to the directory containing
+``param_gfn1-xtb.txt`` and ``param_gfn2-xtb.txt`` when those files are
+not installed in libxtb's default data location.
 
 ----------
 
@@ -2169,65 +1756,40 @@ RHEO package
 
 This package depends on the BPM package.
 
-.. tabs::
+.. code-block:: bash
 
-   .. tab:: CMake build
+   -D PKG_RHEO=on                # enable the package itself
+   -D PKG_BPM=on                 # the RHEO package requires BPM
+   -D USE_INTERNAL_LINALG=value  # prefer internal LAPACK if true
 
-      .. code-block:: bash
+Some features in the RHEO package are dependent on code in the BPM
+package so the latter one *must* be enabled as well.
 
-         -D PKG_RHEO=on                # enable the package itself
-         -D PKG_BPM=on                 # the RHEO package requires BPM
-         -D USE_INTERNAL_LINALG=value  # prefer internal LAPACK if true
-
-      Some features in the RHEO package are dependent on code in the BPM
-      package so the latter one *must* be enabled as well.
-
-      The RHEO package also requires LAPACK (and BLAS) and CMake
-      can identify their locations and pass that info to the RHEO
-      build script.  But on some systems this may cause problems when
-      linking or the dependency is not desired.  By using the setting
-      ``-D USE_INTERNAL_LINALG=on`` when running the CMake
-      configuration, you will select compiling and linking the bundled
-      linear algebra library and work around the limitations.
-
-   .. tab:: Traditional make
-
-      .. versionchanged:: 10Sep2025
-
-      The RHEO package no longer supports the traditional make build.
-      You need to build LAMMPS with CMake.
+The RHEO package also requires LAPACK (and BLAS) and CMake
+can identify their locations and pass that info to the RHEO
+build script.  But on some systems this may cause problems when
+linking or the dependency is not desired.  By using the setting
+``-D USE_INTERNAL_LINALG=on`` when running the CMake
+configuration, you will select compiling and linking the bundled
+linear algebra library and work around the limitations.
 
 ----------
 
 .. _scafacos:
 
 SCAFACOS package
------------------------------------------
+----------------
 
 To build with this package, you must download and build the
 `ScaFaCoS Coulomb solver library <http://www.scafacos.de/>`_
 
-.. tabs::
+.. code-block:: bash
 
-   .. tab:: CMake build
+   -D DOWNLOAD_SCAFACOS=value    # download ScaFaCoS for build, value = on or off
+                                 # (default: on, if ScaFaCoS is not found)
 
-      .. code-block:: bash
-
-         -D DOWNLOAD_SCAFACOS=value    # download ScaFaCoS for build, value = off (default) or on
-         -D SCAFACOS_LIBRARY=path      # ScaFaCos library file (only needed if at custom location)
-         -D SCAFACOS_INCLUDE_DIR=path  # ScaFaCoS include directory (only needed if at custom location)
-
-      If ``DOWNLOAD_SCAFACOS`` is set, the ScaFaCoS library will be
-      downloaded and built inside the CMake build directory.  If the
-      ScaFaCoS library is already on your system (in a location CMake
-      cannot find it), ``SCAFACOS_LIBRARY`` is the filename (plus path) of
-      the ScaFaCoS library file, not the directory the library file is
-      in.  ``SCAFACOS_INCLUDE_DIR`` is the directory the ScaFaCoS include
-      file is in.
-
-   .. tab:: Traditional make
-
-      .. versionchanged:: 10Sep2025
-
-      The SCAFACOS package no longer supports the traditional make build.
-      You need to build LAMMPS with CMake.
+If ``DOWNLOAD_SCAFACOS`` is set, the ScaFaCoS library will be downloaded
+and built inside the CMake build directory.  If the ScaFaCoS library is
+already on your system but in a location where CMake cannot find it,
+append the folder containing the ``scafacos.pc`` file to the
+``PKG_CONFIG_PATH`` environment variable.

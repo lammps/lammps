@@ -38,10 +38,7 @@ with Python support enabled. This extension, written by Nick Lubbers
 (LANL), provides a coupling to PyTorch and other Python modules. This
 should be automatically enabled by default if the prerequisite software
 is installed when compiling with CMake. It can be enforced during CMake
-configuration by setting the variable `MLIAP_ENABLE_PYTHON=yes` or for
-conventional build by adding `-DMLIAP_PYTHON` to the `LMP_INC` variable
-in your makefile and running the cythonize script on the .pyx file(s)
-copied to the src folder.
+configuration by setting the variable `MLIAP_ENABLE_PYTHON=yes`.
 
 Using the `mliappy` energy model also requires to install the PYTHON
 package and have the [cython](https://cython.org) software

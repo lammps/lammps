@@ -5,6 +5,3 @@ the Voronoi tesselation locally on each processor.  Voro++ was
 developed by Chris H. Rycroft while at UC Berkeley / Lawrence Berkeley
 Laboratory.
 
-See the lib/voronoi/README file for instructions on how to download
-and install the Voro++ library for use with LAMMPS.
-

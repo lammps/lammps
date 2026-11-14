@@ -102,7 +102,7 @@ they have written are unique for an MD code and LAMMPS would not be as
 general-purpose as it is without their expertise and efforts.
 
 * Metin Aktulga (MSU), REAXFF package for C/C++ version of ReaxFF
-* Mike Brown (Intel), GPU and INTEL packages
+* Mike Brown (NVIDIA), GPU and INTEL packages
 * Colin Denniston (U Western Ontario), LATBOLTZ package
 * Georg Ganzenmuller (EMI), MACHDYN and SPH packages
 * Andres Jaramillo-Botero (Caltech), EFF package for electron force field

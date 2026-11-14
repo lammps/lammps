@@ -2165,11 +2165,3 @@ int imd_recv_fcoords(void *s, int32 n, float *coords) {
   return (imd_readn(s, (char *)coords, 12*n) != 12*n);
 }
 // NOLINTEND
-
-// Local Variables:
-// mode: c++
-// compile-command: "make -j4 openmpi"
-// c-basic-offset: 2
-// fill-column: 76
-// indent-tabs-mode: nil
-// End:

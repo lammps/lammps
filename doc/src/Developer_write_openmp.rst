@@ -19,9 +19,7 @@ Package and build system considerations
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 The OPENMP package is one of the accelerator packages. New styles should
-be added to the `src/OPENMP` directory. The contributed code needs to
-support both the CMake build process and (if applicable) the traditional
-GNU make process.
+be added to the `src/OPENMP` directory.
 
 Case study: a pairwise additive model
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

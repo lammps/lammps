@@ -40,14 +40,14 @@ listed at the end; build and test commands live in `.github/copilot-instructions
    or explicit repeated multiplication.  `powauto()` is for exponents that are only known
    at run time but are integers for most parameter sets.
 
-5. **Register new files in `src/KOKKOS/Install.sh`** with `action` lines: omit the second
-   argument when the base class is in core `src/`; pass both filenames when the base is in
-   an optional package:
-
-   ```sh
-   action fix_lineforce_kokkos.cpp             # base in src/
-   action fix_drag_kokkos.cpp fix_drag.cpp     # base in EXTRA-FIX
-   ```
+5. **Name new style files after the CPU base style file** (`fix_drag.h` ->
+   `src/KOKKOS/fix_drag_kokkos.{h,cpp}`): CMake's `RegisterStylesExt()` compiles
+   `<base>_kokkos.cpp` only when `<base>.h` is a style header of the build, so a style
+   whose base is in an optional package (here EXTRA-FIX) follows that package
+   automatically.  Re-run the CMake configuration to pick up new files.  Files without a
+   style macro (base classes, helpers) are not detected: list them in
+   `KOKKOS_PKG_SOURCES` in `cmake/Modules/Packages/KOKKOS.cmake`, inside an
+   `if(PKG_<NAME>)` block when they depend on an optional package.
 
 ## Datamask and sync/modify discipline
 
@@ -107,9 +107,8 @@ CPU base's bare helper creation -- prefer that pattern for new styles.
 
 ## Documentation checklist (pair, fix, and compute styles alike)
 
-1. New files `src/KOKKOS/<prefix>_<name>_kokkos.{h,cpp}` plus `Install.sh` action lines
-   (rule 5). No `src/.gitignore` edit is needed: the `/*_kokkos.{cpp,h}` wildcard rules
-   already cover KOKKOS files (only non-`_kokkos` package files need entries).
+1. New files `src/KOKKOS/<prefix>_<name>_kokkos.{h,cpp}` named after the CPU base style
+   files (rule 5); non-style helper files also go into `KOKKOS.cmake`.
 2. Base class: `virtual allocate()` (rule 2) and destructor `copymode` guard (rule 1).
 3. `doc/src/<style>.rst`:
    - Add `.. index:: pair_style <name>/kk` (or `fix <name>/kk`, ...) near the top; index
@@ -140,7 +139,6 @@ CPU base's bare helper creation -- prefer that pattern for new styles.
   ... to global weak symbol".  Call the static `<Name>Kokkos<DeviceType>::cast()`
   member instead, and add one (defined next to the explicit instantiation) if the
   class does not have it yet.
-- Not rebuilding with `make purge` after switching between Make and CMake builds.
 - Overflow-prone `exp()` with a positive argument in `KK_FLOAT` code: in mixed/single
   precision the float overload returns inf above ~88.7 and the forces turn to NaN
   (seen only on GPU-mixed builds; host-mixed happened to stay below).  Promote the

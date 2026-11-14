@@ -57,7 +57,7 @@ LGPL version of LAMMPS
 We occasionally make stable LAMMPS releases available under the `GNU
 Lesser Public License v2.1 <lgpl_>`_.  This is on request only and with
 non-LGPL compliant files removed.  This allows uses linking non-GPL
-compatible software with the (otherwise unmodified) LAMMPS library
-or loading it dynamically at runtime.  Any **modifications** to
-the LAMMPS code however, even with the LGPL licensed version, must still
+compatible software with the (otherwise unmodified) LAMMPS library or
+loading it dynamically at runtime.  Any **modifications** to the
+**LAMMPS code** however, even with the LGPL licensed version, must still
 be made available under the same open source terms as LAMMPS itself.

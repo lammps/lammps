@@ -50,9 +50,8 @@ in doc/src/PDF/CG-DNA.pdf.
 
 IMPORTANT NOTE: This package can only be used if LAMMPS is compiled
 with the MOLECULE and ASPHERE packages.  These should be included in
-the LAMMPS build by typing "make yes-asphere yes-molecule" prior to
-the usual compilation (see the "Including/excluding packages" section
-of the LAMMPS manual).
+the LAMMPS build by using "-D PKG_MOLECULE=on -D PKG_ASPHERE=on"
+during CMake configuration.
 
 The creator of this package is:
 

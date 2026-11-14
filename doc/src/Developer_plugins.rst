@@ -241,15 +241,16 @@ pointer to the ``lammpsplugin_t`` struct and the pointer to the LAMMPS
 instance as arguments to register a single plugin.  There may be multiple
 calls to multiple plugins in the same initialization function.
 
-To register a plugin a struct of the ``lammpsplugin_t`` needs to be filled
-with relevant info: current LAMMPS version string, kind of style, name of
-style, info string, author string, pointer to factory function, and the
-DSO handle.  The registration function is called with a pointer to the address
-of this struct and the pointer of the LAMMPS class.  The registration function
-will then add the factory function of the plugin style to the respective
-process-global style registry under the provided name.  It will also make a copy of the struct
-in a global list of all loaded plugins and update the reference counter for
-loaded plugins from this specific DSO file.
+To register a plugin a struct of the ``lammpsplugin_t`` needs to be
+filled with relevant info: current LAMMPS version string, kind of style,
+name of style, info string, author string, pointer to factory function,
+and the DSO handle.  The registration function is called with a pointer
+to the address of this struct and the pointer of the LAMMPS class.  The
+registration function will then add the factory function of the plugin
+style to the respective process-global style registry under the provided
+name.  It will also make a copy of the struct in a global list of all
+loaded plugins and update the reference counter for loaded plugins from
+this specific DSO file.
 
 The pair style itself (i.e. the PairMorse2 class in this example) can be
 written just like any other pair style that is included in LAMMPS.  For
@@ -294,8 +295,8 @@ as the LAMMPS executable and library.  Otherwise the plugin will likely
 not load due to mismatches in the function signatures (LAMMPS is C++ so
 scope, type, and number of arguments are encoded into the symbol names
 and thus differences in them will lead to failed plugin load commands).
-Compilation of the plugin can be managed via both, CMake or traditional
-GNU makefiles.  Some examples that can be used as a template are in the
+Compilation of the plugin can be managed via the CMake build system.
+Some examples that can be used as a template are in the
 ``examples/plugins`` folder.  The CMake script code has some small
 adjustments to allow building the plugins for running unit tests with
 them.
@@ -303,9 +304,8 @@ them.
 Another example that converts the KIM package into a plugin can be found
 in the ``examples/kim/plugin`` folder.  No changes to the sources of the
 KIM package themselves are needed; only the plugin interface and loader
-code needs to be added.  This example only supports building with CMake,
-but is probably a more typical example. To compile you need to run CMake
-with ``-DLAMMPS_SOURCE_DIR=<path/to/lammps/src/folder>``.  Other
+code needs to be added.  To compile you need to run CMake with
+``-DLAMMPS_SOURCE_DIR=<path/to/lammps/src/folder>``.  Other
 configuration setting are identical to those for compiling LAMMPS.
 
 A second example for a plugin from a package is in the

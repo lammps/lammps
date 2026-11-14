@@ -108,8 +108,9 @@ order of operations compared to LAMMPS without acceleration:
 * The *newton* setting applies to all atoms, not just atoms shared
   between MPI tasks
 * Vectorization can change the order for adding pairwise forces
-* When using the ``-DLMP_USE_MKL_RNG`` define (all included intel optimized
-  makefiles do) at build time, the random number generator for
+* When LAMMPS is linked to the Intel MKL library (CMake detects it
+  automatically and then sets the ``-DLMP_USE_MKL_RNG`` define), the
+  random number generator for
   dissipative particle dynamics (``pair style dpd/intel``) uses the Mersenne
   Twister generator included in the Intel MKL library (that should be
   more robust than the default Masaglia random number generator)
@@ -132,7 +133,6 @@ LAMMPS should be built with the INTEL package installed.
 Simulations should be run with 1 MPI task per physical *core*,
 not *hardware thread*\ .
 
-* Edit ``src/MAKE/OPTIONS/Makefile.intel_cpu_intelmpi`` as necessary.
 * Set the environment variable ``KMP_BLOCKTIME=0``
 * ``-pk intel 0 omp $t -sf intel`` added to LAMMPS command-line
 * ``$t`` should be 2 for Intel Xeon CPUs
@@ -176,29 +176,28 @@ basic build options <build_compiler>`.
 Notes about Simultaneous Multithreading
 """""""""""""""""""""""""""""""""""""""
 
-Modern CPUs often support Simultaneous Multithreading (SMT). On
-Intel processors, this is called Hyper-Threading (HT) technology.
-SMT is hardware support for running multiple threads efficiently on
-a single core. *Hardware threads* or *logical cores* are often used
-to refer to the number of threads that are supported in hardware.
-For example, the Intel Xeon E5-2697v4 processor is described
-as having 36 cores and 72 threads. This means that 36 MPI processes
-or OpenMP threads can run simultaneously on separate cores, but that
-up to 72 MPI processes or OpenMP threads can be running on the CPU
-without costly operating system context switches.
+Modern CPUs often support Simultaneous Multithreading (SMT). On Intel
+processors, this is called Hyper-Threading (HT) technology.  SMT is
+hardware support for running multiple threads efficiently on a single
+core. *Hardware threads* or *logical cores* are often used to refer to
+the number of threads that are supported in hardware.  For example, the
+Intel Xeon E5-2697v4 processor is described as having 36 cores and 72
+threads.  This means that 36 MPI processes or OpenMP threads can run
+simultaneously on separate cores, but that up to 72 MPI processes or
+OpenMP threads can be running on the CPU without costly operating system
+context switches.
 
-Molecular dynamics simulations will often run faster when making use
-of SMT. If a thread becomes stalled, for example because it is
-waiting on data that has not yet arrived from memory, another thread
-can start running so that the CPU pipeline is still being used
-efficiently. Although benefits can be seen by launching a MPI task
-for every hardware thread, for multinode simulations, we recommend
-that OpenMP threads are used for SMT instead, either with the
-INTEL package, :doc:`OPENMP package <Speed_omp>`, or
-:doc:`KOKKOS package <Speed_kokkos>`. In the example above, up
-to 36X speedups can be observed by using all 36 physical cores with
-LAMMPS. By using all 72 hardware threads, an additional 10-30%
-performance gain can be achieved.
+Molecular dynamics simulations will often run faster when making use of
+SMT.  If a thread becomes stalled, for example because it is waiting on
+data that has not yet arrived from memory, another thread can start
+running so that the CPU pipeline is still being used efficiently.
+Although benefits can be seen by launching a MPI task for every hardware
+thread, for multinode simulations, we recommend that OpenMP threads are
+used for SMT instead, either with the INTEL package, :doc:`OPENMP
+package <Speed_omp>`, or :doc:`KOKKOS package <Speed_kokkos>`.  In the
+example above, up to 36X speedups can be observed by using all 36
+physical cores with LAMMPS.  By using all 72 hardware threads, an
+additional 10-30% performance gain can be achieved.
 
 The BIOS on many platforms allows SMT to be disabled, however, we do
 not recommend this on modern processors as there is little to no
@@ -212,64 +211,29 @@ this information can normally be obtained with:
    cat /proc/cpuinfo
 
 Building LAMMPS with the INTEL package
-"""""""""""""""""""""""""""""""""""""""""""
+""""""""""""""""""""""""""""""""""""""
 
-See the :ref:`Build extras <intel>` page for
-instructions.  Some additional details are covered here.
-
-For building with make, several example Makefiles for building with
-the Intel compiler are included with LAMMPS in the ``src/MAKE/OPTIONS/``
-directory:
-
-.. code-block:: bash
-
-   Makefile.intel_cpu_intelmpi  # Intel Compiler, Intel MPI
-   Makefile.intel_cpu_mpich     # Intel Compiler, MPICH
-   Makefile.intel_cpu_openmpi   # Intel Compiler, OpenMPI
-
-For users with
-recent installations of Intel Parallel Studio, the process can be as
-simple as:
-
-.. code-block:: bash
-
-   make yes-intel
-   source /opt/intel/parallel_studio_xe_2016.3.067/psxevars.sh
-   # or psxevars.csh for C-shell
-   make intel_cpu_intelmpi
-
-The general requirements for Makefiles with the INTEL package
-are as follows. When using Intel compilers, ``-restrict`` is required
-and ``-qopenmp`` is highly recommended for ``CCFLAGS`` and ``LINKFLAGS``.
-``CCFLAGS`` should include ``-DLMP_INTEL_USELRT`` (unless POSIX Threads
-are not supported in the build environment) and ``-DLMP_USE_MKL_RNG``
-(unless Intel Math Kernel Library (MKL) is not available in the build
-environment). For Intel compilers, ``LIB`` should include ``-ltbbmalloc``
-or if the library is not available, ``-DLMP_INTEL_NO_TBB`` can be added
-to ``CCFLAGS``. Other
-recommended ``CCFLAG`` options for best performance are ``-O2 -fno-alias
--ansi-alias -qoverride-limits fp-model fast=2 -no-prec-div``.
+See the :ref:`Build extras <intel>` page for instructions.  CMake
+automatically adds suitable optimization flags when using the Intel
+compilers.
 
 .. note::
 
-   See the ``src/INTEL/README`` file for additional flags that
-   might be needed for best performance on Intel server processors
-   code-named "Skylake".
-
-.. note::
-
-   The vectorization and math capabilities can differ depending on
-   the CPU. For Intel compilers, the ``-x`` flag specifies the type of
-   processor for which to optimize. ``-xHost`` specifies that the compiler
-   should build for the processor used for compiling. For fourth
-   generation Intel Xeon (v4/Broadwell) processors, ``-xCORE-AVX2`` should
-   be used. For older Intel Xeon processors, ``-xAVX`` will perform best
-   in general for the different simulations in LAMMPS. The default
-   in most of the example Makefiles is to use ``-xHost``, however this
-   should not be used when cross-compiling.
+   The vectorization and math capabilities differ between CPUs.  With
+   the LLVM based Intel compilers, CMake compiles the LAMMPS library for
+   the CPU of the machine where LAMMPS is compiled (``-xHost``), unless
+   a target CPU is already selected with ``-x``, ``-ax``, or
+   ``-march=`` in ``CMAKE_CXX_FLAGS`` or in the flags for the build
+   type (e.g. ``CMAKE_CXX_FLAGS_RELWITHDEBINFO``).  Selecting a target
+   CPU is needed when compiling for a different CPU, e.g. when the login
+   and compute nodes of a cluster differ.  Use ``-march=`` for this
+   (e.g. ``-march=skylake-avx512`` or ``-march=x86-64-v3``) and not
+   ``-x``: when the file with the main program is compiled with a
+   ``-x`` flag, the LAMMPS executable checks for an Intel CPU when it
+   starts and refuses to run on CPUs from other vendors.
 
 Running LAMMPS with the INTEL package
-""""""""""""""""""""""""""""""""""""""""""
+"""""""""""""""""""""""""""""""""""""
 
 Running LAMMPS with the INTEL package is similar to normal use
 with the exceptions that one should 1) specify that LAMMPS should use
@@ -280,18 +244,17 @@ or by editing the input script. 3) requires editing the input script.
 Advanced performance tuning options are also described below to get
 the best performance.
 
-When running on a single node, best performance is normally obtained
-by using 1 MPI task per physical core and additional OpenMP threads
-with SMT. For Intel Xeon processors, 2 OpenMP threads should be used
-for SMT. In cases where the user
-specifies that LRT mode is used (described below), 1 or 3 OpenMP
-threads should be used. For multi-node runs, using 1 MPI task per
-physical core will often perform best, however, depending on the
-machine and scale, users might get better performance by decreasing
-the number of MPI tasks and using more OpenMP threads. For
-performance, the product of the number of MPI tasks and OpenMP
-threads should not exceed the number of available hardware threads in
-almost all cases.
+When running on a single node, best performance is normally obtained by
+using 1 MPI task per physical core and additional OpenMP threads with
+SMT. For Intel Xeon processors, 2 OpenMP threads should be used for
+SMT. In cases where the user specifies that LRT mode is used (described
+below), 1 or 3 OpenMP threads should be used. For multi-node runs, using
+1 MPI task per physical core will often perform best, however, depending
+on the machine and scale, users might get better performance by
+decreasing the number of MPI tasks and using more OpenMP threads. For
+performance, the product of the number of MPI tasks and OpenMP threads
+should not exceed the number of available hardware threads in almost all
+cases.
 
 Run with the INTEL package from the command-line
 """"""""""""""""""""""""""""""""""""""""""""""""
@@ -362,23 +325,22 @@ Tuning for Performance
    :doc:`kspace_modify diff ad <kspace_modify>` should be added to the
    input script.
 
-Long-Range Thread (LRT) mode is an option to the :doc:`package intel <package>` command that can improve performance when using
-:doc:`PPPM <kspace_style>` for long-range electrostatics on processors
-with SMT. It generates an extra pthread for each MPI task. The thread
-is dedicated to performing some of the PPPM calculations and MPI
-communications. This feature requires setting the pre-processor flag
-``-DLMP_INTEL_USELRT`` in the makefile when compiling LAMMPS. It is unset
-in the default makefiles (``Makefile.mpi`` and ``Makefile.serial``) but
-it is set in all makefiles tuned for the INTEL package.  On Intel
-Xeon processors, using
-this mode might result in better performance when using multiple nodes,
-depending on the specific machine configuration. To enable LRT mode,
-specify that the number of OpenMP threads is one less than would
-normally be used for the run and add the ``lrt yes`` option to the ``-pk``
-command-line suffix or "package intel" command. For example, if a run
-would normally perform best with "-pk intel 0 omp 4", instead use
-``-pk intel 0 omp 3 lrt yes``. When using LRT, you should set the
-environment variable ``KMP_AFFINITY=none``.
+Long-Range Thread (LRT) mode is an option to the :doc:`package intel
+<package>` command that can improve performance when using :doc:`PPPM
+<kspace_style>` for long-range electrostatics on processors with SMT. It
+generates an extra pthread for each MPI task.  The thread is dedicated
+to performing some of the PPPM calculations and MPI communications. This
+feature requires configuring with ``-D INTEL_LRT_MODE=<value>`` with
+``<value>`` set to either ``threads`` (the default, if a threads library
+is found) or ``c++17``.  On Intel Xeon processors, using this mode might
+result in better performance when using multiple nodes, depending on the
+specific machine configuration. To enable LRT mode, specify that the
+number of OpenMP threads is one less than would normally be used for the
+run and add the ``lrt yes`` option to the ``-pk`` command-line suffix or
+"package intel" command. For example, if a run would normally perform
+best with "-pk intel 0 omp 4", instead use ``-pk intel 0 omp 3 lrt
+yes``. When using LRT, you should set the environment variable
+``KMP_AFFINITY=none``.
 
 .. note::
 
@@ -386,38 +348,38 @@ environment variable ``KMP_AFFINITY=none``.
    performance and/or scalability for simple 2-body potentials such as
    lj/cut or when using LRT mode on processors supporting AVX-512.
 
-Not all styles are supported in the INTEL package. You can mix
-the INTEL package with styles from the :doc:`OPT <Speed_opt>`
-package or the :doc:`OPENMP package <Speed_omp>`. Of course, this
-requires that these packages were installed at build time. This can
-performed automatically by using ``-sf hybrid intel opt`` or ``-sf hybrid
-intel omp`` command-line options. Alternatively, the "opt" and "omp"
-suffixes can be appended manually in the input script. For the latter,
-the :doc:`package omp <package>` command must be in the input script or
-the ``-pk omp Nt`` :doc:`command-line switch <Run_options>` must be used
-where ``Nt`` is the number of OpenMP threads. The number of OpenMP threads
-should not be set differently for the different packages. Note that
-the :doc:`suffix hybrid intel omp <suffix>` command can also be used
-within the input script to automatically append the "omp" suffix to
-styles when INTEL styles are not available.
+Not all styles are supported in the INTEL package. You can mix the INTEL
+package with styles from the :doc:`OPT <Speed_opt>` package or the
+:doc:`OPENMP package <Speed_omp>`. Of course, this requires that these
+packages were installed at build time. This can be performed automatically
+by using ``-sf hybrid intel opt`` or ``-sf hybrid intel omp``
+command-line options. Alternatively, the "opt" and "omp" suffixes can be
+appended manually in the input script. For the latter, the :doc:`package
+omp <package>` command must be in the input script or the ``-pk omp Nt``
+:doc:`command-line switch <Run_options>` must be used where ``Nt`` is
+the number of OpenMP threads. The number of OpenMP threads should not be
+set differently for the different packages. Note that the :doc:`suffix
+hybrid intel omp <suffix>` command can also be used within the input
+script to automatically append the "omp" suffix to styles when INTEL
+styles are not available.
 
 .. note::
 
-   For simulations on higher node counts, add :doc:`processors \* \* \* grid numa <processors>` to the beginning of the input script for
+   For simulations on higher node counts, add :doc:`processors \* \* \*
+   grid numa <processors>` to the beginning of the input script for
    better scalability.
 
-When running on many nodes, performance might be better when using
-fewer OpenMP threads and more MPI tasks. This will depend on the
-simulation and the machine. Using the :doc:`verlet/split <run_style>`
-run style might also give better performance for simulations with
-:doc:`PPPM <kspace_style>` electrostatics. Note that this is an
-alternative to LRT mode and the two cannot be used together.
+When running on many nodes, performance might be better when using fewer
+OpenMP threads and more MPI tasks. This will depend on the simulation
+and the machine. Using the :doc:`verlet/split <run_style>` run style
+might also give better performance for simulations with :doc:`PPPM
+<kspace_style>` electrostatics. Note that this is an alternative to LRT
+mode and the two cannot be used together.
 
 Restrictions
 """"""""""""
 
-None of
-the pair styles in the INTEL package currently support the
+None of the pair styles in the INTEL package currently support the
 "inner", "middle", "outer" options for rRESPA integration via the
 :doc:`run_style respa <run_style>` command; only the "pair" option is
 supported.

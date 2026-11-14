@@ -320,7 +320,7 @@ function(DetectBuildSystemConflict lammps_src_dir)
                                   "Found package(s) installed by the make-based build system\n"
                                   "\n"
                                   "Please run\n"
-                                  "make -C ${lammps_src_dir} no-all purge\n"
+                                  "make -C ${lammps_src_dir} purge\n"
                                   "to uninstall\n"
                                   "########################################################################")
         endif()

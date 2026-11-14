@@ -36,35 +36,6 @@ available. This allow for running most styles in LAMMPS with threading.
 
 -----------------------------------------------------------------------------
 
-The Long-Range Thread mode (LRT) in the Intel package is enabled through the
--DLMP_INTEL_USELRT define at compile time. All intel optimized makefiles
-include this define. This feature will use pthreads by default.
-Alternatively, "-DLMP_INTEL_LRT17" can be used to build with compilers that
-support threads intrinsically using the C++11 standard. When using
-LRT mode, you might need to disable OpenMP affinity settings (e.g.
-export KMP_AFFINITY=none). LAMMPS will generate a warning if the settings
-need to be changed.
-
------------------------------------------------------------------------------
-
-Unless Intel Math Kernel Library (MKL) is unavailable, -DLMP_USE_MKL_RNG
-should be added to the compile flags. This will enable using the MKL Mersenne
-Twister random number generator (RNG) for Dissipative Particle Dynamics
-(DPD). This RNG can allow significantly faster performance and it also has a
-significantly longer period than the standard RNG for DPD.
-
------------------------------------------------------------------------------
-
 For portability reasons, vectorization directives are currently only enabled
 for Intel compilers. Using other compilers may result in significantly
-lower performance. This behavior can be changed by defining
-LMP_SIMD_COMPILER for the preprocessor (see intel_preprocess.h).
-
------------------------------------------------------------------------------
-
-Vector intrinsics are temporarily being used for the Stillinger-Weber
-potential to allow for advanced features in the AVX512 instruction set to
-be exploited on early hardware. We hope to see compiler improvements for
-AVX512 that will eliminate this requirement, so it is not recommended to
-develop code based on the intrinsics implementation. Please e-mail the
-authors for more details.
+lower performance.

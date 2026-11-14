@@ -2,9 +2,9 @@ GPU package
 ===========
 
 The GPU package was developed by Mike Brown while at SNL and ORNL (now
-at Intel Corp.) and his collaborators, particularly Trung Nguyen (now at
-Northwestern).  Support for AMD GPUs via HIP was added by Vsevolod Nikolskiy
-and coworkers at HSE University.
+at NVIDIA) and his collaborators, particularly Trung Nguyen (now at
+U Chicago).  Support for AMD GPUs via HIP was added by Vsevolod
+Nikolskiy and coworkers at HSE University.
 
 The GPU package provides GPU versions of many pair styles and for
 parts of the :doc:`kspace_style pppm <kspace_style>` for long-range
@@ -28,7 +28,7 @@ Coulombics.  It has the following general features:
 * LAMMPS-specific code is in the GPU package.  It makes calls to a
   generic GPU library in the lib/gpu directory.  This library provides
   either Nvidia support, AMD support, or more general OpenCL support
-  (for Nvidia GPUs, AMD GPUs, Intel GPUs, and multicore CPUs).
+  (for Nvidia GPUs, AMD GPUs, Intel GPUs, and multicore CPUs),
   so that the same functionality is supported on a variety of hardware.
 
 Required hardware/software
@@ -42,18 +42,23 @@ and unsupported on Windows):
 * Check if you have an NVIDIA GPU: ``cat /proc/driver/nvidia/gpus/\*/information``
 * Go to https://developer.nvidia.com/cuda-downloads
 * Install a driver and toolkit appropriate for your system (SDK is not necessary)
-* Run ``lammps/lib/gpu/nvc_get_devices`` (after building the GPU library, see below) to
-  list supported devices and properties
+* Configure LAMMPS with CMake using ``-D PKG_GPU=on -D GPU_API=cuda``
+  and compile it.  Afterwards, you can run ``./build/nvc_get_devices``
+  to list all supported devices and their properties.
 
-To compile and use this package in OpenCL mode, you currently need
-to have the OpenCL headers and the (vendor neutral) OpenCL library installed.
-In OpenCL mode, the acceleration depends on having an `OpenCL Installable Client Driver (ICD) <https://www.khronos.org/news/permalink/opencl-installable-client-driver-icd-loader>`_
-installed. There can be multiple of them for the same or different hardware
-(GPUs, CPUs, Accelerators) installed at the same time. OpenCL refers to those
-as 'platforms'.  The GPU library will try to auto-select the best suitable platform,
-but this can be overridden using the platform option of the :doc:`package <package>`
-command. run ``lammps/lib/gpu/ocl_get_devices`` to get a list of available
-platforms and devices with a suitable ICD available.
+When compiling this package in OpenCL mode, CMake by default downloads
+and includes the OpenCL headers and a static (vendor neutral) OpenCL
+loader library (except on macOS, see the :ref:`Build extras <gpu>`
+page).  In OpenCL mode, the acceleration depends on having an
+`OpenCL Installable Client Driver (ICD)
+<https://www.khronos.org/news/permalink/opencl-installable-client-driver-icd-loader>`_
+installed.  There can be multiple of them for the same or different
+hardware (GPUs, CPUs, Accelerators) installed at the same time.  OpenCL
+refers to those as 'platforms'.  The GPU library will try to auto-select
+the best suitable platform, but this can be overridden using the
+platform option of the :doc:`package <package>` command.  Run
+``./build/ocl_get_devices`` to get a list of available platforms and
+devices where a suitable ICD is available.
 
 To compile and use this package for Intel GPUs, OpenCL or the Intel oneAPI
 HPC Toolkit can be installed using linux package managers. The latter also
@@ -61,14 +66,12 @@ provides optimized C++, MPI, and many other libraries and tools. See:
 
 * https://software.intel.com/content/www/us/en/develop/tools/oneapi/hpc-toolkit/download.html
 
-If you do not have a discrete GPU card installed, this package can still provide
-significant speedups on some CPUs that include integrated GPUs. Additionally, for
-many macs, OpenCL is already included with the OS and Makefiles are available
-in the ``lib/gpu`` directory.
-
-To compile and use this package in HIP mode, you have to have the AMD ROCm
-software installed. Versions of ROCm older than 3.5 are currently deprecated
-by AMD.
+If you do not have a discrete GPU card installed, this package can still
+provide significant speedups on some CPUs that include integrated
+GPUs. Additionally, OpenCL support may already be included with the OS or
+provided by the graphics card driver.  To compile and use this package
+in HIP mode, you have to have the AMD ROCm software installed.  Version
+6.0 or later of ROCm is required.
 
 Building LAMMPS with the GPU package
 """"""""""""""""""""""""""""""""""""
@@ -91,13 +94,13 @@ and in many cases it will be more efficient to run this way.  Likewise
 it may be more efficient to use less MPI tasks/node than the available
 # of CPU cores.  Assignment of multiple MPI tasks to a GPU will happen
 automatically if you create more MPI tasks/node than there are
-GPUs/mode.  E.g. with 8 MPI tasks/node and 2 GPUs, each GPU will be
+GPUs/node.  E.g. with 8 MPI tasks/node and 2 GPUs, each GPU will be
 shared by 4 MPI tasks.
 
 The GPU package also has limited support for OpenMP for both
 multi-threading and vectorization of routines that are run on the CPUs.
-This requires that the GPU library and LAMMPS are built with flags to
-enable OpenMP support (e.g. ``-fopenmp``). Some styles for time integration
+This requires that LAMMPS is built with OpenMP support (``-D
+BUILD_OMP=on``, the default if the compiler supports OpenMP). Some styles for time integration
 are also available in the GPU package. These run completely on the CPUs
 in full double precision, but exploit multi-threading and vectorization
 for faster performance.

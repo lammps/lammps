@@ -67,99 +67,43 @@ packages:
    * :ref:`SCAFACOS <scafacos>`
    * :ref:`VORONOI <voronoi>`
 
-The mechanism for including packages is simple but different for the CMake
-build system in comparison to the traditional make build.
+Selecting packages
+------------------
 
-.. tabs::
+The mechanism for including packages is simple:
 
-   .. tab:: CMake build
+.. code-block:: csh
 
-      .. code-block:: csh
+   -D PKG_NAME=value          # on or off (default)
 
-         -D PKG_NAME=value          # on or off (default)
+Examples:
 
-      Examples:
+.. code-block:: csh
 
-      .. code-block:: csh
+   -D PKG_MANYBODY=on
+   -D PKG_INTEL=on
 
-         -D PKG_MANYBODY=on
-         -D PKG_INTEL=on
-
-      All packages are included the same way.  See the shortcut section
-      below for how to install many packages at once with CMake.
-
-      .. note::
-
-         If you switch between building with CMake and make builds, no
-         packages in the src directory can be installed when you invoke
-         ``cmake``.  CMake will give an error if that is not the case,
-         indicating how you can uninstall all packages in the src dir.
-
-   .. tab:: Traditional make
-
-      .. code-block:: bash
-
-         cd lammps/src
-         make ps        # check which packages are currently installed
-         make yes-name  # install a package with name
-         make no-name   # uninstall a package with name
-         make mpi       # build LAMMPS with whatever packages are now installed
-
-      Examples:
-
-      .. code-block:: bash
-
-         make no-rigid
-         make yes-intel
-
-      All packages are included the same way.  See the shortcut section
-      below for how to install many packages at once with make.
-
-      .. note::
-
-         You must always re-build LAMMPS (via make) after installing or
-         uninstalling a package, for the action to take effect. The
-         included dependency tracking will make certain only files that
-         are required to be rebuilt are recompiled.
-
-      .. note::
-
-         You cannot install or uninstall packages and build LAMMPS in a
-         single make command with multiple targets, e.g. ``make
-         yes-colloid mpi``.  This is because the make procedure creates
-         a list of source files that will be out-of-date for the build
-         if the package configuration changes within the same command.
-         You can include or exclude multiple packages in a single make
-         command, e.g. ``make yes-colloid no-manybody``.
-
-
-Information for both build systems
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+All packages are included the same way.  By default **no** packages are
+included.  See the shortcut section below for how to install many
+packages at once.
 
 Almost all packages can be included or excluded in a LAMMPS build,
 independent of the other packages.  However, some packages include files
-derived from files in other packages.  LAMMPS checks for this and does
-the right thing.  Individual files are only included if their
-dependencies are already included.  Likewise, if a package is excluded,
-other files dependent on that package are also excluded.
-
-.. note::
-
-   By default **no** packages are installed.  Prior to August 2018,
-   however, if you downloaded a tarball, 3 packages (KSPACE, MANYBODY,
-   MOLECULE) were pre-installed via the traditional make procedure in
-   the ``src`` directory.  That is no longer the case, so that CMake
-   will build as-is without needing to first uninstall those packages.
-   You can quickly include those packages (plus RIGID and GRAPHICS) by
-   using the "basic" preset with CMake or ``make yes-basic`` with
-   traditional make as discussed below.
+derived from files in other packages.  LAMMPS checks for this and
+(usually) does the right thing automatically: Individual files are only
+included if their dependencies are already included.  Likewise, if a
+package is excluded, other files dependent on that package are also
+excluded.  If an entire package depends on some other package that
+additional package will either be included automatically or CMake will
+stop with an error.  Information about this will be printed to the
+screen when running the CMake configuration.
 
 ----------
 
 .. _cmake_presets:
 
-CMake presets for installing many packages
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Presets for installing many packages
+------------------------------------
 
 Instead of specifying all the CMake options via the command-line,
 CMake allows initializing its settings cache using script files.
@@ -168,8 +112,7 @@ variables (which represent selected options), and can also contain
 control flow constructs for more complex operations.
 
 LAMMPS includes several of these files to define configuration
-"presets", similar to the options that exist for the Make based
-system. Using these files, you can enable/disable portions of the
+"presets".  Using these files, you can enable/disable portions of the
 available packages in LAMMPS. If you need a custom preset, you can
 make a copy of one of them and modify it to suit your needs.
 
@@ -248,7 +191,6 @@ and are meant to be combined with other presets or settings that do.
    with new flags.  If you use a preset for selecting a set of
    compilers, it will reset all settings from previous CMake runs.
 
-
 Example
 """""""
 
@@ -266,62 +208,3 @@ Example
    # to reset the package selection from above to the default of no packages
    # but leaving all other settings untouched. You can run:
    cmake -S cmake -B build -C cmake/presets/all_off.cmake
-
-----------
-
-Make shortcuts for installing many packages
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-The following commands are useful for managing package source files
-and their installation when building LAMMPS via traditional make.
-Just type ``make`` in lammps/src to see a one-line summary.
-
-These commands install/uninstall sets of packages:
-
-.. code-block:: bash
-
-    make yes-all                        # install all packages
-    make no-all                         # check for changes and uninstall all packages
-    make no-installed                   # only check and uninstall installed packages
-    make yes-basic                      # install a few commonly used packages'
-    make no-basic                       # remove a few commonly used packages'
-    make yes-most                       # install most packages w/o libs'
-    make no-most                        # remove most packages w/o libs'
-
-which install/uninstall various sets of packages.  Typing ``make
-package`` will list all the these commands.
-
-.. note::
-
-   Installing or uninstalling a package for the make based build process
-   works by simply copying files back and forth between the main source
-   directory src and the subdirectories with the package name (e.g.
-   src/KSPACE, src/MANYBODY), so that the files are included or excluded
-   when LAMMPS is built.  Only source files in the src folder will be
-   compiled.
-
-The following make commands help manage files that exist in both the
-src directory and in package subdirectories.  You do not normally
-need to use these commands unless you are editing LAMMPS files or are
-updating LAMMPS via git.
-
-Type ``make package-status`` or ``make ps`` to show which packages are
-currently installed.  For those that are installed, it will list any
-files that are different in the src directory and package
-subdirectory.
-
-Type ``make package-installed`` or ``make pi`` to show which packages are
-currently installed, without listing the status of packages that are
-not installed.
-
-Type ``make package-update`` or ``make pu`` to overwrite src files with
-files from the package subdirectories if the package is installed.  It
-should be used after the checkout has been :doc:`updated or changed
-with git <Install_git>`, this will only update the files in the package
-subdirectories, but not the copies in the src folder.
-
-Type ``make package-overwrite`` to overwrite files in the package
-subdirectories with src files.
-
-Type ``make package-diff`` to list all differences between pairs of
-files in both the source directory and the package directory.

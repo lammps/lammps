@@ -1,13 +1,14 @@
 #!/usr/bin/env python
 
 """
-Script to build a "binary wheel" for the 'pip' Python package manager for
-the LAMMPS python module which includes the shared library file. After a
-successful build the script attempts to install the wheel into a system
-specific site-packages folder or - failing that - into the corresponding
-user site-packages folder.  Called from the 'install-python' build target
-in the GNU make and CMake based build systems.  Can also be called
-independently and used to build the wheel without installing it.
+Script to build a "binary wheel" for the 'pip' Python package
+manager for the LAMMPS python module which includes the shared library
+file. After a successful build the script attempts to install the wheel
+into a system specific site-packages folder or - failing that - into the
+corresponding user site-packages folder.  Called from the
+'install-python' build target.  Can also be called independently and
+used to build the wheel without installing it.
+
 """
 
 from __future__ import print_function

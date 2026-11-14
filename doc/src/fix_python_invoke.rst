@@ -81,10 +81,8 @@ Restrictions
 This fix is part of the PYTHON package.  It is only enabled if LAMMPS
 was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
-Building LAMMPS with the PYTHON package will link LAMMPS with the
-Python library on your system.  Settings to enable this are in the
-lib/python/Makefile.lammps file.  See the lib/python/README file for
-information on those settings.
+Building LAMMPS with the PYTHON package will link LAMMPS with the Python
+library on your system.
 
 Related commands
 """"""""""""""""

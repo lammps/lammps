@@ -14,12 +14,11 @@ doc page.
 There are example scripts for using this package in
 examples/PACKAGES/latboltz.
 
-IMPORTANT NOTE: This package can only be used if LAMMPS is compiled
-with MPI (i.e. the serial makefile should not be used to compile the
-code).  Also, several of the test examples provided make use of the
-rigid fix and molecule packages.  Therefore, these should be included
-in the LAMMPS build (see the "Including/excluding packages" section of
-the LAMMPS manual).
+IMPORTANT NOTE: This package can only be used if LAMMPS is compiled with
+full MPI support.  Also, several of the test examples provided make use
+of styles from the RIGID and MOLECULE packages.  Therefore, these should be
+included in the LAMMPS build (see the "Including/excluding packages"
+section of the LAMMPS manual).
 
 The creators of this package are as follows:
 

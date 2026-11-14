@@ -5,6 +5,20 @@ endif()
 
 target_compile_definitions(lammps PRIVATE -DLMP_INTEL)
 
+# HCC reports Clang as its CMake compiler ID; selection is explicit.
+option(HYGON_HCC_AVXCD "Use HCC for the existing INTEL AVX-512/CD kernels" OFF)
+if(HYGON_HCC_AVXCD)
+  if(NOT CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+    message(FATAL_ERROR "HYGON_HCC_AVXCD requires the Clang-based HCC compiler")
+  endif()
+  find_library(HYGON_HVML_LIBRARY NAMES hvml)
+  if(NOT HYGON_HVML_LIBRARY)
+    message(FATAL_ERROR "Set HYGON_HVML_LIBRARY to the HCC vector math library")
+  endif()
+  target_compile_definitions(lammps PRIVATE LMP_HCC_COMPILER LMP_HCC_USE_AVXCD)
+  target_link_libraries(lammps PRIVATE "${HYGON_HVML_LIBRARY}")
+endif()
+
 find_package(Threads QUIET)
 if(Threads_FOUND)
   set(INTEL_LRT_MODE "threads" CACHE STRING "Long-range threads mode (none, threads, or c++17)")

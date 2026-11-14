@@ -36,6 +36,29 @@ Currently Available INTEL Styles
    support computing per-atom stress.  If any compute or fix in your
    input requires it, LAMMPS will abort with an error message.
 
+HCC AVX-512/CD configuration
+"""""""""""""""""""""""""""
+
+Enable the existing SW and CHARMM dihedral AVX-512/CD implementations
+with Hygon HCC using ``HYGON_HCC_AVXCD`` (off by default).  Select this
+option only with HCC, not ordinary Clang.  An AVX-512F/CD compilation
+target and the matching HVML library are required:
+
+.. code-block:: bash
+
+   cmake -S cmake -B build \
+     -D CMAKE_C_COMPILER=/path/to/hcc/bin/clang \
+     -D CMAKE_CXX_COMPILER=/path/to/hcc/bin/clang++ \
+     -D CMAKE_CXX_FLAGS=-march=c86-4g-m8 \
+     -D PKG_INTEL=on -D PKG_MANYBODY=on -D BUILD_OMP=on \
+     -D HYGON_HCC_AVXCD=on \
+     -D HYGON_HVML_LIBRARY=/path/to/libhvml.so
+
+The example requires an HCC version that recognizes ``c86-4g-m8``.
+For other systems, select a target supported by the compiler, CPU and
+operating system.  HCC and HVML runtime libraries must be available on
+every execution node.  HVML is required only when this option is enabled.
+
 Speed-up to expect
 """"""""""""""""""
 

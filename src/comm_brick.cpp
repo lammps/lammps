@@ -983,6 +983,53 @@ void CommBrick::reverse_comm(Pair *pair, int size)
 }
 
 /* ----------------------------------------------------------------------
+   forward communication invoked by a Pair with a size known only at call time
+   size = number of values per atom of this call, may exceed the
+     comm_forward of the Pair that Comm::init() sized the buffers for
+   grows the buffers if needed, then calls forward_comm(Pair *)
+   only for callers that cannot set comm_forward before init, e.g.
+     pair mliap/kk, where the model chooses the size at run time
+------------------------------------------------------------------------- */
+
+void CommBrick::forward_comm_dynamic(Pair *pair, int size)
+{
+  int nsend = 0;
+  int nrecv = 0;
+  for (int iswap = 0; iswap < nswap; iswap++) {
+    nsend = MAX(nsend,sendnum[iswap]);
+    nrecv = MAX(nrecv,recvnum[iswap]);
+  }
+
+  if (size*nsend > maxsend) grow_send(size*nsend,0);
+  if (size*nrecv > maxrecv) grow_recv(size*nrecv);
+
+  forward_comm(pair,size);
+}
+
+/* ----------------------------------------------------------------------
+   reverse communication invoked by a Pair with a size known only at call time
+   size = number of values per atom of this call, may exceed the
+     comm_reverse of the Pair that Comm::init() sized the buffers for
+   grows the buffers if needed, then calls reverse_comm(Pair *)
+   see forward_comm_dynamic() above
+------------------------------------------------------------------------- */
+
+void CommBrick::reverse_comm_dynamic(Pair *pair, int size)
+{
+  int nsend = 0;
+  int nrecv = 0;
+  for (int iswap = 0; iswap < nswap; iswap++) {
+    nsend = MAX(nsend,recvnum[iswap]);
+    nrecv = MAX(nrecv,sendnum[iswap]);
+  }
+
+  if (size*nsend > maxsend) grow_send(size*nsend,0);
+  if (size*nrecv > maxrecv) grow_recv(size*nrecv);
+
+  reverse_comm(pair,size);
+}
+
+/* ----------------------------------------------------------------------
    forward communication invoked by a Bond
    size/nsize used only to set recv buffer limit
    size = 0 (default) -> use comm_forward from Bond

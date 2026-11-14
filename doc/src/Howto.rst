@@ -34,6 +34,7 @@ Settings howto
    Howto_triclinic
    Howto_thermostat
    Howto_barostat
+   Howto_gemc
    Howto_walls
    Howto_nemd
    Howto_dispersion

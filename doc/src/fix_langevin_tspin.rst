@@ -36,7 +36,7 @@ Examples
 Description
 """""""""""
 
-.. versionadded:: TBD
+.. versionadded:: 13Nov2026
 
 Used with :doc:`fix nve/tspin <fix_nve_tspin>`, this fix generates
 inertial Langevin dynamics of the full Cartesian spin vectors for

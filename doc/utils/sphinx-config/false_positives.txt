@@ -334,6 +334,7 @@ biga
 bigbig
 bigint
 Bij
+bikflag
 bilayer
 bilayers
 bilinear
@@ -891,6 +892,7 @@ df
 dfftw
 DFT
 dftb
+dgradflag
 dgroup
 dh
 dhex
@@ -3365,6 +3367,7 @@ potin
 Pourtois
 powderblue
 PowerShell
+powint
 ppme
 ppn
 pppm

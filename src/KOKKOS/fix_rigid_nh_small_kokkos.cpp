@@ -16,6 +16,7 @@
    Contributing author: Trung Dac Nguyen (ORNL) for the host fix rigid/nh/small
    references: Kamberaj et al., J. Chem. Phys. 122, 224114 (2005)
                Miller et al., J Chem Phys. 116, 8649-8659 (2002)
+               Glaser et al., Comput. Mater. Sci. 173, 109430 (2020)
 ------------------------------------------------------------------------- */
 
 #include "fix_rigid_nh_small_kokkos.h"
@@ -257,6 +258,15 @@ void FixRigidNHSmallKokkos<DeviceType>::init()
     // set initial volume and reference cell, if not already done
 
     pdim = p_flag[0] + p_flag[1] + p_flag[2];
+
+    // number of independent strain rates acted on by the barostat chain,
+    //   1 for iso / couple xyz, pdim-1 for couple xy, yz, xz, pdim otherwise
+    // this is the diagonal-cell analogue of the d^2 strain degrees of freedom
+    // in Eq. (28) of Kamberaj et al. and reduces to Eq. (18) for iso
+
+    if (pcouple == XYZ) pdof_b = 1;
+    else if (pcouple == XY || pcouple == YZ || pcouple == XZ) pdof_b = pdim - 1;
+    else pdof_b = pdim;
     if (vol0 == 0.0) {
       if (domain->dimension == 2) vol0 = domain->xprd * domain->yprd;
       else vol0 = domain->xprd * domain->yprd * domain->zprd;
@@ -372,7 +382,7 @@ void FixRigidNHSmallKokkos<DeviceType>::setup(int vflag)
     atomKK->sync(execution_space,temperature->datamask_modify);
     atomKK->sync(execution_space,pressure->datamask_modify);
 
-    couple();
+    couple(1);
     pressure->addstep(update->ntimestep+1);
   }
 
@@ -421,7 +431,6 @@ void FixRigidNHSmallKokkos<DeviceType>::setup(int vflag)
 
   if (pstat_flag) {
     compute_press_target();
-    nh_epsilon_dot();
   }
 
   // --- push host state to device and enable device comm/sort for the run ---
@@ -431,13 +440,24 @@ void FixRigidNHSmallKokkos<DeviceType>::setup(int vflag)
 
 /* ----------------------------------------------------------------------
    perform preforce velocity Verlet integration
-   see Kamberaj paper for step references
+   Kamberaj, Low, Neal, J Chem Phys 122, 224114 (2005), Eq. (64) Step 1,
+   rotational part as in Eq. (66); see FixRigidNHSmall::initial_integrate()
+   for the full equations of each step and the notation
 ------------------------------------------------------------------------- */
 
 template<class DeviceType>
 void FixRigidNHSmallKokkos<DeviceType>::initial_integrate(int vflag)
 {
   double tmp,scale_r,scale_t[3],scale_v[3];
+
+  // Step 1 (1)-(2): advance the barostat velocity by a half step
+  //   this must precede the particle momentum scaling in (5) and (10)
+
+  if (pstat_flag) nh_epsilon_dot(0);
+
+  // scale_t: Step 1 (5), exp(-dt/2 [xi_1^(t) + (1 + d/g_f) xi_eps])
+  // scale_r: Step 1 (10), exp(-dt/2 [xi_1^(r) + d/g_f xi_eps])
+  // scale_v: Step 1 (6), dt exp(dt/2 xi_eps) sinh(dt/2 xi_eps)/(dt/2 xi_eps)
 
   scale_t[0] = scale_t[1] = scale_t[2] = 1.0;
   scale_v[0] = scale_v[1] = scale_v[2] = 1.0;
@@ -454,7 +474,7 @@ void FixRigidNHSmallKokkos<DeviceType>::initial_integrate(int vflag)
     scale_t[0] *= exp(-dtq * (epsilon_dot[0] + mtk_term2));
     scale_t[1] *= exp(-dtq * (epsilon_dot[1] + mtk_term2));
     scale_t[2] *= exp(-dtq * (epsilon_dot[2] + mtk_term2));
-    scale_r *= exp(-dtq * (pdim * mtk_term2));
+    scale_r *= exp(-dtq * mtk_term2);
 
     tmp = dtq * epsilon_dot[0];
     scale_v[0] = dtv * exp(tmp) * maclaurin_series(tmp);
@@ -464,7 +484,15 @@ void FixRigidNHSmallKokkos<DeviceType>::initial_integrate(int vflag)
     scale_v[2] = dtv * exp(tmp) * maclaurin_series(tmp);
   }
 
+  // Step 1 (3): epsilon(t+dt) = epsilon(t) + dt xi_eps(t+dt/2)
+  // remap simulation box and xcm by full step
+  //   xcm: scaled according to the first term of the RHS of (6) in Step 1
+  //        (Kamberaj et al. page 224114-16)
+
+  if (pstat_flag) remap();
+
   // update xcm, vcm, quat, conjqm and angmom of bodies on the device
+  //   Step 1 (4)-(11)
 
   nh_initial_integrate_bodies(scale_r, scale_t, scale_v);
 
@@ -478,6 +506,7 @@ void FixRigidNHSmallKokkos<DeviceType>::initial_integrate(int vflag)
   if (tstat_flag || pstat_flag) nh_akin(akin_t, akin_r);
 
   // compute target temperature, update thermostat chains
+  //   Step 1 (12): UPDATE_NHCP(t -> t+dt), Eq. (58)
 
   if (tstat_flag) {
     compute_temp_target();
@@ -485,29 +514,40 @@ void FixRigidNHSmallKokkos<DeviceType>::initial_integrate(int vflag)
     nhc_temp_integrate();
   }
 
+  // Step 1 (13): UPDATE_NHCB(t -> t+dt), Eq. (65)
+
   if (pstat_flag) nhc_press_integrate();
 
   // virial setup before call to set_xv
 
   this->v_init(vflag,0);
 
-  // remap simulation box by 1/2 step
+  // remove the thermostat/barostat part of the vcm change in Step 1 (5),
+  //   (1 - 1/scale_t) v(t+dt/2), from the inferred constraint force
 
-  if (pstat_flag) remap();
+  if (tstat_flag || pstat_flag) {
+    double factor[3];
+    for (int k = 0; k < 3; k++) factor[k] = 1.0 - 1.0/scale_t[k];
+    exclude_scaling_from_virial(factor);
+  }
 
   // set coords/orient and velocity/rotation of atoms in rigid bodies
 
   set_xv_kokkos(1);
 
-  // remap simulation box by full step; redo KSpace coeffs since volume changed
+  // redo KSpace coeffs since volume changed
 
   if (pstat_flag) {
-    remap();
     if (kspace_flag) force->kspace->setup();
   }
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   perform postforce velocity Verlet integration
+   Kamberaj et al., Eq. (64) Step 2, rotational part as in Eq. (66)
+   scale_t: Step 2 (5), exp(-dt/2 [xi_1^(t)(t+dt) + (1 + d/g_f) xi_eps(t+dt/2)])
+   scale_r: Step 2 (1), exp(-dt/2 [xi_1^(r)(t+dt) + d/g_f xi_eps(t+dt/2)])
+------------------------------------------------------------------------- */
 
 template<class DeviceType>
 void FixRigidNHSmallKokkos<DeviceType>::final_integrate()
@@ -527,14 +567,25 @@ void FixRigidNHSmallKokkos<DeviceType>::final_integrate()
     scale_t[0] *= exp(-dtq * (epsilon_dot[0] + mtk_term2));
     scale_t[1] *= exp(-dtq * (epsilon_dot[1] + mtk_term2));
     scale_t[2] *= exp(-dtq * (epsilon_dot[2] + mtk_term2));
-    scale_r *= exp(-dtq * (pdim * mtk_term2));
+    scale_r *= exp(-dtq * mtk_term2);
   }
 
   // late calculation of forces and torques (if requested)
 
   if (!earlyflag) compute_forces_and_torques_kokkos();
 
+  // remove the thermostat/barostat part of the vcm change in Step 2 (5),
+  //   (scale_t - 1) v(t+dt/2), from the inferred constraint force;
+  //   local and ghost bodies still hold v(t+dt/2) here
+
+  if (tstat_flag || pstat_flag) {
+    double factor[3];
+    for (int k = 0; k < 3; k++) factor[k] = scale_t[k] - 1.0;
+    exclude_scaling_from_virial(factor);
+  }
+
   // update vcm and angmom, recompute omega, on the device
+  //   Step 2 (5)-(6) for vcm, Step 2 (1) and (4) in the (P,Q) form of Eq. (66)
 
   nh_final_integrate_bodies(scale_r, scale_t);
 
@@ -561,6 +612,7 @@ void FixRigidNHSmallKokkos<DeviceType>::final_integrate()
   }
 
   // compute current and target pressures, update epsilon_dot
+  //   Step 2 (7)-(8) with G_eps(t+dt) from P_int(t+dt) and K(t+dt)
 
   if (pstat_flag) {
     atomKK->sync(temperature->execution_space,temperature->datamask_read);
@@ -582,7 +634,7 @@ void FixRigidNHSmallKokkos<DeviceType>::final_integrate()
 
     compute_press_target();
 
-    nh_epsilon_dot();
+    nh_epsilon_dot(1);
   }
 }
 
@@ -611,6 +663,7 @@ void FixRigidNHSmallKokkos<DeviceType>::nh_initial_integrate_bodies(
       Body &b = d_body(ibody);
 
       // step 1.1 - update vcm by 1/2 step
+      //   Step 1 (4): v~ = v(t) + dt/2 F(t)/m,  Step 1 (5): v(t+dt/2) = scale_t v~
 
       double dtfm = l_dtf / b.mass;
       b.vcm[0] += dtfm * b.fcm[0];
@@ -623,7 +676,7 @@ void FixRigidNHSmallKokkos<DeviceType>::nh_initial_integrate_bodies(
         b.vcm[2] *= scale_t[2];
       }
 
-      // step 1.2 - update xcm by full step
+      // step 1.2 - update xcm by full step, Step 1 (6), Eq. (63)
 
       if (!pflag) {
         b.xcm[0] += l_dtv * b.vcm[0];
@@ -636,6 +689,8 @@ void FixRigidNHSmallKokkos<DeviceType>::nh_initial_integrate_bodies(
       }
 
       // step 1.3 - apply torque (body coords) to quaternion momentum
+      //   Step 1 (7) and (10) in the (P,Q) form of Eq. (66):
+      //   P~ = scale_r [P(t) + dt/2 2 M[Q(t)] T^(4)(t)]
       // rotational quantities are computed in KK_FLOAT; the orientation and
       // momentum quaternions (quat, conjqm, fquat) stay double
 
@@ -662,6 +717,7 @@ void FixRigidNHSmallKokkos<DeviceType>::nh_initial_integrate_bodies(
       }
 
       // step 1.4 to 1.13 - use no_squish rotate to update p and q
+      //   Step 1 (8),(9),(11) in the (P,Q) form of Eq. (66)
 
       MathExtraKokkos::no_squish_rotate(3,b.conjqm,b.quat,inertia,static_cast<KK_FLOAT>(l_dtq));
       MathExtraKokkos::no_squish_rotate(2,b.conjqm,b.quat,inertia,static_cast<KK_FLOAT>(l_dtq));
@@ -721,6 +777,7 @@ void FixRigidNHSmallKokkos<DeviceType>::nh_final_integrate_bodies(
       Body &b = d_body(ibody);
 
       // update vcm by 1/2 step
+      //   Step 2 (5): v~ = scale_t v(t+dt/2),  Step 2 (6): v(t+dt) = v~ + dt/2 F(t+dt)/m
 
       double dtfm = l_dtf / b.mass;
       if (scaleflag) {
@@ -734,6 +791,8 @@ void FixRigidNHSmallKokkos<DeviceType>::nh_final_integrate_bodies(
       b.vcm[2] += dtfm * b.fcm[2];
 
       // update conjqm, transform to angmom, set velocity again
+      //   Step 2 (1) and (4) in the (P,Q) form of Eq. (66):
+      //   P(t+dt) = scale_r P(t+dt/2) + dt/2 2 M[Q(t+dt)] T^(4)(t+dt)
       // rotational quantities in KK_FLOAT; quat/conjqm/fquat stay double
 
       KK_FLOAT ex[3] = {(KK_FLOAT)b.ex_space[0],(KK_FLOAT)b.ex_space[1],(KK_FLOAT)b.ex_space[2]};
@@ -805,6 +864,11 @@ void FixRigidNHSmallKokkos<DeviceType>::nh_akin(double &akin_t_out, double &akin
 
 /* ----------------------------------------------------------------------
    Nose-Hoover thermostat chain integration (host, global scalar state)
+   UPDATE_NHCP(t -> t+dt), Kamberaj et al. Eq. (58), with Yoshida-Suzuki
+   weights wdti1 = w_j dt/n_c, wdti2 = wdti1/2, wdti4 = wdti1/4; each link
+   xi_k -> exp(-dt/4 xi_{k+1}) [exp(-dt/4 xi_{k+1}) xi_k
+           + dt/2 G_k sinh(dt/4 xi_{k+1})/(dt/4 xi_{k+1})]
+   see FixRigidNHSmall::nhc_temp_integrate() for the equations of each step
 ------------------------------------------------------------------------- */
 
 template<class DeviceType>
@@ -888,6 +952,12 @@ void FixRigidNHSmallKokkos<DeviceType>::nhc_temp_integrate()
 
 /* ----------------------------------------------------------------------
    Nose-Hoover barostat chain integration (host, global scalar state)
+   UPDATE_NHCB(t -> t+dt), Kamberaj et al. Eq. (65): the same flow as
+   Eq. (58), so with x = wdti4 * xi_eta_{k+1} = (dt/4) xi_eta_{k+1} the
+   update needs s = exp(-x), s2 = s*s, ms = sinh(x)/x
+   G_eta_1 = (1/pdim) sum_i W_i epsilon_dot_i^2 - pdof_b k_B T_0, Eq. (18)
+   for iso (pdof_b = 1), diagonal analogue of Eq. (28) otherwise
+   see FixRigidNHSmall::nhc_press_integrate() for the equations of each step
 ------------------------------------------------------------------------- */
 
 template<class DeviceType>
@@ -896,7 +966,7 @@ void FixRigidNHSmallKokkos<DeviceType>::nhc_press_integrate()
   int i,j,k;
   double tmp,s,s2,ms,kecurrent;
   double kt = boltz * t_target;
-  double lkt_press = kt;
+  double lkt_press = pdof_b * kt;
 
   int dimension = domain->dimension;
   double tb_mass = kt / (p_freq_max * p_freq_max);
@@ -925,7 +995,7 @@ void FixRigidNHSmallKokkos<DeviceType>::nhc_press_integrate()
       for (k = 1; k < p_chain; k++) {
         tmp = wdti4[j] * eta_dot_b[p_chain-k];
         ms = maclaurin_series(tmp);
-        s = exp(-0.5 * tmp);
+        s = exp(-1.0 * tmp);
         s2 = s * s;
         eta_dot_b[p_chain-k-1] = eta_dot_b[p_chain-k-1] * s2 +
           wdti2[j] * f_eta_b[p_chain-k-1] * s * ms;
@@ -942,7 +1012,7 @@ void FixRigidNHSmallKokkos<DeviceType>::nhc_press_integrate()
       for (k = 0; k < p_chain-1; k++) {
         tmp = wdti4[j] * eta_dot_b[k+1];
         ms = maclaurin_series(tmp);
-        s = exp(-0.5 * tmp);
+        s = exp(-1.0 * tmp);
         s2 = s * s;
         eta_dot_b[k] = eta_dot_b[k] * s2 + wdti2[j] * f_eta_b[k] * s * ms;
         tmp = q_b[k] * eta_dot_b[k] * eta_dot_b[k] - kt;
@@ -955,69 +1025,57 @@ void FixRigidNHSmallKokkos<DeviceType>::nhc_press_integrate()
 }
 
 /* ----------------------------------------------------------------------
-   compute kinetic energy in the extended Hamiltonian
-   conserved quantity = sum of returned energy and potential energy
+   compute the energy of the thermostat and barostat reservoirs
+   this is H_NPT (Eq. 22) or H_NVT (Eq. 12) of Kamberaj et al. minus H_NVE
+   H_NVE = K_t + K_r + U is not included: thermo keyword etotal already
+   holds it, since the atomic kinetic energy of a rigid body equals
+   K_t + K_r of the body, so conserved quantity = econserve = etotal + ecouple
+   only rigid/nve/small/kk needs the body data copied back to the host
 -----------------------------------------------------------------------*/
 
 template<class DeviceType>
 double FixRigidNHSmallKokkos<DeviceType>::compute_scalar()
 {
-  int i,k;
+  int i;
   double kt = boltz * t_target;
-  double energy,ke_t,ke_q,tmp,Pkq[4];
-
-  double *vcm,*quat;
+  double energy = 0.0;
 
   // body data lives on the device during a run; flush to host.  Before setup
-  // k_body has not been sized yet (setup_device_push() does that) even though
-  // create_bodies() already ran in the base constructor, so copy_body_host()
-  // would index a zero-extent view -- guard as the other accessors do.
-  if (setupflag) copy_body_host();
+  // k_body has not been sized yet, so guard as the other accessors do.
 
-  ke_t = 0.0;
-  ke_q = 0.0;
+  if (!tstat_flag && !pstat_flag && setupflag) copy_body_host();
 
-  for (i = 0; i < nlocal_body; i++) {
-    vcm = body[i].vcm;
-    quat = body[i].quat;
-    ke_t += body[i].mass * (vcm[0]*vcm[0] + vcm[1]*vcm[1] + vcm[2]*vcm[2]);
+  // fix rigid/nve/small: keep the previous scalar, the kinetic energy
+  //   sum_b M_b V_b^2 + sum_b sum_k h_k (h_k of Eq. 7), unchanged by these fixes
 
-    for (k = 1; k < 4; k++) {
-      if (k == 1) {
-        Pkq[0] = -quat[1];
-        Pkq[1] =  quat[0];
-        Pkq[2] =  quat[3];
-        Pkq[3] = -quat[2];
-      } else if (k == 2) {
-        Pkq[0] = -quat[2];
-        Pkq[1] = -quat[3];
-        Pkq[2] =  quat[0];
-        Pkq[3] =  quat[1];
-      } else if (k == 3) {
-        Pkq[0] = -quat[3];
-        Pkq[1] =  quat[2];
-        Pkq[2] = -quat[1];
-        Pkq[3] =  quat[0];
+  if (!tstat_flag && !pstat_flag) {
+    double ke_t = 0.0, ke_q = 0.0, tmp, Pkq[4];
+    for (i = 0; i < nlocal_body; i++) {
+      double *vcm = body[i].vcm;
+      double *quat = body[i].quat;
+      ke_t += body[i].mass * (vcm[0]*vcm[0] + vcm[1]*vcm[1] + vcm[2]*vcm[2]);
+      for (int k = 1; k < 4; k++) {
+        if (k == 1) {
+          Pkq[0] = -quat[1]; Pkq[1] =  quat[0]; Pkq[2] =  quat[3]; Pkq[3] = -quat[2];
+        } else if (k == 2) {
+          Pkq[0] = -quat[2]; Pkq[1] = -quat[3]; Pkq[2] =  quat[0]; Pkq[3] =  quat[1];
+        } else {
+          Pkq[0] = -quat[3]; Pkq[1] =  quat[2]; Pkq[2] = -quat[1]; Pkq[3] =  quat[0];
+        }
+        tmp = body[i].conjqm[0]*Pkq[0] + body[i].conjqm[1]*Pkq[1] +
+          body[i].conjqm[2]*Pkq[2] + body[i].conjqm[3]*Pkq[3];
+        tmp *= tmp;
+        if (fabs(body[i].inertia[k-1]) < 1e-6) tmp = 0.0;
+        else tmp /= (8.0 * body[i].inertia[k-1]);
+        ke_q += tmp;
       }
-
-      tmp = body[i].conjqm[0]*Pkq[0] + body[i].conjqm[1]*Pkq[1] +
-        body[i].conjqm[2]*Pkq[2] + body[i].conjqm[3]*Pkq[3];
-      tmp *= tmp;
-
-      if (fabs(body[i].inertia[k-1]) < 1e-6) tmp = 0.0;
-      else tmp /= (8.0 * body[i].inertia[k-1]);
-      ke_q += tmp;
     }
+    double ke[2] = {ke_t, ke_q}, keall[2];
+    MPI_Allreduce(ke,keall,2,MPI_DOUBLE,MPI_SUM,world);
+    return (keall[0] + keall[1]) * mvv2e;
   }
 
-  double ke[2],keall[2];
-  ke[0] = ke_t;
-  ke[1] = ke_q;
-  MPI_Allreduce(ke,keall,2,MPI_DOUBLE,MPI_SUM,world);
-  ke_t = keall[0];
-  ke_q = keall[1];
-
-  energy = (ke_t + ke_q) * mvv2e;
+  // thermostat chain energy, Eq. (12) in Kamberaj et al (JCP 2005)
 
   if (tstat_flag) {
     energy += kt * (nf_t * eta_t[0] + nf_r * eta_r[0]);
@@ -1031,6 +1089,9 @@ double FixRigidNHSmallKokkos<DeviceType>::compute_scalar()
     }
   }
 
+  // barostat energy, Eq. (22) in Kamberaj et al for H_NPT
+  //   W xi_eps^2/2 -> (1/(2 pdim)) sum_i W_i epsilon_dot_i^2, matching nh_epsilon_dot()
+
   if (pstat_flag) {
     double e = 0.0;
     for (i = 0; i < 3; i++)
@@ -1042,9 +1103,17 @@ double FixRigidNHSmallKokkos<DeviceType>::compute_scalar()
     if (domain->dimension == 2) vol = domain->xprd * domain->yprd;
     else vol = domain->xprd * domain->yprd * domain->zprd;
 
-    double p0 = (p_target[0] + p_target[1] + p_target[2]) / 3.0;
-    energy += p0 * vol / nktv2p;
+    // P_0 must be the same target pressure that enters G_eps in nh_epsilon_dot(),
+    // i.e. the mean over the barostatted dimensions only, or P_0 V does not cancel
 
+    energy += p_hydro * vol / nktv2p;
+
+    // barostat chain: n k_B T_0 eta_1 + k_B T_0 sum_{k=2}^M eta_k + sum_k Q_bk xi_eta_k^2/2
+    //   with n = pdof_b; for iso n = 1 as in Eq. (22); for independent dimensions
+    //   n matches the n k_B T_0 target of G_eta_1 (diagonal analogue of Eqs. 28, 30,
+    //   where the eta_1 coefficient must equal the d^2 of Eq. 28 for H to be conserved)
+
+    energy += (pdof_b - 1) * kt * eta_b[0];
     for (i = 0;  i < p_chain; i++) {
       energy += kt * eta_b[i];
       energy += 0.5 * q_b[i] * (eta_dot_b[i] * eta_dot_b[i]);
@@ -1054,15 +1123,130 @@ double FixRigidNHSmallKokkos<DeviceType>::compute_scalar()
   return energy;
 }
 
+/* ----------------------------------------------------------------------
+   difference between the molecular and the atomic pressure, diagonal components
+     V (P_mol - P_atomic)_kk = sum_b M_b V_bk^2 - sum_i m_i v_ik^2
+                             - W_fix,kk - sum_i d_ik f_ik
+   Glaser et al., Comput Mater Sci 173, 109430 (2020), Eqs. (14), (23)-(24)
+   see FixRigidNHSmall::molecular_pressure_correction() for details
+   hostflag = 1: use the host body[] and atom arrays (during setup)
+   hostflag = 0: reduce on the device (during a run)
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+void FixRigidNHSmallKokkos<DeviceType>::molecular_pressure_correction(double *dp, int hostflag)
+{
+  const int nlocal = atom->nlocal;
+  const double l_mvv2e = mvv2e;
+  double w[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+
+  if (hostflag) {
+    int hostmask = V_MASK | F_MASK | TYPE_MASK;
+    if (atom->rmass) hostmask |= RMASS_MASK;
+    atomKK->sync(Host, hostmask);
+    double **v = atom->v;
+    double **f = atom->f;
+    double *rmass = atom->rmass;
+    double *mass = atom->mass;
+    int *type = atom->type;
+    double delta[3], massone;
+
+    for (int i = 0; i < nlocal; i++) {
+      if (this->atom2body[i] < 0) continue;
+      Body *b = &body[this->atom2body[i]];
+      massone = rmass ? rmass[i] : mass[type[i]];
+      MathExtra::matvec(b->ex_space,b->ey_space,b->ez_space,this->displace[i],delta);
+      for (int k = 0; k < 3; k++)
+        w[k] -= massone * v[i][k] * v[i][k] * l_mvv2e + delta[k] * f[i][k];
+    }
+    for (int ibody = 0; ibody < nlocal_body; ibody++) {
+      Body *b = &body[ibody];
+      for (int k = 0; k < 3; k++) w[3+k] += b->mass * b->vcm[k] * b->vcm[k] * l_mvv2e;
+    }
+
+  } else {
+    int devmask = V_MASK | F_MASK | TYPE_MASK;
+    if (atom->rmass) devmask |= RMASS_MASK;
+    atomKK->sync(execution_space, devmask);
+    if (!atom->rmass) atomKK->k_mass.template sync<DeviceType>();
+
+    auto l_v = atomKK->k_v.template view<DeviceType>();
+    auto l_f = atomKK->k_f.template view<DeviceType>();
+    auto l_type = atomKK->k_type.template view<DeviceType>();
+    auto l_rmass = atomKK->k_rmass.template view<DeviceType>();
+    auto l_mass = atomKK->k_mass.template view<DeviceType>();
+    auto l_atom2body = this->d_atom2body;
+    auto l_displace = this->d_displace;
+    auto l_body = this->d_body;
+    const int rmassflag = atom->rmass ? 1 : 0;
+
+    double w0 = 0.0, w1 = 0.0, w2 = 0.0;
+    Kokkos::parallel_reduce("fix rigid/nh/small molecular pressure atoms",
+      Range1D(0, nlocal),
+      KOKKOS_LAMBDA(const int i, double &a0, double &a1, double &a2) {
+        const int ibody = l_atom2body(i);
+        if (ibody < 0) return;
+        const Body &b = l_body(ibody);
+        const double m = rmassflag ? static_cast<double>(l_rmass(i))
+                                   : static_cast<double>(l_mass(l_type(i)));
+        const double d0 = l_displace(i,0), d1 = l_displace(i,1), d2 = l_displace(i,2);
+        const double dx = b.ex_space[0]*d0 + b.ey_space[0]*d1 + b.ez_space[0]*d2;
+        const double dy = b.ex_space[1]*d0 + b.ey_space[1]*d1 + b.ez_space[1]*d2;
+        const double dz = b.ex_space[2]*d0 + b.ey_space[2]*d1 + b.ez_space[2]*d2;
+        const double vx = l_v(i,0), vy = l_v(i,1), vz = l_v(i,2);
+        a0 -= m * vx * vx * l_mvv2e + dx * static_cast<double>(l_f(i,0));
+        a1 -= m * vy * vy * l_mvv2e + dy * static_cast<double>(l_f(i,1));
+        a2 -= m * vz * vz * l_mvv2e + dz * static_cast<double>(l_f(i,2));
+      }, w0, w1, w2);
+
+    double b0 = 0.0, b1 = 0.0, b2 = 0.0;
+    Kokkos::parallel_reduce("fix rigid/nh/small molecular pressure bodies",
+      Range1D(0, nlocal_body),
+      KOKKOS_LAMBDA(const int ibody, double &a0, double &a1, double &a2) {
+        const Body &b = l_body(ibody);
+        a0 += b.mass * b.vcm[0] * b.vcm[0] * l_mvv2e;
+        a1 += b.mass * b.vcm[1] * b.vcm[1] * l_mvv2e;
+        a2 += b.mass * b.vcm[2] * b.vcm[2] * l_mvv2e;
+      }, b0, b1, b2);
+
+    w[0] = w0; w[1] = w1; w[2] = w2;
+    w[3] = b0; w[4] = b1; w[5] = b2;
+  }
+
+  if (this->thermo_virial && this->vflag_global)
+    for (int k = 0; k < 3; k++) w[k] -= this->virial[k];
+
+  double wall[6];
+  MPI_Allreduce(w,wall,6,MPI_DOUBLE,MPI_SUM,world);
+
+  double volume;
+  if (domain->dimension == 2) volume = domain->xprd * domain->yprd;
+  else volume = domain->xprd * domain->yprd * domain->zprd;
+
+  for (int k = 0; k < 3; k++) dp[k] = (wall[k] + wall[3+k]) * nktv2p / volume;
+}
+
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-void FixRigidNHSmallKokkos<DeviceType>::couple()
+void FixRigidNHSmallKokkos<DeviceType>::couple(int hostflag)
 {
-  double *tensor = pressure->vector;
+  // P_int of Eq. (16) is the molecular pressure (2 K_t + sum_b R_b . F_b)/(d V),
+  // so correct the atomic pressure of the pressure compute for rigid bodies
+  // hostflag = 1 in setup(), before the body data is pushed to the device
+
+  double dp[3];
+  molecular_pressure_correction(dp, hostflag);
+
+  double tensor[3];
+  if (pstyle != ISO)
+    for (int k = 0; k < 3; k++) tensor[k] = pressure->vector[k] + dp[k];
 
   if (pstyle == ISO) {
-    p_current[0] = p_current[1] = p_current[2] = pressure->scalar;
+    double dpiso;
+    if (domain->dimension == 2) dpiso = 0.5 * (dp[0] + dp[1]);
+    else dpiso = (dp[0] + dp[1] + dp[2]) / 3.0;
+    p_current[0] = p_current[1] = p_current[2] = pressure->scalar + dpiso;
   } else if (pcouple == XYZ) {
     double ave = 1.0/3.0 * (tensor[0] + tensor[1] + tensor[2]);
     p_current[0] = p_current[1] = p_current[2] = ave;
@@ -1103,7 +1287,7 @@ void FixRigidNHSmallKokkos<DeviceType>::remap()
   auto *domainKK = (DomainKokkos *) domain;
   int nlocal = atom->nlocal;
 
-  for (i = 0; i < 3; i++) epsilon[i] += dtq * epsilon_dot[i];
+  for (i = 0; i < 3; i++) epsilon[i] += dtv * epsilon_dot[i];
 
   if (allremap) domainKK->x2lamda(nlocal);
   else domainKK->x2lamda(nlocal, dilate_group_bit);
@@ -1115,7 +1299,7 @@ void FixRigidNHSmallKokkos<DeviceType>::remap()
       oldlo = domain->boxlo[i];
       oldhi = domain->boxhi[i];
       ctr = 0.5 * (oldlo + oldhi);
-      expfac = exp(dtq * epsilon_dot[i]);
+      expfac = exp(dtv * epsilon_dot[i]);
       domain->boxlo[i] = (oldlo-ctr)*expfac + ctr;
       domain->boxhi[i] = (oldhi-ctr)*expfac + ctr;
     }
@@ -1128,6 +1312,11 @@ void FixRigidNHSmallKokkos<DeviceType>::remap()
   else domainKK->lamda2x(nlocal, dilate_group_bit);
 
   for (auto &ifix : rfix) ifix->deform(1);
+
+  // forward communicate the updated xcm
+
+  commflag = REMAP;
+  commKK->template forward_comm_device<DeviceType>(this,3);
 }
 
 /* ----------------------------------------------------------------------
@@ -1163,11 +1352,13 @@ void FixRigidNHSmallKokkos<DeviceType>::compute_press_target()
 }
 
 /* ----------------------------------------------------------------------
-   update epsilon_dot
+   update epsilon_dot:
+     flag = 0: advance half step then scale (Eq. 64, Step 1 1-2)
+     flag = 1: scale then advance half step (Eq. 64, Step 2 7-8)
 -----------------------------------------------------------------------*/
 
 template<class DeviceType>
-void FixRigidNHSmallKokkos<DeviceType>::nh_epsilon_dot()
+void FixRigidNHSmallKokkos<DeviceType>::nh_epsilon_dot(int flag)
 {
   if (g_f == 0) return;
 
@@ -1177,22 +1368,67 @@ void FixRigidNHSmallKokkos<DeviceType>::nh_epsilon_dot()
   if (domain->dimension == 2) volume = domain->xprd*domain->yprd;
   else volume = domain->xprd*domain->yprd*domain->zprd;
 
+  // mtk_term1 = (2 K_t + 2 K_r) / g_f, the last term of G_eps in Eq. (16)
+
   mtk_term1 = (akin_t + akin_r) * mvv2e / g_f;
 
   scale = exp(-1.0 * dtq * eta_dot_b[0]);
 
+  // barostat force, Eq. (16): G_eps = d [(P_int - P_0) V + mtk_term1]
+  // with one strain rate per barostatted dimension the factor d becomes pdim,
+  //   d(epsilon_dot_i)/dt = pdim [(P_i - P_0) V + mtk_term1] / W_i - xi_eta_1 epsilon_dot_i
+  // consistent with the energy (1/(2 pdim)) sum_i W_i epsilon_dot_i^2 of Eq. (22)
+  // see FixRigidNHSmall::nh_epsilon_dot() for details
+
   for (i = 0; i < 3; i++)
     if (p_flag[i]) {
       f_epsilon = (p_current[i]-p_hydro)*volume / nktv2p + mtk_term1;
+      f_epsilon *= pdim;
       f_epsilon /= epsilon_mass[i];
+      if (flag) epsilon_dot[i] *= scale;
       epsilon_dot[i] += dtq * f_epsilon;
-      epsilon_dot[i] *= scale;
+      if (!flag) epsilon_dot[i] *= scale;
     }
 
   mtk_term2 = 0.0;
   for (i = 0; i < 3; i++)
     if (p_flag[i]) mtk_term2 += epsilon_dot[i];
   mtk_term2 /= g_f;
+}
+
+/* ----------------------------------------------------------------------
+   keep the thermostat/barostat scaling of vcm out of the constraint virial
+   set_xv_kokkos() infers the constraint force on each atom from its
+   velocity change; shifting v_old by factor[k] * vcm[k] removes the
+   friction terms of Eq. (15), which are not constraint forces, from it.
+   see FixRigidNHSmall::exclude_scaling_from_virial() for details
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+void FixRigidNHSmallKokkos<DeviceType>::exclude_scaling_from_virial(const double *factor)
+{
+  if (!evflag) return;
+
+  atomKK->sync(execution_space, V_MASK);
+  auto l_v = atomKK->k_v.template view<DeviceType>();
+  auto l_atom2body = this->d_atom2body;
+  auto l_body = this->d_body;
+  const double f0 = factor[0];
+  const double f1 = factor[1];
+  const double f2 = factor[2];
+
+  Kokkos::parallel_for("fix rigid/nh/small exclude scaling",
+    Range1D(0, atom->nlocal),
+    KOKKOS_LAMBDA(const int i) {
+      const int ibody = l_atom2body(i);
+      if (ibody < 0) return;
+      const Body &b = l_body(ibody);
+      l_v(i,0) += static_cast<KK_FLOAT>(f0 * b.vcm[0]);
+      l_v(i,1) += static_cast<KK_FLOAT>(f1 * b.vcm[1]);
+      l_v(i,2) += static_cast<KK_FLOAT>(f2 * b.vcm[2]);
+    });
+
+  atomKK->modified(execution_space, V_MASK);
 }
 
 /* ---------------------------------------------------------------------- */

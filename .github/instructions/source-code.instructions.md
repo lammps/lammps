@@ -21,8 +21,9 @@ restart, buffers, parsing): `.github/dev-docs/style-implementation-notes.md`.
   `std::atomic`; details in `.github/dev-docs/openmp-porting.md`.
 - **No `printf()`, `fprintf(screen, ...)`/`fprintf(logfile, ...)`, or C++ iostreams
   (`std::cout`, `std::cerr`) in new code:** use `utils::logmesg()` or `utils::print()`,
-  which both support `std::format`-style formatting.  Remove output that was added for
-  debugging entirely.
+  which take format strings with `{}` placeholders like `fmt::format()`.  Do not call
+  `fmt::print()` directly (`make check-fmtlib` reports it).  Remove output that was
+  added for debugging entirely.
 - **No new `error->all(FLERR, "Illegal XXX command")` messages:** use
   `utils::missing_cmd_args()` or a specific message with the error-pointer argument that
   highlights the offending argument, plus `utils::errorurl()` to point to the
@@ -32,7 +33,10 @@ restart, buffers, parsing): `.github/dev-docs/style-implementation-notes.md`.
 - **No `strtok()`, `sscanf()`, `atoi()`, `atof()` and similar for parsing:** use the
   `Tokenizer`/`ValueTokenizer` classes (and a file reader class where possible);
   convert arguments with `utils::numeric()`, `inumeric()`, `bnumeric()`, `tnumeric()`.
-- **String formatting with fmtlib** (`fmt::format()`), not `sprintf`.
+- **String formatting with `fmt::format()`** (the bundled {fmt} library, which has the
+  syntax of `std::format`), not with `sprintf()`/`snprintf()` into a buffer of fixed
+  size.  The exception is a printf() style format string that the user provides at run
+  time (dump and thermo output formats): use `utils::sprintf()` for those.
 - **No commented-out code** (debugging leftovers, disabled features, unused
   alternatives) unless the pull request explains it as a placeholder for a planned
   feature.

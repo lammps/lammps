@@ -12,11 +12,11 @@ Apply the general contribution requirements in
 https://docs.lammps.org/Modify_requirements.html and the programming style in
 https://docs.lammps.org/Modify_style.html, plus the path-specific rules in
 `.github/instructions/` for the changed files: C++ sources and tests
-(`source-code`), documentation (`documentation`), KOKKOS (`kokkos`), unit tests
-(`force-style-tests`), example inputs (`regression-tests`), and the build system
-(`build-system`).  Do not report GCC's `-Wmaybe-uninitialized` warnings: in this code
-they have not pointed to a real problem so far.  Uninitialized data reported by
-valgrind or a sanitizer is a real finding.
+(`source-code`), documentation (`documentation`), KOKKOS (`kokkos`), the GPU package
+(`gpu`), unit tests (`force-style-tests`), example inputs (`regression-tests`), and the
+build system (`build-system`).  Do not report GCC's `-Wmaybe-uninitialized` warnings:
+in this code they have not pointed to a real problem so far.  Uninitialized data
+reported by valgrind or a sanitizer is a real finding.
 
 ## Build System
 
@@ -158,7 +158,8 @@ automatically: read them before starting the corresponding kind of work.
 | `src/KOKKOS/` styles (rules, policies) | `.github/instructions/kokkos.instructions.md` (auto) |
 | porting a style to KOKKOS | `.github/dev-docs/kokkos-porting-guide.md` + `accelerator-porting-backlog.md` |
 | porting/auditing `src/OPENMP/` (`/omp`) styles | `.github/dev-docs/openmp-porting.md` + `accelerator-porting-backlog.md` |
-| porting a pair style to the GPU package (`src/GPU/`, `lib/gpu/`) | `.github/dev-docs/gpu-porting-guide.md` + `accelerator-porting-backlog.md` |
+| GPU package code in `src/GPU/`, `lib/gpu/` (rules) | `.github/instructions/gpu.instructions.md` (auto) |
+| porting a pair style to the GPU package | `.github/dev-docs/gpu-porting-guide.md` + `accelerator-porting-backlog.md` |
 | granular/DEM code or tests | `.github/instructions/granular-tests.instructions.md` (auto) |
 | documentation (`doc/`) | `.github/instructions/documentation.instructions.md` (auto) |
 | force-style YAML tests (`unittest/`) | `.github/instructions/force-style-tests.instructions.md` (auto) |

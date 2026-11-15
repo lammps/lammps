@@ -72,6 +72,9 @@ jobs:
               -C cmake/presets/kokkos-packages.cmake \
               -D CMAKE_CXX_COMPILER_LAUNCHER=ccache \
               -D CMAKE_C_COMPILER_LAUNCHER=ccache \
+              -D CMAKE_BUILD_TYPE=RelWithDebInfo \
+              -D CMAKE_CXX_FLAGS_RELWITHDEBINFO="-O2 -DNDEBUG" \
+              -D CMAKE_C_FLAGS_RELWITHDEBINFO="-O2 -DNDEBUG" \
               -D BUILD_SHARED_LIBS=off \
               -D DOWNLOAD_POTENTIALS=off \
               -G Ninja
@@ -159,6 +162,9 @@ jobs:
               -C cmake/presets/kokkos-packages.cmake \
               -D CMAKE_CXX_COMPILER_LAUNCHER=ccache \
               -D CMAKE_C_COMPILER_LAUNCHER=ccache \
+              -D CMAKE_BUILD_TYPE=RelWithDebInfo \
+              -D CMAKE_CXX_FLAGS_RELWITHDEBINFO="-O2 -DNDEBUG" \
+              -D CMAKE_C_FLAGS_RELWITHDEBINFO="-O2 -DNDEBUG" \
               -D BUILD_SHARED_LIBS=off \
               -D DOWNLOAD_POTENTIALS=off \
               -G Ninja

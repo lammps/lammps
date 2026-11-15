@@ -453,9 +453,7 @@ inline void _ocl_kernel_from_source(cl_context &context, cl_device_id &device,
 template <class mat_type>
 inline void _device_zero(mat_type &mat, const size_t n, command_queue &cq) {
   #ifdef CL_VERSION_1_2
-  #ifndef __APPLE__
   #define UCL_CL_ZERO
-  #endif
   #endif
 
   #ifdef UCL_CL_ZERO

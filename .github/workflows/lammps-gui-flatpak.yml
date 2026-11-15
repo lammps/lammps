@@ -17,6 +17,8 @@ permissions:
 
 jobs:
   build:
+    env:
+      CCACHE_DIR: ${{ github.workspace }}/.ccache
     name: LAMMPS-GUI flatpak build
     if: ${{ github.repository == 'lammps/lammps' }}
     runs-on: ubuntu-latest
@@ -40,12 +42,20 @@ jobs:
                                 flatpak \
                                 flatpak-builder
 
+    - name: Set up ccache
+      uses: actions/cache@v6
+      with:
+        path: ${{ env.CCACHE_DIR }}
+        key: flatpak-ccache-${{ github.sha }}
+        restore-keys: flatpak-ccache-
+
     - name: Set up access to flatpak repo
       run: flatpak --user remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
 
     - name: Build flatpak
       run: |
-        mkdir flatpack-state
+        ccache -z -M 5
+        mkdir flatpak-state
         sed -i -e 's/branch:.*/branch: develop/' cmake/packaging/org.lammps.lammps-gui.yml
         flatpak-builder --force-clean --verbose --repo=flatpak-repo \
                                --install-deps-from=flathub --state-dir=flatpak-state \
@@ -55,3 +65,4 @@ jobs:
                                --verbose  flatpak-repo LAMMPS-Linux-x86_64-GUI.flatpak \
                                org.lammps.lammps-gui "${GITHUB_REF_NAME}"
         flatpak install -y -v --user LAMMPS-Linux-x86_64-GUI.flatpak
+        ccache -s

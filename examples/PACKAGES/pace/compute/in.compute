@@ -14,9 +14,32 @@ mass  3 15.999
 pair_style     zero 5.7
 pair_coeff     * *
 
+        # global array: per-atom descriptors (bikflag = 1),
+        # descriptor gradients and virial
+
 compute     pace all pace coupling_coefficients.yace 1 0
 
-thermo 1 
-thermo_style  custom step temp c_pace[1][183]
+        # per-atom array of the same descriptors, written with dump custom
+
+compute     pace_atom all pace/atom coupling_coefficients.yace
+dump        1 all custom 1 dump.pace_atom id type c_pace_atom[*]
+
+        # atom 1 has type 3, so its first descriptor is column
+        # 2*91+1 = 183 of the global array and column 1 of its per-atom row
+
+variable    b1 equal C_pace_atom[1][1]
+
+        # the 6 virial rows (xx, yy, zz, yz, xz, xy) follow the 161 descriptor
+        # rows and the 3*161 gradient rows, i.e. rows 645 to 650
+
+variable    vxx equal c_pace[645][183]
+variable    vyy equal c_pace[646][183]
+variable    vzz equal c_pace[647][183]
+variable    vyz equal c_pace[648][183]
+variable    vxz equal c_pace[649][183]
+variable    vxy equal c_pace[650][183]
+
+thermo 1
+thermo_style  custom step temp c_pace[1][183] v_b1 v_vxx v_vyy v_vzz v_vyz v_vxz v_vxy
 
 run 0

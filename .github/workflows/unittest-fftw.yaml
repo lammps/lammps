@@ -76,6 +76,9 @@ jobs:
               -C cmake/presets/kokkos-openmp.cmake \
               -D CMAKE_CXX_COMPILER_LAUNCHER=ccache \
               -D CMAKE_C_COMPILER_LAUNCHER=ccache \
+              -D CMAKE_BUILD_TYPE=RelWithDebInfo \
+              -D CMAKE_CXX_FLAGS_RELWITHDEBINFO="-O2 -DNDEBUG" \
+              -D CMAKE_C_FLAGS_RELWITHDEBINFO="-O2 -DNDEBUG" \
               -D BUILD_MPI=on \
               -D BUILD_SHARED_LIBS=on \
               -D FFT=FFTW3 \

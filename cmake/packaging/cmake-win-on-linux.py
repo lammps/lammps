@@ -9,17 +9,20 @@ try: from urllib.request import urlretrieve as geturl
 except: from urllib import urlretrieve as geturl
 
 try:
-    import multiprocessing
-    numcpus = multiprocessing.cpu_count()
+    numcpus = len(os.sched_getaffinity(0))
 except:
-    numcpus = 1
+    try:
+        import multiprocessing
+        numcpus = multiprocessing.cpu_count()
+    except:
+        numcpus = 1
 
 # helper functions
 
 def error(str=None):
     if not str: print(helpmsg)
     else: print(sys.argv[0],"ERROR:",str)
-    sys.exit()
+    sys.exit(1)
 
 def getbool(arg,keyword):
     if arg in ['yes','Yes','Y','y','on','1','True','true']:
@@ -88,12 +91,14 @@ homedir, exename = os.path.split(os.path.abspath(inspect.getsourcefile(lambda:0)
 parflag = 'no'
 pythonflag  = False
 guiflag = False
-revflag = system('git rev-parse --abbrev-ref HEAD').strip()
+manualfile = None
+plugincache = None
 verbose = True
 gitdir  = os.path.abspath(os.path.join(homedir,'..','..'))
+revflag = system('git -C %s rev-parse --abbrev-ref HEAD' % gitdir).strip()
 
 helpmsg = """
-Usage: python %s -p <mpi> -y <yes|no> -a <yes|no> -u <yes|no>
+Usage: python %s -p <mpi> -y <yes|no> -u <yes|no> -m <file> -c <file>
 
 Flags (all flags are optional, defaults listed below):
   -p : select message passing parallel build (default value: %s)
@@ -105,6 +110,9 @@ Flags (all flags are optional, defaults listed below):
   -u : select whether to include the LAMMPS GUI (default value: %s)
     -u yes      : build includes LAMMPS GUI
     -u no       : build does not include LAMMPS GUI
+  -m : PDF file to include as the manual instead of building doc/Manual.pdf
+  -c : CMake initial cache file (cmake -C) for configuring the plugins,
+       e.g. unittest/plugins/mock-libs.cmake for testing the packaging
 
 Example:
   python %s -p ms -y no -u no
@@ -126,6 +134,10 @@ while i < argc:
         pythonflag = getbool(argv[i+1],"python")
     elif argv[i] == '-u':
         guiflag = getbool(argv[i+1],"gui")
+    elif argv[i] == '-m':
+        manualfile = fullpath(argv[i+1])
+    elif argv[i] == '-c':
+        plugincache = fullpath(argv[i+1])
     else:
         print("\nUnknown flag:",argv[i])
         error()
@@ -142,7 +154,7 @@ rev1 = re.compile("^(stable|release|develop|maintenance)$")
 rev2 = re.compile(r"^(patch|stable)_\d+(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\d{4}$")
 use_gitrev=False
 if not rev1.match(revflag) and not rev2.match(revflag):
-    newflag=system('git rev-parse HEAD').strip()
+    newflag=system('git -C %s rev-parse HEAD' % gitdir).strip()
     print("Using revision flag %s for branch %s" % (newflag,revflag))
     revflag=newflag
     use_gitrev=True
@@ -208,8 +220,11 @@ cmd += " -DBUILD_SHARED_LIBS=on -DBUILD_MPI=%s -DBUILD_OMP=ON" % mpiflag
 if parflag == 'ms':
   cmd += " -DUSE_MSMPI=on"
 if guiflag:
-  cmd += " -DBUILD_LAMMPS_GUI=on -DDOWNLOAD_POTENTIALS=off -DQt6_DIR=/usr/x86_64-w64-mingw32/sys-root/mingw/lib/cmake/Qt6"
+  cmd += " -DBUILD_LAMMPS_GUI=on -DQt6_DIR=/usr/x86_64-w64-mingw32/sys-root/mingw/lib/cmake/Qt6"
 cmd += " -DPKG_INTEL=no"
+# the only large potential file (of MESONT) is removed from the installer below, and the download
+# would go into the source tree
+cmd += " -DDOWNLOAD_POTENTIALS=off"
 cmd += " -DCMAKE_CXX_COMPILER_LAUNCHER=ccache"
 cmd += " -DPKG_PLUGIN=yes"
 cmd += " -DCMAKE_CXX_STANDARD=20"
@@ -242,7 +257,7 @@ if revflag == 'stable' or revflag == 'release' or rev2.match(revflag):
     verseq = verexp.match(vertxt).groups()
     version = "".join(verseq)
 elif revflag == 'develop' or revflag == 'maintenance':
-    version = system("git describe HEAD").strip()
+    version = system("git -C %s describe HEAD" % gitdir).strip()
 
 if not pythonflag and not guiflag:
   print("Configuring pace plugin build with CMake")
@@ -251,6 +266,7 @@ if not pythonflag and not guiflag:
   cmd += " -DBUILD_SHARED_LIBS=on -DBUILD_MPI=%s -DBUILD_OMP=ON" % mpiflag
   cmd += " -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DLAMMPS_SOURCE_DIR=%s/src" % gitdir
   cmd += " -DLAMMPS_VERSION=%s" % version
+  if plugincache: cmd += " -C %s" % plugincache
   if parflag == 'ms': cmd += " -DUSE_MSMPI=on"
   cmd += " -DCMAKE_CXX_STANDARD=20"
 
@@ -272,6 +288,7 @@ if not pythonflag and not guiflag:
   cmd += " -DBUILD_SHARED_LIBS=on -DBUILD_MPI=%s -DBUILD_OMP=ON" % mpiflag
   cmd += " -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DLAMMPS_SOURCE_DIR=%s/src" % gitdir
   cmd += " -DLAMMPS_VERSION=%s" % version
+  if plugincache: cmd += " -C %s" % plugincache
   if parflag == 'ms': cmd += " -DUSE_MSMPI=on"
   cmd += " -DCMAKE_CXX_STANDARD=20"
 
@@ -288,13 +305,15 @@ if not pythonflag and not guiflag:
   print("Done")
 
 os.chdir(os.path.join(gitdir,"doc"))
-if not os.path.exists("Manual.pdf"):
+if manualfile:
+    print("Using %s as PDF manual" % manualfile)
+elif not os.path.exists("Manual.pdf"):
     print("Building PDF manual")
     txt = system("make upgrade")
     if verbose: print(txt)
     txt = system("make pdf")
     if verbose: print(txt)
-shutil.copy("Manual.pdf",os.path.join(builddir,"LAMMPS-Manual.pdf"))
+shutil.copy(manualfile or "Manual.pdf",os.path.join(builddir,"LAMMPS-Manual.pdf"))
 print("Done")
 
 # switch back to build folder and copy/process files for inclusion in installer

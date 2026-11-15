@@ -387,7 +387,7 @@ Read or write compressed files
 
    Added support for ``brotli`` and ``7-zip``
 
-.. versionchanged:: TBD
+.. versionchanged:: 13Nov2026
 
 Support for compressed files no longer needs to be enabled at compile
 time; the CMake option ``WITH_GZIP`` and the define ``-DLAMMPS_GZIP``

@@ -1,0 +1,60 @@
+#!/bin/sh
+# Stand-in for the GNU autoconf configure script of the library that this folder mocks.
+# It accepts the options that the LAMMPS CMake scripts pass, ignores the others, and
+# writes a Makefile into the current folder (the source folder or a separate build folder)
+# that compiles the sources with the compilers from the command line or the environment.
+
+srcdir=$(cd "$(dirname "$0")" && pwd)
+prefix=/usr/local
+host=
+pic=no
+mpi=no
+shared=yes
+
+for arg in "$@"; do
+  case "$arg" in
+    --prefix=*) prefix=${arg#--prefix=} ;;
+    --host=*) host=${arg#--host=} ;;
+    --with-pic) pic=yes ;;
+    --enable-mpi) mpi=yes ;;
+    --disable-mpi) mpi=no ;;
+    --enable-shared) shared=yes ;;
+    --disable-shared) shared=no ;;
+    CC=* | CXX=* | CPPFLAGS=* | CXXFLAGS=* | LDFLAGS=* | LIBS=* | AR=* | RANLIB=*)
+      eval "${arg%%=*}=\${arg#*=}" ;;
+    *) echo "configure: ignoring option $arg" ;;
+  esac
+done
+
+# tools of a cross-compiler are named after the target, unless given
+tool=${host:+$host-}
+CXX=${CXX:-${tool}c++}
+AR=${AR:-${tool}ar}
+RANLIB=${RANLIB:-${tool}ranlib}
+case "$host" in
+  *mingw*) exeext=.exe shared=no ;;
+  *) exeext= ;;
+esac
+picflag=
+[ "$pic" = yes ] && picflag=-fPIC
+
+cat > Makefile <<EOF
+srcdir = $srcdir
+prefix = $prefix
+exec_prefix = \$(prefix)
+libdir = \$(exec_prefix)/lib
+includedir = \$(prefix)/include
+bindir = \$(exec_prefix)/bin
+CXX = $CXX
+CPPFLAGS = $CPPFLAGS
+CXXFLAGS = ${CXXFLAGS:--O2} $picflag
+LDFLAGS = $LDFLAGS
+LIBS = $LIBS
+AR = $AR
+RANLIB = $RANLIB
+EXEEXT = $exeext
+SHARED = $shared
+MPI = $mpi
+include \$(srcdir)/rules.mk
+EOF
+echo "configure: wrote Makefile for $(basename "$srcdir") (MPI: $mpi, shared: $shared, PIC: $pic, CXX: $CXX)"

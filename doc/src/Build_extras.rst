@@ -481,15 +481,16 @@ If you would like to use the :doc:`kim query <kim_commands>`
 command, you also need to have libcurl installed with the matching
 development headers and the curl-config tool.
 
-If you would like to use the :doc:`kim property <kim_commands>`
-command, you need to build LAMMPS with the PYTHON package installed
-and linked to Python 3.6 or later. See the :ref:`PYTHON package build info <python>`
-for more details on this. After successfully building LAMMPS with Python, you
-also need to install the ``kim-property`` Python package, which can be easily
-done using *pip* as ``pip install kim-property``, or from the *conda-forge*
-channel as ``conda install kim-property`` if LAMMPS is built in Conda. More
-detailed information is available at:
-`kim-property installation <https://github.com/openkim/kim-property#installing-kim-property>`_.
+If you would like to use the :doc:`kim property <kim_commands>` command,
+you need to build LAMMPS with the PYTHON package installed and linked to
+Python 3.9 or later. See the :ref:`PYTHON package build info <python>`
+for more details on this. After successfully building LAMMPS with
+Python, you also need to install the ``kim-property`` Python package,
+which can be easily done using *pip* as ``pip install kim-property``, or
+from the *conda-forge* channel as ``conda install kim-property`` if
+LAMMPS is built in Conda. More detailed information is available at:
+`kim-property installation
+<https://github.com/openkim/kim-property#installing-kim-property>`_.
 
 .. tabs::
 
@@ -567,7 +568,7 @@ Enabling the extra unit tests have some requirements,
 * It requires to have libcurl installed with the matching development headers
   and the curl-config tool.
 * It requires to build LAMMPS with the PYTHON package installed and linked to
-  Python 3.6 or later. See the :ref:`PYTHON package build info <python>` for
+  Python 3.9 or later. See the :ref:`PYTHON package build info <python>` for
   more details on this.
 * It requires to have ``kim-property`` Python package installed, which can be
   easily done using *pip* as ``pip install kim-property``, or from the
@@ -1101,13 +1102,13 @@ ML-IAP package
 ---------------------------
 
 Building the ML-IAP package requires including the :ref:`ML-SNAP
-<PKG-ML-SNAP>` package.  There will be an error message if this requirement
-is not satisfied.  Using the *mliappy* model also requires enabling
-Python support, which in turn requires to include the :ref:`PYTHON
-<PKG-PYTHON>` package **and** requires to have the `cython
+<PKG-ML-SNAP>` package.  There will be an error message if this
+requirement is not satisfied.  Using the *mliappy* model also requires
+enabling Python support, which in turn requires to include the
+:ref:`PYTHON <PKG-PYTHON>` package **and** requires to have the `cython
 <https://cython.org>`_ software installed and with it a working
 ``cythonize`` command.  This feature requires compiling LAMMPS with
-Python version 3.6 or later.
+Python version 3.9 or later.
 
 .. tabs::
 
@@ -1172,7 +1173,7 @@ PYTHON package
 
 Building with the PYTHON package requires you have a the Python
 development headers and library available on your system, which
-needs to be Python version 3.6 or later.  See ``lib/python/README``
+needs to be Python version 3.9 or later.  See ``lib/python/README``
 for additional details.
 
 .. tabs::

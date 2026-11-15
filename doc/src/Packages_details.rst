@@ -1957,9 +1957,9 @@ A general interface for machine-learning interatomic potentials, including PyTor
 
 To use this package, also the :ref:`ML-SNAP <PKG-ML-SNAP>` package needs
 to be installed.  To make the *mliappy* model available, also the
-:ref:`PYTHON <PKG-PYTHON>` package needs to be installed, the version
-of Python must be 3.6 or later, and the `cython <https://cython.org/>`_ software
-must be installed.
+:ref:`PYTHON <PKG-PYTHON>` package needs to be installed, the version of
+Python must be 3.9 or later, and the `cython <https://cython.org/>`_
+software must be installed.
 
 **Author:** Aidan Thompson (Sandia), Nicholas Lubbers (LANL).
 
@@ -2593,7 +2593,7 @@ ways to use LAMMPS and Python together.
 
    Building with the PYTHON package assumes you have a Python development
    environment (headers and libraries) available on your system, which needs
-   to be Python version 3.6 or later.
+   to be Python version 3.9 or later.
 
 **Install:**
 

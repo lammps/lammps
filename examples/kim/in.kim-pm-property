@@ -17,7 +17,7 @@
 #
 # Requirement:
 #
-# This example requires LAMMPS built with the Python 3.6 or later package
+# This example requires LAMMPS built with the Python 3.9 or later package
 # installed. See the `https://docs.lammps.org/python.html` doc page for
 # more info on building LAMMPS with the version of Python on your system.
 # After successfully building LAMMPS with Python, you need to install the

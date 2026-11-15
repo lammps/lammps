@@ -105,6 +105,9 @@ near-zero comparisons): follow it before loosening tolerances or tagging a test
   the audience is researchers, not software engineers.
 - **File permissions:** `.cpp`/`.h` must NOT be executable; `.sh`/`.py` scripts SHOULD
   be (checked by `make check-permissions`).
+- **Python 3.9 is the oldest supported version:** Python code in the tree (the
+  `python/` module, `tools/`, test and example scripts) must run with it, so do not
+  use newer syntax or library features (e.g. `match` statements, `X | Y` type hints).
 - Root `README` has no extension; subdirectories may use `.md`.
 - C++ coding rules and the steps for adding a new style:
   `.github/instructions/source-code.instructions.md`.

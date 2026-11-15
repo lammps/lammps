@@ -28,7 +28,7 @@ you need GNU make (other make variants are not going to work since the
 build system uses features unique to GNU make) and a Unix-like build
 environment with a Bourne shell, and shell tools like "sed", "grep",
 "touch", "test", "tr", "cp", "mv", "rm", "ln", "diff" and so on. Parts
-of LAMMPS interface with or use Python version 3.6 or later.
+of LAMMPS interface with or use Python version 3.9 or later.
 
 Compiler and OS compatibility
 =============================

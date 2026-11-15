@@ -2603,7 +2603,6 @@ This package has :ref:`specific installation instructions <python>` on the :doc:
 
 * ``src/PYTHON``: filenames -> commands
 * :doc:`Python call <Python_head>`
-* ``lib/python/README``
 * ``examples/python``
 
 ----------

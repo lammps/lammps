@@ -159,10 +159,19 @@ dependent checks and sizing in `settings()`/`coeff()`.
 
 ## Small conventions
 
-- `src/pointers.h` includes and re-exports `<mpi.h>`, `<cstdio>`, `<string>`, and
-  `<vector>`; virtually every class derives from `Pointers`, so do not add redundant
-  includes for these -- only for headers it does not export (`<cmath>`, `<map>`,
-  `<algorithm>`, ...).
+- `src/pointers.h` includes and re-exports `<mpi.h>`, `<cstdio>`, `<string>`,
+  `<vector>` and a few more headers; virtually every class derives from `Pointers`, so
+  do not add redundant includes for these -- only for headers it does not export
+  (`<cmath>`, `<map>`, `<algorithm>`, ...).  The complete list is in
+  `.github/instructions/source-code.instructions.md` ("Includes").
+- Missing `NEIGHMASK` masks are fixed in place, where the index is read (as in ML-POD,
+  PTM, and `fix hyper/local`); making masked copies of neighbor list rows for an
+  external library was rejected, since bonded interactions on top of such potentials
+  are unusual and the copies cost time in every call.  For the same reason the
+  neighbor list functions of the library interface
+  (`lammps_neighlist_element_neighbors()` and its Python and Fortran wrappers) keep
+  returning a view of the internal list, whose entries can have the flag bits set, as
+  their documentation says.
 - When changing a function signature, buffer size, or other shared contract, find ALL
   users in both `src/` and `unittest/` and never truncate the search with `head`
   (a missed caller in the tests caused a buffer overflow that only CI caught).

@@ -14,7 +14,9 @@ https://docs.lammps.org/Modify_style.html, plus the path-specific rules in
 `.github/instructions/` for the changed files: C++ sources and tests
 (`source-code`), documentation (`documentation`), KOKKOS (`kokkos`), unit tests
 (`force-style-tests`), example inputs (`regression-tests`), and the build system
-(`build-system`).
+(`build-system`).  Do not report GCC's `-Wmaybe-uninitialized` warnings: in this code
+they have not pointed to a real problem so far.  Uninitialized data reported by
+valgrind or a sanitizer is a real finding.
 
 ## Build System
 
@@ -70,16 +72,30 @@ guides: `.github/instructions/regression-tests.instructions.md` and
 
 ## Continuous Integration
 
+Two systems run the tests for pull requests and for merges into `develop` and
+`maintenance`; both report their status on GitHub:
+
+- **GitHub Actions** (`.github/workflows/`): style checks, the check for
+  variable-length arrays, the legacy make build, and unit tests with MPI and FFTW3,
+  on Linux ARM64, and with MSVC on Windows.
+- **Buildbot** at https://ci.lammps.org: unit tests on Linux (GCC, Clang, and Intel
+  compilers, KOKKOS, GPUs), macOS, FreeBSD, and Windows, plus a check that every
+  example input can still be read and set up.  The name of a builder describes its
+  configuration, and the "Details" link of a status opens the build with the logs of
+  all its steps.
+
 **Debugging CI failures:** style-check -> run the matching `make check-*` target in
 `src/` and the corresponding `make fix-*`; build failures -> check for `-S cmake`,
 package dependencies, and VLA usage; unit tests -> rerun the single test with
-`ctest -V -R <name>`; regression tests -> verify the Python environment and whether
-example inputs were modified.  A unit-test failure on only ONE Linux CI job is
-usually the `LAMMPS_SIZES=bigbig` configuration (64-bit `tagint`) -- reproduce with
-a minimal bigbig build first (see the testing guide) before suspecting anything else.
-A failure only on ARM64 or macOS: follow the platform triage in the testing guide
-(char signedness, OpenMP race, FMA contraction, near-zero comparisons) before
-loosening tolerances or tagging the test `unstable`.
+`ctest -V -R <name>` in a build that uses the options of the failing job (its
+configuration step lists them); example inputs -> verify the Python environment and
+whether example inputs were modified.  A unit-test failure in only ONE job usually
+comes from what is special about that job: 64-bit `tagint` (`LAMMPS_SIZES=bigbig`,
+builder `gcc-bigbig`), single precision FFTs, FMA instructions used or not, macOS,
+ARM64, or Windows.  The testing guide lists the jobs with these properties and the
+order of the platform triage (char signedness, OpenMP race, FMA contraction,
+near-zero comparisons): follow it before loosening tolerances or tagging a test
+`unstable`.
 
 ## General Conventions
 
@@ -98,11 +114,20 @@ loosening tolerances or tagging the test `unstable`.
 - Feature branches; PRs target `develop` (NOT `master` or `release`).  The `develop`
   branch is always kept functional (continuous release model).
 - Run `cd src && make check` before committing; watch CI on the PR.
+- Never rewrite history that has been pushed: no `git rebase`, `git commit --amend`,
+  or `git push --force` on a published branch.  Bring a branch up to date by merging
+  `develop` into it.
 - A bug found in any style is rarely alone: styles and their accelerator variants are
   created by copy-adapt, so defects propagate in both directions.  After root-causing
   a bug, check the base style, all suffix variants (`/omp`, `/kk`, `/gpu`, `/opt`,
   `/intel`), and sibling styles cloned from the same template for the same code shape,
   and fix all occurrences together.
+- A report produced by an automated tool (static analyzer, AI-written issue) is a
+  lead, not a finding: reproduce it, look for the same defect in sibling code, and
+  describe the fix on its own merits (defect, cause, test).  Refer to such a report
+  in a commit message only when a maintainer asks for it.  Input files attached to
+  such reports can differ from the example they were derived from in ways that are
+  hard to see (e.g. a control character inside a number): compare them first.
 - The core developers no longer develop the INTEL package: their own work on it is
   limited to bug fixes and adjustments to API changes.  Do not add or propose new
   `/intel` variants yourself.  New INTEL code from contributors is acceptable, since
@@ -130,7 +155,7 @@ automatically: read them before starting the corresponding kind of work.
 | `src/KOKKOS/` styles (rules, policies) | `.github/instructions/kokkos.instructions.md` (auto) |
 | porting a style to KOKKOS | `.github/dev-docs/kokkos-porting-guide.md` + `accelerator-porting-backlog.md` |
 | porting/auditing `src/OPENMP/` (`/omp`) styles | `.github/dev-docs/openmp-porting.md` + `accelerator-porting-backlog.md` |
-| porting a pair style to the GPU package (`src/GPU/`, `lib/gpu/`) | `.github/dev-docs/accelerator-porting-backlog.md` (GPU section: file layout, template commit, constraints) |
+| porting a pair style to the GPU package (`src/GPU/`, `lib/gpu/`) | `.github/dev-docs/gpu-porting-guide.md` + `accelerator-porting-backlog.md` |
 | granular/DEM code or tests | `.github/instructions/granular-tests.instructions.md` (auto) |
 | documentation (`doc/`) | `.github/instructions/documentation.instructions.md` (auto) |
 | force-style YAML tests (`unittest/`) | `.github/instructions/force-style-tests.instructions.md` (auto) |
@@ -138,8 +163,8 @@ automatically: read them before starting the corresponding kind of work.
 | rRESPA support in a fix | `.github/dev-docs/respa-integration.md` |
 | finite-size particles, inertia/angmom | `.github/dev-docs/finite-size-particles.md` |
 | new/changed styles: MPI, restart, buffers | `.github/dev-docs/style-implementation-notes.md` |
-| refactor validation, platform failures, benchmarks, debugging | `.github/dev-docs/testing-and-verification.md` |
-| porting a pair style to the GPU package (`src/GPU/`, `lib/gpu/`) | `.github/dev-docs/gpu-porting-guide.md` |
+| refactor validation, CI jobs and platform failures, benchmarks, debugging | `.github/dev-docs/testing-and-verification.md` |
+| backporting fixes to the `maintenance` branch | `.github/dev-docs/maintenance-backports.md` |
 
 ## Trust These Instructions
 

@@ -1415,6 +1415,18 @@ then load this plugin at runtime with the :doc:`plugin command
       Both settings are cached and thus retained in the build folder
       (see :ref:`this explanation <err0039>` for details).
 
+      .. versionchanged:: TBD
+
+      Compiling some of the MBX source files with optimization can take
+      a long time.  So when cross-compiling for Windows with the MinGW
+      compilers and without MPI, CMake downloads an already compiled MBX
+      library instead, if one is available for the MBX version and the
+      major version of the cross-compiler.  This way we can test
+      building the Windows installer packages efficiently since want to
+      test the LAMMPS side of things.  Setting ``-D MBX_MINGW_FROM_SOURCE=on``
+      compiles the library anyway.  The variables ``MBXMINGW_URL`` and
+      ``MBXMINGW_SHA256`` work like ``MBXLIB_URL`` and ``MBXLIB_SHA256``
+      for the compiled library.
 
    .. tab:: Traditional make
 

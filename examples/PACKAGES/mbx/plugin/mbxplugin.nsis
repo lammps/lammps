@@ -31,11 +31,11 @@ ${If} $0 != "admin"
 ${EndIf}
 !macroend
 
-!define PLUMEDPLUGIN "LAMMPS PLUMED Plugin ${VERSION}"
-OutFile "LAMMPS-PLUMED-plugin-${VERSION}.exe"
+!define MBXPLUGIN "LAMMPS MBX Plugin ${VERSION}"
+OutFile "LAMMPS-MBX-plugin-${VERSION}.exe"
 
-Name "${PLUMEDPLUGIN}"
-InstallDir "$LOCALAPPDATA\${PLUMEDPLUGIN}"
+Name "${MBXPLUGIN}"
+InstallDir "$LOCALAPPDATA\${MBXPLUGIN}"
 
 ShowInstDetails show
 ShowUninstDetails show
@@ -55,7 +55,7 @@ function .onInit
   # Determine if LAMMPS was already installed and check whether it was in 32-bit
   # or 64-bit. Then look up path to uninstaller and offer to uninstall or quit
   SetRegView 32
-  ReadRegDWORD $0 HKCU "Software\LAMMPS-PLUMED" "Bits"
+  ReadRegDWORD $0 HKCU "Software\LAMMPS-MBX" "Bits"
   SetRegView LastUsed
   ${If} $0 == "32"
     SetRegView 32

@@ -1431,10 +1431,10 @@ then load this plugin at runtime with the :doc:`plugin command
 ML-PACE package
 -----------------------------
 
-This package requires a library that can be downloaded and built
-in lib/pace or somewhere else, which must be done before building
-LAMMPS with this package. The code for the library can be found
-at: `https://github.com/ICAMS/lammps-user-pace/ <https://github.com/ICAMS/lammps-user-pace/>`_
+This package requires an external library, which is downloaded and
+compiled together with LAMMPS when the package is enabled. The code for
+the library can be found at: `https://github.com/ICAMS/lammps-user-pace/
+<https://github.com/ICAMS/lammps-user-pace/>`_
 
 Instead of including the ML-PACE package directly into LAMMPS, it
 is also possible to skip this step and build the ML-PACE package as
@@ -1680,7 +1680,7 @@ system for detailed information.
 In case of a manual installation of *n2p2* you only need to build the *n2p2* core
 library ``libnnp`` and interface library ``libnnpif``. When using GCC it should
 suffice to execute ``make libnnpif`` in the *n2p2* ``src`` directory. For more
-details please see ``lib/hdnnp/README`` and the `n2p2 build documentation
+details please see the `n2p2 build documentation
 <https://compphysvienna.github.io/n2p2/topics/build.html>`_.
 
 .. tabs::

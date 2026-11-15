@@ -1422,7 +1422,7 @@ then load this plugin at runtime with the :doc:`plugin command
       compilers and without MPI, CMake downloads an already compiled MBX
       library instead, if one is available for the MBX version and the
       major version of the cross-compiler.  This way we can test
-      building the Windows installer packages efficiently since want to
+      building the Windows installer packages efficiently since we want to
       test the LAMMPS side of things.  Setting ``-D MBX_MINGW_FROM_SOURCE=on``
       compiles the library anyway.  The variables ``MBXMINGW_URL`` and
       ``MBXMINGW_SHA256`` work like ``MBXLIB_URL`` and ``MBXLIB_SHA256``

@@ -27,17 +27,23 @@ PairStyle(eam/omp,PairEAMOMP);
 #include "pair_eam.h"
 #include "thr_omp.h"
 
+#include <vector>
+
 namespace LAMMPS_NS {
 
 class PairEAMOMP : public PairEAM, public ThrOMP {
 
  public:
   PairEAMOMP(class LAMMPS *);
+  ~PairEAMOMP() override;
 
   void compute(int, int) override;
   double memory_usage() override;
 
  private:
+  std::vector<int *> forcelist_thr;
+  std::vector<bigint> maxforce_thr;
+
   template <int EVFLAG, int EFLAG, int NEWTON_PAIR, int HE>
   void eval(int iifrom, int iito, int *beyond_rhomax, ThrData *const thr);
 };

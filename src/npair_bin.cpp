@@ -58,11 +58,11 @@ void NPairBin<HALF, NEWTON, TRI, SIZE, ATOMONLY>::build(NeighList *list)
 
   const double delta = 0.01 * force->angstrom;
 
-  double **x = atom->x;
+  const double (*const x)[3] = (const double (*)[3]) atom->x[0];
   double *radius = atom->radius;
-  int *type = atom->type;
+  const int *const type = atom->type;
   int *mask = atom->mask;
-  tagint *tag = atom->tag;
+  const tagint *const tag = atom->tag;
   tagint *molecule = atom->molecule;
   tagint **special = atom->special;
   int **nspecial = atom->nspecial;
@@ -81,11 +81,31 @@ void NPairBin<HALF, NEWTON, TRI, SIZE, ATOMONLY>::build(NeighList *list)
 
   int history = list->history;
   int mask_history = 1 << HISTBITS;
+  const int oneatom = list->oneatom;
 
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;
   int **firstneigh = list->firstneigh;
   MyPage<int> *ipage = list->ipage;
+
+  const int *const bins = this->bins;
+  const int *const binhead = this->binhead;
+  const int *const stencil = this->stencil;
+  const int *const atom2bin = this->atom2bin;
+  const int nstencil = this->nstencil;
+
+  // cache whether type t has identical neighbor cutoffs to all types
+  // covers models up to 63 atom types on stack; larger counts fall back safely
+  const int ntypes = atom->ntypes;
+  bool ucut_type[64];
+  if (!SIZE && !exclude && ntypes < 64) {
+    for (int t = 1; t <= ntypes; t++) {
+      bool u = true;
+      for (int t2 = 2; u && t2 <= ntypes; t2++)
+        if (cutneighsq[t][t2] != cutneighsq[t][1]) u = false;
+      ucut_type[t] = u;
+    }
+  }
 
   int inum = 0;
   ipage->reset();
@@ -108,6 +128,9 @@ void NPairBin<HALF, NEWTON, TRI, SIZE, ATOMONLY>::build(NeighList *list)
     }
 
     ibin = atom2bin[i];
+    const double *const cutneighsq_i = cutneighsq[itype];
+    const double cutsq_u = cutneighsq_i[1];
+    const bool uniform_cut = (!SIZE && !exclude && ntypes < 64) ? ucut_type[itype] : false;
 
     for (k = 0; k < nstencil; k++) {
       bin_start = binhead[ibin + stencil[k]];
@@ -170,8 +193,11 @@ void NPairBin<HALF, NEWTON, TRI, SIZE, ATOMONLY>::build(NeighList *list)
           }
         }
 
-        jtype = type[j];
-        if (exclude && exclusion(i, j, itype, jtype, mask, molecule)) continue;
+        // skip type[j] load when !SIZE && !exclude and all cutoffs from itype match
+        if (!uniform_cut) {
+          jtype = type[j];
+          if (exclude && exclusion(i, j, itype, jtype, mask, molecule)) continue;
+        }
 
         delx = xtmp - x[j][0];
         dely = ytmp - x[j][1];
@@ -215,11 +241,16 @@ void NPairBin<HALF, NEWTON, TRI, SIZE, ATOMONLY>::build(NeighList *list)
             }
           }
         } else {
+          const double cutsq_ij = uniform_cut ? cutsq_u : cutneighsq_i[jtype];
           if (ATOMONLY) {
-            if (rsq <= cutneighsq[itype][jtype]) neighptr[n++] = j;
+            if (n < oneatom) {
+              neighptr[n] = j;
+              n += (rsq <= cutsq_ij);
+            } else if (rsq <= cutsq_ij)
+              n++;
           } else {
-            if (rsq <= cutneighsq[itype][jtype]) {
-              if (molecular != Atom::ATOMIC) {
+            if (molecular != Atom::ATOMIC) {
+              if (rsq <= cutsq_ij) {
                 if (!moltemplate)
                   which = find_special(special[i], nspecial[i], tag[j]);
                 else if ((imol >= 0) && onemols[imol]->special)
@@ -233,8 +264,13 @@ void NPairBin<HALF, NEWTON, TRI, SIZE, ATOMONLY>::build(NeighList *list)
                   neighptr[n++] = j;
                 else if (which > 0)
                   neighptr[n++] = j ^ (which << SBBITS);
-              } else
-                neighptr[n++] = j;
+              }
+            } else {
+              if (n < oneatom) {
+                neighptr[n] = j;
+                n += (rsq <= cutsq_ij);
+              } else if (rsq <= cutsq_ij)
+                n++;
             }
           }
         }

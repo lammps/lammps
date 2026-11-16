@@ -254,10 +254,14 @@ pull requests are submitted to `the LAMMPS repository on GitHub
   same results over a given number of steps and operations within a
   given error margin).
 
-The tests are currently run as GitHub Actions and their configuration
-files are in the ``.github/workflows/`` folder of the LAMMPS git tree.
-The test status of these tests is reported with the corresponding pull
-request and the pull request *cannot* be merged without all tests passing.
+A few of the tests are currently run as GitHub Actions and their
+configuration files are in the ``.github/workflows/`` folder of the
+LAMMPS git tree.  More extensive unit testing is run on the CI testing
+cluster at Temple University (since fall 2026) which uses `buildbot
+<buildbot.net>`_.  You can see the status of the CI testing cluster at
+http://ci.lammps.org/.  The test status of all these tests is reported
+with the corresponding pull request and a contributed pull request *will
+not be merged* without all tests passing.
 
 In addition, there is a nightly test run using the ``develop`` branch to
 generate code coverage data for the included tests (see below), provided
@@ -278,6 +282,10 @@ the two pass mode, but will select only shorter runs and no more than
 runs significantly faster compared to the full test run.  These test
 runs can also be performed with instrumented LAMMPS binaries (see
 previous section).
+
+A summary of all collected testing results and their trends, as well as
+code and development status related information is collected in the
+`LAMMPS Testing Dashboard <https://dashboard.lammps.org>`_ website.
 
 The unit testing facility is integrated into the CMake build process of
 the LAMMPS source code distribution itself.  It can be enabled by
@@ -662,7 +670,7 @@ algorithms with lower algorithmic complexity.
 Distribute unit tests across multiple NVIDIA GPUs
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. versionadded:: TBD
+.. versionadded:: 13Nov2026
 
 When LAMMPS is compiled with the GPU package or the KOKKOS package with
 GPU support, running tests in parallel with ``ctest -jN`` will run *all*
@@ -833,7 +841,7 @@ Coding style utilities
 
 To aid with enforcing some of the coding style conventions in LAMMPS
 some additional build targets have been added to the makefile in the
-``src`` folder.  These require Python 3.5 or later and will only work
+``src`` folder.  These require Python 3.9 or later and will only work
 properly on Unix-like operating and file systems.
 
 The following options are available (to be run in the ``src`` folder):

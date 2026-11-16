@@ -4,6 +4,7 @@ paths:
   - "lib/gpu/**"
 ---
 
-Working on GPU package files: when adding or changing a `/gpu` pair style, read
-`.github/dev-docs/gpu-porting-guide.md` now (file layout, templates, kernel
-conventions, known pitfalls, test recipe).
+Working on GPU package files: read `.github/instructions/gpu.instructions.md` now
+(rules for kernels, host wrappers, and tests).  When adding or changing a `/gpu` pair
+style, also read `.github/dev-docs/gpu-porting-guide.md` (file layout, templates,
+kernel conventions, known pitfalls, test recipe).

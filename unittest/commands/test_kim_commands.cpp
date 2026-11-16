@@ -404,10 +404,10 @@ TEST_F(KimCommandsTest, kim_property)
     if (!Info::has_package("KIM")) GTEST_SKIP();
     if (!Info::has_package("PYTHON")) GTEST_SKIP();
 
-    if (!lmp->python->has_minimum_version(3, 6)) {
+    if (!lmp->python->has_minimum_version(3, 9)) {
         TEST_FAILURE(".*ERROR: Invalid Python version.\n"
-                     "The kim-property Python package requires Python "
-                     "3 >= 3.6 support.*",
+                     "Using the kim-property Python package with LAMMPS "
+                     "requires Python 3.9 or later.*",
                      command("kim property"););
     } else {
         TEST_FAILURE(".*ERROR: Illegal kim property command: missing argument.*",

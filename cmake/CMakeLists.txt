@@ -145,6 +145,10 @@ get_filename_component(LAMMPS_CXX_COMPILER_NAME "${CMAKE_CXX_COMPILER}" NAME CAC
 if((PKG_KOKKOS) AND (Kokkos_ENABLE_CUDA) AND (LAMMPS_CXX_COMPILER_NAME STREQUAL "nvcc_wrapper"))
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Xcudafe --diag_suppress=unrecognized_pragma,--diag_suppress=128,--diag_suppress=186")
 endif()
+# when configured with g++, Kokkos sends the code using it through nvcc_wrapper, too.  g++ ignores this flag for the rest.
+if((PKG_KOKKOS) AND (Kokkos_ENABLE_CUDA) AND ((LAMMPS_CXX_COMPILER_NAME STREQUAL "nvcc_wrapper") OR (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")))
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-deprecated-gpu-targets")
+endif()
 
 # we *require* C++17 without extensions
 # Kokkos also requires at least C++20 (currently)
@@ -251,9 +255,9 @@ if(DEFINED ENV{VIRTUAL_ENV} AND NOT Python_EXECUTABLE)
 endif()
 
 find_package(Python COMPONENTS Interpreter QUIET)
-# NOTE: RHEL 8.0 and Ubuntu 18.04LTS ship with Python 3.6, Python 3.8 was EOL in 2024
-if(Python_VERSION VERSION_LESS 3.6)
-  message(FATAL_ERROR "LAMMPS requires Python 3.6 or later")
+# NOTE: RHEL 9.0 ships with Python 3.9 and Ubuntu 22.04LTS ship with Python 3.10
+if(Python_VERSION VERSION_LESS 3.9)
+  message(FATAL_ERROR "LAMMPS requires Python 3.9 or later")
 endif()
 
 set(LAMMPS_MACHINE "" CACHE STRING "Suffix to append to lmp binary (WON'T enable any features automatically")
@@ -780,6 +784,25 @@ target_include_directories(lammps PRIVATE ${LAMMPS_STYLE_HEADERS_DIR})
 # add the generated style_*.cpp registration translation units to the library
 get_property(LAMMPS_STYLE_SOURCES GLOBAL PROPERTY LAMMPS_STYLE_SOURCES)
 target_sources(lammps PRIVATE ${LAMMPS_STYLE_SOURCES})
+
+# With KOKKOS for CUDA all sources of LAMMPS are given to nvcc_wrapper, but nvcc is very slow and most
+# of them do not use Kokkos, so these only need the host compiler.  Sources that use Kokkos include it
+# through a header with kokkos in its name or one of the other headers below.  A source that gets it
+# through any other header fails to compile, and then that header has to be added here.
+if((PKG_KOKKOS) AND (Kokkos_ENABLE_CUDA) AND ((LAMMPS_CXX_COMPILER_NAME STREQUAL "nvcc_wrapper") OR (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")))
+  get_target_property(LAMMPS_ALL_SOURCES lammps SOURCES)
+  foreach(LAMMPS_SRC ${LAMMPS_ALL_SOURCES})
+    string(FIND "${LAMMPS_SRC}" "${LAMMPS_SOURCE_DIR}/" LAMMPS_SRC_POS)
+    string(FIND "${LAMMPS_SRC}" "${LAMMPS_SOURCE_DIR}/KOKKOS/" KOKKOS_SRC_POS)
+    if((LAMMPS_SRC_POS EQUAL 0) AND (NOT KOKKOS_SRC_POS EQUAL 0) AND (LAMMPS_SRC MATCHES "\\.cpp$"))
+      file(STRINGS "${LAMMPS_SRC}" KOKKOS_INCLUDES REGEX
+           "^[ \t]*#[ \t]*include[ \t]*[<\"]([A-Za-z_]*[Kk]okkos[A-Za-z_]*|random_external_state|reaxff_[a-z]+)\\.h")
+      if(NOT KOKKOS_INCLUDES)
+        set_source_files_properties("${LAMMPS_SRC}" PROPERTIES COMPILE_OPTIONS "--host-only")
+      endif()
+    endif()
+  endforeach()
+endif()
 
 ######################################
 # Generate lmpinstalledpkgs.h

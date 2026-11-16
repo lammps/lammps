@@ -45,6 +45,7 @@ PairSpinDipoleCut::PairSpinDipoleCut(LAMMPS *lmp) :
     PairSpin(lmp), sigma(nullptr), cut_spin_long(nullptr)
 {
   spinflag = 1;
+  full_spin_gradient = 1;
 
   hbar = force->hplanck/MY_2PI;                       // eV/(rad.THz)
   mub = 9.274e-4;                             // in A.Ang^2

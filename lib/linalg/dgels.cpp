@@ -117,7 +117,7 @@ int dgels_(char *trans, integer *m, integer *n, integer *nrhs, doublereal *a, in
     i__1 = min(*m, *n);
     if (min(i__1, *nrhs) == 0) {
         i__1 = max(*m, *n);
-        dlaset_((char *)"Full", &i__1, nrhs, &c_b33, &c_b33, &b[b_offset], ldb, (ftnlen)4);
+        dlaset_((char *)"F", &i__1, nrhs, &c_b33, &c_b33, &b[b_offset], ldb, (ftnlen)1);
         return 0;
     }
     smlnum = dlamch_((char *)"S", (ftnlen)1) / dlamch_((char *)"P", (ftnlen)1);
@@ -153,17 +153,17 @@ int dgels_(char *trans, integer *m, integer *n, integer *nrhs, doublereal *a, in
         dgeqrf_(m, n, &a[a_offset], lda, &work[1], &work[mn + 1], &i__1, info);
         if (!tpsd) {
             i__1 = *lwork - mn;
-            dormqr_((char *)"Left", (char *)"Transpose", m, nrhs, n, &a[a_offset], lda, &work[1], &b[b_offset], ldb,
-                    &work[mn + 1], &i__1, info, (ftnlen)4, (ftnlen)9);
-            dtrtrs_((char *)"Upper", (char *)"No transpose", (char *)"Non-unit", n, nrhs, &a[a_offset], lda, &b[b_offset],
-                    ldb, info, (ftnlen)5, (ftnlen)12, (ftnlen)8);
+            dormqr_((char *)"L", (char *)"T", m, nrhs, n, &a[a_offset], lda, &work[1], &b[b_offset], ldb,
+                    &work[mn + 1], &i__1, info, (ftnlen)1, (ftnlen)1);
+            dtrtrs_((char *)"U", (char *)"N", (char *)"N", n, nrhs, &a[a_offset], lda, &b[b_offset], ldb, info, (ftnlen)1,
+                    (ftnlen)1, (ftnlen)1);
             if (*info > 0) {
                 return 0;
             }
             scllen = *n;
         } else {
-            dtrtrs_((char *)"Upper", (char *)"Transpose", (char *)"Non-unit", n, nrhs, &a[a_offset], lda, &b[b_offset], ldb,
-                    info, (ftnlen)5, (ftnlen)9, (ftnlen)8);
+            dtrtrs_((char *)"U", (char *)"T", (char *)"N", n, nrhs, &a[a_offset], lda, &b[b_offset], ldb, info, (ftnlen)1,
+                    (ftnlen)1, (ftnlen)1);
             if (*info > 0) {
                 return 0;
             }
@@ -175,16 +175,16 @@ int dgels_(char *trans, integer *m, integer *n, integer *nrhs, doublereal *a, in
                 }
             }
             i__1 = *lwork - mn;
-            dormqr_((char *)"Left", (char *)"No transpose", m, nrhs, n, &a[a_offset], lda, &work[1], &b[b_offset],
-                    ldb, &work[mn + 1], &i__1, info, (ftnlen)4, (ftnlen)12);
+            dormqr_((char *)"L", (char *)"N", m, nrhs, n, &a[a_offset], lda, &work[1], &b[b_offset], ldb,
+                    &work[mn + 1], &i__1, info, (ftnlen)1, (ftnlen)1);
             scllen = *m;
         }
     } else {
         i__1 = *lwork - mn;
         dgelqf_(m, n, &a[a_offset], lda, &work[1], &work[mn + 1], &i__1, info);
         if (!tpsd) {
-            dtrtrs_((char *)"Lower", (char *)"No transpose", (char *)"Non-unit", m, nrhs, &a[a_offset], lda, &b[b_offset],
-                    ldb, info, (ftnlen)5, (ftnlen)12, (ftnlen)8);
+            dtrtrs_((char *)"L", (char *)"N", (char *)"N", m, nrhs, &a[a_offset], lda, &b[b_offset], ldb, info, (ftnlen)1,
+                    (ftnlen)1, (ftnlen)1);
             if (*info > 0) {
                 return 0;
             }
@@ -196,15 +196,15 @@ int dgels_(char *trans, integer *m, integer *n, integer *nrhs, doublereal *a, in
                 }
             }
             i__1 = *lwork - mn;
-            dormlq_((char *)"Left", (char *)"Transpose", n, nrhs, m, &a[a_offset], lda, &work[1], &b[b_offset], ldb,
-                    &work[mn + 1], &i__1, info, (ftnlen)4, (ftnlen)9);
+            dormlq_((char *)"L", (char *)"T", n, nrhs, m, &a[a_offset], lda, &work[1], &b[b_offset], ldb,
+                    &work[mn + 1], &i__1, info, (ftnlen)1, (ftnlen)1);
             scllen = *n;
         } else {
             i__1 = *lwork - mn;
-            dormlq_((char *)"Left", (char *)"No transpose", n, nrhs, m, &a[a_offset], lda, &work[1], &b[b_offset],
-                    ldb, &work[mn + 1], &i__1, info, (ftnlen)4, (ftnlen)12);
-            dtrtrs_((char *)"Lower", (char *)"Transpose", (char *)"Non-unit", m, nrhs, &a[a_offset], lda, &b[b_offset], ldb,
-                    info, (ftnlen)5, (ftnlen)9, (ftnlen)8);
+            dormlq_((char *)"L", (char *)"N", n, nrhs, m, &a[a_offset], lda, &work[1], &b[b_offset], ldb,
+                    &work[mn + 1], &i__1, info, (ftnlen)1, (ftnlen)1);
+            dtrtrs_((char *)"L", (char *)"T", (char *)"N", m, nrhs, &a[a_offset], lda, &b[b_offset], ldb, info, (ftnlen)1,
+                    (ftnlen)1, (ftnlen)1);
             if (*info > 0) {
                 return 0;
             }

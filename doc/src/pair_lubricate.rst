@@ -112,7 +112,7 @@ particles of different size, *lubricate/poly* uses the near-contact
 expansions of the two-sphere resistance functions of :ref:`(Jeffrey and
 Onishi) <Jeffrey1>`, see also :ref:`(Kim and Karrila) <KimKarrila1>`.
 
-.. versionchanged:: TBD
+.. versionchanged:: 13Nov2026
 
 For *lubricate/poly* the logarithmic terms of the resistance functions
 use the gap between the particle surfaces divided by the mean radius of

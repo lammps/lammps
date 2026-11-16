@@ -30,6 +30,7 @@
 #include "domain.h"
 #include "error.h"
 #include "info.h"
+#include "math_special.h"
 #include "memory.h"
 #include "neigh_list.h"
 #include "neighbor.h"
@@ -45,6 +46,7 @@ using namespace SMD_Kernels;
 using namespace std;
 using namespace LAMMPS_NS;
 using namespace SMD_Math;
+using MathSpecial::powint;
 
 #include <Eigen/Eigen>
 using namespace Eigen;
@@ -520,7 +522,7 @@ void PairULSPH::compute(int eflag, int vflag) {
                                         if (p > 0.0) { // we are in tension
                                                 r_ref = contact_radius[i] + contact_radius[j];
                                                 weight = Kernel_Cubic_Spline(r, h) / Kernel_Cubic_Spline(r_ref, h);
-                                                weight = pow(weight, 4.0);
+                                                weight = powint(weight, 4);
                                                 S -= artificial_pressure[itype][jtype] * weight * p * eye;
                                         }
                                 }
@@ -532,7 +534,7 @@ void PairULSPH::compute(int eflag, int vflag) {
                                 if (artificial_stress[itype][jtype] > 0.0) {
                                         ini_dist = contact_radius[i] + contact_radius[j];
                                         weight = Kernel_Cubic_Spline(r, h) / Kernel_Cubic_Spline(ini_dist, h);
-                                        weight = pow(weight, 4.0);
+                                        weight = powint(weight, 4);
 
                                         es.compute(S);
                                         D = es.eigenvalues().asDiagonal();

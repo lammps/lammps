@@ -21,7 +21,7 @@ of the capabilities reStructuredText and associated tools.  The
 conversion from the source to the final formats (HTML, PDF, and
 optionally e-book reader formats ePUB and MOBI) is mostly automated and
 controlled by a Makefile in the `doc` folder. This makefile assumes that
-the processing is done on a Unix-like machine and Python 3.5 or later
+the processing is done on a Unix-like machine and Python 3.9 or later
 and a matching venv module are available.  Additional Python
 packages (like the Sphinx tool and several extensions) are transparently
 installed into a virtual environment over the internet using the `pip`

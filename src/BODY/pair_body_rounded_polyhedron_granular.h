@@ -53,7 +53,7 @@ class PairBodyRoundedPolyhedronGranular : public PairBodyRoundedPolyhedron {
   std::vector<std::vector<std::string>> model_args;
   std::vector<int> mix_itype, mix_jtype;
 
-  Granular_NS::GranularModel *type_model(int itype, int jtype) const
+  [[nodiscard]] Granular_NS::GranularModel *type_model(int itype, int jtype) const
   {
     return models[model_index[itype][jtype]];
   }

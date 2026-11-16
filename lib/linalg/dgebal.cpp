@@ -66,10 +66,10 @@ int dgebal_(char *job, integer *n, doublereal *a, integer *lda, integer *ilo, in
                 for (j = 1; j <= i__1; ++j) {
                     if (i__ != j && a[i__ + j * a_dim1] != 0.) {
                         canswap = FALSE_;
-                        goto L100;
+                        goto L90001;
                     }
                 }
-            L100:
+            L90001:
                 if (canswap) {
                     scale[l] = (doublereal)i__;
                     if (i__ != l) {
@@ -97,10 +97,10 @@ int dgebal_(char *job, integer *n, doublereal *a, integer *lda, integer *ilo, in
                 for (i__ = k; i__ <= i__2; ++i__) {
                     if (i__ != j && a[i__ + j * a_dim1] != 0.) {
                         canswap = FALSE_;
-                        goto L200;
+                        goto L90002;
                     }
                 }
-            L200:
+            L90002:
                 if (canswap) {
                     scale[k] = (doublereal)j;
                     if (j != k) {
@@ -142,7 +142,7 @@ int dgebal_(char *job, integer *n, doublereal *a, integer *lda, integer *ilo, in
             ira = idamax_(&i__2, &a[i__ + k * a_dim1], lda);
             ra = (d__1 = a[i__ + (ira + k - 1) * a_dim1], abs(d__1));
             if (c__ == 0. || r__ == 0.) {
-                goto L300;
+                goto L90003;
             }
             d__1 = c__ + ca + r__ + ra;
             if (disnan_(&d__1)) {
@@ -177,16 +177,16 @@ int dgebal_(char *job, integer *n, doublereal *a, integer *lda, integer *ilo, in
                 ra *= 2.;
             }
             if (c__ + r__ >= s * .95) {
-                goto L300;
+                goto L90003;
             }
             if (f < 1. && scale[i__] < 1.) {
                 if (f * scale[i__] <= sfmin1) {
-                    goto L300;
+                    goto L90003;
                 }
             }
             if (f > 1. && scale[i__] > 1.) {
                 if (scale[i__] >= sfmax1 / f) {
-                    goto L300;
+                    goto L90003;
                 }
             }
             g = 1. / f;
@@ -195,7 +195,7 @@ int dgebal_(char *job, integer *n, doublereal *a, integer *lda, integer *ilo, in
             i__2 = *n - k + 1;
             dscal_(&i__2, &g, &a[i__ + k * a_dim1], lda);
             dscal_(&l, &f, &a[i__ * a_dim1 + 1], &c__1);
-        L300:;
+        L90003:;
         }
     }
     *ilo = k;

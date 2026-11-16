@@ -24,6 +24,7 @@
 #include "error.h"
 #include "force.h"
 #include "info.h"
+#include "math_special.h"
 #include "memory.h"
 #include "my_page.h"
 #include "neigh_list.h"
@@ -34,6 +35,7 @@
 #include <cstring>
 
 using namespace LAMMPS_NS;
+using MathSpecial::powint;
 
 static constexpr double TOL = 1.0e-9;
 static constexpr int PGDELTA = 1;
@@ -855,7 +857,7 @@ double PairLCBOP::gSpline( double x, double *dgdc) {
 double PairLCBOP::hSpline( double x, double *dhdx) {
   if (x < -d) {
       double z = kappa*( x+d );
-      double y = pow(z, 10.0);
+      double y = powint(z, 10);
       double w = pow( 1+y, -0.1 );
       *dhdx = kappa*L*w/(1+y);
       return L*( 1 + z*w );

@@ -20,7 +20,7 @@ LAMMPS version 22 July 2025, which requires only C++11 as the minimum
 C++ standard.
 
 Most of the Python code in LAMMPS is written to be compatible with Python
-3.6 and later.
+3.9 and later.
 
 .. versionremoved:: 2Apr2025
 
@@ -77,7 +77,7 @@ and the Intel compilers have been successfully used on Linux, macOS, and
 Windows.  Also, the Nvidia HPC SDK (formerly PGI compilers) will compile
 LAMMPS (tested on Linux).
 
-.. versionchanged:: TBD
+.. versionchanged:: 13Nov2026
 
 The legacy Intel compilers (``icc`` and ``icpc`` on Linux, ``icl`` on
 Windows), also known as "Intel Classic" compilers, have been

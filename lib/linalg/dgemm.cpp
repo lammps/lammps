@@ -58,7 +58,7 @@ int dgemm_(char *transa, char *transb, integer *m, integer *n, integer *k, doubl
         xerbla_((char *)"DGEMM ", &info, (ftnlen)6);
         return 0;
     }
-    if (*m == 0 || *n == 0 || (*alpha == 0. || *k == 0) && *beta == 1.) {
+    if (*m == 0 || *n == 0 || ((*alpha == 0. || *k == 0) && *beta == 1.)) {
         return 0;
     }
     if (*alpha == 0.) {

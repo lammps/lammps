@@ -219,6 +219,7 @@ class Fix : protected Pointers {
   virtual void unpack_reverse_comm(int, int *, double *) {}
 
   virtual void reset_grid() {};
+  virtual void image_flip(int, int, int) {};
 
   virtual void pack_forward_grid(int, void *, int, int *) {};
   virtual void unpack_forward_grid(int, void *, int, int *) {};

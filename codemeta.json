@@ -10,7 +10,7 @@
   ],
   "codeRepository": "https://github.com/lammps/lammps/",
   "dateCreated": "2006-09-21",
-  "datePublished": "2026-09-30",
+  "datePublished": "2026-11-13",
   "developmentStatus": "active",
   "identifier": "https://doi.org/10.5281/zenodo.3726416",
   "issueTracker": "https://github.com/lammps/lammps-gui/issues",
@@ -36,5 +36,5 @@
     "C"
   ],
   "url": "https://www.lammps.org",
-  "version": "30Sep2026"
+  "version": "13Nov2026"
 }

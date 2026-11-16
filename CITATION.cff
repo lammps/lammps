@@ -6,8 +6,8 @@ type: software
 authors:
   - family-names: "Developers"
     given-names: "The LAMMPS"
-version: "30Sep2026"
-date-released: "2026-09-30"
+version: "13Nov2026"
+date-released: "2026-11-13"
 doi: 10.5281/zenodo.3726416
 license: GPL-2.0-only
 url: https://www.lammps.org

@@ -87,10 +87,13 @@ protected:
     // copy a file (may be in a subfolder) from the examples folder to the
     // current working directory, for inputs reading data files or include
     // files with relative paths
+    // A git checkout without symbolic links (the default on Windows) has a text file with the
+    // path of the target in place of each link: copy the file it points to instead.
     void copy_from_examples(const std::string &name)
     {
-        std::ifstream src(std::string(STRINGIFY(TEST_EXAMPLES_FOLDER) "/") + name,
-                          std::ios::binary);
+        std::ifstream src(
+            platform::file_redirect(std::string(STRINGIFY(TEST_EXAMPLES_FOLDER) "/") + name),
+            std::ios::binary);
         ASSERT_TRUE(src.is_open()) << "cannot read " << name;
         const auto base = platform::path_basename(name);
         std::ofstream dst(base, std::ios::binary | std::ios::trunc);

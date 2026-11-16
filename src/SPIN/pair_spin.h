@@ -42,6 +42,7 @@ class PairSpin : public Pair {
  protected:
   double hbar;         // Planck constant (eV.ps.rad-1)
   int lattice_flag;    // flag for mech force computation
+  int full_spin_gradient;    // fm encodes |S|/hbar * (-dU/dS)
 
   virtual void allocate() {}
 };

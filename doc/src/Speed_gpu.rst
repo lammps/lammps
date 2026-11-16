@@ -42,8 +42,8 @@ and unsupported on Windows):
 * Check if you have an NVIDIA GPU: ``cat /proc/driver/nvidia/gpus/\*/information``
 * Go to https://developer.nvidia.com/cuda-downloads
 * Install a driver and toolkit appropriate for your system (SDK is not necessary)
-* Run ``lammps/lib/gpu/nvc_get_devices`` (after building the GPU library, see below) to
-  list supported devices and properties
+* Run ``nvc_get_devices`` in the build folder (it is compiled together with LAMMPS when
+  the GPU package is enabled, see below) to list supported devices and properties
 
 To compile and use this package in OpenCL mode, you currently need
 to have the OpenCL headers and the (vendor neutral) OpenCL library installed.
@@ -52,7 +52,7 @@ installed. There can be multiple of them for the same or different hardware
 (GPUs, CPUs, Accelerators) installed at the same time. OpenCL refers to those
 as 'platforms'.  The GPU library will try to auto-select the best suitable platform,
 but this can be overridden using the platform option of the :doc:`package <package>`
-command. run ``lammps/lib/gpu/ocl_get_devices`` to get a list of available
+command.  Run ``ocl_get_devices`` in the build folder to get a list of available
 platforms and devices with a suitable ICD available.
 
 To compile and use this package for Intel GPUs, OpenCL or the Intel oneAPI

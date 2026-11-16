@@ -78,6 +78,7 @@ KSpace::KSpace(LAMMPS *lmp) :
   scalar_pressure_flag = 0;
   warn_nonneutral = 1;
   warn_nocharge = 1;
+  require_q = 1;
 
   accuracy_absolute = -1.0;
   accuracy_real_6 = -1.0;
@@ -289,6 +290,16 @@ void KSpace::ev_setup(int eflag, int vflag, int alloc)
       vatom[i][5] = 0.0;
     }
   }
+}
+
+/* ----------------------------------------------------------------------
+   per-atom source strength of the long-range field
+   charge by default, may be overridden, e.g. to use masses for gravity
+------------------------------------------------------------------------- */
+
+double *KSpace::source_array()
+{
+  return atom->q;
 }
 
 /* ----------------------------------------------------------------------

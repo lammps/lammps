@@ -103,7 +103,7 @@ void Ewald::init()
   if (domain->dimension == 2)
     error->all(FLERR,"Cannot use Ewald with 2d simulation");
 
-  if (!atom->q_flag) error->all(FLERR,"Kspace style requires atom attribute q");
+  if (require_q && !atom->q_flag) error->all(FLERR,"Kspace style requires atom attribute q");
 
   if (slabflag == 0 && domain->nonperiodic > 0)
     error->all(FLERR,"Cannot use non-periodic boundaries with Ewald");
@@ -422,7 +422,7 @@ void Ewald::compute(int eflag, int vflag)
   // perform per-atom calculations if needed
 
   double **f = atom->f;
-  double *q = atom->q;
+  double *q = source_array();
   int nlocal = atom->nlocal;
 
   int kx,ky,kz;
@@ -523,7 +523,7 @@ void Ewald::eik_dot_r()
   double sqk,clpm,slpm;
 
   double **x = atom->x;
-  double *q = atom->q;
+  double *q = source_array();
   int nlocal = atom->nlocal;
 
   n = 0;
@@ -704,7 +704,7 @@ void Ewald::eik_dot_r_triclinic()
   double sqk,clpm,slpm;
 
   double **x = atom->x;
-  double *q = atom->q;
+  double *q = source_array();
   int nlocal = atom->nlocal;
 
   double unitk_lamda[3];
@@ -1196,7 +1196,7 @@ void Ewald::slabcorr()
 {
   // compute local contribution to global dipole moment
 
-  double *q = atom->q;
+  double *q = source_array();
   double **x = atom->x;
   double zprd_slab = domain->zprd*slab_volfactor;
   int nlocal = atom->nlocal;
@@ -1308,7 +1308,7 @@ void Ewald::compute_group_group(int groupbit_A, int groupbit_B, int AA_flag)
     sfacim_B_all[k] = 0.0;
   }
 
-  double *q = atom->q;
+  double *q = source_array();
   int nlocal = atom->nlocal;
   int *mask = atom->mask;
 
@@ -1405,7 +1405,7 @@ void Ewald::slabcorr_groups(int groupbit_A, int groupbit_B, int AA_flag)
 {
   // compute local contribution to global dipole moment
 
-  double *q = atom->q;
+  double *q = source_array();
   double **x = atom->x;
   double zprd_slab = domain->zprd*slab_volfactor;
   int *mask = atom->mask;

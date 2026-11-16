@@ -20,7 +20,7 @@ LAMMPS version 22 July 2025, which requires only C++11 as the minimum
 C++ standard.
 
 Most of the Python code in LAMMPS is written to be compatible with Python
-3.6 and later.
+3.9 and later.
 
 .. versionremoved:: 2Apr2025
 

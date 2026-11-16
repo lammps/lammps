@@ -7,9 +7,9 @@ LAMMPS shared library through the Python `ctypes <ctypes_>`_
 module.  Because of the dynamic loading, it is required that LAMMPS is
 compiled in :ref:`"shared" mode <build_exe>`.
 
-.. versionchanged:: 2Apr2025
+.. versionchanged:: TBD
 
-LAMMPS currently only supports Python version 3.6 or later.
+LAMMPS currently only supports Python version 3.9 or later.
 
 Two components are necessary for Python to be able to invoke LAMMPS code:
 
@@ -231,13 +231,12 @@ output similar to the following:
    .. code-block:: console
 
       $ python
-      Python 3.8.5 (default, Sep  5 2020, 10:50:12)
-      [GCC 10.2.0] on linux
+      Python 3.14.10 (main, Oct 26 2026, 00:00:00) [GCC 15.3.1 20260722 (Red Hat 15.3.1-1)] on linux
       Type "help", "copyright", "credits" or "license" for more information.
       >>> import lammps
       >>> lmp = lammps.lammps()
-      LAMMPS (18 Sep 2020)
-      using 1 OpenMP thread(s) per MPI task
+      LAMMPS (13 Nov 2026)
+        using 1 OpenMP thread(s) per MPI task
       >>>
 
 .. note::

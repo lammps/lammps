@@ -7,8 +7,8 @@ Companion script to run_tests.py regression tester.
 import glob, os, re, sys, subprocess
 from pathlib import Path
 
-if sys.version_info < (3,5):
-    raise BaseException("Must use at least Python 3.5")
+if sys.version_info < (3,9):
+    raise BaseException("Must use at least Python 3.9")
 
 # infer top level LAMMPS dir from filename
 LAMMPS_DIR = os.path.realpath(os.path.join(os.path.dirname(__file__), '..', '..'))

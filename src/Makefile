@@ -102,6 +102,7 @@ PACKAGE = \
 	mesont \
 	mgpt \
 	misc \
+	ml-mtp \
 	ml-snap \
 	ml-uf3 \
 	mofff \
@@ -171,6 +172,7 @@ PACKMOST = \
 	meam \
 	mesont \
 	misc \
+	ml-mtp \
 	ml-snap \
 	mofff \
 	openmp \

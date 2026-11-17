@@ -1,0 +1,82 @@
+/* -*- c++ -*- ----------------------------------------------------------
+   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
+   https://www.lammps.org/, Sandia National Laboratories
+   LAMMPS development team: developers@lammps.org
+
+   Copyright (2003) Sandia Corporation.  Under the terms of Contract
+   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
+   certain rights in this software.  This software is distributed under
+   the GNU General Public License.
+
+   See the README file in the top-level LAMMPS directory.
+------------------------------------------------------------------------- */
+
+//
+// Contributing author, Richard Meng, Queen's University at Kingston, 10.02.25, contact@richardzjm.com
+//
+
+#ifdef PAIR_CLASS
+// clang-format off
+PairStyle(mtp/extrapolation,PairMTPExtrapolation);
+// clang-format on
+#else
+
+#ifndef LMP_PAIR_MTP_EXTRAPOLATION_H
+#define LMP_PAIR_MTP_EXTRAPOLATION_H
+
+#include "pair_mtp.h"
+
+namespace LAMMPS_NS {
+
+class PairMTPExtrapolation : public PairMTP {
+ public:
+  PairMTPExtrapolation(class LAMMPS *);
+  ~PairMTPExtrapolation() override;
+  void compute(int, int) override;                        //Workhorse computation
+  void settings(int, char **) override;                   // Reads args from "pair_style"
+  void coeff(int, char **) override;                      // Reads args from "pair_coeff"
+  void *extract(const char *, int &) override;            // Provides access to compute grade flag
+  void *extract_peratom(const char *, int &) override;    // Provides access to per-atom data
+
+ protected:
+  int settings_keyword(int narg, char **arg, int iarg) override;
+  void read_file(FILE *) override;                         //Parsing file using LAMMPS utils
+  double calculate_extrapolation_grade(int itype = -1);    // Grades from candidate vector
+  void compile_grades();                                   // Collect grades across collective
+  virtual void evaluate_grades();                          // Evaluate grades against the thresholds
+  void write_config();    // Write to a MLIP-3 preselected compatible file.
+
+  int coeff_count;    // Sum of radial, species and linear coeff count
+
+  int extrapolation_flag;    // Whether to use extrapolation this iteration (MUST BE INT)
+  bool mlip3_style;          // Whether to write configs with MLIP-3 compatability
+
+  int configuration_mode;     // Is configuration mode?
+  int weight_scaling;         // Power p in the 1/N^(p/2) energy scaling (from the MVS section)
+  double select_threshold;    // Grade threshold for selection
+  double break_threshold;     // Grade threshold for termination
+  double max_grade;           // Grade of current iteration
+
+  // Active set
+  // double **active_set;  // unused; see read_file()
+  double **inverse_active_set;    // Inverse of the current active set
+
+  //Working buffers
+  double **radial_basis_cache;
+  int radial_basis_cache_size;
+  double *energy_ders_wrt_coeffs;    // Candidate information vector
+
+  // Only needed for neighbourhood mode
+  int nbh_count;
+  double *nbh_extrapolation_grades;    // Extrapolation grades of all neighbourhoods
+
+  // Data for compiling configs in a MLIP-3 compatible format
+  FILE *preselected_file;    // Write to preselected file
+  bigint write_buffer_size;
+  char *write_buffer;
+};
+
+}    // namespace LAMMPS_NS
+
+#endif
+#endif

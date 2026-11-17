@@ -79,11 +79,6 @@ inline std::string last_error(void *lmp)
   return buffer;
 }
 
-inline int lammps_fix_index(int zero_based_index)
-{
-  return zero_based_index + 1;
-}
-
 }    // namespace pimd_langevin_test
 }    // namespace LAMMPS_NS
 

@@ -65,13 +65,8 @@ if(PKG_EXTRA-FIX AND PKG_EXTRA-COMPUTE)
 
   add_executable(test_compute_temp_uvt test_compute_temp_uvt.cpp)
   target_link_libraries(test_compute_temp_uvt PRIVATE lammps GTest::GMock)
-  file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/ComputeTempUVT
-                      ${CMAKE_CURRENT_BINARY_DIR}/ComputeTempUVTMPI)
   add_test(NAME ComputeTempUVT COMMAND test_compute_temp_uvt)
-  set_tests_properties(ComputeTempUVT PROPERTIES
-                       WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/ComputeTempUVT)
   add_mpi_test(NAME ComputeTempUVTMPI NUM_PROCS 2
-               WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/ComputeTempUVTMPI
                COMMAND $<TARGET_FILE:test_compute_temp_uvt>)
 endif()
 
@@ -80,8 +75,16 @@ if(PKG_REPLICA)
   target_link_libraries(test_fix_pimd_nve PRIVATE lammps GTest::GMock)
   add_test(NAME FixPIMDNVE COMMAND test_fix_pimd_nve
            --gtest_filter=FixPIMDNVESerialTest.*:PIMDStyles/FixPIMDIntegrationCompatibilityTest.*)
+  string(CONCAT pimd_nve_partition_filter
+         "--gtest_filter=FixPIMDNVEMPI.FreeRingPolymerMatchesAnalyticalMotion:"
+         "FixPIMDNVEMPI.PIMDPartitionedRunSupportsOneRankPerBead:"
+         "FixPIMDNVEMPI.ConservesTotalEnergyOverShortRun:"
+         "FixPIMDNVEMPI.RemoveCOMRespectsRepresentationAndGroup")
   add_mpi_test(NAME FixPIMDNVEPartition NUM_PROCS 2
-               COMMAND $<TARGET_FILE:test_fix_pimd_nve> --gtest_filter=FixPIMDNVEMPI.*)
+               COMMAND $<TARGET_FILE:test_fix_pimd_nve> "${pimd_nve_partition_filter}")
+  add_mpi_test(NAME FixPIMDNVETagCommunication NUM_PROCS 6
+               COMMAND $<TARGET_FILE:test_fix_pimd_nve>
+                       --gtest_filter=FixPIMDNVEMPI.CommunicationMatchesTagsAcrossDifferentDecompositions)
   add_mpi_test(NAME FixPIMDNVEMultiRankPerBead NUM_PROCS 4
                COMMAND $<TARGET_FILE:test_fix_pimd_nve>
                        --gtest_filter=FixPIMDNVEMPI.MultiRankPerBeadRunProducesFiniteVector)
@@ -92,7 +95,7 @@ if(PKG_REPLICA)
            COMMAND test_fix_pimd_nvt --gtest_filter=FixPIMDNVTSerialTest.*)
   add_mpi_test(NAME FixPIMDNVTMPI NUM_PROCS 2
                COMMAND $<TARGET_FILE:test_fix_pimd_nvt>
-                       --gtest_filter=FixPIMDNVTMPI.*)
+                       --gtest_filter=FixPIMDNVTMPI.PIMDPartitionedRunSupportsOneRankPerBead:FixPIMDNVTMPI.CMDLeavesCentroidChainInactive)
   add_mpi_test(NAME FixPIMDNVTMultiRankPerBead NUM_PROCS 4
                COMMAND $<TARGET_FILE:test_fix_pimd_nvt>
                        --gtest_filter=FixPIMDNVTMPI.MultiRankPerBeadRunProducesFiniteThermostatState)
@@ -100,8 +103,13 @@ if(PKG_REPLICA)
   add_executable(test_fix_pimd_uvt test_fix_pimd_uvt.cpp)
   target_link_libraries(test_fix_pimd_uvt PRIVATE lammps GTest::GMock)
   add_test(NAME FixPIMDUVTSerial COMMAND test_fix_pimd_uvt --gtest_filter=FixPIMDUVTSerialTest.*)
+  string(CONCAT pimd_uvt_partition_filter
+         "--gtest_filter=FixPIMDUVTMPI.InitialVectorDerivativeUsesBeadCoordinates:"
+         "FixPIMDUVTMPI.BeadAveragedQuadraticDerivativeAtFixedPoint:"
+         "FixPIMDUVTMPI.SharedElectronicMassAndEnergyAreConsistentAcrossBeads:"
+         "FixPIMDUVTMPI.ElectronicVelocityUsesMeanChainFriction")
   add_mpi_test(NAME FixPIMDUVTMPI NUM_PROCS 2
-               COMMAND $<TARGET_FILE:test_fix_pimd_uvt> --gtest_filter=FixPIMDUVTMPI.*)
+               COMMAND $<TARGET_FILE:test_fix_pimd_uvt> "${pimd_uvt_partition_filter}")
   add_mpi_test(NAME FixPIMDUVTMultiRankPerBead NUM_PROCS 4
                COMMAND $<TARGET_FILE:test_fix_pimd_uvt>
                        --gtest_filter=FixPIMDUVTMPI.MultiRankPerBeadAveragesDerivativeOncePerBead:FixPIMDUVTMPI.ElectronicVelocityUsesMeanChainFriction)
@@ -176,19 +184,15 @@ if(PKG_REPLICA)
            COMMAND test_fix_pimd_langevin
                    --gtest_filter=FixPIMDLangevinSerialTest.*)
   string(CONCAT pimd_langevin_partition_filter
-         "--gtest_filter=FixPIMDLangevinMPI.NMPIMDNVEOBABOP2:"
-         "FixPIMDLangevinMPI.NMPIMDNVTBAOABP2:"
-         "FixPIMDLangevinMPI.PIMDNVEOBABOP2:"
-         "FixPIMDLangevinMPI.PIMDNVTBAOABP2:"
-         "FixPIMDLangevinRestartTest.NMPIMDNVTRestartContinuation:"
-         "FixPIMDLangevinRestartTest.PIMDNVTRestartContinuation")
+         "--gtest_filter=FixPIMDLangevinMPI.NormalModeIntegration:"
+         "FixPIMDLangevinMPI.CartesianIntegration:"
+         "FixPIMDLangevinRestartTest.NVTStateRestored")
   add_mpi_test(NAME FixPIMDLangevinPartition NUM_PROCS 2
                COMMAND $<TARGET_FILE:test_fix_pimd_langevin>
                        "${pimd_langevin_partition_filter}")
   string(CONCAT pimd_langevin_multirank_filter
          "--gtest_filter=FixPIMDLangevinMPI.NMPIMDNVTOBABOMultiRankPerBead:"
-         "FixPIMDLangevinMPI.NMPIMDNPTBZP:"
-         "FixPIMDLangevinMPI.NMPIMDNPTMTTK:"
+         "FixPIMDLangevinMPI.IsotropicBarostats:"
          "FixPIMDLangevinRestartTest.NMPIMDNPTBZPRestartContinuation:"
          "FixPIMDLangevinExpectedErrorTest.PIMDRejectsMultipleRanksPerBead")
   add_mpi_test(NAME FixPIMDLangevinMultiRank NUM_PROCS 4
@@ -199,10 +203,9 @@ if(PKG_REPLICA)
                COMMAND $<TARGET_FILE:test_fix_pimd_langevin>
                        --gtest_filter=FixPIMDLangevinMPI.AnisotropicBarostatStateMatchesAcrossPartitions)
 
-  add_executable(test_fix_pimd_langevin_bosonic test_fix_pimd_langevin_bosonic.cpp)
-  target_link_libraries(test_fix_pimd_langevin_bosonic PRIVATE lammps GTest::GMock)
   add_mpi_test(NAME FixPIMDLangevinBosonic NUM_PROCS 4
-               COMMAND $<TARGET_FILE:test_fix_pimd_langevin_bosonic>)
+               COMMAND $<TARGET_FILE:test_fix_pimd_langevin>
+                       --gtest_filter=FixPIMDLangevinBosonicTest.*)
 endif()
 
 add_executable(test_restart_settings test_restart_settings.cpp)
@@ -212,3 +215,13 @@ add_test(NAME RestartSettings COMMAND test_restart_settings)
 add_executable(test_input_validation test_input_validation.cpp)
 target_link_libraries(test_input_validation PRIVATE lammps GTest::GMock)
 add_test(NAME InputValidation COMMAND test_input_validation)
+
+# Partition variables and restart files are local to each test invocation.
+get_property(command_tests DIRECTORY PROPERTY TESTS)
+foreach(test_name IN LISTS command_tests)
+  if(test_name MATCHES "^(FixUVT|ComputeTempUVT|FixPIMD)")
+    file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${test_name})
+    set_tests_properties(${test_name} PROPERTIES
+                         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${test_name})
+  endif()
+endforeach()

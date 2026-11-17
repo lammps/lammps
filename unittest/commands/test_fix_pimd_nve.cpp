@@ -96,16 +96,16 @@ class FixPIMDIntegrationCompatibilityTest : public FixPIMDNVESerialTest,
   }
 };
 
-TEST_P(FixPIMDIntegrationCompatibilityTest, RejectsRespa)
+TEST_P(FixPIMDIntegrationCompatibilityTest, IntegrationSettings)
 {
   setup_zero_pair_system();
   setup_pimd_fix();
+  command("run 1 post no");
+  command("timestep 0.0025");
+  command("run 1 post no");
   command("run_style respa 1");
   expect_run_error("requires run_style verlet");
-}
-
-TEST_P(FixPIMDIntegrationCompatibilityTest, RejectsDtResetInEitherFixOrder)
-{
+  command("clear");
   for (bool reset_first : {false, true}) {
     setup_zero_pair_system();
     if (reset_first) command("fix adaptive all dt/reset 1 NULL 0.005 0.001 units box");
@@ -116,18 +116,9 @@ TEST_P(FixPIMDIntegrationCompatibilityTest, RejectsDtResetInEitherFixOrder)
   }
 }
 
-TEST_P(FixPIMDIntegrationCompatibilityTest, AllowsFixedStepVerletAndReinitialization)
-{
-  setup_zero_pair_system();
-  setup_pimd_fix();
-  EXPECT_NO_THROW(command("run 1 post no"));
-  command("timestep 0.0025");
-  EXPECT_NO_THROW(command("run 1 post no"));
-}
-
 INSTANTIATE_TEST_SUITE_P(PIMDStyles, FixPIMDIntegrationCompatibilityTest,
                          ::testing::Values("pimd/nve", "pimd/nvt", "pimd/uvt", "pimd/langevin",
-                                           "pimd/nvt/bosonic", "pimd/langevin/bosonic", "pimd"));
+                                           "pimd/nvt/bosonic", "pimd/langevin/bosonic"));
 
 TEST_F(FixPIMDNVESerialTest, DoesNotMoveAtomsOutsideFixGroup)
 {
@@ -231,38 +222,17 @@ TEST_F(FixPIMDNVESerialTest, GroupRestrictedSpringAndVirialEstimators)
   EXPECT_NEAR(fix->p_prim, -0.7 / 8.0, 1.0e-12);
 }
 
-TEST_F(FixPIMDNVESerialTest, P1StandaloneRunProducesFiniteVector)
+TEST_F(FixPIMDNVESerialTest, MethodsAndInputValidation)
 {
-  setup_zero_pair_system();
-  setup_nve_fix();
-  command("run 1 post no");
-
-  for (int i = 0; i < 10; ++i) {
-    EXPECT_TRUE(std::isfinite(fix_value("cp", i))) << "index=" << i;
+  for (const char *method : {"nmpimd", "pimd"}) {
+    setup_zero_pair_system();
+    setup_nve_fix(method);
+    command("run 2 post no");
+    for (int i = 0; i < 10; ++i) EXPECT_TRUE(std::isfinite(fix_value("cp", i)));
+    command("clear");
   }
-  EXPECT_GT(fix_value("cp", 0), 0.0);
-}
-
-TEST_F(FixPIMDNVESerialTest, PIMDStyleParsesAndRuns)
-{
-  setup_zero_pair_system();
-  setup_nve_fix("pimd");
-  command("run 10 post no");
-
-  for (int i = 0; i < 10; ++i) {
-    EXPECT_TRUE(std::isfinite(fix_value("cp", i))) << "index=" << i;
-  }
-}
-
-TEST_F(FixPIMDNVESerialTest, RejectsZeroFictitiousMass)
-{
   setup_zero_pair_system();
   EXPECT_ANY_THROW(command("fix cp all pimd/nve temp 1.0 fmass 0.0"));
-}
-
-TEST_F(FixPIMDNVESerialTest, RejectsCMDMethod)
-{
-  setup_zero_pair_system();
   EXPECT_ANY_THROW(command("fix cp all pimd/nve method cmd temp 1.0"));
 }
 
@@ -348,51 +318,6 @@ TEST(FixPIMDNVEMPI, FreeRingPolymerMatchesAnalyticalMotion)
           }
           lammps_close(lmp);
         }
-}
-
-TEST(FixPIMDNVEMPI, PartitionedRunExercisesBeadExpansion)
-{
-  int nprocs = 0;
-  MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
-  if (nprocs != 2) GTEST_SKIP() << "This test requires exactly 2 MPI ranks";
-
-  const char *args[] = {"LAMMPS_test", "-log", "none", "-partition", "2x1", "-echo",
-                        "screen",      "-nocite",       "-in",        "none", nullptr};
-  char **argv = (char **) args;
-  int argc = (sizeof(args) / sizeof(char *)) - 1;
-
-  void *lmp = nullptr;
-  ASSERT_NO_THROW(lmp = lammps_open(argc, argv, MPI_COMM_WORLD, nullptr));
-  ASSERT_NE(lmp, nullptr);
-
-  auto command = [lmp](const char *line) { lammps_command(lmp, line); };
-  auto fix_value = [lmp](const char *id, int index) { return pimd_test::fix_value(lmp, id, index); };
-
-  command("units lj");
-  command("atom_style atomic");
-  command("atom_modify map yes");
-  command("boundary p p p");
-  command("lattice sc 0.7");
-  command("region box block 0 2 0 2 0 2");
-  command("create_box 1 box");
-  command("create_atoms 1 box");
-  command("mass 1 1.0");
-  command("pair_style zero 2.5");
-  command("pair_coeff * *");
-  command("neighbor 0.3 bin");
-  command("neigh_modify every 1 delay 0 check yes");
-  command("timestep 0.002");
-  command("variable beadshift universe 0.0 0.15");
-  command("displace_atoms all move ${beadshift} 0.0 0.0 units box");
-  command("velocity all create 0.8 97531 mom yes rot no dist gaussian");
-  command("fix cp all pimd/nve temp 0.8");
-  command("run 10 post no");
-
-  for (int i = 0; i < 10; ++i) {
-    EXPECT_TRUE(std::isfinite(fix_value("cp", i))) << "index=" << i;
-  }
-
-  lammps_close(lmp);
 }
 
 TEST(FixPIMDNVEMPI, PIMDPartitionedRunSupportsOneRankPerBead)

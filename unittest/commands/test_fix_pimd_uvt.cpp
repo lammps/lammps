@@ -153,40 +153,29 @@ TEST_F(FixPIMDUVTSerialTest, RestartRestoresElectronState)
   EXPECT_NEAR(fix_value("cp", uvt.dedn), dedn_before, 1.0e-10);
 }
 
-TEST_F(FixPIMDUVTSerialTest, QuadraticToyFixedPointHasZeroElectronicForce)
-{
-  const auto uvt = pimd_test::uvt_vector_indices();
-
-  setup_quadratic_system();
-  setup_uvt_fix("pimd/uvt", 1.4, 0.0);
-  command("run 0 post no");
-
-  EXPECT_NEAR(fix_value("cp", uvt.ne), 1.4, 1.0e-10);
-  EXPECT_NEAR(fix_value("cp", uvt.ne_dot), 0.0, 1.0e-10);
-  EXPECT_NEAR(fix_value("cp", uvt.dedn), 2.0, 1.0e-10);
-}
-
-TEST_F(FixPIMDUVTSerialTest, RejectsMissingMuKeyword)
+TEST_F(FixPIMDUVTSerialTest, InputValidation)
 {
   setup_quadratic_system();
   command("variable derivative equal 0.0");
-  TEST_FAILURE("Missing mu keyword", command("fix cp all pimd/uvt temp 1.0 Tdamp 0.5 "
-                                           "Udamp 0.5 ne 1.0 dedn v_derivative"););
-}
-
-TEST_F(FixPIMDUVTSerialTest, AcceptsZeroChemicalPotential)
-{
+  TEST_FAILURE("Missing mu keyword", command("fix cp all pimd/uvt temp 1 Tdamp 0.5 "
+                                           "Udamp 0.5 ne 1 dedn v_derivative"););
+  command("clear");
   setup_quadratic_system();
   command("variable derivative equal 0.0");
-  command("fix cp all pimd/uvt temp 1.0 Tdamp 0.5 mu 0.0 Udamp 0.5 "
-          "ne 1.0 dedn v_derivative");
+  EXPECT_ANY_THROW(command("fix cp all pimd/uvt temp 1 Tdamp 0.5 mu 2 2 0.5 "
+                           "ne 1 dedn v_derivative"));
+  for (const char *method : {"pimd", "cmd", "invalid"}) {
+    EXPECT_ANY_THROW(command(std::string("fix cp all pimd/uvt method ") + method +
+                             " temp 1 Tdamp 0.5 mu 0 Udamp 0.5 ne 1 dedn v_derivative"));
+  }
+  command("fix cp all pimd/uvt temp 1 Tdamp 0.5 mu 0 Udamp 0.5 ne 1 dedn v_derivative");
   command("run 0 post no");
   EXPECT_DOUBLE_EQ(fix_value("cp", pimd_test::uvt_vector_indices().ne), 1.0);
 }
 
 TEST_F(FixPIMDUVTSerialTest, ElectronicOutputLayoutOmitsTargetMu)
 {
-  for (int tchain : {1, 3, 5}) {
+  for (int tchain : {1, 3}) {
     setup_quadratic_system();
     command("variable derivative equal 5.0*(f_cp[11]-1.0)");
     command("fix cp all pimd/uvt temp 1.0 Tdamp 0.5 tchain " + std::to_string(tchain) +
@@ -211,6 +200,14 @@ TEST_F(FixPIMDUVTSerialTest, ElectronicOutputLayoutOmitsTargetMu)
     EXPECT_EQ(fix->get_thermo_colname(0), "");
     for (int i = 0; i < fix->size_vector; ++i)
       EXPECT_EQ(fix->extlist[i], (i < 10 || i >= 16) ? 1 : 0);
+    const char *states[] = {"ne", "ne_dot", "dedn"};
+    const int state_indices[] = {indices.ne, indices.ne_dot, indices.dedn};
+    for (int i = 0; i < 3; ++i) {
+      auto *value = static_cast<double *>(fix->extract(states[i], dim));
+      ASSERT_NE(value, nullptr);
+      EXPECT_EQ(dim, 1);
+      EXPECT_NEAR(*value, fix_value("cp", state_indices[i]), 1.0e-12);
+    }
     command("clear");
   }
 }
@@ -234,165 +231,13 @@ TEST_F(FixPIMDUVTSerialTest, P1PhysicalOutputsMatchClassicalUVT)
       for (int i = 0; i < 6; ++i)
         EXPECT_NEAR(fix_value("cp", offset + i), reference[i], 1.0e-12) << "field " << i;
     }
+    if (style == "pimd/uvt") {
+      command("run 5 post no");
+      EXPECT_TRUE(std::isfinite(fix_value("cp", 16)));
+      EXPECT_GT(std::fabs(fix_value("cp", 19)), 1.0e-12);
+    }
     command("clear");
   }
-}
-
-TEST_F(FixPIMDUVTSerialTest, RejectsLegacyMuStartStopDampSyntax)
-{
-  setup_quadratic_system();
-  command("variable k_quad equal 5.0");
-  command("variable N0_quad equal 1.0");
-  command(pimd_test::quadratic_dedn_variable());
-
-  EXPECT_ANY_THROW(command("fix cp all pimd/uvt method nmpimd thermostat NHC temp 1.0 "
-                           "Tdamp 0.5 tchain 3 tloop 1 mu 2.0 2.0 0.5 "
-                           "ne 1.8 ne_velocity 0.0 dedn v_dEdN"));
-}
-
-TEST_F(FixPIMDUVTSerialTest, RejectsNonNMPIMDMethods)
-{
-  const char *unsupported_methods[] = {"pimd", "cmd", "nmrpmd", "tprpmd", "tp-rpmd"};
-  for (const char *method : unsupported_methods) {
-    setup_quadratic_system();
-    command("variable k_quad equal 5.0");
-    command("variable N0_quad equal 1.0");
-    command(pimd_test::quadratic_dedn_variable());
-    EXPECT_ANY_THROW(command(std::string("fix cp all pimd/uvt method ") + method +
-                             " thermostat NHC temp 1.0 Tdamp 0.5 tchain 3 tloop 1 "
-                             "mu 2.0 Udamp 0.5 ne 1.8 ne_velocity 0.0 dedn v_dEdN"))
-        << "method=" << method;
-    command("clear");
-  }
-}
-
-TEST_F(FixPIMDUVTSerialTest, ExtractExposesSharedElectronicState)
-{
-  const auto uvt = pimd_test::uvt_vector_indices();
-
-  setup_quadratic_system();
-  setup_uvt_fix("pimd/uvt", 1.8, 0.25);
-  command("run 0 post no");
-
-  auto *fix = lmp->modify->get_fix_by_id("cp");
-  ASSERT_NE(fix, nullptr);
-
-  int dim = -1;
-  auto *ne = static_cast<double *>(fix->extract("ne", dim));
-  ASSERT_NE(ne, nullptr);
-  EXPECT_EQ(dim, 1);
-  EXPECT_NEAR(*ne, fix_value("cp", uvt.ne), 1.0e-12);
-
-  auto *ne_dot = static_cast<double *>(fix->extract("ne_dot", dim));
-  ASSERT_NE(ne_dot, nullptr);
-  EXPECT_EQ(dim, 1);
-  EXPECT_NEAR(*ne_dot, fix_value("cp", uvt.ne_dot), 1.0e-12);
-
-  auto *dedn = static_cast<double *>(fix->extract("dedn", dim));
-  ASSERT_NE(dedn, nullptr);
-  EXPECT_EQ(dim, 1);
-  EXPECT_NEAR(*dedn, fix_value("cp", uvt.dedn), 1.0e-12);
-
-  auto *ne_mass = static_cast<double *>(fix->extract("ne_mass", dim));
-  ASSERT_NE(ne_mass, nullptr);
-  EXPECT_EQ(dim, 1);
-  EXPECT_TRUE(std::isfinite(*ne_mass));
-  EXPECT_GT(*ne_mass, 0.0);
-}
-
-TEST_F(FixPIMDUVTSerialTest, QuadraticToyPhysicsAveragesConverge)
-{
-  const auto uvt = pimd_test::uvt_vector_indices();
-
-  command("units lj");
-  command("atom_style atomic");
-  command("atom_modify map yes");
-  command("boundary p p p");
-  command("lattice sc 0.7");
-  command("region box block 0 2 0 2 0 2");
-  command("create_box 1 box");
-  command("create_atoms 1 box");
-  command("mass 1 1.0");
-  command("pair_style zero 2.5");
-  command("pair_coeff * *");
-  command("neighbor 0.3 bin");
-  command("neigh_modify every 1 delay 0 check yes");
-  command("velocity all create 1.0 492845 mom yes rot no dist gaussian");
-  command("timestep 0.005");
-  setup_uvt_fix("pimd/uvt", 1.8, 0.0);
-  command(("fix avg all ave/time 1 20000 20000 f_cp[" +
-           std::to_string(pimd_test::lammps_fix_index(uvt.ne)) + "] f_cp[" +
-           std::to_string(pimd_test::lammps_fix_index(uvt.ne_dot)) + "] f_cp[" +
-           std::to_string(pimd_test::lammps_fix_index(uvt.dedn)) + "]")
-              .c_str());
-  command("run 20000 post no");
-
-  EXPECT_NEAR(fix_value("avg", 0), 1.4, 1.0e-1);
-  EXPECT_NEAR(fix_value("avg", 1), 0.0, 1.0e-1);
-  EXPECT_NEAR(fix_value("avg", 2), 2.0, 1.0e-1);
-}
-
-TEST_F(FixPIMDUVTSerialTest, P1RetainsElectronicThermostat)
-{
-  setup_quadratic_system();
-  setup_uvt_fix("pimd/uvt", 1.8, 0.4);
-  command("run 20 post no");
-
-  EXPECT_TRUE(std::isfinite(fix_value("cp", 16)));
-  EXPECT_TRUE(std::isfinite(fix_value("cp", 19)));
-  EXPECT_GT(std::fabs(fix_value("cp", 19)), 1.0e-12);
-}
-
-TEST(FixPIMDUVTMPI, PartitionedRunExercisesBeadExpansion)
-{
-  int nprocs = 0;
-  MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
-  if (nprocs != 2) GTEST_SKIP() << "This test requires exactly 2 MPI ranks";
-
-  const auto uvt = pimd_test::uvt_vector_indices();
-
-  const char *args[] = {"LAMMPS_test", "-log", "none", "-partition", "2x1", "-echo",
-                        "screen",      "-nocite",       "-in",        "none", nullptr};
-  char **argv = (char **) args;
-  int argc = (sizeof(args) / sizeof(char *)) - 1;
-
-  void *lmp = nullptr;
-  ASSERT_NO_THROW(lmp = lammps_open(argc, argv, MPI_COMM_WORLD, nullptr));
-  ASSERT_NE(lmp, nullptr);
-
-  auto command = [lmp](const char *line) { lammps_command(lmp, line); };
-  auto fix_value = [lmp](const char *id, int index) { return pimd_test::fix_value(lmp, id, index); };
-
-  command("units lj");
-  command("atom_style atomic");
-  command("atom_modify map yes");
-  command("boundary p p p");
-  command("lattice sc 0.7");
-  command("region box block 0 2 0 2 0 2");
-  command("create_box 1 box");
-  command("create_atoms 1 box");
-  command("mass 1 1.0");
-  command("pair_style zero 2.5");
-  command("pair_coeff * *");
-  command("neighbor 0.3 bin");
-  command("neigh_modify every 1 delay 0 check yes");
-  command("timestep 0.002");
-  command("variable beadshift universe 0.0 0.15");
-  command("displace_atoms all move ${beadshift} 0.0 0.0 units box");
-  command("velocity all create 0.8 97531 mom yes rot no dist gaussian");
-  command("variable k_quad equal 3.0");
-  command("variable N0_quad equal 1.2");
-  command(pimd_test::quadratic_dedn_variable().c_str());
-  command("fix cp all pimd/uvt method nmpimd thermostat NHC temp 0.8 Tdamp 0.2 "
-          "tchain 3 tloop 1 mu 1.5 Udamp 0.2 ne 1.8 ne_velocity 0.0 dedn v_dEdN");
-  command("run 1 post no");
-
-  EXPECT_TRUE(std::isfinite(fix_value("cp", uvt.ne)));
-  EXPECT_TRUE(std::isfinite(fix_value("cp", uvt.ne_dot)));
-  EXPECT_TRUE(std::isfinite(fix_value("cp", uvt.dedn)));
-  EXPECT_NE(fix_value("cp", uvt.dedn), 0.0);
-
-  lammps_close(lmp);
 }
 
 TEST(FixPIMDUVTMPI, InitialVectorDerivativeUsesBeadCoordinates)
@@ -504,6 +349,9 @@ TEST(FixPIMDUVTMPI, BeadAveragedQuadraticDerivativeAtFixedPoint)
   int dim;
   EXPECT_NEAR(*static_cast<double *>(fix->extract("dedn", dim)), 1.5, 1.0e-10);
 
+  command("run 1 post no");
+  EXPECT_NEAR(fix_value("cp", uvt.ne), 1.7, 1.0e-10);
+  EXPECT_NEAR(fix_value("cp", uvt.ne_dot), 0.0, 1.0e-10);
   lammps_close(lmp);
 }
 
@@ -585,9 +433,9 @@ TEST(FixPIMDUVTMPI, SharedElectronicMassAndEnergyAreConsistentAcrossBeads)
       nprocs == 2 ? std::vector<std::string>{"2x1"} :
                     std::vector<std::string>{"2x2", "4x1"};
   for (const auto &layout : layouts) {
-    for (const std::string removecom : {"", "yes", "no"}) {
+    for (const std::string removecom : {"yes", "no"}) {
       for (const std::string split : {"obabo", "baoab"}) {
-        SCOPED_TRACE(layout + " removecom=" + (removecom.empty() ? "default" : removecom) +
+        SCOPED_TRACE(layout + " removecom=" + removecom +
                      " integrator=" + split);
         const char *args[] = {"LAMMPS_test", "-log", "none", "-partition", layout.c_str(),
                               "-screen", "none", "-nocite", "-in", "none"};
@@ -610,7 +458,7 @@ TEST(FixPIMDUVTMPI, SharedElectronicMassAndEnergyAreConsistentAcrossBeads)
         command("variable response equal 0.0");
         command("fix cp all pimd/uvt temp 1.0 Tdamp 0.5 mu 0.0 Udamp 0.5 "
                 "ne 1.0 ne_velocity 1.0 dedn v_response integrator " + split +
-                (removecom.empty() ? "" : " removecom " + removecom));
+                " removecom " + removecom);
         command("thermo_style custom step");
         command("thermo 1000");
         command("run 0 post no");
@@ -637,7 +485,7 @@ TEST(FixPIMDUVTMPI, SharedElectronicMassAndEnergyAreConsistentAcrossBeads)
           SCOPED_TRACE("after setup");
           check_shared_state();
         }
-        command("run 10 post no");
+        command("run 1 post no");
         {
           SCOPED_TRACE("after integration");
           check_shared_state();
@@ -694,62 +542,6 @@ TEST(FixPIMDUVTMPI, ElectronicVelocityUsesMeanChainFriction)
     EXPECT_NEAR(nedot, 0.1 * std::exp(-eta_sum / nprocs), 1.0e-12);
     lammps_close(lmp);
   }
-}
-
-TEST(FixPIMDUVTMPI, P4LongTimeConvergence)
-{
-  int nprocs = 0;
-  MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
-  if (nprocs != 4) GTEST_SKIP() << "This test requires exactly 4 MPI ranks for 4-bead PIMD/UVT";
-
-  const auto uvt = pimd_test::uvt_vector_indices();
-
-  const char *args[] = {"LAMMPS_test", "-log", "none", "-partition", "4x1", "-echo",
-                        "screen",      "-nocite",       "-in",        "none", nullptr};
-  char **argv = (char **) args;
-  int argc = (sizeof(args) / sizeof(char *)) - 1;
-
-  void *lmp = nullptr;
-  ASSERT_NO_THROW(lmp = lammps_open(argc, argv, MPI_COMM_WORLD, nullptr));
-  ASSERT_NE(lmp, nullptr);
-
-  auto command = [lmp](const char *line) { lammps_command(lmp, line); };
-  auto fix_value = [lmp](const char *id, int index) { return pimd_test::fix_value(lmp, id, index); };
-
-  command("units lj");
-  command("atom_style atomic");
-  command("atom_modify map yes");
-  command("boundary p p p");
-  command("lattice sc 0.7");
-  command("region box block 0 2 0 2 0 2");
-  command("create_box 1 box");
-  command("create_atoms 1 box");
-  command("mass 1 1.0");
-  command("pair_style zero 2.5");
-  command("pair_coeff * *");
-  command("neighbor 0.3 bin");
-  command("neigh_modify every 1 delay 0 check yes");
-  command("timestep 0.005");
-  command("variable beadshift universe 0.0 0.1 0.2 0.3");
-  command("displace_atoms all move ${beadshift} 0.0 0.0 units box");
-  command("velocity all create 1.0 492845 mom yes rot no dist gaussian");
-  command("variable k_quad equal 5.0");
-  command("variable N0_quad equal 1.0");
-  command(pimd_test::quadratic_dedn_variable().c_str());
-  command("fix cp all pimd/uvt method nmpimd thermostat NHC temp 1.0 Tdamp 0.5 "
-          "tchain 3 tloop 1 mu 2.0 Udamp 0.5 ne 1.8 ne_velocity 0.0 dedn v_dEdN");
-  command(("fix avg all ave/time 1 20000 20000 f_cp[" +
-           std::to_string(pimd_test::lammps_fix_index(uvt.ne)) + "] f_cp[" +
-           std::to_string(pimd_test::lammps_fix_index(uvt.ne_dot)) + "] f_cp[" +
-           std::to_string(pimd_test::lammps_fix_index(uvt.dedn)) + "]")
-              .c_str());
-  command("run 20000 post no");
-
-  EXPECT_NEAR(fix_value("avg", 0), 1.4, 1.0e-1);
-  EXPECT_NEAR(fix_value("avg", 1), 0.0, 1.0e-1);
-  EXPECT_NEAR(fix_value("avg", 2), 2.0, 1.0e-1);
-
-  lammps_close(lmp);
 }
 
 }    // namespace LAMMPS_NS

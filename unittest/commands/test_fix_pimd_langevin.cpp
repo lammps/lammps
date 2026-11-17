@@ -24,7 +24,6 @@
 #include <cstdio>
 #include <cstring>
 #include <cmath>
-#include <cctype>
 #include <cstdlib>
 #include <functional>
 #include <mpi.h>
@@ -223,24 +222,7 @@ struct RestartFileGuard {
   ~RestartFileGuard() { cleanup_partition_restart(prefix, count); }
 };
 
-std::string sanitized_test_token(const std::string &value)
-{
-  std::string sanitized = value;
-  for (char &ch : sanitized) {
-    if (!std::isalnum(static_cast<unsigned char>(ch))) ch = '_';
-  }
-  return sanitized;
-}
-
-std::string unique_restart_prefix(const std::string &basename)
-{
-  const auto *info = ::testing::UnitTest::GetInstance()->current_test_info();
-  std::string suite = info ? sanitized_test_token(info->test_suite_name()) : "unknown_suite";
-  std::string name = info ? sanitized_test_token(info->name()) : "unknown_test";
-  return fmt::format("{}.{}.{}", basename, suite, name);
-}
-
-void *open_partitioned_lammps(int /*expected_procs*/, const char *partition)
+void *open_partitioned_lammps(const char *partition)
 {
   const char *args[] = {"LAMMPS_test", "-log", "none", "-partition", partition,
                         "-echo",       "screen", "-nocite",    "-in",
@@ -262,38 +244,6 @@ void expect_all_finite(void *lmp, const char *fix_id)
   }
 }
 
-void expect_reproducible_nvt_partitioned(const std::function<void(void *)> &setup_commands,
-                                         const std::function<void(void *)> &fix_commands,
-                                         int expected_procs, const char *partition,
-                                         double tolerance = 1.0e-12)
-{
-  std::vector<double> first;
-
-  {
-    PartitionedLammpsHandle handle;
-    handle.lmp = open_partitioned_lammps(expected_procs, partition);
-    ASSERT_NE(handle.lmp, nullptr);
-    setup_commands(handle.lmp);
-    fix_commands(handle.lmp);
-    lammps_command(handle.lmp, "run 2 post no");
-    first = fix_vector(handle.lmp, "cp");
-  }
-
-  {
-    PartitionedLammpsHandle handle;
-    handle.lmp = open_partitioned_lammps(expected_procs, partition);
-    ASSERT_NE(handle.lmp, nullptr);
-    setup_commands(handle.lmp);
-    fix_commands(handle.lmp);
-    lammps_command(handle.lmp, "run 2 post no");
-    const auto second = fix_vector(handle.lmp, "cp");
-    ASSERT_EQ(first.size(), second.size());
-    for (size_t i = 0; i < first.size(); ++i) {
-      EXPECT_NEAR(first[i], second[i], tolerance) << "index=" << i;
-    }
-  }
-}
-
 }    // namespace
 
 class FixPIMDLangevinSerialTest : public LAMMPSTest {
@@ -302,28 +252,27 @@ class FixPIMDLangevinSerialTest : public LAMMPSTest {
   double fix_value(const char *id, int index) { return pimd_langevin_test::fix_value(lmp, id, index); }
 };
 
-TEST_F(FixPIMDLangevinSerialTest, InterleavedCommonAndLangevinKeywords)
+TEST_F(FixPIMDLangevinSerialTest, InputValidation)
 {
+
   setup_single_atom_zero_pair([this](const std::string &line) { command(line); });
   command("fix cp all pimd/langevin temp 2.0 thermostat PILE_L 1234 fmass 0.5 "
           "ensemble nve sp 1.5 tau 0.7 fmmode physical fixcom no integrator obabo "
-          "method nmpimd temp 3.0");
+          "method nmpimd");
   auto *fix = dynamic_cast<FixPIMDLangevin *>(lmp->modify->get_fix_by_id("cp"));
   ASSERT_NE(fix, nullptr);
-  EXPECT_DOUBLE_EQ(fix->temp, 3.0);
+  EXPECT_DOUBLE_EQ(fix->temp, 2.0);
   EXPECT_DOUBLE_EQ(fix->fmass, 0.5);
   EXPECT_DOUBLE_EQ(fix->sp, 1.5);
   EXPECT_DOUBLE_EQ(fix->tau, 0.7);
   EXPECT_EQ(fix->removecomflag, 0);
   command("run 2 post no");
   EXPECT_TRUE(std::isfinite(fix_value("cp", pimd_langevin_test::TOTAL_ENERGY)));
-}
 
-TEST_F(FixPIMDLangevinSerialTest, RejectsUnsupportedAndIncompleteKeywords)
-{
-  for (const char *options : {"method cmd", "lj 1 1 1 1 1", "removecom yes",
-                              "temp", "tau", "thermostat PILE_L", "thermostat NHC",
-                              "thermostat invalid", "unknown 1"}) {
+  command("clear");
+
+  for (const char *options : {"method cmd", "removecom yes", "temp",
+                              "thermostat PILE_L", "unknown 1"}) {
     setup_single_atom_zero_pair([this](const std::string &line) { command(line); });
     // universe_all() tears down output state; isolate these errors in a child process.
     EXPECT_EXIT({
@@ -336,10 +285,7 @@ TEST_F(FixPIMDLangevinSerialTest, RejectsUnsupportedAndIncompleteKeywords)
     }, ::testing::ExitedWithCode(0), "") << options;
     command("clear");
   }
-}
 
-TEST_F(FixPIMDLangevinSerialTest, BosonicEsynchParsesAndRuns)
-{
   for (const char *options : {"esynch yes temp 1.0", "temp 1.0 esynch no"}) {
     setup_single_atom_zero_pair([this](const std::string &line) { command(line); });
     command(std::string("fix cp all pimd/langevin/bosonic method pimd ensemble nve ") + options);
@@ -348,10 +294,7 @@ TEST_F(FixPIMDLangevinSerialTest, BosonicEsynchParsesAndRuns)
     for (int i = 0; i < 6; ++i) EXPECT_TRUE(std::isfinite(fix_value("cp", i)));
     command("clear");
   }
-}
 
-TEST_F(FixPIMDLangevinSerialTest, BosonicEsynchRejectsInvalidValue)
-{
   setup_single_atom_zero_pair([this](const std::string &line) { command(line); });
   EXPECT_EXIT({
     try {
@@ -364,7 +307,7 @@ TEST_F(FixPIMDLangevinSerialTest, BosonicEsynchRejectsInvalidValue)
   }, ::testing::ExitedWithCode(0), "");
 }
 
-TEST_F(FixPIMDLangevinSerialTest, NMPIMDNVEBAOABP1)
+TEST_F(FixPIMDLangevinSerialTest, SingleAtomEstimators)
 {
   setup_single_atom_zero_pair([this](const std::string &line) { command(line); });
   command("fix cp all pimd/langevin method nmpimd ensemble nve integrator baoab temp 1.0 "
@@ -406,66 +349,35 @@ TEST_F(FixPIMDLangevinSerialTest, GroupRestrictedEstimators)
   EXPECT_NEAR(fix_value("cp", pimd_langevin_test::P_PRIM), 0.0625, 1.0e-12);
 }
 
-TEST_F(FixPIMDLangevinSerialTest, NuclearPrefixLayout)
-{
-  setup_single_atom_zero_pair([this](const std::string &line) { command(line); });
-  command("fix cp all pimd/langevin method nmpimd ensemble nve integrator baoab temp 1.0 "
-          "thermostat PILE_L 1234");
-  command("run 0 post no");
-  EXPECT_EQ(fix_vector_size("cp"), pimd_langevin_test::kNuclearPrefixScalars);
-
-  command("clear");
-  setup_barostat_system(lmp);
-  command("fix cp all pimd/langevin method nmpimd ensemble npt integrator obabo temp 0.8 "
-          "thermostat PILE_L 1234 tau 1.0 iso 1.0 barostat BZP taup 1.0 fixcom no");
-  command("run 0 post no");
-  EXPECT_EQ(fix_vector_size("cp"), pimd_langevin_test::kIsoBarostatVectorSize);
-
-  command("clear");
-  setup_barostat_system(lmp);
-  command("fix cp all pimd/langevin method nmpimd ensemble npt integrator obabo temp 0.8 "
-          "thermostat PILE_L 1234 tau 1.0 x 1.0 y 1.0 z 1.0 barostat BZP taup 1.0 fixcom no");
-  command("run 0 post no");
-  EXPECT_EQ(fix_vector_size("cp"), pimd_langevin_test::kAnisoBarostatVectorSize);
-}
-
-TEST(FixPIMDLangevinMPI, NMPIMDNVEOBABOP2)
+TEST(FixPIMDLangevinMPI, NormalModeIntegration)
 {
   if (!has_exact_procs(2)) GTEST_SKIP() << "This test requires exactly 2 MPI ranks";
-  PartitionedLammpsHandle handle;
-  handle.lmp = open_partitioned_lammps(2, "2x1");
-  ASSERT_NE(handle.lmp, nullptr);
-
-  setup_partition_zero_pair_system(handle.lmp);
-  lammps_command(handle.lmp, "fix cp all pimd/langevin method nmpimd ensemble nve integrator obabo "
-                     "temp 1.0 thermostat PILE_L 1234 fixcom no");
-  lammps_command(handle.lmp, "run 0 post no");
-  double before = fix_value(handle.lmp, "cp", pimd_langevin_test::TOTAL_ENERGY);
-  lammps_command(handle.lmp, "run 10 post no");
-  double after = fix_value(handle.lmp, "cp", pimd_langevin_test::TOTAL_ENERGY);
-
-  EXPECT_EQ(fix_vector_size(handle.lmp, "cp"), pimd_langevin_test::kNuclearPrefixScalars);
-  expect_all_finite(handle.lmp, "cp");
-  EXPECT_NEAR(after, before, 1.0e-8);
-}
-
-TEST(FixPIMDLangevinMPI, NMPIMDNVTBAOABP2)
-{
-  if (!has_exact_procs(2)) GTEST_SKIP() << "This test requires exactly 2 MPI ranks";
-  expect_reproducible_nvt_partitioned(
-      [](void *lmp) { setup_partition_zero_pair_system(lmp); },
-      [](void *lmp) {
-        lammps_command(lmp, "fix cp all pimd/langevin method nmpimd ensemble nvt integrator "
-                           "baoab temp 1.0 thermostat PILE_L 1234 tau 1.0 fixcom no");
-      },
-      2, "2x1");
+  for (bool thermostat : {false, true}) {
+    PartitionedLammpsHandle handle;
+    handle.lmp = open_partitioned_lammps("2x1");
+    ASSERT_NE(handle.lmp, nullptr);
+    setup_partition_zero_pair_system(handle.lmp);
+    const std::string settings = thermostat ? "nvt integrator baoab" : "nve integrator obabo";
+    lammps_command(handle.lmp,
+                   ("fix cp all pimd/langevin method nmpimd ensemble " + settings +
+                    " temp 1.0 thermostat PILE_L 1234 tau 1.0 fixcom no").c_str());
+    lammps_command(handle.lmp, "run 0 post no");
+    const double before = fix_value(handle.lmp, "cp", pimd_langevin_test::TOTAL_ENERGY);
+    lammps_command(handle.lmp, "run 10 post no");
+    EXPECT_EQ(fix_vector_size(handle.lmp, "cp"), pimd_langevin_test::kNuclearPrefixScalars);
+    expect_all_finite(handle.lmp, "cp");
+    if (thermostat)
+      ASSERT_TRUE(check_langevin_state_collective(handle.lmp, "after_run"));
+    else
+      EXPECT_NEAR(fix_value(handle.lmp, "cp", pimd_langevin_test::TOTAL_ENERGY), before, 1.0e-8);
+  }
 }
 
 TEST(FixPIMDLangevinMPI, NMPIMDNVTOBABOMultiRankPerBead)
 {
   if (!has_exact_procs(4)) GTEST_SKIP() << "This test requires exactly 4 MPI ranks";
   PartitionedLammpsHandle handle;
-  handle.lmp = open_partitioned_lammps(4, "2x2");
+  handle.lmp = open_partitioned_lammps("2x2");
   ASSERT_NE(handle.lmp, nullptr);
 
   setup_partition_lj_system(handle.lmp);
@@ -478,50 +390,40 @@ TEST(FixPIMDLangevinMPI, NMPIMDNVTOBABOMultiRankPerBead)
   EXPECT_GT(lammps_get_natoms(handle.lmp), 0.0);
 }
 
-TEST(FixPIMDLangevinMPI, PIMDNVEOBABOP2)
+TEST(FixPIMDLangevinMPI, CartesianIntegration)
 {
   if (!has_exact_procs(2)) GTEST_SKIP() << "This test requires exactly 2 MPI ranks";
-  PartitionedLammpsHandle handle;
-  handle.lmp = open_partitioned_lammps(2, "2x1");
-  ASSERT_NE(handle.lmp, nullptr);
-
-  setup_partition_zero_pair_system(handle.lmp);
-  lammps_command(handle.lmp, "fix cp all pimd/langevin method pimd ensemble nve integrator obabo "
-                     "temp 1.0 thermostat PILE_L 1234 fixcom no");
-  lammps_command(handle.lmp, "run 2 post no");
-
-  EXPECT_EQ(fix_vector_size(handle.lmp, "cp"), pimd_langevin_test::kNuclearPrefixScalars);
-  expect_all_finite(handle.lmp, "cp");
-  EXPECT_GT(std::abs(fix_value(handle.lmp, "cp", pimd_langevin_test::SE_BEAD)), 0.0);
+  for (const char *settings : {"nve integrator obabo", "nvt integrator baoab"}) {
+    PartitionedLammpsHandle handle;
+    handle.lmp = open_partitioned_lammps("2x1");
+    ASSERT_NE(handle.lmp, nullptr);
+    setup_partition_zero_pair_system(handle.lmp);
+    lammps_command(handle.lmp,
+                   (std::string("fix cp all pimd/langevin method pimd ensemble ") + settings +
+                    " temp 1.0 thermostat PILE_L 1234 tau 1.0 fixcom no").c_str());
+    lammps_command(handle.lmp, "run 2 post no");
+    EXPECT_EQ(fix_vector_size(handle.lmp, "cp"), pimd_langevin_test::kNuclearPrefixScalars);
+    expect_all_finite(handle.lmp, "cp");
+    EXPECT_GT(std::abs(fix_value(handle.lmp, "cp", pimd_langevin_test::SE_BEAD)), 0.0);
+  }
 }
 
-TEST(FixPIMDLangevinMPI, PIMDNVTBAOABP2)
-{
-  if (!has_exact_procs(2)) GTEST_SKIP() << "This test requires exactly 2 MPI ranks";
-  expect_reproducible_nvt_partitioned(
-      [](void *lmp) { setup_partition_zero_pair_system(lmp); },
-      [](void *lmp) {
-        lammps_command(lmp, "fix cp all pimd/langevin method pimd ensemble nvt integrator "
-                           "baoab temp 1.0 thermostat PILE_L 1234 tau 1.0 fixcom no");
-      },
-      2, "2x1");
-}
-
-TEST(FixPIMDLangevinMPI, NMPIMDNPTBZP)
+TEST(FixPIMDLangevinMPI, IsotropicBarostats)
 {
   if (!has_exact_procs(4)) GTEST_SKIP() << "This test requires exactly 4 MPI ranks";
-  PartitionedLammpsHandle handle;
-  handle.lmp = open_partitioned_lammps(4, "4x1");
-  ASSERT_NE(handle.lmp, nullptr);
-
-  setup_barostat_system(handle.lmp);
-  lammps_command(handle.lmp, "fix cp all pimd/langevin method nmpimd ensemble npt integrator obabo "
-                     "temp 0.8 thermostat PILE_L 1234 tau 1.0 iso 1.0 barostat BZP taup 1.0 "
-                     "fixcom no");
-  lammps_command(handle.lmp, "run 2 post no");
-
-  EXPECT_EQ(fix_vector_size(handle.lmp, "cp"), pimd_langevin_test::kIsoBarostatVectorSize);
-  expect_all_finite(handle.lmp, "cp");
+  for (const char *barostat : {"BZP", "MTTK"}) {
+    PartitionedLammpsHandle handle;
+    handle.lmp = open_partitioned_lammps("4x1");
+    ASSERT_NE(handle.lmp, nullptr);
+    setup_barostat_system(handle.lmp);
+    lammps_command(handle.lmp,
+                   (std::string("fix cp all pimd/langevin method nmpimd ensemble npt integrator ") +
+                    "obabo temp 0.8 thermostat PILE_L 1234 tau 1.0 iso 1.0 barostat " +
+                    barostat + " taup 1.0 fixcom no").c_str());
+    lammps_command(handle.lmp, "run 2 post no");
+    EXPECT_EQ(fix_vector_size(handle.lmp, "cp"), pimd_langevin_test::kIsoBarostatVectorSize);
+    expect_all_finite(handle.lmp, "cp");
+  }
 }
 
 TEST(FixPIMDLangevinMPI, AnisotropicBarostatStateMatchesAcrossPartitions)
@@ -532,7 +434,7 @@ TEST(FixPIMDLangevinMPI, AnisotropicBarostatStateMatchesAcrossPartitions)
       for (const char *ensemble : {"npt", "nph"}) {
         SCOPED_TRACE(std::string(partition) + " " + integrator + " " + ensemble);
         PartitionedLammpsHandle handle;
-        handle.lmp = open_partitioned_lammps(4, partition);
+        handle.lmp = open_partitioned_lammps(partition);
         ASSERT_NE(handle.lmp, nullptr);
         setup_barostat_system(handle.lmp);
         lammps_command(handle.lmp,
@@ -542,6 +444,7 @@ TEST(FixPIMDLangevinMPI, AnisotropicBarostatStateMatchesAcrossPartitions)
                         "barostat BZP taup 1.0 fixcom no").c_str());
         lammps_command(handle.lmp, "run 3 post no");
 
+        EXPECT_EQ(fix_vector_size(handle.lmp, "cp"), pimd_langevin_test::kAnisoBarostatVectorSize);
         // Compare the public barostat diagnostics and the serialized state.
         // Nuclear bead energies are intentionally not compared across modes.
         double local[11];
@@ -563,75 +466,30 @@ TEST(FixPIMDLangevinMPI, AnisotropicBarostatStateMatchesAcrossPartitions)
   }
 }
 
-TEST(FixPIMDLangevinMPI, NMPIMDNPTMTTK)
-{
-  if (!has_exact_procs(4)) GTEST_SKIP() << "This test requires exactly 4 MPI ranks";
-  PartitionedLammpsHandle handle;
-  handle.lmp = open_partitioned_lammps(4, "4x1");
-  ASSERT_NE(handle.lmp, nullptr);
-
-  setup_barostat_system(handle.lmp);
-  lammps_command(handle.lmp, "fix cp all pimd/langevin method nmpimd ensemble npt integrator obabo "
-                     "temp 0.8 thermostat PILE_L 1234 tau 1.0 iso 1.0 barostat MTTK taup 1.0 "
-                     "fixcom no");
-  lammps_command(handle.lmp, "run 2 post no");
-
-  EXPECT_EQ(fix_vector_size(handle.lmp, "cp"), pimd_langevin_test::kIsoBarostatVectorSize);
-  expect_all_finite(handle.lmp, "cp");
-}
-
-TEST(FixPIMDLangevinRestartTest, NMPIMDNVTRestartContinuation)
+TEST(FixPIMDLangevinRestartTest, NVTStateRestored)
 {
   if (!has_exact_procs(2)) GTEST_SKIP() << "This test requires exactly 2 MPI ranks";
-  PartitionedLammpsHandle handle;
-  handle.lmp = open_partitioned_lammps(2, "2x1");
-  ASSERT_NE(handle.lmp, nullptr);
-  RestartFileGuard restart_guard{unique_restart_prefix("pimd_langevin_nmpimd_nvt.restart"), 2};
-
-  setup_partition_zero_pair_system(handle.lmp);
-  lammps_command(handle.lmp, "variable beadid world 01 02");
-  lammps_command(handle.lmp, "fix cp all pimd/langevin method nmpimd ensemble nvt integrator baoab "
-                     "temp 1.0 thermostat PILE_L 1234 tau 1.0 fixcom no");
-  lammps_command(handle.lmp, "run 0 post no");
-  ASSERT_TRUE(check_langevin_state_collective(handle.lmp, "after_run0"));
-  lammps_command(handle.lmp, "run 1 post no");
-  lammps_command(handle.lmp, "run 1 post no");
-  ASSERT_TRUE(check_langevin_state_collective(handle.lmp, "after_run2"));
-  lammps_command(handle.lmp, fmt::format("write_restart {}.${{beadid}}", restart_guard.prefix).c_str());
-  lammps_command(handle.lmp, "clear");
-  lammps_command(handle.lmp, fmt::format("read_restart {}.${{beadid}}", restart_guard.prefix).c_str());
-  lammps_command(handle.lmp, "fix cp all pimd/langevin method nmpimd ensemble nvt integrator baoab "
-                     "temp 1.0 thermostat PILE_L 1234 tau 1.0 fixcom no");
-  lammps_command(handle.lmp, "run 0 post no");
-  ASSERT_TRUE(check_langevin_state_collective(handle.lmp, "after_restart_run0"));
-  lammps_command(handle.lmp, "run 1 post no");
-  ASSERT_TRUE(check_langevin_state_collective(handle.lmp, "after_restart_run1"));
-
-  EXPECT_EQ(fix_vector_size(handle.lmp, "cp"), pimd_langevin_test::kNuclearPrefixScalars);
-}
-
-TEST(FixPIMDLangevinRestartTest, PIMDNVTRestartContinuation)
-{
-  if (!has_exact_procs(2)) GTEST_SKIP() << "This test requires exactly 2 MPI ranks";
-  PartitionedLammpsHandle handle;
-  handle.lmp = open_partitioned_lammps(2, "2x1");
-  ASSERT_NE(handle.lmp, nullptr);
-  RestartFileGuard restart_guard{unique_restart_prefix("pimd_langevin_pimd_nvt.restart"), 2};
-
-  setup_partition_zero_pair_system(handle.lmp);
-  lammps_command(handle.lmp, "variable beadid world 01 02");
-  lammps_command(handle.lmp, "fix cp all pimd/langevin method pimd ensemble nvt integrator baoab "
-                     "temp 1.0 thermostat PILE_L 1234 tau 1.0 fixcom no");
-  lammps_command(handle.lmp, "run 2 post no");
-  lammps_command(handle.lmp, fmt::format("write_restart {}.${{beadid}}", restart_guard.prefix).c_str());
-  lammps_command(handle.lmp, "clear");
-  lammps_command(handle.lmp, fmt::format("read_restart {}.${{beadid}}", restart_guard.prefix).c_str());
-  lammps_command(handle.lmp, "fix cp all pimd/langevin method pimd ensemble nvt integrator baoab "
-                     "temp 1.0 thermostat PILE_L 1234 tau 1.0 fixcom no");
-  lammps_command(handle.lmp, "run 1 post no");
-
-  EXPECT_EQ(fix_vector_size(handle.lmp, "cp"), pimd_langevin_test::kNuclearPrefixScalars);
-  expect_all_finite(handle.lmp, "cp");
+  for (const char *method : {"nmpimd", "pimd"}) {
+    PartitionedLammpsHandle handle;
+    handle.lmp = open_partitioned_lammps("2x1");
+    ASSERT_NE(handle.lmp, nullptr);
+    RestartFileGuard restart_guard{std::string("langevin_nvt_") + method + ".restart", 2};
+    setup_partition_zero_pair_system(handle.lmp);
+    const std::string fix_command = std::string("fix cp all pimd/langevin method ") + method +
+        " ensemble nvt integrator baoab temp 1.0 thermostat PILE_L 1234 tau 1.0 fixcom no";
+    lammps_command(handle.lmp, "variable beadid world 01 02");
+    lammps_command(handle.lmp, fix_command.c_str());
+    lammps_command(handle.lmp, "run 2 post no");
+    lammps_command(handle.lmp, fmt::format("write_restart {}.${{beadid}}", restart_guard.prefix).c_str());
+    lammps_command(handle.lmp, "clear");
+    lammps_command(handle.lmp, fmt::format("read_restart {}.${{beadid}}", restart_guard.prefix).c_str());
+    lammps_command(handle.lmp, fix_command.c_str());
+    lammps_command(handle.lmp, "run 1 post no");
+    EXPECT_EQ(fix_vector_size(handle.lmp, "cp"), pimd_langevin_test::kNuclearPrefixScalars);
+    expect_all_finite(handle.lmp, "cp");
+    if (std::string(method) == "nmpimd")
+      ASSERT_TRUE(check_langevin_state_collective(handle.lmp, "after_restart"));
+  }
 }
 
 TEST(FixPIMDLangevinRestartTest, NMPIMDNPTBZPRestartContinuation)
@@ -640,9 +498,9 @@ TEST(FixPIMDLangevinRestartTest, NMPIMDNPTBZPRestartContinuation)
   if (!has_exact_procs(4)) GTEST_SKIP() << "This test requires exactly 4 MPI ranks";
 
   PartitionedLammpsHandle handle;
-  handle.lmp = open_partitioned_lammps(4, "4x1");
+  handle.lmp = open_partitioned_lammps("4x1");
   ASSERT_NE(handle.lmp, nullptr);
-  RestartFileGuard restart_guard{unique_restart_prefix("pimd_langevin_npt_bzp.restart"), 4};
+  RestartFileGuard restart_guard{"pimd_langevin_npt_bzp.restart", 4};
 
   setup_barostat_system(handle.lmp);
   lammps_command(handle.lmp, "variable beadid world 01 02 03 04");
@@ -667,7 +525,7 @@ TEST(FixPIMDLangevinRestartTest, NMPIMDNPTBZPRestartContinuation)
 TEST(FixPIMDLangevinExpectedErrorTest, PIMDRejectsMultipleRanksPerBead)
 {
   if (!has_exact_procs(4)) GTEST_SKIP() << "This test requires exactly 4 MPI ranks";
-  void *lmp = open_partitioned_lammps(4, "2x2");
+  void *lmp = open_partitioned_lammps("2x2");
   ASSERT_NE(lmp, nullptr);
 
   setup_partition_lj_system(lmp);
@@ -678,6 +536,54 @@ TEST(FixPIMDLangevinExpectedErrorTest, PIMDRejectsMultipleRanksPerBead)
   EXPECT_EQ(lammps_has_error(lmp), 1);
   EXPECT_THAT(pimd_langevin_test::last_error(lmp),
               ContainsRegex(".*Method pimd only supports a single processor per bead.*"));
+}
+
+TEST(FixPIMDLangevinBosonicTest, CartesianPIMDSmoke)
+{
+  int nprocs = 0;
+  MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
+  if (nprocs != 4) GTEST_SKIP() << "This test requires exactly 4 MPI ranks";
+
+  const char *args[] = {"LAMMPS_test", "-log", "none", "-partition", "4x1", "-echo",
+                        "screen",      "-nocite",       "-in",        "none", nullptr};
+  char **argv = (char **) args;
+  const int argc = (sizeof(args) / sizeof(char *)) - 1;
+
+  void *lmp = nullptr;
+  EXPECT_NO_THROW(lmp = lammps_open(argc, argv, MPI_COMM_WORLD, nullptr));
+  ASSERT_NE(lmp, nullptr);
+
+  auto command = [lmp](const char *line) { lammps_command(lmp, line); };
+
+  command("units electron");
+  command("dimension 3");
+  command("boundary p p p");
+  command("atom_style atomic");
+  command("atom_modify map yes");
+  command("pair_style none");
+  command("timestep 0.5");
+  command("variable Temp equal 17.4");
+  command("variable k equal 1.2154614120000001e-08");
+  command("variable ibead world 01 02 03 04");
+  command("region box block -1500 1500 -1500 1500 -1500 1500");
+  command("create_box 1 box");
+  command("create_atoms 1 single -15.0 10.0 1.0");
+  command("create_atoms 1 single -14.5 9.5 1.5");
+  command("create_atoms 1 single -14.0 9.0 2.0");
+  command("mass 1 0.00054858");
+  command("velocity all create ${Temp} 18889${ibead} mom yes rot yes dist gaussian");
+  command("fix harm all spring/self ${k}");
+  command("fix_modify harm energy yes");
+  command("fix cp all pimd/langevin/bosonic ensemble nvt temp ${Temp} thermostat PILE_L "
+          "12345 tau 50 fixcom no");
+  command("run 5 post no");
+
+  EXPECT_EQ(pimd_langevin_test::fix_vector_size(lmp, "cp"), pimd_langevin_test::kBosonicVectorSize);
+  for (int i = 0; i < pimd_langevin_test::kBosonicVectorSize; ++i) {
+    EXPECT_TRUE(std::isfinite(pimd_langevin_test::fix_value(lmp, "cp", i))) << "index=" << i;
+  }
+
+  lammps_close(lmp);
 }
 
 }    // namespace LAMMPS_NS

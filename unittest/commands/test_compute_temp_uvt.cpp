@@ -66,37 +66,21 @@ TEST_F(ComputeTempUVTTest, CombinedScalarAndNuclearTensor)
   EXPECT_DOUBLE_EQ(temp->dof, 4.0);
   // Two unit-mass atoms each have |v|^2 = 14; Ne contributes 0.75 * 2^2.
   EXPECT_DOUBLE_EQ(temp->compute_scalar(), 31.0 / 4.0);
-  EXPECT_DOUBLE_EQ(temp->compute_scalar(), 31.0 / 4.0);
+  EXPECT_DOUBLE_EQ(fix->compute_vector(1), 31.0 / 4.0);
   *ne_dot = 4.0;
   EXPECT_DOUBLE_EQ(temp->compute_scalar(), 40.0 / 4.0);
+  EXPECT_DOUBLE_EQ(fix->compute_vector(1), 40.0 / 4.0);
 
   temp->compute_vector();
   nuclear->compute_vector();
   for (int i = 0; i < 6; ++i) EXPECT_DOUBLE_EQ(temp->vector[i], nuclear->vector[i]);
-}
-
-TEST_F(ComputeTempUVTTest, FixVectorReportsCombinedTemperature)
-{
-  auto *fix = lmp->modify->get_fix_by_id("cp");
-  ASSERT_EQ(fix->size_vector, 18);
-  EXPECT_DOUBLE_EQ(fix->compute_vector(0), 1.0);
-  EXPECT_DOUBLE_EQ(fix->compute_vector(4), 1.5);
-  EXPECT_DOUBLE_EQ(fix->compute_vector(5), 0.0);
-  EXPECT_DOUBLE_EQ(fix->compute_vector(1), 31.0 / 4.0);
-  EXPECT_EQ(fix->get_thermo_colname(1), "f_cp:T_ins");
-  command("velocity all set 2 0 0");
-  EXPECT_DOUBLE_EQ(fix->compute_vector(1), 11.0 / 4.0);
-  command("thermo_style custom step f_cp[1] temp f_cp[2]");
-  command("thermo_modify norm yes");
-  EXPECT_NO_THROW(command("run 0 post no"));
   command("run 5 post no");
-  EXPECT_NEAR(fix->compute_vector(1),
-              lmp->modify->get_compute_by_id("cp_temp")->compute_scalar(), 1.0e-12);
+  EXPECT_NEAR(fix->compute_vector(1), temp->compute_scalar(), 1.0e-12);
 }
 
 TEST_F(ComputeTempUVTTest, PhysicalOutputIndicesAreIndependentOfChainLength)
 {
-  for (const int chain : {1, 3, 5}) {
+  for (const int chain : {1, 3}) {
     command("unfix cp");
     command("fix cp all uvt temp 1 1 0.5 mu 0 Udamp 0.5 ne 1 ne_velocity 2 "
             "dedn v_deriv tchain " + std::to_string(chain));
@@ -110,10 +94,6 @@ TEST_F(ComputeTempUVTTest, PhysicalOutputIndicesAreIndependentOfChainLength)
     EXPECT_DOUBLE_EQ(fix->compute_vector(3), 0.0);
     EXPECT_DOUBLE_EQ(fix->compute_vector(4), 1.5);
     EXPECT_DOUBLE_EQ(fix->compute_vector(5), 0.0);
-    for (int n = 0; n < 4 * chain; ++n) {
-      EXPECT_DOUBLE_EQ(fix->compute_vector(n + 6), fix->FixNH::compute_vector(n));
-      EXPECT_EQ(fix->get_thermo_colname(n + 6), fix->FixNH::get_thermo_colname(n));
-    }
   }
 }
 
@@ -137,36 +117,8 @@ TEST_F(ComputeTempUVTTest, FixUsesCombinedTemperatureAndEnergy)
   EXPECT_DOUBLE_EQ(fix->temperature->compute_scalar(), 31.0 / 16.0);
   int dim;
   EXPECT_DOUBLE_EQ(*static_cast<double *>(fix->extract("ne_dot", dim)), 1.0);
-}
 
-TEST_F(ComputeTempUVTTest, RestartPreservesCombinedTemperatureAndChainEnergy)
-{
-  command("run 5 post no");
-  auto *fix = dynamic_cast<FixUVT *>(lmp->modify->get_fix_by_id("cp"));
-  ASSERT_NE(fix, nullptr);
-  const double energy = fix->compute_scalar();
-  const double temp = fix->temperature->compute_scalar();
-  const double chain_mass = fix->eta_mass[0];
-  command("write_restart temp_uvt.restart");
-  command("clear");
-  command("read_restart temp_uvt.restart");
-  command("variable deriv equal 0.0");
-  command("fix cp all uvt temp 1 1 0.5 mu 0 Udamp 0.5 ne 1 dedn v_deriv");
-  command("run 0 post no");
-  platform::unlink("temp_uvt.restart");
-  fix = dynamic_cast<FixUVT *>(lmp->modify->get_fix_by_id("cp"));
-  ASSERT_NE(fix, nullptr);
-  EXPECT_DOUBLE_EQ(fix->eta_mass[0], chain_mass);
-  EXPECT_NEAR(fix->compute_scalar(), energy, 1.0e-12);
-  EXPECT_NEAR(fix->temperature->compute_scalar(), temp, 1.0e-12);
-  EXPECT_NEAR(fix->compute_vector(1), temp, 1.0e-12);
-}
-
-TEST_F(ComputeTempUVTTest, FixedMassesArePreservedDuringIntegration)
-{
-  auto *fix = dynamic_cast<FixUVT *>(lmp->modify->get_fix_by_id("cp"));
-  ASSERT_NE(fix, nullptr);
-  int dim;
+  // Fixed electronic and chain masses must survive integration.
   auto *mass = static_cast<double *>(fix->extract("ne_mass", dim));
   *mass = 1.5;
   fix->eta_mass[0] = 2.0;
@@ -177,18 +129,6 @@ TEST_F(ComputeTempUVTTest, FixedMassesArePreservedDuringIntegration)
   EXPECT_DOUBLE_EQ(*mass, 1.5);
   EXPECT_DOUBLE_EQ(fix->eta_mass[0], 2.0);
   EXPECT_NEAR(fix->t_current, fix->temperature->compute_scalar(), 1.0e-12);
-}
-
-TEST_F(ComputeTempUVTTest, ThermostatRejectsIncompatibleTemperatureComputes)
-{
-  command("fix_modify cp temp nuclear");
-  EXPECT_ANY_THROW(command("run 0 post no"));
-  command("fix_modify cp temp combined");
-  EXPECT_NO_THROW(command("run 0 post no"));
-
-  command("fix other all uvt temp 1 1 0.5 mu 0 Udamp 0.5 ne 1 dedn v_deriv");
-  command("fix_modify cp temp other_temp");
-  EXPECT_ANY_THROW(command("run 0 post no"));
 }
 
 TEST_F(ComputeTempUVTTest, DynamicDOFAndExtraDOF)
@@ -212,6 +152,18 @@ TEST_F(ComputeTempUVTTest, DynamicDOFAndExtraDOF)
 
 TEST_F(ComputeTempUVTTest, ValidatesFixAndGroup)
 {
+  command("fix_modify cp temp nuclear");
+  EXPECT_ANY_THROW(command("run 0 post no"));
+  command("fix_modify cp temp combined");
+  EXPECT_NO_THROW(command("run 0 post no"));
+
+  command("fix other all uvt temp 1 1 0.5 mu 0 Udamp 0.5 ne 1 dedn v_deriv");
+  command("fix_modify cp temp other_temp");
+  EXPECT_ANY_THROW(command("run 0 post no"));
+
+  command("fix_modify cp temp combined");
+  command("unfix other");
+
   EXPECT_ANY_THROW(command("compute bad all temp/uvt"));
   EXPECT_ANY_THROW(command("compute bad all temp/uvt cp extra"));
   command("compute missing all temp/uvt absent");

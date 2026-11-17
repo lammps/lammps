@@ -29,7 +29,9 @@ pair_coeff	* * spin/dipole/long 8.0
 neighbor 	0.1 bin
 neigh_modify 	every 10 check yes delay 20
 
-kspace_style 	ewald/dipole/spin 1.0e-4
+kspace_style 	ewald/dipole/spin 1.0e-5
+kspace_modify 	force 1.0e-8  # in eV/Å Setting a lower accuracy for spin torques
+kspace_modify 	compute yes
 
 fix 		1 all precession/spin cubic 0.001 0.0005 1.0 0.0 0.0 0.0 1.0 0.0 0.0 0.0 1.0
 fix_modify 	1 energy yes

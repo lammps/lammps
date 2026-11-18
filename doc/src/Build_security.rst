@@ -20,8 +20,8 @@ report problems, is in the file `SECURITY.md
 <https://github.com/lammps/lammps/blob/develop/SECURITY.md>`_ of the
 LAMMPS repository on GitHub.  How to check that the LAMMPS source code
 itself was downloaded completely and without modifications is explained
-in the sections about :ref:`downloading tarballs <verify_download>` and
-about :doc:`downloading with git <Install_git>`.
+in the sections about :ref:`checking downloaded files
+<verify_download>` and about :doc:`downloading with git <Install_git>`.
 
 What a LAMMPS input file can do
 -------------------------------

@@ -28,7 +28,7 @@
 using namespace LAMMPS_NS;
 
 // Currently the Intel compiler is required for this pair style.
-#if defined(__INTEL_COMPILER) || defined(__INTEL_LLVM_COMPILER)
+#if defined(__INTEL_LLVM_COMPILER)
 
 
 #include "intel_intrinsics.h"
@@ -1295,4 +1295,4 @@ void IntelKernelTersoff<flt_t,acc_t,mic, pack_i>::attractive_vector(
 
 
 
-#endif // __INTEL_COMPILER
+#endif // __INTEL_LLVM_COMPILER

@@ -13,6 +13,7 @@
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
+#include "math_special.h"
 #include "memory.h"
 #include "neigh_list.h"
 #include "suffix.h"
@@ -22,6 +23,7 @@
 
 #include "omp_compat.h"
 using namespace LAMMPS_NS;
+using MathSpecial::powauto;
 
 /* ---------------------------------------------------------------------- */
 
@@ -145,14 +147,16 @@ void PairBondValVecOMP::eval(int iifrom, int iito, ThrData *const thr)
 
       if (rsq < cutsq[itype][jtype]) {
         const double recip = 1.0 / sqrt(rsq);
-        s0x_t[i] += pow(r0[itype][jtype] * recip, alpha[itype][jtype]) * recip * (delx);
-        s0y_t[i] += pow(r0[itype][jtype] * recip, alpha[itype][jtype]) * recip * (dely);
-        s0z_t[i] += pow(r0[itype][jtype] * recip, alpha[itype][jtype]) * recip * (delz);
+        const double sij = powauto(r0[itype][jtype] * recip, alpha[itype][jtype]) * recip;
+        s0x_t[i] += sij * (delx);
+        s0y_t[i] += sij * (dely);
+        s0z_t[i] += sij * (delz);
 
         if (NEWTON_PAIR || j < nlocal) {
-          s0x_t[j] -= pow(r0[jtype][itype] * recip, alpha[jtype][itype]) * recip * (delx);
-          s0y_t[j] -= pow(r0[jtype][itype] * recip, alpha[jtype][itype]) * recip * (dely);
-          s0z_t[j] -= pow(r0[jtype][itype] * recip, alpha[jtype][itype]) * recip * (delz);
+          const double sji = powauto(r0[jtype][itype] * recip, alpha[jtype][itype]) * recip;
+          s0x_t[j] -= sji * (delx);
+          s0y_t[j] -= sji * (dely);
+          s0z_t[j] -= sji * (delz);
         }
       }
     }
@@ -244,7 +248,7 @@ void PairBondValVecOMP::eval(int iifrom, int iito, ThrData *const thr)
         const double r = sqrt(rsq);
         const double recip = 1.0 / r;
         const double recip2 = recip * recip;
-        const double Aij = pow(r0[itype][jtype] * recip, alpha[itype][jtype]) * recip;
+        const double Aij = powauto(r0[itype][jtype] * recip, alpha[itype][jtype]) * recip;
         const double Eij = (alpha[itype][jtype] + 1.0) * recip2;
 
         const double fx = (Dix[j] - Dix[i]) * Aij + (Dix[i] - Dix[j]) * Eij * delx * delx * Aij +

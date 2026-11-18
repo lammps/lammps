@@ -4,31 +4,33 @@
 over this file, and regenerate the pair-style coverage table with
 `.github/dev-docs/accelerator-coverage-scan.py` (`--summary`, `--missing omp|gpu|kk`,
 `--pkg NAME`, `--yaml`) instead of editing counts by hand.
-Last verified: 2026-10-24 (develop at 049f269111).
+Last verified: 2026-11-15 (develop at 713cd85974).
 
 This file replaces the KOKKOS-only `kokkos-porting-backlog.md` (last refreshed
 2026-08-28 after the Tier 1 pass, PR #4989).  Its still-open KOKKOS content is carried
 over, condensed, in the KOKKOS section; the OPENMP and GPU sections are new.  The
 how-to for each package lives elsewhere: `kokkos-porting-guide.md`, `openmp-porting.md`,
-and (to be written with the first GPU port) `gpu-porting-guide.md`.  Scheduled batches
-and their progress live outside the tree, in the maintainer's plan files.
+and `gpu-porting-guide.md`.  Scheduled batches and their progress live outside the
+tree, in the maintainer's plan files.
 
 ## Coverage snapshot
 
-Pair styles (the focus of this backlog), from the scan script on 2026-10-24, after
-the OPENMP batches (19 + 9 new `/omp` styles, plus `pace/omp` from #5243) and the
-KOKKOS batches (12, 9 and 4 new `/kk` styles).  "Base" includes 7 `DEPRECATED` stubs,
-`hybrid*` and `zero*`.
+Pair styles (the focus of this backlog), from the scan script on 2026-11-15, after
+the OPENMP batches (19 + 9 new `/omp` styles, plus `pace/omp` from #5243), the
+KOKKOS batches (12, 9 and 4 new `/kk` styles) and the GPU batches (33 new `/gpu`
+styles, #5247).  Since then `body/rounded/polyhedron/granular` (with `/omp`, #5253)
+and `zero/intel` were added.  "Base" includes 7 `DEPRECATED` stubs, `hybrid*` and
+`zero*`.
 
 | | count |
 |---|---|
-| base pair styles | 333 |
-| with `/omp` | 233 |
+| base pair styles | 334 |
+| with `/omp` | 234 |
 | with `/kk` | 163 |
-| with `/gpu` | 72 |
-| with `/intel` / `/opt` | 19 / 16 |
-| no accelerator variant at all | 83 (CG-DNA 23, SPIN 7, APIP 7, MACHDYN 4, ML 6, PERI 2, ...) |
-| with a `unittest/force-styles` YAML reference | 250 |
+| with `/gpu` | 105 |
+| with `/intel` / `/opt` | 20 / 16 |
+| no accelerator variant at all | 82 (CG-DNA 23, APIP 8, SPIN 7, MANYBODY 5, MACHDYN 4, MISC 4, ML 3, PERI 2, ...) |
+| with a `unittest/force-styles` YAML reference | 251 |
 
 Other style kinds under KOKKOS (counted 2026-08-28; the `/kk` column counts source
 files): Fix 343/87, Compute 188/25, KSpace 27/2, AtomVec 30/12, bonded 97/71, Region
@@ -38,8 +40,7 @@ files): Fix 343/87, Compute 188/25, KSpace 27/2, AtomVec 30/12, bonded 97/71, Re
 
 **Pending pull requests (do not touch; check `gh pr list` before starting anything):**
 `granular` (/kk, #5208 and #5187), the oxDNA/oxRNA family (/kk, #5141),
-`dispersion/d3` (/omp and /kk, #5056), MTP (#5023), `reaxff` and `qeq/reaxff` (#5242),
-`lubricate/poly` and `brownian/poly` (#5040), `lj/cut/coul/long2` and the
+`dispersion/d3` (/omp and /kk, #5056), MTP (#5023), `lj/cut/coul/long2` and the
 `pair_kokkos.h` neighbor-cluster changes (#5086).
 
 **Standing decisions:** PERI is being replaced by BPM (no new work on `peri/*`); SPIN
@@ -66,7 +67,7 @@ Per-package cost floor, before any physics: OPENMP = 2 files (`src/OPENMP/
 pair_X_omp.{h,cpp}`, registration automatic); KOKKOS = 2 files + `src/KOKKOS/Install.sh`;
 GPU = 6 files (`src/GPU/pair_X_gpu.{h,cpp}`, `lib/gpu/lal_X.{h,cpp,cu}`,
 `lib/gpu/lal_X_ext.cpp`) + a declaration block in `lib/gpu/include/lammps_gpu.h` +
-`src/GPU/Install.sh` + `src/Purge.list`.  All three: the `(o)`/`(k)`/`(g)` letter in
+`src/GPU/Install.sh`.  All three: the `(o)`/`(k)`/`(g)` letter in
 `doc/src/Commands_pair.rst`, an `.. index::` line and the "Accelerator Variants" entry
 of the pair page, no `versionadded`.
 
@@ -165,7 +166,7 @@ were spot-checked, all cosmetic).  Maintenance method and bug classes:
 | effort | styles (device template to clone) |
 |---|---|
 | MEDIUM (many-body, template exists) | `tersoff/table`; `extep`; `kolmogorov/crespi/z`, `lebedeva/z` (hand kernels, anisotropic force, no normals; usually combined with `rebo`/`airebo`, which have no `/kk`); `coul/exclude` (hand kernel: no `cutsq` guard, skips `sbmask(j)==0`; mostly used with `mbx`); `coul/streitz` (full list; `fix qeq/slater` stays host); `dpd/fdt` (a subset of dpd/fdt/energy/kk, but `fix shardlow/kk` accepts only `dpd/fdt/energy/kk`, so it needs that fix extended first) |
-| LARGE (framework piece first) | EAM-shaped density styles `eam/cd`, `local/density`, `eim`, `meam/spline`, `meam/sw/spline`, `smatb`(+`single`), `multi/lucy` (MEDIUM each once the first reuses the eam/kk comm pattern); DRUDE `thole`, `lj/cut/thole/long`, `coul/tt` (partner indices precomputed per reneighbor through the device map); `hbond/dreiding/*` (topology walk via `tagprev`); ASPHERE `gayberne` then `resquared` (`AtomVecEllipsoidKokkos` + `MathExtraKokkos::quat_to_mat` exist; ylz/kk is the only ellipsoid pair so far); INTERLAYER `ilp/graphene/hbn`, `ilp/tmd`, `saip/metal`, `saip/metal/tmd`, `aip/water/2dm`, `kolmogorov/crespi/full`, `drip` (all gated on `ILP_neigh()` + `calc_normal()` on device; once the first exists the rest ride along); `lj/long/coul/long`, `buck/long/coul/long`, `lj/long/tip4p/long`, `lj/long/dipole/long`, `lj/cut/dipole/long` (pointless before `pppm/disp/kk` or a dipole kspace on device); DIELECTRIC (7 styles: need `atom_vec_dielectric_kokkos` and `fix polarize/*`); atom-vec gated: SPH (6 + `sdpd/taitwater/isothermal`), DPD-MESO (`edpd`, `mdpd`, `mdpd/rhosum`, `tdpd`), EFF, MACHDYN, RHEO (`rheo`, `rheo/solid`), BODY, `line/lj`, `tri/lj`, MESONT, BPM (`bpm/spring`, `bpm/peri`: `atom_vec_bpm_sphere_kokkos`); `polymorphic`, `smtbq`, `e3b`, `brownian/poly` (after #5040) |
+| LARGE (framework piece first) | EAM-shaped density styles `eam/cd`, `local/density`, `eim`, `meam/spline`, `meam/sw/spline`, `smatb`(+`single`), `multi/lucy` (MEDIUM each once the first reuses the eam/kk comm pattern); DRUDE `thole`, `lj/cut/thole/long`, `coul/tt` (partner indices precomputed per reneighbor through the device map); `hbond/dreiding/*` (topology walk via `tagprev`); ASPHERE `gayberne` then `resquared` (`AtomVecEllipsoidKokkos` + `MathExtraKokkos::quat_to_mat` exist; ylz/kk is the only ellipsoid pair so far); INTERLAYER `ilp/graphene/hbn`, `ilp/tmd`, `saip/metal`, `saip/metal/tmd`, `aip/water/2dm`, `kolmogorov/crespi/full`, `drip` (all gated on `ILP_neigh()` + `calc_normal()` on device; once the first exists the rest ride along); `lj/long/coul/long`, `buck/long/coul/long`, `lj/long/tip4p/long`, `lj/long/dipole/long`, `lj/cut/dipole/long` (pointless before `pppm/disp/kk` or a dipole kspace on device); DIELECTRIC (7 styles: need `atom_vec_dielectric_kokkos` and `fix polarize/*`); atom-vec gated: SPH (6 + `sdpd/taitwater/isothermal`), DPD-MESO (`edpd`, `mdpd`, `mdpd/rhosum`, `tdpd`), EFF, MACHDYN, RHEO (`rheo`, `rheo/solid`), BODY, `line/lj`, `tri/lj`, MESONT, BPM (`bpm/spring`, `bpm/peri`: `atom_vec_bpm_sphere_kokkos`); `polymorphic`, `smtbq`, `e3b`, `brownian/poly` |
 | do not port | `ldd` (virtual indicator and potential classes called in the inner loop), MSM pair styles (8), SPIN (7), AIREBO family, `rebo`, `rebomos`, `comb`, `comb3`, `bop`, `lcbop`, lubricate family, external wrappers, `srp`, `list`, `tracker`, `dsmc`, `zero` |
 
 Done 2026-10-15 (first KOKKOS batch, the former SMALL row): `coul/cut/soft/gapsys`,
@@ -318,20 +319,10 @@ Verification decks for all Tier 1 styles: `kokkos-tier1-verification/`.
 
 ### Template facts
 
-- One style = `src/GPU/pair_X_gpu.{h,cpp}` (subclass of the CPU class overriding ctor,
-  dtor, `compute`, `init_style`, `memory_usage`, plus `reinit` when the base has it),
-  `lib/gpu/lal_X.{h,cpp,cu}` (device class + kernels `k_X` / `k_X_fast`),
-  `lib/gpu/lal_X_ext.cpp` (C entry points `X_gpu_init/compute/compute_n/clear/bytes` in
-  `namespace LAMMPS_GPU`), a declaration block in `lib/gpu/include/lammps_gpu.h`
-  (included on both sides, so signatures are checked), two `action` lines in
-  `src/GPU/Install.sh`, an entry in `src/Purge.list`.  CMake globs `lib/gpu/*.cpp` and
-  `*.cu` for CUDA, OpenCL and HIP (`cmake/Modules/Packages/GPU.cmake`); the kernel
-  symbol is the file name minus `lal_`; the host `.cpp` includes `X_cl.h` /
-  `X_cubin.h`.  The legacy `lib/gpu/Makefile.*` are gone.  Clean template commit:
-  086cf49a8c (`coul/slater/long`, 2023-12), minus three API changes since
-  (`lammps_gpu.h` consolidation 6de3baf5bf/e8059a06dd, `host_start`/`cpu_time` removal
-  21d55a1540, `periodicity` argument baf16f9117): copy the structure from the commit
-  and the code from the current `lal_coul_slater_long.*`.
+The how-to (files of a port, choice of the template, kernels, host wrapper, tests) is
+`gpu-porting-guide.md`; clone from the styles of the 2026-10 batches listed below,
+which use the current API.  What matters for choosing targets:
+
 - Base families in `lib/gpu/lal_base_*`: `atomic` (lj, born, buck, morse, mie, eam,
   table, zbl, yukawa), `charge` (q array + texture, `threads_per_charge`; `qqrd2e` and
   `g_ewald` are per style), `dipole`, `dpd` (uploads `v` + `tag`, in-kernel Saru RNG
@@ -345,21 +336,29 @@ Verification decks for all Tier 1 styles: `kokkos-tier1-verification/`.
   `FixGPU::post_force`.  Hybrid works with host neighbor lists (`neigh no`) only.
   `respa_enable = 0` everywhere.  Triclinic works; `neigh_modify exclude` and
   `atom_style template` do not with device neighbor builds.
-- Precision at configure time: `-D GPU_PREC=single|mixed|double` (default mixed).
-  The YAML harness relaxes `epsilon` x7.5 (double), x5e8 (mixed), x1e10 (single):
-  validate new kernels against a double-precision build, then run mixed and HIP.
-- `src/GPU/Install.sh` is missing the `action` lines for nine existing styles
-  (`coul/slater/long`, the SPH styles, the soft styles among them); harmless for CMake
-  builds, fix when touching the file.
 
 ### Pair styles without /gpu
 
 | effort | styles (closest `lal_` kernel) |
 |---|---|
-| SMALL (charge family) | `lj/charmmfsw/coul/long` (lal_charmm_long + force switching), `lj/charmmfsw/coul/charmmfsh`, `lj/charmm/coul/charmm/implicit` (lal_charmm); `lj/class2/coul/cut` (lal_lj_class2_long + lal_lj_coul); `coul/wolf`, `lj/cut/coul/wolf` (lal_born_coul_wolf); `born/coul/dsf`, `born/coul/dsf/cs` (lal_coul_dsf + lal_born); `coul/slater/cut` (lal_coul_slater_long); FEP `coul/cut/soft`, `coul/long/soft`, `lj/cut/soft`, `lj/class2/soft`, `morse/soft`, `lj/charmm/coul/long/soft` (lal_lj_coul_soft, lal_lj_coul_long_soft); CORESHELL `buck/coul/long/cs`, `lj/cut/coul/long/cs`, `lj/class2/coul/long/cs`, `coul/wolf/cs` (lal_born_coul_long_cs, lal_coul_long_cs, lal_born_coul_wolf_cs); `lj/gromacs/coul/gromacs` (lal_lj_gromacs); `nm/cut/coul/cut`, `nm/cut/coul/long` (lal_lj_coul, lal_lj_coul_long); `coul/diel`, `coul/shield`, `coul/cut/global` (lal_coul); `lj/switch3/coulgauss/long`, `mm3/switch3/coulgauss/long`, `coul/esp`, `lj/cut/coul/esp` (lal_lj_coul_long); `pedone`, `buck6d/coul/gauss/dsf`, `buck6d/coul/gauss/long`, `lj/class2/coul/cut/soft`, `lj/class2/coul/long/soft`, `coul/cut/soft/gapsys` |
-| SMALL (atomic family) | `nm/cut`, `nm/cut/split`, `harmonic/cut`, `wf/cut`, `momb`, `lj/pirani`, `lj/mdf`, `buck/mdf`, `lennard/mdf`, `lj/smooth/linear` (+`lj/sf` alias), `morse/smooth/linear`, `lj/relres`, `cosine/squared`, `born/gauss`, `gauss/cut`, `lj/cut/soft/gapsys` (lal_lj and siblings); with a radius upload (lal_colloid / lal_yukawa_colloid pattern): `lj/cut/sphere`, `lj/expand/sphere`; DPD `dpd/ext`, `dpd/ext/tstat` (lal_dpd) |
-| MEDIUM | `tip4p/long`, `tip4p/cut`, `lj/cut/tip4p/cut` (lal_lj_tip4p_long M-site kernel); `mesomem/dipole` (lal_dipole_lj); three family `sw/mod` (lal_sw), `tersoff/mod/c` (lal_tersoff_mod), `vashishta/table` (lal_vashishta), `nb3b/harmonic`(+`screened`), `gw`(+`zbl`) (lal_tersoff), `sw/angle/table`, `threebody/table`, `edip`; `ylz` (lal_gayberne); `lj/long/coul/long` (lal_lj_coul_long + the analytic dispersion terms; the kspace stays on the host anyway); density styles `eam/cd`, `local/density`, `eim` (lal_eam) |
+| SMALL (charge family) | `coul/shield` (lal_coul); `lj/switch3/coulgauss/long`, `mm3/switch3/coulgauss/long`, `coul/esp`, `lj/cut/coul/esp` (lal_lj_coul_long); `pedone`, `buck6d/coul/gauss/dsf`, `buck6d/coul/gauss/long`; `coul/ctip` (pair term plus a per-atom self energy) |
+| SMALL (atomic family) | `harmonic/cut`, `wf/cut`, `momb`, `lj/pirani`, `lj/mdf`, `buck/mdf`, `lennard/mdf`, `lj/smooth/linear` (+`lj/sf` alias), `morse/smooth/linear`, `lj/relres`, `cosine/squared`, `born/gauss`, `gauss/cut` (lal_lj and siblings); with a radius upload (lal_colloid / lal_yukawa_colloid pattern): `lj/cut/sphere`, `lj/expand/sphere`; DPD `dpd/ext`, `dpd/ext/tstat` (lal_dpd) |
+| MEDIUM | `tip4p/long`, `tip4p/cut`, `lj/cut/tip4p/cut` (lal_lj_tip4p_long M-site kernel; make it reusable first); `mesomem/dipole` (lal_dipole_lj); three family `sw/mod` (lal_sw), `tersoff/mod/c` (lal_tersoff_mod), `vashishta/table` (lal_vashishta), `nb3b/harmonic`(+`screened`), `gw`(+`zbl`) (lal_tersoff), `sw/angle/table`, `threebody/table`, `edip`; `ylz` (lal_gayberne); `lj/long/coul/long` (lal_lj_coul_long + the analytic dispersion terms; the kspace stays on the host anyway); density styles `eam/cd`, `local/density`, `eim` (lal_eam) |
 | LARGE / not now | `atm` (no triple-loop template), `meam`, ML (`snap`, `pace`, `pod`, `uf3`, `mliap`), the ILP family, `granular` (owner: the GPU package maintainer), BPM, SPIN, oxDNA, DIELECTRIC, `eff/cut` (requested in #3325; electron radius data on device), `amoeba`/`hippo` already exist |
+
+Done 2026-10 (PR #5247, 33 styles, verified with CUDA in double and mixed precision
+and with OpenCL on NVIDIA V100 GPUs, compiled for HIP): charge family `coul/wolf`,
+`lj/cut/coul/wolf`, `born/coul/dsf`, `born/coul/dsf/cs`, `coul/slater/cut`,
+`lj/class2/coul/cut`, `lj/charmmfsw/coul/long`, `lj/charmmfsw/coul/charmmfsh`,
+`lj/charmm/coul/charmm/implicit`, `lj/gromacs/coul/gromacs`, `coul/diel`,
+`coul/cut/global`, `nm/cut/coul/cut`, `nm/cut/coul/long`; CORESHELL
+`buck/coul/long/cs`, `lj/cut/coul/long/cs`, `lj/class2/coul/long/cs`, `coul/wolf/cs`;
+FEP `coul/cut/soft`, `coul/long/soft`, `lj/cut/soft`, `lj/class2/soft`, `morse/soft`,
+`lj/charmm/coul/long/soft`, `lj/class2/coul/cut/soft`, `lj/class2/coul/long/soft`, and
+the Gapsys styles `coul/cut/soft/gapsys`, `lj/cut/soft/gapsys`,
+`lj/class2/soft/gapsys`, `lj/cut/coul/cut/soft/gapsys`,
+`lj/class2/coul/cut/soft/gapsys`; atomic family `nm/cut`, `nm/cut/split`.  Left out
+of those batches on purpose: the MSM pair styles (see "Standing decisions").
 
 Known gaps in existing `/gpu` variants (from `skip_tests`): no Coulomb tables (by
 design), `tersoff*` reject `shift`, `sw` rejects `threebody off`, hybrid and
@@ -402,42 +401,12 @@ crash fixes of #5212.
 
 ## Bugs found by the 2026-10-15 survey
 
-1. `src/OPENMP/pair_edip_omp.cpp`: the per-thread `preForceCoord` slice was offset by
-   `tid * 64` while each thread uses `5 * 64` entries (the base allocates
-   `5 * nthreads * 64`), so threads overlapped once an atom had more than 12 neighbors
-   in the cutoff-function range.  `edip`, `edip/omp` and `edip/multi` also never
-   checked the neighbor count against the fixed 64-entry scratch.
-2. `src/DPD-MESO/pair_edpd.cpp`: `read_restart_settings()` seeded `randomT` with the
-   same seed as `random` (`settings()` uses `2*seed`), so after a restart the two noise
-   streams were identical.
-3. `src/MANYBODY/pair_nb3b_harmonic.cpp`: substyle string typo `"nb3n/harmonic"`.
-4. Design question, not a bug fix: `pair bpm/peri` tallies `fpair*vfrac_eff` into the
-   virial on purpose but does not set `no_virial_fdotr_compute`, so the global virial
-   differs between the fdotr path and the per-pair tally path.
+The nine defects found while surveying and porting (`edip/omp` scratch overlap, `edpd`
+restart seed, `nb3b/harmonic` substyle name, the `bpm/peri` virial paths,
+`lj/class2/coul/long/soft` shift, `coul/esp` scale, `compute reduce` `sumabs`/`aveabs`,
+`threebody/table` `acos()` argument, table lookups one entry past the end) are fixed
+(PR #5245); see the commit history.  Still open:
 
-5. `src/FEP/pair_lj_class2_coul_long_soft.cpp` (found 2026-10-15 while porting): the
-   `pair_modify shift yes` offset lacked the `lambda^n` prefactor, so the shifted
-   energy did not vanish at the cutoff for lambda < 1.
-6. `src/KSPACE/pair_coul_esp.cpp` (and `/omp`): the per-type-pair `scale` that
-   `fix adapt` can change was applied only to the tabulated energy.
-
-7. `src/compute_reduce.cpp` (found 2026-10-15 by the KOKKOS batch verification): the
-   vector output of the `sumabs` mode was never reduced (uninitialized values) and the
-   `aveabs` mode was not divided by the count.  Do not use `compute reduce sumabs` with
-   several inputs in verification decks on branches without the fix.
-
-8. `src/MANYBODY/pair_threebody_table.cpp` (found 2026-10-15 while porting, used by
-   `/omp` too): the cosine was not clamped to [-1,1] before `acos()`; for (nearly)
-   collinear neighbors rounding gives NaN and the table index becomes garbage
-   (segmentation fault).
-9. Spline table lookups read one entry past the end of the table at the upper bound
-   (found 2026-10-15 while porting): `angle_style table` (also `/omp` and `/kk`) and
-   `pair sw/angle/table` at an angle of exactly 180 degrees, which a linear angle
-   reaches through the clamped cosine; `bond_style table` (also `/omp` and `/kk`) and
-   `fix wall/table` only at exactly the outer table bound.
-10. `src/KOKKOS/angle_dipole_kokkos.cpp` (found 2026-10-15 by the CUDA round, not
-    fixed): the `SMALL*SMALL` guards (`SMALL` = 1.0e-100) are zero in single precision,
-    so in mixed-precision builds they never trigger; only exactly coincident atoms are
-    affected.
-
-Items 1-3, 5-9 are fixed on their own branch; see the commit history.
+- `src/KOKKOS/angle_dipole_kokkos.cpp`: the `SMALL*SMALL` guards (`SMALL` = 1.0e-100)
+  are zero in single precision, so in mixed-precision builds they never trigger; only
+  exactly coincident atoms are affected.

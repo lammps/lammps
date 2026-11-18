@@ -19,6 +19,7 @@
 #include "error.h"
 #include "force.h"
 #include "kokkos.h"
+#include "math_special_kokkos.h"
 #include "memory_kokkos.h"
 #include "neigh_request.h"
 #include "neighbor.h"
@@ -143,15 +144,15 @@ compute_fpair(const KK_FLOAT &rsq, const int &, const int &, const int &itype, c
   const KK_FLOAT e0nm_val = (STACKPARAMS?m_params[itype][jtype].e0nm:params(itype,jtype).e0nm);
   const KK_FLOAT rcmu_val = (STACKPARAMS?m_params[itype][jtype].rcmu:params(itype,jtype).rcmu);
   const KK_FLOAT sigma_mu_val = (STACKPARAMS?m_params[itype][jtype].sigma_mu:params(itype,jtype).sigma_mu);
-  const KK_FLOAT rminv = Kokkos::pow(r2inv, static_cast<KK_FLOAT>(mu_i));
+  const KK_FLOAT rminv = MathSpecialKokkos::powint(r2inv, mu_i);
   const KK_FLOAT rm = sigma_mu_val * rminv - static_cast<KK_FLOAT>(1.0);
   const KK_FLOAT rn = rcmu_val * rminv - static_cast<KK_FLOAT>(1.0);
-  const KK_FLOAT rn2nu = Kokkos::pow(rn, static_cast<KK_FLOAT>(2*nu_i));
-  const KK_FLOAT rn2nu1 = Kokkos::pow(rn, static_cast<KK_FLOAT>(2*nu_i - 1));
+  const KK_FLOAT rn2nu = MathSpecialKokkos::powint(rn, 2*nu_i);
+  const KK_FLOAT rn2nu1 = MathSpecialKokkos::powint(rn, 2*nu_i - 1);
   const KK_FLOAT forcenm = static_cast<KK_FLOAT>(2*mu_i) * sigma_mu_val * rn2nu
     + static_cast<KK_FLOAT>(4) * nm_val * rcmu_val * rm * rn2nu1;
 
-  return e0nm_val * forcenm * Kokkos::pow(r2inv, static_cast<KK_FLOAT>(mu_i + 1));
+  return e0nm_val * forcenm * MathSpecialKokkos::powint(r2inv, mu_i + 1);
 }
 
 template<class DeviceType>
@@ -166,11 +167,11 @@ compute_evdwl(const KK_FLOAT &rsq, const int &, const int &, const int &itype, c
   const KK_FLOAT e0nm_val = (STACKPARAMS?m_params[itype][jtype].e0nm:params(itype,jtype).e0nm);
   const KK_FLOAT rcmu_val = (STACKPARAMS?m_params[itype][jtype].rcmu:params(itype,jtype).rcmu);
   const KK_FLOAT sigma_mu_val = (STACKPARAMS?m_params[itype][jtype].sigma_mu:params(itype,jtype).sigma_mu);
-  const KK_FLOAT rminv = Kokkos::pow(r2inv, static_cast<KK_FLOAT>(mu_i));
+  const KK_FLOAT rminv = MathSpecialKokkos::powint(r2inv, mu_i);
   const KK_FLOAT rm = sigma_mu_val * rminv - static_cast<KK_FLOAT>(1.0);
   const KK_FLOAT rn = rcmu_val * rminv - static_cast<KK_FLOAT>(1.0);
 
-  return e0nm_val * rm * Kokkos::pow(rn, static_cast<KK_FLOAT>(2*nu_i));
+  return e0nm_val * rm * MathSpecialKokkos::powint(rn, 2*nu_i);
 }
 
 /* ----------------------------------------------------------------------

@@ -78,9 +78,9 @@ int dlaed6_(integer *kniter, logical *orgati, doublereal *rho, doublereal *d__, 
             }
         }
     }
-    eps = dlamch_((char *)"Epsilon", (ftnlen)7);
-    base = dlamch_((char *)"Base", (ftnlen)4);
-    i__1 = (integer)(log(dlamch_((char *)"SafMin", (ftnlen)6)) / log(base) / 3.);
+    eps = dlamch_((char *)"E", (ftnlen)1);
+    base = dlamch_((char *)"B", (ftnlen)1);
+    i__1 = (integer)(log(dlamch_((char *)"S", (ftnlen)1)) / log(base) / 3.);
     small1 = pow_lmp_di(&base, &i__1);
     sminv1 = 1. / small1;
     small2 = small1 * small1;

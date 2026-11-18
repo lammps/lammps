@@ -364,7 +364,7 @@ See README file in the tools/fep directory.
 find-symmetry tool
 ------------------
 
-.. versionadded:: TBD
+.. versionadded:: 13Nov2026
 
 The tools/symmetry directory contains the *find-symmetry* program,
 which writes symmetry files for the :doc:`fix symmetry <fix_symmetry>`

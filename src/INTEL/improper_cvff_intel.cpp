@@ -134,11 +134,7 @@ void ImproperCvffIntel::eval(const int vflag,
   #endif
   {
     int nfrom, npl, nto, tid;
-    #ifdef LMP_INTEL_USE_SIMDOFF_FIX
-    IP_PRE_omp_range_id(nfrom, nto, tid, inum, nthreads);
-    #else
     IP_PRE_omp_stride_id(nfrom, npl, nto, tid, inum, nthreads);
-    #endif
 
     FORCE_T * _noalias const f = f_start + (tid * f_stride);
     if (fix->need_zero(tid))
@@ -147,21 +143,7 @@ void ImproperCvffIntel::eval(const int vflag,
     const int5_t * _noalias const improperlist =
       (int5_t *) neighbor->improperlist[0];
 
-    #ifdef LMP_INTEL_USE_SIMDOFF_FIX
-    acc_t seimproper, sv0, sv1, sv2, sv3, sv4, sv5;
-    if (EFLAG) seimproper = (acc_t)0.0;
-    if (VFLAG && vflag) {
-      sv0 = sv1 = sv2 = sv3 = sv4 = sv5 = (acc_t)0.0;
-    }
-#if defined(USE_OMP_SIMD)
-    #pragma omp simd reduction(+:seimproper, sv0, sv1, sv2, sv3, sv4, sv5)
-#else
-    #pragma simd reduction(+:seimproper, sv0, sv1, sv2, sv3, sv4, sv5)
-#endif
-    for (int n = nfrom; n < nto; n++) {
-    #else
     for (int n = nfrom; n < nto; n += npl) {
-    #endif
       const int i1 = IP_PRE_dword_index(improperlist[n].a);
       const int i2 = IP_PRE_dword_index(improperlist[n].b);
       const int i3 = IP_PRE_dword_index(improperlist[n].c);
@@ -222,10 +204,8 @@ void ImproperCvffIntel::eval(const int vflag,
       flt_t c = (c0 + c1mag*c2mag) * s12;
 
       // error check
-      #ifndef LMP_INTEL_USE_SIMDOFF_FIX
       if (c > PTOLERANCE || c < MTOLERANCE)
         problem(FLERR, i1, i2, i3, i4);
-      #endif
 
       if (c > (flt_t)1.0) c = (flt_t)1.0;
       if (c < (flt_t)-1.0) c = (flt_t)-1.0;
@@ -238,13 +218,6 @@ void ImproperCvffIntel::eval(const int vflag,
       const int m = fc.fc[type].multiplicity;
 
       flt_t p, pd;
-      #ifdef LMP_INTEL_USE_SIMDOFF_FIX
-#if defined(USE_OMP_SIMD)
-      #pragma omp ordered simd
-#else
-      #pragma simdoff
-#endif
-      #endif
       {
         if (m == 2) {
           p = (flt_t)2.0*c*c;
@@ -314,13 +287,6 @@ void ImproperCvffIntel::eval(const int vflag,
 
       // apply force to each of 4 atoms
 
-      #ifdef LMP_INTEL_USE_SIMDOFF_FIX
-#if defined(USE_OMP_SIMD)
-      #pragma omp ordered simd
-#else
-      #pragma simdoff
-#endif
-      #endif
       {
         if (NEWTON_BOND || i1 < nlocal) {
           f[i1].x += f1x;
@@ -348,28 +314,13 @@ void ImproperCvffIntel::eval(const int vflag,
       }
 
       if (EFLAG || VFLAG) {
-        #ifdef LMP_INTEL_USE_SIMDOFF_FIX
-        IP_PRE_ev_tally_dihed(EFLAG, VFLAG, eatom, vflag, eimproper, i1, i2,
-                              i3, i4, f1x, f1y, f1z, f3x, f3y, f3z, f4x, f4y,
-                              f4z, vb1x, vb1y, vb1z, -vb2xm, -vb2ym, -vb2zm,
-                              vb3x, vb3y, vb3z, seimproper, f, NEWTON_BOND,
-                              nlocal, sv0, sv1, sv2, sv3, sv4, sv5);
-        #else
         IP_PRE_ev_tally_dihed(EFLAG, VFLAG, eatom, vflag, eimproper, i1, i2,
                               i3, i4, f1x, f1y, f1z, f3x, f3y, f3z, f4x, f4y,
                               f4z, vb1x, vb1y, vb1z, -vb2xm, -vb2ym, -vb2zm,
                               vb3x, vb3y, vb3z, oeimproper, f, NEWTON_BOND,
                               nlocal, ov0, ov1, ov2, ov3, ov4, ov5);
-        #endif
       }
     } // for n
-    #ifdef LMP_INTEL_USE_SIMDOFF_FIX
-    if (EFLAG) oeimproper += seimproper;
-    if (VFLAG && vflag) {
-      ov0 += sv0; ov1 += sv1; ov2 += sv2;
-      ov3 += sv3; ov4 += sv4; ov5 += sv5;
-    }
-    #endif
   } // omp parallel
   if (EFLAG) energy += oeimproper;
   if (VFLAG && vflag) {

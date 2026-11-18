@@ -157,7 +157,7 @@ class FixQEqReaxFF : public Fix {
   virtual void sparse_matvec(sparse_matrix *, double *, double *);
   virtual void solve_st();
 
-  double rhs_s(int) const;
+  [[nodiscard]] double rhs_s(int) const;
 
  public:
   int pack_forward_comm(int, int *, double *, int, int *) override;
@@ -184,9 +184,9 @@ class FixQEqReaxFF : public Fix {
   virtual void calc_chi_eff();
   void prepare_efield_phi();
   void set_efield_phi();
-  bool efield_has_variables() const;
-  double efield_phi(int) const;
-  double chi_eff_one(int) const;
+  [[nodiscard]] bool efield_has_variables() const;
+  [[nodiscard]] double efield_phi(int) const;
+  [[nodiscard]] double chi_eff_one(int) const;
 
   // settings of the external electric potential for the effective electronegativities
   double phi_ex, phi_ey, phi_ez;

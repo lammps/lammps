@@ -308,9 +308,6 @@ void PairGayBerneIntel::eval(const int vflag,
 #if defined(USE_OMP_SIMD)
         #pragma omp simd reduction(+:fxtmp,fytmp,fztmp,fwtmp,t1tmp,t2tmp, \
                                    t3tmp,sevdwl,sv0,sv1,sv2,sv3,sv4,sv5)
-#else
-        #pragma simd reduction(+:fxtmp,fytmp,fztmp,fwtmp,t1tmp,t2tmp, \
-                               t3tmp,sevdwl,sv0,sv1,sv2,sv3,sv4,sv5)
 #endif
         #pragma vector aligned
         #endif
@@ -669,8 +666,6 @@ void PairGayBerneIntel::eval(const int vflag,
           #if defined(LMP_SIMD_COMPILER)
 #if defined(USE_OMP_SIMD)
           #pragma omp simd
-#else
-          #pragma simd
 #endif
           #pragma vector aligned
           #endif

@@ -14,6 +14,16 @@ set(LAMMPS_SOURCE_DIR ""  CACHE PATH "Location of LAMMPS sources folder")
 if(NOT LAMMPS_SOURCE_DIR)
   message(FATAL_ERROR "Must set LAMMPS_SOURCE_DIR")
 endif()
+# top level folder of the LAMMPS sources, as in the main build, where the package modules find
+# their helper scripts and patches.  Also make the find modules of LAMMPS (e.g. FindFFTW3.cmake)
+# available, since the package modules expect their targets.
+get_filename_component(LAMMPS_DIR ${LAMMPS_SOURCE_DIR}/.. ABSOLUTE)
+list(APPEND CMAKE_MODULE_PATH ${LAMMPS_DIR}/cmake/Modules)
+
+# compile with optimization by default, as the main build does
+if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CXX_FLAGS)
+  set(CMAKE_BUILD_TYPE RelWithDebInfo CACHE STRING "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel." FORCE)
+endif()
 
 # by default, install into $HOME/.local (not /usr/local),
 # so that no root access (and sudo) is needed
@@ -56,10 +66,6 @@ endif()
 #endif()
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Need -restrict with Intel compilers
-if(CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -restrict")
-endif()
 set(CMAKE_POSITION_INDEPENDENT_CODE TRUE)
 
 # skip over obsolete MPI-2 C++ bindings
@@ -248,10 +254,8 @@ if(BUILD_OMP)
 
   if (((CMAKE_CXX_COMPILER_ID STREQUAL "GNU") AND (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 9.0)) OR
       (CMAKE_CXX_COMPILER_ID STREQUAL "PGI") OR
-      ((CMAKE_CXX_COMPILER_ID STREQUAL "Clang") AND (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 10.0)) OR
-      ((CMAKE_CXX_COMPILER_ID STREQUAL "Intel") AND (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 19.0)))
+      ((CMAKE_CXX_COMPILER_ID STREQUAL "Clang") AND (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 10.0)))
     # GCC 9.x and later plus Clang 10.x and later implement strict OpenMP 4.0 semantics for consts.
-    # Intel 18.0 was tested to support both, so we switch to OpenMP 4+ from 19.x onward to be safe.
     target_compile_definitions(lammps INTERFACE -DLAMMPS_OMP_COMPAT=4)
   else()
     target_compile_definitions(lammps INTERFACE -DLAMMPS_OMP_COMPAT=3)

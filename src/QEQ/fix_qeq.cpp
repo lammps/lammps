@@ -1012,8 +1012,9 @@ void FixQEq::read_file(char *file)
         }
 
         auto word = values.next_string();
+        // utils::bounds() does not check the range without a pointer to the Error class
         utils::bounds(FLERR,word,1,ntypes,nlo,nhi,nullptr);
-        if ((nlo < 0) || (nhi < 0))
+        if ((nlo < 1) || (nhi > ntypes) || (nlo > nhi))
           throw qeq_parser_error(fmt::format("Invalid atom type range: {}",word));
 
         val = values.next_double();

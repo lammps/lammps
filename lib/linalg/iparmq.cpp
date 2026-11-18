@@ -67,12 +67,12 @@ integer iparmq_(integer *ispec, char *name__, char *opts, integer *n, integer *i
                 }
             }
         } else if (iz == 233 || iz == 169) {
-            if (ic >= 129 && ic <= 137 || ic >= 145 && ic <= 153 || ic >= 162 && ic <= 169) {
+            if ((ic >= 129 && ic <= 137) || (ic >= 145 && ic <= 153) || (ic >= 162 && ic <= 169)) {
                 *(unsigned char *)subnam = (char)(ic + 64);
                 for (i__ = 2; i__ <= 6; ++i__) {
                     ic = *(unsigned char *)&subnam[i__ - 1];
-                    if (ic >= 129 && ic <= 137 || ic >= 145 && ic <= 153 ||
-                        ic >= 162 && ic <= 169) {
+                    if ((ic >= 129 && ic <= 137) || (ic >= 145 && ic <= 153) ||
+                        (ic >= 162 && ic <= 169)) {
                         *(unsigned char *)&subnam[i__ - 1] = (char)(ic + 64);
                     }
                 }

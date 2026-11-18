@@ -23,6 +23,7 @@
 #include "fix_store_atom.h"
 #include "force.h"
 #include "math_const.h"
+#include "math_special.h"
 #include "memory.h"
 #include "modify.h"
 #include "neigh_list.h"
@@ -37,6 +38,8 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace MathConst;
+using MathSpecial::cube;
+using MathSpecial::powint;
 
 /* ---------------------------------------------------------------------- */
 
@@ -776,7 +779,7 @@ void FixLambdaLACSPAPIP::calculate_forces(int vflag)
     if (lambda[i] != 0 && lambda[i] != 1 && (mask[i] & groupbit)) {
       // calculate derviative of lambda
       tmp = 1 - 2 * (1 + (csp_avg[i] - threshold_hi) / threshold_width);
-      prefactor1[i] = -1.875 / threshold_width * (1 - 2 * tmp * tmp + pow(tmp, 4));
+      prefactor1[i] = -1.875 / threshold_width * (1 - 2 * tmp * tmp + powint(tmp, 4));
     } else {
       prefactor1[i] = 0;
     }
@@ -961,7 +964,7 @@ double FixLambdaLACSPAPIP::switching_function_poly(double input)
     return 0;
   } else {
     double tmp = 1 - 2 * (1 + (input - threshold_hi) / threshold_width);
-    return 0.5 + 7.5 / 2. * (tmp / 4. - pow(tmp, 3) / 6. + pow(tmp, 5) / 20.);
+    return 0.5 + 7.5 / 2. * (tmp / 4. - cube(tmp) / 6. + powint(tmp, 5) / 20.);
   }
 }
 
@@ -974,7 +977,7 @@ double FixLambdaLACSPAPIP::weighting_function_poly(double r)
     return 0;
   } else {
     double tmp = 1 - 2 * (1 + (r - cut_hi) / cut_width);
-    return 0.5 + 7.5 / 2. * (tmp / 4. - pow(tmp, 3) / 6. + pow(tmp, 5) / 20.);
+    return 0.5 + 7.5 / 2. * (tmp / 4. - cube(tmp) / 6. + powint(tmp, 5) / 20.);
   }
 }
 
@@ -985,7 +988,7 @@ double FixLambdaLACSPAPIP::der_weighting_function_poly(double r)
     return 0;
   } else {
     double tmp = 1 - 2 * (1 + (r - cut_hi) / cut_width);
-    return -1.875 / cut_width * (1 - 2 * tmp * tmp + pow(tmp, 4));
+    return -1.875 / cut_width * (1 - 2 * tmp * tmp + powint(tmp, 4));
   }
 }
 

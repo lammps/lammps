@@ -81,7 +81,8 @@ information.  The file *kim.log* should be generated in the same
 directory where LAMMPS is running.
 
 To download, build, and install the KIM library on your system, see
-the *lib/kim/README* file.  Once you have done this and built LAMMPS
+the :ref:`KIM package build instructions <kim>` on the :doc:`Build
+extras <Build_extras>` page.  Once you have done this and built LAMMPS
 with the KIM package installed you can run the example input scripts
 in *examples/kim*\ .
 

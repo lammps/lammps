@@ -91,8 +91,8 @@ int dlarre_(char *range, integer *n, doublereal *vl, doublereal *vu, integer *il
     rtl = sqrt(eps);
     bsrtol = sqrt(eps);
     if (*n == 1) {
-        if (irange == 1 || irange == 3 && d__[1] > *vl && d__[1] <= *vu ||
-            irange == 2 && *il == 1 && *iu == 1) {
+        if (irange == 1 || (irange == 3 && d__[1] > *vl && d__[1] <= *vu) ||
+            (irange == 2 && *il == 1 && *iu == 1)) {
             *m = 1;
             w[1] = d__[1];
             werr[1] = 0.;
@@ -160,8 +160,8 @@ int dlarre_(char *range, integer *n, doublereal *vl, doublereal *vu, integer *il
         iend = isplit[jblk];
         in = iend - ibegin + 1;
         if (in == 1) {
-            if (irange == 1 || irange == 3 && d__[ibegin] > *vl && d__[ibegin] <= *vu ||
-                irange == 2 && iblock[wbegin] == jblk) {
+            if (irange == 1 || (irange == 3 && d__[ibegin] > *vl && d__[ibegin] <= *vu) ||
+                (irange == 2 && iblock[wbegin] == jblk)) {
                 ++(*m);
                 w[*m] = d__[ibegin];
                 werr[*m] = 0.;
@@ -215,7 +215,7 @@ int dlarre_(char *range, integer *n, doublereal *vl, doublereal *vu, integer *il
                 indu = indexw[wend];
             }
         }
-        if (irange == 1 && !forceb || usedqd) {
+        if ((irange == 1 && !forceb) || usedqd) {
             dlarrk_(&in, &c__1, &gl, &gu, &d__[ibegin], &e2[ibegin], pivmin, &rtl, &tmp, &tmp1,
                     &iinfo);
             if (iinfo != 0) {

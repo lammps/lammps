@@ -41,6 +41,7 @@ PairStyle(gw/kk/host,PairGWKokkos<LMPHostType>);
 #include "force.h"
 #include "kokkos.h"
 #include "math_const.h"
+#include "math_special_kokkos.h"
 #include "memory_kokkos.h"
 #include "neigh_list_kokkos.h"
 #include "neigh_request.h"
@@ -698,7 +699,7 @@ KK_FLOAT PairGWKokkosBase<DeviceType,PairCPUBase>::F_fermi_d_k(const Param &para
   const KK_FLOAT expscale = static_cast<KK_FLOAT>(param.ZBLexpscale);
   const KK_FLOAT zblcut = static_cast<KK_FLOAT>(param.ZBLcut);
   return expscale*Kokkos::exp(-expscale*(r-zblcut)) /
-    Kokkos::pow(static_cast<KK_FLOAT>(1.0) + Kokkos::exp(-expscale*(r-zblcut)),static_cast<KK_FLOAT>(2.0));
+    MathSpecialKokkos::square(static_cast<KK_FLOAT>(1.0) + Kokkos::exp(-expscale*(r-zblcut)));
 }
 
 /* ----------------------------------------------------------------------
@@ -775,7 +776,7 @@ KK_FLOAT PairGWKokkosBase<DeviceType,PairCPUBase>::ex_delr_k(const Param &param,
 {
   KK_FLOAT arg;
   if (param.powermint == 3)
-    arg = Kokkos::pow(static_cast<KK_FLOAT>(param.lam3) * (rij-rik),static_cast<KK_FLOAT>(3.0));
+    arg = MathSpecialKokkos::cube(static_cast<KK_FLOAT>(param.lam3) * (rij-rik));
   else arg = static_cast<KK_FLOAT>(param.lam3) * (rij-rik);
 
   if (arg > static_cast<KK_FLOAT>(69.0776)) return static_cast<KK_FLOAT>(1.e30);
@@ -917,8 +918,8 @@ void PairGWKokkosBase<DeviceType,PairCPUBase>::attractive_k(const Param &param, 
   const KK_FLOAT ex_delr = ex_delr_k(param,rij,rik);
   KK_FLOAT ex_delr_d;
   if (param.powermint == 3)
-    ex_delr_d = static_cast<KK_FLOAT>(3.0)*Kokkos::pow(lam3,static_cast<KK_FLOAT>(3.0)) *
-      Kokkos::pow(rij-rik,static_cast<KK_FLOAT>(2.0))*ex_delr;
+    ex_delr_d = static_cast<KK_FLOAT>(3.0)*MathSpecialKokkos::cube(lam3) *
+      MathSpecialKokkos::square(rij-rik)*ex_delr;
   else ex_delr_d = lam3 * ex_delr;
 
   const KK_FLOAT cos_theta = rij_hat[0]*rik_hat[0] + rij_hat[1]*rik_hat[1] + rij_hat[2]*rik_hat[2];

@@ -256,8 +256,6 @@ void NPairFullBinGhostIntel::fbi(NeighList * list,
               #if defined(LMP_SIMD_COMPILER)
 #if defined(USE_OMP_SIMD)
               #pragma omp simd
-#else
-              #pragma simd
 #endif
               #endif
               for (int jj = bstart; jj < bend; jj++)
@@ -281,8 +279,6 @@ void NPairFullBinGhostIntel::fbi(NeighList * list,
               #if defined(LMP_SIMD_COMPILER)
 #if defined(USE_OMP_SIMD)
               #pragma omp simd
-#else
-              #pragma simd
 #endif
               #endif
               for (int jj = bstart; jj < bend; jj++)
@@ -292,8 +288,6 @@ void NPairFullBinGhostIntel::fbi(NeighList * list,
           #if defined(LMP_SIMD_COMPILER)
 #if defined(USE_OMP_SIMD)
           #pragma omp simd
-#else
-          #pragma simd
 #endif
           #pragma vector aligned
           #endif
@@ -372,8 +366,6 @@ void NPairFullBinGhostIntel::fbi(NeighList * list,
           #else
 #if defined(USE_OMP_SIMD)
           #pragma omp simd
-#else
-          #pragma simd
 #endif
           #endif
           #pragma vector aligned
@@ -405,8 +397,6 @@ void NPairFullBinGhostIntel::fbi(NeighList * list,
           #else
 #if defined(USE_OMP_SIMD)
           #pragma omp simd
-#else
-          #pragma simd
 #endif
           #endif
           #pragma vector aligned

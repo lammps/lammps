@@ -21,12 +21,14 @@
 #include "comm.h"
 #include "error.h"
 #include "force.h"
+#include "math_special.h"
 #include "memory.h"
 #include "neigh_list.h"
 #include "neighbor.h"
 
 #include <cmath>
 using namespace LAMMPS_NS;
+using MathSpecial::powauto;
 
 /* ---------------------------------------------------------------------- */
 
@@ -156,14 +158,16 @@ void PairBondValVec::compute(int eflag, int vflag)
       if (rsq < cutsq[itype][jtype]) {
         recip = 1.0 / sqrt(rsq);
         // pow must be switched by array calculated in bv
-        s0x[i] += pow(r0[itype][jtype] * recip, alpha[itype][jtype]) * recip * (delx);
-        s0y[i] += pow(r0[itype][jtype] * recip, alpha[itype][jtype]) * recip * (dely);
-        s0z[i] += pow(r0[itype][jtype] * recip, alpha[itype][jtype]) * recip * (delz);
+        const double sij = powauto(r0[itype][jtype] * recip, alpha[itype][jtype]) * recip;
+        s0x[i] += sij * (delx);
+        s0y[i] += sij * (dely);
+        s0z[i] += sij * (delz);
 
         if (newton_pair || j < nlocal) {
-          s0x[j] -= pow(r0[jtype][itype] * recip, alpha[jtype][itype]) * recip * (delx);
-          s0y[j] -= pow(r0[jtype][itype] * recip, alpha[jtype][itype]) * recip * (dely);
-          s0z[j] -= pow(r0[jtype][itype] * recip, alpha[jtype][itype]) * recip * (delz);
+          const double sji = powauto(r0[jtype][itype] * recip, alpha[jtype][itype]) * recip;
+          s0x[j] -= sji * (delx);
+          s0y[j] -= sji * (dely);
+          s0z[j] -= sji * (delz);
         }
         //
       }
@@ -213,7 +217,7 @@ void PairBondValVec::compute(int eflag, int vflag)
         r = sqrt(rsq);
         recip = 1.0 / r;
         recip2 = recip * recip;
-        Aij = pow(r0[itype][jtype] * recip, alpha[itype][jtype]) * recip;
+        Aij = powauto(r0[itype][jtype] * recip, alpha[itype][jtype]) * recip;
         Eij = (alpha[itype][jtype] + 1.0) * recip2;
 
         fx = (Dix[j] - Dix[i]) * Aij + (Dix[i] - Dix[j]) * Eij * delx * delx * Aij +

@@ -39,7 +39,7 @@ environment and local folders.
 
 Installing prerequisites for the documentation build
 
-To run the HTML documention build toolchain, python 3.8 or later,
+To run the HTML documentation build toolchain, python 3.9 or later,
 doxygen 1.8.10 or later, git, and the venv python module have to be
 installed if not already available.  Also internet access is initially
 required to download external files and tools.

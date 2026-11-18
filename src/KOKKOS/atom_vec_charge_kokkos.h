@@ -36,7 +36,6 @@ class AtomVecChargeKokkos : public AtomVecKokkos, public AtomVecCharge {
 
   void grow(int) override;
   void grow_pointers() override;
-  void sort_kokkos(Kokkos::BinSort<KeyViewType, BinOp> &Sorter) override;
   void sync(ExecutionSpace space, uint64_t mask) override;
   void modified(ExecutionSpace space, uint64_t mask) override;
   void sync_pinned(ExecutionSpace space, uint64_t mask, int async_flag = 0) override;

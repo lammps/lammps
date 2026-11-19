@@ -75,6 +75,9 @@ class LAMMPSLexer(RegexLexer):
             (r'[0-9]+(\.[0-9]+)?([eE]\-?[0-9]+)?', Number),
             (r'\$?\(', Name.Variable, 'expression'),
             (r'\$\{', Name.Variable, 'variable'),
+            # Highlight command styles in the same blue, bold style used by
+            # the LAMMPS website for documented command names.
+            (words(('temp/uef', 'temp/uvt', 'uvt', 'pimd/uvt'), suffix=r'\b', prefix=r'(?<=\s)'), Name.Class),
             (r'[\w_\.\[\]]+', Name),
             (r'\$[\w_]+', Name.Variable),
             (r'\s+', Whitespace),

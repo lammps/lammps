@@ -2,6 +2,23 @@
         text-align: left;
 }
 
+/* Keep text and links consistent across the built-in and custom themes. */
+body, .rst-content {
+        color: #404040;
+}
+
+.rst-content a, .rst-content a:visited {
+        color: #2980b9;
+}
+
+.rst-content a:hover, .rst-content a:focus {
+        color: #245269;
+}
+
+.rst-content code.literal, .rst-content tt.literal {
+        color: #000000;
+}
+
 .eqno {
         float: right;
 }

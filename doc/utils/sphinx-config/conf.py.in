@@ -324,13 +324,17 @@ else:
 # html tree and the manual becomes readable when offline
 mathjax_path = 'mathjax/tex-mml-chtml.js'
 
-# hack to enable use of \AA in :math:
+# define the Angstrom symbol for MathJax and LaTeX output
+mathjax3_config = {
+  'tex': {
+    'macros': {
+      'AA': r'{\text{Å}}'
+    }
+  }
+}
+
 # add :lammps: role for inline LAMMPS code highlight
 rst_prolog = r"""
-
-.. only:: html
-
-   :math:`\renewcommand{\AA}{\text{Å}}`
 
 .. role:: lammps(code)
     :language: LAMMPS

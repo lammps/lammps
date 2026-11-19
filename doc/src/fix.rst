@@ -358,11 +358,12 @@ accelerated styles exist.
 * :doc:`pafi <fix_pafi>` - constrained force averages on hyper-planes to compute free energies (PAFI)
 * :doc:`pair <fix_pair>` - access per-atom info from pair styles
 * :doc:`phonon <fix_phonon>` - calculate dynamical matrix from MD simulations
-* :doc:`pimd/langevin <fix_pimd>` - Feynman path-integral molecular dynamics with stochastic thermostat
 * :doc:`pimd/nve <fix_pimd>` - Feynman path-integral molecular dynamics without thermostat
 * :doc:`pimd/nvt <fix_pimd>` - Feynman path-integral molecular dynamics with Nose-Hoover thermostat
+* :doc:`pimd/langevin <fix_pimd>` - Feynman path-integral molecular dynamics with stochastic thermostat
 * :doc:`pimd/langevin/bosonic <fix_pimd>` - Bosonic Feynman path-integral molecular dynamics for with stochastic thermostat
 * :doc:`pimd/nvt/bosonic <fix_pimd>` - Bosonic Feynman path-integral molecular dynamics with Nose-Hoover thermostat
+* :doc:`pimd/uvt <fix_pimd>` - constant-potential path-integral molecular dynamics
 * :doc:`planeforce <fix_planeforce>` - constrain atoms to move in a plane
 * :doc:`plumed <fix_plumed>` - wrapper on PLUMED free energy library
 * :doc:`polarize/bem/gmres <fix_polarize>` - compute induced charges at the interface between impermeable media with different dielectric constants with generalized minimum residual (GMRES)
@@ -456,6 +457,7 @@ accelerated styles exist.
 * :doc:`ttm/mod <fix_ttm>` - enhanced two-temperature model with additional options
 * :doc:`ttm/thermal <fix_ttm>` - a two-temperature model for thermal transport
 * :doc:`tune/kspace <fix_tune_kspace>` - auto-tune :math:`k`-space parameters
+* :doc:`uvt <fix_uvt>` - constant chemical-potential molecular dynamics
 * :doc:`vector <fix_vector>` - accumulate a global vector every *N* timesteps
 * :doc:`viscosity <fix_viscosity>` - Mueller-Plathe momentum exchange for viscosity calculation
 * :doc:`viscous <fix_viscous>` - viscous damping for granular simulations

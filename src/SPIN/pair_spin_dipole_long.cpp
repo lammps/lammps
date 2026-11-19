@@ -388,7 +388,6 @@ void PairSpinDipoleLong::compute_single_pair(int ii, double fmi[3])
       spj[2] = sp[j][2];
       spj[3] = sp[j][3];
 
-      fmi[0] = fmi[1] = fmi[2] = 0.0;
       bij[0] = bij[1] = bij[2] = bij[3] = 0.0;
 
       rij[0] = x[j][0] - xi[0];

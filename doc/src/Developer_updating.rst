@@ -708,7 +708,7 @@ This change is **required** or else the code will not compile.
 Use Modify::has_fixes() instead of the Modify::n_* counters
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. versionchanged:: TBD
+.. versionchanged:: 13Nov2026
 
 The Modify class used to have a public integer counter for every stage
 of a timestep or minimization (``n_pre_force``, ``n_post_force_any``,
@@ -751,7 +751,7 @@ This change is **required** or else the code will not compile.
 Access fixes and computes through the Modify accessor functions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. versionchanged:: TBD
+.. versionchanged:: 13Nov2026
 
 The lists of fixes and computes in the Modify class are now stored in
 ``std::vector`` containers and fixes are invoked by testing their mask
@@ -810,7 +810,7 @@ This change is **required** or else the code will not compile.
 Register callbacks for per-atom arrays with a pointer to the fix
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. versionchanged:: TBD
+.. versionchanged:: 13Nov2026
 
 A fix that manages per-atom arrays registers callbacks with the Atom
 class, so that its arrays are grown, copied, communicated, and stored

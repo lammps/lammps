@@ -53,7 +53,7 @@ Examples
 Description
 """""""""""
 
-.. versionadded:: TBD
+.. versionadded:: 13Nov2026
 
 This fix bounds the simulation domain of 3d body particles of style
 *rounded/polyhedron* with planar walls, as :doc:`fix wall/body/polyhedron

@@ -291,8 +291,8 @@ The *gpuID* keyword is used to specify the first ID for the GPU or
 other accelerator that LAMMPS will use. For example, if the ID is
 1 and *Ngpu* is 3, GPUs 1-3 will be used. Device IDs should be
 determined from the output of nvc\_get\_devices, ocl\_get\_devices,
-or hip\_get\_devices
-as provided in the lib/gpu directory. When using OpenCL with
+or hip\_get\_devices, which are compiled together with LAMMPS and
+can be found in the build folder. When using OpenCL with
 accelerators that have main memory NUMA, the accelerators can be
 split into smaller virtual accelerators for more efficient use
 with MPI.
@@ -324,8 +324,8 @@ The meaning of *Nthreads* is exactly the same for the GPU, INTEL,
 and GPU packages.
 
 The *platform* keyword is only used with OpenCL to specify the ID for
-an OpenCL platform. See the output from ocl\_get\_devices in the lib/gpu
-directory. In LAMMPS only one platform can be active at a time and by
+an OpenCL platform. See the output from ocl\_get\_devices in the build
+folder. In LAMMPS only one platform can be active at a time and by
 default (id=-1) the platform is auto-selected to find the GPU with the
 most compute cores. When *Ngpu* or other keywords are specified, the
 auto-selection is appropriately restricted. For example, if *Ngpu* is
@@ -420,7 +420,7 @@ pre-computed table to efficiently spread the charge to the PPPM grid.
 This feature is enabled by default but can be turned off using the
 keyword with the argument *no*.
 
-.. versionadded:: TBD
+.. versionadded:: 13Nov2026
 
 The *ftz* keyword determines whether very small floating-point numbers
 (subnormal numbers) are flushed to zero.  On most CPUs, calculations
@@ -848,7 +848,7 @@ The *omp* style of this command can only be invoked if LAMMPS was built
 with the OPENMP package.  See the :doc:`Build package <Build_package>`
 doc page for more info.
 
-.. versionchanged:: TBD
+.. versionchanged:: 13Nov2026
 
 The *omp* style of this command cannot be used again while styles with
 OpenMP support (e.g. a pair style with the */omp* suffix) are defined,

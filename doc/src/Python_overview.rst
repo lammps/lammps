@@ -30,21 +30,20 @@ Python, which auto-generates the interface code needed between Python
 and a set of C-style library functions.  Ctypes has been part of the
 standard Python distribution since version 2.5.  You can check which
 version of Python you have by simply typing "python" at a shell prompt.
-Below is an example output for Python version 3.8.5.
+Below is an example output for Python version 3.9.25.
 
 .. code-block:: console
 
    $ python
-   Python 3.8.5 (default, Aug 12 2020, 00:00:00)
-   [GCC 10.2.1 20200723 (Red Hat 10.2.1-1)] on linux
+   Python 3.9.25 (main, Aug  6 2026, 00:00:00)
+   [GCC 11.5.0 20240719 (Red Hat 11.5.0-14)] on linux
    Type "help", "copyright", "credits" or "license" for more information.
    >>>
-
 
 .. warning::
 
    The options described in this section of the manual for using Python
-   with LAMMPS support only Python 3.6 or later.  For use with Python
+   with LAMMPS support only Python 3.9 or later.  For use with Python
    2.x you will need to use an older LAMMPS version like 29 Aug 2024
    or older.  If you notice Python code in the LAMMPS distribution that
    is not compatible with Python 3, please contact the LAMMPS developers

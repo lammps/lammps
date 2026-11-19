@@ -12,7 +12,7 @@ if(NOT BUILD_SHARED_LIBS)
   return()
 endif()
 
-find_package(Python 3.6 COMPONENTS Interpreter Development)
+find_package(Python 3.9 COMPONENTS Interpreter Development)
 
 if(PKG_PYTHON)
   add_executable(test_python_package test_python_package.cpp)

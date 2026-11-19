@@ -199,6 +199,8 @@ FixPlumed::FixPlumed(LAMMPS *lmp, int narg, char **arg) :
   double dt = update->dt;
   p->cmd("setTimestep", &dt);
 
+  plumedStopCondition = 0;
+
   extscalar = 1;
   scalar_flag = 1;
   energy_global_flag = virial_global_flag = 1;
@@ -403,7 +405,7 @@ void FixPlumed::post_force(int /* vflag */)
 
   // pass all pointers to plumed:
   p->cmd("setStep", &step);
-  int plumedStopCondition = 0;
+  plumedStopCondition = 0;
   p->cmd("setStopFlag", &plumedStopCondition);
   p->cmd("setPositions", &atom->x[0][0]);
   p->cmd("setBox", &box[0][0]);

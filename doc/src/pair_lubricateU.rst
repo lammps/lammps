@@ -126,7 +126,7 @@ particles of different size, *lubricateU/poly* uses the near-contact
 expansions of the two-sphere resistance functions of :ref:`(Jeffrey and
 Onishi) <Jeffrey2>`, see also :ref:`(Kim and Karrila) <KimKarrila2>`.
 
-.. versionchanged:: TBD
+.. versionchanged:: 13Nov2026
 
 The squeeze and shear resistance functions of *lubricateU/poly* for
 particles of different size are the same as those of :doc:`pair_style

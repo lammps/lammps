@@ -31,6 +31,7 @@
 #include "update.h"
 
 #include <cstring>
+#include <utility>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -1007,6 +1008,26 @@ void FixBondCreate::create_dihedrals(int m)
   tagint *dihedral_atom3 = atom->dihedral_atom3[m];
   tagint *dihedral_atom4 = atom->dihedral_atom4[m];
 
+  // store dihedrals with the ID of the 2nd atom smaller than the ID of the 3rd atom
+  // this matches the order of the loops below with newton_bond on, and for
+  //   newton_bond off it makes all 4 copies of a dihedral the same
+
+  auto add_dihedral = [&](tagint a1, tagint a2, tagint a3, tagint a4) {
+    if (a2 > a3) {
+      std::swap(a1,a4);
+      std::swap(a2,a3);
+    }
+    if (num_dihedral < atom->dihedral_per_atom) {
+      dihedral_type[num_dihedral] = dtype;
+      dihedral_atom1[num_dihedral] = a1;
+      dihedral_atom2[num_dihedral] = a2;
+      dihedral_atom3[num_dihedral] = a3;
+      dihedral_atom4[num_dihedral] = a4;
+      num_dihedral++;
+      ndihedrals++;
+    } else overflow = 1;
+  };
+
   // atom M is 2nd atom in dihedral
   // double loop over 1-2 neighs
   // two triple loops: one over neighs at each end of triplet
@@ -1049,15 +1070,7 @@ void FixBondCreate::create_dihedrals(int m)
         }
         if (n < ncreate) {
           // NOTE: this is place to check atom types of i3,i2,i1,i4
-          if (num_dihedral < atom->dihedral_per_atom) {
-            dihedral_type[num_dihedral] = dtype;
-            dihedral_atom1[num_dihedral] = i1;
-            dihedral_atom2[num_dihedral] = i2;
-            dihedral_atom3[num_dihedral] = i3;
-            dihedral_atom4[num_dihedral] = i4;
-            num_dihedral++;
-            ndihedrals++;
-          } else overflow = 1;
+          add_dihedral(i1,i2,i3,i4);
         }
       }
     }
@@ -1091,15 +1104,7 @@ void FixBondCreate::create_dihedrals(int m)
         }
         if (n < ncreate) {
           // NOTE: this is place to check atom types of i3,i2,i1,i4
-          if (num_dihedral < atom->dihedral_per_atom) {
-            dihedral_type[num_dihedral] = dtype;
-            dihedral_atom1[num_dihedral] = i3;
-            dihedral_atom2[num_dihedral] = i2;
-            dihedral_atom3[num_dihedral] = i1;
-            dihedral_atom4[num_dihedral] = i4;
-            num_dihedral++;
-            ndihedrals++;
-          } else overflow = 1;
+          add_dihedral(i3,i2,i1,i4);
         }
       }
     }
@@ -1147,19 +1152,13 @@ void FixBondCreate::create_dihedrals(int m)
         }
         if (n < ncreate) {
           // NOTE: this is place to check atom types of i3,i2,i1,i4
-          if (num_dihedral < atom->dihedral_per_atom) {
-            dihedral_type[num_dihedral] = dtype;
-            dihedral_atom1[num_dihedral] = i1;
-            dihedral_atom2[num_dihedral] = i2;
-            dihedral_atom3[num_dihedral] = i3;
-            dihedral_atom4[num_dihedral] = i4;
-            num_dihedral++;
-            ndihedrals++;
-          } else overflow = 1;
+          add_dihedral(i1,i2,i3,i4);
         }
       }
     }
   }
+
+  atom->num_dihedral[m] = num_dihedral;
 }
 
 /* ----------------------------------------------------------------------
@@ -1172,7 +1171,7 @@ void FixBondCreate::create_dihedrals(int m)
 
 void FixBondCreate::create_impropers(int m)
 {
-  int i,j,k,n,i1local,n1,n2;
+  int i,j,k,l,n,i1local,n1,n2;
   tagint i1,i2,i3,i4;
   tagint *s1list,*s2list;
 
@@ -1234,40 +1233,44 @@ void FixBondCreate::create_impropers(int m)
   atom->num_improper[m] = num_improper;
   if (force->newton_bond) return;
 
-  // for newton_bond off, also consider atom M as atom 2 in improper
+  // for newton_bond off, also consider atom M as one of the other 3 atoms
+  //   of impropers whose central atom is a 1-2 neighbor of atom M
+  // loop over the 1-2 neighbors of the central atom like above,
+  //   so that all 4 copies of an improper are the same
 
-  i2 = tag[m];
   n2 = nspecial[m][0];
   s2list = special[m];
 
-  for (i = 0; i < n2; i++) {
-    i1 = s2list[i];
+  for (l = 0; l < n2; l++) {
+    i1 = s2list[l];
     i1local = atom->map(i1);
     if (i1local < 0)
       error->one(FLERR, Error::NOLASTLINE, "Fix {} needs ghost atoms from further away", style);
     s1list = special[i1local];
     n1 = nspecial[i1local][0];
 
-    for (j = 0; j < n1; j++) {
-      i3 = s1list[j];
-      if (i3 == i1 || i3 == i2) continue;
+    for (i = 0; i < n1; i++) {
+      i2 = s1list[i];
+      for (j = i+1; j < n1; j++) {
+        i3 = s1list[j];
+        for (k = j+1; k < n1; k++) {
+          i4 = s1list[k];
+          if ((i2 != tag[m]) && (i3 != tag[m]) && (i4 != tag[m])) continue;
 
-      for (k = j+1; k < n1; k++) {
-        i4 = s1list[k];
-        if (i4 == i1 || i4 == i2) continue;
+          // improper = i1-i2-i3-i4
 
-        // improper = i1-i2-i3-i4
+          for (n = 0; n < ncreate; n++) {
+            if (created[n][0] == i1 && created[n][1] == i2) break;
+            if (created[n][0] == i2 && created[n][1] == i1) break;
+            if (created[n][0] == i1 && created[n][1] == i3) break;
+            if (created[n][0] == i3 && created[n][1] == i1) break;
+            if (created[n][0] == i1 && created[n][1] == i4) break;
+            if (created[n][0] == i4 && created[n][1] == i1) break;
+          }
+          if (n == ncreate) continue;
 
-        for (n = 0; n < ncreate; n++) {
-          if (created[n][0] == i1 && created[n][1] == i2) break;
-          if (created[n][0] == i2 && created[n][1] == i1) break;
-          if (created[n][0] == i1 && created[n][1] == i3) break;
-          if (created[n][0] == i3 && created[n][1] == i1) break;
-          if (created[n][0] == i1 && created[n][1] == i4) break;
-          if (created[n][0] == i4 && created[n][1] == i1) break;
-        }
-        if (n < ncreate) {
-          // NOTE: this is place to check atom types of i3,i2,i1,i4
+          // NOTE: this is place to check atom types of i1,i2,i3,i4
+
           if (num_improper < atom->improper_per_atom) {
             improper_type[num_improper] = itype;
             improper_atom1[num_improper] = i1;
@@ -1281,6 +1284,8 @@ void FixBondCreate::create_impropers(int m)
       }
     }
   }
+
+  atom->num_improper[m] = num_improper;
 }
 
 /* ----------------------------------------------------------------------

@@ -1,0 +1,159 @@
+LAMMPS (13 Nov 2026)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread.
+  using 1 OpenMP thread(s) per MPI task
+# orthogonal box for rock salt lattice with unit cell
+# PPPM with per-atom energy and virial
+
+units         lj
+atom_style    charge
+
+lattice       custom 0.72 a1 1.0 0.0 0.0 a2 0.0 1.0 0.0 a3 0.0 0.0 1.0               basis 0.0 0.0 0.0 basis 0.0 0.5 0.5 basis 0.5 0.0 0.5               basis 0.5 0.5 0.0 basis 0.5 0.0 0.0 basis 0.0 0.5 0.0               basis 0.0 0.0 0.5 basis 0.5 0.5 0.5
+Lattice spacing in x,y,z = 2.2314432 2.2314432 2.2314432
+
+region        mybox block 0 4 0 4 0 4
+create_box    2 mybox
+Created orthogonal box = (0 0 0) to (8.9257727 8.9257727 8.9257727)
+  1 by 2 by 2 MPI processor grid
+create_atoms  1 box basis 5 2 basis 6 2 basis 7 2 basis 8 2
+Created 512 atoms
+  using lattice units in orthogonal box = (0 0 0) to (8.9257727 8.9257727 8.9257727)
+  create_atoms CPU = 0.000 seconds
+
+mass          * 1.0
+set           type 1 charge 1.0
+Setting atom values ...
+  256 settings made for charge
+set           type 2 charge -1.0
+Setting atom values ...
+  256 settings made for charge
+
+# purely repulsive ions held together by the Coulomb interaction
+
+pair_style    lj/cut/coul/long 1.122462 3.0
+pair_coeff    * * 1.0 1.0
+pair_modify   shift yes
+kspace_style  pppm 1.0e-5
+
+neighbor      0.3 bin
+
+# per-atom KSpace energy and virial and their sums over all atoms
+
+compute       epa all pe/atom kspace
+compute       spa all stress/atom NULL kspace
+compute       pek all pe kspace
+compute       prk all pressure NULL kspace
+compute       red all reduce sum c_epa c_spa[1] c_spa[2] c_spa[3]               c_spa[4] c_spa[5] c_spa[6]
+
+# the KSpace pressure tensor is the negative sum of the per-atom virial
+# divided by the volume
+
+variable      pxx equal -c_red[2]/vol
+variable      pyy equal -c_red[3]/vol
+variable      pzz equal -c_red[4]/vol
+variable      pxy equal -c_red[5]/vol
+variable      pxz equal -c_red[6]/vol
+variable      pyz equal -c_red[7]/vol
+
+# elong, c_pek, and c_red[1] should be identical, and so should each
+# pair of c_prk[i] and the corresponding v_p** column
+
+thermo_style  custom step pe press elong c_pek c_red[1] c_prk[1] v_pxx               c_prk[2] v_pyy c_prk[3] v_pzz c_prk[4] v_pxy c_prk[5] v_pxz               c_prk[6] v_pyz
+thermo        10
+
+# thermal motion breaks the symmetry of the perfect crystal so that
+# the forces from KSpace are no longer zero
+# velocities are created before the first run: atom sorting in a
+# triclinic box can change the last bits of the coordinates that
+# seed the random numbers with loop geom
+
+velocity      all create 0.1 87287 loop geom
+
+# the perfect crystal at step 0 has the same energy per atom and
+# pressure for the primitive and the orthogonal cell
+
+run           0 post no
+WARNING: No fixes with time integration, atoms won't move
+For more information see https://docs.lammps.org/err0028 (src/verlet.cpp:60)
+PPPM initialization ...
+  using 12-bit tables for long-range coulomb
+  G vector (1/distance) = 1.142096
+  grid = 45 45 45
+  stencil order = 5
+  estimated absolute RMS force accuracy = 1.0902833e-05
+  estimated relative force accuracy = 1.0902833e-05
+  using double precision KISS FFT
+  3d grid and FFT values/proc = 43732 23805
+Generated 0 of 1 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 3.3
+  ghost atom cutoff = 3.3
+  binsize = 1.65, bins = 6 6 6
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cut/coul/long, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 10.46 | 10.55 | 10.64 Mbytes
+   Step         PotEng         Press          E_long         c_pek         c_red[1]       c_prk[1]        v_pxx         c_prk[2]        v_pyy         c_prk[3]        v_pzz         c_prk[4]        v_pxy         c_prk[5]        v_pxz         c_prk[6]        v_pyz     
+         0  -0.77909178     0.21355256    -0.62841962    -0.62841962    -0.62841962    -0.031052729   -0.031052729   -0.031052729   -0.031052729   -0.031052729   -0.031052729    3.3982987e-24 -5.6819236e-20 -3.469446e-18  -1.432553e-18   3.469447e-18   1.5217601e-19
+Loop time of 2.774e-06 on 4 procs for 0 steps with 512 atoms
+
+
+fix           1 all nve
+timestep      0.002
+
+run           100
+PPPM initialization ...
+  using 12-bit tables for long-range coulomb
+  G vector (1/distance) = 1.142096
+  grid = 45 45 45
+  stencil order = 5
+  estimated absolute RMS force accuracy = 1.0902833e-05
+  estimated relative force accuracy = 1.0902833e-05
+  using double precision KISS FFT
+  3d grid and FFT values/proc = 43732 23805
+Generated 0 of 1 mixed pair_coeff terms from geometric mixing rule
+Per MPI rank memory allocation (min/avg/max) = 11.33 | 11.42 | 11.52 Mbytes
+   Step         PotEng         Press          E_long         c_pek         c_red[1]       c_prk[1]        v_pxx         c_prk[2]        v_pyy         c_prk[3]        v_pzz         c_prk[4]        v_pxy         c_prk[5]        v_pxz         c_prk[6]        v_pyz     
+         0  -0.77909178     0.21355256    -0.62841962    -0.62841962    -0.62841962    -0.031052729   -0.031052729   -0.031052729   -0.031052729   -0.031052729   -0.031052729    3.3982987e-24 -5.6819236e-20 -3.469446e-18  -1.432553e-18   3.469447e-18   1.5217601e-19
+        10  -0.77221924     0.29355489    -0.62837085    -0.62837085    -0.62837085    -0.031059849   -0.031059849   -0.031055996   -0.031055996   -0.03104831    -0.03104831     1.8165656e-06  1.8165656e-06 -1.9970084e-06 -1.9970084e-06 -5.4526484e-07 -5.4526484e-07
+        20  -0.75612307     0.48802998    -0.6282304     -0.6282304     -0.6282304     -0.031083573   -0.031083573   -0.031068125   -0.031068125   -0.031037624   -0.031037624    7.232438e-06   7.232438e-06  -7.8470519e-06 -7.8470519e-06 -1.6786327e-06 -1.6786327e-06
+        30  -0.73451913     0.69550807    -0.62801356    -0.62801356    -0.62801356    -0.031129362   -0.031129362   -0.031094955   -0.031094955   -0.031027458   -0.031027458    1.5834519e-05  1.5834519e-05 -1.6912923e-05 -1.6912923e-05 -2.5116893e-06 -2.5116893e-06
+        40  -0.7126058      0.87981612    -0.62774196    -0.62774196    -0.62774196    -0.031204146   -0.031204146   -0.031144131   -0.031144131   -0.031027134   -0.031027134    2.6707838e-05  2.6707838e-05 -2.8107101e-05 -2.8107101e-05 -2.1278245e-06 -2.1278245e-06
+        50  -0.69672469     1.0125821     -0.62743878    -0.62743878    -0.62743878    -0.031314215   -0.031314215   -0.031222472   -0.031222472   -0.031045493   -0.031045493    3.860623e-05   3.860623e-05  -4.0172249e-05 -4.0172249e-05  2.707999e-07   2.707999e-07 
+        60  -0.69104616     1.0796542     -0.62712249    -0.62712249    -0.62712249    -0.031462804   -0.031462804   -0.031332844   -0.031332844   -0.031087191   -0.031087191    5.03121e-05    5.03121e-05   -5.2089298e-05 -5.2089298e-05  5.2229441e-06  5.2229441e-06
+        70  -0.69482296     1.0866396     -0.62680253    -0.62680253    -0.62680253    -0.031648597   -0.031648597   -0.031472422   -0.031472422   -0.031150573   -0.031150573    6.1034516e-05  6.1034516e-05 -6.3474862e-05 -6.3474862e-05  1.2875868e-05  1.2875868e-05
+        80  -0.70311835     1.0549406     -0.62647957    -0.62647957    -0.62647957    -0.031866296   -0.031866296   -0.031633816   -0.031633816   -0.03122871    -0.03122871     7.0660359e-05  7.0660359e-05 -7.4745303e-05 -7.4745303e-05  2.2871789e-05  2.2871789e-05
+        90  -0.7102439      1.011723      -0.62614962    -0.62614962    -0.62614962    -0.032108959   -0.032108959   -0.031808468   -0.031808468   -0.031313045   -0.031313045    7.9750294e-05  7.9750294e-05 -8.6914861e-05 -8.6914861e-05  3.4476914e-05  3.4476914e-05
+       100  -0.71285913     0.97293688    -0.62580867    -0.62580867    -0.62580867    -0.032370526   -0.032370526   -0.031990126   -0.031990126   -0.031397394   -0.031397394    8.9237603e-05  8.9237603e-05 -0.00010121052 -0.00010121052  4.6709503e-05  4.6709503e-05
+Loop time of 0.58761 on 4 procs for 100 steps with 512 atoms
+
+Performance: 29407.280 tau/day, 170.181 timesteps/s, 87.133 katom-step/s
+90.8% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.010909   | 0.011895   | 0.012479   |   0.5 |  2.02
+Kspace  | 0.56852    | 0.56905    | 0.57015    |   0.1 | 96.84
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0.0041254  | 0.0044009  | 0.0049101  |   0.5 |  0.75
+Output  | 0.0011104  | 0.001117   | 0.001125   |   0.0 |  0.19
+Modify  | 0.00023247 | 0.00025292 | 0.00027482 |   0.0 |  0.04
+Other   |            | 0.0008918  |            |       |  0.15
+
+Nlocal:            128 ave         128 max         128 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:            925 ave         925 max         925 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Neighs:           5888 ave        5888 max        5888 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 23552
+Ave neighs/atom = 46
+Neighbor list builds = 0
+Dangerous builds = 0
+Total wall time: 0:00:00

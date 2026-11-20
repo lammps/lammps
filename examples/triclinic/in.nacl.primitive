@@ -1,0 +1,69 @@
+# general triclinic box for rock salt lattice with primitive cell
+# PPPM with per-atom energy and virial
+
+units         lj
+atom_style    charge
+
+lattice       custom 0.72 a2 0.0 0.5 0.5 a3 0.5 0.0 0.5 a1 0.5 0.5 0.0 &
+              basis 0.0 0.0 0.0 basis 0.5 0.5 0.5 triclinic/general
+
+create_box    2 NULL 0 6 0 6 0 6
+create_atoms  1 box basis 2 2
+
+mass          * 1.0
+set           type 1 charge 1.0
+set           type 2 charge -1.0
+
+# purely repulsive ions held together by the Coulomb interaction
+
+pair_style    lj/cut/coul/long 1.122462 3.0
+pair_coeff    * * 1.0 1.0
+pair_modify   shift yes
+kspace_style  pppm 1.0e-5
+
+neighbor      0.3 bin
+
+# per-atom KSpace energy and virial and their sums over all atoms
+
+compute       epa all pe/atom kspace
+compute       spa all stress/atom NULL kspace
+compute       pek all pe kspace
+compute       prk all pressure NULL kspace
+compute       red all reduce sum c_epa c_spa[1] c_spa[2] c_spa[3] &
+              c_spa[4] c_spa[5] c_spa[6]
+
+# the KSpace pressure tensor is the negative sum of the per-atom virial
+# divided by the volume
+
+variable      pxx equal -c_red[2]/vol
+variable      pyy equal -c_red[3]/vol
+variable      pzz equal -c_red[4]/vol
+variable      pxy equal -c_red[5]/vol
+variable      pxz equal -c_red[6]/vol
+variable      pyz equal -c_red[7]/vol
+
+# elong, c_pek, and c_red[1] should be identical, and so should each
+# pair of c_prk[i] and the corresponding v_p** column
+
+thermo_style  custom step pe press elong c_pek c_red[1] c_prk[1] v_pxx &
+              c_prk[2] v_pyy c_prk[3] v_pzz c_prk[4] v_pxy c_prk[5] v_pxz &
+              c_prk[6] v_pyz
+thermo        10
+
+# thermal motion breaks the symmetry of the perfect crystal so that
+# the forces from KSpace are no longer zero
+# velocities are created before the first run: atom sorting in a
+# triclinic box can change the last bits of the coordinates that
+# seed the random numbers with loop geom
+
+velocity      all create 0.1 87287 loop geom
+
+# the perfect crystal at step 0 has the same energy per atom and
+# pressure for the primitive and the orthogonal cell
+
+run           0 post no
+
+fix           1 all nve
+timestep      0.002
+
+run           100

@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -37,13 +36,13 @@ int FixBondCreateAngle::constrain(int i, int j, double amin, double amax)
   // the comparison also rejects a NaN angle
 
   if (nspecial[i][0] != 0) {
-    double theta = bond_angle(i,j);
-    if (!(amin <= theta && theta <= amax)) return 0;
+    double theta = bond_angle(i, j);
+    if (!((amin <= theta) && (theta <= amax))) return 0;
   }
 
   if (nspecial[j][0] != 0) {
-    double theta = bond_angle(j,i);
-    if (!(amin <= theta && theta <= amax)) return 0;
+    double theta = bond_angle(j, i);
+    if (!((amin <= theta) && (theta <= amax))) return 0;
   }
 
   return 1;
@@ -61,8 +60,11 @@ double FixBondCreateAngle::bond_angle(int i, int j)
 
   int k = atom->map(atom->special[i][0]);
   if (k < 0)
-    error->one(FLERR, Error::NOLASTLINE, "Fix {} needs ghost atoms from further away", style);
-  k = domain->closest_image(i,k);
+    error->one(FLERR, Error::NOLASTLINE,
+               "Fix {} needs ghost atoms from further away; use "
+               "comm_modify cutoff to extend the communication range",
+               style);
+  k = domain->closest_image(i, k);
 
   double delx1 = x[i][0] - x[j][0];
   double dely1 = x[i][1] - x[j][1];
@@ -71,8 +73,9 @@ double FixBondCreateAngle::bond_angle(int i, int j)
   double dely2 = x[i][1] - x[k][1];
   double delz2 = x[i][2] - x[k][2];
 
-  double c = (delx1*delx2 + dely1*dely2 + delz1*delz2) /
-    sqrt((delx1*delx1 + dely1*dely1 + delz1*delz1) * (delx2*delx2 + dely2*dely2 + delz2*delz2));
+  double c = (delx1 * delx2 + dely1 * dely2 + delz1 * delz2) /
+      sqrt((delx1 * delx1 + dely1 * dely1 + delz1 * delz1) *
+           (delx2 * delx2 + dely2 * dely2 + delz2 * delz2));
   if (c > 1.0) c = 1.0;
   if (c < -1.0) c = -1.0;
 

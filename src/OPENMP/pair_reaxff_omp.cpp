@@ -91,11 +91,6 @@ PairReaxFFOMP::PairReaxFFOMP(LAMMPS *lmp) : PairReaxFF(lmp), ThrOMP(lmp, THR_PAI
 
 PairReaxFFOMP::~PairReaxFFOMP()
 {
-  if (setup_flag) {
-    reax_list * bonds = api->lists+BONDS;
-    for (int i=0; i<bonds->num_intrs; ++i)
-      sfree(bonds->select.bond_list[i].bo_data.CdboReduction);
-  }
   memory->destroy(num_nbrs_offset);
 }
 
@@ -148,10 +143,11 @@ void PairReaxFFOMP::init_style()
 
   api->control->nthreads = comm->nthreads;
 
-  // delete the lookup tables for the long-range interactions, so that setup()
-  // recreates them with the current settings, as the KOKKOS version does here
+  // the next setup() recreates all data structures with the current settings,
+  // as the KOKKOS version does here, e.g. for a different hydrogen bond cutoff
+  // from the control file or a different taper radius from the ffield file
 
-  if (api->system->LR) Deallocate_Lookup_Tables(api->system);
+  reinit_flag = 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -170,6 +166,15 @@ void PairReaxFFOMP::setup()
     memory->destroy(num_nbrs_offset);
     // Don't update nmax here. It is updated at end of compute().
     memory->create(num_nbrs_offset, api->system->N, "pair:num_nbrs_offset");
+  }
+
+  // at the first call after init_style(), delete the data structures
+  // and create them again, as for the first run
+
+  if (reinit_flag) {
+    if (setup_flag) deallocate_storage();
+    setup_flag = 0;
+    reinit_flag = 0;
   }
 
   if (setup_flag == 0) {
@@ -226,8 +231,8 @@ void PairReaxFFOMP::setup()
     ReAllocate(api->system, api->control, api->data, api->workspace, &api->lists);
   }
 
-  // create the lookup tables for the long-range interactions after init_style()
-  // deleted them. this needs the taper coefficients from InitializeOMP().
+  // create the lookup tables for the long-range interactions, if they do not
+  // exist. this needs the taper coefficients from InitializeOMP().
 
   if (api->control->tabulate && !api->system->LR)
     Init_Lookup_Tables(api->system, api->control, api->workspace, map, atom->ntypes);

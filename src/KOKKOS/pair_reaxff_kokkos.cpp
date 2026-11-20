@@ -386,8 +386,11 @@ void PairReaxFFKokkos<DeviceType>::setup()
   // misc precision conversions
   C_ele_reduced = static_cast<KK_FLOAT>(C_ele);
 
-  if (atom->nmax > nmax) {
-    nmax = atom->nmax;
+  // the hydrogen bond arrays only exist with a positive hydrogen bond cutoff.
+  // a later pair_style command may enable them or grow nmax while they are off.
+
+  if ((atom->nmax > nmax) || ((cut_hbsq > 0.0) && ((int) d_hb_num.extent(0) < nmax))) {
+    nmax = MAX(nmax, atom->nmax);
     allocate_array();
   }
 }

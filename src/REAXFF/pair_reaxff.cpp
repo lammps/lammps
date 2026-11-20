@@ -111,6 +111,7 @@ PairReaxFF::PairReaxFF(LAMMPS *lmp) :
   pvector = new double[nextra];
 
   setup_flag = 0;
+  reinit_flag = 0;
   fixspecies_flag = 0;
   nmax = 0;
   list_blocking_flag = 0;
@@ -129,14 +130,7 @@ PairReaxFF::~PairReaxFF()
 
     // deallocate reax data-structures
 
-    if (api->system->LR) Deallocate_Lookup_Tables(api->system);
-    if (api->control->hbond_cut > 0) Delete_List(api->lists+HBONDS);
-
-    Delete_List(api->lists+BONDS);
-    Delete_List(api->lists+THREE_BODIES);
-    Delete_List(api->lists+FAR_NBRS);
-
-    DeAllocate_Workspace(api->workspace);
+    deallocate_storage();
     DeAllocate_System(api->system);
   }
 
@@ -182,6 +176,32 @@ void PairReaxFF::allocate()
   eta = new double[n+1];
   gamma = new double[n+1];
   bcut_acks2 = new double[n+1];
+}
+
+/* ----------------------------------------------------------------------
+   delete the data structures that setup() creates, but keep the force
+   field parameters that coeff() has read
+------------------------------------------------------------------------- */
+
+void PairReaxFF::deallocate_storage()
+{
+  if (api->system->LR) Deallocate_Lookup_Tables(api->system);
+  Delete_List(api->lists+HBONDS);
+
+  // the OPENMP version has per-thread data for each bond
+
+  reax_list *bonds = api->lists+BONDS;
+  if (api->system->omp_active && bonds->allocated)
+    for (int i = 0; i < bonds->num_intrs; ++i)
+      sfree(bonds->select.bond_list[i].bo_data.CdboReduction);
+
+  Delete_List(api->lists+BONDS);
+  Delete_List(api->lists+THREE_BODIES);
+  Delete_List(api->lists+FAR_NBRS);
+
+  DeAllocate_Workspace(api->workspace);
+  sfree(api->system->my_atoms);
+  api->system->my_atoms = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -382,10 +402,11 @@ void PairReaxFF::init_style()
   if (fix_reaxff == nullptr)
     fix_reaxff = dynamic_cast<FixReaxFF *>(modify->add_fix(fmt::format("{} all REAXFF",fix_id)));
 
-  // delete the lookup tables for the long-range interactions, so that setup()
-  // recreates them with the current settings, as the KOKKOS version does here
+  // the next setup() recreates all data structures with the current settings,
+  // as the KOKKOS version does here, e.g. for a different hydrogen bond cutoff
+  // from the control file or a different taper radius from the ffield file
 
-  if (api->system->LR) Deallocate_Lookup_Tables(api->system);
+  reinit_flag = 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -399,6 +420,15 @@ void PairReaxFF::setup()
   api->system->n = atom->nlocal; // my atoms
   api->system->N = atom->nlocal + atom->nghost; // mine + ghosts
   oldN = api->system->N;
+
+  // at the first call after init_style(), delete the data structures
+  // and create them again, as for the first run
+
+  if (reinit_flag) {
+    if (setup_flag) deallocate_storage();
+    setup_flag = 0;
+    reinit_flag = 0;
+  }
 
   if (setup_flag == 0) {
 
@@ -450,8 +480,8 @@ void PairReaxFF::setup()
     ReAllocate(api->system, api->control, api->data, api->workspace, &api->lists);
   }
 
-  // create the lookup tables for the long-range interactions after init_style()
-  // deleted them. this needs the taper coefficients from Initialize().
+  // create the lookup tables for the long-range interactions, if they do not
+  // exist. this needs the taper coefficients from Initialize().
 
   if (api->control->tabulate && !api->system->LR)
     Init_Lookup_Tables(api->system, api->control, api->workspace, map, atom->ntypes);

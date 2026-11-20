@@ -149,7 +149,7 @@ FixBondCreate::FixBondCreate(LAMMPS *lmp, int narg, char **arg) :
         strcmp(style,"bond/create/angle") == 0) {
       if (iarg+3 > narg) utils::missing_cmd_args(FLERR,"fix bond/create/angle aconstrain", error);
       amin = utils::numeric(FLERR, arg[iarg+1], false, lmp);
-      amax = utils::inumeric(FLERR, arg[iarg+2], false, lmp);
+      amax = utils::numeric(FLERR, arg[iarg+2], false, lmp);
       if (amin >= amax) error->all(FLERR,"Illegal fix bond/create/angle aconstrain command");
       if ((amin < 0) || (amin > 180))
         error->all(FLERR,"Invalid fix bond/create/angle aconstrain amin value {}", amin);

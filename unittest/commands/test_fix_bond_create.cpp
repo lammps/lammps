@@ -232,10 +232,14 @@ TEST_F(FixBondCreateTest, ClosestPartnerFirst)
 }
 
 // same geometry, but each atom may have only one bond and changes its type
-// when it has reached that limit
+// when it has reached that limit.  the atom types are collected with
+// lammps_gather_atoms(), which is not compatible with -DLAMMPS_BIGBIG.
 
 TEST_F(FixBondCreateTest, MaxBondsAndNewType)
 {
+#if defined(LAMMPS_BIGBIG)
+    GTEST_SKIP() << "lammps_gather_atoms() is not compatible with -DLAMMPS_BIGBIG";
+#endif
     if (!have_styles()) GTEST_SKIP();
 
     create_system();

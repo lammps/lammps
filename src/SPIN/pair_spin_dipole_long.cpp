@@ -152,7 +152,8 @@ double PairSpinDipoleLong::init_one(int i, int j)
 }
 
 /* ----------------------------------------------------------------------
-   extract the larger cutoff if "cut" or "cut_coul"
+   extract the larger cutoff if "cut" or "cut_coul",
+   or the per-type cutoffs if "cut_spin"
 ------------------------------------------------------------------------- */
 
 void *PairSpinDipoleLong::extract(const char *str, int &dim)
@@ -160,6 +161,9 @@ void *PairSpinDipoleLong::extract(const char *str, int &dim)
   if (strcmp(str,"cut") == 0) {
     dim = 0;
     return (void *) &cut_spin_long_global;
+  } else if (strcmp(str,"cut_spin") == 0) {
+    dim = 2;
+    return (void *) cut_spin_long;
   } else if (strcmp(str,"cut_coul") == 0) {
     dim = 0;
     return (void *) &cut_spin_long_global;

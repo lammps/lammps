@@ -82,6 +82,8 @@ protected:
     }
 
     // Static PairSpin setup used only with run 0; no trajectories are evolved.
+    // In parallel runs, fix nve/spin needs processor sub-domains at least
+    // 2 x (cutoff + skin) = 12 wide, so the box allows up to 2 procs per direction.
     void build_dipole()
     {
         command("clear");
@@ -89,7 +91,7 @@ protected:
         command("atom_style spin");
         command("atom_modify map array");
         command("boundary p p p");
-        command("region box block -10 10 -10 10 -10 10 units box");
+        command("region box block -15 15 -15 15 -15 15 units box");
         command("create_box 1 box");
         command("create_atoms 1 single -0.75 0 0 units box");
         command("create_atoms 1 single 0.75 0 0 units box");

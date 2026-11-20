@@ -302,7 +302,7 @@ same:
    pair_coeff * * lj/cut 1.0 1.0
    pair_coeff 2 2 lj/cut 1.5 0.8
 
-Coefficients must be defined for each pair of atoms types via the
+Coefficients must be defined for each pair of atom types via the
 :doc:`pair_coeff <pair_coeff>` command as described above, or in the
 "Pair Coeffs" or "PairIJ Coeffs" section of the data file read by the
 :doc:`read_data <read_data>` command, or by mixing as described below.

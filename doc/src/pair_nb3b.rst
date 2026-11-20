@@ -68,10 +68,10 @@ number of LAMMPS atom types:
 See the :doc:`pair_coeff <pair_coeff>` page for alternate ways
 to specify the path for the potential file.
 
-As an example, imagine a file SiC.nb3b.harmonic has potential values
-for Si and C.  If your LAMMPS simulation has 4 atoms types and you
-want the first 3 to be Si, and the fourth to be C, you would use the
-following pair_coeff command:
+As an example, imagine a file SiC.nb3b.harmonic has potential values for
+Si and C.  If your LAMMPS simulation has 4 atom types and you want the
+first 3 to be Si, and the fourth to be C, you would use the following
+pair_coeff command:
 
 .. code-block:: LAMMPS
 

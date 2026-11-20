@@ -72,6 +72,8 @@ class FixRxKokkos : public FixRX {
 
   FixRxKokkos(class LAMMPS *, int, char **);
   ~FixRxKokkos() override;
+  // checked conversion from a base class pointer, see the .cpp file
+  static FixRxKokkos<DeviceType> *cast(class Fix *);
   void init() override;
   void init_list(int, class NeighList *) override;
   void post_constructor() override;

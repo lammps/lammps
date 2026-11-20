@@ -107,7 +107,7 @@ to specify the path for the potential files.
 As an example, the ``potentials/library.meam`` file has generic MEAM
 settings for a variety of elements.  The ``potentials/SiC.meam`` file
 has specific parameter settings for a Si and C alloy system.  If your
-LAMMPS simulation has 4 atoms types and you want the first 3 to be Si,
+LAMMPS simulation has 4 atom types and you want the first 3 to be Si,
 and the fourth to be C, you would use the following pair_coeff command:
 
 .. code-block:: LAMMPS
@@ -115,13 +115,13 @@ and the fourth to be C, you would use the following pair_coeff command:
    pair_coeff * * library.meam Si C sic.meam Si Si Si C
 
 The first 2 arguments must be \* \* so as to span all LAMMPS atom types.
-The first filename is the element library file. The list of elements following
-it extracts lines from the library file and assigns numeric indices to these
-elements. The second filename is the alloy parameter file, which refers to
-elements using the numeric indices assigned before.
-The arguments after the parameter file map LAMMPS atom types to elements, i.e.
-LAMMPS atom types 1,2,3 to the MEAM Si element.  The final C argument maps
-LAMMPS atom type 4 to the MEAM C element.
+The first filename is the element library file. The list of elements
+following it extracts lines from the library file and assigns numeric
+indices to these elements. The second filename is the alloy parameter
+file, which refers to elements using the numeric indices assigned
+before.  The arguments after the parameter file map LAMMPS atom types to
+elements, i.e.  LAMMPS atom types 1, 2, and 3 to the MEAM Si element.
+The final C argument maps LAMMPS atom type 4 to the MEAM C element.
 
 If the second filename is specified as NULL, no parameter file is read,
 which simply means the generic parameters in the library file are
@@ -132,9 +132,9 @@ interaction terms that are not captured by the information in the
 library file.
 
 If a mapping value is specified as NULL, the mapping is not performed.
-This can be used when a *meam* potential is used as part of the
-*hybrid* pair style.  The NULL values are placeholders for atom types
-that will be used with other potentials.
+This can be used when a *meam* potential is used as part of the *hybrid*
+pair style.  The NULL values are placeholders for atom types that will
+be used with other potentials.
 
 .. note::
 
@@ -430,7 +430,7 @@ The maximum number of elements that can be read from the MEAM library
 file is determined at compile time. The default is 8.  If you need
 support for more elements, you have to change the the constant 'MAXELT'
 at the beginning of the file ``src/MEAM/meam.h`` and update/recompile
-LAMMPS.  There is no limit on the number of atoms types.
+LAMMPS.  There is no limit on the number of atom types.
 
 Related commands
 """"""""""""""""

@@ -123,13 +123,12 @@ the pairwise interactions have been computed.
 Style *lubricateU* requires monodisperse spherical particles; style
 *lubricateU/poly* allows for polydisperse spherical particles.
 
-.. versionchanged:: 4Jul2026
+.. versionchanged:: TBD
 
-The near-field resistance functions used by *lubricateU/poly* for
-particles of unequal radii were corrected for consistency with
-:doc:`pair_style lubricate/poly <pair_lubricate>` so that the squeeze
-and shear resistances are symmetric under exchange of the two
-particles.  Results for monodisperse systems are unchanged.
+The squeeze and shear resistance functions of *lubricateU/poly* for
+particles of different size are the same as those of :doc:`pair_style
+lubricate/poly <pair_lubricate>`.  Results for particles of equal size
+are unchanged.
 
 If the suspension is sheared via the :doc:`fix deform <fix_deform>`
 command then the pair style uses the shear rate to adjust the

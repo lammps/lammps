@@ -369,6 +369,12 @@ void FixIntel::bond_init_check()
 
   if (intel_pair == 0)
     error->all(FLERR,"Intel styles for bond/angle/dihedral/improper require intel pair style.");
+
+  // the force buffers of the pair style are sized for newton_pair, those of the
+  // bond, angle, dihedral, and improper styles for newton_bond
+  if (force->newton_pair != force->newton_bond)
+    error->all(FLERR,"Intel styles for bond/angle/dihedral/improper require the same newton "
+               "setting for pair and bond interactions");
 }
 
 /* ---------------------------------------------------------------------- */

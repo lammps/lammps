@@ -360,6 +360,8 @@ void Bond::write_file(int narg, char **arg)
   }
 
   int btype = utils::inumeric(FLERR, arg[0], false, lmp);
+  if ((btype < 1) || (btype > atom->nbondtypes))
+    error->all(FLERR, Error::ARGZERO, "Invalid bond type {} in bond_write command", btype);
   int n = utils::inumeric(FLERR, arg[1], false, lmp);
   double inner = utils::numeric(FLERR, arg[2], false, lmp);
   double outer = utils::numeric(FLERR, arg[3], false, lmp);

@@ -4014,6 +4014,7 @@ subdomain
 subdomains
 subhi
 sublo
+subnormals
 Subramaniyan
 subscripted
 subscripting

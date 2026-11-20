@@ -704,7 +704,7 @@ void PairTableRXKokkos<DeviceType>::compute_style(int eflag_in, int vflag_in)
                       mixWtSite1old, mixWtSite2old, mixWtSite1, mixWtSite2);
 
   NeighListKokkos<DeviceType>* l =
-    dynamic_cast<NeighListKokkos<DeviceType>*>(list);
+    static_cast<NeighListKokkos<DeviceType>*>(list);
 
   EV_FLOAT ev;
   if (atom->ntypes > MAX_TYPES_STACKPARAMS) {
@@ -1063,7 +1063,7 @@ void PairTableRXKokkos<DeviceType>::coeff(int narg, char **arg)
   // get only the KOKKOS version is not derived from this class
   auto fixes = modify->get_fix_by_style("^rx/kk");
   if (fixes.size() == 1) {
-    rx_fixKK = dynamic_cast<FixRxKokkos<DeviceType> *>(fixes[0]);
+    rx_fixKK = FixRxKokkos<DeviceType>::cast(fixes[0]);
   } else if (fixes.size() > 1) {
     error->all(FLERR, Error::NOLASTLINE, "More than one fix rx instance defined");
   }

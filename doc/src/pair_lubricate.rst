@@ -109,15 +109,13 @@ as long as *flagVF* is set to 1 (default).
 Style *lubricate* requires monodisperse spherical particles; style
 *lubricate/poly* allows for polydisperse spherical particles.
 
-.. versionchanged:: 4Jul2026
+.. versionchanged:: TBD
 
-The near-field resistance functions used by *lubricate/poly* for
-particles of unequal radii were corrected so that the pairwise
-lubrication force obeys Newton's third law (is equal and opposite).
-Previously the log-order terms were evaluated using a per-particle
-reference length, which made the force on particle *i* differ from
-minus the force on particle *j* for strongly polydisperse pairs.
-Results for monodisperse systems are unchanged.
+For *lubricate/poly* the logarithmic terms of the resistance functions
+use the gap between the particle surfaces divided by the mean radius of
+the two particles, so that the lubrication forces between particles of
+different size are equal and opposite.  Results for particles of equal
+size are unchanged.
 
 .. versionchanged:: 30Sep2026
 

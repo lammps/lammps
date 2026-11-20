@@ -2746,6 +2746,13 @@ void PPPMDispIntel::fieldforce_none_ik_intel(IntelBuffers<flt_t,acc_t> * /*buffe
     _alignvar(flt_t rho1[INTEL_P3M_ALIGNED_MAXORDER] , 64)= {0};
     _alignvar(flt_t rho2[INTEL_P3M_ALIGNED_MAXORDER] , 64)= {0};
 
+    std::vector<FFT_SCALAR> ekx_arr(nsplit*INTEL_P3M_ALIGNED_MAXORDER, ZEROF);
+    std::vector<FFT_SCALAR> eky_arr(nsplit*INTEL_P3M_ALIGNED_MAXORDER, ZEROF);
+    std::vector<FFT_SCALAR> ekz_arr(nsplit*INTEL_P3M_ALIGNED_MAXORDER, ZEROF);
+    std::vector<FFT_SCALAR> ekx(nsplit, ZEROF);
+    std::vector<FFT_SCALAR> eky(nsplit, ZEROF);
+    std::vector<FFT_SCALAR> ekz(nsplit, ZEROF);
+
     for (int i = ifrom; i < ito; i++) {
       int nx = part2grid_6[i][0];
       int ny = part2grid_6[i][1];
@@ -2803,10 +2810,6 @@ void PPPMDispIntel::fieldforce_none_ik_intel(IntelBuffers<flt_t,acc_t> * /*buffe
       }
 
 
-      _alignvar(FFT_SCALAR ekx_arr[nsplit*INTEL_P3M_ALIGNED_MAXORDER],64);
-      _alignvar(FFT_SCALAR eky_arr[nsplit*INTEL_P3M_ALIGNED_MAXORDER],64);
-      _alignvar(FFT_SCALAR ekz_arr[nsplit*INTEL_P3M_ALIGNED_MAXORDER],64);
-
       for (int k = 0; k < nsplit*INTEL_P3M_ALIGNED_MAXORDER; k++) {
         ekx_arr[k] = eky_arr[k] = ekz_arr[k] = ZEROF;
       }
@@ -2846,9 +2849,6 @@ void PPPMDispIntel::fieldforce_none_ik_intel(IntelBuffers<flt_t,acc_t> * /*buffe
         }
       }
 
-      _alignvar(FFT_SCALAR ekx[nsplit], 64);
-      _alignvar(FFT_SCALAR eky[nsplit], 64);
-      _alignvar(FFT_SCALAR ekz[nsplit], 64);
       for (int k = 0; k < nsplit; k++) {
         ekx[k] = eky[k] = ekz[k] = ZEROF;
       }
@@ -2935,6 +2935,13 @@ void PPPMDispIntel::fieldforce_none_ad_intel(IntelBuffers<flt_t,acc_t> * /*buffe
     _alignvar(flt_t rho[3][INTEL_P3M_ALIGNED_MAXORDER], 64) = {0};
     _alignvar(flt_t drho[3][INTEL_P3M_ALIGNED_MAXORDER], 64) = {0};
 
+    std::vector<FFT_SCALAR> ekx(nsplit*INTEL_P3M_ALIGNED_MAXORDER, ZEROF);
+    std::vector<FFT_SCALAR> eky(nsplit*INTEL_P3M_ALIGNED_MAXORDER, ZEROF);
+    std::vector<FFT_SCALAR> ekz(nsplit*INTEL_P3M_ALIGNED_MAXORDER, ZEROF);
+    std::vector<FFT_SCALAR> ekx_tot(nsplit, ZEROF);
+    std::vector<FFT_SCALAR> eky_tot(nsplit, ZEROF);
+    std::vector<FFT_SCALAR> ekz_tot(nsplit, ZEROF);
+
     for (int i = ifrom; i < ito; i++) {
       int nx = part2grid_6[i][0];
       int ny = part2grid_6[i][1];
@@ -3001,10 +3008,6 @@ void PPPMDispIntel::fieldforce_none_ad_intel(IntelBuffers<flt_t,acc_t> * /*buffe
           drho[2][k-nlower_6] = dr3;
         }
       }
-      _alignvar(FFT_SCALAR ekx[nsplit*INTEL_P3M_ALIGNED_MAXORDER], 64);
-      _alignvar(FFT_SCALAR eky[nsplit*INTEL_P3M_ALIGNED_MAXORDER], 64);
-      _alignvar(FFT_SCALAR ekz[nsplit*INTEL_P3M_ALIGNED_MAXORDER], 64);
-
       for (int k = 0; k < nsplit*INTEL_P3M_ALIGNED_MAXORDER; k++) {
         ekx[k]=eky[k]=ekz[k]=ZEROF;
       }
@@ -3045,9 +3048,6 @@ void PPPMDispIntel::fieldforce_none_ad_intel(IntelBuffers<flt_t,acc_t> * /*buffe
         }
       }
 
-      _alignvar(FFT_SCALAR ekx_tot[nsplit], 64);
-      _alignvar(FFT_SCALAR eky_tot[nsplit], 64);
-      _alignvar(FFT_SCALAR ekz_tot[nsplit], 64);
       for (int k = 0; k < nsplit; k++) {
         ekx_tot[k] = eky_tot[k] = ekz_tot[k] = ZEROF;
       }

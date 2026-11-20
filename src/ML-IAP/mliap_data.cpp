@@ -193,7 +193,7 @@ void MLIAPData::generate_neighdata(NeighList *list_in, int eflag_in, int vflag_i
         rij[ij][0] = delx;
         rij[ij][1] = dely;
         rij[ij][2] = delz;
-        lmp_firstneigh[ii][ninside] = firstneigh[i][jj];
+        lmp_firstneigh[ii][ninside] = j;
         ij++;
         ninside++;
       }

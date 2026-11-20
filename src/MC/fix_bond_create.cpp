@@ -53,6 +53,8 @@ FixBondCreate::FixBondCreate(LAMMPS *lmp, int narg, char **arg) :
 {
   std::string fixname = fmt::format("fix {}", style);
   if (narg < 8) utils::missing_cmd_args(FLERR, fixname, error);
+  if (atom->molecular != Atom::MOLECULAR)
+    error->all(FLERR, 2, "Cannot use fix {} with non-molecular systems", style);
 
   nevery = utils::inumeric(FLERR,arg[3],false,lmp);
   if (nevery <= 0) error->all(FLERR, 3, "Illegal fix {} nevery value {}", style, nevery);
@@ -77,7 +79,7 @@ FixBondCreate::FixBondCreate(LAMMPS *lmp, int narg, char **arg) :
     error->all(FLERR,"Invalid atom type in fix {} command", style);
   if (cutoff < 0.0) error->all(FLERR, 6, "Illegal fix {} cutoff value {}", style, cutoff);
   if (btype < 1 || btype > atom->nbondtypes)
-    error->all(FLERR, 7, "Invalid bond type {} in fix {} command", style, btype);
+    error->all(FLERR, 7, "Invalid bond type {} in fix {} command", btype, style);
 
   cutsq = cutoff*cutoff;
 
@@ -165,8 +167,6 @@ FixBondCreate::FixBondCreate(LAMMPS *lmp, int narg, char **arg) :
 
   // error check
 
-  if (atom->molecular != Atom::MOLECULAR)
-    error->all(FLERR, Error::NOLASTLINE, "Cannot use fix {} with non-molecular systems", style);
   if ((iatomtype == jatomtype) && ((imaxbond != jmaxbond) || (inewtype != jnewtype)))
     error->all(FLERR, Error::NOLASTLINE, "Inconsistent iparam/jparam values in fix {} command", style);
 

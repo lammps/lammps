@@ -331,7 +331,7 @@ void PPPMGPU::compute(int eflag, int vflag)
 
   if (triclinic) domain->lamda2x(atom->nlocal);
 
-  if (kspace_split) PPPM_GPU_API(forces)(atom->f);
+  if (kspace_split && triclinic == 0) PPPM_GPU_API(forces)(atom->f);
 }
 
 /* ----------------------------------------------------------------------
@@ -361,6 +361,13 @@ void PPPMGPU::brick2fft_gpu()
 
 void PPPMGPU::poisson_ik()
 {
+  // triclinic boxes use the host path: fieldforce() needs vdx/vdy/vdz_brick
+
+  if (triclinic) {
+    PPPM::poisson_ik();
+    return;
+  }
+
   int i,j,k,n;
   double eng;
 
@@ -487,6 +494,13 @@ void PPPMGPU::poisson_ik()
 
 void PPPMGPU::pack_forward_grid(int flag, void *vbuf, int nlist, int *list)
 {
+  // triclinic boxes use the host bricks (vdx/vdy/vdz_brick), not vd_brick
+
+  if (triclinic) {
+    PPPM::pack_forward_grid(flag, vbuf, nlist, list);
+    return;
+  }
+
   auto *buf = (FFT_SCALAR *) vbuf;
 
   int n = 0;
@@ -547,6 +561,13 @@ void PPPMGPU::pack_forward_grid(int flag, void *vbuf, int nlist, int *list)
 
 void PPPMGPU::unpack_forward_grid(int flag, void *vbuf, int nlist, int *list)
 {
+  // triclinic boxes use the host bricks (vdx/vdy/vdz_brick), not vd_brick
+
+  if (triclinic) {
+    PPPM::unpack_forward_grid(flag, vbuf, nlist, list);
+    return;
+  }
+
   auto *buf = (FFT_SCALAR *) vbuf;
 
   int n = 0;

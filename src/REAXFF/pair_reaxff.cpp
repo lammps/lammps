@@ -129,7 +129,7 @@ PairReaxFF::~PairReaxFF()
 
     // deallocate reax data-structures
 
-    if (api->control->tabulate) Deallocate_Lookup_Tables(api->system);
+    if (api->system->LR) Deallocate_Lookup_Tables(api->system);
     if (api->control->hbond_cut > 0) Delete_List(api->lists+HBONDS);
 
     Delete_List(api->lists+BONDS);
@@ -282,6 +282,11 @@ void PairReaxFF::coeff(int nargs, char **args)
   if (nargs != 3 + atom->ntypes)
     error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
 
+  // the lookup tables are sized by the number of elements in the ffield file.
+  // delete them before reading a new one. they are recreated in setup().
+
+  if (api->system->LR) Deallocate_Lookup_Tables(api->system);
+
   // read ffield file
 
   Read_Force_Field(args[2], &(api->system->reax_param), api->control, world);
@@ -376,6 +381,11 @@ void PairReaxFF::init_style()
 
   if (fix_reaxff == nullptr)
     fix_reaxff = dynamic_cast<FixReaxFF *>(modify->add_fix(fmt::format("{} all REAXFF",fix_id)));
+
+  // delete the lookup tables for the long-range interactions, so that setup()
+  // recreates them with the current settings, as the KOKKOS version does here
+
+  if (api->system->LR) Deallocate_Lookup_Tables(api->system);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -418,7 +428,7 @@ void PairReaxFF::setup()
 
     write_reax_lists();
 
-    Initialize(api->system,api->control,api->data,api->workspace,&api->lists,world);
+    Initialize(api->system,api->control,api->data,api->workspace,&api->lists);
     for (int k = 0; k < api->system->N; ++k) {
       num_bonds[k] = api->system->my_atoms[k].num_bonds;
       num_hbonds[k] = api->system->my_atoms[k].num_hbonds;
@@ -439,6 +449,12 @@ void PairReaxFF::setup()
 
     ReAllocate(api->system, api->control, api->data, api->workspace, &api->lists);
   }
+
+  // create the lookup tables for the long-range interactions after init_style()
+  // deleted them. this needs the taper coefficients from Initialize().
+
+  if (api->control->tabulate && !api->system->LR)
+    Init_Lookup_Tables(api->system, api->control, api->workspace, map, atom->ntypes);
 }
 
 /* ---------------------------------------------------------------------- */

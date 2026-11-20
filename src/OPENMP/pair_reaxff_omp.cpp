@@ -147,6 +147,11 @@ void PairReaxFFOMP::init_style()
     fix_reaxff = dynamic_cast<FixReaxFF *>(modify->add_fix(fmt::format("{} all REAXFF",fix_id)));
 
   api->control->nthreads = comm->nthreads;
+
+  // delete the lookup tables for the long-range interactions, so that setup()
+  // recreates them with the current settings, as the KOKKOS version does here
+
+  if (api->system->LR) Deallocate_Lookup_Tables(api->system);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -195,7 +200,7 @@ void PairReaxFFOMP::setup()
 
     write_reax_lists();
 
-    InitializeOMP(api->system,api->control,api->data,api->workspace,&api->lists,world);
+    InitializeOMP(api->system,api->control,api->data,api->workspace,&api->lists);
     for (int k = 0; k < api->system->N; ++k) {
       num_bonds[k] = api->system->my_atoms[k].num_bonds;
       num_hbonds[k] = api->system->my_atoms[k].num_hbonds;
@@ -220,6 +225,12 @@ void PairReaxFFOMP::setup()
 
     ReAllocate(api->system, api->control, api->data, api->workspace, &api->lists);
   }
+
+  // create the lookup tables for the long-range interactions after init_style()
+  // deleted them. this needs the taper coefficients from InitializeOMP().
+
+  if (api->control->tabulate && !api->system->LR)
+    Init_Lookup_Tables(api->system, api->control, api->workspace, map, atom->ntypes);
 }
 
 /* ---------------------------------------------------------------------- */

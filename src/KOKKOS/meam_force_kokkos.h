@@ -554,7 +554,7 @@ KOKKOS_INLINE_FUNCTION void MEAMKokkos<DeviceType>::operator()(TagMEAMForce<NEIG
 
         // Compute derivatives of total density wrt rij, sij and rij(3)
         get_shpfcn(lattce_meam[elti][elti], static_cast<KK_FLOAT>(stheta_meam[elti][elti]), static_cast<KK_FLOAT>(ctheta_meam[elti][elti]), shpi);
-        get_shpfcn(lattce_meam[eltj][eltj], static_cast<KK_FLOAT>(stheta_meam[elti][elti]), static_cast<KK_FLOAT>(ctheta_meam[elti][elti]), shpj);
+        get_shpfcn(lattce_meam[eltj][eltj], static_cast<KK_FLOAT>(stheta_meam[eltj][eltj]), static_cast<KK_FLOAT>(ctheta_meam[eltj][eltj]), shpj);
 
 
         if (msmeamflag) {

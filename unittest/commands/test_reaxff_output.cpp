@@ -16,6 +16,7 @@
 
 #include "atom.h"
 #include "fix.h"
+#include "force.h"
 #include "graphics.h"
 #include "info.h"
 #include "lammps.h"
@@ -459,6 +460,87 @@ TEST_F(ReaxFFOutputTest, SpeciesOffset)
     EXPECT_THAT(output, HasSubstr("has no averaged bond-order data on step 5"));
     check_species_file(outfile, {10});
     delete_file(outfile);
+}
+
+// pair style reaxff creates the lookup tables for the van der Waals and
+// Coulomb interactions of its tabulate keyword at the start of every run, as
+// the KOKKOS version does.  a different tabulate setting from a later
+// pair_style command must take effect with the next run: switching from no
+// tabulation to tabulation crashed, and a different table size was ignored.
+// the energies after a change must be the same as with a new instance of the
+// pair style.  fixed charges without charge equilibration make them
+// reproducible to the last bit.
+
+class ReaxFFTabulateTest : public ReaxFFOutputTest {
+protected:
+    double run_energy(const std::string &tabulate)
+    {
+        BEGIN_HIDE_OUTPUT();
+        command("pair_style reaxff NULL checkqeq no tabulate " + tabulate);
+        command("pair_coeff * * ffield.reax.mattsson H O");
+        command("run 0 post no");
+        END_HIDE_OUTPUT();
+        return lammps_get_thermo(lmp, "pe");
+    }
+
+    void check_tabulate_changes()
+    {
+        BEGIN_HIDE_OUTPUT();
+        command("unfix qeq");
+        command("set type 1 charge 0.2");
+        command("set type 2 charge -0.4");
+        END_HIDE_OUTPUT();
+
+        const double direct = run_energy("0");
+        const double fine   = run_energy("10000");
+        const double coarse = run_energy("100");
+        EXPECT_DOUBLE_EQ(run_energy("0"), direct);
+        if (verbose)
+            std::cout << fmt::format("{} energies: direct {:.15g} fine {:.15g} coarse {:.15g}\n",
+                                     lmp->force->pair_style, direct, fine, coarse);
+
+        // tabulation changes the energy only by the interpolation error.
+        // reduced precision KOKKOS builds add an error of their own.
+        const double eps = kokkos_reduced_precision() ? 1.0e-5 : 1.0e-8;
+        EXPECT_NEAR(fine, direct, eps * std::fabs(direct));
+        EXPECT_NEAR(coarse, direct, 1.0e-3 * std::fabs(direct));
+
+        BEGIN_HIDE_OUTPUT();
+        command("pair_style none");
+        END_HIDE_OUTPUT();
+        EXPECT_DOUBLE_EQ(run_energy("100"), coarse);
+        BEGIN_HIDE_OUTPUT();
+        command("pair_style none");
+        END_HIDE_OUTPUT();
+        EXPECT_DOUBLE_EQ(run_energy("10000"), fine);
+    }
+};
+
+// the OPENMP version is selected with command line flags, since the package
+// command must come before the simulation box is created
+
+class ReaxFFTabulateOMPTest : public ReaxFFTabulateTest {
+protected:
+    void SetUp() override
+    {
+        if (!using_accelerator() && Info::has_package("OPENMP"))
+            args.insert(args.end(), {"-pk", "omp", "1", "-sf", "omp"});
+        ReaxFFTabulateTest::SetUp();
+    }
+};
+
+TEST_F(ReaxFFTabulateTest, ChangeBetweenRuns)
+{
+    if (!info->has_style("pair", "reaxff")) GTEST_SKIP();
+    check_tabulate_changes();
+}
+
+TEST_F(ReaxFFTabulateOMPTest, ChangeBetweenRuns)
+{
+    if (using_accelerator()) GTEST_SKIP() << "Test uses its own accelerator flags";
+    if (!info->has_style("pair", "reaxff/omp")) GTEST_SKIP();
+    check_tabulate_changes();
+    EXPECT_STREQ(lmp->force->pair_style, "reaxff/omp");
 }
 
 } // namespace LAMMPS_NS

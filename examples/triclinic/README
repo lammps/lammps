@@ -15,6 +15,23 @@ energy and pressure should be same for primitive and orthogonal unit cells
 
 in.data.general = read a data file in general triclinic format
 
+in.nacl.primitive = 432 ions for rock salt lattice with primitive unit
+                    cell, Coulomb interactions with PPPM
+in.nacl.orthog = 512 ions for rock salt lattice with orthogonal unit
+                 cell, Coulomb interactions with PPPM
+
+energy and pressure at step 0 should be same for primitive and
+orthogonal unit cells; in both inputs, the sums of the per-atom KSpace
+energy and virial should be identical to the global KSpace energy and
+pressure tensor
+
+* Run the rock salt scripts on 1 and 4 procs
+
+lmp_mpi -in in.nacl.primitive -log log.nacl.primitive.g++.1
+lmp_mpi -in in.nacl.orthog -log log.nacl.orthog.g++.1
+mpirun -np 4 lmp_mpi -in in.nacl.primitive -log log.nacl.primitive.g++.4
+mpirun -np 4 lmp_mpi -in in.nacl.orthog -log log.nacl.orthog.g++.4
+
 * Run all the scripts on 1 proc
 
 lmp_mpi < in.bcc.primitive

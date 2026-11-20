@@ -301,12 +301,19 @@ void DynamicalMatrix::calculateMatrix()
     local_idx = atom->map(i);
     if (gm[i-1] < 0)
       continue;
+    // a many-body or kspace coupling can reach an atom j whose owner holds no
+    // copy of atom i (beyond the ghost cutoff), so every rank needs the mass of
+    // atom i and adds the forces on its own atoms whether or not it holds atom i
+    double mass_i = 0.0;
+    if ((local_idx >= 0) && (local_idx < nlocal))
+      mass_i = atom->rmass ? m[local_idx] : m[type[local_idx]];
+    MPI_Allreduce(MPI_IN_PLACE, &mass_i, 1, MPI_DOUBLE, MPI_MAX, world);
     for (int alpha=0; alpha<3; alpha++) {
       displace_atom(local_idx, alpha, 1);
       update_force();
       for (bigint j=1; j<=natoms; j++) {
         local_jdx = atom->map(j);
-        if (local_idx >= 0 && local_jdx >= 0 && local_jdx < nlocal
+        if (local_jdx >= 0 && local_jdx < nlocal
           && (gm[j-1] >= 0 || folded)){
           if (folded) {
             for (int beta=0; beta<3; beta++){
@@ -323,10 +330,10 @@ void DynamicalMatrix::calculateMatrix()
       update_force();
       for (bigint j=1; j<=natoms; j++) {
         local_jdx = atom->map(j);
-        if (local_idx >= 0 && local_jdx >= 0 && local_jdx < nlocal
+        if (local_jdx >= 0 && local_jdx < nlocal
           && (gm[j-1] >= 0 || folded)){
-          const double imass = atom->rmass ? sqrt(m[local_idx] * m[local_jdx]) :
-            sqrt(m[type[local_idx]] * m[type[local_jdx]]);
+          const double imass = atom->rmass ? sqrt(mass_i * m[local_jdx]) :
+            sqrt(mass_i * m[type[local_jdx]]);
           if (folded){
             for (int beta=0; beta<3; beta++){
               dynmat[alpha][(j-1)*3+beta] -= -f[local_jdx][beta];

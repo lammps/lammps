@@ -328,7 +328,7 @@ void ThirdOrder::calculateMatrix()
           for (bigint k=1; k<=natoms; k++) {
             local_kdx = atom->map(k);
             for (int gamma=0; gamma<3; gamma++) {
-              if (local_idx >= 0 && local_jdx >= 0 && local_kdx >= 0
+              if (local_kdx >= 0
                   && ((gm[j] >= 0 && gm[k-1] >= 0) || folded)
                   && local_kdx < nlocal) {
                 if (folded) {
@@ -344,7 +344,7 @@ void ThirdOrder::calculateMatrix()
           for (bigint k=1; k<=natoms; k++) {
             local_kdx = atom->map(k);
             for (int gamma=0; gamma<3; gamma++) {
-              if (local_idx >= 0 && local_jdx >= 0 && local_kdx >= 0
+              if (local_kdx >= 0
                   && ((gm[j] >= 0 && gm[k-1] >= 0) || folded)
                   && local_kdx < nlocal) {
                 if (folded) {
@@ -362,7 +362,7 @@ void ThirdOrder::calculateMatrix()
           for (bigint k=1; k<=natoms; k++) {
             local_kdx = atom->map(k);
             for (int gamma=0; gamma<3; gamma++) {
-              if (local_idx >= 0 && local_jdx >= 0 && local_kdx >= 0
+              if (local_kdx >= 0
                   && ((gm[j] >= 0 && gm[k-1] >= 0) || folded)
                   && local_kdx < nlocal) {
                 if (folded) {
@@ -378,7 +378,7 @@ void ThirdOrder::calculateMatrix()
           for (bigint k=1; k<=natoms; k++) {
             local_kdx = atom->map(k);
             for (int gamma=0; gamma<3; gamma++) {
-              if (local_idx >= 0 && local_jdx >= 0 && local_kdx >= 0
+              if (local_kdx >= 0
                   && ((gm[j] >= 0 && gm[k-1] >= 0) || folded)
                   && local_kdx < nlocal) {
                 if (folded) {

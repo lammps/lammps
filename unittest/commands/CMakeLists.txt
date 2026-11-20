@@ -235,6 +235,12 @@ if(PKG_MOLECULE)
   add_kokkos_test(NAME FixHalt COMMAND test_fix_halt)
 endif()
 
+if(PKG_MC AND PKG_MOLECULE)
+  add_executable(test_fix_bond_create test_fix_bond_create.cpp)
+  target_link_libraries(test_fix_bond_create PRIVATE lammps GTest::GMock)
+  add_test(NAME FixBondCreate COMMAND test_fix_bond_create)
+endif()
+
 if(PKG_PHONON)
   add_executable(test_phonon_commands test_phonon_commands.cpp)
   target_link_libraries(test_phonon_commands PRIVATE lammps GTest::GMock)

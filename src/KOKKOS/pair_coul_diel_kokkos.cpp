@@ -96,7 +96,7 @@ void PairCoulDielKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   else atomKK->modified(execution_space,F_MASK);
 
   // copy dielectric scalar parameters to KK_FLOAT members for device access
-  m_a_eps = static_cast<KK_FLOAT>(a_eps);
+  m_eps_min = static_cast<KK_FLOAT>(a_eps - b_eps);
   m_b_eps = static_cast<KK_FLOAT>(b_eps);
   m_eps_s = static_cast<KK_FLOAT>(eps_s);
 
@@ -167,11 +167,21 @@ compute_fcoul(const KK_FLOAT& rsq, const int& /*i*/, const int& j,
   const KK_FLOAT sigmae_ij = STACKPARAMS ? m_params[itype][jtype].sigmae : params(itype,jtype).sigmae;
   const KK_FLOAT rme_ij    = STACKPARAMS ? m_params[itype][jtype].rme    : params(itype,jtype).rme;
   const KK_FLOAT rarg      = (r - rme_ij) / sigmae_ij;
-  const KK_FLOAT th        = Kokkos::tanh(rarg);
-  const KK_FLOAT epsr      = m_a_eps + m_b_eps * th;
-  const KK_FLOAT depsdr    = m_b_eps * (static_cast<KK_FLOAT>(1.0) - th*th) / sigmae_ij;
+  // epsr = a_eps + b_eps*tanh(rarg) goes from eps_min = a_eps - b_eps to eps_s = a_eps + b_eps.
+  // Written that way, epsr at short distance and eps_s - epsr at long distance are differences
+  // of nearly equal numbers, which single precision (KK_FLOAT in mixed and single precision
+  // builds) cannot resolve.  So epsr, deps = eps_s - epsr and 1 - tanh^2(rarg) come from
+  // e2 = exp(-2|rarg|), without such differences.
+  const KK_FLOAT one       = static_cast<KK_FLOAT>(1.0);
+  const KK_FLOAT e2        = Kokkos::exp(static_cast<KK_FLOAT>(-2.0) * Kokkos::fabs(rarg));
+  const KK_FLOAT inv       = one / (one + e2);
+  const bool outside       = (rarg >= static_cast<KK_FLOAT>(0.0));
+  const KK_FLOAT deps      = static_cast<KK_FLOAT>(2.0) * m_b_eps * inv * (outside ? e2 : one);
+  const KK_FLOAT epsr      = outside ? (m_eps_s + m_eps_min * e2) * inv
+                                     : (m_eps_min + m_eps_s * e2) * inv;
+  const KK_FLOAT depsdr    = static_cast<KK_FLOAT>(4.0) * m_b_eps * e2 * inv * inv / sigmae_ij;
   const KK_FLOAT forcecoul = qqrd2e * qtmp * q(j) *
-    ((m_eps_s * (epsr + r*depsdr) / (epsr*epsr)) - static_cast<KK_FLOAT>(1.0)) / rsq;
+    (epsr*deps + m_eps_s*r*depsdr) / (epsr*epsr*rsq);
   return factor_coul * forcecoul / r;
 }
 
@@ -192,10 +202,15 @@ compute_ecoul(const KK_FLOAT& rsq, const int& /*i*/, const int& j,
   const KK_FLOAT sigmae_ij = STACKPARAMS ? m_params[itype][jtype].sigmae : params(itype,jtype).sigmae;
   const KK_FLOAT rme_ij    = STACKPARAMS ? m_params[itype][jtype].rme    : params(itype,jtype).rme;
   const KK_FLOAT rarg      = (r - rme_ij) / sigmae_ij;
-  const KK_FLOAT th        = Kokkos::tanh(rarg);
-  const KK_FLOAT epsr      = m_a_eps + m_b_eps * th;
-  const KK_FLOAT ecoul     = qqrd2e * qtmp * q(j) *
-    (m_eps_s / epsr - static_cast<KK_FLOAT>(1.0)) / r;
+  // epsr and deps = eps_s - epsr as in compute_fcoul(), and eps_s/epsr - 1 = deps/epsr
+  const KK_FLOAT one       = static_cast<KK_FLOAT>(1.0);
+  const KK_FLOAT e2        = Kokkos::exp(static_cast<KK_FLOAT>(-2.0) * Kokkos::fabs(rarg));
+  const KK_FLOAT inv       = one / (one + e2);
+  const bool outside       = (rarg >= static_cast<KK_FLOAT>(0.0));
+  const KK_FLOAT deps      = static_cast<KK_FLOAT>(2.0) * m_b_eps * inv * (outside ? e2 : one);
+  const KK_FLOAT epsr      = outside ? (m_eps_s + m_eps_min * e2) * inv
+                                     : (m_eps_min + m_eps_s * e2) * inv;
+  const KK_FLOAT ecoul     = qqrd2e * qtmp * q(j) * deps / (epsr*r);
   return factor_coul * ecoul;
 }
 

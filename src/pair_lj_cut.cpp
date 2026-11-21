@@ -71,15 +71,15 @@ PairLJCut::~PairLJCut()
 void PairLJCut::compute(int eflag, int vflag)
 {
   int i, j, ii, jj, inum, jnum, itype, jtype;
-  double xtmp, ytmp, ztmp, delx, dely, delz, evdwl, fpair;
+  double xtmp, ytmp, ztmp, fxtmp, fytmp, fztmp, delx, dely, delz, evdwl, fpair;
   double rsq, r2inv, r6inv, forcelj, factor_lj;
   int *ilist, *jlist, *numneigh, **firstneigh;
 
   evdwl = 0.0;
   ev_init(eflag, vflag);
 
-  double **x = atom->x;
-  double **f = atom->f;
+  const double (*const x)[3] = (const double (*)[3]) atom->x[0];
+  double (*const f)[3] = (double (*)[3]) atom->f[0];
   int *type = atom->type;
   int nlocal = atom->nlocal;
   double *special_lj = force->special_lj;
@@ -100,6 +100,7 @@ void PairLJCut::compute(int eflag, int vflag)
     itype = type[i];
     jlist = firstneigh[i];
     jnum = numneigh[i];
+    fxtmp = fytmp = fztmp = 0.0;
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
@@ -118,9 +119,9 @@ void PairLJCut::compute(int eflag, int vflag)
         forcelj = r6inv * (lj1[itype][jtype] * r6inv - lj2[itype][jtype]);
         fpair = factor_lj * forcelj * r2inv;
 
-        f[i][0] += delx * fpair;
-        f[i][1] += dely * fpair;
-        f[i][2] += delz * fpair;
+        fxtmp += delx * fpair;
+        fytmp += dely * fpair;
+        fztmp += delz * fpair;
         if (newton_pair || j < nlocal) {
           f[j][0] -= delx * fpair;
           f[j][1] -= dely * fpair;
@@ -135,6 +136,9 @@ void PairLJCut::compute(int eflag, int vflag)
         if (evflag) ev_tally(i, j, nlocal, newton_pair, evdwl, 0.0, fpair, delx, dely, delz);
       }
     }
+    f[i][0] += fxtmp;
+    f[i][1] += fytmp;
+    f[i][2] += fztmp;
   }
 
   if (vflag_fdotr) virial_fdotr_compute();

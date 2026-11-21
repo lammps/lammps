@@ -18,6 +18,7 @@
 #include "atom.h"
 #include "comm.h"
 #include "math_extra.h"
+#include "memory.h"
 #include "neigh_list.h"
 #include "suffix.h"
 
@@ -87,17 +88,17 @@ void PairTersoffMODOMP::compute(int eflag, int vflag)
 template <int SHIFT_FLAG, int EVFLAG, int EFLAG, int VFLAG_EITHER>
 void PairTersoffMODOMP::eval(int iifrom, int iito, ThrData * const thr)
 {
-  int i,j,k,ii,jj,kk,jnum;
+  int i,j,k,ii,jj,kk,jnum,maxshort_thr;
   tagint itag,jtag;
   int itype,jtype,ktype,iparam_ij,iparam_ijk;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
   double fforce;
   double rsq,rsq1,rsq2;
-  double delr1[3],delr2[3],fi[3],fj[3],fk[3];
-  double r1_hat[3],r2_hat[3];
+  double fi[3],fj[3],fk[3];
   double zeta_ij,prefactor;
   double forceshiftfac;
   int *ilist,*jlist,*numneigh,**firstneigh;
+  ShortGeom *shortgeom_thr;
 
   evdwl = 0.0;
 
@@ -106,10 +107,13 @@ void PairTersoffMODOMP::eval(int iifrom, int iito, ThrData * const thr)
   const tagint * _noalias const tag = atom->tag;
   const int * _noalias const type = atom->type;
   const int nlocal = atom->nlocal;
+  const double cutshortsq = cutmax*cutmax;
 
   ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
+  maxshort_thr = maxshort;
+  memory->create(shortgeom_thr,maxshort_thr,"pair_thr:shortgeom_thr");
 
   double fxtmp,fytmp,fztmp;
 
@@ -129,12 +133,37 @@ void PairTersoffMODOMP::eval(int iifrom, int iito, ThrData * const thr)
 
     jlist = firstneigh[i];
     jnum = numneigh[i];
+    int numshort = 0;
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
       j &= NEIGHMASK;
-      jtag = tag[j];
 
+      delx = xtmp - x[j].x;
+      dely = ytmp - x[j].y;
+      delz = ztmp - x[j].z;
+      rsq = delx*delx + dely*dely + delz*delz;
+      const double raw_rsq = rsq;
+
+      // shift rsq and store correction for force
+
+      if (SHIFT_FLAG) {
+        double rsqtmp = rsq + shift*shift + 2*sqrt(rsq)*shift;
+        forceshiftfac = sqrt(rsqtmp/rsq);
+        rsq = rsqtmp;
+      }
+
+      if (rsq < cutshortsq) {
+        fill_shortgeom<SHIFT_FLAG,0>(j,map[type[j]],raw_rsq,rsq,
+                                     x[j].x - xtmp,x[j].y - ytmp,x[j].z - ztmp,
+                                     shortgeom_thr[numshort++]);
+        if (numshort >= maxshort_thr) {
+          maxshort_thr += maxshort_thr/2;
+          memory->grow(shortgeom_thr,maxshort_thr,"pair_thr:shortgeom_thr");
+        }
+      }
+
+      jtag = tag[j];
       if (itag > jtag) {
         if ((itag+jtag) % 2 == 0) continue;
       } else if (itag < jtag) {
@@ -146,22 +175,8 @@ void PairTersoffMODOMP::eval(int iifrom, int iito, ThrData * const thr)
       }
 
       jtype = map[type[j]];
-
-      delx = xtmp - x[j].x;
-      dely = ytmp - x[j].y;
-      delz = ztmp - x[j].z;
-      rsq = delx*delx + dely*dely + delz*delz;
-
-      // shift rsq and store correction for force
-
-      if (SHIFT_FLAG) {
-        double rsqtmp = rsq + shift*shift + 2*sqrt(rsq)*shift;
-        forceshiftfac = sqrt(rsqtmp/rsq);
-        rsq = rsqtmp;
-      }
-
       iparam_ij = elem3param[itype][jtype][jtype];
-      if (rsq > params[iparam_ij].cutsq) continue;
+      if (rsq >= params[iparam_ij].cutsq) continue;
 
       repulsive(&params[iparam_ij],rsq,fpair,EFLAG,evdwl);
 
@@ -184,51 +199,34 @@ void PairTersoffMODOMP::eval(int iifrom, int iito, ThrData * const thr)
     // skip immediately if I-J is not within cutoff
     double fjxtmp,fjytmp,fjztmp;
 
-    for (jj = 0; jj < jnum; jj++) {
-      j = jlist[jj];
-      j &= NEIGHMASK;
-      jtype = map[type[j]];
+    for (jj = 0; jj < numshort; jj++) {
+      ShortGeom &g1 = shortgeom_thr[jj];
+      j = g1.j;
+      jtype = g1.jtype;
       iparam_ij = elem3param[itype][jtype][jtype];
 
-      delr1[0] = x[j].x - xtmp;
-      delr1[1] = x[j].y - ytmp;
-      delr1[2] = x[j].z - ztmp;
-      rsq1 = delr1[0]*delr1[0] + delr1[1]*delr1[1] + delr1[2]*delr1[2];
+      rsq1 = g1.rsq;
+      if (rsq1 >= params[iparam_ij].cutsq) continue;
 
-      if (SHIFT_FLAG)
-        rsq1 += shift*shift + 2*sqrt(rsq1)*shift;
-
-      if (rsq1 > params[iparam_ij].cutsq) continue;
-
-      const double r1inv = 1.0/sqrt(dot3(delr1, delr1));
-      scale3(r1inv, delr1, r1_hat);
+      double *const delr1 = g1.del;
+      double *const r1_hat = g1.hat;
+      const double r1inv = g1.rinv;
 
       // accumulate bondorder zeta for each i-j interaction via loop over k
 
       fjxtmp = fjytmp = fjztmp = 0.0;
       zeta_ij = 0.0;
 
-      for (kk = 0; kk < jnum; kk++) {
+      for (kk = 0; kk < numshort; kk++) {
         if (jj == kk) continue;
-        k = jlist[kk];
-        k &= NEIGHMASK;
-        ktype = map[type[k]];
+        ShortGeom &g2 = shortgeom_thr[kk];
+        ktype = g2.jtype;
         iparam_ijk = elem3param[itype][jtype][ktype];
 
-        delr2[0] = x[k].x - xtmp;
-        delr2[1] = x[k].y - ytmp;
-        delr2[2] = x[k].z - ztmp;
-        rsq2 = delr2[0]*delr2[0] + delr2[1]*delr2[1] + delr2[2]*delr2[2];
+        rsq2 = g2.rsq;
+        if (rsq2 >= params[iparam_ijk].cutsq) continue;
 
-        if (SHIFT_FLAG)
-          rsq2 += shift*shift + 2*sqrt(rsq2)*shift;
-
-        if (rsq2 > params[iparam_ijk].cutsq) continue;
-
-        const double r2inv = 1.0/sqrt(dot3(delr2, delr2));
-        scale3(r2inv, delr2, r2_hat);
-
-        zeta_ij += zeta(&params[iparam_ijk],rsq1,rsq2,r1_hat,r2_hat);
+        zeta_ij += zeta(&params[iparam_ijk],rsq1,rsq2,r1_hat,g2.hat);
       }
 
       // pairwise force due to zeta
@@ -249,28 +247,18 @@ void PairTersoffMODOMP::eval(int iifrom, int iito, ThrData * const thr)
 
       // attractive term via loop over k
 
-      for (kk = 0; kk < jnum; kk++) {
+      for (kk = 0; kk < numshort; kk++) {
         if (jj == kk) continue;
-        k = jlist[kk];
-        k &= NEIGHMASK;
-        ktype = map[type[k]];
+        ShortGeom &g2 = shortgeom_thr[kk];
+        k = g2.j;
+        ktype = g2.jtype;
         iparam_ijk = elem3param[itype][jtype][ktype];
 
-        delr2[0] = x[k].x - xtmp;
-        delr2[1] = x[k].y - ytmp;
-        delr2[2] = x[k].z - ztmp;
-        rsq2 = delr2[0]*delr2[0] + delr2[1]*delr2[1] + delr2[2]*delr2[2];
-
-        if (SHIFT_FLAG)
-          rsq2 += shift*shift + 2*sqrt(rsq2)*shift;
-
-        if (rsq2 > params[iparam_ijk].cutsq) continue;
-
-        const double r2inv = 1.0/sqrt(dot3(delr2, delr2));
-        scale3(r2inv, delr2, r2_hat);
+        rsq2 = g2.rsq;
+        if (rsq2 >= params[iparam_ijk].cutsq) continue;
 
         attractive(&params[iparam_ijk],prefactor,
-                   rsq1,rsq2,r1_hat,r2_hat,fi,fj,fk);
+                   rsq1,rsq2,r1_hat,g2.hat,fi,fj,fk);
 
         fxtmp += fi[0];
         fytmp += fi[1];
@@ -282,7 +270,7 @@ void PairTersoffMODOMP::eval(int iifrom, int iito, ThrData * const thr)
         f[k].y += fk[1];
         f[k].z += fk[2];
 
-        if (VFLAG_EITHER) v_tally3_thr(this,i,j,k,fj,fk,delr1,delr2,thr);
+        if (VFLAG_EITHER) v_tally3_thr(this,i,j,k,fj,fk,delr1,g2.del,thr);
       }
       f[j].x += fjxtmp;
       f[j].y += fjytmp;
@@ -292,6 +280,7 @@ void PairTersoffMODOMP::eval(int iifrom, int iito, ThrData * const thr)
     f[i].y += fytmp;
     f[i].z += fztmp;
   }
+  memory->destroy(shortgeom_thr);
 }
 
 /* ---------------------------------------------------------------------- */

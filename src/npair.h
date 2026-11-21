@@ -46,6 +46,8 @@ class NPair : protected Pointers {
   double skin;
   double **cutneighsq;
   double **cutneighghostsq;
+  int *ucut_type;          // 1 if all neighbor cutoffs of a type are the same, else 0
+  int *ucut_ghost_type;    // ditto for the ghost neighbor cutoffs
   double cut_inner_sq;
   double cut_middle_sq;
   double cut_middle_inside_sq;
@@ -111,6 +113,7 @@ class NPair : protected Pointers {
 
   virtual void copy_bin_info();
   virtual void copy_stencil_info();
+  void set_uniform_cutoff_flags(int *&, double **, const char *);
 
   int exclusion(int, int, int, int, int *, tagint *) const;    // test for pair exclusion
   int coord2bin(double *);                                     // mapping atom coord to a bin

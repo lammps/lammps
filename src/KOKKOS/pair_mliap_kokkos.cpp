@@ -358,8 +358,8 @@ int PairMLIAPKokkos<DeviceType>::forward_comm(CommType* copy_from_, CommType* co
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType>(0,(atom->nlocal+atom->nghost)*vl), KOKKOS_LAMBDA (int i) {
     copy_to_[i] = copy_from_[i];
   });
-  //call comm
-  comm->forward_comm(this);
+  // the model chooses vl at run time, after Comm::init() sized the buffers
+  comm->forward_comm_dynamic(this,vl);
 
   return 0;
 }
@@ -385,7 +385,7 @@ int PairMLIAPKokkos<DeviceType>::reverse_comm(CommType* copy_from_, CommType* co
     copy_to_[i] = copy_from_[i]; // Copy inputs
   });
 
-  comm->reverse_comm(this);
+  comm->reverse_comm_dynamic(this,vl);
 
   Kokkos::parallel_for(
     Kokkos::RangePolicy<DeviceType>( (atom->nlocal)*vl,(atom->nlocal + atom->nghost)*vl),

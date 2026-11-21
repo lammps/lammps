@@ -1351,6 +1351,43 @@ void CommTiled::reverse_comm(Pair *pair, int size)
 }
 
 /* ----------------------------------------------------------------------
+   forward communication invoked by a Pair with a size known only at call time
+   size = number of values per atom of this call, may exceed the
+     comm_forward of the Pair that Comm::init() sized the buffers for
+   grows the buffers if needed, then calls forward_comm(Pair *)
+   same bounds as in borders():
+     buf_send holds one message, buf_recv all messages of a swap
+   only for callers that cannot set comm_forward before init, e.g.
+     pair mliap/kk, where the model chooses the size at run time
+------------------------------------------------------------------------- */
+
+void CommTiled::forward_comm_dynamic(Pair *pair, int size)
+{
+  if (size*smaxone > maxsend) grow_send(size*smaxone,0);
+  if (size*rmaxall > maxrecv) grow_recv(size*rmaxall);
+
+  forward_comm(pair,size);
+}
+
+/* ----------------------------------------------------------------------
+   reverse communication invoked by a Pair with a size known only at call time
+   size = number of values per atom of this call, may exceed the
+     comm_reverse of the Pair that Comm::init() sized the buffers for
+   grows the buffers if needed, then calls reverse_comm(Pair *)
+   in the reverse direction buf_send holds one received message
+     and buf_recv all sent messages of a swap
+   see forward_comm_dynamic() above
+------------------------------------------------------------------------- */
+
+void CommTiled::reverse_comm_dynamic(Pair *pair, int size)
+{
+  if (size*rmaxone > maxsend) grow_send(size*rmaxone,0);
+  if (size*smaxall > maxrecv) grow_recv(size*smaxall);
+
+  reverse_comm(pair,size);
+}
+
+/* ----------------------------------------------------------------------
    forward communication invoked by a Bond
    size/nsize used only to set recv buffer limit
    size = 0 (default) -> use comm_forward from Bond

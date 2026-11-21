@@ -1730,27 +1730,38 @@ std::string utils::star_subst(const std::string &name, bigint step, int pad)
   return fmt::format("{}{:0{}}{}", name.substr(0, star), step, pad, name.substr(star + 1));
 }
 
+namespace {
+// remove exactly one terminal "/<candidate>" from style: the longest candidate
+// that matches the end of the string exactly (no regex, no partial match).
+// null or empty candidates are ignored, and a match that would leave an empty
+// base name is not removed.
+std::string strip_one_terminal_suffix(const std::string &style, const char *const *cand, int ncand)
+{
+  std::size_t best = 0;
+  for (int i = 0; i < ncand; ++i) {
+    if (!cand[i] || !cand[i][0]) continue;
+    const std::size_t n = strlen(cand[i]) + 1;    // "/" + candidate
+    if ((n >= style.size()) || (n <= best)) continue;
+    if ((style[style.size() - n] == '/') &&
+        (style.compare(style.size() - n + 1, n - 1, cand[i]) == 0))
+      best = n;
+  }
+  return best ? style.substr(0, style.size() - best) : style;
+}
+}    // namespace
+
 /* ----------------------------------------------------------------------
    Remove accelerator style suffix from string
+   The candidates are the active suffix, suffix2 and the suffix used for
+   non-pair styles: with "-sf kk" and "-pk kokkos pair/only on" non-pair
+   styles are created as "<style>/kk/host", which neither suffix nor
+   suffix2 matches.
 ------------------------------------------------------------------------- */
 std::string utils::strip_style_suffix(const std::string &style, LAMMPS *lmp)
 {
-  std::string newstyle = style;
-  if (lmp->suffix_enable) {
-    if (lmp->suffix) {
-      if (utils::strmatch(style, fmt::format("/{}$", lmp->suffix))) {
-        newstyle.resize(style.size() - strlen(lmp->suffix) - 1);
-        return newstyle;
-      }
-    }
-    if (lmp->suffix2) {
-      if (utils::strmatch(style, fmt::format("/{}$", lmp->suffix2))) {
-        newstyle.resize(style.size() - strlen(lmp->suffix2) - 1);
-        return newstyle;
-      }
-    }
-  }
-  return newstyle;
+  if (!lmp->suffix_enable) return style;
+  const char *cand[3] = {lmp->suffix, lmp->suffix2, lmp->non_pair_suffix()};
+  return strip_one_terminal_suffix(style, cand, 3);
 }
 
 /* ----------------------------------------------------------------------

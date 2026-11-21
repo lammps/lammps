@@ -1211,11 +1211,16 @@ void FixQEqReaxFF::sparse_matvec(sparse_matrix *A, double *x, double *b)
 
   for (ii = 0; ii < nn; ++ii) {
     i = ilist[ii];
-    for (itr_j=A->firstnbr[i]; itr_j<A->firstnbr[i]+A->numnbrs[i]; itr_j++) {
+    const double x_i = x[i];
+    double bi = b[i];
+    const int end_j = A->firstnbr[i] + A->numnbrs[i];
+    for (itr_j = A->firstnbr[i]; itr_j < end_j; itr_j++) {
       j = A->jlist[itr_j];
-      b[i] += A->val[itr_j] * x[j];
-      b[j] += A->val[itr_j] * x[i];
+      const double val = A->val[itr_j];
+      bi += val * x[j];
+      b[j] += val * x_i;
     }
+    b[i] = bi;
   }
 
 }

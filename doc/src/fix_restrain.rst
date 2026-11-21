@@ -217,11 +217,39 @@ minimum when :math:`n \phi = \phi_0 + 180` (modulo 360 degrees).  For
 :math:`\phi_0 = \phi_t - 180`.  For example, :math:`\phi_0 = -60` holds
 the dihedral angle near 120 degrees.
 
+For :math:`n > 1`, there are :math:`n` equivalent energy minima at
+
+.. math::
+
+   \phi = \frac{\phi_0 + 180 + 360 k}{n}, \quad k = 0, 1, \ldots, n-1
+
+(modulo 360 degrees), spaced :math:`360/n` degrees apart.  For example,
+:math:`n = 2` and :math:`\phi_0 = -20` give minima at :math:`\phi = 80`
+and :math:`-100` degrees.  The restraint cannot single out one of them, so
+use :math:`n = 1` to hold the dihedral angle at one specific value.
+
 .. note::
 
    Earlier versions of this page gave :math:`d = \phi_0 + 180` and placed
    the energy minimum at :math:`\phi_0`.  The implementation has used
    :math:`d = \phi_0` since 2012, and this page now describes it.
+
+----------
+
+.. note::
+
+   Every processor that owns at least one atom of a restraint computes it
+   and applies forces to its own atoms, so all atoms of the restraint must
+   be present on that processor as owned or ghost atoms, independent of the
+   :doc:`newton bond <newton>` setting.  Since no pairwise cutoff is
+   required by this fix, the default communication cutoff may be too short
+   for restrained atoms that are far apart, and LAMMPS stops with a "Restrain
+   atoms ... missing" error.  In this case, increase the cutoff with the
+   :doc:`comm_modify cutoff <comm_modify>` command to at least the largest
+   distance between any two atoms of a restraint, e.g. the distance between
+   atoms 1 and 4 of a dihedral, also when *newton bond* is *on*.  This is
+   different from the requirement described for that setting in the
+   :doc:`comm_modify <comm_modify>` documentation.
 
 ----------
 

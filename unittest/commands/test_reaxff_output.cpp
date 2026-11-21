@@ -16,6 +16,7 @@
 
 #include "atom.h"
 #include "fix.h"
+#include "force.h"
 #include "graphics.h"
 #include "info.h"
 #include "lammps.h"
@@ -31,6 +32,7 @@
 #include <cmath>
 #include <cstdlib>
 #include <cstring>
+#include <fstream>
 #include <map>
 #include <mpi.h>
 #include <string>
@@ -459,6 +461,235 @@ TEST_F(ReaxFFOutputTest, SpeciesOffset)
     EXPECT_THAT(output, HasSubstr("has no averaged bond-order data on step 5"));
     check_species_file(outfile, {10});
     delete_file(outfile);
+}
+
+// pair style reaxff creates the lookup tables for the van der Waals and
+// Coulomb interactions of its tabulate keyword at the start of every run, as
+// the KOKKOS version does.  a different tabulate setting from a later
+// pair_style command must take effect with the next run: switching from no
+// tabulation to tabulation crashed, and a different table size was ignored.
+// the energies after a change must be the same as with a new instance of the
+// pair style.  fixed charges without charge equilibration make them
+// reproducible to the last bit.
+
+class ReaxFFTabulateTest : public ReaxFFOutputTest {
+protected:
+    double run_energy(const std::string &tabulate)
+    {
+        BEGIN_HIDE_OUTPUT();
+        command("pair_style reaxff NULL checkqeq no tabulate " + tabulate);
+        command("pair_coeff * * ffield.reax.mattsson H O");
+        command("run 0 post no");
+        END_HIDE_OUTPUT();
+        return lammps_get_thermo(lmp, "pe");
+    }
+
+    void check_tabulate_changes()
+    {
+        BEGIN_HIDE_OUTPUT();
+        command("unfix qeq");
+        command("set type 1 charge 0.2");
+        command("set type 2 charge -0.4");
+        END_HIDE_OUTPUT();
+
+        const double direct = run_energy("0");
+        const double fine   = run_energy("10000");
+        const double coarse = run_energy("100");
+        EXPECT_KKFLOAT_EQ(run_energy("0"), direct);
+        if (verbose)
+            std::cout << fmt::format("{} energies: direct {:.15g} fine {:.15g} coarse {:.15g}\n",
+                                     lmp->force->pair_style, direct, fine, coarse);
+
+        // tabulation changes the energy only by the interpolation error.
+        // reduced precision KOKKOS builds add an error of their own.
+        const double eps = kokkos_reduced_precision() ? 1.0e-5 : 1.0e-8;
+        EXPECT_NEAR(fine, direct, eps * std::fabs(direct));
+        EXPECT_NEAR(coarse, direct, 1.0e-3 * std::fabs(direct));
+
+        BEGIN_HIDE_OUTPUT();
+        command("pair_style none");
+        END_HIDE_OUTPUT();
+        EXPECT_KKFLOAT_EQ(run_energy("100"), coarse);
+        BEGIN_HIDE_OUTPUT();
+        command("pair_style none");
+        END_HIDE_OUTPUT();
+        EXPECT_KKFLOAT_EQ(run_energy("10000"), fine);
+    }
+};
+
+// the OPENMP version is selected with command line flags, since the package
+// command must come before the simulation box is created
+
+class ReaxFFTabulateOMPTest : public ReaxFFTabulateTest {
+protected:
+    void SetUp() override
+    {
+        if (!using_accelerator() && Info::has_package("OPENMP"))
+            args.insert(args.end(), {"-pk", "omp", "1", "-sf", "omp"});
+        ReaxFFTabulateTest::SetUp();
+    }
+};
+
+TEST_F(ReaxFFTabulateTest, ChangeBetweenRuns)
+{
+    if (!info->has_style("pair", "reaxff")) GTEST_SKIP();
+    check_tabulate_changes();
+}
+
+TEST_F(ReaxFFTabulateOMPTest, ChangeBetweenRuns)
+{
+    if (using_accelerator()) GTEST_SKIP() << "Test uses its own accelerator flags";
+    if (!info->has_style("pair", "reaxff/omp")) GTEST_SKIP();
+    check_tabulate_changes();
+    EXPECT_STREQ(lmp->force->pair_style, "reaxff/omp");
+}
+
+// pair style reaxff also creates all other data structures for the current
+// settings at the start of every run.  hydrogen bonds switched on with a
+// control file in a later pair_style command crashed, also in the KOKKOS
+// version, and a larger hydrogen bond cutoff stopped with an error, since the
+// room for the hydrogen bonds was reserved for the cutoff of the first run.
+// an ffield file with a different taper radius in a later pair_coeff command
+// kept the taper of the first run.  these tests use a dense random mixture
+// of hydrogen and oxygen atoms with fixed charges, which has many hydrogen
+// bonds, unlike the gas phase system above.
+
+class ReaxFFSettingsTest : public LAMMPSTest {
+protected:
+    // control files without hydrogen bonds and with a short hydrogen bond
+    // cutoff.  without a control file, the cutoff is 7.5 angstrom.
+    const std::string nohbond    = "test_reaxff_nohbond.control";
+    const std::string shorthbond = "test_reaxff_shorthbond.control";
+
+    void SetUp() override
+    {
+        testbinary = "ReaxFFSettingsTest";
+        LAMMPSTest::SetUp();
+        if (!info->has_style("pair", "reaxff")) return;
+
+        BEGIN_HIDE_OUTPUT();
+        command("units real");
+        command("atom_style charge");
+        command("atom_modify map array");
+        command("lattice diamond 3.77");
+        command("region box block 0 2 0 2 0 2");
+        command("create_box 2 box");
+        command("create_atoms 1 box");
+        command("mass 1 1.008");
+        command("mass 2 15.999");
+        command("set type 1 type/ratio 2 0.5 998877");
+        command("set type 1 charge 0.1");
+        command("set type 2 charge -0.1");
+        command("displace_atoms all random 0.1 0.1 0.1 623426");
+        END_HIDE_OUTPUT();
+
+        std::ofstream(nohbond) << "hbond_cutoff 0.0\n";
+        std::ofstream(shorthbond) << "hbond_cutoff 3.0\n";
+    }
+
+    void TearDown() override
+    {
+        delete_file(nohbond);
+        delete_file(shorthbond);
+        LAMMPSTest::TearDown();
+    }
+
+    double run_energy(const std::string &control, const std::string &coeffs)
+    {
+        BEGIN_HIDE_OUTPUT();
+        command("pair_style reaxff " + control + " checkqeq no");
+        command("pair_coeff * * " + coeffs);
+        command("run 0 post no");
+        END_HIDE_OUTPUT();
+        return lammps_get_thermo(lmp, "pe");
+    }
+
+    // energy with a new instance of the pair style
+    double new_energy(const std::string &control, const std::string &coeffs)
+    {
+        BEGIN_HIDE_OUTPUT();
+        command("pair_style none");
+        END_HIDE_OUTPUT();
+        return run_energy(control, coeffs);
+    }
+
+    void check_hbond_changes()
+    {
+        const std::string ffield = "ffield.reax.mattsson H O";
+
+        const double none = run_energy(nohbond, ffield);
+        const double full = run_energy("NULL", ffield);
+        const double part = run_energy(shorthbond, ffield);
+        EXPECT_KKFLOAT_EQ(run_energy("NULL", ffield), full);
+        EXPECT_KKFLOAT_EQ(run_energy(nohbond, ffield), none);
+        if (verbose)
+            std::cout << fmt::format("{} energies: no hbonds {:.15g} short {:.15g} full {:.15g}\n",
+                                     lmp->force->pair_style, none, part, full);
+
+        // the hydrogen bonds contribute a lot to the energy of this system
+        EXPECT_LT(full, part - 100.0);
+        EXPECT_LT(part, none - 100.0);
+
+        EXPECT_KKFLOAT_EQ(new_energy("NULL", ffield), full);
+        EXPECT_KKFLOAT_EQ(new_energy(shorthbond, ffield), part);
+        EXPECT_KKFLOAT_EQ(new_energy(nohbond, ffield), none);
+    }
+
+    void check_taper_changes()
+    {
+        // the upper taper radius is 10 angstrom in ffield.reax.mattsson and
+        // 7 angstrom in ffield.ci-reax.CH, which has carbon instead of oxygen
+        const std::string longtaper  = "ffield.reax.mattsson H O";
+        const std::string shorttaper = "ffield.ci-reax.CH H C";
+
+        const double tap10 = run_energy("NULL", longtaper);
+        const double tap7  = run_energy("NULL", shorttaper);
+        EXPECT_KKFLOAT_EQ(run_energy("NULL", longtaper), tap10);
+        if (verbose)
+            std::cout << fmt::format("{} energies: taper 10 {:.15g} taper 7 {:.15g}\n",
+                                     lmp->force->pair_style, tap10, tap7);
+
+        EXPECT_KKFLOAT_EQ(new_energy("NULL", shorttaper), tap7);
+        EXPECT_KKFLOAT_EQ(new_energy("NULL", longtaper), tap10);
+    }
+};
+
+class ReaxFFSettingsOMPTest : public ReaxFFSettingsTest {
+protected:
+    void SetUp() override
+    {
+        if (!using_accelerator() && Info::has_package("OPENMP"))
+            args.insert(args.end(), {"-pk", "omp", "1", "-sf", "omp"});
+        ReaxFFSettingsTest::SetUp();
+    }
+};
+
+TEST_F(ReaxFFSettingsTest, HBondCutoff)
+{
+    if (!info->has_style("pair", "reaxff")) GTEST_SKIP();
+    check_hbond_changes();
+}
+
+TEST_F(ReaxFFSettingsTest, TaperRadius)
+{
+    if (!info->has_style("pair", "reaxff")) GTEST_SKIP();
+    check_taper_changes();
+}
+
+TEST_F(ReaxFFSettingsOMPTest, HBondCutoff)
+{
+    if (using_accelerator()) GTEST_SKIP() << "Test uses its own accelerator flags";
+    if (!info->has_style("pair", "reaxff/omp")) GTEST_SKIP();
+    check_hbond_changes();
+    EXPECT_STREQ(lmp->force->pair_style, "reaxff/omp");
+}
+
+TEST_F(ReaxFFSettingsOMPTest, TaperRadius)
+{
+    if (using_accelerator()) GTEST_SKIP() << "Test uses its own accelerator flags";
+    if (!info->has_style("pair", "reaxff/omp")) GTEST_SKIP();
+    check_taper_changes();
+    EXPECT_STREQ(lmp->force->pair_style, "reaxff/omp");
 }
 
 } // namespace LAMMPS_NS

@@ -284,6 +284,10 @@ void PairGayBerne::settings(int narg, char **arg)
   mu = utils::numeric(FLERR,arg[2],false,lmp);
   cut_global = utils::numeric(FLERR,arg[3],false,lmp);
 
+  // the model uses 1/mu as exponent
+
+  if (mu == 0.0) error->all(FLERR, 3, "Pair style gayberne parameter mu must not be zero");
+
   // reset cutoffs that have been explicitly set
 
   if (allocated) {

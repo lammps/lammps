@@ -9,7 +9,6 @@ prerequisites: |
   fix qeq/reaxff
 pre_commands: |
   echo screen
-  shell cp ${input_dir}/reaxff.control reaxff-1.control
   variable newton_pair delete
   variable newton_pair index on
   atom_modify     map array

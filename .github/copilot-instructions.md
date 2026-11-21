@@ -108,6 +108,11 @@ near-zero comparisons): follow it before loosening tolerances or tagging a test
 - **Python 3.9 is the oldest supported version:** Python code in the tree (the
   `python/` module, `tools/`, test and example scripts) must run with it, so do not
   use newer syntax or library features (e.g. `match` statements, `X | Y` type hints).
+- **Library interface with `-DLAMMPS_BIGBIG`:** the per-atom scatter/gather functions
+  (`lammps_gather_atoms()`, `lammps_gather()`, `lammps_scatter*()`, their `_concat`
+  and `_subset` variants, and the Python and Fortran methods of the same names) stop
+  with an error in builds with 64-bit atom IDs.  Code and tests that call them need a
+  fallback or a skip (idioms in `.github/instructions/force-style-tests.instructions.md`).
 - Root `README` has no extension; subdirectories may use `.md`.
 - C++ coding rules and the steps for adding a new style:
   `.github/instructions/source-code.instructions.md`.

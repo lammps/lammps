@@ -106,6 +106,10 @@ public:
   enum class COMM_TYPE {FLOAT=0, DOUBLE, UNSET} comm_type;
   int vec_len;
 
+  // route the feature exchange of a device instance through the KOKKOS device communication
+  bool device_route(bool forward);
+  void exchange_pair_comm(bool forward, bool routed);
+
   typename AT::t_kkfloat_1d_3_lr_randomread x;
   typename AT::t_kkfloat_1d_3_randomread v;
   typename AT::t_kkacc_1d_3 f;

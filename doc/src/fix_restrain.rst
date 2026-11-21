@@ -36,7 +36,7 @@ Syntax
        *dihedral* args = atom1 atom2 atom3 atom4 Kstart Kstop phi0 keyword/value
          atom1,atom2,atom3,atom4 = IDs of 4 atoms in dihedral in linear order
          Kstart,Kstop = restraint coefficients at start/end of run (energy units)
-         phi0 = equilibrium dihedral angle phi (degrees)
+         phi0 = phase of the restraint (degrees), the energy minimum is at phi0 + 180 for mult 1
          keyword/value = optional keyword value pairs. supported keyword/value pairs:
            *mult* n = dihedral multiplicity n (integer >= 0, default = 1)
 
@@ -47,8 +47,8 @@ Examples
 
    fix holdem all restrain bond 45 48 2000.0 2000.0 2.75
    fix holdem all restrain lbound 45 48 2000.0 2000.0 2.75
-   fix holdem all restrain dihedral 1 2 3 4 2000.0 2000.0 120.0
-   fix holdem all restrain bond 45 48 2000.0 2000.0 2.75 dihedral 1 2 3 4 2000.0 2000.0 120.0
+   fix holdem all restrain dihedral 1 2 3 4 2000.0 2000.0 -60.0
+   fix holdem all restrain bond 45 48 2000.0 2000.0 2.75 dihedral 1 2 3 4 2000.0 2000.0 -60.0
    fix texas_holdem all restrain dihedral 1 2 3 4 0.0 2000.0 120.0 dihedral 1 2 3 5 0.0 2000.0 -120.0 dihedral 1 2 3 6 0.0 2000.0 0.0
 
 Description
@@ -206,13 +206,50 @@ with the following coefficients:
 
 * :math:`K` (energy)
 * :math:`n` (multiplicity, >= 0)
-* :math:`d` (degrees) = :math:`\phi_0 + 180`
+* :math:`d` (degrees) = :math:`\phi_0`
 
 :math:`K` and :math:`\phi_0` are specified with the fix.  Note that the value of the
 dihedral multiplicity :math:`n` is set by default to 1. You can use the
 optional *mult* keyword to set it to a different positive integer.
-Also note that the energy will be a minimum when the
-current dihedral angle :math:`\phi` is equal to :math:`\phi_0`.
+Also note that the energy is a maximum when :math:`n \phi = \phi_0` and a
+minimum when :math:`n \phi = \phi_0 + 180` (modulo 360 degrees).  For
+:math:`n = 1`, to restrain a dihedral angle at :math:`\phi_t`, specify
+:math:`\phi_0 = \phi_t - 180`.  For example, :math:`\phi_0 = -60` holds
+the dihedral angle near 120 degrees.
+
+For :math:`n > 1`, there are :math:`n` equivalent energy minima at
+
+.. math::
+
+   \phi = \frac{\phi_0 + 180 + 360 k}{n}, \quad k = 0, 1, \ldots, n-1
+
+(modulo 360 degrees), spaced :math:`360/n` degrees apart.  For example,
+:math:`n = 2` and :math:`\phi_0 = -20` give minima at :math:`\phi = 80`
+and :math:`-100` degrees.  The restraint cannot single out one of them, so
+use :math:`n = 1` to hold the dihedral angle at one specific value.
+
+.. note::
+
+   Earlier versions of this page gave :math:`d = \phi_0 + 180` and placed
+   the energy minimum at :math:`\phi_0`.  The implementation has used
+   :math:`d = \phi_0` since 2012, and this page now describes it.
+
+----------
+
+.. note::
+
+   Every processor that owns at least one atom of a restraint computes it
+   and applies forces to its own atoms, so all atoms of the restraint must
+   be present on that processor as owned or ghost atoms, independent of the
+   :doc:`newton bond <newton>` setting.  Since no pairwise cutoff is
+   required by this fix, the default communication cutoff may be too short
+   for restrained atoms that are far apart, and LAMMPS stops with a "Restrain
+   atoms ... missing" error.  In this case, increase the cutoff with the
+   :doc:`comm_modify cutoff <comm_modify>` command to at least the largest
+   distance between any two atoms of a restraint, e.g. the distance between
+   atoms 1 and 4 of a dihedral, also when *newton bond* is *on*.  This is
+   different from the requirement described for that setting in the
+   :doc:`comm_modify <comm_modify>` documentation.
 
 ----------
 
@@ -240,7 +277,7 @@ outermost level.
    system (the quantity being minimized), you MUST enable the
    :doc:`fix_modify <fix_modify>` *energy* option for this fix.
 
-This fix computes a global scalar and a global vector of length 3,
+This fix computes a global scalar and a global vector of length 4,
 which can be accessed by various :doc:`output commands <Howto_output>`.
 The scalar is the total potential energy for *all* the restraints as
 discussed above. The vector values are the sum of contributions to the
@@ -249,6 +286,13 @@ following individual categories:
   #. bond energy
   #. angle energy
   #. dihedral energy
+  #. lower-bound (*lbound*) energy
+
+.. versionchanged:: TBD
+
+   The vector has four elements.  Before this version it had three, and
+   they held the bond energy, the *lbound* energy, and zero, so the angle
+   and dihedral energies were not accessible.
 
 The scalar and vector values calculated by this fix are "extensive".
 

@@ -23,7 +23,6 @@
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
-#include "force.h"
 #include "math_const.h"
 #include "memory.h"
 #include "respa.h"
@@ -56,7 +55,7 @@ FixRestrain::FixRestrain(LAMMPS *lmp, int narg, char **arg) :
   global_freq = 1;
   extscalar = 1;
   vector_flag = 1;
-  size_vector = 3;
+  size_vector = 4;
   extvector = 1;
   energy_global_flag = 1;
   respa_level_support = 1;
@@ -256,7 +255,6 @@ void FixRestrain::restrain_bond(int m)
   double **x = atom->x;
   double **f = atom->f;
   int nlocal = atom->nlocal;
-  int newton_bond = force->newton_bond;
 
   double delta = update->ntimestep - update->beginstep;
   if (delta != 0.0) delta /= update->endstep - update->beginstep;
@@ -266,20 +264,14 @@ void FixRestrain::restrain_bond(int m)
   i1 = atom->map(ids[m][0]);
   i2 = atom->map(ids[m][1]);
 
-  // newton_bond on: only processor owning i2 computes restraint
-  // newton_bond off: only processors owning either of i1,i2 computes restraint
+  // fix forces are added after ghost forces were communicated back to their owners,
+  // so every processor owning one of the atoms computes the restraint and applies
+  // forces only to its own atoms
 
-  if (newton_bond) {
-    if (i2 == -1 || i2 >= nlocal) return;
-    if (i1 == -1)
-      error->one(FLERR,"Restrain atoms {} {} missing on proc {} at step {}", ids[m][0],ids[m][1],
-                                   comm->me,update->ntimestep);
-  } else {
-    if ((i1 == -1 || i1 >= nlocal) && (i2 == -1 || i2 >= nlocal)) return;
-    if (i1 == -1 || i2 == -1)
-      error->one(FLERR,"Restrain atoms {} {} missing on proc {} at step {}", ids[m][0],ids[m][1],
-                                   comm->me,update->ntimestep);
-  }
+  if ((i1 == -1 || i1 >= nlocal) && (i2 == -1 || i2 >= nlocal)) return;
+  if (i1 == -1 || i2 == -1)
+    error->one(FLERR,"Restrain atoms {} {} missing on proc {} at step {}", ids[m][0],ids[m][1],
+                                 comm->me,update->ntimestep);
 
   delx = x[i1][0] - x[i2][0];
   dely = x[i1][1] - x[i2][1];
@@ -296,18 +288,22 @@ void FixRestrain::restrain_bond(int m)
   if (r > 0.0) fbond = -2.0*rk/r;
   else fbond = 0.0;
 
-  ebond  += rk*dr;
-  energy += rk*dr;
+  // each processor tallies the energy share of its own atoms
+
+  double efrac = ((i1 < nlocal) + (i2 < nlocal)) / 2.0;
+
+  ebond  += efrac*rk*dr;
+  energy += efrac*rk*dr;
 
   // apply force to each of 2 atoms
 
-  if (newton_bond || i1 < nlocal) {
+  if (i1 < nlocal) {
     f[i1][0] += delx*fbond;
     f[i1][1] += dely*fbond;
     f[i1][2] += delz*fbond;
   }
 
-  if (newton_bond || i2 < nlocal) {
+  if (i2 < nlocal) {
     f[i2][0] -= delx*fbond;
     f[i2][1] -= dely*fbond;
     f[i2][2] -= delz*fbond;
@@ -327,7 +323,6 @@ void FixRestrain::restrain_lbound(int m)
   double **x = atom->x;
   double **f = atom->f;
   int nlocal = atom->nlocal;
-  int newton_bond = force->newton_bond;
 
   double delta = update->ntimestep - update->beginstep;
   if (delta != 0.0) delta /= update->endstep - update->beginstep;
@@ -337,22 +332,15 @@ void FixRestrain::restrain_lbound(int m)
   i1 = atom->map(ids[m][0]);
   i2 = atom->map(ids[m][1]);
 
-  // newton_bond on: only processor owning i2 computes restraint
-  // newton_bond off: only processors owning either of i1,i2 computes restraint
+  // fix forces are added after ghost forces were communicated back to their owners,
+  // so every processor owning one of the atoms computes the restraint and applies
+  // forces only to its own atoms
 
-  if (newton_bond) {
-    if (i2 == -1 || i2 >= nlocal) return;
-    if (i1 == -1)
-      error->one(FLERR,"Restrain atoms {} {} missing on "
-                                   "proc {} at step {}",ids[m][0],ids[m][1],
-                                   comm->me,update->ntimestep);
-  } else {
-    if ((i1 == -1 || i1 >= nlocal) && (i2 == -1 || i2 >= nlocal)) return;
-    if (i1 == -1 || i2 == -1)
-      error->one(FLERR,"Restrain atoms {} {} missing on "
-                                   "proc {} at step {}",ids[m][0],ids[m][1],
-                                   comm->me,update->ntimestep);
-  }
+  if ((i1 == -1 || i1 >= nlocal) && (i2 == -1 || i2 >= nlocal)) return;
+  if (i1 == -1 || i2 == -1)
+    error->one(FLERR,"Restrain atoms {} {} missing on "
+                                 "proc {} at step {}",ids[m][0],ids[m][1],
+                                 comm->me,update->ntimestep);
 
   delx = x[i1][0] - x[i2][0];
   dely = x[i1][1] - x[i2][1];
@@ -364,14 +352,18 @@ void FixRestrain::restrain_lbound(int m)
   dr = r - deq;
   rk = k * dr;
 
+  // each processor tallies the energy share of its own atoms
+
+  double efrac = ((i1 < nlocal) + (i2 < nlocal)) / 2.0;
+
   // force & energy
 
   if (dr < 0) {
     if (r > 0.0) fbond = -2.0*rk/r;
     else fbond = 0.0;
 
-    elbound  += rk*dr;
-    energy += rk*dr;
+    elbound  += efrac*rk*dr;
+    energy += efrac*rk*dr;
   } else {
     fbond = 0.0;
 
@@ -381,13 +373,13 @@ void FixRestrain::restrain_lbound(int m)
 
   // apply force to each of 2 atoms
 
-  if (newton_bond || i1 < nlocal) {
+  if (i1 < nlocal) {
     f[i1][0] += delx*fbond;
     f[i1][1] += dely*fbond;
     f[i1][2] += delz*fbond;
   }
 
-  if (newton_bond || i2 < nlocal) {
+  if (i2 < nlocal) {
     f[i2][0] -= delx*fbond;
     f[i2][1] -= dely*fbond;
     f[i2][2] -= delz*fbond;
@@ -409,7 +401,6 @@ void FixRestrain::restrain_angle(int m)
   double **x = atom->x;
   double **f = atom->f;
   int nlocal = atom->nlocal;
-  int newton_bond = force->newton_bond;
 
   double delta = update->ntimestep - update->beginstep;
   if (delta != 0.0) delta /= update->endstep - update->beginstep;
@@ -419,23 +410,16 @@ void FixRestrain::restrain_angle(int m)
   i2 = atom->map(ids[m][1]);
   i3 = atom->map(ids[m][2]);
 
-  // newton_bond on: only processor owning i2 computes restraint
-  // newton_bond off: only processors owning any of i1-i3 computes restraint
+  // fix forces are added after ghost forces were communicated back to their owners,
+  // so every processor owning one of the atoms computes the restraint and applies
+  // forces only to its own atoms
 
-  if (newton_bond) {
-    if (i2 == -1 || i2 >= nlocal) return;
-    if (i1 == -1 || i3 == -1)
-      error->one(FLERR,"Restrain atoms {} {} {} missing on "
-                                   "proc {} at step {}",ids[m][0],ids[m][1],
-                                   ids[m][2],comm->me,update->ntimestep);
-  } else {
-    if ((i1 == -1 || i1 >= nlocal) && (i2 == -1 || i2 >= nlocal) &&
-        (i3 == -1 || i3 >= nlocal)) return;
-    if (i1 == -1 || i2 == -1 || i3 == -1)
-      error->one(FLERR,"Restrain atoms {} {} {} missing on "
-                                   "proc {} at step {}",ids[m][0],ids[m][1],
-                                   ids[m][2],comm->me,update->ntimestep);
-  }
+  if ((i1 == -1 || i1 >= nlocal) && (i2 == -1 || i2 >= nlocal) &&
+      (i3 == -1 || i3 >= nlocal)) return;
+  if (i1 == -1 || i2 == -1 || i3 == -1)
+    error->one(FLERR,"Restrain atoms {} {} {} missing on "
+                                 "proc {} at step {}",ids[m][0],ids[m][1],
+                                 ids[m][2],comm->me,update->ntimestep);
 
   // 1st bond
 
@@ -474,8 +458,12 @@ void FixRestrain::restrain_angle(int m)
   dtheta = acos(c) - target[m];
   tk = k * dtheta;
 
-  eangle += tk*dtheta;
-  energy += tk*dtheta;
+  // each processor tallies the energy share of its own atoms
+
+  double efrac = ((i1 < nlocal) + (i2 < nlocal) + (i3 < nlocal)) / 3.0;
+
+  eangle += efrac*tk*dtheta;
+  energy += efrac*tk*dtheta;
 
   a = -2.0 * tk * s;
   a11 = a*c / rsq1;
@@ -491,19 +479,19 @@ void FixRestrain::restrain_angle(int m)
 
   // apply force to each of 3 atoms
 
-  if (newton_bond || i1 < nlocal) {
+  if (i1 < nlocal) {
     f[i1][0] += f1[0];
     f[i1][1] += f1[1];
     f[i1][2] += f1[2];
   }
 
-  if (newton_bond || i2 < nlocal) {
+  if (i2 < nlocal) {
     f[i2][0] -= f1[0] + f3[0];
     f[i2][1] -= f1[1] + f3[1];
     f[i2][2] -= f1[2] + f3[2];
   }
 
-  if (newton_bond || i3 < nlocal) {
+  if (i3 < nlocal) {
     f[i3][0] += f3[0];
     f[i3][1] += f3[1];
     f[i3][2] += f3[2];
@@ -528,7 +516,6 @@ void FixRestrain::restrain_dihedral(int m)
   double **x = atom->x;
   double **f = atom->f;
   int nlocal = atom->nlocal;
-  int newton_bond = force->newton_bond;
 
   double delta = update->ntimestep - update->beginstep;
   if (delta != 0.0) delta /= update->endstep - update->beginstep;
@@ -539,25 +526,17 @@ void FixRestrain::restrain_dihedral(int m)
   i3 = atom->map(ids[m][2]);
   i4 = atom->map(ids[m][3]);
 
-  // newton_bond on: only processor owning i2 computes restraint
-  // newton_bond off: only processors owning any of i1-i4 computes restraint
+  // fix forces are added after ghost forces were communicated back to their owners,
+  // so every processor owning one of the atoms computes the restraint and applies
+  // forces only to its own atoms
 
-  if (newton_bond) {
-    if (i2 == -1 || i2 >= nlocal) return;
-    if (i1 == -1 || i3 == -1 || i4 == -1)
-      error->one(FLERR,"Restrain atoms {} {} {} {} missing on "
-                                   "proc {} at step {}",ids[m][0],ids[m][1],
-                                   ids[m][2],ids[m][3],comm->me,
-                                   update->ntimestep);
-  } else {
-    if ((i1 == -1 || i1 >= nlocal) && (i2 == -1 || i2 >= nlocal) &&
-        (i3 == -1 || i3 >= nlocal) && (i4 == -1 || i3 >= nlocal)) return;
-    if (i1 == -1 || i2 == -1 || i3 == -1 || i4 == -1)
-      error->one(FLERR,"Restrain atoms {} {} {} {} missing on "
-                                   "proc {} at step {}",ids[m][0],ids[m][1],
-                                   ids[m][2],ids[m][3],comm->me,
-                                   update->ntimestep);
-  }
+  if ((i1 == -1 || i1 >= nlocal) && (i2 == -1 || i2 >= nlocal) &&
+      (i3 == -1 || i3 >= nlocal) && (i4 == -1 || i4 >= nlocal)) return;
+  if (i1 == -1 || i2 == -1 || i3 == -1 || i4 == -1)
+    error->one(FLERR,"Restrain atoms {} {} {} {} missing on "
+                                 "proc {} at step {}",ids[m][0],ids[m][1],
+                                 ids[m][2],ids[m][3],comm->me,
+                                 update->ntimestep);
 
   // 1st bond
 
@@ -644,8 +623,12 @@ void FixRestrain::restrain_dihedral(int m)
   df1 *= -mult[m];
   p += 1.0;
 
-  edihed += k * p;
-  energy += k * p;
+  // each processor tallies the energy share of its own atoms
+
+  double efrac = ((i1 < nlocal) + (i2 < nlocal) + (i3 < nlocal) + (i4 < nlocal)) / 4.0;
+
+  edihed += efrac * k * p;
+  energy += efrac * k * p;
 
   fg = vb1x*vb2xm + vb1y*vb2ym + vb1z*vb2zm;
   hg = vb3x*vb2xm + vb3y*vb2ym + vb3z*vb2zm;
@@ -688,25 +671,25 @@ void FixRestrain::restrain_dihedral(int m)
 
   // apply force to each of 4 atoms
 
-  if (newton_bond || i1 < nlocal) {
+  if (i1 < nlocal) {
     f[i1][0] += f1[0];
     f[i1][1] += f1[1];
     f[i1][2] += f1[2];
   }
 
-  if (newton_bond || i2 < nlocal) {
+  if (i2 < nlocal) {
     f[i2][0] += f2[0];
     f[i2][1] += f2[1];
     f[i2][2] += f2[2];
   }
 
-  if (newton_bond || i3 < nlocal) {
+  if (i3 < nlocal) {
     f[i3][0] += f3[0];
     f[i3][1] += f3[1];
     f[i3][2] += f3[2];
   }
 
-  if (newton_bond || i4 < nlocal) {
+  if (i4 < nlocal) {
     f[i4][0] += f4[0];
     f[i4][1] += f4[1];
     f[i4][2] += f4[2];
@@ -733,14 +716,14 @@ double FixRestrain::compute_vector(int n)
     MPI_Allreduce(&ebond,&ebond_all,1,MPI_DOUBLE,MPI_SUM,world);
     return ebond_all;
   } else if (n == 1) {
-    MPI_Allreduce(&elbound,&elbound_all,1,MPI_DOUBLE,MPI_SUM,world);
-    return elbound_all;
-  } else if (n == 3) {
     MPI_Allreduce(&eangle,&eangle_all,1,MPI_DOUBLE,MPI_SUM,world);
     return eangle_all;
-  } else if (n == 4) {
+  } else if (n == 2) {
     MPI_Allreduce(&edihed,&edihed_all,1,MPI_DOUBLE,MPI_SUM,world);
     return edihed_all;
+  } else if (n == 3) {
+    MPI_Allreduce(&elbound,&elbound_all,1,MPI_DOUBLE,MPI_SUM,world);
+    return elbound_all;
   } else {
     return 0.0;
   }

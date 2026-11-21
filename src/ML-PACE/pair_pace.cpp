@@ -78,6 +78,7 @@ PairPACE::PairPACE(LAMMPS *lmp) :
   restartinfo = 0;
   one_coeff = 1;
   manybody_flag = 1;
+  atomic_energy_enable = 1;
 
   nmax_corerep = 0;
   flag_corerep_factor = 0;
@@ -226,6 +227,24 @@ void PairPACE::compute(int eflag, int vflag)
   if (vflag_fdotr) virial_fdotr_compute();
 
   // end modifications YL
+}
+
+/* ---------------------------------------------------------------------- */
+
+double PairPACE::compute_atomic_energy(int i, NeighList *neighborList)
+{
+  const int itype = atom->type[i];
+  int jnum;
+  jnum = neighborList->numneigh[i];
+  aceimpl->ace->resize_neighbours_cache(jnum);
+  aceimpl->ace->compute_energy_only = true;
+  try {
+    aceimpl->ace->compute_atom(i, atom->x, atom->type, jnum, neighborList->firstneigh[i]);
+  } catch (std::exception &e) {
+    error->one(FLERR, e.what());
+  }
+  aceimpl->ace->compute_energy_only = false;
+  return scale[itype][itype] * aceimpl->ace->e_atom;
 }
 
 /* ---------------------------------------------------------------------- */

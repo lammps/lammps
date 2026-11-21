@@ -196,6 +196,20 @@ TEST(MathSpecial, powauto_consistency_with_pow)
     }
 }
 
+TEST(MathSpecial, powauto_large_and_nonfinite_exponents)
+{
+    const double infinity = std::numeric_limits<double>::infinity();
+    const double exponents[] = {1.0e20, -1.0e20, infinity, -infinity,
+                                static_cast<double>(std::numeric_limits<int>::min()),
+                                static_cast<double>(std::numeric_limits<int>::max())};
+    for (const double exponent : exponents)
+        EXPECT_DOUBLE_EQ(MathSpecial::powauto(1.0, exponent), std::pow(1.0, exponent));
+
+    EXPECT_DOUBLE_EQ(MathSpecial::powauto(2.0, infinity), std::pow(2.0, infinity));
+    EXPECT_DOUBLE_EQ(MathSpecial::powauto(2.0, -infinity), std::pow(2.0, -infinity));
+    EXPECT_TRUE(std::isnan(MathSpecial::powauto(2.0, std::numeric_limits<double>::quiet_NaN())));
+}
+
 // -------------------------------------------------------------------------
 // powsinxx()
 // -------------------------------------------------------------------------

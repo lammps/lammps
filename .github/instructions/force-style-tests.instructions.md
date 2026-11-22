@@ -23,6 +23,12 @@ Unit tests are CTest-based; build with `-D ENABLE_TESTING=on -D BUILD_SHARED_LIB
   (`-g <file>` generate, `-u` update in place, `-s` print per-quantity error
   statistics for tuning `epsilon`).  Prefer `-u` so the file history stays clean.
   Regeneration can reset the `tags:` line -- re-check it after every `-u`.
+- The `gpu` and `kokkos` entries of the `tags:` line (CTest labels for `ctest -L gpu`
+  and `-L kokkos`) mark the files whose GPU or KOKKOS package variants run.  They are
+  set by `unittest/force-styles/check_accelerator_tags.py`, not by hand: after adding a
+  YAML file or an accelerated variant of a style, run `make fix-test-tags` in `src/`
+  (the style-check workflow runs `make check-test-tags`).  Non-YAML tests with test
+  cases of their own for these packages get the label in their `CMakeLists.txt`.
 - A YAML with a missing prerequisite or `input_coeffs` entry SKIPS silently while
   ctest still reports "Passed".  After adding or editing a YAML, confirm from the
   gtest output that its cases actually executed.

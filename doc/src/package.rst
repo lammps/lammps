@@ -567,6 +567,23 @@ changed to *no* since the *sort* keyword does not support *host* mode. Not
 all fix styles with extra atom data support *device* mode and in that case
 a warning will be given and atom sorting will run in *no* mode instead.
 
+.. note::
+
+   With *device* mode, the order of the atoms that are sorted into the
+   same bin is not defined: it can differ from that of the sorting
+   without the KOKKOS package, and between GPUs (e.g. of AMD and
+   NVIDIA).  This
+   order determines with which of its two atoms a pair is stored in a
+   half neighbor list, and the order in which forces are added up.  The
+   latter changes results only within floating-point precision, as a
+   different number of MPI processes does, but output that depends on
+   how a pair is stored can differ more: e.g. the sign of the
+   force components of :doc:`compute pair/local <compute_pair_local>`,
+   which atom of a pair is first in :doc:`compute property/local
+   <compute_property_local>`, and the results of :doc:`compute
+   stress/spherical <compute_stress_curvilinear>`.  Use *sort no* when
+   such output has to match that of a run without the KOKKOS package.
+
 .. versionadded:: 17Apr2024
 
 The *atom/map* keyword determines whether the host or device builds the

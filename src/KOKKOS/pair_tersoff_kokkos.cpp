@@ -873,7 +873,7 @@ void PairTersoffKokkos<DeviceType>::ters_bij_k_and_ters_dbij(const ParamKokkos& 
     auto tmp_pow_neg_prm_ijk_pn =  Kokkos::pow(tmp,-prm_ijk_pn);
     bij =  (static_cast<KK_FLOAT>(1.0) - tmp_pow_neg_prm_ijk_pn / (static_cast<KK_FLOAT>(2.0)*prm_ijk_pn))/Kokkos::sqrt(tmp);
     prefactor =  param.beta * (factor *
-           (static_cast<KK_FLOAT>(1.0) - static_cast<KK_FLOAT>(0.5)*(static_cast<KK_FLOAT>(1.0) +  static_cast<KK_FLOAT>(0.5)/(prm_ijk_pn)) *
+           (static_cast<KK_FLOAT>(1.0) - (static_cast<KK_FLOAT>(1.0) + static_cast<KK_FLOAT>(0.5)/prm_ijk_pn) *
            tmp_pow_neg_prm_ijk_pn));
     return;
   }

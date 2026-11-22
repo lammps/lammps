@@ -1,6 +1,6 @@
 ---
 lammps_version: 2 Sep 2026
-tags: no_respa no_restart
+tags: no_respa no_restart kokkos
 date_generated: Fri Sep  4 14:40:50 2026
 epsilon: 5e-13
 timestep: 0.001

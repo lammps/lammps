@@ -105,6 +105,7 @@ mgpt          model generalized pseudopotential theory (MGPT) potential
 mliap         MLIAP potential
 mliap.descriptor MLIAP potential descriptor
 mliap.model   MLIAP potential model
+mtp           MTP potential
 nb3b.harmonic nonbonded 3-body harmonic potential
 pod           ML potential with proper orthogonal descriptors (POD)
 poly          polymorphic 3-body potential

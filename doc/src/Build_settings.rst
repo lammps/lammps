@@ -372,9 +372,8 @@ like the mean-squared displacement, as calculated by the :doc:`compute
 msd <compute_msd>` command, to be faulty.
 
 Also note that the GPU package requires its lib/gpu library to be
-compiled with the same size setting, or the link will fail.  A CMake
-build does this automatically.  When building with make, the setting
-in whichever ``lib/gpu/Makefile`` is used must be the same as above.
+compiled with the same size setting, or the link will fail.  The CMake
+build does this automatically.
 
 ----------
 
@@ -387,7 +386,7 @@ Read or write compressed files
 
    Added support for ``brotli`` and ``7-zip``
 
-.. versionchanged:: TBD
+.. versionchanged:: 13Nov2026
 
 Support for compressed files no longer needs to be enabled at compile
 time; the CMake option ``WITH_GZIP`` and the define ``-DLAMMPS_GZIP``

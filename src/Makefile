@@ -414,7 +414,6 @@ mpi-stubs:
 # the python interpreter. must purge build folder to not install
 # unwanted outdated files.
 
-sinclude ../lib/python/Makefile.lammps
 install-python:
 	@rm -rf ../python/build
 	@$(PYTHON) ../python/install.py -p ../python/lammps -l ../src/liblammps.so -w $(PWD) -v $(PWD)/version.h
@@ -587,12 +586,12 @@ no-%:
 
 lib-%:
 	@$(MAKE) $(MFLAGS) warning
-	@if [ -e ../lib/$(LIBDIR)/Install.py ]; then \
-	  echo "Installing lib $(@:lib-%=%)"; \
-	  ( cd ../lib/$(LIBDIR); $(PYTHON) Install.py $(args) ); \
-	else \
-	  echo "Install script for lib $(@:lib-%=%) does not exist. Please use CMake."; \
-	fi; touch main.cpp
+	@echo 'WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING'
+	@echo ' '
+	@echo "  Package library targets like lib-$(@:lib-%=%) are no longer supported. Please use CMake."
+	@echo ' '
+	@echo 'WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING'
+	@exit 1
 
 # status = list src files that differ from package files
 # installed = list of installed packages

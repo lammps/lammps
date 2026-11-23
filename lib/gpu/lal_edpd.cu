@@ -38,7 +38,7 @@ _texture_2d( vel_tex,int4);
 #endif
 
 // References:
-// 1. Y. Afshar, F. Schmid, A. Pishevar, S. Worley, Comput. Phys. Comm. 184 (2013), 1119–1128.
+// 1. Y. Afshar, F. Schmid, A. Pishevar, S. Worley, Comput. Phys. Comm. 184 (2013), 1119-1128.
 // 2. C. L. Phillips, J. A. Anderson, S. C. Glotzer, Comput. Phys. Comm. 230 (2011), 7191-7201.
 // PRNG period = 3666320093*2^32 ~ 2^64 ~ 10^19
 

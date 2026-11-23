@@ -28,17 +28,64 @@
   ----------------------------------------------------------------------*/
 
 #include "reaxff_omp.h"
+#include "math_special.h"
 
 #include "pair_reaxff_omp.h"
 #include "reaxff_api.h"
 
 #include <cmath>
+using LAMMPS_NS::MathSpecial::powint;
 
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
 namespace ReaxFF {
+
+  /* ----------------------------------------------------------------------
+     ACKS2 kinetic energy terms, threaded over the local atoms.  must be
+     called from within a parallel region.  forces on the neighbor atoms
+     are accumulated in the per-thread force arrays at offset froffset.
+  ------------------------------------------------------------------------- */
+
+  static void ACKS2_Kinetic_Energy_thr(reax_system *system, storage *workspace,
+                                       reax_list *far_nbrs, long froffset,
+                                       ThrData *thr, double &total_Eele)
+  {
+    auto *pair_reax_ptr = static_cast<class PairReaxFFOMP *>(system->pair_ptr);
+    const int natoms = system->n;
+    double e_ele, d_bond_softness, f_tmp, delij[3];
+
+#if defined(_OPENMP)
+#pragma omp for schedule(guided)
+#endif
+    for (int i = 0; i < natoms; ++i) {
+      if (system->my_atoms[i].type < 0) continue;
+      const int start_i = Start_Index(i, far_nbrs);
+      const int end_i = End_Index(i, far_nbrs);
+
+      for (int pj = start_i; pj < end_i; ++pj) {
+        far_neighbor_data *nbr_pj = &(far_nbrs->select.far_nbr_list[pj]);
+        const int j = nbr_pj->nbr;
+        if (system->my_atoms[j].type < 0) continue;
+
+        if (ACKS2_Kinetic_Pair(system, workspace, i, nbr_pj, e_ele, d_bond_softness)) {
+          total_Eele += e_ele;
+
+          /* tally into per-atom energy */
+          if (system->pair_ptr->evflag || system->pair_ptr->vflag_atom) {
+            rvec_ScaledSum(delij, 1., system->my_atoms[i].x, -1., system->my_atoms[j].x);
+            f_tmp = -d_bond_softness;
+            pair_reax_ptr->ev_tally_thr_proxy(i, j, natoms, 1, 0.0, e_ele, f_tmp,
+                                              delij[0], delij[1], delij[2], thr);
+          }
+
+          rvec_ScaledAdd(workspace->f[i], -d_bond_softness, nbr_pj->dvec);
+          rvec_ScaledAdd(workspace->forceReduction[froffset+j], d_bond_softness, nbr_pj->dvec);
+        }
+      }
+    }
+  }
   void vdW_Coulomb_Energy_OMP(reax_system *system, control_params *control,
                               simulation_data *data, storage *workspace,
                               reax_list **lists)
@@ -93,6 +140,7 @@ namespace ReaxFF {
         for (pj = start_i; pj < end_i; ++pj) {
           nbr_pj = &(far_nbrs->select.far_nbr_list[pj]);
           j = nbr_pj->nbr;
+          if (system->my_atoms[j].type < 0) continue;
           orig_j  = system->my_atoms[j].orig_id;
 
           flag = 0;
@@ -172,9 +220,9 @@ namespace ReaxFF {
 
                 //  lg correction, only if lgvdw is yes
                 if (control->lgflag) {
-                  r_ij5 = pow(r_ij, 5.0);
-                  r_ij6 = pow(r_ij, 6.0);
-                  re6 = pow(twbp->lgre, 6.0);
+                  r_ij5 = powint(r_ij, 5);
+                  r_ij6 = powint(r_ij, 6);
+                  re6 = powint(twbp->lgre, 6);
 
                   e_lg = -(twbp->lgcij/(r_ij6 + re6));
                   total_EvdW += Tap * e_lg;
@@ -213,6 +261,12 @@ namespace ReaxFF {
           }
         }
       }
+
+      /* contribution to energy and gradients due to geometry-dependent terms
+         in the ACKS2 kinetic energy */
+
+      if (system->acks2_flag)
+        ACKS2_Kinetic_Energy_thr(system, workspace, far_nbrs, reductionOffset, thr, total_Eele);
 
       pair_reax_ptr->reduce_thr_proxy(system->pair_ptr, system->pair_ptr->eflag_either,
                                       system->pair_ptr->vflag_either, thr);
@@ -335,6 +389,12 @@ namespace ReaxFF {
           }
         }
       }
+
+      /* contribution to energy and gradients due to geometry-dependent terms
+         in the ACKS2 kinetic energy */
+
+      if (system->acks2_flag)
+        ACKS2_Kinetic_Energy_thr(system, workspace, far_nbrs, froffset, thr, total_Eele);
 
       pair_reax_ptr->reduce_thr_proxy(system->pair_ptr, system->pair_ptr->eflag_either,
                                       system->pair_ptr->vflag_either, thr);

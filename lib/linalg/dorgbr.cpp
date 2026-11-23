@@ -31,8 +31,8 @@ int dorgbr_(char *vect, integer *m, integer *n, integer *k, doublereal *a, integ
         *info = -1;
     } else if (*m < 0) {
         *info = -2;
-    } else if (*n < 0 || wantq && (*n > *m || *n < min(*m, *k)) ||
-               !wantq && (*m > *n || *m < min(*n, *k))) {
+    } else if (*n < 0 || (wantq && (*n > *m || *n < min(*m, *k))) ||
+               (!wantq && (*m > *n || *m < min(*n, *k)))) {
         *info = -3;
     } else if (*k < 0) {
         *info = -4;

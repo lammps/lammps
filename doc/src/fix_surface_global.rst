@@ -193,6 +193,8 @@ any of files read by the *input* keyword(s) or by the optional
 type/region <fix_modify>` command (described below) is used to assign
 new types to surfaces after they are read in.  As for particles, there
 is no requirement that triangles/lines exist for every surface type.
+Using a surface type larger than this number in a *model* keyword is an
+error.
 
 The *fstyle* argument (for force style) can be any of the styles
 defined by the :doc:`pair_style gran/\* <pair_gran>` or the more

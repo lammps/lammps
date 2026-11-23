@@ -19,6 +19,7 @@
 #include "error.h"
 #include "force.h"
 #include "kokkos.h"
+#include "math_special_kokkos.h"
 #include "memory_kokkos.h"
 #include "neigh_request.h"
 #include "neighbor.h"
@@ -140,8 +141,8 @@ compute_fpair(const KK_FLOAT &rsq, const int &, const int &, const int &itype, c
   const KK_FLOAT r2inv = static_cast<KK_FLOAT>(1.0) / rsq;
   const KK_FLOAT gamR = (STACKPARAMS?m_params[itype][jtype].gamR:params(itype,jtype).gamR);
   const KK_FLOAT gamA = (STACKPARAMS?m_params[itype][jtype].gamA:params(itype,jtype).gamA);
-  const KK_FLOAT rgamR = Kokkos::pow(r2inv, gamR * static_cast<KK_FLOAT>(0.5));
-  const KK_FLOAT rgamA = Kokkos::pow(r2inv, gamA * static_cast<KK_FLOAT>(0.5));
+  const KK_FLOAT rgamR = MathSpecialKokkos::powauto(r2inv, gamR * static_cast<KK_FLOAT>(0.5));
+  const KK_FLOAT rgamA = MathSpecialKokkos::powauto(r2inv, gamA * static_cast<KK_FLOAT>(0.5));
 
   const KK_FLOAT forcemie =
     (STACKPARAMS?m_params[itype][jtype].mie1:params(itype,jtype).mie1)*rgamR -
@@ -159,8 +160,8 @@ compute_evdwl(const KK_FLOAT &rsq, const int &, const int &, const int &itype, c
   const KK_FLOAT r2inv = static_cast<KK_FLOAT>(1.0) / rsq;
   const KK_FLOAT gamR = (STACKPARAMS?m_params[itype][jtype].gamR:params(itype,jtype).gamR);
   const KK_FLOAT gamA = (STACKPARAMS?m_params[itype][jtype].gamA:params(itype,jtype).gamA);
-  const KK_FLOAT rgamR = Kokkos::pow(r2inv, gamR * static_cast<KK_FLOAT>(0.5));
-  const KK_FLOAT rgamA = Kokkos::pow(r2inv, gamA * static_cast<KK_FLOAT>(0.5));
+  const KK_FLOAT rgamR = MathSpecialKokkos::powauto(r2inv, gamR * static_cast<KK_FLOAT>(0.5));
+  const KK_FLOAT rgamA = MathSpecialKokkos::powauto(r2inv, gamA * static_cast<KK_FLOAT>(0.5));
 
   return (STACKPARAMS?m_params[itype][jtype].mie3:params(itype,jtype).mie3)*rgamR -
          (STACKPARAMS?m_params[itype][jtype].mie4:params(itype,jtype).mie4)*rgamA -

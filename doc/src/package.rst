@@ -53,7 +53,7 @@ Syntax
     *intel* args = Narg keyword value ...
       Narg = accepted for backward compatibility and ignored
       zero or more keyword/value pairs may be appended
-      keywords = *mode* or *omp* or *lrt* or *pppm_table*
+      keywords = *mode* or *omp* or *lrt* or *pppm_table* or *ftz*
         *mode* value = *single* or *mixed* or *double*
           single = perform force calculations in single precision
           mixed = perform force calculations in mixed precision
@@ -66,6 +66,9 @@ Syntax
         *pppm_table* value = *yes* or *no*
           *yes* = Precompute pppm values in table (doesn't change accuracy)
           *no* = Compute pppm values on the fly
+        *ftz* value = *yes* or *no*
+          *yes* = flush very small (subnormal) floating-point numbers to zero
+          *no* = keep subnormal floating-point numbers
     *kokkos* args = keyword value ...
       zero or more keyword/value pairs may be appended
       keywords = *neigh* or *neigh/qeq* or *neigh/thread* or *neigh/transpose* or *newton* or *binsize* or *comm* or *comm/exchange* or *comm/forward* or *comm/pair/forward* or *comm/fix/forward* or *comm/compute/forward* or *comm/reverse* or *comm/pair/reverse* or *comm/fix/reverse* or *sort* or *atom/map* or *gpu/aware* or *pair/only*
@@ -288,8 +291,8 @@ The *gpuID* keyword is used to specify the first ID for the GPU or
 other accelerator that LAMMPS will use. For example, if the ID is
 1 and *Ngpu* is 3, GPUs 1-3 will be used. Device IDs should be
 determined from the output of nvc\_get\_devices, ocl\_get\_devices,
-or hip\_get\_devices
-as provided in the lib/gpu directory. When using OpenCL with
+or hip\_get\_devices, which are compiled together with LAMMPS and
+can be found in the build folder. When using OpenCL with
 accelerators that have main memory NUMA, the accelerators can be
 split into smaller virtual accelerators for more efficient use
 with MPI.
@@ -321,8 +324,8 @@ The meaning of *Nthreads* is exactly the same for the GPU, INTEL,
 and GPU packages.
 
 The *platform* keyword is only used with OpenCL to specify the ID for
-an OpenCL platform. See the output from ocl\_get\_devices in the lib/gpu
-directory. In LAMMPS only one platform can be active at a time and by
+an OpenCL platform. See the output from ocl\_get\_devices in the build
+folder. In LAMMPS only one platform can be active at a time and by
 default (id=-1) the platform is auto-selected to find the GPU with the
 most compute cores. When *Ngpu* or other keywords are specified, the
 auto-selection is appropriately restricted. For example, if *Ngpu* is
@@ -416,6 +419,21 @@ The *pppm_table* keyword with the argument yes allows to use a
 pre-computed table to efficiently spread the charge to the PPPM grid.
 This feature is enabled by default but can be turned off using the
 keyword with the argument *no*.
+
+.. versionadded:: 13Nov2026
+
+The *ftz* keyword determines whether very small floating-point numbers
+(subnormal numbers) are flushed to zero.  On most CPUs, calculations
+with subnormal numbers are much slower than with normal numbers, and
+some styles in the INTEL package can produce many of them, e.g. in
+mixed precision.  With *yes*, which is the default, LAMMPS sets the CPU
+to flush subnormal numbers to zero while the INTEL package is in use,
+and it restores the previous setting with the :doc:`clear <clear>`
+command or when the LAMMPS instance is closed.  When LAMMPS is used as
+a library, this can also affect calculations outside of LAMMPS in the
+same process (e.g. in a Python script that uses LAMMPS as a module).
+With *no*, subnormal numbers are kept, also in a LAMMPS executable that
+was compiled with the ``-ftz`` flag of the Intel compilers.
 
 KOKKOS package settings
 ^^^^^^^^^^^^^^^^^^^^^^^
@@ -830,7 +848,7 @@ The *omp* style of this command can only be invoked if LAMMPS was built
 with the OPENMP package.  See the :doc:`Build package <Build_package>`
 doc page for more info.
 
-.. versionchanged:: TBD
+.. versionchanged:: 13Nov2026
 
 The *omp* style of this command cannot be used again while styles with
 OpenMP support (e.g. a pair style with the */omp* suffix) are defined,
@@ -863,7 +881,7 @@ For the INTEL package, the default parameters and settings are:
 
 .. parsed-literal::
 
-   omp = 0, mode = mixed, lrt = no, pppm_table = yes
+   omp = 0, mode = mixed, lrt = no, pppm_table = yes, ftz = yes
 
 These settings are made automatically if the "-sf intel"
 :doc:`command-line switch <Run_options>` is used.  If it is not used, you

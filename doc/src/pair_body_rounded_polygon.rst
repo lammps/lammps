@@ -22,7 +22,7 @@ Syntax
    cutoff = global separation cutoff for interactions (distance units), see below for definition
    zero or more keywords may be appended
    keyword = *history*
-     *history* = keep track of the tangential deformation at the contacts (no value)
+     *history* = keep track of the tangential deformation of each pair of particles in contact (no value)
 
 Examples
 """"""""
@@ -190,7 +190,10 @@ step, keeping its magnitude, following Eq. 17 of
 :ref:`Luding <pair-body-polygon-Luding>`.  The tangential deformation
 is reset to zero when the particles are no longer in contact.  As in
 :doc:`pair_style gran/hooke/history <pair_gran>`, the tangential
-deformations are stored by an internal fix NEIGH_HISTORY.  The damping
+deformations are stored by an internal
+fix NEIGH_HISTORY, with a single value of :math:`\xi` per pair of
+particles, not per contact, so that the contacts of a pair are not
+tracked individually.  The damping
 forces are unchanged.  This extends the model of
 :ref:`Fraige <pair-Fraige>` and makes static packings of particles with
 friction possible.

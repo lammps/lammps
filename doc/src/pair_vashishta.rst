@@ -3,6 +3,7 @@
 .. index:: pair_style vashishta/omp
 .. index:: pair_style vashishta/kk
 .. index:: pair_style vashishta/table
+.. index:: pair_style vashishta/table/kk
 .. index:: pair_style vashishta/table/omp
 
 pair_style vashishta command
@@ -13,7 +14,7 @@ Accelerator Variants: *vashishta/gpu*, *vashishta/omp*, *vashishta/kk*
 pair_style vashishta/table command
 ==================================
 
-Accelerator Variants: *vashishta/table/omp*
+Accelerator Variants: *vashishta/table/kk*, *vashishta/table/omp*
 
 Syntax
 """"""

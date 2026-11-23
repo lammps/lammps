@@ -9,6 +9,27 @@ global table of neighbor lists and then get access to the neighbor list
 data. The code sample below demonstrates reading the neighbor list data
 using the NumPy access method.
 
+.. note::
+
+   The neighbor arrays are part of the neighbor list itself, so the
+   neighbor indices are stored the same way LAMMPS uses them internally.
+   For systems with :doc:`special neighbors <special_bonds>` (pairs of
+   atoms connected by bonds, angles, or dihedrals), the two highest bits
+   of a neighbor index may be set to record whether that pair is a 1-2,
+   1-3, or 1-4 neighbor.  Such indices are very large or negative numbers
+   and must have those bits removed before they can be used as local atom
+   indices, e.g. with ``j = nlist[jj] & 0x1FFFFFFF`` (or ``nlist &
+   0x1FFFFFFF`` for the whole NumPy array).  The value of ``(nlist[jj]
+   >> 30) & 3`` is 1, 2, or 3 for 1-2, 1-3, or 1-4 neighbors,
+   respectively, and 0 for all other neighbors.
+
+   No bits are set for special neighbors with weighting factors of 1.0
+   for both Lennard-Jones and Coulomb interactions.  Special neighbors
+   with weighting factors of 0.0 for both are removed from the neighbor
+   list instead, except for the cases listed in the :doc:`special_bonds
+   <special_bonds>` command documentation (e.g. when a KSpace style is
+   used), where the bits are set for all special neighbors.
+
 .. code-block:: python
 
    from lammps import lammps

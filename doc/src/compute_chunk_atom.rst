@@ -101,12 +101,16 @@ Define a computation that calculates an integer chunk ID from 1 to
 Nchunk for each atom in the group.  Values of chunk IDs are determined
 by the *style* of chunk, which can be based on atom type or molecule
 ID or spatial binning or a per-atom property or value calculated by
-another :doc:`compute <compute>`, :doc:`fix <fix>`, or :doc:`atom-style variable <variable>`.  Per-atom chunk IDs can be used by other
-computes with "chunk" in their style name, such as :doc:`compute com/chunk <compute_com_chunk>` or :doc:`compute msd/chunk <compute_msd_chunk>`.  Or they can be used by the :doc:`fix ave/chunk <fix_ave_chunk>` command to sum and time average a
-variety of per-atom properties over the atoms in each chunk.  Or they
-can simply be accessed by any command that uses per-atom values from a
-compute as input, as discussed on the :doc:`Howto output <Howto_output>`
-doc page.
+another :doc:`compute <compute>`, :doc:`fix <fix>`, or
+:doc:`atom-style variable <variable>`.  Per-atom chunk IDs can be used
+by other computes with "chunk" in their style name, such as
+:doc:`compute com/chunk <compute_com_chunk>` or :doc:`compute
+msd/chunk <compute_msd_chunk>`.  Or they can be used by the :doc:`fix
+ave/chunk <fix_ave_chunk>` command to sum and time average a variety
+of per-atom properties over the atoms in each chunk.  Or they can
+simply be accessed by any command that uses per-atom values from a
+compute as input, as discussed on the :doc:`Howto output
+<Howto_output>` doc page.
 
 See the :doc:`Howto chunk <Howto_chunk>` page for an overview of how
 this compute can be used with a variety of other commands to tabulate
@@ -131,9 +135,10 @@ those chunks, or not assigned to any chunk.
 There are many options for specifying for how and when *Nchunk* is
 calculated, and how and when chunk IDs are assigned to atoms.  The
 details depend on the chunk *style* and its *args*, as well as
-optional keyword settings.  They can also depend on whether a :doc:`fix ave/chunk <fix_ave_chunk>` command is using this compute, since
-that command requires *Nchunk* to remain static across windows of
-timesteps it specifies, while it accumulates per-chunk averages.
+optional keyword settings.  They can also depend on whether a
+:doc:`fix ave/chunk <fix_ave_chunk>` command is using this compute,
+since that command requires *Nchunk* to remain static across windows
+of timesteps it specifies, while it accumulates per-chunk averages.
 
 The details are described below.
 

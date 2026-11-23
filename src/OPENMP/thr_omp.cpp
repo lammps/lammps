@@ -503,6 +503,19 @@ void ThrOMP::reduce_thr(void *style, const int eflag, const int vflag,
 
     if (lmp->atom->torque)
       data_reduce_thr(&(lmp->atom->torque[0][0]), nall, nthreads, 3, tid);
+
+    // fold back the per-thread copies of the other force-like per-atom
+    // properties that pair styles accumulate for some atom styles.
+    // the conditions depend only on the atom style, so all threads
+    // reach the barrier inside data_reduce_thr() the same number of times.
+
+    Atom *const atom = lmp->atom;
+    if (atom->erforce) data_reduce_thr(atom->erforce, nall, nthreads, 1, tid);
+    if (atom->desph) data_reduce_thr(atom->desph, nall, nthreads, 1, tid);
+    if (atom->drho) data_reduce_thr(atom->drho, nall, nthreads, 1, tid);
+    if (atom->edpd_flux) data_reduce_thr(atom->edpd_flux, nall, nthreads, 1, tid);
+    if (atom->cc_flux && (atom->cc_species > 0))
+      data_reduce_thr(&(atom->cc_flux[0][0]), nall, nthreads, atom->cc_species, tid);
   }
   thr->timer(Timer::COMM);
 }

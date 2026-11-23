@@ -49,7 +49,7 @@ class PairCoulCutSoftGapsys : public Pair {
   double **lambda;
   double sigmaq, alphaq;
 
-  void allocate();
+  virtual void allocate();
 };
 
 }    // namespace LAMMPS_NS

@@ -142,6 +142,7 @@ FixSurfaceGlobal::FixSurfaceGlobal(LAMMPS *lmp, int narg, char **arg) :
   // disable bonded/history option for now
 
   class GranularModel* model;
+  std::vector<int> stype_args;
   nmodel = maxmodel = 0;
   heat_flag = 0;
   use_history = 0;
@@ -162,13 +163,12 @@ FixSurfaceGlobal::FixSurfaceGlobal(LAMMPS *lmp, int narg, char **arg) :
 
       models[nmodel] = model = new GranularModel(lmp);
 
-      // assign range of particle and surf types to this model
-      // use MAXSURFTYPE for now, in case smax keyword extends input surf types
+      // assign range of particle types to this model
+      // range of surf types is set below, since smaxtype keyword can extend input surf types
 
       utils::bounds(FLERR, arg[iarg+1], 1, atom->ntypes,
                     modeltypes[nmodel].plo, modeltypes[nmodel].phi, error);
-      utils::bounds(FLERR, arg[iarg+2], 1, MAXSURFTYPE,
-                    modeltypes[nmodel].slo, modeltypes[nmodel].shi, error);
+      stype_args.push_back(iarg+2);
       nmodel++;
 
       model->contact_type = SURFACE;
@@ -307,12 +307,13 @@ FixSurfaceGlobal::FixSurfaceGlobal(LAMMPS *lmp, int narg, char **arg) :
   if (heat_flag && !Twall_defined)
     error->all(FLERR, "Must define wall temperature with a heat model");
 
-  // reset modeltypes shi from MAXSURFTYPE to maxsurtype
+  // set range of surf types for all models, now that maxsurftype is final
   // initialize types2model for all particle/surf type pairs
   // check that a model has been assigned to every type pair
 
   for (int i = 0; i < nmodel; i++)
-    if (modeltypes[i].shi == MAXSURFTYPE) modeltypes[i].shi = maxsurftype;
+    utils::bounds(FLERR, arg[stype_args[i]], 1, maxsurftype,
+                  modeltypes[i].slo, modeltypes[i].shi, error, stype_args[i]);
 
   types2model = new Granular_NS::GranularModel**[atom->ntypes+1];
   for (int i = 1; i <= atom->ntypes; i++)

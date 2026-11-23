@@ -88,9 +88,9 @@ int dgeev_(char *jobvl, char *jobvr, integer *n, doublereal *a, integer *lda, do
         *info = -3;
     } else if (*lda < max(1, *n)) {
         *info = -5;
-    } else if (*ldvl < 1 || wantvl && *ldvl < *n) {
+    } else if (*ldvl < 1 || (wantvl && *ldvl < *n)) {
         *info = -9;
-    } else if (*ldvr < 1 || wantvr && *ldvr < *n) {
+    } else if (*ldvr < 1 || (wantvr && *ldvr < *n)) {
         *info = -11;
     }
     if (*info == 0) {

@@ -32,10 +32,6 @@
 #ifndef LAMMPS_OMP_COMPAT
 #  if defined(__INTEL_LLVM_COMPILER)
 #      define LAMMPS_OMP_COMPAT 4
-#  elif defined(__INTEL_COMPILER)
-#    if __INTEL_COMPILER > 18
-#      define LAMMPS_OMP_COMPAT 4
-#    endif
 #  elif defined(__clang__)
 #    if __clang_major__ >= 10
 #      define LAMMPS_OMP_COMPAT 4

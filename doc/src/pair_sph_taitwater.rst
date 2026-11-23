@@ -1,10 +1,11 @@
 .. index:: pair_style sph/taitwater
 .. index:: pair_style sph/taitwater/gpu
+.. index:: pair_style sph/taitwater/omp
 
 pair_style sph/taitwater command
 ================================
 
-Accelerator Variants: *sph/taitwater/gpu*
+Accelerator Variants: *sph/taitwater/gpu*, *sph/taitwater/omp*
 
 Syntax
 """"""

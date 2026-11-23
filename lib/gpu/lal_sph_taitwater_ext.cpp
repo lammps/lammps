@@ -45,7 +45,7 @@ int sph_taitwater_gpu_init(const int ntypes, double **cutsq, double** host_cut,
   int gpu_rank=SPHTaitwaterMF.device->gpu_rank();
   int procs_per_gpu=SPHTaitwaterMF.device->procs_per_gpu();
 
-  SPHTaitwaterMF.device->init_message(screen,"sph_taitwater",first_gpu,last_gpu);
+  SPHTaitwaterMF.device->init_message(screen,"sph/taitwater",first_gpu,last_gpu);
 
   bool message=false;
   if (SPHTaitwaterMF.device->replica_me()==0 && screen)

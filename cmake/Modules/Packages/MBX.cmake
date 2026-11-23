@@ -81,26 +81,53 @@ if(DOWNLOAD_MBX)
 
   include(ExternalProject)
 
-  # hacks to make Linux-to-Windows cross-compilation work
+  # hacks to make testing Linux-to-Windows cross-compilation work.  Compiling some MBX sources
+  # with optimization takes a long time, so without MPI a precompiled MBX is used where one
+  # exists for this MBX version and the major version of the cross-compiler: an archive made with
+  # cmake/packaging/build-mbx-mingw.sh that is only unpacked.  MBX_MINGW_SHA256_<name> below lists
+  # those on download.lammps.org.  MBX_MINGW_FROM_SOURCE=on compiles MBX anyway (to make a new one),
+  # and MBX_MINGW_PRECOMPILED tells cmake/packaging/cmake-win-on-linux.py which of the two happened.
   if((CMAKE_SYSTEM_NAME STREQUAL "Windows") AND (CMAKE_CROSSCOMPILING))
-    ExternalProject_Add(mbx_build
-      URL     ${MBXLIB_URL}
-      URL_HASH SHA256=${MBXLIB_SHA256}
-      BUILD_IN_SOURCE TRUE
-      # restore the timestamp order that autotools generated files require (see AutotoolsTouch.cmake)
-      PATCH_COMMAND ${CMAKE_COMMAND} -D SOURCE_DIR=<SOURCE_DIR> -P ${LAMMPS_DIR}/cmake/Modules/AutotoolsTouch.cmake
-                    ${MBX_PATCH_COMMAND}
-      CONFIGURE_COMMAND mingw64-configure
-                        --prefix=<INSTALL_DIR>
-                        --disable-i-pi-plugin
-                        ${MBX_CONFIG_FLAGS}
-      INSTALL_COMMAND make install prefix=-build includedir=/include bindir=/bin
-                                 datadir=/share exec_prefix=/ infodir=/share/info
-                                 libdir=/lib libexecdir=/libexec localstatedir=/var
-                                 mandir=/share/man sbindir=/sbin sharedstatedir=/com
-                                 sysconfdir=/etc DESTDIR=<INSTALL_DIR>
-      BUILD_BYPRODUCTS ${MBX_BUILD_BYPRODUCTS}
-    )
+    # <MBX version>-mingw64-gcc<major version>, e.g. set(MBX_MINGW_SHA256_mbx-1.4.0-mingw64-gcc16 "<SHA256>")
+    option(MBX_MINGW_FROM_SOURCE "Compile MBX even where a precompiled one exists" OFF)
+    mark_as_advanced(MBX_MINGW_FROM_SOURCE)
+    string(REGEX MATCH "^[0-9]+" _mbx_gcc "${CMAKE_CXX_COMPILER_VERSION}")
+    set(MBX_MINGW_ARCHIVE "${_mbx_version}-mingw64-gcc${_mbx_gcc}" CACHE INTERNAL "Precompiled MBX for this MBX version and compiler")
+    set(MBX_MINGW_PRECOMPILED OFF CACHE INTERNAL "MBX unpacked from a precompiled archive")
+    if((NOT BUILD_MPI) AND (NOT MBX_MINGW_FROM_SOURCE) AND (DEFINED MBX_MINGW_SHA256_${MBX_MINGW_ARCHIVE}))
+      SetDownloadSettings(MBXMINGW "precompiled MBX"
+        "https://download.lammps.org/thirdparty/${MBX_MINGW_ARCHIVE}.tar.gz"
+        "${MBX_MINGW_SHA256_${MBX_MINGW_ARCHIVE}}")
+      message(STATUS "Using the precompiled MBX ${MBX_MINGW_ARCHIVE}")
+      ExternalProject_Add(mbx_build
+        URL     ${MBXMINGW_URL}
+        URL_HASH SHA256=${MBXMINGW_SHA256}
+        CONFIGURE_COMMAND ""
+        BUILD_COMMAND ""
+        INSTALL_COMMAND ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR> <INSTALL_DIR>
+        BUILD_BYPRODUCTS ${MBX_BUILD_BYPRODUCTS}
+      )
+      set(MBX_MINGW_PRECOMPILED ON CACHE INTERNAL "MBX unpacked from a precompiled archive")
+    else()
+      ExternalProject_Add(mbx_build
+        URL     ${MBXLIB_URL}
+        URL_HASH SHA256=${MBXLIB_SHA256}
+        BUILD_IN_SOURCE TRUE
+        # restore the timestamp order that autotools generated files require (see AutotoolsTouch.cmake)
+        PATCH_COMMAND ${CMAKE_COMMAND} -D SOURCE_DIR=<SOURCE_DIR> -P ${LAMMPS_DIR}/cmake/Modules/AutotoolsTouch.cmake
+                      ${MBX_PATCH_COMMAND}
+        CONFIGURE_COMMAND mingw64-configure
+                          --prefix=<INSTALL_DIR>
+                          --disable-i-pi-plugin
+                          ${MBX_CONFIG_FLAGS}
+        INSTALL_COMMAND make install prefix=-build includedir=/include bindir=/bin
+                                   datadir=/share exec_prefix=/ infodir=/share/info
+                                   libdir=/lib libexecdir=/libexec localstatedir=/var
+                                   mandir=/share/man sbindir=/sbin sharedstatedir=/com
+                                   sysconfdir=/etc DESTDIR=<INSTALL_DIR>
+        BUILD_BYPRODUCTS ${MBX_BUILD_BYPRODUCTS}
+      )
+    endif()
   else()
     ExternalProject_Add(mbx_build
       URL     ${MBXLIB_URL}

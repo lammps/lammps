@@ -75,6 +75,16 @@ Unit tests are CTest-based; build with `-D ENABLE_TESTING=on -D BUILD_SHARED_LIB
   matching forces and energies, almost always mean `ev_init()` was called in
   `post_force_respa()` (it must not be; see the respa guide).
 
+## Portable test code (C++ tests)
+
+- No `ContainsRegex`/`MatchesRegex` patterns with character classes (`[...]`), groups,
+  alternation (`|`), or `{n}`: on Windows gtest uses its own simple regex engine, so
+  such a test fails only in the Windows jobs.  Use `HasSubstr` for plain text or the
+  `ASSERT_MATCH` idiom (`utils::strmatch()`).
+- More pitfalls (tests that skip silently, multi-rank tests, hidden exceptions,
+  reference data that is not portable) and the table of CI jobs are in
+  `.github/dev-docs/testing-and-verification.md`.
+
 ## Adding tests for new styles
 
 - Copy the YAML of a closely related style, adjust the input setup, regenerate the

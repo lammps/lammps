@@ -155,7 +155,7 @@ void Comm::copy_arrays(Comm *oldcomm)
   ncollections_cutoff = oldcomm->ncollections_cutoff;
   if (oldcomm->cutusermulti) {
     memory->create(cutusermulti,ncollections_cutoff,"comm:cutusermulti");
-    memcpy(cutusermulti,oldcomm->cutusermulti,ncollections_cutoff);
+    memcpy(cutusermulti,oldcomm->cutusermulti,ncollections_cutoff*sizeof(double));
   }
 
   if (customfile)

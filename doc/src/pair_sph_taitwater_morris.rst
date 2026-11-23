@@ -1,7 +1,10 @@
 .. index:: pair_style sph/taitwater/morris
+.. index:: pair_style sph/taitwater/morris/omp
 
 pair_style sph/taitwater/morris command
 =======================================
+
+Accelerator Variants: *sph/taitwater/morris/omp*
 
 Syntax
 """"""
@@ -45,6 +48,10 @@ above.
 * :math:`c_0` reference soundspeed (distance/time units)
 * :math:`\nu` dynamic viscosity (mass\*distance/time units)
 * h kernel function cutoff (distance units)
+
+----------
+
+.. include:: accel_styles.rst
 
 ----------
 

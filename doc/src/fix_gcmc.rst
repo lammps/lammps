@@ -201,7 +201,7 @@ molecule file.  See the :doc:`molecule <molecule>` command for details.
 The only settings required to be in this file are the coordinates and
 types of atoms in the molecule.
 
-.. versionadded:: TBD
+.. versionadded:: 13Nov2026
 
 A molecule template may contain multiple molecules, one per file listed
 in the :doc:`molecule <molecule>` command.  By default, *fix gcmc*

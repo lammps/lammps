@@ -106,7 +106,7 @@ class PPPM : public KSpace {
   virtual void set_grid_local();
   void adjust_gewald();
   virtual double newton_raphson_f();
-  double derivf();
+  double derivf(double);
   double final_accuracy();
 
   virtual void allocate();

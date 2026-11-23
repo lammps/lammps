@@ -1,10 +1,11 @@
 .. index:: pair_style sph/heatconduction
 .. index:: pair_style sph/heatconduction/gpu
+.. index:: pair_style sph/heatconduction/omp
 
 pair_style sph/heatconduction command
 =====================================
 
-Accelerator Variants: *sph/heatconduction/gpu*
+Accelerator Variants: *sph/heatconduction/gpu*, *sph/heatconduction/omp*
 
 Syntax
 """"""

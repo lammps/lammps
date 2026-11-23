@@ -841,6 +841,9 @@ Bibliography
 **(Jarzynski)**
    Jarzynski, Phys. Rev. Lett. 78, 2690 (1997)
 
+**(Jeffrey)**
+   Jeffrey and Onishi, J Fluid Mech, 139, 261-290 (1984).
+
 **(Jiang1)**
    Jiang, Hardy, Phillips, MacKerell, Schulten, and Roux, J Phys Chem Lett, 2, 87-92 (2011).
 
@@ -900,6 +903,9 @@ Bibliography
 
 **(Kim)**
    Kim, Keyes, Straub, J Chem. Phys, 132, 224107 (2010).
+
+**(Kim and Karrila)**
+   Kim and Karrila, Microhydrodynamics: Principles and Selected Applications, Butterworth-Heinemann, Boston (1991).
 
 **(Klapp)**
    Klapp, Schoen, J Chem Phys, 117, 8050 (2002).
@@ -994,11 +1000,14 @@ Bibliography
 **(Lesniewski2)**
    Lesniewski, DeLyser, W. G. Noid "Progress toward a better BOCS: systematic coarse-graining with local density potentials" In Prep 2026
 
+**(Leven)**
+   I. Leven, T. Head-Gordon, Physical Chemistry Chemical Physics, 21, 18652-18659 (2019).
+
 **(Leven1)**
-   I.\  Leven, I. Azuri, L. Kronik and O. Hod, J. Chem. Phys. 140, 104106 (2014).
+   I. Leven, I. Azuri, L. Kronik and O. Hod, J. Chem. Phys. 140, 104106 (2014).
 
 **(Leven2)**
-   I.\  Leven et al, J. Chem.Theory Comput. 12, 2896-905 (2016).
+   I. Leven et al, J. Chem.Theory Comput. 12, 2896-905 (2016).
 
 **(Li2013_POF)**
    Li, Hu, Wang, Ma, Zhou, Phys Fluids, 25: 072103 (2013). DOI:10.1063/1.4812366.

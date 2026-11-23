@@ -15,10 +15,15 @@ restart, buffers, parsing): `.github/dev-docs/style-implementation-notes.md`.
 - **No variable-length arrays**; use `memory->create()` or `std::vector`.
 - **No alternative logical-operator tokens:** use `&&`, `||`, `!`, `^` -- never `and`,
   `or`, `not`, `xor` (breaks MSVC).
+- **OpenMP directives from OpenMP 2.0 only:** no `#pragma omp atomic read`, `write`,
+  `update`, or `capture`, no `simd`, no tasks (MSVC implements only OpenMP 2.0).  Use
+  a plain `#pragma omp atomic` with `x binop= expr`, a named `critical` section, or
+  `std::atomic`; details in `.github/dev-docs/openmp-porting.md`.
 - **No `printf()`, `fprintf(screen, ...)`/`fprintf(logfile, ...)`, or C++ iostreams
   (`std::cout`, `std::cerr`) in new code:** use `utils::logmesg()` or `utils::print()`,
-  which both support `std::format`-style formatting.  Remove output that was added for
-  debugging entirely.
+  which take format strings with `{}` placeholders like `fmt::format()`.  Do not call
+  `fmt::print()` directly (`make check-fmtlib` reports it).  Remove output that was
+  added for debugging entirely.
 - **No new `error->all(FLERR, "Illegal XXX command")` messages:** use
   `utils::missing_cmd_args()` or a specific message with the error-pointer argument that
   highlights the offending argument, plus `utils::errorurl()` to point to the
@@ -28,7 +33,10 @@ restart, buffers, parsing): `.github/dev-docs/style-implementation-notes.md`.
 - **No `strtok()`, `sscanf()`, `atoi()`, `atof()` and similar for parsing:** use the
   `Tokenizer`/`ValueTokenizer` classes (and a file reader class where possible);
   convert arguments with `utils::numeric()`, `inumeric()`, `bnumeric()`, `tnumeric()`.
-- **String formatting with fmtlib** (`fmt::format()`), not `sprintf`.
+- **String formatting with `fmt::format()`** (the bundled {fmt} library, which has the
+  syntax of `std::format`), not with `sprintf()`/`snprintf()` into a buffer of fixed
+  size.  The exception is a printf() style format string that the user provides at run
+  time (dump and thermo output formats): use `utils::sprintf()` for those.
 - **No commented-out code** (debugging leftovers, disabled features, unused
   alternatives) unless the pull request explains it as a placeholder for a planned
   feature.
@@ -48,6 +56,23 @@ restart, buffers, parsing): `.github/dev-docs/style-implementation-notes.md`.
   it into a fused multiply-add (the default on ARM64).
 - **Unused parameters:** silence `-Wunused-parameter` by commenting out the name
   (`int /*nlocal*/`), never by dropping it; the name documents the argument.
+- **Includes:** a file that includes `pointers.h` or the header of a class derived
+  from `Pointers` (that is nearly every style) must not include what `pointers.h`
+  always provides: `mpi.h`, `<cstddef>`, `<cstdio>`, `<cstdlib>`, `<climits>`,
+  `<cinttypes>`, `<string>`, `<vector>`, `utils.h`, and `fmt/format.h` (list in
+  https://docs.lammps.org/Modify_style.html).  Everything else follows "include what
+  you use" (`<cmath>`, `<cstring>`, `<map>`, `<algorithm>`, ...).  Report redundant
+  includes in reviews as well.
+- **Neighbor list entries:** an index read from a neighbor list can carry flags in its
+  three highest bits (special bonds, contact history).  Mask it where it is read
+  (`j &= NEIGHMASK;`, after `sbmask(j)` when the special-bond factor is needed).  Do
+  not work around a missing mask by copying neighbor list rows, e.g. before handing
+  them to an external library.
+- **Position array cast:** `const double (*const x)[3] = (const double (*)[3])
+  atom->x[0];` is an accepted way to remove one indirection in a hot loop, because it
+  keeps the `x[i][k]` syntax; show the gain with a benchmark.  Do not add
+  array-of-struct casts (`dbl3_t`) outside the OPENMP package, which uses them
+  throughout.
 - **clang-format:** keep a style's own header in its own include block (blank line after
   it) or clang-format sorts it into the other includes.  When substantially editing a
   small, simply structured legacy file marked `// clang-format off`, remove the marker

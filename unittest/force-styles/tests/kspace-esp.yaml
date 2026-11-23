@@ -1,7 +1,7 @@
 ---
 lammps_version: 10 Sep 2025
 date_generated: Fri Dec 5 16:55:29 2025
-epsilon: 7e-5
+epsilon: 1e-4
 prerequisites: ! |
   atom full
   pair coul/esp

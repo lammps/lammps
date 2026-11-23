@@ -82,7 +82,7 @@ int dlalsd_(char *uplo, integer *smlsiz, integer *n, integer *nrhs, doublereal *
         xerbla_((char *)"DLALSD", &i__1, (ftnlen)6);
         return 0;
     }
-    eps = dlamch_((char *)"Epsilon", (ftnlen)7);
+    eps = dlamch_((char *)"E", (ftnlen)1);
     if (*rcond <= 0. || *rcond >= 1.) {
         rcnd = eps;
     } else {

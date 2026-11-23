@@ -39,7 +39,7 @@ using namespace EwaldConst;
 /* ---------------------------------------------------------------------- */
 
 PairLJCutCoulLongSoftGPU::PairLJCutCoulLongSoftGPU(LAMMPS *lmp) :
-    PairLJCutCoulLongSoft(lmp), gpu_mode(GPU_FORCE)
+    PairLJCutCoulLongSoft(lmp), gpu_mode(GPU_FORCE), update_coeffs(false)
 {
   respa_enable = 0;
   suffix_flag |= Suffix::GPU;
@@ -60,6 +60,11 @@ PairLJCutCoulLongSoftGPU::~PairLJCutCoulLongSoftGPU()
 void PairLJCutCoulLongSoftGPU::compute(int eflag, int vflag)
 {
   ev_init(eflag, vflag);
+
+  if (update_coeffs) {
+    ljcls_gpu_reinit(atom->ntypes + 1, cutsq, lj1, lj2, lj3, lj4, offset, epsilon, cut_ljsq);
+    update_coeffs = false;
+  }
 
   int nall = atom->nlocal + atom->nghost;
   int inum;
@@ -94,6 +99,7 @@ void PairLJCutCoulLongSoftGPU::compute(int eflag, int vflag)
   }
   if (!success) error->one(FLERR, "Insufficient memory on accelerator");
 
+  if (atom->molecular != Atom::ATOMIC && neighbor->ago == 0) neighbor->build_topology();
 }
 
 /* ----------------------------------------------------------------------
@@ -147,11 +153,13 @@ void PairLJCutCoulLongSoftGPU::init_style()
 
 /* ---------------------------------------------------------------------- */
 
-void PairLJCutCoulLongSoftGPU::reinit()
+double PairLJCutCoulLongSoftGPU::init_one(int i, int j)
 {
-  Pair::reinit();
+  // the parameters may have been changed, e.g. by fix adapt,
+  // so copy them to the GPU again before the next compute()
 
-  ljcls_gpu_reinit(atom->ntypes + 1, cutsq, lj1, lj2, lj3, lj4, offset, epsilon, cut_ljsq);
+  update_coeffs = true;
+  return PairLJCutCoulLongSoft::init_one(i, j);
 }
 
 /* ---------------------------------------------------------------------- */

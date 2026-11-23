@@ -341,6 +341,10 @@ void FixNVESpin::initial_integrate(int /*vflag*/)
     }
   }
 
+  // per-timestep preparation of fix setforce/spin (instead of per spin)
+
+  if (setforce_spin_flag) locksetforcespin->setup_single_setforce_spin();
+
   // update half s for all atoms
   // communicate ghost positions (and spins) once, since other fixes may have
   //   changed positions or box since the last comm (e.g. fix deform remap x),

@@ -1,19 +1,13 @@
 LAMMPS (13 Nov 2026)
-<<<<<<<< HEAD:examples/SPIN/dipole_spin/log.19Nov2026.spin.iron_dipole_cut.g++.4
-# bcc iron in a 3d periodic box
-
-clear
-units 		metal
-atom_style 	spin
-========
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread.
   using 1 OpenMP thread(s) per MPI task
 # bcc iron in a 3d periodic box
 
 clear
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread.
   using 1 OpenMP thread(s) per MPI task
 units           metal
 atom_style      spin
->>>>>>>> upstream/develop:examples/SPIN/dipole_spin/log.18Nov2026.spin.iron_dipole_cut.g++.4
 
 dimension       3
 boundary        p p p
@@ -34,15 +28,9 @@ Created 3456 atoms
 
 # setting mass, mag. moments, and interactions for bcc iron
 
-<<<<<<<< HEAD:examples/SPIN/dipole_spin/log.19Nov2026.spin.iron_dipole_cut.g++.4
-mass		1 55.845
-set 		group all spin 2.2 -1.0 0.0 0.0
-WARNING: Set attribute spin is deprecated -- use spin/atom instead (../set.cpp:2398)
-========
 mass            1 55.845
 set             group all spin 2.2 -1.0 0.0 0.0
 WARNING: Set attribute spin is deprecated -- use spin/atom instead (src/set.cpp:2398)
->>>>>>>> upstream/develop:examples/SPIN/dipole_spin/log.18Nov2026.spin.iron_dipole_cut.g++.4
 Setting atom values ...
   3456 settings made for spin
 velocity        all create 100 4928459 rot yes dist gaussian
@@ -103,6 +91,7 @@ doi={10.1016/j.jcp.2018.06.042}
 
 CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
 
+WARNING: Fix nve/spin with multiple processors and a moving lattice may give inaccurate results if atoms move more than half the neighbor skin distance between neighbor list builds. This is possible with the current settings (neigh_modify every 10 delay 20 once no). To avoid this, use 'neigh_modify every 1 delay 0 check yes once no' (src/SPIN/fix_nve_spin.cpp:298)
 Neighbor list info ...
   update: every = 10 steps, delay = 20 steps, check = yes
   max neighbors/atom: 2000, page size: 100000
@@ -125,45 +114,25 @@ Neighbor list info ...
       pair build: full/bin/atomonly
       stencil: full/bin/3d
       bin: standard
-<<<<<<<< HEAD:examples/SPIN/dipole_spin/log.19Nov2026.spin.iron_dipole_cut.g++.4
-WARNING: Dump 1 includes no atom IDs and is not sorted by ID. This may complicate post-processing tasks or visualization (../dump.cpp:211)
-========
->>>>>>>> upstream/develop:examples/SPIN/dipole_spin/log.18Nov2026.spin.iron_dipole_cut.g++.4
 Per MPI rank memory allocation (min/avg/max) = 6.941 | 6.941 | 6.941 Mbytes
    Step          Time          v_magx         v_magy         v_magz       v_magnorm        v_tmag         v_emag         PotEng         TotEng    
          0   0             -1              0              0              1              9.8888744e-36 -384.18755     -15175.868     -15131.207    
-        50   0.005         -1              9.608307e-11  -3.3726042e-10  1              6.673912e-09  -384.17884     -15174.259     -15131.207    
-       100   0.01          -1              7.8786654e-10 -2.6986987e-09  1              9.7880893e-09 -384.15383     -15169.712     -15131.207    
-<<<<<<<< HEAD:examples/SPIN/dipole_spin/log.19Nov2026.spin.iron_dipole_cut.g++.4
-Loop time of 0.858873 on 4 procs for 100 steps with 3456 atoms
+        50   0.005         -1              9.6113773e-11 -3.3720074e-10  1              6.6739121e-09 -384.17884     -15174.259     -15131.207    
+       100   0.01          -1              7.8808139e-10 -2.6985994e-09  1              9.7880897e-09 -384.15383     -15169.712     -15131.207    
+Loop time of 0.931048 on 4 procs for 100 steps with 3456 atoms
 
-Performance: 1.006 ns/day, 23.858 hours/ns, 116.432 timesteps/s, 402.388 katom-step/s
-94.0% CPU use with 4 MPI tasks x no OpenMP threads
-========
-Loop time of 0.933452 on 4 procs for 100 steps with 3456 atoms
-
-Performance: 0.926 ns/day, 25.929 hours/ns, 107.129 timesteps/s, 370.239 katom-step/s
-99.6% CPU use with 4 MPI tasks x 1 OpenMP threads
->>>>>>>> upstream/develop:examples/SPIN/dipole_spin/log.18Nov2026.spin.iron_dipole_cut.g++.4
+Performance: 0.928 ns/day, 25.862 hours/ns, 107.406 timesteps/s, 371.195 katom-step/s
+98.1% CPU use with 4 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-<<<<<<<< HEAD:examples/SPIN/dipole_spin/log.19Nov2026.spin.iron_dipole_cut.g++.4
-Pair    | 0.28442    | 0.2908     | 0.29746    |   0.9 | 33.86
+Pair    | 0.34619    | 0.35457    | 0.36831    |   1.4 | 38.08
 Neigh   | 0          | 0          | 0          |   0.0 |  0.00
-Comm    | 0.014616   | 0.022004   | 0.028725   |   3.4 |  2.56
-Output  | 0.001118   | 0.0011665  | 0.0012162  |   0.1 |  0.14
-Modify  | 0.54381    | 0.54416    | 0.54491    |   0.1 | 63.36
-Other   |            | 0.0007463  |            |       |  0.09
-========
-Pair    | 0.32917    | 0.33147    | 0.33491    |   0.4 | 35.51
-Neigh   | 0          | 0          | 0          |   0.0 |  0.00
-Comm    | 0.0078279  | 0.011157   | 0.013678   |   2.1 |  1.20
-Output  | 6.732e-05  | 8.1062e-05 | 0.0001183  |   0.0 |  0.01
-Modify  | 0.58985    | 0.59008    | 0.59028    |   0.0 | 63.21
-Other   |            | 0.0006594  |            |       |  0.07
->>>>>>>> upstream/develop:examples/SPIN/dipole_spin/log.18Nov2026.spin.iron_dipole_cut.g++.4
+Comm    | 0.011521   | 0.027048   | 0.036586   |   5.8 |  2.91
+Output  | 9.8358e-05 | 0.00011104 | 0.00013801 |   0.0 |  0.01
+Modify  | 0.54714    | 0.54839    | 0.55035    |   0.2 | 58.90
+Other   |            | 0.0009259  |            |       |  0.10
 
 Nlocal:            864 ave         864 max         864 min
 Histogram: 4 0 0 0 0 0 0 0 0 0

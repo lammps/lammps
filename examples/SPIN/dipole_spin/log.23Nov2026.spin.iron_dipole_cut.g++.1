@@ -1,7 +1,11 @@
 LAMMPS (13 Nov 2026)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread.
+  using 1 OpenMP thread(s) per MPI task
 # bcc iron in a 3d periodic box
 
 clear
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread.
+  using 1 OpenMP thread(s) per MPI task
 units           metal
 atom_style      spin
 
@@ -26,27 +30,18 @@ Created 3456 atoms
 
 mass            1 55.845
 set             group all spin 2.2 -1.0 0.0 0.0
-WARNING: Set attribute spin is deprecated -- use spin/atom instead (../set.cpp:2398)
+WARNING: Set attribute spin is deprecated -- use spin/atom instead (src/set.cpp:2398)
 Setting atom values ...
   3456 settings made for spin
 velocity        all create 100 4928459 rot yes dist gaussian
 
-pair_style      hybrid/overlay eam/alloy spin/exchange 3.5 spin/dipole/long 8.0
+pair_style      hybrid/overlay eam/alloy spin/exchange 3.5 spin/dipole/cut 8.0
 pair_coeff      * * eam/alloy Fe_Mishin2006.eam.alloy Fe
 pair_coeff      * * spin/exchange exchange 3.4 0.02726 0.2171 1.841
-pair_coeff      * * spin/dipole/long 8.0
+pair_coeff      * * spin/dipole/cut 8.0
 
 neighbor        0.1 bin
 neigh_modify    every 10 check yes delay 20
-
-kspace_style    ewald/dipole/spin 1.0e-5
-kspace_modify   force 1.0e-8  # in eV/Å Setting a lower accuracy for spin torques
-kspace_modify   compute yes
-Updated KSpace settings:
-  KSpace computation is turned:    ON
-  Use MPI collective operations:   OFF
-  Use MPI non-blocking operations: OFF
-  Gewald is determined automatically
 
 fix             1 all precession/spin cubic 0.001 0.0005 1.0 0.0 0.0 0.0 1.0 0.0 0.0 0.0 1.0
 fix_modify      1 energy yes
@@ -96,13 +91,6 @@ doi={10.1016/j.jcp.2018.06.042}
 
 CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
 
-EwaldDipoleSpin initialization ...
-  using 12-bit tables for long-range coulomb
-  G vector (1/distance) = 0.38321037
-  estimated absolute RMS force accuracy = 0
-  estimated relative force accuracy = 0
-  KSpace vectors: actual max1d max3d = 4585 13 9841
-                  kxmax kymax kzmax  = 13 13 13
 Neighbor list info ...
   update: every = 10 steps, delay = 20 steps, check = yes
   max neighbors/atom: 2000, page size: 100000
@@ -120,31 +108,30 @@ Neighbor list info ...
       pair build: trim
       stencil: none
       bin: none
-  (3) pair spin/dipole/long, perpetual
+  (3) pair spin/dipole/cut, perpetual
       attributes: full, newton on
       pair build: full/bin/atomonly
       stencil: full/bin/3d
       bin: standard
-Per MPI rank memory allocation (min/avg/max) = 30.95 | 30.95 | 30.95 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 9.158 | 9.158 | 9.158 Mbytes
    Step          Time          v_magx         v_magy         v_magz       v_magnorm        v_tmag         v_emag         PotEng         TotEng    
-         0   0             -1              0              0              1              1.2300042e-35 -384.32815     -15176.027     -15131.366    
-        50   0.005         -1             -2.8141324e-10 -2.1673836e-10  1              6.5894467e-09 -384.31956     -15174.404     -15131.366    
-       100   0.01          -1             -2.1297321e-09 -1.7245416e-09  1              1.0389366e-08 -384.29493     -15169.814     -15131.366    
-Loop time of 18.7636 on 1 procs for 100 steps with 3456 atoms
+         0   0             -1              0              0              1              9.8888744e-36 -384.18755     -15175.868     -15131.207    
+        50   0.005         -1             -2.7689756e-10 -2.1801239e-10  1              6.867592e-09  -384.17896     -15174.244     -15131.207    
+       100   0.01          -1             -2.0963471e-09 -1.7310178e-09  1              1.0015266e-08 -384.15433     -15169.655     -15131.207    
+Loop time of 3.10525 on 1 procs for 100 steps with 3456 atoms
 
-Performance: 0.046 ns/day, 521.210 hours/ns, 5.329 timesteps/s, 18.419 katom-step/s
-99.9% CPU use with 1 MPI tasks x no OpenMP threads
+Performance: 0.278 ns/day, 86.257 hours/ns, 32.204 timesteps/s, 111.295 katom-step/s
+100.0% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 1.8417     | 1.8417     | 1.8417     |   0.0 |  9.82
-Kspace  | 13.283     | 13.283     | 13.283     |   0.0 | 70.79
+Pair    | 1.2797     | 1.2797     | 1.2797     |   0.0 | 41.21
 Neigh   | 0          | 0          | 0          |   0.0 |  0.00
-Comm    | 0.01471    | 0.01471    | 0.01471    |   0.0 |  0.08
-Output  | 0.00018218 | 0.00018218 | 0.00018218 |   0.0 |  0.00
-Modify  | 3.6215     | 3.6215     | 3.6215     |   0.0 | 19.30
-Other   |            | 0.002935   |            |       |  0.02
+Comm    | 0.0091749  | 0.0091749  | 0.0091749  |   0.0 |  0.30
+Output  | 0.00012338 | 0.00012338 | 0.00012338 |   0.0 |  0.00
+Modify  | 1.8143     | 1.8143     | 1.8143     |   0.0 | 58.43
+Other   |            | 0.001958   |            |       |  0.06
 
 Nlocal:           3456 ave        3456 max        3456 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -159,4 +146,4 @@ Total # of neighbors = 110592
 Ave neighs/atom = 32
 Neighbor list builds = 0
 Dangerous builds = 0
-Total wall time: 0:00:18
+Total wall time: 0:00:03

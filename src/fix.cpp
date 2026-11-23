@@ -88,6 +88,7 @@ Fix::Fix(LAMMPS *lmp, int /*narg*/, char **arg) :
   size_vector_variable = size_array_rows_variable = 0;
 
   comm_forward = comm_reverse = comm_border = 0;
+  comm_multi_flag = 0;
   restart_reset = 0;
 
   // reasonable defaults

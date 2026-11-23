@@ -117,6 +117,9 @@ class Fix : protected Pointers {
   int comm_reverse;    // size of reverse communication (0 if none)
   int comm_border;     // size of border communication (0 if none)
 
+  int comm_multi_flag;    // 1 if some atoms of this fix need a longer ghost cutoff
+                          // than all other atoms, see comm_multi_cutoff()
+
   double virial[6];          // virial for this timestep
   double *eatom, **vatom;    // per-atom energy/virial for this timestep
   double **cvatom;           // per-atom centroid virial for this timestep
@@ -181,6 +184,8 @@ class Fix : protected Pointers {
 
   virtual int pack_border(int, int *, double *) { return 0; }
   virtual int unpack_border(int, int, double *) { return 0; }
+  virtual double comm_multi_cutoff() { return 0.0; }
+  virtual void comm_multi_atoms(int, int, int *) {}
   virtual int pack_exchange(int, double *) { return 0; }
   virtual int unpack_exchange(int, double *) { return 0; }
   virtual int pack_restart(int, double *) { return 0; }

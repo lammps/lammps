@@ -64,6 +64,11 @@ Comm::Comm(LAMMPS *lmp) : Pointers(lmp)
   cutusermulti = nullptr;
   ncollections = 0;
   ncollections_cutoff = 0;
+  fix_multi = 0;
+  cutghost_fix_multi = 0.0;
+  multi_collections = 0;
+  collection_fix_multi = nullptr;
+  nmax_collection_fix_multi = 0;
   ghost_velocity = 0;
 
   user_procgrid[0] = user_procgrid[1] = user_procgrid[2] = 0;
@@ -124,6 +129,7 @@ Comm::~Comm()
   memory->destroy(ysplit);
   memory->destroy(zsplit);
   memory->destroy(cutusermulti);
+  memory->destroy(collection_fix_multi);
   delete [] customfile;
   delete [] outfile;
 }
@@ -256,6 +262,28 @@ void Comm::init()
   if ((mode == Comm::MULTI) && (neighbor->style != Neighbor::MULTI))
     error->all(FLERR,"Cannot use comm mode multi without multi-style neighbor lists");
 
+  // fixes may request a longer ghost cutoff for some of their atoms, e.g. the atoms
+  //   that own a rigid body with fix rigid/small ghost/multi
+  // these atoms form collection 1 and all other atoms form collection 0
+
+  fix_multi = 0;
+  cutghost_fix_multi = 0.0;
+  for (const auto &fix : fix_list) {
+    if (!fix->comm_multi_flag) continue;
+    if (mode == Comm::MULTI)
+      error->all(FLERR, "Fix {} ghost/multi cannot be used with comm_modify mode multi",
+                 fix->style);
+    if (neighbor->style == Neighbor::MULTI)
+      error->all(FLERR, "Fix {} ghost/multi cannot be used with neighbor style multi",
+                 fix->style);
+    if (lmp->kokkos)
+      error->all(FLERR, "Fix {} ghost/multi is not supported with the KOKKOS package",
+                 fix->style);
+    fix_multi = 1;
+    cutghost_fix_multi = MAX(cutghost_fix_multi, fix->comm_multi_cutoff());
+  }
+  multi_collections = ((mode == Comm::MULTI) || fix_multi) ? 1 : 0;
+
   if (multi_reduce) {
     if (force->newton == 0)
       error->all(FLERR,"Cannot use multi/reduce communication with Newton off");
@@ -264,6 +292,27 @@ void Comm::init()
     if (mode != Comm::MULTI)
       error->all(FLERR,"Cannot use multi/reduce communication without mode multi");
   }
+}
+
+/* ----------------------------------------------------------------------
+   set collection of local and ghost atoms from istart on for fix_multi
+   collection 1 = atoms flagged by a fix with comm_multi_flag set,
+   collection 0 = all other atoms
+   query the current fixes, since fixes may be deleted after Comm::init()
+------------------------------------------------------------------------- */
+
+void Comm::build_fix_multi_collection(int istart)
+{
+  int nall = atom->nlocal + atom->nghost;
+  if (nall > nmax_collection_fix_multi) {
+    nmax_collection_fix_multi = atom->nmax;
+    memory->grow(collection_fix_multi, nmax_collection_fix_multi,
+                 "comm:collection_fix_multi");
+  }
+
+  for (int i = istart; i < nall; i++) collection_fix_multi[i] = 0;
+  for (const auto &fix : modify->get_fix_list())
+    if (fix->comm_multi_flag) fix->comm_multi_atoms(istart, nall, collection_fix_multi);
 }
 
 /* ----------------------------------------------------------------------

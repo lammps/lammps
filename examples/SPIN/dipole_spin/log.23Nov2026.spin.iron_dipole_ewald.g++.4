@@ -1,9 +1,7 @@
 LAMMPS (13 Nov 2026)
-  using 1 OpenMP thread(s) per MPI task
 # bcc iron in a 3d periodic box
 
 clear
-  using 1 OpenMP thread(s) per MPI task
 units           metal
 atom_style      spin
 
@@ -18,7 +16,7 @@ Lattice spacing in x,y,z = 2.8665 2.8665 2.8665
 region          box block 0.0 12.0 0.0 12.0 0.0 12.0
 create_box      1 box
 Created orthogonal box = (0 0 0) to (34.398 34.398 34.398)
-  1 by 1 by 1 MPI processor grid
+  1 by 2 by 2 MPI processor grid
 create_atoms    1 box
 Created 3456 atoms
   using lattice units in orthogonal box = (0 0 0) to (34.398 34.398 34.398)
@@ -28,7 +26,7 @@ Created 3456 atoms
 
 mass            1 55.845
 set             group all spin 2.2 -1.0 0.0 0.0
-WARNING: Set attribute spin is deprecated -- use spin/atom instead (src/set.cpp:2398)
+WARNING: Set attribute spin is deprecated -- use spin/atom instead (../set.cpp:2398)
 Setting atom values ...
   3456 settings made for spin
 velocity        all create 100 4928459 rot yes dist gaussian
@@ -105,6 +103,7 @@ EwaldDipoleSpin initialization ...
   estimated relative force accuracy = 0
   KSpace vectors: actual max1d max3d = 4585 13 9841
                   kxmax kymax kzmax  = 13 13 13
+WARNING: Fix nve/spin with multiple processors and a moving lattice may give inaccurate results if atoms move more than half the neighbor skin distance between neighbor list builds. This is possible with the current settings (neigh_modify every 10 delay 20 once no). To avoid this, use 'neigh_modify every 1 delay 0 check yes once no' (../fix_nve_spin.cpp:298)
 Neighbor list info ...
   update: every = 10 steps, delay = 20 steps, check = yes
   max neighbors/atom: 2000, page size: 100000
@@ -127,38 +126,38 @@ Neighbor list info ...
       pair build: full/bin/atomonly
       stencil: full/bin/3d
       bin: standard
-Per MPI rank memory allocation (min/avg/max) = 30.95 | 30.95 | 30.95 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 28.73 | 28.73 | 28.73 Mbytes
    Step          Time          v_magx         v_magy         v_magz       v_magnorm        v_tmag         v_emag         PotEng         TotEng    
-         0   0             -1              0              0              1              1.2300042e-35 -384.32815     -15176.027     -15131.366    
-        50   0.005         -1              3.8388537e-08 -2.0275652e-08  1              8.8189612e-09 -384.31956     -15174.404     -15131.366    
-       100   0.01          -1              7.7188655e-08 -4.0125236e-08  1              3.4421057e-08 -384.29493     -15169.814     -15131.366    
-Loop time of 19.986 on 1 procs for 100 steps with 3456 atoms
+         0   0             -1              0              0              1              7.3593193e-36 -384.32815     -15176.027     -15131.366    
+        50   0.005         -1              9.5776911e-11 -3.3909916e-10  1              6.4082964e-09 -384.31943     -15174.418     -15131.366    
+       100   0.01          -1              7.8706961e-10 -2.7131449e-09  1              1.0187986e-08 -384.29443     -15169.872     -15131.366    
+Loop time of 5.5803 on 4 procs for 100 steps with 3456 atoms
 
-Performance: 0.043 ns/day, 555.166 hours/ns, 5.004 timesteps/s, 17.292 katom-step/s
-99.7% CPU use with 1 MPI tasks x 1 OpenMP threads
+Performance: 0.155 ns/day, 155.008 hours/ns, 17.920 timesteps/s, 61.932 katom-step/s
+99.5% CPU use with 4 MPI tasks x no OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 2.0287     | 2.0287     | 2.0287     |   0.0 | 10.15
-Kspace  | 13.473     | 13.473     | 13.473     |   0.0 | 67.41
+Pair    | 0.50925    | 0.52123    | 0.55544    |   2.7 |  9.34
+Kspace  | 3.683      | 3.7642     | 3.8902     |   4.4 | 67.45
 Neigh   | 0          | 0          | 0          |   0.0 |  0.00
-Comm    | 0.013766   | 0.013766   | 0.013766   |   0.0 |  0.07
-Output  | 0.00019257 | 0.00019257 | 0.00019257 |   0.0 |  0.00
-Modify  | 4.4684     | 4.4684     | 4.4684     |   0.0 | 22.36
-Other   |            | 0.002211   |            |       |  0.01
+Comm    | 0.025538   | 0.19071    | 0.28422    |  24.2 |  3.42
+Output  | 0.0001273  | 0.00013849 | 0.00015764 |   0.0 |  0.00
+Modify  | 1.1003     | 1.1024     | 1.1079     |   0.3 | 19.75
+Other   |            | 0.001689   |            |       |  0.03
 
-Nlocal:           3456 ave        3456 max        3456 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Nghost:           7289 ave        7289 max        7289 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Neighs:         110592 ave      110592 max      110592 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-FullNghs:        48384 ave       48384 max       48384 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
+Nlocal:            864 ave         864 max         864 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:           3785 ave        3785 max        3785 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Neighs:          27648 ave       27648 max       27648 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+FullNghs:        12096 ave       12096 max       12096 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
 
 Total # of neighbors = 110592
 Ave neighs/atom = 32
 Neighbor list builds = 0
 Dangerous builds = 0
-Total wall time: 0:00:20
+Total wall time: 0:00:05

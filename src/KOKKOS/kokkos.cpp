@@ -119,6 +119,7 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
   lmp->kokkos = this;
 
   exchange_comm_changed = 0;
+  exchange_comm_legacy_package = 0;
   forward_comm_changed = 0;
   reverse_comm_changed = 0;
   forward_pair_comm_changed = 0;
@@ -850,6 +851,11 @@ void KokkosLMP::accelerator(int narg, char **arg)
 #else  // LMP_KOKKOS_GPU not defined
   if (autotuning) autotuning = 0;
 #endif
+
+  // remember the package setting, so that a runtime fallback to
+  // legacy exchange/borders (e.g. by fix MINIMIZE/kk) does not persist to later runs
+
+  exchange_comm_legacy_package = exchange_comm_legacy;
 
   // set newton flags
   // set neighbor binsize, same as neigh_modify command

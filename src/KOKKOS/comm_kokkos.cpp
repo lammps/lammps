@@ -114,6 +114,10 @@ void CommKokkos::init()
   grow_send_kokkos(maxsend+bufextra,0,Host);
   grow_recv_kokkos(maxrecv,Host);
 
+  // reset any runtime fallback to legacy exchange/borders from a previous run
+
+  lmp->kokkos->exchange_comm_legacy = lmp->kokkos->exchange_comm_legacy_package;
+
   atomKK = (AtomKokkos *) atom;
   exchange_comm_legacy = lmp->kokkos->exchange_comm_legacy;
   forward_comm_legacy = lmp->kokkos->forward_comm_legacy;

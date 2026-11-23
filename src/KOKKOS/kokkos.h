@@ -28,6 +28,7 @@ class KokkosLMP : protected Pointers {
   int neighflag_qeq;
   int neighflag_qeq_set;
   int exchange_comm_legacy;
+  int exchange_comm_legacy_package;
   int forward_comm_legacy;
   int reverse_comm_legacy;
   int forward_pair_comm_legacy;

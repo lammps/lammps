@@ -74,6 +74,11 @@ CommTiledKokkos::~CommTiledKokkos()
 
 void CommTiledKokkos::init()
 {
+  // reset any runtime fallback to legacy exchange/borders from a previous run,
+  // so that the current run uses the package setting
+
+  lmp->kokkos->exchange_comm_legacy = lmp->kokkos->exchange_comm_legacy_package;
+
   atomKK = (AtomKokkos *) atom;
   exchange_comm_legacy = lmp->kokkos->exchange_comm_legacy;
   forward_comm_legacy = lmp->kokkos->forward_comm_legacy;

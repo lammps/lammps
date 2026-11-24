@@ -3,6 +3,7 @@ lammps_version: 30 Sep 2026
 date_generated: Fri Nov  6 10:20:01 2026
 epsilon: 5.0e-12
 skip_tests:
+tags: kokkos
 prerequisites: |
   pair dispersion/d3
 pre_commands: ""

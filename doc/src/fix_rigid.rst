@@ -93,7 +93,7 @@ Syntax
          groupID1, groupID2, ... = list of N group IDs
 
 * zero or more keyword/value pairs may be appended
-* keyword = *langevin* or *reinit* or *temp*  or *mol* or *iso* or *aniso* or *x* or *y* or *z* or *couple* or *tparam* or *pchain* or *dilate* or *force* or *torque* or *infile* or *gravity*
+* keyword = *langevin* or *reinit* or *temp*  or *mol* or *iso* or *aniso* or *x* or *y* or *z* or *couple* or *tparam* or *pchain* or *dilate* or *force* or *torque* or *infile* or *gravity* or *ghost/multi*
 
   .. parsed-literal::
 
@@ -132,6 +132,9 @@ Syntax
          filename = file with per-body values of mass, center-of-mass, moments of inertia
        *gravity* values = gravity-ID
          gravity-ID = ID of fix gravity command to add gravitational forces
+       *ghost/multi* value = *yes* or *no*
+         yes = only the atom that owns each rigid body is communicated out to the size of the body
+         no = all atoms use the same ghost atom cutoff
 
 ..
     FIXME These don't seem to be included in the source code
@@ -233,7 +236,28 @@ processors when ghost atom info is accumulated.
    <pair_style>` cutoff plus neighbor skin does not span this
    distance, then you should use the :doc:`comm_modify cutoff
    <comm_modify>` command with a setting epsilon larger than the
-   distance.
+   distance, or use the *ghost/multi* keyword described below.
+
+.. versionadded:: TBD
+
+The *ghost/multi* keyword applies only to the *rigid/small* styles.
+Only the atom that owns a rigid body has to be available as a ghost
+atom on every processor that holds atoms of the same body.  All other
+atoms only need to be available out to the usual ghost atom cutoff,
+i.e. the pair style cutoff plus the neighbor skin or the value set
+with the :doc:`comm_modify cutoff <comm_modify>` command.  With
+*ghost/multi* set to *yes*, the atoms that own a rigid body are
+communicated as ghost atoms out to the largest distance between the
+owning atom and any other atom of its body (the distance printed when
+the rigid bodies are defined), while all other atoms use the usual
+ghost atom cutoff.  No :doc:`comm_modify cutoff <comm_modify>`
+setting is then needed for the size of the bodies.  For rigid bodies
+that are large compared to the pair style cutoff, this greatly
+reduces the number of ghost atoms and with it the time spent in
+communication.  The trajectories are the same as with a sufficiently
+large :doc:`comm_modify cutoff <comm_modify>` setting.  If the rigid
+bodies are not larger than the usual ghost atom cutoff, a warning is
+printed, since the keyword then has no effect.
 
 .. note::
 
@@ -977,6 +1001,11 @@ build, where the two share one memory space, :doc:`fix deposit
 <fix_deposit>` and :doc:`fix pour <fix_pour>` work with the *kk* styles.
 Run the other affected inputs without the KOKKOS package.
 
+The *ghost/multi* keyword is only available for the *rigid/small*
+styles and is not supported with the KOKKOS package, with
+:doc:`comm_style tiled <comm_style>`, with :doc:`comm_modify mode multi
+<comm_modify>`, or with :doc:`neighbor <neighbor>` style *multi*.
+
 Rigid bodies built from finite-size *sphere*, *ellipsoid*, and point
 *dipole* particles are supported with Kokkos: in each integration step the
 per-particle rotational state is updated from the body orientation on the
@@ -1032,7 +1061,8 @@ Default
 
 The option defaults are force \* on on on and torque \* on on on,
 meaning all rigid bodies are acted on by center-of-mass force and
-torque.  Also Tchain = Pchain = 10, Titer = 1, Torder = 3, reinit = yes.
+torque.  Also Tchain = Pchain = 10, Titer = 1, Torder = 3, reinit = yes,
+ghost/multi = no.
 
 ----------
 

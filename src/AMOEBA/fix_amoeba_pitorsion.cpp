@@ -693,6 +693,9 @@ void FixAmoebaPiTorsion::read_data_section(char *keyword, int n, char *buf, tagi
                    "Incorrect {} format in data file: {}", keyword, e.what());
       }
 
+      if ((itype < 1) || (itype > npitorsion_types))
+        error->all(FLERR, Error::NOLASTLINE, "Invalid PiTorsion type {} in data file", itype);
+
       atom1 += id_offset;
       atom2 += id_offset;
       atom3 += id_offset;

@@ -28,11 +28,13 @@
   ----------------------------------------------------------------------*/
 
 #include "reaxff_omp.h"
+#include "math_special.h"
 
 #include "pair_reaxff_omp.h"
 #include "reaxff_api.h"
 
 #include <cmath>
+using LAMMPS_NS::MathSpecial::powint;
 
 using namespace LAMMPS_NS;
 
@@ -218,9 +220,9 @@ namespace ReaxFF {
 
                 //  lg correction, only if lgvdw is yes
                 if (control->lgflag) {
-                  r_ij5 = pow(r_ij, 5.0);
-                  r_ij6 = pow(r_ij, 6.0);
-                  re6 = pow(twbp->lgre, 6.0);
+                  r_ij5 = powint(r_ij, 5);
+                  r_ij6 = powint(r_ij, 6);
+                  re6 = powint(twbp->lgre, 6);
 
                   e_lg = -(twbp->lgcij/(r_ij6 + re6));
                   total_EvdW += Tap * e_lg;

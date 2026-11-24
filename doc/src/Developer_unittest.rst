@@ -816,9 +816,10 @@ are:
    * - unstable
      - The test exhibits numerically unstable behavior on some
        platforms, e.g. ARM64; Until a proper correction is found, tests
-       can be skipped with ``ctest -LE unstable``.  Please check the
-       causes discussed in :ref:`unittest_portable` before adding
-       this tag.
+       can be skipped with ``ctest -LE unstable``.  With the Intel
+       compilers, some of these tests fail, so they should be skipped
+       or their failures can be ignored.  Please check the causes
+       discussed in :ref:`unittest_portable` before adding this tag.
    * - generated
      - Automatically added whenever reference data is generated or
        regenerated; it marks data that has not been reviewed and
@@ -1570,24 +1571,17 @@ features, you may see failures for existing tests, if your modifications
 have some unexpected side effects or your changes render the existing
 test invalid.  If you are adding an accelerated version of an existing
 style, then only tests for INTEL, KOKKOS (with the OpenMP or Serial host
-back ends, depending on how the KOKKOS package was configured), OPENMP,
-and OPT will be run automatically.  Tests for the GPU package are time
-consuming and thus are only run *after* a merge, or when a special
-label, ``gpu_unit_tests`` is added to the pull request.  After the test
-has started, it is often best to remove the label since every PR
-activity will re-trigger the test (that is a limitation of triggering a
-test with a label).  Support for unit tests using KOKKOS with GPU
-acceleration is currently not supported.
+back ends), OPENMP, and OPT will be run automatically.  Tests for the
+GPU package are time consuming and there are only limited resources for
+testing with real GPUs and thus these tests are usually only run *after*
+a merge, or when a special label, ``gpu_unit_tests`` is added to the
+pull request.  After the test has started, it is often best to remove
+the label since every PR activity will re-trigger the test (that is a
+limitation of triggering a test with a label).
 
 When you see a failed build on GitHub, click on ``Details`` to be taken
-to the corresponding LAMMPS Jenkins CI web page.  Click on the "Exit"
-symbol near the ``Logout`` button on the top right of that page to go to
-the "classic view".  In the classic view, there is a list of the
-individual runs that make up this test run (they are shown but cannot be
-inspected in the default view).  You can click on any of those.
-Clicking on ``Test Result`` will display the list of failed tests. Click
-on the "Status" column to sort the tests based on their Failed or Passed
-status.  Then click on the failed test to expand its output.
+to either the corresponding GitHub Action page or the matching entry
+on the LAMMPS CI web page.
 
 For example, the following output snippet shows the failed unit test
 

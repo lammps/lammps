@@ -7,7 +7,7 @@
 # adapted from https://github.com/cmarshall108/cython-cmake-example/blob/master/cmake/FindCython.cmake
 #=============================================================================
 
-find_package(Python 3.6 COMPONENTS Interpreter QUIET)
+find_package(Python 3.9 COMPONENTS Interpreter QUIET)
 
 # Use the Cython executable that lives next to the Python executable
 # if it is a local installation.

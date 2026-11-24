@@ -8,9 +8,9 @@ atom_style      atomic
 read_data       data.eim
 
 pair_style      eim
-pair_coeff      * * Na Cl ffield.eim Na Cl 
+pair_coeff      * * Na Cl ffield.eim Na Cl
 
-neighbor	0.3 bin
+neighbor	1.0 bin
 neigh_modify    delay 0 every 1
 
 timestep        0.0005

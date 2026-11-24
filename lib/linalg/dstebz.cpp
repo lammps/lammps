@@ -243,7 +243,7 @@ int dstebz_(char *range, char *order, integer *n, doublereal *vl, doublereal *vu
             if (irange == 1 || wu >= d__[ibegin] - pivmin) {
                 ++nwu;
             }
-            if (irange == 1 || wl < d__[ibegin] - pivmin && wu >= d__[ibegin] - pivmin) {
+            if (irange == 1 || (wl < d__[ibegin] - pivmin && wu >= d__[ibegin] - pivmin)) {
                 ++(*m);
                 w[*m] = d__[ibegin];
                 iblock[*m] = jb;

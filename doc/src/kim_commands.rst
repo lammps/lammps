@@ -1364,7 +1364,7 @@ is the KIM API library that must be downloaded from the `OpenKIM website
 compiled.  When installing LAMMPS from binary, the kim-api package is a
 dependency that is automatically downloaded and installed.  The *kim
 query* command requires the *libcurl* library to be installed.  The *kim
-property* command requires *Python* 3.6 or later and the *kim-property*
+property* command requires *Python* 3.9 or later and the *kim-property*
 python package to be installed.  See the KIM section of the
 :doc:`Packages details <Packages_details>` for details.
 

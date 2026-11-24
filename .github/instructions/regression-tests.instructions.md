@@ -6,9 +6,15 @@ applyTo: "tools/regression-tests/**,examples/**"
 
 The inputs in `examples/` double as regression tests: `tools/regression-tests/run_tests.py`
 runs them and compares their thermo output (PotEng, TotEng, Press, Temp, E_vdwl) with
-the reference log files next to them.  CI runs a quick subset after code review; local
-runs are rarely needed.  Full documentation: `tools/regression-tests/README` and
-`tools/regression-tests/REPORTING.md`.
+the reference log files next to them.  For a pull request, CI only checks that every
+input can still be read and set up (builder `check-examples` at https://ci.lammps.org:
+`run_tests.py` with `config_skiprun.yaml`, which adds the `-skiprun` flag).  The
+comparison with the reference logs runs after the merge: `kokkos-regression.yaml` on
+GitHub, and every night the serial, MPI, OPENMP, and KOKKOS configurations (results at
+https://dashboard.lammps.org).  So a change of results shows up only after the merge:
+run the affected folders locally when a change can alter the output of a style or
+command that the examples use.  Full documentation: `tools/regression-tests/README`
+and `tools/regression-tests/REPORTING.md`.
 
 ```bash
 python3 -m venv testenv && source testenv/bin/activate
@@ -31,7 +37,11 @@ python3 tools/regression-tests/run_tests.py --lmp-bin=build/lmp \
 ## Gotchas
 
 - Local runs execute inside `examples/` and overwrite tracked output files written by the
-  inputs (logs, images, data files): run `git restore examples/` and remove the untracked
-  `log.*` debris before committing.
+  inputs (logs, images, data files), and they leave untracked `log.<name>.<N>` files and
+  other output behind.  Before committing run `git restore examples/`, then list the
+  untracked files with `git clean -n examples/<folder>` and remove them with
+  `git clean -f examples/<folder>`.  Never delete them with a pattern like
+  `log.*.[124]`: it also matches the tracked reference logs (`log.<date>.<name>.g++.1`).
+  Check `git status --short examples/` afterwards.
 - `progress.yaml`/`reference.yaml` are keyed by the input's basename, so duplicate names in
   different folders collide there (the JUnit and JSON results use full paths).

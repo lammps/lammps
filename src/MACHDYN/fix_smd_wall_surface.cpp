@@ -52,6 +52,8 @@ FixSMDWallSurface::FixSMDWallSurface(LAMMPS *lmp, int narg, char **arg) :
 
   filename = strdup(arg[3]);
   wall_particle_type = utils::inumeric(FLERR, arg[4], false, lmp);
+  if ((wall_particle_type < 1) || (wall_particle_type > atom->ntypes))
+    error->all(FLERR, 4, "Invalid atom type {} for fix smd/wall_surface", wall_particle_type);
   wall_molecule_id = utils::inumeric(FLERR, arg[5], false, lmp);
   if (wall_molecule_id < 65535)
     error->all(FLERR, "Fix smd/wall_surface wall molecule ID must be >= 65535");

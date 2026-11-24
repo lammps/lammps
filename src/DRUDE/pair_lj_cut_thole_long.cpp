@@ -335,6 +335,7 @@ void PairLJCutTholeLong::coeff(int narg, char **arg)
   double epsilon_one = utils::numeric(FLERR,arg[2],false,lmp);
   double sigma_one = utils::numeric(FLERR,arg[3],false,lmp);
   double polar_one = utils::numeric(FLERR,arg[4],false,lmp);
+  if (polar_one < 0.0) error->all(FLERR,"Invalid polarizability {} for pair style thole",polar_one);
   double thole_one = thole_global;
   if (narg >=6) thole_one = utils::numeric(FLERR,arg[5],false,lmp);
 
@@ -406,6 +407,13 @@ double PairLJCutTholeLong::init_one(int i, int j)
     thole[i][j] = 0.5 * (thole[i][i] + thole[j][j]);
     ascreen[i][j] = thole[i][j] / pow(polar[i][j], 1./3.);
   }
+
+  // damping between polarizable atoms would be infinite with a polarizability of zero
+
+  if ((fix_drude->drudetype[i] != NOPOL_TYPE) && (fix_drude->drudetype[j] != NOPOL_TYPE) &&
+      (polar[i][j] == 0.0))
+    error->all(FLERR, Error::NOLASTLINE,
+               "Polarizability for polarizable atom types {} and {} must not be zero", i, j);
 
   // include TIP4P qdist in full cutoff, qdist = 0.0 if not TIP4P
 

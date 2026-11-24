@@ -48,15 +48,9 @@ static constexpr int NHISTORY = 6;    // tangential deformations at the two wall
 /* ---------------------------------------------------------------------- */
 
 FixWallBodyPolyhedron::FixWallBodyPolyhedron(LAMMPS *lmp, int narg, char **arg) :
-    Fix(lmp, narg, arg), history_one(nullptr), avec(nullptr), bptr(nullptr),
-    imgobjs(nullptr), imgparms(nullptr)
+    FixWallBodyPolyhedron(lmp, narg, arg, 1)
 {
   if (narg < 9) utils::missing_cmd_args(FLERR,"fix wall/body/polyhedron", error);
-
-  if (!atom->body_flag)
-    error->all(FLERR,"Fix wall/body/polyhedron requires atom style body/rounded/polyhedron");
-
-  wallstyle = -1;
 
   // wall/particle coefficients
 
@@ -70,82 +64,13 @@ FixWallBodyPolyhedron::FixWallBodyPolyhedron(LAMMPS *lmp, int narg, char **arg) 
   if (c_t < 0.0)
     error->all(FLERR,5,"Illegal fix wall/body/polyhedron argument {}", c_t);
 
-  // wallstyle args
-
-  numwalls = 0;
-  if (strcmp(arg[6],"xplane") == 0) {
-    wallstyle = XPLANE;
-    if (strcmp(arg[7],"NULL") == 0) {
-      lo = -BIG;
-    } else {
-      lo = utils::numeric(FLERR,arg[7],false,lmp);
-      ++numwalls;
-    }
-    if (strcmp(arg[8],"NULL") == 0) {
-      hi = BIG;
-    } else {
-      hi = utils::numeric(FLERR,arg[8],false,lmp);
-      ++numwalls;
-    }
-
-  } else if (strcmp(arg[6],"yplane") == 0) {
-    wallstyle = YPLANE;
-    if (strcmp(arg[7],"NULL") == 0) {
-      lo = -BIG;
-    } else {
-      lo = utils::numeric(FLERR,arg[7],false,lmp);
-      ++numwalls;
-    }
-    if (strcmp(arg[8],"NULL") == 0) {
-      hi = BIG;
-    } else {
-      hi = utils::numeric(FLERR,arg[8],false,lmp);
-      ++numwalls;
-    }
-
-  } else if (strcmp(arg[6],"zplane") == 0) {
-    wallstyle = ZPLANE;
-    if (strcmp(arg[7],"NULL") == 0) {
-      lo = -BIG;
-    } else {
-      lo = utils::numeric(FLERR,arg[7],false,lmp);
-      ++numwalls;
-    }
-    if (strcmp(arg[8],"NULL") == 0) {
-      hi = BIG;
-    } else {
-      hi = utils::numeric(FLERR,arg[8],false,lmp);
-      ++numwalls;
-    }
-  } else error->all(FLERR, 6, "Unknown wall style {}",arg[6]);
-
-  if ((wallstyle == XPLANE) && domain->xperiodic)
-    error->all(FLERR, 6, "Cannot use wall in periodic dimension");
-  if ((wallstyle == YPLANE) && domain->yperiodic)
-    error->all(FLERR, 6, "Cannot use wall in periodic dimension");
-  if ((wallstyle == ZPLANE) && domain->zperiodic)
-    error->all(FLERR, 6, "Cannot use wall in periodic dimension");
+  int iarg = parse_wall(narg, arg, 6);
 
   // check for trailing keyword/values
 
-  wiggle = 0;
-  history = 0;
-  mu = kt = 0.0;
-  int iarg = 9;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"wiggle") == 0) {
-      if (iarg+4 > narg)
-        utils::missing_cmd_args(FLERR,"fix wall/body/polyhedron wiggle", error);
-
-      if (strcmp(arg[iarg+1],"x") == 0) axis = XPLANE;
-      else if (strcmp(arg[iarg+1],"y") == 0) axis = YPLANE;
-      else if (strcmp(arg[iarg+1],"z") == 0) axis = ZPLANE;
-      else error->all(FLERR, iarg+1,
-                      "Illegal fix wall/body/polyhedron wiggle direction {}", arg[iarg+1]);
-      amplitude = utils::numeric(FLERR,arg[iarg+2],false,lmp);
-      period = utils::numeric(FLERR,arg[iarg+3],false,lmp);
-      wiggle = 1;
-      iarg += 4;
+      iarg = parse_wiggle(narg, arg, iarg);
     } else if (strcmp(arg[iarg],"history") == 0) {
       if (iarg+3 > narg)
         utils::missing_cmd_args(FLERR,"fix wall/body/polyhedron history", error);
@@ -165,6 +90,109 @@ FixWallBodyPolyhedron::FixWallBodyPolyhedron(LAMMPS *lmp, int narg, char **arg) 
     } else error->all(FLERR, iarg, "Unknown fix wall/body/polyhedron keyword {}", arg[iarg]);
   }
 
+  setup_wall();
+}
+
+/* ----------------------------------------------------------------------
+   constructor for derived fix styles, which parse their own arguments
+   with parse_wall() and parse_wiggle(), and then call setup_wall()
+------------------------------------------------------------------------- */
+
+FixWallBodyPolyhedron::FixWallBodyPolyhedron(LAMMPS *lmp, int narg, char **arg, int /*derived*/) :
+    Fix(lmp, narg, arg), history_one(nullptr), avec(nullptr), bptr(nullptr),
+    imgobjs(nullptr), imgparms(nullptr)
+{
+  if (!atom->body_flag)
+    error->all(FLERR, "Fix {} requires atom style body/rounded/polyhedron", style);
+
+  wallstyle = -1;
+  numwalls = 0;
+  wiggle = 0;
+  history = 0;
+  kn = c_n = c_t = 0.0;
+  mu = kt = 0.0;
+
+  dmax = nmax = 0;
+  discrete = nullptr;
+  dnum = dfirst = nullptr;
+
+  edmax = ednummax = 0;
+  edge = nullptr;
+  ednum = edfirst = nullptr;
+
+  facmax = facnummax = 0;
+  face = nullptr;
+  facnum = facfirst = nullptr;
+
+  enclosing_radius = nullptr;
+  rounded_radius = nullptr;
+}
+
+/* ----------------------------------------------------------------------
+   wall style and positions of the two walls at arg[iarg] to arg[iarg+2]
+   return the index of the next argument
+------------------------------------------------------------------------- */
+
+int FixWallBodyPolyhedron::parse_wall(int narg, char **arg, int iarg)
+{
+  if (iarg+3 > narg) utils::missing_cmd_args(FLERR, fmt::format("fix {}", style), error);
+
+  if (strcmp(arg[iarg],"xplane") == 0) wallstyle = XPLANE;
+  else if (strcmp(arg[iarg],"yplane") == 0) wallstyle = YPLANE;
+  else if (strcmp(arg[iarg],"zplane") == 0) wallstyle = ZPLANE;
+  else error->all(FLERR, iarg, "Unknown wall style {}",arg[iarg]);
+
+  numwalls = 0;
+  if (strcmp(arg[iarg+1],"NULL") == 0) {
+    lo = -BIG;
+  } else {
+    lo = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+    ++numwalls;
+  }
+  if (strcmp(arg[iarg+2],"NULL") == 0) {
+    hi = BIG;
+  } else {
+    hi = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+    ++numwalls;
+  }
+
+  if ((wallstyle == XPLANE) && domain->xperiodic)
+    error->all(FLERR, iarg, "Cannot use wall in periodic dimension");
+  if ((wallstyle == YPLANE) && domain->yperiodic)
+    error->all(FLERR, iarg, "Cannot use wall in periodic dimension");
+  if ((wallstyle == ZPLANE) && domain->zperiodic)
+    error->all(FLERR, iarg, "Cannot use wall in periodic dimension");
+
+  return iarg + 3;
+}
+
+/* ----------------------------------------------------------------------
+   the wiggle keyword at arg[iarg] with its values
+   return the index of the next argument
+------------------------------------------------------------------------- */
+
+int FixWallBodyPolyhedron::parse_wiggle(int narg, char **arg, int iarg)
+{
+  if (iarg+4 > narg)
+    utils::missing_cmd_args(FLERR, fmt::format("fix {} wiggle", style), error);
+
+  if (strcmp(arg[iarg+1],"x") == 0) axis = XPLANE;
+  else if (strcmp(arg[iarg+1],"y") == 0) axis = YPLANE;
+  else if (strcmp(arg[iarg+1],"z") == 0) axis = ZPLANE;
+  else error->all(FLERR, iarg+1, "Illegal fix {} wiggle direction {}", style, arg[iarg+1]);
+  amplitude = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+  period = utils::numeric(FLERR,arg[iarg+3],false,lmp);
+  wiggle = 1;
+  return iarg + 4;
+}
+
+/* ----------------------------------------------------------------------
+   storage of the contact history, wall oscillation, and the objects to
+   draw the walls with dump image, after the arguments are parsed
+------------------------------------------------------------------------- */
+
+void FixWallBodyPolyhedron::setup_wall()
+{
   // the tangential deformations of each body at the two walls are stored per atom,
   // carried along with the atoms, and written to restart files
 
@@ -184,21 +212,6 @@ FixWallBodyPolyhedron::FixWallBodyPolyhedron(LAMMPS *lmp, int narg, char **arg) 
   if (wiggle) omega = 2.0*MY_PI / period;
 
   time_origin = update->ntimestep;
-
-  dmax = nmax = 0;
-  discrete = nullptr;
-  dnum = dfirst = nullptr;
-
-  edmax = ednummax = 0;
-  edge = nullptr;
-  ednum = edfirst = nullptr;
-
-  facmax = facnummax = 0;
-  face = nullptr;
-  facnum = facfirst = nullptr;
-
-  enclosing_radius = nullptr;
-  rounded_radius = nullptr;
 
   // for rendering walls with dump image.
   if (numwalls > 0) {
@@ -413,7 +426,7 @@ void FixWallBodyPolyhedron::post_force(int /*vflag*/)
         double ft[3];
         MathExtra::scale3(1.0/fnsum, pcsum);
         MathExtra::scale3(1.0/fnsum, vtsum);
-        tangential_spring(nw, vtsum, fnsum, xi[iwall], ft);
+        tangential_spring(i, nw, vtsum, fnsum, xi[iwall], ft);
         MathExtra::add3(f[i], ft, f[i]);
         sum_torque(x[i], pcsum, ft[0], ft[1], ft[2], torque[i]);
         for (int k = 0; k < 3; k++) history_one[i][3*iwall+k] = xi[iwall][k];
@@ -588,13 +601,28 @@ double FixWallBodyPolyhedron::wall_force(int i, const double *xp, const double *
   for (int k = 0; k < 3; k++) {
     vn[k] = vnnr * n[k];
     vt[k] = vr[k] - vn[k];
-    fw[k] = -kn * R * n[k] - c_n * vn[k] - c_t * vt[k];
   }
+  double fne = vertex_force(i, R, vnnr, n, vn, vt, fw);
 
   f[i][0] += fw[0];
   f[i][1] += fw[1];
   f[i][2] += fw[2];
   sum_torque(x[i], pc, fw[0], fw[1], fw[2], torque[i]);
+  return fne;
+}
+
+/* ----------------------------------------------------------------------
+   Force fw on body i at a vertex that overlaps the wall by -R > 0, with the
+   normal relative velocity vnnr = vn . n and the tangential relative
+   velocity vt: the elastic force k_n (-R) along the inward normal n, and
+   the damping -c_n vn - c_t vt
+   returns the elastic normal force
+------------------------------------------------------------------------- */
+
+double FixWallBodyPolyhedron::vertex_force(int /*i*/, double R, double /*vnnr*/, const double *n,
+                                           const double *vn, const double *vt, double *fw)
+{
+  for (int k = 0; k < 3; k++) fw[k] = -kn * R * n[k] - c_n * vn[k] - c_t * vt[k];
   return -kn * R;
 }
 
@@ -609,8 +637,8 @@ double FixWallBodyPolyhedron::wall_force(int i, const double *xp, const double *
    the force is returned in ft, xi is updated in place
 ------------------------------------------------------------------------- */
 
-void FixWallBodyPolyhedron::tangential_spring(const double *n, const double *vt, double fne,
-                                              double *xi, double *ft)
+void FixWallBodyPolyhedron::tangential_spring(int /*i*/, const double *n, const double *vt,
+                                              double fne, double *xi, double *ft)
 {
   double xin = MathExtra::dot3(xi, n);
   double mag = MathExtra::len3(xi);

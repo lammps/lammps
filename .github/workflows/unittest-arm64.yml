@@ -4,7 +4,9 @@ name: "Unittest for Linux on ARM64"
 on:
   push:
     branches: [develop]
-
+  pull_request:
+    branches:
+      - develop
   workflow_dispatch:
 
 concurrency:
@@ -62,6 +64,9 @@ jobs:
               -C cmake/presets/most.cmake \
               -D CMAKE_CXX_COMPILER_LAUNCHER=ccache \
               -D CMAKE_C_COMPILER_LAUNCHER=ccache \
+              -D CMAKE_BUILD_TYPE=RelWithDebInfo \
+              -D CMAKE_CXX_FLAGS_RELWITHDEBINFO="-O2 -DNDEBUG" \
+              -D CMAKE_C_FLAGS_RELWITHDEBINFO="-O2 -DNDEBUG" \
               -D BUILD_SHARED_LIBS=on \
               -D DOWNLOAD_POTENTIALS=off \
               -D ENABLE_TESTING=on \
@@ -77,6 +82,8 @@ jobs:
               -G Ninja
         cmake --build build
         ccache -s
+        # drop entries no build used for two weeks (e.g. from older compiler flags) before saving the cache
+        ccache --evict-older-than 14d
 
     - name: Run Tests
       working-directory: build

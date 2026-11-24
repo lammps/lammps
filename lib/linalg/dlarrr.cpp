@@ -20,8 +20,8 @@ int dlarrr_(integer *n, doublereal *d__, doublereal *e, integer *info)
         return 0;
     }
     *info = 1;
-    safmin = dlamch_((char *)"Safe minimum", (ftnlen)12);
-    eps = dlamch_((char *)"Precision", (ftnlen)9);
+    safmin = dlamch_((char *)"S", (ftnlen)1);
+    eps = dlamch_((char *)"P", (ftnlen)1);
     smlnum = safmin / eps;
     rmin = sqrt(smlnum);
     yesrel = TRUE_;

@@ -1,0 +1,5 @@
+pair_style zero 8.0
+pair_coeff * *
+
+group solute  type 1
+group solvent type 2

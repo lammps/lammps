@@ -371,8 +371,6 @@ void PPPMIntel::particle_map(IntelBuffers<flt_t,acc_t> *buffers)
     #if defined(LMP_SIMD_COMPILER)
 #if defined(USE_OMP_SIMD)
     #pragma omp simd reduction(+:flag)
-#else
-    #pragma simd reduction(+:flag)
 #endif
     #pragma vector aligned
     #endif
@@ -479,8 +477,6 @@ void PPPMIntel::make_rho(IntelBuffers<flt_t,acc_t> *buffers)
         #if defined(LMP_SIMD_COMPILER)
 #if defined(USE_OMP_SIMD)
         #pragma omp simd
-#else
-        #pragma simd
 #endif
         #endif
         for (int k = 0; k < INTEL_P3M_ALIGNED_MAXORDER; k++) {
@@ -492,8 +488,6 @@ void PPPMIntel::make_rho(IntelBuffers<flt_t,acc_t> *buffers)
         #if defined(LMP_SIMD_COMPILER)
 #if defined(USE_OMP_SIMD)
         #pragma omp simd
-#else
-        #pragma simd
 #endif
         #endif
         for (int k = nlower; k <= nupper; k++) {
@@ -528,8 +522,6 @@ void PPPMIntel::make_rho(IntelBuffers<flt_t,acc_t> *buffers)
           #if defined(LMP_SIMD_COMPILER)
 #if defined(USE_OMP_SIMD)
           #pragma omp simd
-#else
-          #pragma simd
 #endif
           #endif
           for (int l = 0; l < INTEL_P3M_ALIGNED_MAXORDER; l++) {
@@ -554,8 +546,6 @@ void PPPMIntel::make_rho(IntelBuffers<flt_t,acc_t> *buffers)
       #if defined(LMP_SIMD_COMPILER)
 #if defined(USE_OMP_SIMD)
       #pragma omp simd
-#else
-      #pragma simd
 #endif
       #endif
       for (int i = ifrom; i < ito; i++) {
@@ -640,8 +630,6 @@ void PPPMIntel::fieldforce_ik(IntelBuffers<flt_t,acc_t> *buffers)
         #if defined(LMP_SIMD_COMPILER)
 #if defined(USE_OMP_SIMD)
         #pragma omp simd
-#else
-        #pragma simd
 #endif
         #endif
         for (int k = 0; k < INTEL_P3M_ALIGNED_MAXORDER; k++) {
@@ -653,8 +641,6 @@ void PPPMIntel::fieldforce_ik(IntelBuffers<flt_t,acc_t> *buffers)
         #if defined(LMP_SIMD_COMPILER)
 #if defined(USE_OMP_SIMD)
         #pragma omp simd
-#else
-        #pragma simd
 #endif
         #endif
         for (int k = nlower; k <= nupper; k++) {
@@ -691,8 +677,6 @@ void PPPMIntel::fieldforce_ik(IntelBuffers<flt_t,acc_t> *buffers)
           #if defined(LMP_SIMD_COMPILER)
 #if defined(USE_OMP_SIMD)
           #pragma omp simd
-#else
-          #pragma simd
 #endif
           #endif
           for (int l = 0; l < INTEL_P3M_ALIGNED_MAXORDER; l++) {
@@ -818,8 +802,6 @@ void PPPMIntel::fieldforce_ad(IntelBuffers<flt_t,acc_t> *buffers)
         #if defined(LMP_SIMD_COMPILER)
 #if defined(USE_OMP_SIMD)
         #pragma omp simd
-#else
-        #pragma simd
 #endif
         #endif
         for (int k = 0; k < INTEL_P3M_ALIGNED_MAXORDER; k++) {
@@ -834,8 +816,6 @@ void PPPMIntel::fieldforce_ad(IntelBuffers<flt_t,acc_t> *buffers)
         #if defined(LMP_SIMD_COMPILER)
 #if defined(USE_OMP_SIMD)
         #pragma omp simd
-#else
-        #pragma simd
 #endif
         #endif
         for (int k = nlower; k <= nupper; k++) {
@@ -884,8 +864,6 @@ void PPPMIntel::fieldforce_ad(IntelBuffers<flt_t,acc_t> *buffers)
           #if defined(LMP_SIMD_COMPILER)
 #if defined(USE_OMP_SIMD)
           #pragma omp simd
-#else
-          #pragma simd
 #endif
           #endif
           for (int l = 0; l < INTEL_P3M_ALIGNED_MAXORDER; l++) {
@@ -910,8 +888,6 @@ void PPPMIntel::fieldforce_ad(IntelBuffers<flt_t,acc_t> *buffers)
     #if defined(LMP_SIMD_COMPILER)
 #if defined(USE_OMP_SIMD)
     #pragma omp simd
-#else
-    #pragma simd
 #endif
     #endif
     for (int i = ifrom; i < ito; i++) {
@@ -964,8 +940,6 @@ void PPPMIntel::precompute_rho()
     #if defined(LMP_SIMD_COMPILER)
 #if defined(USE_OMP_SIMD)
     #pragma omp simd
-#else
-    #pragma simd
 #endif
     #endif
     for (int k=nlower; k<=nupper;k++) {
@@ -982,8 +956,6 @@ void PPPMIntel::precompute_rho()
       #if defined(LMP_SIMD_COMPILER)
 #if defined(USE_OMP_SIMD)
       #pragma omp simd
-#else
-      #pragma simd
 #endif
       #endif
       for (int k=nlower; k<=nupper;k++) {

@@ -54,14 +54,24 @@ using dbl3_t = struct {
 
 /* ----------------------------------------------------------------------
    perform preforce velocity Verlet integration
-   see Kamberaj paper for step references
+   Kamberaj, Low, Neal, J Chem Phys 122, 224114 (2005), Eq. (64) Step 1,
+   rotational part as in Eq. (66); see FixRigidNH::initial_integrate()
+   for the full equations of each step and the notation
 ------------------------------------------------------------------------- */
 
 void FixRigidNHOMP::initial_integrate(int vflag)
 {
   double scale_r,scale_t[3],scale_v[3];
 
+  // Step 1 (1)-(2): advance the barostat velocity by a half step
+  //   this must precede the particle momentum scaling in (5) and (10)
+
+  if (pstat_flag) nh_epsilon_dot(0);
+
   // compute scale variables
+  //   scale_t: Step 1 (5), exp(-dt/2 [xi_1^(t) + (1 + d/g_f) xi_eps])
+  //   scale_r: Step 1 (10), exp(-dt/2 [xi_1^(r) + d/g_f xi_eps])
+  //   scale_v: Step 1 (6), dt exp(dt/2 xi_eps) sinh(dt/2 xi_eps)/(dt/2 xi_eps)
 
   scale_t[0] = scale_t[1] = scale_t[2] = 1.0;
   scale_v[0] = scale_v[1] = scale_v[2] = 1.0;
@@ -80,7 +90,7 @@ void FixRigidNHOMP::initial_integrate(int vflag)
     scale_t[0] *= exp(-dtq * (epsilon_dot[0] + mtk_term2));
     scale_t[1] *= exp(-dtq * (epsilon_dot[1] + mtk_term2));
     scale_t[2] *= exp(-dtq * (epsilon_dot[2] + mtk_term2));
-    scale_r *= exp(-dtq * (pdim * mtk_term2));
+    scale_r *= exp(-dtq * mtk_term2);
 
     double tmp = dtq * epsilon_dot[0];
     scale_v[0] = dtv * exp(tmp) * maclaurin_series(tmp);
@@ -89,6 +99,13 @@ void FixRigidNHOMP::initial_integrate(int vflag)
     tmp = dtq * epsilon_dot[2];
     scale_v[2] = dtv * exp(tmp) * maclaurin_series(tmp);
   }
+
+  // Step 1 (3): epsilon(t+dt) = epsilon(t) + dt xi_eps(t+dt/2)
+  // remap simulation box and xcm by full step
+  //   xcm: scaled according to the first term of the RHS of (6) in Step 1
+  //        (Kamberaj et al. page 224114-16)
+
+  if (pstat_flag) remap();
 
   // update xcm, vcm, quat, conjqm and angmom
   double akt=0.0, akr=0.0;
@@ -101,6 +118,7 @@ void FixRigidNHOMP::initial_integrate(int vflag)
     const double dtf2 = dtf * 2.0;
 
     // step 1.1 - update vcm by 1/2 step
+    //   Step 1 (4): v~ = v(t) + dt/2 F(t)/m,  Step 1 (5): v(t+dt/2) = scale_t v~
 
     const double dtfm = dtf / masstotal[ibody];
     vcm[ibody][0] += dtfm * fcm[ibody][0] * fflag[ibody][0];
@@ -117,7 +135,7 @@ void FixRigidNHOMP::initial_integrate(int vflag)
       akt += masstotal[ibody]*tmp;
     }
 
-    // step 1.2 - update xcm by full step
+    // step 1.2 - update xcm by full step, Step 1 (6), Eq. (63)
 
     if (!pstat_flag) {
       xcm[ibody][0] += dtv * vcm[ibody][0];
@@ -130,6 +148,8 @@ void FixRigidNHOMP::initial_integrate(int vflag)
     }
 
     // step 1.3 - apply torque (body coords) to quaternion momentum
+    //   Step 1 (7) and (10) in the (P,Q) form of Eq. (66):
+    //   P~ = scale_r [P(t) + dt/2 2 M[Q(t)] T^(4)(t)]
 
     torque[ibody][0] *= tflag[ibody][0];
     torque[ibody][1] *= tflag[ibody][1];
@@ -152,6 +172,7 @@ void FixRigidNHOMP::initial_integrate(int vflag)
     }
 
     // step 1.4 to 1.13 - use no_squish rotate to update p and q
+    //   Step 1 (8),(9),(11) in the (P,Q) form of Eq. (66)
 
     MathExtra::no_squish_rotate(3,conjqm[ibody],quat[ibody],inertia[ibody],dtq);
     MathExtra::no_squish_rotate(2,conjqm[ibody],quat[ibody],inertia[ibody],dtq);
@@ -189,7 +210,7 @@ void FixRigidNHOMP::initial_integrate(int vflag)
 
   // compute target temperature
   // update thermostat chains using akin_t and akin_r
-  // refer to update_nhcp() in Kamberaj et al.
+  // Step 1 (12): UPDATE_NHCP(t -> t+dt), Eq. (58)
 
   if (tstat_flag) {
     compute_temp_target();
@@ -197,7 +218,7 @@ void FixRigidNHOMP::initial_integrate(int vflag)
   }
 
   // update thermostat chains coupled with barostat
-  // refer to update_nhcb() in Kamberaj et al.
+  // Step 1 (13): UPDATE_NHCB(t -> t+dt), Eq. (65)
 
   if (pstat_flag) {
     nhc_press_integrate();
@@ -207,9 +228,14 @@ void FixRigidNHOMP::initial_integrate(int vflag)
 
   v_init(vflag);
 
-  // remap simulation box by 1/2 step
+  // remove the thermostat/barostat part of the vcm change in Step 1 (5),
+  //   (1 - 1/scale_t) v(t+dt/2), from the inferred constraint force
 
-  if (pstat_flag) remap();
+  if (tstat_flag || pstat_flag) {
+    double factor[3];
+    for (int k = 0; k < 3; k++) factor[k] = 1.0 - 1.0/scale_t[k];
+    exclude_scaling_from_virial(factor);
+  }
 
   // set coords/orient and velocity/rotation of atoms in rigid bodies
   // from quarternion and omega
@@ -240,11 +266,9 @@ void FixRigidNHOMP::initial_integrate(int vflag)
     }
   }
 
-  // remap simulation box by full step
   // redo KSpace coeffs since volume has changed
 
   if (pstat_flag) {
-    remap();
     if (kspace_flag) force->kspace->setup();
   }
 }
@@ -431,13 +455,18 @@ void FixRigidNHOMP::compute_forces_and_torques()
   }
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   perform postforce velocity Verlet integration
+   Kamberaj et al., Eq. (64) Step 2, rotational part as in Eq. (66)
+------------------------------------------------------------------------- */
 
 void FixRigidNHOMP::final_integrate()
 {
   double scale_t[3],scale_r;
 
   // compute scale variables
+  //   scale_t: Step 2 (5), exp(-dt/2 [xi_1^(t)(t+dt) + (1 + d/g_f) xi_eps(t+dt/2)])
+  //   scale_r: Step 2 (1), exp(-dt/2 [xi_1^(r)(t+dt) + d/g_f xi_eps(t+dt/2)])
 
   scale_t[0] = scale_t[1] = scale_t[2] = 1.0;
   scale_r = 1.0;
@@ -452,12 +481,21 @@ void FixRigidNHOMP::final_integrate()
     scale_t[0] *= exp(-dtq * (epsilon_dot[0] + mtk_term2));
     scale_t[1] *= exp(-dtq * (epsilon_dot[1] + mtk_term2));
     scale_t[2] *= exp(-dtq * (epsilon_dot[2] + mtk_term2));
-    scale_r *= exp(-dtq * (pdim * mtk_term2));
+    scale_r *= exp(-dtq * mtk_term2);
 
     akin_t = akin_r = 0.0;
   }
 
   if (!earlyflag) compute_forces_and_torques();
+
+  // remove the thermostat/barostat part of the vcm change in Step 2 (5),
+  //   (scale_t - 1) v(t+dt/2), from the inferred constraint force
+
+  if (tstat_flag || pstat_flag) {
+    double factor[3];
+    for (int k = 0; k < 3; k++) factor[k] = scale_t[k] - 1.0;
+    exclude_scaling_from_virial(factor);
+  }
 
   // update vcm and angmom
   // include Langevin thermostat forces
@@ -472,6 +510,7 @@ void FixRigidNHOMP::final_integrate()
     double mbody[3],tbody[3],fquat[4];
 
     // update vcm by 1/2 step
+    //   Step 2 (5): v~ = scale_t v(t+dt/2),  Step 2 (6): v(t+dt) = v~ + dt/2 F(t+dt)/m
 
     const double dtfm = dtf / masstotal[ibody];
     if (tstat_flag || pstat_flag) {
@@ -492,6 +531,8 @@ void FixRigidNHOMP::final_integrate()
 
     // update conjqm, then transform to angmom, set velocity again
     // virial is already setup from initial_integrate
+    //   Step 2 (1) and (4) in the (P,Q) form of Eq. (66):
+    //   P(t+dt) = scale_r P(t+dt/2) + dt/2 2 M[Q(t+dt)] T^(4)(t+dt)
 
     torque[ibody][0] *= tflag[ibody][0];
     torque[ibody][1] *= tflag[ibody][1];
@@ -562,6 +603,7 @@ void FixRigidNHOMP::final_integrate()
 
   // compute current and target pressures
   // update epsilon dot using akin_t and akin_r
+  //   Step 2 (7)-(8) with G_eps(t+dt) from P_int(t+dt) and K(t+dt)
 
   if (pstat_flag) {
     if (pstyle == ISO) {
@@ -576,7 +618,7 @@ void FixRigidNHOMP::final_integrate()
 
     compute_press_target();
 
-    nh_epsilon_dot();
+    nh_epsilon_dot(1);
   }
 }
 
@@ -590,7 +632,7 @@ void FixRigidNHOMP::remap()
 
   // epsilon is not used, except for book-keeping
 
-  for (int i = 0; i < 3; i++) epsilon[i] += dtq * epsilon_dot[i];
+  for (int i = 0; i < 3; i++) epsilon[i] += dtv * epsilon_dot[i];
 
   // convert pertinent atoms and rigid bodies to lamda coords
 
@@ -613,7 +655,7 @@ void FixRigidNHOMP::remap()
       const double oldlo = domain->boxlo[i];
       const double oldhi = domain->boxhi[i];
       const double ctr = 0.5 * (oldlo + oldhi);
-      const double expfac = exp(dtq * epsilon_dot[i]);
+      const double expfac = exp(dtv * epsilon_dot[i]);
       domain->boxlo[i] = (oldlo-ctr)*expfac + ctr;
       domain->boxhi[i] = (oldhi-ctr)*expfac + ctr;
     }

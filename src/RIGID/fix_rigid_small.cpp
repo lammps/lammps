@@ -3271,6 +3271,16 @@ int FixRigidSmall::pack_forward_comm(int n, int *list, double *buf,
         m += bodysize;
       }
     }
+
+  } else if (commflag == REMAP) {
+    for (i = 0; i < n; i++) {
+      j = list[i];
+      if (bodyown[j] < 0) continue;
+      xcm = body[bodyown[j]].xcm;
+      buf[m++] = xcm[0];
+      buf[m++] = xcm[1];
+      buf[m++] = xcm[2];
+    }
   }
 
   return m;
@@ -3364,6 +3374,14 @@ void FixRigidSmall::unpack_forward_comm(int n, int first, double *buf)
         bodyown[i] = j;
         nghost_body++;
       }
+    }
+  } else if (commflag == REMAP) {
+    for (i = first; i < last; i++) {
+      if (bodyown[i] < 0) continue;
+      xcm = body[bodyown[i]].xcm;
+      xcm[0] = buf[m++];
+      xcm[1] = buf[m++];
+      xcm[2] = buf[m++];
     }
   }
 }

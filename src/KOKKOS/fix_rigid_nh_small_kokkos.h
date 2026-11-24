@@ -52,6 +52,8 @@ template <class DeviceType> class FixRigidNHSmallKokkos : public FixRigidSmallKo
                                    const double scale_v[3]);
   void nh_final_integrate_bodies(const double scale_r, const double scale_t[3]);
   void nh_akin(double &akin_t_out, double &akin_r_out);
+  void exclude_scaling_from_virial(const double *);
+  void molecular_pressure_correction(double *, int);
 
  protected:
   using Range1D = Kokkos::RangePolicy<DeviceType>;
@@ -145,6 +147,7 @@ template <class DeviceType> class FixRigidNHSmallKokkos : public FixRigidSmallKo
   double vol0;          // reference volume
   double t0;            // reference temperature
   int pdim, g_f;        // number of barostatted dims, total DoFs
+  int pdof_b;           // number of independent barostat strain rates
   double p_hydro;       // hydrostatic target pressure
   double p_freq_max;    // maximum barostat frequency
 
@@ -157,14 +160,14 @@ template <class DeviceType> class FixRigidNHSmallKokkos : public FixRigidSmallKo
   class Compute *temperature, *pressure;
   int tcomputeflag, pcomputeflag;    // 1 = compute was created by fix. 0 = external
 
-  void couple();
+  void couple(int hostflag = 0);
   void remap();
   void nhc_temp_integrate();
   void nhc_press_integrate();
 
   virtual void compute_temp_target();
   void compute_press_target();
-  void nh_epsilon_dot();
+  void nh_epsilon_dot(int);
   void compute_dof();
 
   void allocate_chain();

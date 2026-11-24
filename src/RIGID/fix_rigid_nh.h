@@ -57,6 +57,7 @@ class FixRigidNH : public FixRigid {
   double vol0;          // reference volume
   double t0;            // reference temperature
   int pdim, g_f;        // number of barostatted dims, total DoFs
+  int pdof_b;           // number of independent barostat strain rates
   double p_hydro;       // hydrostatic target pressure
   double p_freq_max;    // maximum barostat frequency
 
@@ -76,7 +77,9 @@ class FixRigidNH : public FixRigid {
 
   virtual void compute_temp_target();
   void compute_press_target();
-  void nh_epsilon_dot();
+  void nh_epsilon_dot(int);
+  void exclude_scaling_from_virial(const double *);
+  void molecular_pressure_correction(double *);
 
   void allocate_chain();
   void allocate_order();

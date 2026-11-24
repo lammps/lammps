@@ -16,6 +16,7 @@
 #include <cmath>
 #include "../testing/utils.h"
 
+#include "comm.h"
 #include "info.h"
 #include "lammps.h"
 #include "library.h"
@@ -26,6 +27,7 @@
 
 #include <cstdlib>
 #include <cstring>
+#include <fstream>
 #include <map>
 #include <mpi.h>
 #include <string>
@@ -177,6 +179,95 @@ TEST_F(PhononCommandsTest, ThirdOrder)
     EXPECT_NEAR(entries["1 1 2 2 1"][0], 136.60383935, 1.0e-2);
 
     delete_file(outfile);
+}
+
+// two atoms that interact only through kspace and are farther apart than the ghost
+// cutoff.  the PhononCommandsMPI ctest entry runs these tests on two MPI ranks, where
+// the rank that owns one atom holds no copy of the other.
+
+class PhononLongRangeTest : public LAMMPSTest {
+protected:
+    void SetUp() override
+    {
+        testbinary = "PhononLongRangeTest";
+        LAMMPSTest::SetUp();
+        // there is no KOKKOS version of kspace style ewald
+        if (!info->has_style("kspace", "ewald") || using_accelerator())
+            GTEST_SKIP() << "needs kspace style ewald without accelerator";
+
+        // NaCl point charges, 33.8 x 11.3 x 11.3 Angstrom, split along x.  atom 13 is at
+        // (9.87, 1.41, 1.41), atom 36 at (23.97, 4.23, 4.23), and the ghost cutoff is 6.0
+        BEGIN_HIDE_OUTPUT();
+        command("units metal");
+        command("atom_style charge");
+        command("atom_modify map array");
+        command("processors * 1 1");
+        command("lattice custom 5.64 a1 1 0 0 a2 0 1 0 a3 0 0 1 origin 0.25 0.25 0.25 "
+                "basis 0 0 0 basis 0.5 0.5 0 basis 0.5 0 0.5 basis 0 0.5 0.5 "
+                "basis 0.5 0 0 basis 0 0.5 0 basis 0 0 0.5 basis 0.5 0.5 0.5");
+        command("region box block 0 6 0 2 0 2");
+        command("create_box 2 box");
+        command("create_atoms 1 box basis 5 2 basis 6 2 basis 7 2 basis 8 2");
+        command("mass 1 22.98977");
+        command("mass 2 35.453");
+        command("set type 1 charge 1.0");
+        command("set type 2 charge -1.0");
+        command("pair_style coul/long 5.0");
+        command("pair_coeff * *");
+        command("kspace_style ewald 1.0e-6");
+        command("neighbor 1.0 bin");
+        command("reset_atoms id sort yes");
+        command("group pair id 13 36");
+        END_HIDE_OUTPUT();
+    }
+
+    // run cmd and compare elements {index, serial reference} of its binary output of
+    // "size" values.  only rank 0 touches the file, whose name contains the number of
+    // ranks, since the serial and the MPI tests may run at once in the same directory
+    void check(const std::string &cmd, int size, const std::vector<std::pair<int, double>> &ref,
+               double reltol)
+    {
+        const auto file = "test_phonon_long_range_" + std::to_string(lmp->comm->nprocs) + ".bin";
+        if (lmp->comm->me == 0) delete_file(file);
+        MPI_Barrier(MPI_COMM_WORLD);
+        BEGIN_HIDE_OUTPUT();
+        command(cmd + " file " + file + " binary yes");
+        END_HIDE_OUTPUT();
+        if (lmp->comm->me == 0) {
+            std::vector<double> data(size + 1, 0.0);
+            std::ifstream in(file, std::ios::binary);
+            in.read(reinterpret_cast<char *>(data.data()), sizeof(double) * (size + 1));
+            EXPECT_EQ(in.gcount(), (std::streamsize)(sizeof(double) * size));
+            in.close();
+            delete_file(file);
+            for (const auto &r : ref) {
+                EXPECT_NE(data[r.first], 0.0);
+                EXPECT_NEAR(data[r.first], r.second, reltol * std::fabs(r.second));
+            }
+        }
+        MPI_Barrier(MPI_COMM_WORLD);
+    }
+};
+
+// rows: displaced atom (13, 36) and direction, columns: atom and direction of the force.
+// D(13x,36x), D(13x,36y), D(36x,13x), D(36y,13x)
+TEST_F(PhononLongRangeTest, DynamicalMatrix)
+{
+    check("dynamical_matrix pair regular 0.05", 36,
+          {{3, 1.471983646960e-03}, {4, 1.032002541766e-05}, {18, 1.471983646960e-03},
+           {24, 1.031732983749e-05}},
+          1.0e-8);
+}
+
+// the atoms are not neighbors, so rows are (atom i, alpha, atom i, beta), columns (atom k,
+// gamma).  Phi(13x,13x,36y), Phi(13y,13y,36y), Phi(36x,36x,13y), Phi(36y,36y,13y).  third
+// order finite differences amplify the round-off of the forces more, hence the tolerance
+TEST_F(PhononLongRangeTest, ThirdOrder)
+{
+    check("third_order pair regular 0.05", 108,
+          {{4, -1.781198082636e-04}, {28, 1.798481285130e-04}, {55, 1.781198081960e-04},
+           {79, -1.798481285398e-04}},
+          1.0e-7);
 }
 
 } // namespace LAMMPS_NS

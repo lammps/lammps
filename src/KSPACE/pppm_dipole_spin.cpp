@@ -141,11 +141,15 @@ void PPPMDipoleSpin::init()
   natoms_original = atom->natoms;
 
   // set accuracy (force units) from accuracy_relative or accuracy_absolute
+  // Unlike with standard charge-charge interactions, the two_charge_force criterion
+  // is no longer meaningful (different physics).
+  // We use the force between two 1 muB dipoles 1 Angstrom apart as the reference
+  // F = 6 mub2mu0 / r^4, r = 1 Angstrom (metal units)
 
-  // is two_charge_force still relevant for spin systems?
+  double two_spin_force = 6.0*mub2mu0;
 
   if (accuracy_absolute >= 0.0) accuracy = accuracy_absolute;
-  else accuracy = accuracy_relative * two_charge_force;
+  else accuracy = accuracy_relative * two_spin_force;
 
   // free all arrays previously allocated
 
@@ -228,7 +232,7 @@ void PPPMDipoleSpin::init()
     mesg += fmt::format("  estimated absolute RMS force accuracy = {:.8g}\n",
                        estimated_accuracy);
     mesg += fmt::format("  estimated relative force accuracy = {:.8g}\n",
-                       estimated_accuracy/two_charge_force);
+                       estimated_accuracy/two_spin_force);
     mesg += "  using " LMP_FFT_PREC " precision " LMP_FFT_LIB "\n";
     mesg += fmt::format("  3d grid and FFT values/proc = {} {}\n",
                        ngrid_max,nfft_both_max);

@@ -1,7 +1,7 @@
 # LAMMPS multiple-machine -*- Makefile -*-
 
 SHELL = /bin/bash
-PYTHON = $(word 3,$(shell type python3))
+PYTHON = env PYTHONWARNINGS= PYTHONDONTWRITEBYTECODE=1 $(word 3,$(shell type python3))
 DYN_LIB = -ldl
 
 #.IGNORE:

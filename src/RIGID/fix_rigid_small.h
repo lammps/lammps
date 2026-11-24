@@ -49,6 +49,10 @@ class FixRigidSmall : public Fix {
 
   int pack_exchange(int, double *) override;
   int unpack_exchange(int, double *) override;
+  int pack_border(int, int *, double *) override;
+  int unpack_border(int, int, double *) override;
+  double comm_multi_cutoff() override;
+  void comm_multi_atoms(int, int, int *) override;
   int pack_forward_comm(int, int *, double *, int, int *) override;
   void unpack_forward_comm(int, int, double *) override;
   int pack_reverse_comm(int, int, double *) override;

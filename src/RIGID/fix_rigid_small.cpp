@@ -357,7 +357,22 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
       id_gravity = utils::strdup(arg[iarg+1]);
       iarg += 2;
 
+    } else if (strcmp(arg[iarg],"ghost/multi") == 0) {
+      if (iarg+2 > narg)
+        utils::missing_cmd_args(FLERR, fmt::format("fix {} ghost/multi", style), error);
+      comm_multi_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
+      iarg += 2;
+
     } else error->all(FLERR, iarg, "Unknown fix {} keyword {}", style, arg[iarg]);
+  }
+
+  // with ghost/multi, the atoms that own a body are communicated as ghost atoms
+  //   out to the body extent and all other atoms only out to the usual ghost cutoff,
+  //   ghost atoms carry their body ID so the atoms owning a body can be identified
+
+  if (comm_multi_flag) {
+    comm_border = 1;
+    atom->add_callback(this, Atom::BORDER);
   }
 
   // error check and further setup for Molecule template
@@ -484,7 +499,10 @@ FixRigidSmall::~FixRigidSmall()
 
   // unregister callbacks to this fix from Atom class
 
-  if (modify->get_fix_by_id(id)) atom->delete_callback(this, Atom::GROW);
+  if (modify->get_fix_by_id(id)) {
+    atom->delete_callback(this, Atom::GROW);
+    if (comm_multi_flag) atom->delete_callback(this, Atom::BORDER);
+  }
 
   // delete locally stored arrays
 
@@ -644,7 +662,15 @@ void FixRigidSmall::setup(int vflag)
   //       for atom types in rigid bodies - need a more careful test
   // must check here, not in init, b/c neigh/comm values set after fix init
 
+  // with ghost/multi, the atoms owning a body are communicated at least out to the extent
+
   double cutghost = MAX(neighbor->cutneighmax,comm->cutghostuser);
+  if (comm_multi_flag) {
+    if ((comm->me == 0) && (maxextent <= cutghost))
+      error->warning(FLERR, "Fix {} ghost/multi has no effect: rigid body extent {} is not "
+                     "larger than the ghost atom cutoff {}", style, maxextent, cutghost);
+    cutghost = MAX(cutghost, comm->cutghost_fix_multi);
+  }
   if (maxextent > cutghost)
     error->all(FLERR, Error::NOLASTLINE,
                "Rigid body extent {} > ghost atom cutoff - use comm_modify cutoff", maxextent);
@@ -3183,6 +3209,50 @@ int FixRigidSmall::unpack_exchange(int nlocal, double *buf)
   bodyown[nlocal] = nlocal_body++;
 
   return m;
+}
+
+/* ----------------------------------------------------------------------
+   pack body IDs of ghost atoms for ghost/multi
+------------------------------------------------------------------------- */
+
+int FixRigidSmall::pack_border(int n, int *list, double *buf)
+{
+  int m = 0;
+  for (int i = 0; i < n; i++) buf[m++] = ubuf(bodytag[list[i]]).d;
+  return m;
+}
+
+/* ----------------------------------------------------------------------
+   unpack body IDs of ghost atoms for ghost/multi
+------------------------------------------------------------------------- */
+
+int FixRigidSmall::unpack_border(int n, int first, double *buf)
+{
+  int m = 0;
+  int last = first + n;
+  for (int i = first; i < last; i++) bodytag[i] = (tagint) ubuf(buf[m++]).i;
+  return m;
+}
+
+/* ----------------------------------------------------------------------
+   ghost cutoff needed by the atoms that own a body for ghost/multi
+------------------------------------------------------------------------- */
+
+double FixRigidSmall::comm_multi_cutoff()
+{
+  return maxextent + neighbor->skin;
+}
+
+/* ----------------------------------------------------------------------
+   flag the local and ghost atoms from istart to iend-1 that own a body,
+   they need the ghost cutoff from comm_multi_cutoff()
+------------------------------------------------------------------------- */
+
+void FixRigidSmall::comm_multi_atoms(int istart, int iend, int *flag)
+{
+  tagint *tag = atom->tag;
+  for (int i = istart; i < iend; i++)
+    if (bodytag[i] == tag[i]) flag[i] = 1;
 }
 
 /* ----------------------------------------------------------------------

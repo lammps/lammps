@@ -40,6 +40,8 @@ class Comm : protected Pointers {
   double *cutusermulti;         // per collection user ghost cutoff (mode == MULTI)
   int ncollections;             // # of collections known by comm, used to test if # has changed
   int ncollections_cutoff;      // # of collections stored b cutoff/multi
+  int fix_multi;                // 1 if fixes request a longer ghost cutoff for some atoms
+  double cutghost_fix_multi;    // longer ghost cutoff requested by fixes (fix_multi == 1)
   int recv_from_partition;      // recv proc layout from this partition
   int send_to_partition;        // send my proc layout to this partition
                                 // -1 if no recv or send
@@ -156,6 +158,11 @@ class Comm : protected Pointers {
   int coregrid[3];          // 3d grid of cores within a node
   int user_coregrid[3];     // user request for cores in each dim
   int multi_reduce;         // 1 if multi cutoff is intra-collection cutoff
+  int multi_collections;    // 1 if ghost cutoffs depend on collection (mode multi or fix_multi)
+  int *collection_fix_multi;          // collection of each atom for fix_multi
+  int nmax_collection_fix_multi;      // allocated length of collection_fix_multi
+
+  void build_fix_multi_collection(int);
 
   void init_exchange();
   int rendezvous_irregular(int, char *, int, int, int *,

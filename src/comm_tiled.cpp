@@ -177,6 +177,10 @@ void CommTiled::init()
 
   Comm::init();
 
+  if (fix_multi)
+    error->all(FLERR, "The ghost/multi option of fixes is not yet supported "
+               "with comm_style tiled");
+
   // cannot set nswap in init_buffers() b/c
   // dimension command can be after comm_style command
 

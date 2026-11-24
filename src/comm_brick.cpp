@@ -60,7 +60,7 @@ CommBrick::CommBrick(LAMMPS *lmp) :
 CommBrick::~CommBrick()
 {
   CommBrick::free_swap();
-  if (mode == Comm::MULTI) {
+  if (multilo) {
     CommBrick::free_multi();
     memory->destroy(cutghostmulti);
   }
@@ -133,10 +133,13 @@ void CommBrick::init()
   // memory for multi style communication
   // allocate in setup
 
-  if (mode == Comm::MULTI) {
+  if (multi_collections) {
+    // fix_multi uses 2 collections: all atoms and the atoms flagged by fixes
+    int ncollections_new = fix_multi ? 2 : neighbor->ncollections;
+
     // If inconsitent # of collections, destroy any preexisting arrays (may be missized)
-    if (ncollections != neighbor->ncollections) {
-      ncollections = neighbor->ncollections;
+    if (ncollections != ncollections_new) {
+      ncollections = ncollections_new;
       if (multilo != nullptr) {
         free_multi();
         memory->destroy(cutghostmulti);
@@ -144,7 +147,7 @@ void CommBrick::init()
     }
 
     // delete any old user cutoffs if # of collections chanaged
-    if (cutusermulti && ncollections != ncollections_cutoff) {
+    if ((mode == Comm::MULTI) && cutusermulti && (ncollections != ncollections_cutoff)) {
       if(me == 0) error->warning(FLERR, "cutoff/multi settings discarded, must be defined"
                                         " after customizing collections in neigh_modify");
       memory->destroy(cutusermulti);
@@ -156,7 +159,7 @@ void CommBrick::init()
       memory->create(cutghostmulti,ncollections,3,"comm:cutghostmulti");
     }
   }
-  if ((mode == Comm::SINGLE) && multilo) {
+  if (!multi_collections && multilo) {
     free_multi();
     memory->destroy(cutghostmulti);
   }
@@ -215,6 +218,16 @@ void CommBrick::setup()
         cutghostmulti[i][2] = MAX(cutghostmulti[i][2],sqrt(cutcollectionsq[i][j]));
       }
     }
+  } else if (fix_multi) {
+
+    // collection 0 = all atoms acquired out to the usual cutoff
+    // collection 1 = atoms flagged by fixes acquired out to at least the cutoff they request
+    // cut becomes the largest cutoff, for the number of swaps and for neighbor binning
+
+    double cutlong = MAX(cut, cutghost_fix_multi);
+    cutghostmulti[0][0] = cutghostmulti[0][1] = cutghostmulti[0][2] = cut;
+    cutghostmulti[1][0] = cutghostmulti[1][1] = cutghostmulti[1][2] = cutlong;
+    cut = cutlong;
   }
 
   if (triclinic == 0) {
@@ -234,7 +247,7 @@ void CommBrick::setup()
     cutghost[1] = cut * length1;
     length2 = h_inv[2];
     cutghost[2] = cut * length2;
-    if (mode == Comm::MULTI) {
+    if (multi_collections) {
       for (i = 0; i < ncollections; i++) {
         cutghostmulti[i][0] *= length0;
         cutghostmulti[i][1] *= length1;
@@ -380,11 +393,11 @@ void CommBrick::setup()
       if (ineed % 2 == 0) {
         sendproc[iswap] = procneigh[dim][0];
         recvproc[iswap] = procneigh[dim][1];
-        if (mode == Comm::SINGLE) {
+        if (!multi_collections) {
           if (ineed < 2) slablo[iswap] = -BIG;
           else slablo[iswap] = 0.5 * (sublo[dim] + subhi[dim]);
           slabhi[iswap] = sublo[dim] + cutghost[dim];
-        } else if (mode == Comm::MULTI) {
+        } else {
           for (i = 0; i < ncollections; i++) {
             if (ineed < 2) multilo[iswap][i] = -BIG;
             else multilo[iswap][i] = 0.5 * (sublo[dim] + subhi[dim]);
@@ -403,11 +416,11 @@ void CommBrick::setup()
       } else {
         sendproc[iswap] = procneigh[dim][1];
         recvproc[iswap] = procneigh[dim][0];
-        if (mode == Comm::SINGLE) {
+        if (!multi_collections) {
           slablo[iswap] = subhi[dim] - cutghost[dim];
           if (ineed < 2) slabhi[iswap] = BIG;
           else slabhi[iswap] = 0.5 * (sublo[dim] + subhi[dim]);
-        } else if (mode == Comm::MULTI) {
+        } else {
           for (i = 0; i < ncollections; i++) {
             multilo[iswap][i] = subhi[dim] - cutghostmulti[i][dim];
             if (ineed < 2) multihi[iswap][i] = BIG;
@@ -730,6 +743,7 @@ void CommBrick::borders()
 
   // After exchanging/sorting, need to reconstruct collection array for border communication
   if (mode == Comm::MULTI) neighbor->build_collection(0);
+  else if (fix_multi) build_fix_multi_collection(0);
 
   // do swaps over all 3 dimensions
 
@@ -748,11 +762,11 @@ void CommBrick::borders()
       // store sent atom indices in sendlist for use in future timesteps
 
       x = atom->x;
-      if (mode == Comm::SINGLE) {
+      if (!multi_collections) {
         lo = slablo[iswap];
         hi = slabhi[iswap];
-      } else if (mode == Comm::MULTI) {
-        collection = neighbor->collection;
+      } else {
+        collection = fix_multi ? collection_fix_multi : neighbor->collection;
         mlo = multilo[iswap];
         mhi = multihi[iswap];
       }
@@ -777,13 +791,13 @@ void CommBrick::borders()
 
       if (sendflag) {
         if (!bordergroup || ineed >= 2) {
-          if (mode == Comm::SINGLE) {
+          if (!multi_collections) {
             for (i = nfirst; i < nlast; i++)
               if (x[i][dim] >= lo && x[i][dim] <= hi) {
                 if (nsend == maxsendlist[iswap]) grow_list(iswap,nsend);
                 sendlist[iswap][nsend++] = i;
               }
-          } else if (mode == Comm::MULTI) {
+          } else {
             for (i = nfirst; i < nlast; i++) {
               icollection = collection[i];
               if (x[i][dim] >= mlo[icollection] && x[i][dim] <= mhi[icollection]) {
@@ -794,7 +808,7 @@ void CommBrick::borders()
           }
 
         } else {
-          if (mode == Comm::SINGLE) {
+          if (!multi_collections) {
             ngroup = atom->nfirst;
             for (i = 0; i < ngroup; i++)
               if (x[i][dim] >= lo && x[i][dim] <= hi) {
@@ -806,7 +820,7 @@ void CommBrick::borders()
                 if (nsend == maxsendlist[iswap]) grow_list(iswap,nsend);
                 sendlist[iswap][nsend++] = i;
               }
-          } else if (mode == Comm::MULTI) {
+          } else {
             ngroup = atom->nfirst;
             for (i = 0; i < ngroup; i++) {
               icollection = collection[i];
@@ -873,6 +887,7 @@ void CommBrick::borders()
       nprior = atom->nlocal + atom->nghost;
       atom->nghost += nrecv;
       if (neighbor->style == Neighbor::MULTI) neighbor->build_collection(nprior);
+      if (fix_multi) build_fix_multi_collection(nprior);
 
       iswap++;
     }
@@ -1466,7 +1481,7 @@ void CommBrick::grow_swap(int n)
 {
   free_swap();
   allocate_swap(n);
-  if (mode == Comm::MULTI) {
+  if (multi_collections) {
     free_multi();
     allocate_multi(n);
   }

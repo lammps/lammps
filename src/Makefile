@@ -1,7 +1,7 @@
 # LAMMPS multiple-machine -*- Makefile -*-
 
 SHELL = /bin/bash
-PYTHON = $(word 3,$(shell type python3))
+PYTHON = env PYTHONWARNINGS= PYTHONDONTWRITEBYTECODE=1 $(word 3,$(shell type python3))
 DYN_LIB = -ldl
 
 #.IGNORE:
@@ -430,7 +430,7 @@ tar:
 	@cd STUBS; $(MAKE)
 	@echo "Created $(ROOT)_src.tar.gz"
 
-check: check-whitespace check-permissions check-homepage check-errordocs check-fmtlib check-docs
+check: check-whitespace check-permissions check-homepage check-errordocs check-fmtlib check-test-tags check-docs
 
 check-whitespace:
 	$(PYTHON) ../tools/coding_standard/whitespace.py ..
@@ -461,6 +461,12 @@ check-fmtlib:
 
 fix-fmtlib:
 	$(PYTHON) ../tools/coding_standard/fmtlib.py .. -f
+
+check-test-tags:
+	$(PYTHON) ../unittest/force-styles/check_accelerator_tags.py
+
+fix-test-tags:
+	$(PYTHON) ../unittest/force-styles/check_accelerator_tags.py -u
 
 check-docs:
 	$(MAKE) $(MFLAGS) -C ../doc anchor_check style_check package_check role_check

@@ -1,8 +1,10 @@
 LAMMPS (13 Nov 2026)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread.
   using 1 OpenMP thread(s) per MPI task
 # bcc iron in a 3d periodic box
 
 clear
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread.
   using 1 OpenMP thread(s) per MPI task
 units           metal
 atom_style      spin
@@ -116,20 +118,20 @@ Per MPI rank memory allocation (min/avg/max) = 9.158 | 9.158 | 9.158 Mbytes
          0   0             -1              0              0              1              9.8888744e-36 -384.18755     -15175.868     -15131.207    
         50   0.005         -1             -2.7689756e-10 -2.1801239e-10  1              6.867592e-09  -384.17896     -15174.244     -15131.207    
        100   0.01          -1             -2.0963471e-09 -1.7310178e-09  1              1.0015266e-08 -384.15433     -15169.655     -15131.207    
-Loop time of 3.25005 on 1 procs for 100 steps with 3456 atoms
+Loop time of 3.10525 on 1 procs for 100 steps with 3456 atoms
 
-Performance: 0.266 ns/day, 90.279 hours/ns, 30.769 timesteps/s, 106.337 katom-step/s
-99.7% CPU use with 1 MPI tasks x 1 OpenMP threads
+Performance: 0.278 ns/day, 86.257 hours/ns, 32.204 timesteps/s, 111.295 katom-step/s
+100.0% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 1.284      | 1.284      | 1.284      |   0.0 | 39.51
+Pair    | 1.2797     | 1.2797     | 1.2797     |   0.0 | 41.21
 Neigh   | 0          | 0          | 0          |   0.0 |  0.00
-Comm    | 0.0076665  | 0.0076665  | 0.0076665  |   0.0 |  0.24
-Output  | 0.00022182 | 0.00022182 | 0.00022182 |   0.0 |  0.01
-Modify  | 1.9572     | 1.9572     | 1.9572     |   0.0 | 60.22
-Other   |            | 0.0009216  |            |       |  0.03
+Comm    | 0.0091749  | 0.0091749  | 0.0091749  |   0.0 |  0.30
+Output  | 0.00012338 | 0.00012338 | 0.00012338 |   0.0 |  0.00
+Modify  | 1.8143     | 1.8143     | 1.8143     |   0.0 | 58.43
+Other   |            | 0.001958   |            |       |  0.06
 
 Nlocal:           3456 ave        3456 max        3456 min
 Histogram: 1 0 0 0 0 0 0 0 0 0

@@ -323,17 +323,18 @@ void PairSpinDipoleLong::compute(int eflag, int vflag)
 
 void PairSpinDipoleLong::compute_single_pair(int ii, double fmi[3])
 {
-  int *type = atom->type;
-  double **x = atom->x;
-  double **sp = atom->sp;
-  double **fm_long = atom->fm_long;
+  int j,jj,jnum,itype,jtype;
+  int locflag;
+  int *jlist,*numneigh,**firstneigh;
   double r,rinv,r2inv,rsq,grij,expm2,t,erfc;
   double local_cut2,pre1,pre2,pre3;
   double bij[4],xi[3],rij[3],eij[3],spi[4],spj[4];
 
-  int j,jj,jnum,itype,jtype,ntypes;
-  int k,locflag;
-  int *jlist,*numneigh,**firstneigh;
+  int *type = atom->type;
+  double **x = atom->x;
+  double **sp = atom->sp;
+  double **fm_long = atom->fm_long;
+
 
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
@@ -341,24 +342,7 @@ void PairSpinDipoleLong::compute_single_pair(int ii, double fmi[3])
   // check if interaction applies to type of ii
 
   itype = type[ii];
-  ntypes = atom->ntypes;
-  locflag = 0;
-  k = 1;
-  while (k <= ntypes) {
-    if (k <= itype) {
-      if (setflag[k][itype] == 1) {
-        locflag =1;
-        break;
-      }
-      k++;
-    } else if (k > itype) {
-      if (setflag[itype][k] == 1) {
-        locflag =1;
-        break;
-      }
-      k++;
-    } else error->all(FLERR,"Wrong type number");
-  }
+  locflag = typeflag_spin[itype];
 
   // if interaction applies to type ii,
   // locflag = 1 and compute pair interaction
@@ -392,7 +376,6 @@ void PairSpinDipoleLong::compute_single_pair(int ii, double fmi[3])
       spj[2] = sp[j][2];
       spj[3] = sp[j][3];
 
-      fmi[0] = fmi[1] = fmi[2] = 0.0;
       bij[0] = bij[1] = bij[2] = bij[3] = 0.0;
 
       rij[0] = x[j][0] - xi[0];

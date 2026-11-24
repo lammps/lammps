@@ -1,6 +1,6 @@
 ---
 lammps_version: 2 Sep 2026
-tags: single_thread
+tags: single_thread kokkos
 date_generated: Fri Sep  4 14:46:21 2026
 epsilon: 1.5e-12
 skip_tests: extract extract_omp single

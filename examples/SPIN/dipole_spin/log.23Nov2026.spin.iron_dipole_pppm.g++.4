@@ -1,9 +1,7 @@
 LAMMPS (13 Nov 2026)
-  using 1 OpenMP thread(s) per MPI task
 # bcc iron in a 3d periodic box
 
 clear
-  using 1 OpenMP thread(s) per MPI task
 units           metal
 atom_style      spin
 
@@ -18,7 +16,7 @@ Lattice spacing in x,y,z = 2.8665 2.8665 2.8665
 region          box block 0.0 12.0 0.0 12.0 0.0 12.0
 create_box      1 box
 Created orthogonal box = (0 0 0) to (34.398 34.398 34.398)
-  1 by 1 by 1 MPI processor grid
+  1 by 2 by 2 MPI processor grid
 create_atoms    1 box
 Created 3456 atoms
   using lattice units in orthogonal box = (0 0 0) to (34.398 34.398 34.398)
@@ -28,7 +26,7 @@ Created 3456 atoms
 
 mass            1 55.845
 set             group all spin 2.2 -1.0 0.0 0.0
-WARNING: Set attribute spin is deprecated -- use spin/atom instead (src/set.cpp:2398)
+WARNING: Set attribute spin is deprecated -- use spin/atom instead (../set.cpp:2398)
 Setting atom values ...
   3456 settings made for spin
 velocity        all create 100 4928459 rot yes dist gaussian
@@ -99,13 +97,14 @@ doi={10.1016/j.jcp.2018.06.042}
 CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
 
 PPPMDipoleSpin initialization ...
-  G vector (1/distance) = 0.39423055
+  G vector (1/distance) = 0.39423057
   grid = 36 36 36
   stencil order = 5
-  estimated absolute RMS force accuracy = 8.668506e-09
-  estimated relative force accuracy = 2.6919658e-05
+  estimated absolute RMS force accuracy = 8.6685044e-09
+  estimated relative force accuracy = 2.6919653e-05
   using double precision KISS FFT
-  3d grid and FFT values/proc = 68921 46656
+  3d grid and FFT values/proc = 21689 11664
+WARNING: Fix nve/spin with multiple processors and a moving lattice may give inaccurate results if atoms move more than half the neighbor skin distance between neighbor list builds. This is possible with the current settings (neigh_modify every 10 delay 20 once no). To avoid this, use 'neigh_modify every 1 delay 0 check yes once no' (../fix_nve_spin.cpp:298)
 Neighbor list info ...
   update: every = 10 steps, delay = 20 steps, check = yes
   max neighbors/atom: 2000, page size: 100000
@@ -128,38 +127,38 @@ Neighbor list info ...
       pair build: full/bin/atomonly
       stencil: full/bin/3d
       bin: standard
-Per MPI rank memory allocation (min/avg/max) = 26.19 | 26.19 | 26.19 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 12.21 | 12.21 | 12.21 Mbytes
    Step          Time          v_magx         v_magy         v_magz       v_magnorm        v_tmag         v_emag         PotEng         TotEng    
-         0   0             -1              0              0              1              7.8506469e-36 -384.32649     -15176.027     -15131.366    
-        50   0.005         -1              2.6622051e-08 -1.4036307e-08  1              8.7562606e-09 -384.3179      -15174.404     -15131.366    
-       100   0.01          -1              5.3573499e-08 -2.7846e-08     1              3.4316262e-08 -384.29326     -15169.814     -15131.366    
-Loop time of 8.01779 on 1 procs for 100 steps with 3456 atoms
+         0   0             -1              0              0              1              9.1130423e-36 -384.32649     -15176.027     -15131.366    
+        50   0.005         -1              9.5779355e-11 -3.3908506e-10  1              6.378068e-09  -384.31777     -15174.418     -15131.366    
+       100   0.01          -1              7.8700637e-10 -2.7131006e-09  1              1.0305995e-08 -384.29277     -15169.872     -15131.366    
+Loop time of 2.38436 on 4 procs for 100 steps with 3456 atoms
 
-Performance: 0.108 ns/day, 222.716 hours/ns, 12.472 timesteps/s, 43.104 katom-step/s
-99.7% CPU use with 1 MPI tasks x 1 OpenMP threads
+Performance: 0.362 ns/day, 66.232 hours/ns, 41.940 timesteps/s, 144.945 katom-step/s
+96.6% CPU use with 4 MPI tasks x no OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 2.0073     | 2.0073     | 2.0073     |   0.0 | 25.04
-Kspace  | 1.6494     | 1.6494     | 1.6494     |   0.0 | 20.57
+Pair    | 0.5134     | 0.52636    | 0.55735    |   2.5 | 22.08
+Kspace  | 0.67953    | 0.70738    | 0.71946    |   1.9 | 29.67
 Neigh   | 0          | 0          | 0          |   0.0 |  0.00
-Comm    | 0.012911   | 0.012911   | 0.012911   |   0.0 |  0.16
-Output  | 0.00013009 | 0.00013009 | 0.00013009 |   0.0 |  0.00
-Modify  | 4.3463     | 4.3463     | 4.3463     |   0.0 | 54.21
-Other   |            | 0.001733   |            |       |  0.02
+Comm    | 0.016939   | 0.024809   | 0.027865   |   2.9 |  1.04
+Output  | 8.1614e-05 | 9.3236e-05 | 0.00011809 |   0.0 |  0.00
+Modify  | 1.1215     | 1.1239     | 1.1291     |   0.3 | 47.14
+Other   |            | 0.001811   |            |       |  0.08
 
-Nlocal:           3456 ave        3456 max        3456 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Nghost:           7289 ave        7289 max        7289 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Neighs:         110592 ave      110592 max      110592 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-FullNghs:        48384 ave       48384 max       48384 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
+Nlocal:            864 ave         864 max         864 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:           3785 ave        3785 max        3785 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Neighs:          27648 ave       27648 max       27648 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+FullNghs:        12096 ave       12096 max       12096 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
 
 Total # of neighbors = 110592
 Ave neighs/atom = 32
 Neighbor list builds = 0
 Dangerous builds = 0
-Total wall time: 0:00:08
+Total wall time: 0:00:02

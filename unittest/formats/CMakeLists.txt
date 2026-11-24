@@ -127,7 +127,8 @@ if(PKG_KOKKOS)
   add_executable(test_dump_kokkos_triclinic_pbc test_dump_kokkos_triclinic_pbc.cpp)
   target_link_libraries(test_dump_kokkos_triclinic_pbc PRIVATE lammps GTest::GMock)
   add_test(NAME DumpKokkosTriclinicPbc COMMAND test_dump_kokkos_triclinic_pbc)
-  set_tests_properties(DumpKokkosTriclinicPbc PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR}")
+  set_tests_properties(DumpKokkosTriclinicPbc PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR}"
+                       LABELS "kokkos")
 endif()
 
 add_executable(test_dump_cfg test_dump_cfg.cpp)

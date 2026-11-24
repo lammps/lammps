@@ -73,8 +73,7 @@ ComputePACE<PERATOM>::ComputePACE(LAMMPS *lmp, int narg, char **arg) :
 
   //read in file with CG coefficients or c_tilde coefficients
 
-  auto potential_file_name = utils::get_potential_file_path(arg[3]);
-  acecimpl->basis_set = new ACECTildeBasisSet(potential_file_name);
+  acecimpl->basis_set = new ACECTildeBasisSet(utils::get_potential_file_path(arg[3]));
   cutmax = acecimpl->basis_set->cutoffmax;
 
   //# of rank 1, rank > 1 functions

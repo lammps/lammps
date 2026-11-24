@@ -184,6 +184,15 @@ TEST(MathSpecial, powauto_edge_cases)
     // powint() convention for a zero base, which differs from std::pow()
     EXPECT_DOUBLE_EQ(MathSpecial::powauto(0.0, 3.0), 0.0);
     EXPECT_DOUBLE_EQ(MathSpecial::powauto(0.0, -3.0), 0.0);
+    // integer exponents outside the range of an int and infinite exponents use std::pow()
+    const double inf = std::numeric_limits<double>::infinity();
+    EXPECT_DOUBLE_EQ(MathSpecial::powauto(1.0, -inf), 1.0);
+    EXPECT_DOUBLE_EQ(MathSpecial::powauto(2.0, -inf), 0.0);
+    EXPECT_DOUBLE_EQ(MathSpecial::powauto(0.5, inf), 0.0);
+    EXPECT_DOUBLE_EQ(MathSpecial::powauto(1.0, 1.0e10), 1.0);
+    EXPECT_DOUBLE_EQ(MathSpecial::powauto(1.0, -1.0e10), 1.0);
+    EXPECT_DOUBLE_EQ(MathSpecial::powauto(-1.0, 4.0e9), 1.0);
+    EXPECT_TRUE(std::isnan(MathSpecial::powauto(1.5, std::nan(""))));
 }
 
 TEST(MathSpecial, powauto_consistency_with_pow)

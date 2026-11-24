@@ -97,7 +97,8 @@ if(Python_EXECUTABLE)
   add_test(NAME PythonCapabilities
            COMMAND ${PYTHON_TEST_RUNNER} ${CMAKE_CURRENT_SOURCE_DIR}/python-capabilities.py -v
            WORKING_DIRECTORY ${EXECUTABLE_OUTPUT_PATH})
-  set_tests_properties(PythonCapabilities PROPERTIES ENVIRONMENT "${PYTHON_TEST_ENVIRONMENT}")
+  # it checks the settings of the GPU and KOKKOS packages and the GPU device information
+  set_tests_properties(PythonCapabilities PROPERTIES ENVIRONMENT "${PYTHON_TEST_ENVIRONMENT}" LABELS "gpu;kokkos")
 
   add_test(NAME PythonCmdWrapper
            COMMAND ${PYTHON_TEST_RUNNER} ${CMAKE_CURRENT_SOURCE_DIR}/python-cmdwrapper.py -v

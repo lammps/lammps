@@ -1,5 +1,6 @@
 ---
 lammps_version: 30 Sep 2026
+tags: kokkos
 date_generated: Thu Oct  1 20:30:27 2026
 epsilon: 1e-13
 skip_tests:

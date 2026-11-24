@@ -56,6 +56,9 @@ __kernel void k_coul_diel(const __global numtyp4 *restrict x_,
   sp_lj[6]=sp_lj_in[6];
   sp_lj[7]=sp_lj_in[7];
 
+  // the dielectric at short distance (5.2)
+  const numtyp eps_min = a_eps - b_eps;
+
   acctyp3 f;
   f.x=(acctyp)0; f.y=(acctyp)0; f.z=(acctyp)0;
   acctyp energy, e_coul, virial[6];
@@ -98,15 +101,29 @@ __kernel void k_coul_diel(const __global numtyp4 *restrict x_,
         numtyp qj; fetch(qj,j,q_tex);
         numtyp r = ucl_sqrt(rsq);
         numtyp rarg = (r-cutsq[mtype].y)/cutsq[mtype].z;
-        numtyp th = tanh(rarg);
-        numtyp epsr = a_eps+b_eps*th;
-        numtyp depsdr = b_eps * ((numtyp)1.0 - th*th) / cutsq[mtype].z;
+        // epsr = a_eps + b_eps*tanh(rarg) goes from eps_min = a_eps - b_eps to
+        // eps_s = a_eps + b_eps.  Written that way, epsr at short distance and eps_s - epsr
+        // at long distance are differences of nearly equal numbers, which single precision
+        // cannot resolve (and with --use_fast_math, nvcc computes a single precision tanh()
+        // with an approximate instruction on sm_75 and newer).  So epsr, deps = eps_s - epsr
+        // and 1 - tanh^2(rarg) come from e2 = exp(-2|rarg|), without such differences.
+        numtyp e2 = ucl_exp((numtyp)-2.0*ucl_abs(rarg));
+        numtyp inv = (numtyp)1.0/((numtyp)1.0 + e2);
+        numtyp deps = (numtyp)2.0*b_eps*inv;
+        numtyp epsr;
+        if (rarg >= (numtyp)0.0) {
+          deps *= e2;
+          epsr = (eps_s + eps_min*e2)*inv;
+        } else {
+          epsr = (eps_min + eps_s*e2)*inv;
+        }
+        numtyp depsdr = (numtyp)4.0*b_eps*e2*inv*inv / cutsq[mtype].z;
 
-        numtyp forcecoul = qqrd2e*qtmp*qj*((eps_s*(epsr+r*depsdr)/epsr/epsr) - (numtyp)1.0)/rsq;
+        numtyp forcecoul = qqrd2e*qtmp*qj*(epsr*deps + eps_s*r*depsdr)/(epsr*epsr*rsq);
         numtyp force = factor_coul*forcecoul/r;
 
         if (EVFLAG && eflag) {
-          numtyp e = qqrd2e*qtmp*qj*((eps_s/epsr) - (numtyp)1.0)/r;
+          numtyp e = qqrd2e*qtmp*qj*deps/(epsr*r);
           e_coul += factor_coul*e;
         }
 
@@ -156,6 +173,9 @@ __kernel void k_coul_diel_fast(const __global numtyp4 *restrict x_,
     cutsq[tid]=cutsq_in[tid];
   }
 
+  // the dielectric at short distance (5.2)
+  const numtyp eps_min = a_eps - b_eps;
+
   acctyp3 f;
   f.x=(acctyp)0; f.y=(acctyp)0; f.z=(acctyp)0;
   acctyp energy, e_coul, virial[6];
@@ -200,15 +220,29 @@ __kernel void k_coul_diel_fast(const __global numtyp4 *restrict x_,
         numtyp qj; fetch(qj,j,q_tex);
         numtyp r = ucl_sqrt(rsq);
         numtyp rarg = (r-cutsq[mtype].y)/cutsq[mtype].z;
-        numtyp th = tanh(rarg);
-        numtyp epsr = a_eps+b_eps*th;
-        numtyp depsdr = b_eps * ((numtyp)1.0 - th*th) / cutsq[mtype].z;
+        // epsr = a_eps + b_eps*tanh(rarg) goes from eps_min = a_eps - b_eps to
+        // eps_s = a_eps + b_eps.  Written that way, epsr at short distance and eps_s - epsr
+        // at long distance are differences of nearly equal numbers, which single precision
+        // cannot resolve (and with --use_fast_math, nvcc computes a single precision tanh()
+        // with an approximate instruction on sm_75 and newer).  So epsr, deps = eps_s - epsr
+        // and 1 - tanh^2(rarg) come from e2 = exp(-2|rarg|), without such differences.
+        numtyp e2 = ucl_exp((numtyp)-2.0*ucl_abs(rarg));
+        numtyp inv = (numtyp)1.0/((numtyp)1.0 + e2);
+        numtyp deps = (numtyp)2.0*b_eps*inv;
+        numtyp epsr;
+        if (rarg >= (numtyp)0.0) {
+          deps *= e2;
+          epsr = (eps_s + eps_min*e2)*inv;
+        } else {
+          epsr = (eps_min + eps_s*e2)*inv;
+        }
+        numtyp depsdr = (numtyp)4.0*b_eps*e2*inv*inv / cutsq[mtype].z;
 
-        numtyp forcecoul = qqrd2e*qtmp*qj*((eps_s*(epsr+r*depsdr)/epsr/epsr) - (numtyp)1.0)/rsq;
+        numtyp forcecoul = qqrd2e*qtmp*qj*(epsr*deps + eps_s*r*depsdr)/(epsr*epsr*rsq);
         numtyp force = factor_coul*forcecoul/r;
 
         if (EVFLAG && eflag) {
-          numtyp e = qqrd2e*qtmp*qj*((eps_s/epsr) - (numtyp)1.0)/r;
+          numtyp e = qqrd2e*qtmp*qj*deps/(epsr*r);
           e_coul += factor_coul*e;
         }
 

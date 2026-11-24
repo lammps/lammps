@@ -656,10 +656,16 @@ TEST(OutputStyle, kokkos_gpu)
 
     // use a half neighbor list so the GPU kernels run with the input's default
     // "newton on"; with the default "neigh full" the KOKKOS package requires
-    // newton off, which the force-style input templates do not use
+    // newton off, which the force-style input templates do not use.
+    // sort the atoms on the host as for the reference data: the sort on the GPU
+    // does not keep the order of the atoms within a bin, and that order depends
+    // on the GPU (it differs between AMD and NVIDIA GPUs).  It decides which atom
+    // of a pair a half neighbor list stores it with, and outputs like pair/local
+    // (fx), property/local (natom1, natom2), or stress/spherical depend on that
     LAMMPS::argv args = {"OutputStyle", "-log",   "none",  "-echo", "screen", "-nocite",
                          "-k",          "on",     "g",     "1",     "-sf",    "kk",
-                         "-pk",         "kokkos", "neigh", "half",  "newton", "on"};
+                         "-pk",         "kokkos", "neigh", "half",  "newton", "on",
+                         "sort",        "host"};
 
     append_kokkos_env_args(args);
     run_output_test(args, kokkos_epsilon(), true);

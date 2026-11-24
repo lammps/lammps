@@ -15,6 +15,7 @@
 #define LMP_MATH_SPECIAL_H
 
 #include <cmath>
+#include <limits>
 
 
 
@@ -188,7 +189,7 @@ namespace LAMMPS_NS::MathSpecial {
     return std::pow(x, n);
   }
 
-  /*! Fast inline version of (sin(x)/x)^n as used by PPPM kspace styles
+  /* Fast inline version of (sin(x)/x)^n as used by PPPM kspace styles
    *
    * This is an optimized function to compute (sin(x)/x)^n as frequently used by PPPM.
    *

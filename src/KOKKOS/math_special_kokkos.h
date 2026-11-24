@@ -15,6 +15,7 @@
 #ifndef LMP_MATH_SPECIAL_KOKKOS_H
 #define LMP_MATH_SPECIAL_KOKKOS_H
 
+#include <climits>
 #include <cmath>
 #include "kokkos_type.h"
 
@@ -223,7 +224,7 @@ namespace LAMMPS_NS::MathSpecialKokkos {
     return (n > 0) ? yy : static_cast<T>(1) / yy;
   }
 
-  /* Version of pow(x,n) for an exponent that is only known at run time
+  /*! Version of pow(x,n) for an exponent that is only known at run time
    *
    * Device capable equivalent of MathSpecial::powauto().  Dispatches to
    * powint() when the exponent happens to have an integer value within the

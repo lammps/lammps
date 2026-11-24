@@ -2,13 +2,14 @@
 lammps_version: 12 Jun 2025
 date_generated: Sat Jun 28 02:05:40 2025
 epsilon: 5.0e-12
+tags: kokkos
 skip_tests:
 prerequisites: ! |
   pair dispersion/d3
 pre_commands: ! ""
 post_commands: ! ""
 input_file: in.manybody
-pair_style: dispersion/d3 zero pbe 12.0 12.0
+pair_style: dispersion/d3 original pbe 12.0 12.0
 pair_coeff: ! |
   * * Si Si Si Si Si Si Si Si
 extract: ! ""

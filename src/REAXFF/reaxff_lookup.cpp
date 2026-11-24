@@ -27,7 +27,6 @@
 
 #include "reaxff_api.h"
 
-#include <mpi.h>
 #include <cstdlib>
 
 namespace ReaxFF {
@@ -145,8 +144,12 @@ namespace ReaxFF {
     sfree(v);
   }
 
+  // tabulate all pairs of elements that pair_coeff assigns to an atom type,
+  // as in the KOKKOS version, so atoms of any of those elements can be added
+  // during a run.  map[i] is the element of atom type i, or -1 for NULL.
+
   void Init_Lookup_Tables(reax_system *system, control_params *control,
-                          storage *workspace, MPI_Comm world)
+                          storage *workspace, const int *map, int ntypes)
   {
     int i, j, r;
     double dr;
@@ -161,8 +164,7 @@ namespace ReaxFF {
     vlast_ele = 0;
 
     const int num_atom_types = system->reax_param.num_atom_types;
-    int *existing_types = new int[num_atom_types];
-    int *aggregated = new int[num_atom_types];
+    int *used_types = new int[num_atom_types];
     dr = control->nonb_cut / control->tabulate;
     h = (double*)
       smalloc(system->error_ptr, (control->tabulate+2) * sizeof(double), "lookup:h");
@@ -184,18 +186,16 @@ namespace ReaxFF {
         scalloc(system->error_ptr, num_atom_types, sizeof(LR_lookup_table), "lookup:LR[i]");
 
     for (i = 0; i < num_atom_types; ++i)
-      existing_types[i] = 0;
-    for (i = 0; i < system->n; ++i) {
-      if (system->my_atoms[i].type >= 0)
-        existing_types[system->my_atoms[i].type] = 1;
+      used_types[i] = 0;
+    for (i = 1; i <= ntypes; ++i) {
+      if (map[i] >= 0)
+        used_types[map[i]] = 1;
     }
 
-    MPI_Allreduce(existing_types, aggregated, num_atom_types, MPI_INT, MPI_SUM, world);
-
     for (i = 0; i < num_atom_types; ++i) {
-      if (aggregated[i]) {
+      if (used_types[i]) {
         for (j = i; j < num_atom_types; ++j) {
-          if (aggregated[j]) {
+          if (used_types[j]) {
             LR[i][j].xmin = 0;
             LR[i][j].xmax = control->nonb_cut;
             LR[i][j].n = control->tabulate + 2;
@@ -263,8 +263,7 @@ namespace ReaxFF {
     free(fCEvd);
     free(fele);
     free(fCEclmb);
-    delete[] existing_types;
-    delete[] aggregated;
+    delete[] used_types;
   }
 
   void Deallocate_Lookup_Tables(reax_system *system)
@@ -288,6 +287,7 @@ namespace ReaxFF {
       sfree(LR[i]);
     }
     sfree(LR);
+    LR = nullptr;
   }
 }
 

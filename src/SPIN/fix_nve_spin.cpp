@@ -589,7 +589,7 @@ void FixNVESpin::sectoring()
   const int ntypes = atom->ntypes;
   for (int i = 0; i < npairspin ; i++) {
     cutoff = *((double *) spin_pairs[i]->extract("cut",dim));
-    auto cut_spin = (double **) spin_pairs[i]->extract("cut_spin",dim);
+    auto **cut_spin = (double **) spin_pairs[i]->extract("cut_spin",dim);
     if (cut_spin && (dim == 2)) {
       cutoff = 0.0;
       for (int itype = 1; itype <= ntypes; itype++)

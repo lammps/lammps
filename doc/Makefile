@@ -23,7 +23,7 @@ MATHJAXFONTTGZ = mathjax-newcm-font-$(MATHJAXTAG).tgz
 MATHJAXFONTSUM = 87d7b869c6a2a6169d9a53acc4eab6c846a9cbe11752738226461bb5070c8b88
 THIRDPARTYURL  = https://download.lammps.org/thirdparty
 
-PYTHON         = $(word 3,$(shell type python3))
+PYTHON         = env PYTHONWARNINGS= PYTHONDONTWRITEBYTECODE=1 $(word 3,$(shell type python3))
 DOXYGEN        = $(word 3,$(shell type doxygen))
 PANDOC         = $(word 3,$(shell type pandoc))
 HAS_PYTHON3    = NO
@@ -126,7 +126,7 @@ html: xmlgen globbed-tocs $(VENV) $(SPHINXCONFIG)/conf.py $(MATHJAX) $(MATHJAXFO
 		sphinx-build -E $(SPHINXEXTRA) -b html -c $(SPHINXCONFIG) -d $(BUILDDIR)/doctrees $(RSTDIR) html ;\
 		ln -sf Manual.html html/index.html;\
 		rm -f $(BUILDDIR)/doxygen/xml/run.stamp;\
-		echo "############################################" ; env PYTHONWARNINGS= PYTHONDONTWRITEBYTECODE=1 \
+		echo "############################################" ; \
 		$(PYTHON) $(BUILDDIR)/utils/rst_anchor_check.py src/*.rst -r $(ANCHORREFS) ;\
 		$(PYTHON) $(BUILDDIR)/utils/check-packages.py -s ../src -d src ;\
 		env LC_ALL=C grep -n '[^ -~]' $(RSTDIR)/*.rst ;\

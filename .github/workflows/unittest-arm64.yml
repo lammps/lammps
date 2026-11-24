@@ -88,7 +88,7 @@ jobs:
     - name: Run Tests
       working-directory: build
       shell: bash
-      run: ctest -V -LE unstable --output-junit junit-linux-arm64.xml
+      run: ctest --output-on-failure -LE unstable --output-junit junit-linux-arm64.xml
 
     # test results from pull request branches are only for the submitters,
     # only post-merge results are published for downstream reporting

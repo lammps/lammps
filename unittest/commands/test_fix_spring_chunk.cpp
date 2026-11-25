@@ -67,20 +67,20 @@ TEST_F(FixSpringChunkTest, HarmonicForceAndEnergy)
     ASSERT_NE(spring, nullptr);
 
     auto **force = lmp->atom->f;
-    EXPECT_DOUBLE_EQ(spring->compute_scalar(), 0.0);
-    EXPECT_DOUBLE_EQ(force[0][0], 0.0);
-    EXPECT_DOUBLE_EQ(force[0][1], 0.0);
-    EXPECT_DOUBLE_EQ(force[0][2], 0.0);
+    EXPECT_KKFLOAT_EQ(spring->compute_scalar(), 0.0);
+    EXPECT_KKFLOAT_EQ(force[0][0], 0.0);
+    EXPECT_KKFLOAT_EQ(force[0][1], 0.0);
+    EXPECT_KKFLOAT_EQ(force[0][2], 0.0);
 
     BEGIN_HIDE_OUTPUT();
     command("displace_atoms all move 0.25 0.0 0.0 units box");
     command("run 0 post no");
     END_HIDE_OUTPUT();
 
-    EXPECT_DOUBLE_EQ(spring->compute_scalar(), 0.0625);
-    EXPECT_DOUBLE_EQ(force[0][0], -0.5);
-    EXPECT_DOUBLE_EQ(force[0][1], 0.0);
-    EXPECT_DOUBLE_EQ(force[0][2], 0.0);
+    EXPECT_KKFLOAT_EQ(spring->compute_scalar(), 0.0625);
+    EXPECT_KKFLOAT_EQ(force[0][0], -0.5);
+    EXPECT_KKFLOAT_EQ(force[0][1], 0.0);
+    EXPECT_KKFLOAT_EQ(force[0][2], 0.0);
 
     // Independently verify that the applied force is the negative numerical
     // derivative of the energy returned by the fix.
@@ -112,8 +112,8 @@ TEST_F(FixSpringChunkTest, HarmonicForceAndEnergy)
     command("run 0 post no");
     END_HIDE_OUTPUT();
 
-    EXPECT_DOUBLE_EQ(spring->compute_scalar(), 0.25);
-    EXPECT_DOUBLE_EQ(force[0][0], -1.0);
+    EXPECT_KKFLOAT_EQ(spring->compute_scalar(), 0.25);
+    EXPECT_KKFLOAT_EQ(force[0][0], -1.0);
 }
 
 } // namespace LAMMPS_NS

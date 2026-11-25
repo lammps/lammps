@@ -1,6 +1,6 @@
 ---
 lammps_version: 7 Feb 2024
-tags: no_respa
+tags: no_respa kokkos
 date_generated: Thu Apr  4 21:27:14 2024
 epsilon: 5e-13
 skip_tests:

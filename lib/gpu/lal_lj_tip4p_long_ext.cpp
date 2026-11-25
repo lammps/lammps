@@ -49,7 +49,7 @@ int ljtip4p_long_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
   int gpu_rank=LJTIP4PLMF.device->gpu_rank();
   int procs_per_gpu=LJTIP4PLMF.device->procs_per_gpu();
 
-  LJTIP4PLMF.device->init_message(screen,"lj/cut/tip4p/long/gpu",first_gpu,last_gpu);
+  LJTIP4PLMF.device->init_message(screen,"lj/cut/tip4p/long",first_gpu,last_gpu);
 
   bool message=false;
   if (LJTIP4PLMF.device->replica_me()==0 && screen)

@@ -36,8 +36,8 @@ enum { NONE, CONSTANT, EQUAL, ATOM };
 /* ---------------------------------------------------------------------- */
 
 FixAddTorqueAtom::FixAddTorqueAtom(LAMMPS *lmp, int narg, char **arg) :
-    Fix(lmp, narg, arg), xstr(nullptr), ystr(nullptr), zstr(nullptr),
-    idregion(nullptr), region(nullptr), storque(nullptr)
+    Fix(lmp, narg, arg), xstr(nullptr), ystr(nullptr), zstr(nullptr), idregion(nullptr),
+    region(nullptr), storque(nullptr)
 {
   if (narg < 6) utils::missing_cmd_args(FLERR, "fix addtorque/atom", error);
 
@@ -85,7 +85,8 @@ FixAddTorqueAtom::FixAddTorqueAtom(LAMMPS *lmp, int narg, char **arg) :
     } else if (strcmp(arg[iarg], "region") == 0) {
       if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "fix addtorque/atom region", error);
       region = domain->get_region_by_id(arg[iarg + 1]);
-      if (!region) error->all(FLERR, "Region {} for fix addtorque/atom does not exist", arg[iarg + 1]);
+      if (!region)
+        error->all(FLERR, "Region {} for fix addtorque/atom does not exist", arg[iarg + 1]);
       delete[] idregion;
       idregion = utils::strdup(arg[iarg + 1]);
       iarg += 2;
@@ -181,7 +182,9 @@ void FixAddTorqueAtom::init()
   }
 
   if ((modify->check_rigid_group_overlap(groupbit)) && (comm->me == 0))
-    error->warning(FLERR,"Adding torques to atoms in rigid bodies with fix addtorque/atom may not work as expected");
+    error->warning(
+        FLERR,
+        "Adding torques to atoms in rigid bodies with fix addtorque/atom may not work as expected");
 }
 
 /* ---------------------------------------------------------------------- */

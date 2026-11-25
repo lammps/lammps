@@ -46,7 +46,7 @@ int sw_gpu_init(const int ntypes, const int inum, const int nall,
   int procs_per_gpu=SWMF.device->procs_per_gpu();
 
 
-  SWMF.device->init_message(screen,"sw/gpu",first_gpu,last_gpu);
+  SWMF.device->init_message(screen,"sw",first_gpu,last_gpu);
 
   bool message=false;
   if (SWMF.device->replica_me()==0 && screen)

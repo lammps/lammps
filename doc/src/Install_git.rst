@@ -112,8 +112,8 @@ signature of a tag with a command like the following:
 
 This requires the public key of the LAMMPS developer who has signed the
 tag.  How to import this key and how to check that it is the correct
-key is explained at the :ref:`end of the section about downloading
-tarballs <verify_download>`.
+key is explained in the :ref:`section about checking downloaded files
+<verify_download>`.
 
 Once you have updated your local files with a ``git pull`` (or ``git
 checkout``), you still need to re-build LAMMPS if any source files have

@@ -554,7 +554,7 @@ KOKKOS_INLINE_FUNCTION void MEAMKokkos<DeviceType>::operator()(TagMEAMForce<NEIG
 
         // Compute derivatives of total density wrt rij, sij and rij(3)
         get_shpfcn(lattce_meam[elti][elti], static_cast<KK_FLOAT>(stheta_meam[elti][elti]), static_cast<KK_FLOAT>(ctheta_meam[elti][elti]), shpi);
-        get_shpfcn(lattce_meam[eltj][eltj], static_cast<KK_FLOAT>(stheta_meam[elti][elti]), static_cast<KK_FLOAT>(ctheta_meam[elti][elti]), shpj);
+        get_shpfcn(lattce_meam[eltj][eltj], static_cast<KK_FLOAT>(stheta_meam[eltj][eltj]), static_cast<KK_FLOAT>(ctheta_meam[eltj][eltj]), shpj);
 
 
         if (msmeamflag) {
@@ -799,10 +799,14 @@ KOKKOS_INLINE_FUNCTION void MEAMKokkos<DeviceType>::operator()(TagMEAMForce<NEIG
                     if (cikj >= Cmin && cikj <= Cmax) {
                       cikj = (cikj - Cmin) / delc;
                       sikj = dfcut(cikj, dfc);
-                      dCfunc2(rij2, rik2, rjk2, dCikj1, dCikj2);
-                      a = sij / delc * dfc / sikj;
-                      dsij1 = a * dCikj1;
-                      dsij2 = a * dCikj2;
+                      // sikj = dfc = 0 for cikj within rounding of Cmin while sij > 0,
+                      // see getscreen().  the contribution vanishes in this limit.
+                      if (sikj > static_cast<KK_FLOAT>(0.0)) {
+                        dCfunc2(rij2, rik2, rjk2, dCikj1, dCikj2);
+                        a = sij / delc * dfc / sikj;
+                        dsij1 = a * dCikj1;
+                        dsij2 = a * dCikj2;
+                      }
                     }
                   }
                 }

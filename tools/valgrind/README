@@ -8,7 +8,6 @@ on running LAMMPS, use a command line like following:
 valgrind --leak-check=full --track-origins=yes \
    --show-leak-kinds=definite,indirect,possible \
    --max-stackframe=16777216 \
-   --suppressions=/path/to/lammps/tools/valgrind/FFTW.supp \
    --suppressions=/path/to/lammps/tools/valgrind/FlexiBLAS.supp \
    --suppressions=/path/to/lammps/tools/valgrind/GTest.supp \
    --suppressions=/path/to/lammps/tools/valgrind/Kokkos.supp \
@@ -29,7 +28,6 @@ Or you can create a file $HOME/.valgrindrc with one option per line:
 --show-leak-kinds=definite,indirect,possible
 --track-origins=yes
 --max-stackframe=16777216
---suppressions=/path/to/lammps/tools/valgrind/FFTW.supp
 --suppressions=/path/to/lammps/tools/valgrind/FlexiBLAS.supp
 --suppressions=/path/to/lammps/tools/valgrind/GTest.supp
 --suppressions=/path/to/lammps/tools/valgrind/Kokkos.supp

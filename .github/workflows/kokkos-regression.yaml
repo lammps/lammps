@@ -72,11 +72,16 @@ jobs:
               -C cmake/presets/kokkos-packages.cmake \
               -D CMAKE_CXX_COMPILER_LAUNCHER=ccache \
               -D CMAKE_C_COMPILER_LAUNCHER=ccache \
+              -D CMAKE_BUILD_TYPE=RelWithDebInfo \
+              -D CMAKE_CXX_FLAGS_RELWITHDEBINFO="-O2 -DNDEBUG" \
+              -D CMAKE_C_FLAGS_RELWITHDEBINFO="-O2 -DNDEBUG" \
               -D BUILD_SHARED_LIBS=off \
               -D DOWNLOAD_POTENTIALS=off \
               -G Ninja
         cmake --build build
         ccache -s
+        # drop entries no build used for two weeks (e.g. from older compiler flags) before saving the cache
+        ccache --evict-older-than 14d
 
     - name: Restore measured run times of a previous run
       uses: actions/cache/restore@v6
@@ -159,11 +164,16 @@ jobs:
               -C cmake/presets/kokkos-packages.cmake \
               -D CMAKE_CXX_COMPILER_LAUNCHER=ccache \
               -D CMAKE_C_COMPILER_LAUNCHER=ccache \
+              -D CMAKE_BUILD_TYPE=RelWithDebInfo \
+              -D CMAKE_CXX_FLAGS_RELWITHDEBINFO="-O2 -DNDEBUG" \
+              -D CMAKE_C_FLAGS_RELWITHDEBINFO="-O2 -DNDEBUG" \
               -D BUILD_SHARED_LIBS=off \
               -D DOWNLOAD_POTENTIALS=off \
               -G Ninja
         cmake --build build
         ccache -s
+        # drop entries no build used for two weeks (e.g. from older compiler flags) before saving the cache
+        ccache --evict-older-than 14d
 
     - name: Download input lists
       uses: actions/download-artifact@v8

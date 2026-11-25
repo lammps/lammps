@@ -104,7 +104,7 @@ void PairLJSFDipoleSFGPU::compute(int eflag, int vflag)
 void PairLJSFDipoleSFGPU::init_style()
 {
   if (!atom->q_flag || !atom->mu_flag || !atom->torque_flag)
-    error->all(FLERR, "Pair dipole/sf/gpu requires atom attributes q, mu, torque");
+    error->all(FLERR, "Pair style lj/sf/dipole/sf/gpu requires atom attributes q, mu, torque");
 
   if (strcmp(update->unit_style, "electron") == 0)
     error->all(FLERR, "Cannot (yet) use 'electron' units with dipoles");

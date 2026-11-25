@@ -11,11 +11,9 @@ coming from interactions with other particles.
 LAMMPS has several options for running simulations with these kinds of
 particles.  The following aspects are discussed in turn:
 
-* atom styles
-* pair potentials
-* time integration
-* computes, thermodynamics, and dump output
-* rigid bodies composed of finite-size particles
+.. contents::
+   :local:
+   :depth: 1
 
 Example input scripts for these kinds of models are in the ASPHERE
 (with line and tri sub-directories), body, bpm, colloid, dipole,

@@ -122,8 +122,8 @@ FixPIMDNVT::FixPIMDNVT(LAMMPS *lmp, int narg, char **arg) :
   extvector = 1;
   comm_forward = 3;
 
-  atom->add_callback(Atom::GROW);       // Call LAMMPS to allocate memory for per-atom array
-  atom->add_callback(Atom::RESTART);    // Call LAMMPS to re-assign restart-data for per-atom array
+  atom->add_callback(this, Atom::GROW);       // Call LAMMPS to allocate memory for per-atom array
+  atom->add_callback(this, Atom::RESTART);    // Call LAMMPS to re-assign restart-data for per-atom array
 
   FixPIMDNVT::grow_arrays(atom->nmax);
 
@@ -137,8 +137,8 @@ FixPIMDNVT::FixPIMDNVT(LAMMPS *lmp, int narg, char **arg) :
 FixPIMDNVT::~FixPIMDNVT()
 {
   delete[] mass;
-  atom->delete_callback(id, Atom::GROW);
-  atom->delete_callback(id, Atom::RESTART);
+  atom->delete_callback(this, Atom::GROW);
+  atom->delete_callback(this, Atom::RESTART);
 
   memory->destroy(M_x2xp);
   memory->destroy(M_xp2x);

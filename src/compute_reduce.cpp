@@ -460,7 +460,7 @@ void ComputeReduce::compute_vector()
       indices[m] = index;
     }
 
-  if (mode == SUM || mode == SUMSQ || mode == AVEABS) {
+  if (mode == SUM || mode == SUMSQ || mode == SUMABS) {
     for (int m = 0; m < nvalues; m++)
       MPI_Allreduce(&onevec[m], &vector[m], 1, MPI_DOUBLE, MPI_SUM, world);
   } else if (mode == MINABS || mode == MAXABS) {

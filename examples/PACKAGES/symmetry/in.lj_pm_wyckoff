@@ -1,0 +1,43 @@
+# fix symmetry example: 3 LJ atoms with a mirror plane (space group Pm)
+#
+# Atoms 1 and 2 are mirror images of each other across the plane y = 0.
+# Atom 3 is on the mirror plane at y = L/2 (which is equivalent to y = 0
+# because of the periodic boundaries) and thus its own image.  Such an
+# atom is on a special position: it can only move within the mirror
+# plane.  The fix finds this from the positions and keeps y = 4 for
+# atom 3 and y1 + y2 = 8 for atoms 1 and 2 exactly.
+
+units           lj
+atom_style      atomic
+boundary        p p p
+atom_modify     map array
+
+region          box block 0 8 0 8 0 8
+create_box      1 box
+
+create_atoms    1 single 1.2 2.5 3.0
+create_atoms    1 single 1.2 5.5 3.0
+create_atoms    1 single 1.5 4.0 2.0
+
+mass            1 1.0
+pair_style      lj/cut 2.5
+pair_coeff      * * 1.0 1.0
+pair_modify     shift yes
+
+fix             1 all nve
+fix             sym all symmetry pm.json
+
+# make random velocities symmetric, then rescale.  Of the 9 coordinates,
+# 5 are free (3 of atom 1, 2 of atom 3) and 2 belong to the motion of the
+# whole system parallel to the mirror plane, so the temperature uses 3.
+velocity        all create 0.7 12345 mom yes rot yes
+run             0 post no
+velocity        all scale 0.7
+
+variable        y3   equal y[3]
+variable        sumy equal y[1]+y[2]
+
+thermo_style    custom step temp pe etotal press v_y3 v_sumy
+thermo_modify   format float %14.8g
+thermo          100
+run             1000

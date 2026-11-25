@@ -45,7 +45,7 @@ template <class DeviceType>
 void MLIAPDummyDescriptorKokkos<DeviceType>::compute_descriptors(class MLIAPData *data)
 {
   PyGILState_STATE gstate = PyGILState_Ensure();
-  auto *kokkos_data = dynamic_cast<MLIAPDataKokkos<DeviceType>*>(data);
+  auto *kokkos_data = MLIAPDataKokkos<DeviceType>::cast(data);
   MLIAPDataKokkosDevice raw_data(*kokkos_data);
   compute_descriptors_python_kokkos(unified_interface, &raw_data);
   if (PyErr_Occurred()) {
@@ -65,7 +65,7 @@ template <class DeviceType>
 void MLIAPDummyDescriptorKokkos<DeviceType>::compute_forces(class MLIAPData *data)
 {
   PyGILState_STATE gstate = PyGILState_Ensure();
-  auto *kokkos_data = dynamic_cast<MLIAPDataKokkos<DeviceType>*>(data);
+  auto *kokkos_data = MLIAPDataKokkos<DeviceType>::cast(data);
   MLIAPDataKokkosDevice raw_data(*kokkos_data);
   compute_forces_python_kokkos(unified_interface, &raw_data);
   if (PyErr_Occurred()) {
@@ -158,7 +158,7 @@ template <class DeviceType>
 void MLIAPDummyModelKokkos<DeviceType>::compute_gradients(class MLIAPData *data)
 {
   PyGILState_STATE gstate = PyGILState_Ensure();
-  auto *kokkos_data = dynamic_cast<MLIAPDataKokkos<DeviceType>*>(data);
+  auto *kokkos_data = MLIAPDataKokkos<DeviceType>::cast(data);
   MLIAPDataKokkosDevice raw_data(*kokkos_data);
   compute_gradients_python_kokkos(unified_interface, &raw_data);
   if (PyErr_Occurred()) {

@@ -125,7 +125,7 @@
     #define FFT_KOKKOS_MKL_PREC DFTI_DOUBLE
   #endif
 #elif defined(FFT_KOKKOS_MKL)
-  #include "mkl_dft.h"
+  #include "mkl_dfti.h"
   #if defined(FFT_SINGLE)
     typedef float _Complex FFT_KOKKOS_DATA;
     #define FFT_KOKKOS_MKL_PREC DFTI_SINGLE

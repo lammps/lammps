@@ -81,7 +81,7 @@ void NPairSSAKokkos<DeviceType>::copy_bin_info()
 {
   NPair::copy_bin_info();
 
-  NBinSSAKokkos<DeviceType>* nbKK = dynamic_cast<NBinSSAKokkos<DeviceType>*>(nb);
+  NBinSSAKokkos<DeviceType>* nbKK = NBinSSAKokkos<DeviceType>::cast(nb);
   if (!nbKK) error->one(FLERR, "NBin wasn't a NBinSSAKokkos object");
 
   atoms_per_bin = nbKK->atoms_per_bin;
@@ -733,6 +733,20 @@ void NPairSSAKokkosExecute<DeviceType>::build_ghosts_onePhase(int workPhase) con
       // if (d_ssa_gitemLen(workPhase,workItem) > 0) workItem++;
     }
     d_ssa_gphaseLen(workPhase) = workItem;
+}
+
+/* ----------------------------------------------------------------------
+   convert a pointer to the base class into one to this class, nullptr if
+   it points to an instance of another class.  this must be done here,
+   where the class is explicitly instantiated: elsewhere the dynamic_cast
+   uses a hidden local copy of the type information with the C++ ABI of
+   macOS on arm64, so the linker warns about different visibility settings
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+NPairSSAKokkos<DeviceType> *NPairSSAKokkos<DeviceType>::cast(NPair *ptr)
+{
+  return dynamic_cast<NPairSSAKokkos<DeviceType> *>(ptr);
 }
 
 }

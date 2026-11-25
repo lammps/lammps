@@ -137,9 +137,9 @@ void remap_3d(FFT_SCALAR *in, FFT_SCALAR *out, FFT_SCALAR *buf, remap_plan_3d *p
                    &out[out_offset],&plan->unpackplan[irecv]);
     }
 
-    if (plan->usenonblocking) {
+    if (plan->usenonblocking && plan->nsend) {
       // finally, wait for all Isends to be done
-      MPI_Waitall(plan->nsend,plan->isend_reqs,MPI_STATUS_IGNORE);
+      MPI_Waitall(plan->nsend,plan->isend_reqs,MPI_STATUSES_IGNORE);
     }
   } else {
     if (plan->commringlen > 0) {

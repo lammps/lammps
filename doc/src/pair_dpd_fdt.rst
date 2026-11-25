@@ -78,7 +78,7 @@ For style *dpd/fdt*, the fluctuation-dissipation theorem defines
 :math:`\gamma` to be set equal to :math:`\sigma^2/(2 T)`, where *T* is the
 set point temperature specified as a pair style parameter in the above
 examples.  The following coefficients must be defined for each pair of
-atoms types via the :doc:`pair_coeff <pair_coeff>` command as in the
+atom types via the :doc:`pair_coeff <pair_coeff>` command as in the
 examples above, or in the data file or restart files read by the
 :doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
 commands:
@@ -119,7 +119,7 @@ unit variance that is used to compute the internal conductive
 energy. The fluctuation-dissipation theorem defines :math:`alpha^2` to
 be set equal to :math:`2k_B\kappa`, where :math:`\kappa` is the
 mesoparticle thermal conductivity parameter.  The following coefficients
-must be defined for each pair of atoms types via the :doc:`pair_coeff
+must be defined for each pair of atom types via the :doc:`pair_coeff
 <pair_coeff>` command as in the examples above, or in the data file or
 restart files read by the :doc:`read_data <read_data>` or
 :doc:`read_restart <read_restart>` commands:

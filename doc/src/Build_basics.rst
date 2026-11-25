@@ -4,15 +4,13 @@ Basic build options
 The following topics are covered on this page, for building with both
 CMake and make:
 
-* :ref:`Serial vs parallel build <serial>`
-* :ref:`Choice of compiler and compile/link options <compile>`
-* :ref:`Build the LAMMPS executable and library <exe>`
-* :ref:`Including and removing debug support <debug>`
-* :ref:`Install LAMMPS after a build <install>`
+.. contents::
+   :local:
+   :depth: 2
 
 ----------
 
-.. _serial:
+.. _build_serial:
 
 Serial vs parallel build
 ------------------------
@@ -159,8 +157,6 @@ flag that enables OpenMP.  For the GNU compilers or Clang, it is
 ``-fopenmp``\ .  For (recent) Intel compilers, it is ``-qopenmp``\ .  If
 you are using a different compiler, please refer to its documentation.
 
-.. _default-none-issues:
-
 OpenMP Compiler compatibility
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -177,7 +173,7 @@ for most GNU, Clang, and Intel compilers.
 
 ----------
 
-.. _compile:
+.. _build_compiler:
 
 Choice of compiler and compile/link options
 ---------------------------------------------------------
@@ -197,6 +193,34 @@ directives are included into the OpenMP standard and other compilers
 adopt them.
 
 .. _intel: https://software.intel.com/en-us/intel-compilers
+
+.. note::
+
+   The Intel oneAPI compilers can be installed free of charge from
+   Intel's package repositories, and we recommend using the latest
+   release.  LAMMPS has been tested with the versions 2023.2.1,
+   2024.2.1, 2025.3.3, and 2026.2.0 of the Intel oneAPI C++ compiler.
+   The Intel compilers use the C++ library header files of the GCC
+   version installed on the system, and older versions of the Intel
+   compilers may not be able to process the header files of a newer GCC
+   version.  For example, version 2023.2.1 cannot compile LAMMPS with
+   the header files of GCC 16.  With CMake, a different GCC installation
+   can be selected with ``-D
+   CMAKE_CXX_FLAGS="--gcc-install-dir=/usr/lib/gcc/x86_64-redhat-linux/15"``
+   (the path depends on the Linux distribution).
+
+   The ``setvars.sh`` script of the Intel oneAPI installation sets up
+   the environment for all installed oneAPI components.  If the Intel
+   MPI library is installed, this includes the folder with its header
+   files, which are then also used when LAMMPS is compiled with a
+   different MPI library.  This mix can lead to errors when compiling,
+   linking, or running LAMMPS.  So when using ``setvars.sh``, LAMMPS
+   should be compiled with Intel MPI, or the Intel MPI package should
+   not be installed.
+
+   With the Intel compilers, some of the :ref:`unit tests <testing>`
+   with the "unstable" label fail.  Those tests should be skipped with
+   ``ctest -LE unstable``, or their failures can be ignored.
 
 On parallel clusters or supercomputers which use "environment modules"
 for their compile/link environments, you can often access different
@@ -222,7 +246,12 @@ LAMMPS.
       variables individually, if you want to experiment with alternate
       optimization flags.  You should specify all 3 compilers, so that
       the (few) LAMMPS source files written in C or Fortran are built
-      with a compiler consistent with the one used for the C++ files:
+      with a compiler consistent with the one used for the C++ files.
+      The presets ``gcc-opt.cmake``, ``clang-opt.cmake``, and
+      ``oneapi-opt.cmake`` select more aggressive optimization; see
+      :doc:`Compiler optimization <Speed_compiler>` for their benefits
+      and limitations.  The CMake variables for the compilers and their
+      flags are:
 
       .. code-block:: bash
 
@@ -242,9 +271,6 @@ LAMMPS.
          # Building with GNU Compilers:
          cmake -S cmake -B build -D CMAKE_C_COMPILER=gcc \
                -D CMAKE_CXX_COMPILER=g++ -D CMAKE_Fortran_COMPILER=gfortran
-         # Building with Intel Classic Compilers:
-         cmake -S cmake -B build -D CMAKE_C_COMPILER=icc \
-               -D CMAKE_CXX_COMPILER=icpc -D CMAKE_Fortran_COMPILER=ifort
          # Building with Intel oneAPI Compilers:
          cmake -S cmake -B build -D CMAKE_C_COMPILER=icx \
                -D CMAKE_CXX_COMPILER=icpx -D CMAKE_Fortran_COMPILER=ifx
@@ -261,9 +287,8 @@ LAMMPS.
       For compiling with the Clang/LLVM compilers a CMake preset is
       provided that can be loaded with
       ``-C cmake/presets/clang.cmake``.  Similarly,
-      ``-C cmake/presets/intel.cmake`` should switch the compiler
-      tool chain to the legacy Intel compilers, ``-C cmake/presets/oneapi.cmake``
-      will switch to the LLVM based oneAPI Intel compilers,
+      ``-C cmake/presets/oneapi.cmake`` will switch to the LLVM based
+      oneAPI Intel compilers,
       ``-C cmake/presets/pgi.cmake`` will switch the compiler to the PGI compilers,
       and ``-C cmake/presets/nvhpc.cmake`` will switch to the NVHPC compilers.
 
@@ -343,8 +368,7 @@ LAMMPS.
 
 ----------
 
-.. _exe:
-.. _library:
+.. _build_exe:
 
 Build the LAMMPS executable and library
 ---------------------------------------
@@ -454,7 +478,7 @@ installation.
 
 ----------
 
-.. _debug:
+.. _build_debug:
 
 Including or removing debug support
 -----------------------------------
@@ -483,7 +507,7 @@ the debug information from the LAMMPS executable:
 
 ----------
 
-.. _tools:
+.. _build_tools:
 
 Build LAMMPS tools
 ------------------
@@ -498,8 +522,8 @@ using CMake or Make.
       .. code-block:: bash
 
          -D BUILD_TOOLS=value         # on or off (default). Build binary2txt,
-                                      # chain.x, micelle2d.x, msi2lmp, phana,
-                                      # stl_bin2txt
+                                      # chain.x, find-symmetry, micelle2d.x,
+                                      # msi2lmp, phana, stl_bin2txt
          -D BUILD_LAMMPS_GUI=value    # on or off (default). Build LAMMPS-GUI
          -D BUILD_WHAM=value          # on (default). Download and build WHAM;
                                       # only available for BUILD_LAMMPS_GUI=on
@@ -522,8 +546,6 @@ using CMake or Make.
          Building LAMMPS-GUI *requires* building LAMMPS with CMake.
 
 ----------
-
-.. _install:
 
 Install LAMMPS after a build
 ------------------------------------------

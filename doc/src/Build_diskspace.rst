@@ -33,6 +33,20 @@ reduce the storage requirements. Here are some suggestions:
   needed.  The strip command may also be applied to the LAMMPS shared
   library. The static library may be deleted entirely.
 
+- When compiling LAMMPS with the unit tests enabled (``-D
+  ENABLE_TESTING=on``, see :ref:`Code Coverage and Unit Testing
+  <testing>`), *always* build LAMMPS as a shared library with ``-D
+  BUILD_SHARED_LIBS=on``.  With the default static LAMMPS library, every
+  one of the more than 100 test programs contains its own complete copy
+  of LAMMPS, which is several hundred MBytes large when debug
+  information is included (as with the default ``RelWithDebInfo`` build
+  type).  For example, a build folder with a static LAMMPS library and
+  only 9 packages needed about 70 GBytes, almost all of it for the test
+  programs.  With a shared LAMMPS library, all test programs use the
+  same library and need only a few MBytes each: a build folder with a
+  shared LAMMPS library and 88 packages needed about 20 GBytes, of which
+  the test programs took less than 2 GBytes.
+
 - Delete compiled object files and libraries after copying the LAMMPS
   executable to a permanent location.  When using the traditional build
   process, one may use ``make clean-<machine>`` or ``make clean-all`` to

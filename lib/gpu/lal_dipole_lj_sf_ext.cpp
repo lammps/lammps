@@ -45,7 +45,7 @@ int dplsf_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
   int gpu_rank=DPLSFMF.device->gpu_rank();
   int procs_per_gpu=DPLSFMF.device->procs_per_gpu();
 
-  DPLSFMF.device->init_message(screen,"dipole/sf",first_gpu,last_gpu);
+  DPLSFMF.device->init_message(screen,"lj/sf/dipole/sf",first_gpu,last_gpu);
 
   bool message=false;
   if (DPLSFMF.device->replica_me()==0 && screen)

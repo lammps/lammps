@@ -122,7 +122,6 @@ long-range Coulomb instead.
     run 20000
     write_data tip5p.data nocoeff
 
-.. _tip5p_molecule:
 .. code-block::
 
    # Water molecule. Explicit TIP5P geometry for use with fix rigid

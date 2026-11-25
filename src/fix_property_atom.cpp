@@ -214,9 +214,9 @@ FixPropertyAtom::FixPropertyAtom(LAMMPS *lmp, int narg, char **arg) :
 
   // register with Atom class
 
-  atom->add_callback(Atom::GROW);
-  atom->add_callback(Atom::RESTART);
-  if (border) atom->add_callback(Atom::BORDER);
+  atom->add_callback(this, Atom::GROW);
+  atom->add_callback(this, Atom::RESTART);
+  if (border) atom->add_callback(this, Atom::BORDER);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -234,9 +234,9 @@ FixPropertyAtom::~FixPropertyAtom()
 {
   // unregister callbacks to this fix from Atom class
 
-  atom->delete_callback(id, Atom::GROW);
-  atom->delete_callback(id, Atom::RESTART);
-  if (border) atom->delete_callback(id, Atom::BORDER);
+  atom->delete_callback(this, Atom::GROW);
+  atom->delete_callback(this, Atom::RESTART);
+  if (border) atom->delete_callback(this, Atom::BORDER);
 
   // deallocate per-atom vectors in Atom class
   // set ptrs to a null pointer, so they no longer exist for Atom class

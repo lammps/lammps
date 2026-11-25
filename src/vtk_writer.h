@@ -62,7 +62,9 @@ catch it and turn it into a LAMMPS error.
 
 class VTKWriter {
  public:
+  /** VTK file format: the "legacy" format or the XML format */
   enum Flavor { LEGACY, XML };
+  /** Precision used for writing floating point data */
   enum Precision { SINGLE, DOUBLE };
 
   /** Coordinates larger than this many length units keep fewer than 3 digits

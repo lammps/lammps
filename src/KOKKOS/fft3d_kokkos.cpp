@@ -696,10 +696,8 @@ struct fft_plan_3d_kokkos<DeviceType>* FFT3dKokkos<DeviceType>::fft_3d_create_pl
 #elif defined(FFT_KOKKOS_FFTW3) || defined(FFT_KOKKOS_NVPL)
 
 #if defined (FFT_KOKKOS_FFTW_THREADS)
-  if (nthreads > 1) {
-    FFTW_API(init_threads)();
-    FFTW_API(plan_with_nthreads)(nthreads);
-  }
+  FFTW_API(init_threads)();
+  FFTW_API(plan_with_nthreads)(nthreads);
 #endif
 
   plan->plan_fast_forward =
@@ -844,9 +842,10 @@ void FFT3dKokkos<DeviceType>::fft_3d_destroy_plan_kokkos(struct fft_plan_3d_kokk
   FFTW_API(destroy_plan)(plan->plan_fast_forward);
   FFTW_API(destroy_plan)(plan->plan_fast_backward);
 
-#if defined (FFT_KOKKOS_FFTW_THREADS)
-  FFTW_API(cleanup_threads)();
-#endif
+  // we used to call fftw_cleanup_threads() here, but the data it cleans up is global,
+  // so when multiple FFT3d instances exist we will have a use-after-free error and
+  // an occasional segmentation fault. Better to not clean up. Because it is global data,
+  // there is no memory leak from repeatedly creating and deleting FFT3d instances.
 
 #elif defined (FFT_KOKKOS_KISS)
   delete kissfftKK;

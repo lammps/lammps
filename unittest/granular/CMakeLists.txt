@@ -156,3 +156,8 @@ register_dem_tests(test_dem_14 dem14 DEM14)
 add_executable(test_dem_15 test_dem_15.cpp)
 target_link_libraries(test_dem_15 PRIVATE lammps granular_tests)
 register_dem_tests(test_dem_15 dem15 DEM15)
+
+# DEM-16: contact history transfer at neighbor list rebuilds (newton on/off consistency)
+add_executable(test_dem_16 test_dem_16.cpp)
+target_link_libraries(test_dem_16 PRIVATE lammps granular_tests)
+register_dem_tests(test_dem_16 dem16 DEM16)

@@ -68,7 +68,12 @@ FixQEqReaxFFKokkos(LAMMPS *lmp, int narg, char **arg) :
   m_cap_big = 0;
   allocated_flag = 0;
   nprev = 4;
-  maxexchange = nprev*2;
+  nexchange = 2*nprev + 2*xl.nhist;
+  maxexchange = nexchange;
+  xl_restart = 0;
+  chi_eff_flag = (chi_mode != QEQ) ? 1 : 0;
+  efield_flag = 0;
+  phi_factor = 0.0;
 
   memory->destroy(s_hist);
   memory->destroy(t_hist);
@@ -79,7 +84,7 @@ FixQEqReaxFFKokkos(LAMMPS *lmp, int narg, char **arg) :
   converged = 0;
 
   if (comm->me == 0 && matrix_free)
-    utils::logmesg(lmp, "Using matrix-free form for fix qeq/reax/kk\n");
+    utils::logmesg(lmp, "Using matrix-free form for fix {}\n", style);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -91,7 +96,10 @@ FixQEqReaxFFKokkos<DeviceType>::~FixQEqReaxFFKokkos()
 
   memoryKK->destroy_kokkos(k_s_hist,s_hist);
   memoryKK->destroy_kokkos(k_t_hist,t_hist);
+  memoryKK->destroy_kokkos(k_xls_hist,xls_hist);
+  memoryKK->destroy_kokkos(k_xlt_hist,xlt_hist);
   memoryKK->destroy_kokkos(k_chi_field,chi_field);
+  memoryKK->destroy_kokkos(k_chi_eff,chi_eff);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -111,6 +119,32 @@ void FixQEqReaxFFKokkos<DeviceType>::init()
                            !std::is_same_v<DeviceType,LMPDeviceType>);
   request->set_kokkos_device(std::is_same_v<DeviceType,LMPDeviceType>);
   if (neighflag == FULL) request->enable_full();
+
+  // the full neighbor list for the overlap integrals of the QTPIE and QEQREL
+  // modes and the overlap integral factors on the device
+
+  if (chi_eff_flag) {
+    auto request_olap = neighbor->find_request(this, 1);
+    request_olap->set_kokkos_host(std::is_same_v<DeviceType,LMPHostType> &&
+                                  !std::is_same_v<DeviceType,LMPDeviceType>);
+    request_olap->set_kokkos_device(std::is_same_v<DeviceType,LMPDeviceType>);
+
+    const int ntypes = atom->ntypes;
+    k_olap_pre = DAT::tdual_double_2d("qeq/kk:olap_pre",ntypes+1,ntypes+1);
+    k_olap_exp = DAT::tdual_double_2d("qeq/kk:olap_exp",ntypes+1,ntypes+1);
+    for (int i = 1; i <= ntypes; i++) {
+      for (int j = 1; j <= ntypes; j++) {
+        k_olap_pre.view_host()(i,j) = prefactor[i][j];
+        k_olap_exp.view_host()(i,j) = expfactor[i][j];
+      }
+    }
+    k_olap_pre.modify_host();
+    k_olap_exp.modify_host();
+    k_olap_pre.template sync<DeviceType>();
+    k_olap_exp.template sync<DeviceType>();
+    d_olap_pre = k_olap_pre.template view<DeviceType>();
+    d_olap_exp = k_olap_exp.template view<DeviceType>();
+  }
 
   int ntypes = atom->ntypes;
   k_params = Kokkos::DualView<params_qeq*,Kokkos::LayoutRight,DeviceType>
@@ -173,6 +207,18 @@ void FixQEqReaxFFKokkos<DeviceType>::init_hist()
 
   k_s_hist.template modify<DeviceType>();
   k_t_hist.template modify<DeviceType>();
+
+  // the XL history is filled with converged solutions during the warm-up,
+  // so the initial values only need to be defined
+
+  if (xl.nhist) {
+    k_xls_hist.clear_sync_state();
+    k_xlt_hist.clear_sync_state();
+    Kokkos::deep_copy(d_xls_hist,0.0);
+    Kokkos::deep_copy(d_xlt_hist,0.0);
+    k_xls_hist.template modify<DeviceType>();
+    k_xlt_hist.template modify<DeviceType>();
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -180,7 +226,12 @@ void FixQEqReaxFFKokkos<DeviceType>::init_hist()
 template<class DeviceType>
 void FixQEqReaxFFKokkos<DeviceType>::setup_pre_force(int vflag)
 {
+  // restart the extended-Lagrangian warm-up at the beginning of every run
+
+  xl.nseed = 0;
+  xl.bypass = 1;
   pre_force(vflag);
+  xl.bypass = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -219,22 +270,26 @@ void FixQEqReaxFFKokkos<DeviceType>::pre_force(int /*vflag*/)
   allocate_array();
 
   if (!matrix_free) {
-    // create the functor that handles the H matrix
-    FixQEqReaxFFKokkosNeighborFunctor<DeviceType> neighbor_functor(*this);
 
     // get max number of neighbor
 
     if (!allocated_flag || last_allocate < neighbor->lastcall
         || nlocal_last_allocate != nlocal) {
       // determine the total space for the H matrix
+      // limit scope of functor to allow deallocation of views
       m_cap_big = 0;
-      Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType,TagQEqNeighborNumNeigh>(0,nn), neighbor_functor, m_cap_big);
+      {
+        FixQEqReaxFFKokkosNeighborFunctor<DeviceType> neighbor_functor(*this);
+        Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType,TagQEqNeighborNumNeigh>(0,nn), neighbor_functor, m_cap_big);
+      }
 
       allocate_matrix();
-      neighbor_functor.update_after_allocation(*this);
       last_allocate = update->ntimestep;
       nlocal_last_allocate = nlocal;
     }
+
+    // create the functor that handles the H matrix
+    FixQEqReaxFFKokkosNeighborFunctor<DeviceType> neighbor_functor(*this);
 
     // compute_H
 
@@ -264,10 +319,19 @@ void FixQEqReaxFFKokkos<DeviceType>::pre_force(int /*vflag*/)
 
   // init_matvec
 
-  if (efield) get_chi_field();
+  update_chi_kokkos();
+
+  // in extended-Lagrangian mode, solve with a fixed small number of CG
+  // iterations seeded from the auxiliary variables, once they are available
+
+  xl_active = xl.ready(lmp) ? 1 : 0;
 
   k_s_hist.template sync<DeviceType>();
   k_t_hist.template sync<DeviceType>();
+  if (xl.flag) {
+    k_xls_hist.template sync<DeviceType>();
+    k_xlt_hist.template sync<DeviceType>();
+  }
 
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagQEqInitMatvec>(0,nn),*this);
 
@@ -287,7 +351,41 @@ void FixQEqReaxFFKokkos<DeviceType>::pre_force(int /*vflag*/)
   // one fused iteration does a matvec on each of s and t, and the base class
   // reports half of the count, so count two per iteration
 
-  matvecs = 2*cg_solve();
+  if (xl_active) {
+    const int imax_save = imax;
+    const int maxwarn_save = maxwarn;
+    imax = xl.ncg + 1;
+    maxwarn = 0;
+    matvecs = 2*cg_solve();
+    imax = imax_save;
+    maxwarn = maxwarn_save;
+
+    // complete the solve from the current solution and restart the propagation
+    // when the truncated solve indicates that it became unstable
+
+    if (xl.unstable(xl_resid)) {
+      const double resid = xl_resid;
+      pack_flag = 2;
+      k_st.template modify<DeviceType>();
+      comm->forward_comm(this);
+      k_st.template sync<DeviceType>();
+      matvecs += 2*cg_solve();
+      xl.fallback(lmp, style, resid, maxwarn);
+      xl_active = 0;
+    }
+  } else {
+    matvecs = 2*cg_solve();
+  }
+
+  // advance or (re-)seed the auxiliary variables of the XL propagation
+
+  if (xl.flag) {
+    xl_restart = (!xl_active && xl.restart(lmp)) ? 1 : 0;
+    Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagQEqXLUpdate>(0,nn),*this);
+    k_xls_hist.template modify<DeviceType>();
+    k_xlt_hist.template modify<DeviceType>();
+    xl.advance(lmp, xl_active, xl_restart);
+  }
 
   k_s_hist.template sync<DeviceType>();
   k_t_hist.template sync<DeviceType>();
@@ -356,11 +454,17 @@ void FixQEqReaxFFKokkos<DeviceType>::allocate_array()
 
     memoryKK->create_kokkos(k_chi_field,chi_field,nmax,"qeq/kk:chi_field");
     d_chi_field = k_chi_field.template view<DeviceType>();
+
+    if (chi_eff_flag) {
+      memoryKK->grow_kokkos(k_chi_eff,chi_eff,nmax,"qeq/kk:chi_eff");
+      d_chi_eff = k_chi_eff.template view<DeviceType>();
+      vector_atom = chi_eff;
+    }
   }
 
   // init_storage
 
-  if (efield) get_chi_field();
+  update_chi_kokkos();
 
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagQEqZero>(0,nn),*this);
 }
@@ -377,7 +481,8 @@ void FixQEqReaxFFKokkos<DeviceType>::operator()(TagQEqZero, const int &ii) const
 
   if (mask[i] & groupbit) {
     d_Hdia_inv[i] = static_cast<KK_FLOAT>(1.0) / params(itype).eta;
-    d_b_st(i,0) = -params(itype).chi - d_chi_field[i];
+    if (chi_eff_flag) d_b_st(i,0) = static_cast<KK_FLOAT>(-d_chi_eff[i]);
+    else d_b_st(i,0) = -params(itype).chi - d_chi_field[i];
     d_b_st(i,1) = -1.0;
     d_st(i,0) = 0.0;
     d_st(i,1) = 0.0;
@@ -404,10 +509,21 @@ void FixQEqReaxFFKokkos<DeviceType>::operator()(TagQEqInitMatvec, const int &ii)
 
   if (mask[i] & groupbit) {
     d_Hdia_inv[i] = static_cast<KK_FLOAT>(1.0) / params(itype).eta;
-    d_b_st(i,0) = -params(itype).chi - d_chi_field[i];
+    if (chi_eff_flag) d_b_st(i,0) = static_cast<KK_FLOAT>(-d_chi_eff[i]);
+    else d_b_st(i,0) = -params(itype).chi - d_chi_field[i];
     d_b_st(i,1) = -1.0;
-    d_st(i,0) = 4*(d_s_hist(i,0)+d_s_hist(i,2))-(6*d_s_hist(i,1)+d_s_hist(i,3));
-    d_st(i,1) = d_t_hist(i,2) + 3*(d_t_hist(i,0) - d_t_hist(i,1));
+    if (xl_active) {
+      // initial guess from the auxiliary variables of the XL propagation
+      d_st(i,0) = static_cast<KK_FLOAT>(d_xls_hist(i,0));
+      d_st(i,1) = static_cast<KK_FLOAT>(d_xlt_hist(i,0));
+    } else {
+      d_st(i,0) = 4*(d_s_hist(i,0)+d_s_hist(i,2))-(6*d_s_hist(i,1)+d_s_hist(i,3));
+      d_st(i,1) = d_t_hist(i,2) + 3*(d_t_hist(i,0) - d_t_hist(i,1));
+    }
+  } else {
+    // atoms outside the group act as fixed charges on the s-solution only
+    d_st(i,0) = q(i);
+    d_st(i,1) = 0.0;
   }
 }
 
@@ -441,6 +557,11 @@ int FixQEqReaxFFKokkos<DeviceType>::cg_solve()
   MPI_Allreduce(&my_norm.v, &norm_sqr.v, 2, MPI_DOUBLE, MPI_SUM, world);
   b_norm.v[0] = sqrt(norm_sqr.v[0]);
   b_norm.v[1] = sqrt(norm_sqr.v[1]);
+
+  // use the absolute residual when the right-hand side vanishes, e.g. for
+  // QTPIE with only one element.  the relative residual is undefined then.
+  if (b_norm.v[0] == 0.0) b_norm.v[0] = 1.0;
+  if (b_norm.v[1] == 0.0) b_norm.v[1] = 1.0;
 
   // sig_new = parallel_dot(r, d, nn);
   KK_double2 my_dot;
@@ -508,11 +629,17 @@ int FixQEqReaxFFKokkos<DeviceType>::cg_solve()
     Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagQEqSum1>(0,nn),*this);
   }
 
-  if (loop >= imax && comm->me == 0)
-    error->warning(FLERR,fmt::format("Fix qeq/reaxff/kk cg_solve convergence "
-                                     "failed after {} iterations at step {}: "
-                                     "({}, {})", loop, update->ntimestep,
-                                     (sqrt(sig_new.v[0])/b_norm.v[0]), (sqrt(sig_new.v[1])/b_norm.v[1])));
+  // relative residuals at the end of the solve, used to detect an unstable
+  // extended-Lagrangian propagation
+
+  if (!(converged & 1)) residual[0] = sqrt(sig_new.v[0]) / b_norm.v[0];
+  if (!(converged & 2)) residual[1] = sqrt(sig_new.v[1]) / b_norm.v[1];
+  xl_resid = MAX(residual[0], residual[1]);
+
+  if ((loop >= imax) && maxwarn && (comm->me == 0))
+    error->warning(FLERR, "Fix {} cg_solve convergence failed after {} iterations at step {}: "
+                   "({}, {})", style, loop, update->ntimestep,
+                   (sqrt(sig_new.v[0])/b_norm.v[0]), (sqrt(sig_new.v[1])/b_norm.v[1]));
 
   return loop;
 }
@@ -633,6 +760,9 @@ void FixQEqReaxFFKokkos<DeviceType>::operator()(TagQEqSparseMatvec1, const int &
       d_o(i,0) = params_eta * d_xx(i,0);
     if (!(converged & 2))
       d_o(i,1) = params_eta * d_xx(i,1);
+  } else {
+    d_o(i,0) = 0.0;
+    d_o(i,1) = 0.0;
   }
 }
 
@@ -643,12 +773,10 @@ template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void FixQEqReaxFFKokkos<DeviceType>::operator()(TagQEqZeroQGhosts, const int &i) const
 {
-  if (mask[i] & groupbit) {
-    if (!(converged & 1))
-      d_o(i,0) = 0.0;
-    if (!(converged & 2))
-      d_o(i,1) = 0.0;
-  }
+  if (!(converged & 1))
+    d_o(i,0) = 0.0;
+  if (!(converged & 2))
+    d_o(i,1) = 0.0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -665,31 +793,32 @@ void FixQEqReaxFFKokkos<DeviceType>::operator()(TagQEqSparseMatvec2_Half<NEIGHFL
     auto v_o = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_o),decltype(ndup_o)>::get(dup_o,ndup_o);
     auto a_o = v_o.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
 
-    const int i = d_ilist[k];
-    if (mask[i] & groupbit) {
-      KK_FLOAT2 doitmp;
-      const KK_FLOAT d_xx_i0 = d_xx(i,0);
-      const KK_FLOAT d_xx_i1 = d_xx(i,1);
+    // with a half neighbor list the rows of atoms outside the group are needed,
+    // too.  they only contain the neighbors inside the group.
 
-      Kokkos::parallel_reduce(Kokkos::ThreadVectorRange(team, d_firstnbr[i], d_firstnbr[i] + d_numnbrs[i]), [&] (const bigint &jj, KK_FLOAT2& doi) {
-        const int j = d_jlist(jj);
-        const auto d_val_jj = d_val(jj);
-        if (!(converged & 1)) {
-          doi.v[0] += d_val_jj * d_xx(j,0);
-          a_o(j,0) += d_val_jj * d_xx_i0;
-        }
-        if (!(converged & 2)) {
-          doi.v[1] += d_val_jj * d_xx(j,1);
-          a_o(j,1) += d_val_jj * d_xx_i1;
-        }
-      }, doitmp);
-      Kokkos::single(Kokkos::PerThread(team), [&] () {
-        if (!(converged & 1))
-          a_o(i,0) += doitmp.v[0];
-        if (!(converged & 2))
-          a_o(i,1) += doitmp.v[1];
-      });
-    }
+    const int i = d_ilist[k];
+    KK_FLOAT2 doitmp;
+    const KK_FLOAT d_xx_i0 = d_xx(i,0);
+    const KK_FLOAT d_xx_i1 = d_xx(i,1);
+
+    Kokkos::parallel_reduce(Kokkos::ThreadVectorRange(team, d_firstnbr[i], d_firstnbr[i] + d_numnbrs[i]), [&] (const bigint &jj, KK_FLOAT2& doi) {
+      const int j = d_jlist(jj);
+      const auto d_val_jj = d_val(jj);
+      if (!(converged & 1)) {
+        doi.v[0] += d_val_jj * d_xx(j,0);
+        a_o(j,0) += d_val_jj * d_xx_i0;
+      }
+      if (!(converged & 2)) {
+        doi.v[1] += d_val_jj * d_xx(j,1);
+        a_o(j,1) += d_val_jj * d_xx_i1;
+      }
+    }, doitmp);
+    Kokkos::single(Kokkos::PerThread(team), [&] () {
+      if (!(converged & 1))
+        a_o(i,0) += doitmp.v[0];
+      if (!(converged & 2))
+        a_o(i,1) += doitmp.v[1];
+    });
   }
 }
 
@@ -739,74 +868,77 @@ void FixQEqReaxFFKokkos<DeviceType>::operator()(TagQEqSparseMatvec2_Half_MatrixF
   const int i = d_ilist[ii];
   int j, jj, jtype;
 
-  if (mask[i] & groupbit) {
-    const KK_FLOAT xtmp = x(i,0);
-    const KK_FLOAT ytmp = x(i,1);
-    const KK_FLOAT ztmp = x(i,2);
-    const int itype = type(i);
-    const tagint itag = tag(i);
-    const int jnum = d_numneigh[i];
+  // with a half neighbor list the interactions of atoms outside the group with
+  // their neighbors in the group are needed, too.
 
-    KK_FLOAT2 doi = KK_FLOAT2();
-    const KK_FLOAT2 xx_i = { d_xx(i,0), d_xx(i,1) };
+  const bool igroup = mask[i] & groupbit;
+  const KK_FLOAT xtmp = x(i,0);
+  const KK_FLOAT ytmp = x(i,1);
+  const KK_FLOAT ztmp = x(i,2);
+  const int itype = type(i);
+  const tagint itag = tag(i);
+  const int jnum = d_numneigh[i];
 
-    for (jj = 0; jj < jnum; jj++) {
-      j = d_neighbors(i,jj);
-      j &= NEIGHMASK;
-      jtype = type(j);
+  KK_FLOAT2 doi = KK_FLOAT2();
+  const KK_FLOAT2 xx_i = { d_xx(i,0), d_xx(i,1) };
 
-      const KK_FLOAT delx = x(j,0) - xtmp;
-      const KK_FLOAT dely = x(j,1) - ytmp;
-      const KK_FLOAT delz = x(j,2) - ztmp;
+  for (jj = 0; jj < jnum; jj++) {
+    j = d_neighbors(i,jj);
+    j &= NEIGHMASK;
+    if (!igroup && !(mask[j] & groupbit)) continue;
+    jtype = type(j);
 
-      // always true
-      //if (neighflag != FULL) {
-        // skip half of the interactions
-      const tagint jtag = tag(j);
-      bool skip = [&]() -> bool {
-        if (j >= nlocal) {
-          if (itag > jtag) {
-            if ((itag+jtag) % 2 == 0) return true;
-          } else if (itag < jtag) {
-            if ((itag+jtag) % 2 == 1) return true;
-          } else {
-            if (x(j,2) < ztmp) return true;
-            if (x(j,2) == ztmp && x(j,1)  < ytmp) return true;
-            if (x(j,2) == ztmp && x(j,1) == ytmp && x(j,0) < xtmp) return true;
-          }
+    const KK_FLOAT delx = x(j,0) - xtmp;
+    const KK_FLOAT dely = x(j,1) - ytmp;
+    const KK_FLOAT delz = x(j,2) - ztmp;
+
+    // always true
+    //if (neighflag != FULL) {
+      // skip half of the interactions
+    const tagint jtag = tag(j);
+    bool skip = [&]() -> bool {
+      if (j >= nlocal) {
+        if (itag > jtag) {
+          if ((itag+jtag) % 2 == 0) return true;
+        } else if (itag < jtag) {
+          if ((itag+jtag) % 2 == 1) return true;
+        } else {
+          if (x(j,2) < ztmp) return true;
+          if (x(j,2) == ztmp && x(j,1)  < ytmp) return true;
+          if (x(j,2) == ztmp && x(j,1) == ytmp && x(j,0) < xtmp) return true;
         }
-        return false;
-      }();
+      }
+      return false;
+    }();
 
-      if (!skip) {
-      const KK_FLOAT rsq = delx*delx + dely*dely + delz*delz;
-        if (rsq <= cutsq) {
-          const KK_FLOAT r = sqrt(rsq);
-          const KK_FLOAT shldij = d_shield(itype, jtype);
+    if (!skip) {
+    const KK_FLOAT rsq = delx*delx + dely*dely + delz*delz;
+      if (rsq <= cutsq) {
+        const KK_FLOAT r = sqrt(rsq);
+        const KK_FLOAT shldij = d_shield(itype, jtype);
 
-          // we split this out here for mixed precision calculations
-          double h_k_val = calculate_H_k(r, shldij);
+        // we split this out here for mixed precision calculations
+        double h_k_val = calculate_H_k(r, shldij);
 
-          const KK_FLOAT2 xx_j = { d_xx(j,0), d_xx(j,1) };
-          if (!(converged & 1)) {
-            doi.v[0] += h_k_val * xx_j.v[0];
-            a_o(j,0) += h_k_val * xx_i.v[0];
-          }
+        const KK_FLOAT2 xx_j = { d_xx(j,0), d_xx(j,1) };
+        if (!(converged & 1)) {
+          doi.v[0] += h_k_val * xx_j.v[0];
+          a_o(j,0) += h_k_val * xx_i.v[0];
+        }
 
-          if (!(converged & 2)) {
-            doi.v[1] += h_k_val * xx_j.v[1];
-            a_o(j,1) += h_k_val * xx_i.v[1];
-          }
+        if (!(converged & 2)) {
+          doi.v[1] += h_k_val * xx_j.v[1];
+          a_o(j,1) += h_k_val * xx_i.v[1];
         }
       }
     }
+  }
 
-    if (!(converged & 1)) {
-      a_o(i,0) += doi.v[0];
-    }
-    if (!(converged & 2)) {
-      a_o(i,1) += doi.v[1];
-    }
+  if (!(converged & 1)) {
+    a_o(i,0) += doi.v[0];
+  }
+  if (!(converged & 2)) {
+    a_o(i,1) += doi.v[1];
   }
 }
 
@@ -892,6 +1024,10 @@ void FixQEqReaxFFKokkos<DeviceType>::operator()(TagQEqNorm1, const int &ii, KK_d
       d_r(i,1) = static_cast<KK_FLOAT>(r);
       out.v[1] += static_cast<double>(d_b_st(i,1) * d_b_st(i,1));
     }
+  } else {
+    // atoms outside the group have fixed charges
+    d_d(i,0) = 0.0;
+    d_d(i,1) = 0.0;
   }
 }
 
@@ -1011,6 +1147,51 @@ void FixQEqReaxFFKokkos<DeviceType>::operator()(TagQEqCalculateQ, const int &ii)
   }
 }
 
+/* ----------------------------------------------------------------------
+   advance the auxiliary variables with the time-reversible (dissipative)
+   Verlet propagation during the XL solves, otherwise (re-)seed the history
+   from the fully converged solution.  same as XLQEq::propagate(),
+   XLQEq::push(), and XLQEq::fill(), which cannot be called on the device
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+// NOLINTNEXTLINE
+KOKKOS_INLINE_FUNCTION
+void FixQEqReaxFFKokkos<DeviceType>::operator()(TagQEqXLUpdate, const int &ii) const
+{
+  const int i = d_ilist[ii];
+  if (!(mask[i] & groupbit)) return;
+
+  const int nhist = xl.nhist;
+  double xs = static_cast<double>(d_st(i,0));
+  double xt = static_cast<double>(d_st(i,1));
+
+  if (xl_active) {
+    double ths = 2.0 * d_xls_hist(i,0) - d_xls_hist(i,1) + xl.kappa * (xs - d_xls_hist(i,0));
+    double tht = 2.0 * d_xlt_hist(i,0) - d_xlt_hist(i,1) + xl.kappa * (xt - d_xlt_hist(i,0));
+    if (xl.kdis) {
+      for (int k = 0; k <= xl.kdis; ++k) {
+        ths += xl.alpha * xl.c[k] * d_xls_hist(i,k);
+        tht += xl.alpha * xl.c[k] * d_xlt_hist(i,k);
+      }
+    }
+    xs = ths;
+    xt = tht;
+  } else if (xl_restart) {
+    for (int k = 0; k < nhist; ++k) {
+      d_xls_hist(i,k) = xs;
+      d_xlt_hist(i,k) = xt;
+    }
+    return;
+  }
+  for (int k = nhist-1; k > 0; --k) {
+    d_xls_hist(i,k) = d_xls_hist(i,k-1);
+    d_xlt_hist(i,k) = d_xlt_hist(i,k-1);
+  }
+  d_xls_hist(i,0) = xs;
+  d_xlt_hist(i,0) = xt;
+}
+
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
@@ -1021,7 +1202,7 @@ int FixQEqReaxFFKokkos<DeviceType>::pack_forward_comm_kokkos(int n, DAT::tdual_i
   d_sendlist = k_sendlist.view<DeviceType>();
   d_buf = k_buf.view<DeviceType>();
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagQEqPackForwardComm>(0,n),*this);
-  if (pack_flag == 3) return n;
+  if ((pack_flag == 3) || (pack_flag == 6)) return n;
   else return n*2;
 }
 
@@ -1043,6 +1224,8 @@ void FixQEqReaxFFKokkos<DeviceType>::operator()(TagQEqPackForwardComm, const int
     d_buf[i*2+1] = static_cast<double>(d_st(j,1));
   } else if (pack_flag == 3)
     d_buf[i] = static_cast<double>(q[j]);
+  else if (pack_flag == 6)
+    d_buf[i] = static_cast<double>(d_chi_field[j]);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1072,6 +1255,8 @@ void FixQEqReaxFFKokkos<DeviceType>::operator()(TagQEqUnpackForwardComm, const i
     d_st(i+first,1) = static_cast<KK_FLOAT>(d_buf[i*2+1]);
   } else if (pack_flag == 3)
     q[i + first] = static_cast<KK_FLOAT>(d_buf[i]);
+  else if (pack_flag == 6)
+    d_chi_field[i + first] = static_cast<KK_FLOAT>(d_buf[i]);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1100,9 +1285,12 @@ int FixQEqReaxFFKokkos<DeviceType>::pack_forward_comm(int n, int *list, double *
   } else if (pack_flag == 3) {
     atomKK->sync(Host,Q_MASK);
     for (m = 0; m < n; m++) buf[m] = atom->q[list[m]];
+  } else if (pack_flag == 6) {
+    k_chi_field.sync_host();
+    for (m = 0; m < n; m++) buf[m] = chi_field[list[m]];
   }
 
-  if (pack_flag == 3) return n;
+  if ((pack_flag == 3) || (pack_flag == 6)) return n;
   else return n*2;
 }
 
@@ -1133,6 +1321,10 @@ void FixQEqReaxFFKokkos<DeviceType>::unpack_forward_comm(int n, int first, doubl
     atomKK->sync(Host,Q_MASK);
     for (m = 0, i = first; m < n; m++, i++) atom->q[i] = buf[m];
     atomKK->modified(Host,Q_MASK);
+  } else if (pack_flag == 6) {
+    k_chi_field.sync_host();
+    for (m = 0, i = first; m < n; m++, i++) chi_field[i] = buf[m];
+    k_chi_field.modify_host();
   }
 }
 
@@ -1223,6 +1415,7 @@ double FixQEqReaxFFKokkos<DeviceType>::memory_usage()
   double bytes;
 
   bytes = atom->nmax*nprev*2 * sizeof(KK_FLOAT); // s_hist & t_hist
+  bytes += (double)atom->nmax*xl.nhist*2 * sizeof(double); // xls_hist & xlt_hist
   bytes += (double)atom->nmax*8 * sizeof(KK_FLOAT); // storage
   bytes += (double)n_cap*2 * sizeof(int); // matrix...
   bytes += (double)m_cap_big * sizeof(int);
@@ -1249,6 +1442,19 @@ void FixQEqReaxFFKokkos<DeviceType>::grow_arrays(int nmax)
 
   d_s_hist = k_s_hist.template view<DeviceType>();
   d_t_hist = k_t_hist.template view<DeviceType>();
+
+  if (xl.nhist) {
+    k_xls_hist.sync_host();
+    k_xlt_hist.sync_host();
+    k_xls_hist.modify_host();
+    k_xlt_hist.modify_host();
+
+    memoryKK->grow_kokkos(k_xls_hist,xls_hist,nmax,xl.nhist,"qeq:xls_hist");
+    memoryKK->grow_kokkos(k_xlt_hist,xlt_hist,nmax,xl.nhist,"qeq:xlt_hist");
+
+    d_xls_hist = k_xls_hist.template view<DeviceType>();
+    d_xlt_hist = k_xlt_hist.template view<DeviceType>();
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -1268,6 +1474,43 @@ void FixQEqReaxFFKokkos<DeviceType>::copy_arrays(int i, int j, int /*delflag*/)
 
   k_s_hist.modify_host();
   k_t_hist.modify_host();
+
+  if (xl.nhist) {
+    k_xls_hist.sync_host();
+    k_xlt_hist.sync_host();
+
+    for (int m = 0; m < xl.nhist; m++) {
+      xls_hist[j][m] = xls_hist[i][m];
+      xlt_hist[j][m] = xlt_hist[i][m];
+    }
+
+    k_xls_hist.modify_host();
+    k_xlt_hist.modify_host();
+  }
+}
+
+/* ----------------------------------------------------------------------
+   initialize history for an atom created during the run
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+void FixQEqReaxFFKokkos<DeviceType>::set_arrays(int i)
+{
+  k_s_hist.sync_host();
+  k_t_hist.sync_host();
+  if (xl.nhist) {
+    k_xls_hist.sync_host();
+    k_xlt_hist.sync_host();
+  }
+
+  FixQEqReaxFF::set_arrays(i);
+
+  k_s_hist.modify_host();
+  k_t_hist.modify_host();
+  if (xl.nhist) {
+    k_xls_hist.modify_host();
+    k_xlt_hist.modify_host();
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -1287,6 +1530,17 @@ void FixQEqReaxFFKokkos<DeviceType>::sort_kokkos(Kokkos::BinSort<KeyViewType, Bi
 
   k_s_hist.modify_device();
   k_t_hist.modify_device();
+
+  if (xl.nhist) {
+    k_xls_hist.sync_device();
+    k_xlt_hist.sync_device();
+
+    Sorter.sort(LMPDeviceType(), k_xls_hist.view_device());
+    Sorter.sort(LMPDeviceType(), k_xlt_hist.view_device());
+
+    k_xls_hist.modify_device();
+    k_xlt_hist.modify_device();
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1298,13 +1552,22 @@ void FixQEqReaxFFKokkos<DeviceType>::operator()(TagQEqPackExchange, const int &m
 
   const int i = d_exchange_sendlist(mysend);
   const int j = d_copylist(mysend);
+  const int nhist = xl.nhist;
+  int n = mysend*nexchange;
 
-  for (int m = 0; m < nprev; m++) {
-    d_buf(mysend*nprev*2 + m) = static_cast<double>(d_s_hist(i,m));
-    d_buf(mysend*nprev*2 + nprev+m) = static_cast<double>(d_t_hist(i,m));
-    if (j > -1) {
+  for (int m = 0; m < nprev; m++) d_buf(n++) = static_cast<double>(d_s_hist(i,m));
+  for (int m = 0; m < nprev; m++) d_buf(n++) = static_cast<double>(d_t_hist(i,m));
+  for (int m = 0; m < nhist; m++) d_buf(n++) = d_xls_hist(i,m);
+  for (int m = 0; m < nhist; m++) d_buf(n++) = d_xlt_hist(i,m);
+
+  if (j > -1) {
+    for (int m = 0; m < nprev; m++) {
       d_s_hist(i,m) = d_s_hist(j,m);
       d_t_hist(i,m) = d_t_hist(j,m);
+    }
+    for (int m = 0; m < nhist; m++) {
+      d_xls_hist(i,m) = d_xls_hist(j,m);
+      d_xlt_hist(i,m) = d_xlt_hist(j,m);
     }
   }
 }
@@ -1330,6 +1593,10 @@ int FixQEqReaxFFKokkos<DeviceType>::pack_exchange_kokkos(
 
   k_s_hist.template sync<DeviceType>();
   k_t_hist.template sync<DeviceType>();
+  if (xl.nhist) {
+    k_xls_hist.template sync<DeviceType>();
+    k_xlt_hist.template sync<DeviceType>();
+  }
 
   copymode = 1;
 
@@ -1345,8 +1612,12 @@ int FixQEqReaxFFKokkos<DeviceType>::pack_exchange_kokkos(
 
   k_s_hist.template modify<DeviceType>();
   k_t_hist.template modify<DeviceType>();
+  if (xl.nhist) {
+    k_xls_hist.template modify<DeviceType>();
+    k_xlt_hist.template modify<DeviceType>();
+  }
 
-  return nsend*nprev*2;
+  return nsend*nexchange;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1359,8 +1630,12 @@ void FixQEqReaxFFKokkos<DeviceType>::operator()(TagQEqUnpackExchange, const int 
   int index = d_indices(i);
 
   if (index > -1) {
-    for (int m = 0; m < nprev; m++) d_s_hist(index,m) = static_cast<KK_FLOAT>(d_buf(i*nprev*2 + m));
-    for (int m = 0; m < nprev; m++) d_t_hist(index,m) = static_cast<KK_FLOAT>(d_buf(i*nprev*2 + nprev+m));
+    const int nhist = xl.nhist;
+    int n = i*nexchange;
+    for (int m = 0; m < nprev; m++) d_s_hist(index,m) = static_cast<KK_FLOAT>(d_buf(n++));
+    for (int m = 0; m < nprev; m++) d_t_hist(index,m) = static_cast<KK_FLOAT>(d_buf(n++));
+    for (int m = 0; m < nhist; m++) d_xls_hist(index,m) = d_buf(n++);
+    for (int m = 0; m < nhist; m++) d_xlt_hist(index,m) = d_buf(n++);
   }
 }
 
@@ -1382,6 +1657,10 @@ void FixQEqReaxFFKokkos<DeviceType>::unpack_exchange_kokkos(
 
   k_s_hist.template sync<DeviceType>();
   k_t_hist.template sync<DeviceType>();
+  if (xl.nhist) {
+    k_xls_hist.template sync<DeviceType>();
+    k_xlt_hist.template sync<DeviceType>();
+  }
 
   copymode = 1;
 
@@ -1391,6 +1670,10 @@ void FixQEqReaxFFKokkos<DeviceType>::unpack_exchange_kokkos(
 
   k_s_hist.template modify<DeviceType>();
   k_t_hist.template modify<DeviceType>();
+  if (xl.nhist) {
+    k_xls_hist.template modify<DeviceType>();
+    k_xlt_hist.template modify<DeviceType>();
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -1402,14 +1685,21 @@ int FixQEqReaxFFKokkos<DeviceType>::pack_exchange(int i, double *buf)
 {
   k_s_hist.sync_host();
   k_t_hist.sync_host();
+  if (xl.nhist) {
+    k_xls_hist.sync_host();
+    k_xlt_hist.sync_host();
+  }
 
-  for (int m = 0; m < nprev; m++) buf[m] = s_hist[i][m];
-  for (int m = 0; m < nprev; m++) buf[nprev+m] = t_hist[i][m];
+  const int n = FixQEqReaxFF::pack_exchange(i, buf);
 
   k_s_hist.modify_host();
   k_t_hist.modify_host();
+  if (xl.nhist) {
+    k_xls_hist.modify_host();
+    k_xlt_hist.modify_host();
+  }
 
-  return nprev*2;
+  return n;
 }
 
 /* ----------------------------------------------------------------------
@@ -1421,14 +1711,143 @@ int FixQEqReaxFFKokkos<DeviceType>::unpack_exchange(int nlocal, double *buf)
 {
   k_s_hist.sync_host();
   k_t_hist.sync_host();
+  if (xl.nhist) {
+    k_xls_hist.sync_host();
+    k_xlt_hist.sync_host();
+  }
 
-  for (int m = 0; m < nprev; m++) s_hist[nlocal][m] = buf[m];
-  for (int m = 0; m < nprev; m++) t_hist[nlocal][m] = buf[nprev+m];
+  const int n = FixQEqReaxFF::unpack_exchange(nlocal, buf);
 
   k_s_hist.modify_host();
   k_t_hist.modify_host();
+  if (xl.nhist) {
+    k_xls_hist.modify_host();
+    k_xlt_hist.modify_host();
+  }
 
-  return nprev*2;
+  return n;
+}
+
+/* ---------------------------------------------------------------------- */
+
+/* ----------------------------------------------------------------------
+   update the electronegativity contributions for the current step
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+void FixQEqReaxFFKokkos<DeviceType>::update_chi_kokkos()
+{
+  if (chi_mode == QEQ) {
+    if (efield) get_chi_field();
+  } else {
+    calc_chi_eff();
+  }
+}
+
+/* ----------------------------------------------------------------------
+   compute the effective electronegativities of the QTPIE and QEQREL modes
+   on the device, see FixQEqReaxFF::calc_chi_eff()
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+void FixQEqReaxFFKokkos<DeviceType>::calc_chi_eff()
+{
+  auto *k_list_olap = static_cast<NeighListKokkos<DeviceType>*>(list_olap);
+  d_numneigh_olap = k_list_olap->d_numneigh;
+  d_neighbors_olap = k_list_olap->d_neighbors;
+  d_ilist_olap = k_list_olap->d_ilist;
+  const int inum_olap = list_olap->inum;
+
+  // settings of the external electric potential.  atom-style variables are
+  // evaluated on the host, and the values of the ghost atoms are communicated
+
+  efield_flag = efield ? 1 : 0;
+  phi_factor = 1.0/force->qe2f;
+  if (efield_has_variables()) atomKK->sync(Host,X_MASK|MASK_MASK|TYPE_MASK|IMAGE_MASK|Q_MASK);
+  k_chi_field.sync_host();
+  set_efield_phi();
+  if (phi_atomstyle) {
+    k_chi_field.modify_host();
+    k_chi_field.template sync<DeviceType>();
+    pack_flag = 6;
+    k_chi_field.template modify<DeviceType>();
+    comm->forward_comm(this);
+    k_chi_field.template sync<DeviceType>();
+  }
+
+  // called from pre_force(), where copymode is already set
+
+  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagQEqChiEff>(0,inum_olap),*this);
+
+  // the effective electronegativities are also a per-atom output on the host
+
+  k_chi_eff.template modify<DeviceType>();
+  k_chi_eff.sync_host();
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+// NOLINTNEXTLINE
+KOKKOS_INLINE_FUNCTION
+double FixQEqReaxFFKokkos<DeviceType>::efield_phi_k(int i) const
+{
+  if (phi_atomstyle) return static_cast<double>(d_chi_field[i]);
+  return -phi_factor * (static_cast<double>(x(i,0)) * phi_ex + static_cast<double>(x(i,1)) * phi_ey
+                        + static_cast<double>(x(i,2)) * phi_ez);
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+// NOLINTNEXTLINE
+KOKKOS_INLINE_FUNCTION
+void FixQEqReaxFFKokkos<DeviceType>::operator()(TagQEqChiEff, const int &ii) const
+{
+  const int i = d_ilist_olap[ii];
+  const int itype = type(i);
+  const double chia = static_cast<double>(params(itype).chi);
+
+  if ((chi_mode == QEQREL) && !efield_flag) {
+    d_chi_eff[i] = chia;
+    return;
+  }
+
+  const double phia = efield_flag ? efield_phi_k(i) : 0.0;
+
+  // overlap integral of the orbital with itself
+  double sum_d = d_olap_pre(itype,itype);
+  double sum_n = (chi_mode == QEQREL) ? phia * sum_d : 0.0;
+
+  const double xi = static_cast<double>(x(i,0));
+  const double yi = static_cast<double>(x(i,1));
+  const double zi = static_cast<double>(x(i,2));
+  const int jnum = d_numneigh_olap[i];
+  for (int jj = 0; jj < jnum; ++jj) {
+    const int j = d_neighbors_olap(i,jj) & NEIGHMASK;
+    const double dx = xi - static_cast<double>(x(j,0));
+    const double dy = yi - static_cast<double>(x(j,1));
+    const double dz = zi - static_cast<double>(x(j,2));
+    const double dist_sq = dx*dx + dy*dy + dz*dz;
+
+    if (dist_sq < dist_cutoff_sq) {
+      const int jtype = type(j);
+
+      // overlap integral of two normalised 1s Gaussian type orbitals
+      const double overlap = d_olap_pre(itype,jtype) * exp(-d_olap_exp(itype,jtype) * dist_sq);
+
+      if (chi_mode == QEQREL)
+        sum_n += efield_phi_k(j) * overlap;
+      else if (efield_flag)
+        sum_n += (chia - static_cast<double>(params(jtype).chi) + scale * (phia - efield_phi_k(j))) * overlap;
+      else
+        sum_n += (chia - static_cast<double>(params(jtype).chi)) * overlap;
+      sum_d += overlap;
+    }
+  }
+
+  if (chi_mode == QEQREL) d_chi_eff[i] = chia + scale * (phia - sum_n / sum_d);
+  else d_chi_eff[i] = sum_n / sum_d;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1440,17 +1859,6 @@ void FixQEqReaxFFKokkos<DeviceType>::get_chi_field()
   FixQEqReaxFF::get_chi_field();
   k_chi_field.modify_host();
   k_chi_field.sync_device();
-}
-
-/* ---------------------------------------------------------------------- */
-
-template<class DeviceType>
-void FixQEqReaxFFKokkosNeighborFunctor<DeviceType>::update_after_allocation(const FixQEqReaxFFKokkos<DeviceType> &qeqreax)
-{
-  d_firstnbr = qeqreax.d_firstnbr;
-  d_numnbrs = qeqreax.d_numnbrs;
-  d_jlist = qeqreax.d_jlist;
-  d_val = qeqreax.d_val;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1494,7 +1902,13 @@ void FixQEqReaxFFKokkosNeighborFunctor<DeviceType>::operator()(TagQEqNeighborCom
   const int i = d_ilist[ii];
   int j,jj,jtype;
 
-  if (mask[i] & groupbit) {
+  // atoms outside the fix group act as fixed charges.  with a half neighbor
+  // list, a pair of a group atom and a non-group atom may be listed with
+  // either one, so rows are also built for non-group atoms, but only with
+  // their neighbors in the group.
+
+  const bool igroup = mask[i] & groupbit;
+  if (igroup || (NEIGHFLAG != FULL)) {
 
     const KK_FLOAT xtmp = x(i,0);
     const KK_FLOAT ytmp = x(i,1);
@@ -1508,6 +1922,7 @@ void FixQEqReaxFFKokkosNeighborFunctor<DeviceType>::operator()(TagQEqNeighborCom
     for (jj = 0; jj < jnum; jj++) {
       j = d_neighbors(i,jj);
       j &= NEIGHMASK;
+      if (!igroup && !(mask[j] & groupbit)) continue;
       jtype = type(j);
 
       const KK_FLOAT delx = x(j,0) - xtmp;
@@ -1635,8 +2050,10 @@ void FixQEqReaxFFKokkosNeighborFunctor<DeviceType>::operator()(TagQEqNeighborCom
 
       if (ii < nn) {
         const int i = s_ilist[idx];
+        const bool igroup = mask[i] & groupbit;
 
-        if (mask[i] & groupbit) {
+        // see comment in the RangePolicy version above
+        if (igroup || (NEIGHFLAG != FULL)) {
           const KK_FLOAT xtmp = x(i, 0);
           const KK_FLOAT ytmp = x(i, 1);
           const KK_FLOAT ztmp = x(i, 2);
@@ -1684,7 +2101,7 @@ void FixQEqReaxFFKokkosNeighborFunctor<DeviceType>::operator()(TagQEqNeighborCom
                   const KK_FLOAT delz = x(j, 2) - ztmp;
 
                   // valid nbr interaction
-                  bool valid = true;
+                  bool valid = igroup || (mask[j] & groupbit);
                   if (NEIGHFLAG != FULL) {
                     // skip half of the interactions
                     const tagint jtag = tag(j);

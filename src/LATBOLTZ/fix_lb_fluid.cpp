@@ -362,7 +362,7 @@ FixLbFluid::FixLbFluid(LAMMPS *lmp, int narg, char **arg) :
   // with Atom class
   //--------------------------------------------------------------------------
   FixLbFluid::grow_arrays(atom->nmax);
-  atom->add_callback(Atom::GROW);
+  atom->add_callback(this, Atom::GROW);
 
   for (int i = 0; i < atom->nmax; i++) {
     massp[i] = 0.0;
@@ -683,7 +683,7 @@ FixLbFluid::~FixLbFluid()
   MPI_Type_free(&dump_file_mpitype);
 
   // Unregister fix callback
-  atom->delete_callback(id, Atom::GROW);
+  atom->delete_callback(this, Atom::GROW);
 
   // Clean up memory
   memory->destroy(hydroF);

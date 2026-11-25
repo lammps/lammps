@@ -51,7 +51,9 @@ endif()
 # prepare environment for testers
 set(GRAPHICS_TEST_ENVIRONMENT "OMP_PROC_BIND=false")
 list(APPEND GRAPHICS_TEST_ENVIRONMENT "OMP_NUM_THREADS=4")
+# allow more MPI ranks than CPU cores: OpenMPI 4 and OpenMPI 5 (PRRTE) use different settings
 list(APPEND GRAPHICS_TEST_ENVIRONMENT "OMPI_MCA_rmaps_base_oversubscribe=true")
+list(APPEND GRAPHICS_TEST_ENVIRONMENT "PRTE_MCA_rmaps_default_mapping_policy=:oversubscribe")
 list(APPEND GRAPHICS_TEST_ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR}")
 get_property(BUILD_IS_MULTI_CONFIG GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
 if(BUILD_IS_MULTI_CONFIG)
@@ -80,7 +82,7 @@ foreach(TEST ${GRAPHICS_TESTS})
   if(TEST_NPROCS GREATER 1)
     if(BUILD_MPI AND MPIEXEC_EXECUTABLE)
       add_test(NAME ${TNAME}
-               COMMAND ${MPIEXEC_EXECUTABLE} ${MPIEXEC_NUMPROC_FLAG} ${TEST_NPROCS}
+               COMMAND ${LAMMPS_TEST_LAUNCHER} ${MPIEXEC_EXECUTABLE} ${MPIEXEC_NUMPROC_FLAG} ${TEST_NPROCS}
                        $<TARGET_FILE:test_dump_image> ${TEST})
     else()
       continue()

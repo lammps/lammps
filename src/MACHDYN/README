@@ -17,7 +17,9 @@ models.
 Rigid boundary conditions (walls) can be loaded as surface geometries
 from *.STL files.
 
-See the file doc/PDF/SMD_LAMMPS_userguide.pdf to get started.
+Please see the relevant how to page in the LAMMPS documentation,
+https://docs.lammps.org/Howto_machdyn.html
+for more background and details on what's included in the package.
 
 There are example scripts for using this package in examples/PACKAGES/machdyn.
 The person who created this package is Georg Ganzenmuller at the

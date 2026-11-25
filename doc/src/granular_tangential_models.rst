@@ -49,15 +49,15 @@ normal force for purposes of computing the critical force is given by:
 Where :math:`F_\text{pulloff} = 3\pi \gamma R` for *jkr*,
 :math:`F_\text{pulloff} = 4\pi \gamma R` for *dmt*.
 
-For cohesive models such as *epa_linear* and *epa_nonlinear*, the
+For cohesive models such as *epa/linear* and *epa/nonlinear*, the
 critical force is incremented by the value of the cohesive force, see
 :ref:`Luding2008 <Luding2008>`, `Morrisey2013 <Morrisey2013>`
 .. math::
 
    F_{n0} = \|\mathbf{F}_{ne} + F_\text{cohesive}\|
 
-Where :math:`F_\text{cohesive} = f0 + k_c\delta` for *epa_linear*,
-:math:`F_\text{cohesive} = f0 + k_c\delta^n` for *epa_nonlinear*.
+Where :math:`F_\text{cohesive} = f0 + k_c\delta` for *epa/linear*,
+:math:`F_\text{cohesive} = f0 + k_c\delta^n` for *epa/nonlinear*.
 
 
 
@@ -176,7 +176,7 @@ gran/hooke* style. The tangential force :math:`\mathbf{F}_t` is given by:
 
 .. math::
 
-   \mathbf{F}_t =  -\min(\mu_t F_{n0}, \|\mathbf{F}_\mathrm{t,damp}\|) \mathbf{t}
+   \mathbf{F}_t =  \min(\mu_t F_{n0}, \|\mathbf{F}_\mathrm{t,damp}\|) \mathbf{t}
 
 .. _linear_history_tangential_model:
 
@@ -196,7 +196,7 @@ For *tangential linear_history*, the tangential force is given by:
 
 .. math::
 
-   \mathbf{F}_t =  -\min(\mu_t F_{n0}, \|-k_t\mathbf{\xi} + \mathbf{F}_\mathrm{t,damp}\|) \mathbf{t}
+   \mathbf{F}_t =  \min(\mu_t F_{n0}, \|-k_t\mathbf{\xi} + \mathbf{F}_\mathrm{t,damp}\|) \mathbf{t}
 
 
 .. _mindlin_tangential_model:
@@ -220,7 +220,7 @@ of :math:`a`, the radius of the contact region. The tangential force is given by
 
 .. math::
 
-   \mathbf{F}_t =  -\min(\mu_t F_{n0}, \|-k_t a \mathbf{\xi} + \mathbf{F}_\mathrm{t,damp}\|) \mathbf{t}
+   \mathbf{F}_t =  \min(\mu_t F_{n0}, \|-k_t a \mathbf{\xi} + \mathbf{F}_\mathrm{t,damp}\|) \mathbf{t}
 
 
 Here, :math:`a` is the radius of the contact region, given by :math:`a =\sqrt{R\delta}`
@@ -271,7 +271,7 @@ model. The tangential force is given by:
 
 .. math::
 
-   \mathbf{F}_t =  -\min(\mu_t F_{n0}, \|\mathbf{F}_{te} + \mathbf{F}_\mathrm{t,damp}\|) \mathbf{t}
+   \mathbf{F}_t =  \min(\mu_t F_{n0}, \|\mathbf{F}_{te} + \mathbf{F}_\mathrm{t,damp}\|) \mathbf{t}
 
 The increment of the elastic component of the tangential force
 :math:`\mathbf{F}_{te}` is given by:
@@ -289,7 +289,7 @@ the critical force:
 
 .. math::
 
-   \mathbf{F}_{te} = - \mu_t F_{n0}\mathbf{t} + \mathbf{F}_{t,damp}
+   \mathbf{F}_{te} = \mu_t F_{n0}\mathbf{t} - \mathbf{F}_{t,damp}
 
 The same rules as those described for *mindlin* apply regarding the tangential
 stiffness and mixing of the shear modulus for different particle types.

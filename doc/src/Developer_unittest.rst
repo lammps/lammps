@@ -760,6 +760,14 @@ are:
 
    * - Tag
      - Purpose
+   * - gpu
+     - The test runs the variant with the GPU package (``-sf gpu``) when
+       the GPU package is included.  Set by ``check_accelerator_tags.py``
+       (see below), do not edit by hand.
+   * - kokkos
+     - The test runs one or more variants with the KOKKOS package
+       (``-sf kk``) when the KOKKOS package is included.  Set by
+       ``check_accelerator_tags.py`` (see below), do not edit by hand.
    * - gpu_no_mixed
      - The GPU package variant of the style does not support mixed
        precision GPU mode; the ``gpu`` fixture skips the test when the
@@ -816,14 +824,33 @@ are:
    * - unstable
      - The test exhibits numerically unstable behavior on some
        platforms, e.g. ARM64; Until a proper correction is found, tests
-       can be skipped with ``ctest -LE unstable``.  Please check the
-       causes discussed in :ref:`unittest_portable` before adding
-       this tag.
+       can be skipped with ``ctest -LE unstable``.  With the Intel
+       compilers, some of these tests fail, so they should be skipped
+       or their failures can be ignored.  Please check the causes
+       discussed in :ref:`unittest_portable` before adding this tag.
    * - generated
      - Automatically added whenever reference data is generated or
        regenerated; it marks data that has not been reviewed and
        validated yet.  *Remove* after confirming the correctness of the
        updated YAML file.
+
+The tags become labels of the tests in CTest.  So ``ctest -L gpu`` runs
+only the tests with GPU package variants, and ``ctest -L kokkos`` only
+those with KOKKOS package variants, for example to check an accelerator
+package without running the tests of everything else again.  Tests that
+are not YAML based get these labels in their ``CMakeLists.txt`` file:
+the second runs of tests with the KOKKOS package made by
+``add_kokkos_test()`` and tests with their own test cases for these
+packages.  The ``gpu`` and ``kokkos`` tags of the YAML files follow from
+the styles in the source code and the rules of the test programs (e.g.
+the test of a pair style runs its GPU package variant only when all pair
+styles among its prerequisites have a ``/gpu`` variant), so they are set
+by the script ``unittest/force-styles/check_accelerator_tags.py``.  It
+lists the files whose tags differ, and with ``-u`` it updates them.  The
+same is available as ``make check-test-tags`` and ``make fix-test-tags``
+in the ``src`` folder.  Run it after adding a YAML file or an
+accelerated variant of a style; the automated style checks for pull
+requests also check the tags.
 
 Additional tests will check whether all listed extract keywords are
 supported and have the correct dimensionality and the final set of tests
@@ -1030,12 +1057,13 @@ time-resolved trajectories of small, analytically tractable granular
 systems.  These tests are only enabled if the :ref:`GRANULAR
 package<PKG-GRANULAR>` is enabled.
 
-There are 15 test programs, ``test_dem_01`` through ``test_dem_15``,
+There are 16 test programs, ``test_dem_01`` through ``test_dem_16``,
 covering particle-impact-level benchmarks: two-sphere and sphere-wall
 collisions, oblique and spinning-sphere impacts, rolling and slipping
 contact, cohesive pull-off, settling under fluid drag, exact ballistic
 integration and static multi-contact compression, region walls,
-superellipsoid contact, twisting friction, and granular heat conduction.  These follow
+superellipsoid contact, twisting friction, granular heat conduction, and
+the transfer of the contact history at neighbor list rebuilds.  These follow
 the software-agnostic DEM benchmark of :ref:`Mohajeri et al.
 <dem_Mohajeri2024>` (rolling resistance and cohesion), the
 particle-impact benchmark of :ref:`Chung and Ooi <dem_Chung2011>`
@@ -1094,6 +1122,10 @@ velocity under drag).  The test programs are:
    * - ``test_dem_15``
      - oblique impact of two spheres (gross sliding)
      - ``oblique_impact_pair``
+   * - ``test_dem_16``
+     - contact history transfer at neighbor list rebuilds (rolling and
+       twisting friction, mixed per-type-pair models)
+     - none (newton on and off must reproduce the reference trajectory)
 
 Every test program shares the same driver logic, implemented in
 ``unittest/granular/test_dem_common.cpp`` and compiled into the
@@ -1565,24 +1597,17 @@ features, you may see failures for existing tests, if your modifications
 have some unexpected side effects or your changes render the existing
 test invalid.  If you are adding an accelerated version of an existing
 style, then only tests for INTEL, KOKKOS (with the OpenMP or Serial host
-back ends, depending on how the KOKKOS package was configured), OPENMP,
-and OPT will be run automatically.  Tests for the GPU package are time
-consuming and thus are only run *after* a merge, or when a special
-label, ``gpu_unit_tests`` is added to the pull request.  After the test
-has started, it is often best to remove the label since every PR
-activity will re-trigger the test (that is a limitation of triggering a
-test with a label).  Support for unit tests using KOKKOS with GPU
-acceleration is currently not supported.
+back ends), OPENMP, and OPT will be run automatically.  Tests for the
+GPU package are time consuming and there are only limited resources for
+testing with real GPUs and thus these tests are usually only run *after*
+a merge, or when a special label, ``gpu_unit_tests`` is added to the
+pull request.  After the test has started, it is often best to remove
+the label since every PR activity will re-trigger the test (that is a
+limitation of triggering a test with a label).
 
 When you see a failed build on GitHub, click on ``Details`` to be taken
-to the corresponding LAMMPS Jenkins CI web page.  Click on the "Exit"
-symbol near the ``Logout`` button on the top right of that page to go to
-the "classic view".  In the classic view, there is a list of the
-individual runs that make up this test run (they are shown but cannot be
-inspected in the default view).  You can click on any of those.
-Clicking on ``Test Result`` will display the list of failed tests. Click
-on the "Status" column to sort the tests based on their Failed or Passed
-status.  Then click on the failed test to expand its output.
+to either the corresponding GitHub Action page or the matching entry
+on the LAMMPS CI web page.
 
 For example, the following output snippet shows the failed unit test
 

@@ -82,9 +82,9 @@ This fix is part of the PYTHON package.  It is only enabled if LAMMPS
 was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 Building LAMMPS with the PYTHON package will link LAMMPS with the
-Python library on your system.  Settings to enable this are in the
-lib/python/Makefile.lammps file.  See the lib/python/README file for
-information on those settings.
+Python library on your system.  See the :ref:`PYTHON package build info
+<python>` on the :doc:`Build extras <Build_extras>` page for how to
+select the Python version that is used.
 
 Related commands
 """"""""""""""""

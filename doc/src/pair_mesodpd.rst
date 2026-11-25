@@ -1,15 +1,18 @@
 .. index:: pair_style edpd
 .. index:: pair_style edpd/gpu
+.. index:: pair_style edpd/omp
 .. index:: pair_style mdpd
 .. index:: pair_style mdpd/omp
 .. index:: pair_style mdpd/gpu
 .. index:: pair_style mdpd/rhosum
+.. index:: pair_style mdpd/rhosum/omp
 .. index:: pair_style tdpd
+.. index:: pair_style tdpd/omp
 
 pair_style edpd command
 =======================
 
-Accelerator Variants: *edpd/gpu*
+Accelerator Variants: *edpd/gpu*, *edpd/omp*
 
 pair_style mdpd command
 =======================
@@ -19,8 +22,12 @@ Accelerator Variants: *mdpd/gpu*, *mdpd/omp*
 pair_style mdpd/rhosum command
 ==============================
 
+Accelerator Variants: *mdpd/rhosum/omp*
+
 pair_style tdpd command
 =======================
+
+Accelerator Variants: *tdpd/omp*
 
 Syntax
 """"""

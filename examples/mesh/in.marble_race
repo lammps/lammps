@@ -8,7 +8,7 @@ create_atoms    1 region particles
 region          lid cylinder y 0 -30 47 190 200 units box
 group           mobile type 1
 
-create_atoms    2 mesh race_track.stl units box
+create_atoms    2 mesh race_track.stl meshmode bisect 5.0 units box
 group           mesh type 2
 
 mass * 39.95

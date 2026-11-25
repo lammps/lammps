@@ -878,6 +878,8 @@ inline bool has_utf8(const std::string &line)
  *
 \verbatim embed:rst
 
+Characters without a known ASCII equivalent are kept unchanged.
+
 *See also*
    :cpp:func:`utils::has_utf8`
 

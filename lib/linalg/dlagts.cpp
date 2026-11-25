@@ -33,8 +33,8 @@ int dlagts_(integer *job, integer *n, doublereal *a, doublereal *b, doublereal *
     if (*n == 0) {
         return 0;
     }
-    eps = dlamch_((char *)"Epsilon", (ftnlen)7);
-    sfmin = dlamch_((char *)"Safe minimum", (ftnlen)12);
+    eps = dlamch_((char *)"E", (ftnlen)1);
+    sfmin = dlamch_((char *)"S", (ftnlen)1);
     bignum = 1. / sfmin;
     if (*job < 0) {
         if (*tol <= 0.) {

@@ -13,7 +13,7 @@ mass 1 15.9994
 mass 2 1.008
 
 bond_style zero
-bond_coeff 1 0.9574
+bond_coeff 1 0.9572
 angle_style zero
 angle_coeff 1 104.52
 

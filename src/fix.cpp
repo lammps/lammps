@@ -121,6 +121,14 @@ Fix::~Fix()
 {
   if (copymode) return;
 
+  // remove any remaining callbacks for per-atom arrays. a fix with such arrays
+  // removes them in its own destructor, but that is not executed when its
+  // constructor fails after the callbacks were registered (library interface)
+
+  atom->delete_callback(this, Atom::GROW);
+  atom->delete_callback(this, Atom::RESTART);
+  atom->delete_callback(this, Atom::BORDER);
+
   delete[] id;
   delete[] style;
   memory->destroy(eatom);

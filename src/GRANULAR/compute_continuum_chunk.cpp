@@ -166,14 +166,14 @@ ComputeContinuumChunk::ComputeContinuumChunk(LAMMPS *lmp, int narg, char **arg) 
   while (iarg < narg) {
     if (strcmp(arg[iarg], "natoms") == 0) {
       no_norm.insert(values.size());
-      values.emplace_back(std::make_tuple(NATOMS, 0, 0));
+      values.emplace_back(NATOMS, 0, 0);
       labels.emplace_back("natoms");
     } else if (strcmp(arg[iarg], "density") == 0) {
-      values.emplace_back(std::make_tuple(DENSITY, 0, 0));
+      values.emplace_back(DENSITY, 0, 0);
       labels.emplace_back("density");
       index_density = static_cast<int>(values.size()) - 1;
     } else if (strcmp(arg[iarg], "volume/fraction") == 0) {
-      values.emplace_back(std::make_tuple(VOLFRAC, 0, 0));
+      values.emplace_back(VOLFRAC, 0, 0);
       labels.emplace_back("volume/fraction");
       need_radius = 1;
     } else if (utils::strmatch(arg[iarg], "^momentum/.$")) {
@@ -225,7 +225,7 @@ ComputeContinuumChunk::ComputeContinuumChunk(LAMMPS *lmp, int narg, char **arg) 
       calculate_pair = 1;
       need_radius = 1;
     } else if (strcmp(arg[iarg], "temperature") == 0) {
-      values.emplace_back(std::make_tuple(TEMPERATURE, 0, 0));
+      values.emplace_back(TEMPERATURE, 0, 0);
       labels.emplace_back("temperature");
       need_density = 1;
       need_momentum = 1;
@@ -239,7 +239,7 @@ ComputeContinuumChunk::ComputeContinuumChunk(LAMMPS *lmp, int narg, char **arg) 
   // Add any necessary intermediate values, won't be saved as output
   nskip = 0;
   if ((need_density) && (index_density == -1)) {
-    values.emplace_back(std::make_tuple(DENSITY, 0, 0));
+    values.emplace_back(DENSITY, 0, 0);
     index_density = static_cast<int>(values.size()) - 1;
     labels.emplace_back("density/internal");
     nskip += 1;
@@ -248,7 +248,7 @@ ComputeContinuumChunk::ComputeContinuumChunk(LAMMPS *lmp, int narg, char **arg) 
   if (need_momentum) {
     for (int a = 0; a < dim; a++) {
       if (index_momentum[a] == -1) {
-        values.emplace_back(std::make_tuple(MOMENTUM, 1, a));
+        values.emplace_back(MOMENTUM, 1, a);
         index_momentum[a] = static_cast<int>(values.size()) - 1;
         labels.emplace_back("momentum/internal");
         nskip += 1;
@@ -259,7 +259,7 @@ ComputeContinuumChunk::ComputeContinuumChunk(LAMMPS *lmp, int narg, char **arg) 
   if (need_velocity) {
     for (int a = 0; a < dim; a++) {
       if (index_velocity[a] == -1) {
-        values.emplace_back(std::make_tuple(VELOCITY, 1, a));
+        values.emplace_back(VELOCITY, 1, a);
         index_velocity[a] = static_cast<int>(values.size()) - 1;
         labels.emplace_back("velocity/internal");
         nskip += 1;
@@ -272,7 +272,7 @@ ComputeContinuumChunk::ComputeContinuumChunk(LAMMPS *lmp, int narg, char **arg) 
       for (int b = 0; b < 3; b++) {
         if ((dim == 2) && ((b == 2) || (a == 2))) continue;
         if (index_vgrad[a][b] == -1) {
-          values.emplace_back(std::make_tuple(VGRAD, 2, a * 3 + b));
+          values.emplace_back(VGRAD, 2, a * 3 + b);
           index_vgrad[a][b] = static_cast<int>(values.size()) - 1;
           labels.emplace_back("vgrad/internal");
           nskip += 1;
@@ -1261,7 +1261,7 @@ void ComputeContinuumChunk::add_tensor_component(char *option, int variable)
     for (int a = 0; a < 3; a++) {
       for (int b = 0; b < 3; b++) {
         if ((dim == 2) && ((b == 2) || (a == 2))) continue;
-        values.emplace_back(std::make_tuple(variable, 2, a * 3 + b));
+        values.emplace_back(variable, 2, a * 3 + b);
         labels.emplace_back(trimmed_option + suffices[a * 3 + b]);
         if (variable == VGRAD) index_vgrad[a][b] = static_cast<int>(values.size()) - 1;
       }
@@ -1299,7 +1299,7 @@ void ComputeContinuumChunk::add_tensor_component(char *option, int variable)
 
     if (dim_error) error->all(FLERR, "Invalid compute continuum/chunk property {} in 2D", option);
 
-    values.emplace_back(std::make_tuple(variable, 2, index));
+    values.emplace_back(variable, 2, index);
     labels.emplace_back(option);
     if (variable == VGRAD) {
       int a = index / 3;
@@ -1318,7 +1318,7 @@ void ComputeContinuumChunk::add_vector_component(char *option, int variable)
     std::string trimmed_option = std::string(option);
     trimmed_option = trimmed_option.substr(0, trimmed_option.length() - 1);
     for (int a = 0; a < dim; a++) {
-      values.emplace_back(std::make_tuple(variable, 1, a));
+      values.emplace_back(variable, 1, a);
       labels.emplace_back(trimmed_option + suffices[a]);
       if (variable == MOMENTUM) index_momentum[a] = static_cast<int>(values.size()) - 1;
       if (variable == VELOCITY) index_velocity[a] = static_cast<int>(values.size()) - 1;
@@ -1336,7 +1336,7 @@ void ComputeContinuumChunk::add_vector_component(char *option, int variable)
       error->all(FLERR, "Invalid compute continuum/chunk property {}", option);
     }
 
-    values.emplace_back(std::make_tuple(variable, 1, index));
+    values.emplace_back(variable, 1, index);
     labels.emplace_back(option);
     if (variable == MOMENTUM) index_momentum[index] = static_cast<int>(values.size()) - 1;
     if (variable == VELOCITY) index_velocity[index] = static_cast<int>(values.size()) - 1;

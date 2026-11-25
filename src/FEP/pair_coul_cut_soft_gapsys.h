@@ -44,11 +44,12 @@ class PairCoulCutSoftGapsys : public Pair {
 
  protected:
   double cut_global;
+  double **cut_factor;
   double **cut;
   double **lambda;
   double sigmaq, alphaq;
 
-  void allocate();
+  virtual void allocate();
 };
 
 }    // namespace LAMMPS_NS

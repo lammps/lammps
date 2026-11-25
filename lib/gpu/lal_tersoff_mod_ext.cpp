@@ -49,7 +49,7 @@ int tersoff_mod_gpu_init(const int ntypes, const int inum, const int nall,
   int procs_per_gpu=TSMMF.device->procs_per_gpu();
 
 
-  TSMMF.device->init_message(screen,"tersoff/mod/gpu",first_gpu,last_gpu);
+  TSMMF.device->init_message(screen,"tersoff/mod",first_gpu,last_gpu);
 
   bool message=false;
   if (TSMMF.device->replica_me()==0 && screen)

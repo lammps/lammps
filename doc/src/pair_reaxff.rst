@@ -19,8 +19,8 @@ Syntax
 
   .. parsed-literal::
 
-     keyword = *checkqeq* or *lgvdw* or *safezone* or *mincap* or *minhbonds* or *tabulate* or *list/blocking*
-       *checkqeq* value = *yes* or *no* = whether or not to require one of fix qeq/reaxff, fix acks2/reaxff or fix qtpie/reaxff
+     keyword = *checkqeq* or *enobonds* or *lgvdw* or *safezone* or *mincap* or *minhbonds* or *tabulate* or *list/blocking*
+       *checkqeq* value = *yes* or *no* = whether or not to require a charge equilibration fix (see below)
        *enobonds* value = *yes* or *no* = whether or not to tally energy of atoms with no bonds
        *lgvdw* value = *yes* or *no* = whether or not to use a low gradient vdW correction
        *safezone* = factor used for array allocation
@@ -129,16 +129,15 @@ up that process.
 
 The ReaxFF parameter files provided were created using a charge
 equilibration (QEq) model for handling the electrostatic interactions.
-Therefore, by default, LAMMPS requires that
-:doc:`fix qeq/reaxff <fix_qeq_reaxff>` or :doc:`fix qeq/shielded <fix_qeq>`
-or :doc:`fix acks2/reaxff <fix_acks2_reaxff>`
-or :doc:`fix qtpie/reaxff <fix_qtpie_reaxff>`
+Therefore, by default, LAMMPS requires that one of
+:doc:`fix qeq/reaxff <fix_qeq_reaxff>`,
+:doc:`fix qeq/shielded or qeq/shielded/xlmd <fix_qeq>`,
+:doc:`fix qeq/rel/reaxff <fix_qeq_rel_reaxff>`,
+:doc:`fix acks2/reaxff <fix_acks2_reaxff>`, or
+:doc:`fix qtpie/reaxff <fix_qtpie_reaxff>`
 is used with *pair_style reaxff* when simulating a ReaxFF model,
 to equilibrate the charges at each timestep.
-See the :doc:`fix qeq/reaxff <fix_qeq_reaxff>` or :doc:`fix qeq/shielded <fix_qeq>`
-or :doc:`fix acks2/reaxff <fix_acks2_reaxff>`
-or :doc:`fix qtpie/reaxff <fix_qtpie_reaxff>`
-command documentation for more details.
+See the documentation of these fix commands for more details.
 
 Using the keyword *checkqeq* with the value *no* turns off the check
 for the QEq fixes, allowing a simulation to be run without charge
@@ -202,7 +201,9 @@ Lennard-Jones and Coulomb interactions. Tabulation may also be set in the
 control file (see below). If tabulation is set in both the input script and the
 control file, the value in the control file will be ignored. A size of 10000 is
 typically used for the interpolation table. A value of 0 means no tabulation
-will be used.
+will be used.  The table is created at the start of every run, so a
+different setting from a later pair_style command takes effect with the
+next run.
 
 The keyword *list/blocking* is only supported by the Kokkos version of
 ReaxFF and ignored otherwise. Setting the value to *yes* enables the
@@ -313,13 +314,13 @@ brief description of their use and default values.
    tabulated (0 means no tabulation). Value of this variable denotes the
    size of the long range interaction table.  The range from 0 to long
    range cutoff (defined in the *ffield* file) is divided into
-   *tabulate_long_range* points.  Then at the start of simulation, we
-   fill in the entries of the long range interaction table by computing
+   *tabulate_long_range* points.  At the start of every run, LAMMPS
+   fills in the entries of the long range interaction table by computing
    the energies and forces resulting from van der Waals and Coulomb
-   interactions between every possible atom type pairs present in the
-   input system.  During the simulation we consult to the long range
-   interaction table to estimate the energy and forces between a pair of
-   atoms. Linear interpolation is used for estimation. (default value = 0)
+   interactions between all pairs of elements that are assigned to atom
+   types with the :doc:`pair_coeff <pair_coeff>` command.  During the
+   simulation, the energy and forces between a pair of atoms are
+   interpolated from this table with cubic splines. (default value = 0)
 
 *energy_update_freq*
    Denotes the frequency (in number of steps) of writes into the partial
@@ -409,6 +410,7 @@ Related commands
 
 :doc:`pair_coeff <pair_coeff>`, :doc:`fix qeq/reaxff <fix_qeq_reaxff>`,
 :doc:`fix acks2/reaxff <fix_acks2_reaxff>`, :doc:`fix qtpie/reaxff <fix_qtpie_reaxff>`,
+:doc:`fix qeq/rel/reaxff <fix_qeq_rel_reaxff>`,
 :doc:`fix reaxff/bonds <fix_reaxff_bonds>`, :doc:`fix reaxff/species <fix_reaxff_species>`,
 :doc:`compute reaxff/atom <compute_reaxff_atom>`
 

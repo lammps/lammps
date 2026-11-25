@@ -109,8 +109,13 @@ void FixReaxFFBonds::init()
 {
   reaxff = dynamic_cast<PairReaxFF *>(force->pair_match("^reax..",0));
   if (reaxff == nullptr)
-    error->all(FLERR, Error::NOLASTLINE, "Cannot use fix reaxff/bonds without "
-               "pair_style reaxff, reaxff/kk, or reaxff/omp");
+    error->all(FLERR, Error::NOLASTLINE, "Cannot use fix {} without "
+               "pair_style reaxff, reaxff/kk, or reaxff/omp", style);
+
+  // the KOKKOS version of pair reaxff keeps its bond lists on the device
+  if (reaxff->kokkosable && !kokkosable)
+    error->all(FLERR, Error::NOLASTLINE, "Cannot use fix reaxff/bonds with "
+               "pair_style reaxff/kk. Use fix reaxff/bonds/kk instead.");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -197,6 +202,10 @@ int FixReaxFFBonds::FindBond()
       bo_tmp = bo_ij->bo_data.BO;
 
       if (bo_tmp > bo_cut) {
+        if (nj >= MAXREAXBOND)
+          error->one(FLERR, Error::NOLASTLINE,
+                     "Atom {} has more than {} bonds for fix {}; increase MAXREAXBOND "
+                     "in reaxff_defs.h", tag[i], MAXREAXBOND, style);
         neighid[i][nj] = jtag;
         abo[i][nj] = bo_tmp;
         nj ++;
@@ -290,6 +299,7 @@ void FixReaxFFBonds::RecvBuffer(double *buf, int nbuf, int nbuf_local,
       if (inode == 0) {
         nlocal_tmp = nlocal;
       } else {
+        buf[0] = 0.0;
         MPI_Irecv(&buf[0],nbuf,MPI_DOUBLE,inode,0,world,&irequest);
         MPI_Wait(&irequest,MPI_STATUS_IGNORE);
         nlocal_tmp = std::lround(buf[0]);
@@ -390,12 +400,12 @@ int FixReaxFFBonds::image(int *&objs, double **&parms)
   const int *mask = atom->mask;
   const double * const * const x = atom->x;
 
-  int inum = reaxff->list->inum;
-  int *ilist = reaxff->list->ilist;
+  // loop over the local atoms instead of the neighbor list of pair reaxff,
+  // which only exists on the device with the KOKKOS version
 
+  const int nlocal = atom->nlocal;
   int n = 0;
-  for (int ii = 0; ii < inum; ++ii) {
-    int i = ilist[ii];
+  for (int i = 0; i < nlocal; ++i) {
     if (mask[i] & groupbit) {
       for (int jj = 0; jj < numneigh[i]; ++jj) {
         int j = atom->map(neighid[i][jj]);

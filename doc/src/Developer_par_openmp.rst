@@ -1,5 +1,3 @@
-.. _openmp_parallelism:
-
 OpenMP Parallelism
 ^^^^^^^^^^^^^^^^^^
 
@@ -17,8 +15,6 @@ floating-point math.
 A practical discussion of the actual implementation with source code
 examples can be found in the manual section on :doc:`writing styles for
 the OPENMP package <Developer_write_openmp>`.
-
-.. _openmp_rationale:
 
 Rationale for OpenMP Integration
 """"""""""""""""""""""""""""""""
@@ -56,8 +52,6 @@ modern multi-core hardware and at high node counts:
 - **Capability Computing**: Hybrid MPI+OpenMP is often essential for
   achieving optimal performance on large HPC clusters or supercomputers.
 
-.. _openmp_design:
-
 Design of the OPENMP Package
 """"""""""""""""""""""""""""
 
@@ -81,8 +75,6 @@ implementation.  This is achieved by:
     sharing" slowdowns.
   - ``FixOMP``: Manages the global multi-thread state and settings
     activated by the :doc:`package omp <package>` command.
-
-.. _openmp_avoid_races:
 
 Avoiding data races
 """""""""""""""""""
@@ -118,8 +110,6 @@ this approach:
   common use case, since OpenMP is typically the secondary parallelization
   option after MPI.
 
-.. _openmp_scheduling:
-
 Loop scheduling
 """""""""""""""
 
@@ -130,8 +120,6 @@ list of bonds, angles, dihedrals, or impropers.  Since neighbor lists
 typically result in a similar number of neighbors per atom (for
 homogeneous systems), significant load imbalances across threads are
 uncommon.
-
-.. _openmp_neighbor:
 
 Neighbor list parallelization
 """""""""""""""""""""""""""""

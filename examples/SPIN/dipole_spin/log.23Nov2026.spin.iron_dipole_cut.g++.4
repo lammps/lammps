@@ -1,0 +1,150 @@
+LAMMPS (13 Nov 2026)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread.
+  using 1 OpenMP thread(s) per MPI task
+# bcc iron in a 3d periodic box
+
+clear
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread.
+  using 1 OpenMP thread(s) per MPI task
+units           metal
+atom_style      spin
+
+dimension       3
+boundary        p p p
+
+# necessary for the serial algorithm (sametag)
+atom_modify     map array
+
+lattice         bcc 2.8665
+Lattice spacing in x,y,z = 2.8665 2.8665 2.8665
+region          box block 0.0 12.0 0.0 12.0 0.0 12.0
+create_box      1 box
+Created orthogonal box = (0 0 0) to (34.398 34.398 34.398)
+  1 by 2 by 2 MPI processor grid
+create_atoms    1 box
+Created 3456 atoms
+  using lattice units in orthogonal box = (0 0 0) to (34.398 34.398 34.398)
+  create_atoms CPU = 0.001 seconds
+
+# setting mass, mag. moments, and interactions for bcc iron
+
+mass            1 55.845
+set             group all spin 2.2 -1.0 0.0 0.0
+WARNING: Set attribute spin is deprecated -- use spin/atom instead (src/set.cpp:2398)
+Setting atom values ...
+  3456 settings made for spin
+velocity        all create 100 4928459 rot yes dist gaussian
+
+pair_style      hybrid/overlay eam/alloy spin/exchange 3.5 spin/dipole/cut 8.0
+pair_coeff      * * eam/alloy Fe_Mishin2006.eam.alloy Fe
+pair_coeff      * * spin/exchange exchange 3.4 0.02726 0.2171 1.841
+pair_coeff      * * spin/dipole/cut 8.0
+
+neighbor        0.1 bin
+neigh_modify    every 10 check yes delay 20
+
+fix             1 all precession/spin cubic 0.001 0.0005 1.0 0.0 0.0 0.0 1.0 0.0 0.0 0.0 1.0
+fix_modify      1 energy yes
+fix             2 all langevin/spin 0.0 0.0 21
+
+fix             3 all nve/spin lattice moving
+timestep        0.0001
+
+# compute and output options
+
+compute         out_mag    all spin
+compute         out_pe     all pe
+compute         out_ke     all ke
+compute         out_temp   all temp
+
+variable        magx      equal c_out_mag[1]
+variable        magy      equal c_out_mag[2]
+variable        magz      equal c_out_mag[3]
+variable        magnorm   equal c_out_mag[4]
+variable        emag      equal c_out_mag[5]
+variable        tmag      equal c_out_mag[6]
+
+thermo_style    custom step time v_magx v_magy v_magz v_magnorm v_tmag v_emag pe etotal
+thermo          50
+
+compute         outsp all property/atom spx spy spz sp fmx fmy fmz
+# dump            1 all custom 100 dump_iron.lammpstrj id type x y z c_outsp[1] c_outsp[2] c_outsp[3]
+
+run             100
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+
+- fix nve/spin command: https://doi.org/10.1016/j.jcp.2018.06.042
+
+@article{tranchida2018massively,
+title={Massively Parallel Symplectic Algorithm for Coupled Magnetic Spin    Dynamics and Molecular Dynamics},
+author={Tranchida, J and Plimpton, S J and Thibaudeau, P and Thompson, A P},
+journal={Journal of Computational Physics},
+volume={372},
+pages={406--425},
+year={2018},
+publisher={Elsevier}
+doi={10.1016/j.jcp.2018.06.042}
+}
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+WARNING: Fix nve/spin with multiple processors and a moving lattice may give inaccurate results if atoms move more than half the neighbor skin distance between neighbor list builds. This is possible with the current settings (neigh_modify every 10 delay 20 once no). To avoid this, use 'neigh_modify every 1 delay 0 check yes once no' (src/SPIN/fix_nve_spin.cpp:298)
+Neighbor list info ...
+  update: every = 10 steps, delay = 20 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 8.1
+  ghost atom cutoff = 8.1
+  binsize = 4.05, bins = 9 9 9
+  3 neighbor lists, perpetual/occasional/extra = 3 0 0
+  (1) pair eam/alloy, perpetual, half/full trim from (3)
+      attributes: half, newton on, cut 5.7733670002446
+      pair build: halffull/trim/newton
+      stencil: none
+      bin: none
+  (2) pair spin/exchange, perpetual, trim from (3)
+      attributes: full, newton on, cut 3.6
+      pair build: trim
+      stencil: none
+      bin: none
+  (3) pair spin/dipole/cut, perpetual
+      attributes: full, newton on
+      pair build: full/bin/atomonly
+      stencil: full/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 6.941 | 6.941 | 6.941 Mbytes
+   Step          Time          v_magx         v_magy         v_magz       v_magnorm        v_tmag         v_emag         PotEng         TotEng    
+         0   0             -1              0              0              1              9.8888744e-36 -384.18755     -15175.868     -15131.207    
+        50   0.005         -1              9.6113773e-11 -3.3720074e-10  1              6.6739121e-09 -384.17884     -15174.259     -15131.207    
+       100   0.01          -1              7.8808139e-10 -2.6985994e-09  1              9.7880897e-09 -384.15383     -15169.712     -15131.207    
+Loop time of 0.931048 on 4 procs for 100 steps with 3456 atoms
+
+Performance: 0.928 ns/day, 25.862 hours/ns, 107.406 timesteps/s, 371.195 katom-step/s
+98.1% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.34619    | 0.35457    | 0.36831    |   1.4 | 38.08
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0.011521   | 0.027048   | 0.036586   |   5.8 |  2.91
+Output  | 9.8358e-05 | 0.00011104 | 0.00013801 |   0.0 |  0.01
+Modify  | 0.54714    | 0.54839    | 0.55035    |   0.2 | 58.90
+Other   |            | 0.0009259  |            |       |  0.10
+
+Nlocal:            864 ave         864 max         864 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:           3785 ave        3785 max        3785 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Neighs:          27648 ave       27648 max       27648 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+FullNghs:        12096 ave       12096 max       12096 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 110592
+Ave neighs/atom = 32
+Neighbor list builds = 0
+Dangerous builds = 0
+Total wall time: 0:00:00

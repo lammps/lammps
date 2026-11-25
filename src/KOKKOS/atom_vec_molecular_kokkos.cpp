@@ -21,7 +21,6 @@
 #include "error.h"
 #include "fix.h"
 #include "memory_kokkos.h"
-#include "modify.h"
 
 using namespace LAMMPS_NS;
 
@@ -122,9 +121,7 @@ void AtomVecMolecularKokkos::grow(int n)
   grow_pointers();
   atomKK->sync(Host,ALL_MASK);
 
-  if (atom->nextra_grow)
-    for (int iextra = 0; iextra < atom->nextra_grow; iextra++)
-      modify->fix[atom->extra_grow[iextra]]->grow_arrays(nmax);
+  for (auto *ifix : atom->extra_grow) ifix->grow_arrays(nmax);
 }
 
 /* ----------------------------------------------------------------------

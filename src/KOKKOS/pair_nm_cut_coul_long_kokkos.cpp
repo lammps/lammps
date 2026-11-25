@@ -25,6 +25,7 @@
 #include "force.h"
 #include "kokkos.h"
 #include "math_const.h"
+#include "math_special_kokkos.h"
 #include "memory_kokkos.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
@@ -175,8 +176,9 @@ compute_fpair(const KK_FLOAT& rsq, const int& /*i*/, const int& /*j*/,
   const KK_FLOAT r0n_val = (STACKPARAMS?m_params[itype][jtype].r0n:params(itype,jtype).r0n);
   const KK_FLOAT r0m_val = (STACKPARAMS?m_params[itype][jtype].r0m:params(itype,jtype).r0m);
   const KK_FLOAT e0nm_val = (STACKPARAMS?m_params[itype][jtype].e0nm:params(itype,jtype).e0nm);
-  const KK_FLOAT rninv = Kokkos::pow(r2inv, nn_val * static_cast<KK_FLOAT>(0.5));
-  const KK_FLOAT rminv = Kokkos::pow(r2inv, mm_val * static_cast<KK_FLOAT>(0.5));
+  const KK_FLOAT r = Kokkos::sqrt(rsq);
+  const KK_FLOAT rninv = MathSpecialKokkos::powauto(r, -nn_val);
+  const KK_FLOAT rminv = MathSpecialKokkos::powauto(r, -mm_val);
 
   const KK_FLOAT forcenm = e0nm_val * nm_val *
     (r0n_val * rninv - r0m_val * rminv);
@@ -238,15 +240,15 @@ KK_FLOAT PairNMCutCoulLongKokkos<DeviceType>::
 compute_evdwl(const KK_FLOAT& rsq, const int& /*i*/, const int& /*j*/,
                const int& itype, const int& jtype) const
 {
-  const KK_FLOAT r2inv = static_cast<KK_FLOAT>(1.0) / rsq;
   const KK_FLOAT nn_val = (STACKPARAMS?m_params[itype][jtype].nn:params(itype,jtype).nn);
   const KK_FLOAT mm_val = (STACKPARAMS?m_params[itype][jtype].mm:params(itype,jtype).mm);
   const KK_FLOAT r0n_val = (STACKPARAMS?m_params[itype][jtype].r0n:params(itype,jtype).r0n);
   const KK_FLOAT r0m_val = (STACKPARAMS?m_params[itype][jtype].r0m:params(itype,jtype).r0m);
   const KK_FLOAT e0nm_val = (STACKPARAMS?m_params[itype][jtype].e0nm:params(itype,jtype).e0nm);
   const KK_FLOAT offset_val = (STACKPARAMS?m_params[itype][jtype].offset:params(itype,jtype).offset);
-  const KK_FLOAT rninv = Kokkos::pow(r2inv, nn_val * static_cast<KK_FLOAT>(0.5));
-  const KK_FLOAT rminv = Kokkos::pow(r2inv, mm_val * static_cast<KK_FLOAT>(0.5));
+  const KK_FLOAT r = Kokkos::sqrt(rsq);
+  const KK_FLOAT rninv = MathSpecialKokkos::powauto(r, -nn_val);
+  const KK_FLOAT rminv = MathSpecialKokkos::powauto(r, -mm_val);
 
   return e0nm_val * (mm_val * r0n_val * rninv - nn_val * r0m_val * rminv) - offset_val;
 }

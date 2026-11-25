@@ -2,8 +2,8 @@
 
 How to validate LAMMPS changes beyond the standard unit/regression suites: choosing
 the right gate for refactors vs re-implementations, force verification, test pitfalls,
-platform-dependent (ARM64/macOS) failures, GPU package debugging, benchmark
-construction, and memory-checking conventions.
+the CI jobs and platform-dependent failures, GPU package debugging, testing of MDI
+coupling, benchmark construction, and memory-checking conventions.
 
 ## Choose the right correctness gate
 
@@ -94,13 +94,22 @@ atom_modify     sort 0 0       # no atom sorting bins
 The same caution applies to anything else that multiplies out over the box volume:
 fine `fix ave/grid`/`dump grid` grids and kspace meshes.
 
+**A minimization that fails with `fix shake` or `fix rattle` is not a bug.**  During a
+minimization these fixes replace the constraints by stiff harmonic restraints
+(keyword `kbond`), which can stall the line search of `min_style cg` ("linesearch
+alpha is zero") or stop `fire` with "Shake atoms ... missing".  Use a smaller `kbond`
+in such a test or input instead of reporting or working around the failure; for
+rigid bodies `doc/src/minimize.rst` describes relaxation with damped dynamics.
+
 **Portability and silent-skip pitfalls in unit tests.**
 
 - gtest's `ContainsRegex`/`MatchesRegex` are NOT portable: on Windows gtest falls back
   to its own regex engine with no character classes, groups, or alternation, while the
-  POSIX path lacks `\d`.  For content checks use `utils::strmatch()` (via the
-  `ASSERT_MATCH` idiom in `unittest/commands/test_info.cpp`); note the bundled
-  tiny-regex also has no `{n}` repetition.
+  POSIX path lacks `\d`.  Such a test passes on Linux and macOS and fails only in the
+  Windows jobs.  For content checks use `HasSubstr` for plain text or
+  `utils::strmatch()` (via the `ASSERT_MATCH` idiom in
+  `unittest/commands/test_info.cpp`); note the bundled tiny-regex also has no `{n}`
+  repetition.
 - CTest reports "Passed" even when EVERY gtest case in the binary skipped, and a
   force-style YAML with a missing prerequisite or `input_coeffs` entry self-skips
   silently (one shipped test never ran for weeks that way).  After adding a test,
@@ -109,9 +118,11 @@ fine `fix ave/grid`/`dump grid` grids and kspace meshes.
 - End states of iterative algorithms (minimizers, converged solvers) are not portable
   reference data -- assert energies/box dimensions with tolerances, never per-atom
   end-state positions.
-- A CI failure confined to one Linux job usually means `LAMMPS_SIZES=bigbig` (64-bit
-  `tagint`/`bigint`); a minimal bigbig build (`-D LAMMPS_SIZES=bigbig` plus only the
-  needed packages) reproduces it in a few minutes.
+- A CI failure confined to one job usually comes from what distinguishes that job
+  (see the table of CI jobs below).  The most common case is `LAMMPS_SIZES=bigbig`
+  (64-bit `tagint`/`bigint`, builder `gcc-bigbig`); a minimal bigbig build
+  (`-D LAMMPS_SIZES=bigbig` plus only the needed packages) reproduces it in a few
+  minutes.
 - Multi-rank gtests (`add_mpi_test`): `TEST_FAILURE` matches screen output that only
   rank 0 prints, so the other ranks return early and deadlock in the next collective
   call.  Check error paths by the exception text without an early return (the
@@ -136,21 +147,80 @@ Feature macros like `LAMMPS_ZLIB` (from `WITH_ZLIB`) are PRIVATE to the library,
 a unit test that must mirror the library configuration adds the define itself under
 the same CMake option (see `test_vtk_writer` in `unittest/formats/CMakeLists.txt`).
 
-## Platform-dependent test failures (ARM64, macOS)
+## Continuous integration jobs
 
-The unit tests run in CI on Linux x86-64, Linux aarch64 (`unittest-arm64.yml`),
-macOS, and Windows.  Linux aarch64 differs from x86-64 in two ways that matter
-numerically; both can be emulated on an x86-64 machine in a separate build directory:
+Pull requests and merges into `develop` and `maintenance` are tested by GitHub Actions
+(`.github/workflows/`) and by the buildbot installation at https://ci.lammps.org; both
+report a status per job on GitHub.  The "Details" link of a buildbot status opens the
+build: its `configure` step shows the CMake options and its `ctest` step the test
+output.  Summaries and trends of all results, including the nightly regression runs,
+are at https://dashboard.lammps.org.
+
+- Buildbot builders for pull requests have the prefix `pr-` and merge the current
+  `develop` into the branch before building, so a conflict with `develop` fails the
+  build.
+- They start by themselves for pull requests of members of the LAMMPS organization
+  (for outside collaborators once the pull request is not a draft).  For everybody
+  else a maintainer starts them with the label `cpu_unit_tests`.  The GPU builders
+  always need the label `gpu_unit_tests`; the macOS, FreeBSD, and Windows builders
+  need `extra_unit_tests` unless the author is a member.
+- The Linux, macOS, and FreeBSD builders skip the tests whose names start with
+  `Python`; the Linux CPU builders also skip `GeturlCommand`, because they have no
+  network access while testing.  The two GitHub unit-test workflows on Linux run
+  those tests.
+- `maintenance` is built by the CPU and VM builders, not by the GPU builders.
+
+What distinguishes the jobs (they build most packages unless noted):
+
+| Job | Configuration | Check first when only this job fails |
+|---|---|---|
+| `gcc-bigbig` | GCC, `LAMMPS_SIZES=bigbig`, Open MPI | 64-bit `tagint`/`bigint`; no FMA |
+| `gcc-fftsingle` | GCC, `FFT_SINGLE=on`, MPICH | single precision FFTs; no FMA |
+| `gcc11-alma9` | GCC 11 and the oldest supported CMake on AlmaLinux 9, Open MPI 4.1 | old compiler and library; no FMA |
+| `gcc-basic` | only the packages of `basic.cmake` | code or a test that needs another package without saying so |
+| `clang-cxx17`, `cpp23-gcc`, `cpp23-clang`, `intel-mkl` | Clang; C++23 with GCC and Clang; Intel compilers with MKL | compiler and C++ standard |
+| `kokkos-serial-*`, `kokkos-openmp-*` | KOKKOS in double, mixed, and single precision | reduced precision tolerances; `kokkos-serial-single` and `kokkos-openmp-mixed` have no FMA |
+| `kokkos-cuda-*`, `gpu-cuda-double`, `gpu-opencl-mixed` | KOKKOS and GPU package on NVIDIA GPUs | device-only code paths, mixed precision |
+| `macos-x86_64` | macOS 12, AppleClang 14, no OpenMP | old compiler; no FMA |
+| `macos26-x86_64` | macOS 26, AppleClang 17, OpenMP | no FMA |
+| `macos-arm64` | macOS 27 on Apple silicon, AppleClang 21, OpenMP, KOKKOS/OpenMP | FMA; Apple's libm |
+| `freebsd-x86_64` | FreeBSD 15, clang with libc++ | libc++; the only job that compiles the bundled linalg library |
+| `windows-msvc`, GitHub `compile-msvc.yml` | Visual Studio, packages of `windows.cmake` | MSVC: OpenMP 2.0, the regex engine of gtest; runs the `unstable` tests |
+| GitHub `unittest-arm64.yml` | GCC on Linux aarch64 | FMA; plain `char` is unsigned |
+| GitHub `unittest-fftw.yaml` | GCC, MPI, FFTW3, KOKKOS/OpenMP | FMA |
+| `check-examples` | every example input with `-skiprun` | an input that no longer parses |
+| `plugins`, `windows-installer` | plugins with stand-in libraries; MinGW cross-compilation of the Windows installers (`develop` only) | `examples/plugins`, plugin CMake files, `cmake/packaging` |
+
+**FMA and the `unstable` label.**  On Rocky Linux 10 (the buildbot machines) and in
+the current Ubuntu image of GitHub, GCC targets x86-64-v3 and therefore contracts
+`a*b + c` into fused multiply-add (FMA) instructions by default, as it does on aarch64.
+The tests with the CTest label `unstable` are numerically sensitive and their
+reference data holds for results without FMA.  The Linux jobs marked "no FMA" above
+(compiled with `-ffp-contract=off`, or for x86-64-v2 on AlmaLinux 9), the builders
+on GPUs, and the Windows jobs run them; the other jobs use `ctest -LE unstable`.  A
+test without that label which fails only in the "no FMA" jobs may have reference data
+that was generated with an FMA build.  Even a binary compiled without FMA executes
+FMA code inside the math library on a CPU that has it (glibc selects its `exp()`,
+`pow()`, `log()` at run time), so last-bit differences between two machines running
+the same binary are possible.
+
+## Platform-dependent test failures (ARM64, macOS, FMA)
+
+Linux aarch64 differs from a plain x86-64 build in two ways that matter numerically;
+both can be emulated on an x86-64 machine in a separate build directory:
 
 | Linux aarch64 property | x86-64 emulation |
 |---|---|
 | GCC contracts `a*b + c` into fused multiply-add (FMA) by default | `-D CMAKE_CXX_FLAGS="-mfma -ffp-contract=fast"` |
 | plain `char` is UNSIGNED (signed on x86-64 and macOS) | `-D CMAKE_CXX_FLAGS=-funsigned-char` |
 
-The macOS runner (`macos-26-intel`) is x86-64: a macOS-only failure comes from Apple's
-libm or clang (e.g. a last-bit difference in `sin()`), never from FMA or char
-signedness.  A clang build on Linux (`cmake/presets/clang.cmake`) covers the compiler
-part.
+For the opposite case, a build without FMA on a machine whose compiler uses it by
+default, add `-ffp-contract=off` to the compiler flags.  `macos-arm64` uses FMA as
+well, but plain `char` is signed there: emulate it with a clang build
+(`cmake/presets/clang.cmake`) and `-D CMAKE_CXX_FLAGS="-mfma -ffp-contract=on"`.  A
+failure this does not reproduce can come from Apple's libm (e.g. a last-bit difference
+in `sin()`) or the compiler version.  The two macOS jobs on x86-64 do not use FMA, so
+a failure there has another cause.
 
 Triage a failure seen on only one platform in this order, and do NOT tag the test
 `unstable` before doing so -- the tag hides real portability bugs:
@@ -223,6 +293,25 @@ the restart leg) and rerun the driver with `-s`; a robust test barely changes.
 - Every pair kernel must deliver its results through `store_answers()`, also when it
   computes nothing for an atom; otherwise the host accumulates uninitialized device
   memory, which happens to be zero on some devices and garbage on others.
+
+## Testing MDI coupling
+
+The MDI package has no unit tests at all (`ctest -R mdi` only matches unrelated
+names), so changes to `src/MDI/` are tested with `examples/mdi` (commands in its
+`README` and `Run.sh`):
+
+- LAMMPS can be both sides of `fix mdi/qm`: driver and (as a stand-in for a quantum
+  code) engine.  Three examples (`aimd`, `snapshot`, `series`) run over MPI, TCP, and
+  with the engine as a plugin library (`-mdi "... -method LINK -plugin_path <folder
+  with liblammps.so>"`).  The thermo output must be identical to that of the matching
+  `in.<name>.alone` input without MDI (the forces of the first snapshot may differ in
+  the last digits).
+- The LAMMPS engine does not provide the commands that `fix mdi/qmmm` requires
+  (`>POTENTIAL_AT_NUCLEI` and `<CHARGES`, or `>NLATTICE` and `>LATTICE`), so that fix
+  cannot be tested against LAMMPS.  Use a small stand-in engine instead: a C++ program
+  linked to the MDI library that CMake built (`<build>/mdi_build_ext/`) that registers
+  those commands and returns a deterministic response, driven by
+  `examples/QUANTUM/NWChem/in.water.qmmm`.
 
 ## Benchmark construction
 

@@ -632,11 +632,24 @@ void PairLJCharmmCoulLongSoft::allocate()
 
 void PairLJCharmmCoulLongSoft::settings(int narg, char **arg)
 {
-  if (narg != 5 && narg != 6) error->all(FLERR,"Illegal pair_style command");
+  if (narg < 5)
+    utils::missing_cmd_args(FLERR, "pair_style lj/charmm/coul/long/soft", error);
+  if (narg > 6)
+    error->all(FLERR, 7, "Too many arguments in pair_style lj/charmm/coul/long/soft command");
 
   nlambda = utils::numeric(FLERR,arg[0],false,lmp);
+  if (nlambda <= 0.0)
+    error->all(FLERR, 1, "Pair style lj/charmm/coul/long/soft requires n > 0, but n = {}", nlambda);
   alphalj = utils::numeric(FLERR,arg[1],false,lmp);
+  if (alphalj < 0.0)
+    error->all(FLERR, 2,
+               "Pair style lj/charmm/coul/long/soft requires alpha_LJ >= 0, but alpha_LJ = {}",
+               alphalj);
   alphac  = utils::numeric(FLERR,arg[2],false,lmp);
+  if (alphac < 0.0)
+    error->all(FLERR, 3,
+               "Pair style lj/charmm/coul/long/soft requires alpha_C >= 0, but alpha_C = {}",
+               alphac);
 
   cut_lj_inner = utils::numeric(FLERR,arg[3],false,lmp);
   cut_lj = utils::numeric(FLERR,arg[4],false,lmp);

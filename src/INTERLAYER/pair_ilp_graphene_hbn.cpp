@@ -27,6 +27,7 @@
 #include "force.h"
 #include "info.h"
 #include "interlayer_taper.h"
+#include "math_special.h"
 #include "memory.h"
 #include "my_page.h"
 #include "neigh_list.h"
@@ -39,6 +40,7 @@
 
 using namespace LAMMPS_NS;
 using namespace InterLayer;
+using MathSpecial::powint;
 
 namespace {
 constexpr int DELTA = 4;
@@ -465,7 +467,7 @@ void PairILPGrapheneHBN::calc_FvdW(int eflag, int /* vflag */)
         }
 
         TSvdw = 1.0 + exp(-p.d * (r / p.seff - 1.0));
-        TSvdw2inv = pow(TSvdw, -2.0);
+        TSvdw2inv = powint(TSvdw, -2);
         Vilp = -p.C6 * r6inv / TSvdw;
 
         // derivatives
@@ -1048,7 +1050,7 @@ double PairILPGrapheneHBN::single(int /*i*/, int /*j*/, int itype, int jtype, do
   r8inv = r2inv * r6inv;
 
   TSvdw = 1.0 + exp(-p.d * (r / p.seff - 1.0));
-  TSvdw2inv = pow(TSvdw, -2.0);
+  TSvdw2inv = powint(TSvdw, -2);
   Vilp = -p.C6 * r6inv / TSvdw;
   // derivatives
   fpair = -6.0 * p.C6 * r8inv / TSvdw + p.d / p.seff * p.C6 * (TSvdw - 1.0) * r6inv * TSvdw2inv / r;

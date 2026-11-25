@@ -53,7 +53,7 @@ int zher2k_(char *uplo, char *trans, integer *n, integer *k, doublecomplex *alph
         xerbla_((char *)"ZHER2K", &info, (ftnlen)6);
         return 0;
     }
-    if (*n == 0 || (alpha->r == 0. && alpha->i == 0. || *k == 0) && *beta == 1.) {
+    if (*n == 0 || (((alpha->r == 0. && alpha->i == 0.) || *k == 0) && *beta == 1.)) {
         return 0;
     }
     if (alpha->r == 0. && alpha->i == 0.) {

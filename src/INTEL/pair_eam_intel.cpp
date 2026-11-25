@@ -42,6 +42,8 @@ using namespace LAMMPS_NS;
 PairEAMIntel::PairEAMIntel(LAMMPS *lmp) : PairEAM(lmp)
 {
   suffix_flag |= Suffix::INTEL;
+  // parameters are copied to packed arrays in init_style(), fix adapt would not update them
+  reinitflag = 0;
   fp_float = nullptr;
 }
 
@@ -306,8 +308,6 @@ void PairEAMIntel::eval(const int vflag,
         #if defined(LMP_SIMD_COMPILER)
 #if defined(USE_OMP_SIMD)
         #pragma omp simd reduction(+:rhoi)
-#else
-        #pragma simd reduction(+:rhoi)
 #endif
         #pragma vector aligned
         #endif
@@ -353,8 +353,6 @@ void PairEAMIntel::eval(const int vflag,
             double *trho2 = rho + nmax;
 #if defined(USE_OMP_SIMD)
             #pragma omp simd
-#else
-            #pragma simd
 #endif
             #pragma vector aligned
             for (int n = 0; n < rcount; n++)
@@ -365,8 +363,6 @@ void PairEAMIntel::eval(const int vflag,
             double *trho4 = trho3 + nmax;
 #if defined(USE_OMP_SIMD)
             #pragma omp simd
-#else
-            #pragma simd
 #endif
             #pragma vector aligned
             for (int n = 0; n < rcount; n++)
@@ -376,8 +372,6 @@ void PairEAMIntel::eval(const int vflag,
             for (int t = 1; t < nthreads; t++) {
 #if defined(USE_OMP_SIMD)
               #pragma omp simd
-#else
-              #pragma simd
 #endif
               #pragma vector aligned
               for (int n = 0; n < rcount; n++)
@@ -410,8 +404,6 @@ void PairEAMIntel::eval(const int vflag,
       #if defined(LMP_SIMD_COMPILER)
 #if defined(USE_OMP_SIMD)
       #pragma omp simd reduction(+:tevdwl)
-#else
-      #pragma simd reduction(+:tevdwl)
 #endif
       #pragma vector aligned
       #endif
@@ -511,9 +503,6 @@ void PairEAMIntel::eval(const int vflag,
 #if defined(USE_OMP_SIMD)
         #pragma omp simd reduction(+:fxtmp, fytmp, fztmp, fwtmp, sevdwl, \
                                    sv0, sv1, sv2, sv3, sv4, sv5)
-#else
-        #pragma simd reduction(+:fxtmp, fytmp, fztmp, fwtmp, sevdwl, \
-                               sv0, sv1, sv2, sv3, sv4, sv5)
 #endif
         #pragma vector aligned
         #endif

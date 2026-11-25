@@ -100,7 +100,7 @@ void CreateAtoms::command(int narg, char **arg)
   if (domain->box_exist == 0)
     error->all(FLERR, Error::NOLASTLINE,
                "Create_atoms command before simulation box is defined" + utils::errorurl(33));
-  if (modify->nfix_restart_peratom)
+  if (modify->get_nfix_restart_peratom())
     error->all(FLERR, Error::NOLASTLINE,
                "Cannot create_atoms after reading restart file with per-atom info");
 

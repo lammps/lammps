@@ -8,22 +8,15 @@ Optional build settings
 LAMMPS can be built with several optional settings.  Each subsection
 explains how to do this for building both with CMake and make.
 
-* `C++17 standard compliance`_ when building all of LAMMPS
-* `FFT library`_ for use with the :doc:`kspace_style pppm <kspace_style>` command
-* `Size of LAMMPS integer types and size limits`_
-* `Read or write compressed files`_
-* `Support for downloading files from the input`_
-* `Prevent download of large potential files`_
-* `Memory allocation alignment`_
-* `Workaround for long long integers`_
-* `Exception handling when using LAMMPS as a library`_ to capture errors
+.. contents::
+   :local:
+   :depth: 1
 
 ----------
 
-.. _cxx17:
-
-C++17 standard compliance
--------------------------
+++17 standard compliance
+C++17 standard compliance when building all of LAMMPS
+-----------------------------------------------------
 
 .. versionchanged:: 10Sep2025
 
@@ -50,10 +43,12 @@ FFT library
 -----------
 
 When the KSPACE package is included in a LAMMPS build, the
-:doc:`kspace_style pppm <kspace_style>` command performs 3d FFTs which
-require use of an FFT library to compute 1d FFTs.  The KISS FFT
-library is included with LAMMPS, but other libraries can be faster.
-LAMMPS can use them if they are available on your system.
+:doc:`kspace_style pppm or esp <kspace_style>` commands and their
+variants perform 3d FFTs which require use of an FFT library to compute
+1d FFTs.  The `KISS FFT library
+<https://github.com/mborgerding/kissfft>`_ is included with LAMMPS, but
+other libraries can be faster.  LAMMPS can use them if they are
+available on your system.
 
 .. versionadded:: 7Feb2024
 
@@ -377,9 +372,8 @@ like the mean-squared displacement, as calculated by the :doc:`compute
 msd <compute_msd>` command, to be faulty.
 
 Also note that the GPU package requires its lib/gpu library to be
-compiled with the same size setting, or the link will fail.  A CMake
-build does this automatically.  When building with make, the setting
-in whichever ``lib/gpu/Makefile`` is used must be the same as above.
+compiled with the same size setting, or the link will fail.  The CMake
+build does this automatically.
 
 ----------
 
@@ -392,7 +386,7 @@ Read or write compressed files
 
    Added support for ``brotli`` and ``7-zip``
 
-.. versionchanged:: TBD
+.. versionchanged:: 13Nov2026
 
 Support for compressed files no longer needs to be enabled at compile
 time; the CMake option ``WITH_GZIP`` and the define ``-DLAMMPS_GZIP``
@@ -471,8 +465,6 @@ LAMMPS is compiled accordingly which needs the following settings:
 
 ----------
 
-.. _download_pot:
-
 Prevent download of large potential files
 -----------------------------------------
 
@@ -489,8 +481,6 @@ LAMMPS with CMake <Build_cmake>` by adding the setting `-D
 DOWNLOAD_POTENTIALS=off` when configuring.
 
 ----------
-
-.. _align:
 
 Memory allocation alignment
 ---------------------------
@@ -532,8 +522,6 @@ on 64-byte boundaries.
 
 ----------
 
-.. _longlong:
-
 Workaround for long long integers
 ---------------------------------
 
@@ -561,13 +549,17 @@ those systems:
 .. _exceptions:
 
 Exception handling when using LAMMPS as a library
--------------------------------------------------
+Exception handling when using LAMMPS as a library to capture errors
+-------------------------------------------------------------------
 
 LAMMPS errors do not kill the calling code, but throw an exception.  In
 the C-library interface, the call stack is unwound and control returns
 to the caller, e.g. to Python or a code that is coupled to LAMMPS. The
 error status can then be queried.  When using C++ directly, the calling
-code has to be set up to *catch* exceptions thrown from within LAMMPS.
+code **must be** set up to **catch** exceptions thrown from within
+LAMMPS.  This is particularly necessary when running in parallel, since
+a ``LAMMPSAbortException`` may only be thrown on a single MPI rank and
+thus can lead to the calculation stalling.
 
 .. note::
 
@@ -575,4 +567,3 @@ code has to be set up to *catch* exceptions thrown from within LAMMPS.
    cleanly recover from an exception since not all parallel ranks may
    throw an exception and thus other MPI ranks may get stuck waiting for
    messages from the ones with errors.
-

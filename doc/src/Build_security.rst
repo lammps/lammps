@@ -20,8 +20,8 @@ report problems, is in the file `SECURITY.md
 <https://github.com/lammps/lammps/blob/develop/SECURITY.md>`_ of the
 LAMMPS repository on GitHub.  How to check that the LAMMPS source code
 itself was downloaded completely and without modifications is explained
-in the sections about :ref:`downloading tarballs <verify_download>` and
-about :doc:`downloading with git <Install_git>`.
+in the sections about :ref:`checking downloaded files
+<verify_download>` and about :doc:`downloading with git <Install_git>`.
 
 What a LAMMPS input file can do
 -------------------------------
@@ -276,8 +276,9 @@ sources when they are enabled or built.
      - release archive from the server of the PyYAML project
      - SHA-256 checksum
    * - Tools (``-D BUILD_TOOLS=on``)
-     - ``spglib`` for the :ref:`phana tool <phonon>` (always downloaded
-       unless ``-D USE_SPGLIB=off`` is used)
+     - ``spglib`` for the :ref:`phana <phonon>` and :ref:`find-symmetry
+       <findsym>` tools (always downloaded unless ``-D USE_SPGLIB=off``
+       is used)
      - archive of a tagged version from GitHub
      - SHA-256 checksum
    * - :ref:`LAMMPS-GUI <lammps_gui>` (``-D BUILD_LAMMPS_GUI=on``)

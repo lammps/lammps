@@ -233,7 +233,7 @@ void ComputePODGlobal::lammpsNeighborList(double **x, int **firstneigh, tagint *
   ti[nij] = itype;
   int m = numneigh[gi];
   for (int l = 0; l < m; l++) {           // loop over each atom around atom i
-    int gj = firstneigh[gi][l];           // atom j
+    int gj = firstneigh[gi][l] & NEIGHMASK;    // atom j
     double delx = x[gj][0] - x[gi][0];    // xj - xi
     double dely = x[gj][1] - x[gi][1];    // xj - xi
     double delz = x[gj][2] - x[gi][2];    // xj - xi

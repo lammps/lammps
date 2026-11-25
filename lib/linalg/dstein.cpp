@@ -84,7 +84,7 @@ int dstein_(integer *n, doublereal *d__, doublereal *e, integer *m, doublereal *
         z__[z_dim1 + 1] = 1.;
         return 0;
     }
-    eps = dlamch_((char *)"Precision", (ftnlen)9);
+    eps = dlamch_((char *)"P", (ftnlen)1);
     for (i__ = 1; i__ <= 4; ++i__) {
         iseed[i__ - 1] = 1;
     }

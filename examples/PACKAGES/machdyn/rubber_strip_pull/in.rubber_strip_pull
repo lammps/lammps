@@ -100,7 +100,7 @@ variable        strain equal (v_length-${length})/${length} # engineering strain
 fix             stress_curve all print 10 "${strain} ${stress}" file stress_strain.dat screen no
 
 thermo          100
-thermo_style    custom step dt f_dtfix v_strain
+thermo_style    custom step dt f_dtfix v_strain press
 
 ####################################################################################################
 # RUN SIMULATION

@@ -190,10 +190,18 @@ void PairCoulLongSoft::allocate()
 
 void PairCoulLongSoft::settings(int narg, char **arg)
 {
-  if (narg != 3) error->all(FLERR,"Illegal pair_style command");
+  if (narg < 3)
+    utils::missing_cmd_args(FLERR, "pair_style coul/long/soft", error);
+  if (narg > 3)
+    error->all(FLERR, 4, "Too many arguments in pair_style coul/long/soft command");
 
   nlambda = utils::numeric(FLERR,arg[0],false,lmp);
+  if (nlambda <= 0.0)
+    error->all(FLERR, 1, "Pair style coul/long/soft requires n > 0, but n = {}", nlambda);
   alphac  = utils::numeric(FLERR,arg[1],false,lmp);
+  if (alphac < 0.0)
+    error->all(FLERR, 2, "Pair style coul/long/soft requires alpha_C >= 0, but alpha_C = {}",
+               alphac);
 
   cut_coul = utils::numeric(FLERR,arg[2],false,lmp);
 }

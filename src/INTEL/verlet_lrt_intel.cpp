@@ -83,7 +83,6 @@ void VerletLRTIntel::setup(int flag)
     return;
   }
 
-
   if (comm->me == 0 && screen) {
     fputs("Setting up VerletLRTIntel run ...\n",screen);
     if (flag) {
@@ -203,15 +202,6 @@ void VerletLRTIntel::run(int n)
   bigint ntimestep;
   int nflag,sortflag;
 
-  int n_post_integrate = modify->n_post_integrate;
-  int n_pre_exchange = modify->n_pre_exchange;
-  int n_pre_neighbor = modify->n_pre_neighbor;
-  int n_post_neighbor = modify->n_post_neighbor;
-  int n_pre_force = modify->n_pre_force;
-  int n_pre_reverse = modify->n_pre_reverse;
-  int n_post_force_any = modify->n_post_force_any;
-  int n_end_of_step = modify->n_end_of_step;
-
   if (atom->sortfreq > 0) sortflag = 1;
   else sortflag = 0;
 
@@ -236,7 +226,7 @@ void VerletLRTIntel::run(int n)
 
     timer->stamp();
     modify->initial_integrate(vflag);
-    if (n_post_integrate) modify->post_integrate();
+    if (modify->has_fixes(FixConst::POST_INTEGRATE)) modify->post_integrate();
     timer->stamp(Timer::MODIFY);
 
     // regular communication vs neighbor list rebuild
@@ -249,7 +239,7 @@ void VerletLRTIntel::run(int n)
       timer->stamp(Timer::COMM);
       _intel_kspace->pack_buffers();
     } else {
-      if (n_pre_exchange) {
+      if (modify->has_fixes(FixConst::PRE_EXCHANGE)) {
         timer->stamp();
         modify->pre_exchange();
         timer->stamp(Timer::MODIFY);
@@ -267,13 +257,13 @@ void VerletLRTIntel::run(int n)
       comm->borders();
       if (triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
       timer->stamp(Timer::COMM);
-      if (n_pre_neighbor) {
+      if (modify->has_fixes(FixConst::PRE_NEIGHBOR)) {
         modify->pre_neighbor();
         timer->stamp(Timer::MODIFY);
       }
       neighbor->build(1);
       timer->stamp(Timer::NEIGH);
-      if (n_post_neighbor) {
+      if (modify->has_fixes(FixConst::POST_NEIGHBOR)) {
         modify->post_neighbor();
         timer->stamp(Timer::MODIFY);
       }
@@ -303,7 +293,7 @@ void VerletLRTIntel::run(int n)
       } );
     #endif
 
-    if (n_pre_force) {
+    if (modify->has_fixes(FixConst::PRE_FORCE)) {
       modify->pre_force(vflag);
       timer->stamp(Timer::MODIFY);
     }
@@ -337,7 +327,7 @@ void VerletLRTIntel::run(int n)
       timer->stamp(Timer::KSPACE);
     }
 
-    if (n_pre_reverse) {
+    if (modify->has_fixes(FixConst::PRE_REVERSE)) {
       modify->pre_reverse(eflag,vflag);
       timer->stamp(Timer::MODIFY);
     }
@@ -351,9 +341,9 @@ void VerletLRTIntel::run(int n)
 
     // force modifications, final time integration, diagnostics
 
-    if (n_post_force_any) modify->post_force(vflag);
+    if (modify->has_fixes(FixConst::POST_FORCE_ANY)) modify->post_force(vflag);
     modify->final_integrate();
-    if (n_end_of_step) modify->end_of_step();
+    if (modify->has_fixes(FixConst::END_OF_STEP)) modify->end_of_step();
     timer->stamp(Timer::MODIFY);
 
     // all output

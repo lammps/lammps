@@ -39,7 +39,6 @@ class PairMDPDRhoSum : public Pair {
 
  protected:
   double **cut;
-  int first;
 
   void allocate();
 };

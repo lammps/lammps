@@ -7,7 +7,10 @@
 #
 # unit system: GPa / mm / ms
 #
+# the default number of steps is short for testing, use "-var nsteps 5000" for the full example
+#
 ####################################################################################################
+variable        nsteps index 2000
 
 ####################################################################################################
 # MATERIAL PARAMETERS
@@ -18,7 +21,7 @@ variable        q1 equal 0.06 # standard artificial viscosity linear coefficient
 variable        q2 equal 0.0  # standard artificial viscosity quadratic coefficient
 variable        hg equal 0.0 # hourglass control coefficient
 variable        cp equal 1.0 # heat capacity of material -- not used here
-variable        K equal ${c0}*${rho}^2
+variable        K equal ${c0}^2*${rho} # bulk modulus of the fluid
 variable        contact_stiffness equal 0.1*${K}
 
 ####################################################################################################
@@ -65,8 +68,8 @@ fix             gfix all gravity 0.01 vector 0.0 -1. 0.0
 
 ####################################################################################################
 # INTERACTION PHYSICS / MATERIAL MODEL
-# We use polynomial EOS for the pressure and the Johnson Cook strength model
-# An integration point fails (cannot support tension anymore) if the plastic strain exceeds 0.5.
+# The fluid is modeled with updated Lagrangian SPH and the Tait EOS.
+# Contact forces with the triangulated surface from the STL file act as a rigid wall.
 ####################################################################################################
 pair_style      hybrid/overlay smd/tri_surface 1.0 &
                 smd/ulsph *DENSITY_CONTINUITY *VELOCITY_GRADIENT *NO_GRADIENT_CORRECTION
@@ -135,4 +138,4 @@ thermo_style    custom step dt f_dtfix pe ke v_etot
 ####################################################################################################
 balance          1.1 rcb
 fix              balance_fix all balance 200 1.1 rcb
-run              5000
+run              ${nsteps}

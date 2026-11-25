@@ -140,7 +140,7 @@ void MLIAPModelPythonKokkos<DeviceType>::compute_gradients(class MLIAPData *data
   PyGILState_STATE gstate = PyGILState_Ensure();
 
   auto nontemplated_this = reinterpret_cast<MLIAPModelPythonKokkosDevice *>(this);
-  auto *kokkos_data = dynamic_cast<MLIAPDataKokkos<DeviceType>*>(data);
+  auto *kokkos_data = MLIAPDataKokkos<DeviceType>::cast(data);
   MLIAPDataKokkosDevice raw_data(*kokkos_data);
   MLIAPPYKokkos_compute_gradients(nontemplated_this, &raw_data);
   if (PyErr_Occurred()) {

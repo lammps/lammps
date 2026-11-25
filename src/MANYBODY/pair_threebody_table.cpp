@@ -762,6 +762,11 @@ void PairThreebodyTable::threebody(Param *paramijk, double rsq1, double rsq2, do
   r13 = sqrt(rsq2);
   rinv = 1.0 / (r12 * r13);
   cs = (delr1[0] * delr2[0] + delr1[1] * delr2[1] + delr1[2] * delr2[2]) * rinv;
+
+  // rounding can push the cosine of a straight angle past +/-1, where acos() is undefined
+
+  cs = MAX(-1.0, MIN(cs, 1.0));
+
   //compute angle between r12 and r13 in degrees
   theta = acos(cs) * 180.0 / MY_PI;
 

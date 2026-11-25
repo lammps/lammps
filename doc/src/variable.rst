@@ -1166,7 +1166,7 @@ actually instances of a command style which LAMMPS defines, as opposed
 to built-in commands.  For all of these styles except *command*,
 appending of active suffixes is also tried before reporting failure.
 
-.. versionchanged:: TBD
+.. versionchanged:: 13Nov2026
 
 The *feature* category checks the availability of the following
 compile-time enabled features: PNG support, JPEG support, and C++

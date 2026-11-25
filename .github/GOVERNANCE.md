@@ -36,9 +36,9 @@ on whether to remove that member from the TSC.
 3. Aidan Thompson ([@athomps](https://github.com/athomps)), Sandia National Laboratories
 4. Richard Berger ([@rbberger](https://github.com/rbberger)), Los Alamos National Laboratory
 5. Stan Moore ([@stanmoore1](https://github.com/stanmoore1)), Sandia National Laboratories
-6. Joel Clemmer, ([@jtclemm](https://github.com/jtclemm)), Sandia National Laboratories
+6. Joel Clemmer ([@jtclemm](https://github.com/jtclemm)), Sandia National Laboratories
 7. Jake Gissinger ([@jrgissing](https://github.com/jrgissing)), Stevens Institute of Technology
-8. Larry Fried (), Lawrence Livermore National Laboratory
+8. Larry Fried, Lawrence Livermore National Laboratory
 9. Chris Knight ([@cjknight](https://github.com/cjknight)), Argonne National Laboratory
 10. Evan Weinberg ([@weinbe2](https://github.com/weinbe2)), NVIDIA Corporation
 11. Ellad Tadmor ([@tadmor](https://github.com/tadmor)), University of Minnesota
@@ -74,18 +74,18 @@ GitHub repository.
 
 ### 2.1 MatSci.org Discourse Forum
 
-LAMMPS has joined the [MatSci.org Discouse](https://matsci.org/) community
+LAMMPS has joined the [MatSci.org Discourse](https://matsci.org/) community
 website together with many other related software packages.
 There is a [LAMMPS forum](https://matsci.org/lammps)
 which is the main place for communication among LAMMPS users and developers.
-This also includes a subcategories for beginners, developers, installation,
+This also includes subcategories for beginners, developers, installation,
 and an archive of the lammps-users mailing list that was active from 2005
 until 2022.
 
 ### 2.2 Monthly Developer Meetings
 
 Public LAMMPS developer meetings are held virtually on the second
-Tuesday of every month that has not a TSC meeting, at 12 noon Mountain
+Tuesday of every month that does not have a TSC meeting, at 12 noon Mountain
 Time (i.e. local time in Albuquerque, NM).
 
 More information about how to attend is on the LAMMPS homepage at
@@ -93,16 +93,16 @@ More information about how to attend is on the LAMMPS homepage at
 
 ### 2.3 LAMMPS Slack
 
-The LAMMPS project uses slack for day-to-day developer communication at
+The LAMMPS project uses Slack for day-to-day developer communication at
 [lammps.slack.com](https://lammps.slack.com).  Invitations to the LAMMPS
-slack instance can be requested by sending an email to slack@lammps.org.
+Slack instance can be requested by sending an email to slack@lammps.org.
 
 The LAMMPS Slack is low volume and intended for developers only.
 
-### 2.4 LAMMPS Github
+### 2.4 LAMMPS GitHub
 
 LAMMPS [issues](https://github.com/lammps/lammps/issues) and [pull
-requests](https://github.com/lammps/lammps/pulls), are tracked on the
+requests](https://github.com/lammps/lammps/pulls) are tracked on the
 [LAMMPS GitHub page](https://github.com/lammps/lammps).
 
 ### 2.5 Developer Email Address Alias
@@ -125,7 +125,7 @@ Announcements will be posted on the LAMMPS website
 
 <br>
 
-### 4.1 Administrative Access to the Github Repository
+### 4.1 Administrative Access to the GitHub Repository
 
 Only members of the TSC may have administrative access to the LAMMPS
 repository.  TSC members will be given access individually as needed.

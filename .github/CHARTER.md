@@ -38,7 +38,7 @@ The mission of the Project is to:
 1.4. Continue to adapt the code base to support both:
 
 1.4.1. new HPC Cluster hardware architectures, including conventional
-    CPU and GPU architectures, as well emerging architectures; and
+    CPU and GPU architectures, as well as emerging architectures; and
 
 1.4.2. new physics models, including those built on emerging machine
     learning and artificial intelligence technologies;
@@ -88,7 +88,7 @@ technical oversight of the open source Project.
      documentation, and other technical artifacts over a multi-year
      period and/or have unique expertise in specific aspects of the
      Project.  Only approvals from *Core Developers* count toward the
-     minimum number of approvales required to merge contributions from
+     minimum number of approvals required to merge contributions from
      pull requests.
 
 2.2.3. **Maintainers** are *Core Developers* who have been authorized by
@@ -103,7 +103,7 @@ technical oversight of the open source Project.
 2.2.4. *Core Developers* are **recruited** by the existing *Core
      Developers*; *Maintainers* are **appointed** by the TSC.  Anyone may
      become a *Maintainer* by a majority approval of the existing TSC, but
-     typically they are chosen from among the *Core Developer*.  A
+     typically they are chosen from among the *Core Developers*.  A
      *Maintainer* may be removed by a majority approval of the TSC.
 
 2.3. Participation in the Project through becoming a *Contributor*,

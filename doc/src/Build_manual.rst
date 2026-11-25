@@ -53,7 +53,7 @@ incorporates programmer documentation extracted from the LAMMPS C++
 sources through the `Doxygen <https://doxygen.nl/>`_ program.  Currently
 the translation to HTML, PDF (via LaTeX), ePUB (for many e-book readers)
 and MOBI (for Amazon Kindle readers) are supported.  For that to work a
-Python interpreter version 3.8 or later, the ``doxygen`` tools and
+Python interpreter version 3.9 or later, the ``doxygen`` tools and
 internet access to download additional files and tools are required.
 This download is usually only required once or after the documentation
 folder is returned to a pristine state with ``make clean-all``.
@@ -90,7 +90,7 @@ folder.  The following ``make`` commands are available:
    make upgrade       # upgrade the python packages in the virtual environment
 
    make check         # run all checks listed in this block
-   make anchor_check  # check for duplicate anchor labels
+   make anchor_check  # check for duplicate and unused anchor labels
    make style_check   # check for complete and consistent style lists
    make package_check # check for complete and consistent package lists
    make char_check    # check for non-ASCII characters
@@ -126,7 +126,7 @@ environment variable.
 Prerequisites for HTML
 ----------------------
 
-To run the HTML documentation build tool chain, Python 3.8 or later, git,
+To run the HTML documentation build tool chain, Python 3.9 or later, git,
 doxygen, and virtualenv have to be installed locally.  Here are
 instructions for common setups:
 
@@ -138,7 +138,7 @@ instructions for common setups:
 
          sudo apt-get install git doxygen
 
-   .. tab:: Fedora or RHEL/AlmaLinux/RockyLinux (8.x or later)
+   .. tab:: Fedora or RHEL/AlmaLinux/RockyLinux (9.x or later)
 
       .. code-block:: bash
 

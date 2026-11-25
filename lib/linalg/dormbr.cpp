@@ -65,7 +65,7 @@ int dormbr_(char *vect, char *side, char *trans, integer *m, integer *n, integer
         *info = -6;
     } else {
         i__1 = 1, i__2 = min(nq, *k);
-        if (applyq && *lda < max(1, nq) || !applyq && *lda < max(i__1, i__2)) {
+        if ((applyq && *lda < max(1, nq)) || (!applyq && *lda < max(i__1, i__2))) {
             *info = -8;
         } else if (*ldc < max(1, *m)) {
             *info = -11;

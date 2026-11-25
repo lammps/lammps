@@ -1735,7 +1735,9 @@ To read compressed data files, the corresponding compression program
 must be installed.  See the :ref:`Build settings <gzip>` page for
 details.
 
-Label maps are currently not supported when using the KOKKOS package.
+.. versionchanged:: 13Nov2026
+
+Type label sections are supported when using the KOKKOS package.
 
 Related commands
 """"""""""""""""

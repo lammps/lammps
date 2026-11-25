@@ -74,7 +74,7 @@ The :math:`b_{ij}` and :math:`c_{ij}` are equal  to :math:`b_{ji}` and
 :math:`c_{ji}` in the case of core-core interactions.
 
 For pair_style *coul/tt*, the following coefficients must be defined for
-each pair of atoms types via the :doc:`pair_coeff <pair_coeff>` command
+each pair of atom types via the :doc:`pair_coeff <pair_coeff>` command
 as in the example above.
 
 * :math:`b_{ij}`

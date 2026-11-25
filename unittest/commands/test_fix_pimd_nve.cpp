@@ -21,9 +21,7 @@
 #include "pimd_test_utils.h"
 #include "modify.h"
 
-#define protected public
 #include "../../src/REPLICA/fix_pimd_nve.h"
-#undef protected
 
 #include <cmath>
 #include <mpi.h>
@@ -33,6 +31,40 @@
 bool verbose = false;
 
 namespace LAMMPS_NS {
+
+// Keep the production class declaration unchanged: MSVC encodes member access
+// in symbol names. Member pointers allow access without downcasting the fix.
+struct PIMDNVEAccess : FixPIMDNVE {
+  using FixPIMDNVE::Lan_c;
+  using FixPIMDNVE::Lan_s;
+  using FixPIMDNVE::_omega_k;
+  using FixPIMDNVE::a_step;
+  using FixPIMDNVE::bufbeads;
+  using FixPIMDNVE::centroid_vir;
+  using FixPIMDNVE::comm_init;
+  using FixPIMDNVE::compute_cvir;
+  using FixPIMDNVE::compute_p_prim;
+  using FixPIMDNVE::compute_spring_energy;
+  using FixPIMDNVE::compute_t_prim;
+  using FixPIMDNVE::compute_t_vir;
+  using FixPIMDNVE::compute_xf_vir;
+  using FixPIMDNVE::fbond;
+  using FixPIMDNVE::inter_replica_comm;
+  using FixPIMDNVE::ireplica;
+  using FixPIMDNVE::lam;
+  using FixPIMDNVE::mass;
+  using FixPIMDNVE::p_prim;
+  using FixPIMDNVE::reallocate;
+  using FixPIMDNVE::remove_com_motion;
+  using FixPIMDNVE::se_bead;
+  using FixPIMDNVE::t_cv;
+  using FixPIMDNVE::t_prim;
+  using FixPIMDNVE::t_vir;
+  using FixPIMDNVE::total_spring_energy;
+  using FixPIMDNVE::vir_;
+  using FixPIMDNVE::x_unwrap;
+  using FixPIMDNVE::xc;
+};
 
 class FixPIMDNVESerialTest : public LAMMPSTest {
  protected:
@@ -222,33 +254,33 @@ TEST_F(FixPIMDNVESerialTest, GroupRestrictedSpringAndVirialEstimators)
 
   // Exercise a nonzero mode's estimator algebra without requiring MPI partitions.
   // Every atom outside the group has a much larger position and force.
-  fix->lam[0] = 2.0;
-  fix->fbond = 1.0;
+  (fix->*&PIMDNVEAccess::lam)[0] = 2.0;
+  (fix->*&PIMDNVEAccess::fbond) = 1.0;
   for (int i = 0; i < lmp->atom->nlocal; ++i) {
     const bool mobile = lmp->atom->tag[i] == 1;
     for (int d = 0; d < 3; ++d) {
       lmp->atom->x[i][d] = mobile ? 1.0 : 10.0;
-      fix->x_unwrap[i][d] = lmp->atom->x[i][d];
-      fix->xc[i][d] = fix->x_unwrap[i][d] - 0.5;
+      (fix->*&PIMDNVEAccess::x_unwrap)[i][d] = lmp->atom->x[i][d];
+      (fix->*&PIMDNVEAccess::xc)[i][d] = (fix->*&PIMDNVEAccess::x_unwrap)[i][d] - 0.5;
       lmp->atom->f[i][d] = (mobile ? 1.0 : 10.0) * (d + 1);
     }
   }
-  fix->compute_spring_energy();
-  fix->compute_xf_vir();
-  fix->compute_cvir();
-  fix->compute_t_prim();
-  fix->compute_t_vir();
-  fix->compute_p_prim();
+  (fix->*&PIMDNVEAccess::compute_spring_energy)();
+  (fix->*&PIMDNVEAccess::compute_xf_vir)();
+  (fix->*&PIMDNVEAccess::compute_cvir)();
+  (fix->*&PIMDNVEAccess::compute_t_prim)();
+  (fix->*&PIMDNVEAccess::compute_t_vir)();
+  (fix->*&PIMDNVEAccess::compute_p_prim)();
 
-  EXPECT_NEAR(fix->se_bead, 3.0, 1.0e-12);
-  EXPECT_NEAR(fix->total_spring_energy, 3.0, 1.0e-12);
-  EXPECT_NEAR(fix->vir_, 6.0, 1.0e-12);
-  EXPECT_NEAR(fix->centroid_vir, 3.0, 1.0e-12);
-  EXPECT_NEAR(fix->t_prim, -1.5, 1.0e-12);
-  EXPECT_NEAR(fix->t_vir, -3.0, 1.0e-12);
-  EXPECT_NEAR(fix->t_cv, 0.0, 1.0e-12);
+  EXPECT_NEAR((fix->*&PIMDNVEAccess::se_bead), 3.0, 1.0e-12);
+  EXPECT_NEAR((fix->*&PIMDNVEAccess::total_spring_energy), 3.0, 1.0e-12);
+  EXPECT_NEAR((fix->*&PIMDNVEAccess::vir_), 6.0, 1.0e-12);
+  EXPECT_NEAR((fix->*&PIMDNVEAccess::centroid_vir), 3.0, 1.0e-12);
+  EXPECT_NEAR((fix->*&PIMDNVEAccess::t_prim), -1.5, 1.0e-12);
+  EXPECT_NEAR((fix->*&PIMDNVEAccess::t_vir), -3.0, 1.0e-12);
+  EXPECT_NEAR((fix->*&PIMDNVEAccess::t_cv), 0.0, 1.0e-12);
   // The cubic lattice contains eight atoms at number density 0.7.
-  EXPECT_NEAR(fix->p_prim, -0.7 / 8.0, 1.0e-12);
+  EXPECT_NEAR((fix->*&PIMDNVEAccess::p_prim), -0.7 / 8.0, 1.0e-12);
 }
 
 TEST_F(FixPIMDNVESerialTest, MethodsAndInputValidation)
@@ -324,21 +356,21 @@ TEST(FixPIMDNVEMPI, FreeRingPolymerMatchesAnalyticalMotion)
           command("run 0 post no");
           auto *fix = dynamic_cast<FixPIMDNVE *>(lmp->modify->get_fix_by_id("cp"));
           ASSERT_NE(fix, nullptr);
-          EXPECT_DOUBLE_EQ(fix->_omega_k[0], 0.0);
-          EXPECT_DOUBLE_EQ(fix->Lan_c[0], 1.0);
-          EXPECT_DOUBLE_EQ(fix->Lan_s[0], 0.0);
+          EXPECT_DOUBLE_EQ((fix->*&PIMDNVEAccess::_omega_k)[0], 0.0);
+          EXPECT_DOUBLE_EQ((fix->*&PIMDNVEAccess::Lan_c)[0], 1.0);
+          EXPECT_DOUBLE_EQ((fix->*&PIMDNVEAccess::Lan_s)[0], 0.0);
           if (lmp->universe->iworld == 1) {
             // Derive frequency from spring curvature and integration mass,
             // independently of the cached normal-mode propagation coefficients.
             const double expected_mass = 2.0 * std::stod(fmass) * (mode == "normal" ? 4.0 : 1.0);
-            EXPECT_DOUBLE_EQ(fix->mass[1], expected_mass);
-            const double stiffness = fix->fbond * lmp->atom->mass[1] * fix->lam[1];
-            const double omega = std::sqrt(stiffness * lmp->force->ftm2v / fix->mass[1]);
-            EXPECT_NEAR(fix->_omega_k[1], omega, 1.0e-10 * omega);
+            EXPECT_DOUBLE_EQ((fix->*&PIMDNVEAccess::mass)[1], expected_mass);
+            const double stiffness = (fix->*&PIMDNVEAccess::fbond) * lmp->atom->mass[1] * (fix->*&PIMDNVEAccess::lam)[1];
+            const double omega = std::sqrt(stiffness * lmp->force->ftm2v / (fix->*&PIMDNVEAccess::mass)[1]);
+            EXPECT_NEAR((fix->*&PIMDNVEAccess::_omega_k)[1], omega, 1.0e-10 * omega);
             const double x0 = 0.3, v0 = 0.2;
             lmp->atom->x[0][0] = x0;
             lmp->atom->v[0][0] = v0;
-            for (int step = 0; step < 100; ++step) fix->a_step();
+            for (int step = 0; step < 100; ++step) (fix->*&PIMDNVEAccess::a_step)();
             const double angle = omega * 50.0 * lmp->update->dt;
             const double expected_x = x0 * std::cos(angle) + v0 / omega * std::sin(angle);
             const double expected_v = v0 * std::cos(angle) - x0 * omega * std::sin(angle);
@@ -472,10 +504,10 @@ TEST(FixPIMDNVEMPI, RemoveCOMRespectsRepresentationAndGroup)
     command("velocity all set 1.0 2.0 3.0");
     auto *fix = dynamic_cast<FixPIMDNVE *>(lmp->modify->get_fix_by_id("cp"));
     ASSERT_NE(fix, nullptr);
-    fix->remove_com_motion();
+    (fix->*&PIMDNVEAccess::remove_com_motion)();
     for (int i = 0; i < lmp->atom->nlocal; ++i) {
       const bool removed = lmp->atom->tag[i] == 1 &&
-          !cmd && (std::string(method) == "pimd" || fix->ireplica == 0);
+          !cmd && (std::string(method) == "pimd" || (fix->*&PIMDNVEAccess::ireplica) == 0);
       for (int d = 0; d < 3; ++d)
         EXPECT_DOUBLE_EQ(lmp->atom->v[i][d], removed ? 0.0 : d + 1.0);
     }
@@ -512,16 +544,16 @@ TEST(FixPIMDNVEMPI, CommunicationMatchesTagsAcrossDifferentDecompositions)
   ASSERT_NE(fix, nullptr);
   // Repeat initialization and buffer replacement to check ownership and capacity tracking.
   for (int pass = 0; pass < 2; ++pass) {
-    fix->comm_init();
-    fix->reallocate();
+    (fix->*&PIMDNVEAccess::comm_init)();
+    (fix->*&PIMDNVEAccess::reallocate)();
     for (int i = 0; i < lmp->atom->nlocal; ++i)
       for (int d = 0; d < 3; ++d)
-        lmp->atom->v[i][d] = 100.0 * fix->ireplica + 10.0 * lmp->atom->tag[i] + d;
-    fix->inter_replica_comm(lmp->atom->v);
+        lmp->atom->v[i][d] = 100.0 * (fix->*&PIMDNVEAccess::ireplica) + 10.0 * lmp->atom->tag[i] + d;
+    (fix->*&PIMDNVEAccess::inter_replica_comm)(lmp->atom->v);
     for (int bead = 0; bead < 3; ++bead)
       for (int i = 0; i < lmp->atom->nlocal; ++i)
         for (int d = 0; d < 3; ++d)
-          EXPECT_DOUBLE_EQ(fix->bufbeads[bead][3*i+d],
+          EXPECT_DOUBLE_EQ((fix->*&PIMDNVEAccess::bufbeads)[bead][3*i+d],
                            100.0 * bead + 10.0 * lmp->atom->tag[i] + d);
   }
   lammps_close(lmp);

@@ -85,8 +85,7 @@ struct TestScan {
                           FunctorType{d_data});
 
     // Copy back the data.
-    auto h_data =
-        Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), d_data);
+    auto h_data = Kokkos::create_mirror_view_and_copy(d_data);
 
     // Check Correctness
     ASSERT_EQ(h_data(0), 0.0);
@@ -120,8 +119,7 @@ struct TestScanWithTotal {
                           FunctorType{d_data}, total);
 
     // Copy back the data.
-    auto h_data =
-        Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), d_data);
+    auto h_data = Kokkos::create_mirror_view_and_copy(d_data);
 
     // Check Correctness
     ASSERT_EQ(h_data(0), 0.0);

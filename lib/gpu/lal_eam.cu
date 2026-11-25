@@ -68,7 +68,8 @@ _texture( z2r_sp2_tex,int4);
     __local acctyp red_acc[BLOCK_PAIR];
 
 #define store_energy_fp(rho,energy,ii,inum,tid,t_per_atom,offset,           \
-                        eflag,vflag,engv,rdrho,nrho,i,rhomax,tfrho)         \
+                        eflag,vflag,engv,rdrho,nrho,i,rhomax,rhomin,        \
+                        he_flag,tfrho)                                      \
   if (t_per_atom>1) {                                                       \
     red_acc[tid]=rho;                                                       \
     for (unsigned int s=t_per_atom/2; s>0; s>>=1) {                         \
@@ -79,11 +80,21 @@ _texture( z2r_sp2_tex,int4);
       rho=red_acc[tid];                                                     \
   }                                                                         \
   if (offset==0 && ii<inum) {                                               \
-    numtyp p = rho*rdrho + (numtyp)1.0;                                     \
-    int m=p;                                                                \
-    m = MAX(1,MIN(m,nrho-1));                                               \
-    p -= m;                                                                 \
-    p = MIN(p,(numtyp)1.0);                                                 \
+    numtyp p;                                                               \
+    int m;                                                                  \
+    if (he_flag) {                                                          \
+      p = (rho-rhomin)*rdrho + (numtyp)1.0;                                 \
+      m = p;                                                                \
+      m = MAX(2,MIN(m,nrho-1));                                             \
+      p -= m;                                                               \
+      p = MAX((numtyp)-1.0,MIN(p,(numtyp)1.0));                             \
+    } else {                                                                \
+      p = rho*rdrho + (numtyp)1.0;                                          \
+      m = p;                                                                \
+      m = MAX(1,MIN(m,nrho-1));                                             \
+      p -= m;                                                               \
+      p = MIN(p,(numtyp)1.0);                                               \
+    }                                                                       \
     int index = tfrho*(nrho+1)+m;                                           \
     numtyp4 coeff; fetch4(coeff,index,frho_sp1_tex);                        \
     numtyp fp = (coeff.x*p + coeff.y)*p + coeff.z;                          \
@@ -91,7 +102,8 @@ _texture( z2r_sp2_tex,int4);
     if (EVFLAG && eflag) {                                                  \
       fetch4(coeff,index,frho_sp2_tex);                                     \
       energy = ((coeff.x*p + coeff.y)*p + coeff.z)*p + coeff.w;             \
-      if (rho > rhomax) energy += fp*(rho-rhomax);                          \
+      if (he_flag && rho < rhomin) energy += fp*(rho-rhomin);              \
+      else if (rho > rhomax) energy += fp*(rho-rhomax);                     \
       engv[ii]=energy;                                                      \
     }                                                                       \
   }
@@ -152,17 +164,28 @@ _texture( z2r_sp2_tex,int4);
 #define local_allocate_store_energy_fp()
 
 #define store_energy_fp(rho,energy,ii,inum,tid,t_per_atom,offset,           \
-                        eflag,vflag,engv,rdrho,nrho,i,rhomax,tfrho)         \
+                        eflag,vflag,engv,rdrho,nrho,i,rhomax,rhomin,        \
+                        he_flag,tfrho)                                      \
   if (t_per_atom>1) {                                                       \
     for (unsigned int s=t_per_atom/2; s>0; s>>=1)                           \
       rho += shfl_down(rho, s, t_per_atom);                                 \
   }                                                                         \
   if (offset==0 && ii<inum) {                                               \
-    numtyp p = rho*rdrho + (numtyp)1.0;                                     \
-    int m=p;                                                                \
-    m = MAX(1,MIN(m,nrho-1));                                               \
-    p -= m;                                                                 \
-    p = MIN(p,(numtyp)1.0);                                                 \
+    numtyp p;                                                               \
+    int m;                                                                  \
+    if (he_flag) {                                                          \
+      p = (rho-rhomin)*rdrho + (numtyp)1.0;                                 \
+      m = p;                                                                \
+      m = MAX(2,MIN(m,nrho-1));                                             \
+      p -= m;                                                               \
+      p = MAX((numtyp)-1.0,MIN(p,(numtyp)1.0));                             \
+    } else {                                                                \
+      p = rho*rdrho + (numtyp)1.0;                                          \
+      m = p;                                                                \
+      m = MAX(1,MIN(m,nrho-1));                                             \
+      p -= m;                                                               \
+      p = MIN(p,(numtyp)1.0);                                               \
+    }                                                                       \
     int index = tfrho*(nrho+1)+m;                                           \
     numtyp4 coeff; fetch4(coeff,index,frho_sp1_tex);                        \
     numtyp fp = (coeff.x*p + coeff.y)*p + coeff.z;                          \
@@ -170,7 +193,8 @@ _texture( z2r_sp2_tex,int4);
     if (EVFLAG && eflag) {                                                  \
       fetch4(coeff,index,frho_sp2_tex);                                     \
       energy = ((coeff.x*p + coeff.y)*p + coeff.z)*p + coeff.w;             \
-      if (rho > rhomax) energy += fp*(rho-rhomax);                          \
+      if (he_flag && rho < rhomin) energy += fp*(rho-rhomin);              \
+      else if (rho > rhomax) energy += fp*(rho-rhomax);                     \
       engv[ii]=energy;                                                      \
     }                                                                       \
   }
@@ -224,7 +248,8 @@ __kernel void k_energy(const __global numtyp4 *restrict x_,
                        const int eflag, const int inum, const int nbor_pitch,
                        const int ntypes,  const numtyp cutforcesq,
                        const numtyp rdr, const numtyp rdrho,
-                       const numtyp rhomax, const int nrho,
+                       const numtyp rhomax, const numtyp rhomin,
+                       const int he_flag, const int nrho,
                        const int nr, const int t_per_atom) {
   int tid, ii, offset, i, itype, tfrho;
   atom_info(t_per_atom,ii,tid,offset);
@@ -275,7 +300,7 @@ __kernel void k_energy(const __global numtyp4 *restrict x_,
     } // for nbor
   } // if ii
   store_energy_fp(rho,energy,ii,inum,tid,t_per_atom,offset,
-                  eflag,vflag,engv,rdrho,nrho,i,rhomax,tfrho);
+                  eflag,vflag,engv,rdrho,nrho,i,rhomax,rhomin,he_flag,tfrho);
 }
 
 __kernel void k_energy_fast(const __global numtyp4 *restrict x_,
@@ -293,6 +318,7 @@ __kernel void k_energy_fast(const __global numtyp4 *restrict x_,
                             const int nbor_pitch, const int ntypes,
                             const numtyp cutforcesq,  const numtyp rdr,
                             const numtyp rdrho, const numtyp rhomax,
+                            const numtyp rhomin, const int he_flag,
                             const int nrho, const int nr,
                             const int t_per_atom) {
   int tid, ii, offset, i, itype, tfrho;
@@ -366,7 +392,7 @@ __kernel void k_energy_fast(const __global numtyp4 *restrict x_,
     } // for nbor
   } // if ii
   store_energy_fp(rho,energy,ii,inum,tid,t_per_atom,offset,
-                  eflag,vflag,engv,rdrho,nrho,i,rhomax,tfrho);
+                  eflag,vflag,engv,rdrho,nrho,i,rhomax,rhomin,he_flag,tfrho);
 }
 
 __kernel void k_eam(const __global numtyp4 *restrict x_,

@@ -35,7 +35,7 @@ class ComputeContactAtom : public Compute {
   void unpack_reverse_comm(int, int *, double *) override;
   double memory_usage() override;
 
- private:
+ protected:
   int nmax;
 
   char *group2;

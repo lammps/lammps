@@ -44,7 +44,7 @@ class FixMinimizeKokkos : public FixMinimize, public KokkosBase {
 
   void add_vector_kokkos();
   DAT::t_kkfloat_1d request_vector_kokkos(int);
-  void reset_coords();
+  void reset_coords() override;
 
   DAT::ttransform_kkfloat_2d_lr k_vectors;
   DAT::t_kkfloat_2d_lr d_vectors;

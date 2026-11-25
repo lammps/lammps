@@ -184,6 +184,20 @@ protected:
         }
         return 0;
     }
+
+    // total number of neighbors stored in a neighbor list, -1 if there is none
+    int count_neighbors(int nlidx)
+    {
+        if (nlidx < 0) return -1;
+        int total = 0, numneigh = -1, iatom = -1;
+        int *neighbors = nullptr;
+        int inum = lammps_neighlist_num_elements(lmp, nlidx);
+        for (int i = 0; i < inum; ++i) {
+            lammps_neighlist_element_neighbors(lmp, nlidx, i, &iatom, &numneigh, &neighbors);
+            total += numneigh;
+        }
+        return total;
+    }
 };
 
 class NeighborListsNsq : public NeighborListsBin {
@@ -560,8 +574,6 @@ TEST_F(NeighborListsBin, one_hybrid_half_list_nonewton)
     }
 }
 
-#if 0
-// FIXME: currently trim is not detected and this test will thus fail
 TEST_F(NeighborListsBin, one_trim_half_list_newton)
 {
     create_system("charge", "real", "on");
@@ -615,7 +627,6 @@ TEST_F(NeighborListsBin, one_trim_half_list_newton)
     }
 }
 
-// FIXME: currently trim is not detected and this test will thus fail
 TEST_F(NeighborListsBin, one_trim_half_list_nonewton)
 {
     create_system("charge", "real", "off");
@@ -668,7 +679,67 @@ TEST_F(NeighborListsBin, one_trim_half_list_nonewton)
         GTEST_FAIL() << "No suitable neighbor list info found";
     }
 }
-#endif
+
+// three or more perpetual lists that share the same custom cutoff must not be
+// turned into copies of each other, which would be a circular dependency that
+// the reordering of the build order cannot resolve (issue #4529).  Sub-styles
+// with a shorter cutoff are trimmed from the longest one instead
+TEST_F(NeighborListsBin, several_sublists_equal_cutoff)
+{
+    create_system("atomic", "real", "on");
+    // the lambda form releases the output capture if setting up the lists fails,
+    // so that a circular dependency shows up as a failed test and not an abort
+    ASSERT_NO_THROW(HIDE_OUTPUT([&] {
+        command("pair_style hybrid/overlay lj/cut 3.5 lj/cut 2.0 lj/cut 2.0 lj/cut 2.0");
+        for (int i = 1; i <= 4; ++i)
+            command(fmt::format("pair_coeff * * lj/cut {} 0.01 2.0", i));
+        command("run 0 post no");
+    }));
+
+    // every sub-style must end up with a list, the three that share a cutoff
+    // must hold the same neighbors, and the longer ranged one must hold more
+    int n1 = count_neighbors(lammps_find_pair_neighlist(lmp, "lj/cut", 1, 1, 0));
+    int n2 = count_neighbors(lammps_find_pair_neighlist(lmp, "lj/cut", 1, 2, 0));
+    int n3 = count_neighbors(lammps_find_pair_neighlist(lmp, "lj/cut", 1, 3, 0));
+    int n4 = count_neighbors(lammps_find_pair_neighlist(lmp, "lj/cut", 1, 4, 0));
+    EXPECT_GT(n2, 0);
+    EXPECT_EQ(n2, n3);
+    EXPECT_EQ(n2, n4);
+    EXPECT_GT(n1, n2);
+}
+
+// a list requested with a uniform cutoff must reach that cutoff for every atom
+// type, also when the pair style uses a shorter cutoff for some type pairs and
+// the default list is therefore truncated for them.  The contents of such a
+// list may not depend on the pair style's per-type cutoffs at all
+TEST_F(NeighborListsBin, perpetual_fixed_cutoff_uniform)
+{
+    create_system("atomic", "real", "on");
+    BEGIN_HIDE_OUTPUT();
+    // small skin, so that a truncated per-type cutoff really does lose pairs
+    command("neighbor 0.3 bin");
+    command("pair_style lj/cut 3.5");
+    // 1-1 pairs use a shorter cutoff, so the default list is truncated for them
+    command("pair_coeff 1 1 0.01 2.0 2.5");
+    command("pair_coeff 1 2 0.01 2.0 3.5");
+    command("pair_coeff 2 2 0.01 2.0 3.5");
+    // perpetual full list with a uniform cutoff of 3.5 + skin, equal to cutneighmax
+    command("group dyn dynamic all within 3.5 every 1");
+    command("run 0 post no");
+    END_HIDE_OUTPUT();
+    int nneigh_mixed = count_neighbors(lammps_find_fix_neighlist(lmp, "GROUP_dyn", 0));
+
+    // same uniform group cutoff, but now no type pair uses a shorter cutoff, so
+    // the default list cannot be truncated and yields the reference answer
+    BEGIN_HIDE_OUTPUT();
+    command("pair_coeff 1 1 0.01 2.0 3.5");
+    command("run 0 post no");
+    END_HIDE_OUTPUT();
+    int nneigh_uniform = count_neighbors(lammps_find_fix_neighlist(lmp, "GROUP_dyn", 0));
+
+    EXPECT_GT(nneigh_uniform, 0);
+    EXPECT_EQ(nneigh_mixed, nneigh_uniform);
+}
 
 TEST_F(NeighborListsBin, one_atomic_full)
 {

@@ -28,7 +28,7 @@
 using namespace LAMMPS_NS;
 
 // Currently the Intel compiler is required for this pair style.
-#if defined(__INTEL_COMPILER) || defined(__INTEL_LLVM_COMPILER)
+#if defined(__INTEL_LLVM_COMPILER)
 
 
 #include "intel_intrinsics.h"
@@ -40,6 +40,8 @@ using namespace LAMMPS_NS;
 #include "modify.h"
 #include "suffix.h"
 
+#include <cstring>
+
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
@@ -48,6 +50,8 @@ using namespace MathConst;
 PairTersoffIntel::PairTersoffIntel(LAMMPS *lmp) : PairTersoff(lmp)
 {
   suffix_flag |= Suffix::INTEL;
+  // parameters are copied to packed arrays in init_style(), fix adapt would not update them
+  reinitflag = 0;
   respa_enable = 0;
 }
 
@@ -1291,4 +1295,4 @@ void IntelKernelTersoff<flt_t,acc_t,mic, pack_i>::attractive_vector(
 
 
 
-#endif // __INTEL_COMPILER
+#endif // __INTEL_LLVM_COMPILER

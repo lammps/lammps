@@ -19,19 +19,19 @@ import kokkos.core_impl;
 namespace Test {
 
 TEST(TEST_CATEGORY, host_space_access) {
-  using host_exec_space = Kokkos::HostSpace::execution_space;
-  using device_space    = Kokkos::Device<host_exec_space, Kokkos::HostSpace>;
-  using mirror_space =
-      Kokkos::Impl::HostMirror<Kokkos::DefaultExecutionSpace>::Space;
+  using host_exec_space    = Kokkos::HostSpace::execution_space;
+  using host_device        = Kokkos::Device<host_exec_space, Kokkos::HostSpace>;
+  using host_mirror_device = Kokkos::Impl::HostMirror<
+      typename Kokkos::DefaultExecutionSpace::memory_space>::device_type;
 
   static_assert(Kokkos::SpaceAccessibility<host_exec_space,
                                            Kokkos::HostSpace>::accessible);
 
   static_assert(
-      Kokkos::SpaceAccessibility<device_space, Kokkos::HostSpace>::accessible);
+      Kokkos::SpaceAccessibility<host_device, Kokkos::HostSpace>::accessible);
 
-  static_assert(
-      Kokkos::SpaceAccessibility<mirror_space, Kokkos::HostSpace>::accessible);
+  static_assert(Kokkos::SpaceAccessibility<host_mirror_device,
+                                           Kokkos::HostSpace>::accessible);
 }
 
 }  // namespace Test

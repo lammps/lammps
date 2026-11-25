@@ -145,6 +145,10 @@ int ComputeReaxFFAtom::FindBond()
 
           if (bo_tmp > bo_cut) {
             if (store_bonds) {
+              if (nj >= MAXREAXBOND)
+                error->one(FLERR, Error::NOLASTLINE,
+                           "Atom {} has more than {} bonds for compute {}; increase "
+                           "MAXREAXBOND in reaxff_defs.h", tag[i], MAXREAXBOND, style);
               neighid[i][nj] = jtag;
               abo[i][nj] = bo_tmp;
             }

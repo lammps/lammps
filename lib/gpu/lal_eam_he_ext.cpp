@@ -1,0 +1,142 @@
+/***************************************************************************
+                                 eam_he_ext.cpp
+                             -------------------
+                   Trung Dac Nguyen, W. Michael Brown (ORNL)
+
+  Functions for LAMMPS access to buck acceleration routines.
+
+ __________________________________________________________________________
+    This file is part of the LAMMPS Accelerator Library (LAMMPS_AL)
+ __________________________________________________________________________
+
+    begin                :
+    email                : brownw@ornl.gov nguyentd@ornl.gov
+ ***************************************************************************/
+
+#include <iostream>
+#include <cassert>
+#include <cmath>
+
+#include "lal_eam.h"
+#include "lammps_gpu.h"
+
+using namespace std;
+using namespace LAMMPS_AL;
+
+static EAM<PRECISION,ACC_PRECISION> EAMHEMF;
+
+// ---------------------------------------------------------------------------
+// Allocate memory on host and device and copy constants to device
+// ---------------------------------------------------------------------------
+
+namespace LAMMPS_GPU {
+int eam_he_gpu_init(const int ntypes, double host_cutforcesq,
+                 int **host_type2rhor, int **host_type2z2r, int *host_type2frho,
+                 double ***host_rhor_spline, double ***host_z2r_spline,
+                 double ***host_frho_spline, double** host_cutsq,
+                 double rdr, double rdrho, double rhomax, double rhomin,
+                 const int he_flag, int nrhor,
+                 int nrho, int nz2r, int nfrho, int nr,
+                 const int nlocal, const int nall, const int max_nbors,
+                 const int maxspecial, const double cell_size,
+                 int &gpu_mode, FILE *screen, int &fp_size) {
+  EAMHEMF.clear();
+  gpu_mode=EAMHEMF.device->gpu_mode();
+  int first_gpu=EAMHEMF.device->first_device();
+  int last_gpu=EAMHEMF.device->last_device();
+  int world_me=EAMHEMF.device->world_me();
+  int gpu_rank=EAMHEMF.device->gpu_rank();
+  int procs_per_gpu=EAMHEMF.device->procs_per_gpu();
+
+
+  fp_size=sizeof(PRECISION);
+
+  EAMHEMF.device->init_message(screen,"eam/he",first_gpu,last_gpu);
+
+  bool message=false;
+  if (EAMHEMF.device->replica_me()==0 && screen)
+    message=true;
+
+  if (message) {
+    fprintf(screen,"Initializing Device and compiling on process 0...");
+    fflush(screen);
+  }
+
+  int init_ok=0;
+  if (world_me==0)
+    init_ok=EAMHEMF.init(ntypes, host_cutforcesq, host_type2rhor, host_type2z2r,
+                       host_type2frho, host_rhor_spline, host_z2r_spline,
+                       host_frho_spline, host_cutsq, rdr, rdrho, rhomax, rhomin, he_flag, nrhor, nrho, nz2r,
+                       nfrho, nr, nlocal, nall, max_nbors, maxspecial, cell_size,
+                       screen);
+
+  EAMHEMF.device->world_barrier();
+  if (message)
+    fprintf(screen,"Done.\n");
+
+  for (int i=0; i<procs_per_gpu; i++) {
+    if (message) {
+      if (last_gpu-first_gpu==0)
+        fprintf(screen,"Initializing Device %d on core %d...",first_gpu,i);
+      else
+        fprintf(screen,"Initializing Devices %d-%d on core %d...",first_gpu,
+                last_gpu,i);
+      fflush(screen);
+    }
+    if (gpu_rank==i && world_me!=0)
+      init_ok=EAMHEMF.init(ntypes, host_cutforcesq, host_type2rhor, host_type2z2r,
+                         host_type2frho, host_rhor_spline, host_z2r_spline,
+                         host_frho_spline, host_cutsq, rdr, rdrho, rhomax, rhomin, he_flag, nrhor, nrho,
+                         nz2r, nfrho, nr, nlocal, nall, max_nbors, maxspecial,
+                         cell_size, screen);
+
+    EAMHEMF.device->serialize_init();
+    if (message)
+      fprintf(screen,"Done.\n");
+  }
+  if (message)
+    fprintf(screen,"\n");
+
+  if (init_ok==0)
+    EAMHEMF.estimate_gpu_overhead(1);
+  return init_ok;
+}
+
+void eam_he_gpu_clear() {
+  EAMHEMF.clear();
+}
+
+int **eam_he_gpu_compute_n(const int ago, const int inum_full, const int nall, double **host_x,
+                           int *host_type, double *sublo, double *subhi, tagint *tag,
+                           int **nspecial, tagint **special, const bool eflag, const bool vflag,
+                           const bool eatom, const bool vatom, int **ilist, int **jnum,
+                           bool &success, int &inum, void **fp_ptr, double *prd, int *periodicity)
+{
+  return EAMHEMF.compute(ago, inum_full, nall, host_x, host_type, sublo,
+                       subhi, tag, nspecial, special, eflag, vflag, eatom,
+                       vatom, ilist, jnum, success,
+                       inum, fp_ptr, prd, periodicity);
+}
+
+void eam_he_gpu_compute(const int ago, const int inum_full, const int nlocal,
+                     const int nall, double **host_x, int *host_type,
+                     int *ilist, int *numj, int **firstneigh, const bool eflag,
+                     const bool vflag, const bool eatom, const bool vatom,
+                     bool &success,
+                     void **fp_ptr) {
+  EAMHEMF.compute(ago,inum_full,nlocal,nall,host_x,host_type,ilist,numj,
+                firstneigh,eflag,vflag,eatom,vatom,success,
+                fp_ptr);
+}
+
+void eam_he_gpu_compute_force(int *ilist, const bool eflag, const bool vflag,
+                      const bool eatom, const bool vatom) {
+  EAMHEMF.compute2(ilist, eflag, vflag, eatom, vatom);
+}
+
+
+double eam_he_gpu_bytes() {
+  return EAMHEMF.host_memory_usage();
+}
+
+} // namespace LAMMPS_GPU

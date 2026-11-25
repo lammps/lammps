@@ -24,7 +24,6 @@ FixStyle(surface/global,FixSurfaceGlobal)
 
 #include <map>
 #include <unordered_set>
-#include <vector>
 
 namespace LAMMPS_NS {
 

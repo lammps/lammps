@@ -67,7 +67,7 @@ other lists.
 
 In these lists you can list variable names which LAMMPS already defines
 (in some other atom style), or you can create new variable names.  You
-should not re-use a LAMMPS variable in your atom style that is used for
+should not reuse a LAMMPS variable in your atom style that is used for
 something with a different meaning in another atom style.  If the
 meaning is related, but interpreted differently by your atom style, then
 using the same variable name means a user must not use your style and

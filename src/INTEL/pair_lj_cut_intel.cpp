@@ -39,6 +39,8 @@ PairLJCutIntel::PairLJCutIntel(LAMMPS *lmp) :
   PairLJCut(lmp)
 {
   suffix_flag |= Suffix::INTEL;
+  // parameters are copied to packed arrays in init_style(), fix adapt would not update them
+  reinitflag = 0;
   respa_enable = 0;
   cut_respa = nullptr;
 }
@@ -226,10 +228,6 @@ void PairLJCutIntel::eval(const int vflag,
         #pragma omp simd reduction(+:fxtmp, fytmp, fztmp, fwtmp, sevdwl, \
                                    sv0, sv1, sv2, sv3, sv4, sv5)         \
           aligned(jlist,x,ljc12oi,special_lj,f,lj34i:64)
-#else
-        #pragma simd reduction(+:fxtmp, fytmp, fztmp, fwtmp, sevdwl, \
-                               sv0, sv1, sv2, sv3, sv4, sv5)
-        #pragma vector aligned
 #endif
         #endif
         for (int jj = 0; jj < jnum; jj++) {

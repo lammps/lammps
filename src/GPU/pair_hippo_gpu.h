@@ -48,7 +48,6 @@ class PairHippoGPU : public PairAmoeba {
 
  private:
   int gpu_mode;
-  double cpu_time;
   void *tq_pinned;
   void *fieldp_pinned;
   bool acc_float;

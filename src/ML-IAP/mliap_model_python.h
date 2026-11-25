@@ -28,7 +28,7 @@ class MLIAPModelPython : public MLIAPModel {
   void compute_gradgrads(class MLIAPData *) override;
   void compute_force_gradients(class MLIAPData *) override;
   double memory_usage() override;
-  void connect_param_counts();    // If possible convert this to protected/private and
+  virtual void connect_param_counts();    // If possible convert this to protected/private and
                                   // and figure out how to declare cython fn
                                   // load_from_python as a friend.
   int model_loaded;

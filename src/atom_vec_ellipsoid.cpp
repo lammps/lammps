@@ -24,7 +24,6 @@
 #include "math_const.h"
 #include "math_extra.h"
 #include "memory.h"
-#include "modify.h"
 
 #include <algorithm>
 #include <cstring>
@@ -161,9 +160,7 @@ void AtomVecEllipsoid::clear_bonus()
 {
   nghost_bonus = 0;
 
-  if (atom->nextra_grow)
-    for (int iextra = 0; iextra < atom->nextra_grow; iextra++)
-      modify->fix[atom->extra_grow[iextra]]->clear_bonus();
+  for (auto *ifix : atom->extra_grow) ifix->clear_bonus();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -681,6 +678,10 @@ void AtomVecEllipsoid::data_atom_post(int ilocal)
   ellipsoid[ilocal] = ellipsoid_flag;
 
   if (rmass[ilocal] <= 0.0) error->one(FLERR, "Invalid density in Atoms section of data file");
+
+  // data_atom_bonus() overrides this for atoms listed in the Ellipsoids section
+
+  if (atom->superellipsoid_flag) radius[ilocal] = 0.0;
 
   angmom[ilocal][0] = 0.0;
   angmom[ilocal][1] = 0.0;

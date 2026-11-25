@@ -144,6 +144,20 @@ FixWallReflect::FixWallReflect(LAMMPS *lmp, int narg, char **arg) :
     if (wallstyle[m] == VARIABLE) varflag = 1;
 
   // for rendering walls with dump image.
+  allocate_image_objects();
+}
+
+/* ----------------------------------------------------------------------
+   (re-)create the graphics objects for rendering walls with dump image.
+   must be (re-)done after parsing the walls, since derived classes
+   (e.g. fix wall/reflect/stochastic) parse their arguments themselves
+   and may arrive at a different wall count than the base class parser.
+------------------------------------------------------------------------- */
+
+void FixWallReflect::allocate_image_objects()
+{
+  memory->destroy(imgobjs);
+  memory->destroy(imgparms);
   if (domain->dimension == 2) {
     // one cylinder object per wall to draw in 2d
     memory->create(imgobjs, nwall, "fix_wall_reflect:imgobjs");
@@ -207,6 +221,29 @@ void FixWallReflect::init()
 
   if (nrigid && (comm->me == 0))
     error->warning(FLERR,"Should not use reflecting walls with rigid bodies");
+}
+
+/* ----------------------------------------------------------------------
+   record the wall graphics objects for dump image, so they are complete
+   for the first rendered frame of a run; post_integrate() has not run yet
+   at that point and would leave the walls as zero-size triangles.
+   only update the graphics data here; atoms must not be reflected.
+------------------------------------------------------------------------- */
+
+void FixWallReflect::setup(int /*vflag*/)
+{
+  double coord;
+
+  for (int m = 0; m < nwall; m++) {
+    if (wallstyle[m] == VARIABLE) {
+      coord = input->variable->compute_equal(varindex[m]);
+      if (wallwhich[m] < FixWall::YLO) coord *= xscale;
+      else if (wallwhich[m] < FixWall::ZLO) coord *= yscale;
+      else coord *= zscale;
+    } else coord = coord0[m];
+
+    FixWall::update_image_plane(m, wallwhich[m], coord, imgparms, domain);
+  }
 }
 
 /* ---------------------------------------------------------------------- */

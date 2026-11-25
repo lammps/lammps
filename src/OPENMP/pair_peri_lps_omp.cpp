@@ -234,7 +234,11 @@ void PairPeriLPSOMP::eval(int iifrom, int iito, ThrData * const thr)
   sync_threads();
 
 #if defined(_OPENMP)
+#if _OPENMP >= 202011
+#pragma omp masked
+#else
 #pragma omp master
+#endif
 #endif
   { // communicate dilatation (theta) of each particle
     comm->forward_comm(this);

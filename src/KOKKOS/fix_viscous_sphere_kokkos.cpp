@@ -106,9 +106,9 @@ void FixViscousSphereKokkos<DeviceType>::operator()(TagFixViscousSphere, const i
       drag = k_eff_gamma.view_device()(type[i]);
     else
       drag = m_gamma;
-    torque(i,0) -= drag * omega(i,0);
-    torque(i,1) -= drag * omega(i,1);
-    torque(i,2) -= drag * omega(i,2);
+    torque(i,0) -= static_cast<KK_ACC_FLOAT>(drag * omega(i,0));
+    torque(i,1) -= static_cast<KK_ACC_FLOAT>(drag * omega(i,1));
+    torque(i,2) -= static_cast<KK_ACC_FLOAT>(drag * omega(i,2));
   }
 }
 

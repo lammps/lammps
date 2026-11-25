@@ -43,7 +43,6 @@ class FixGPU : public Fix {
  private:
   int _gpu_mode;
   int _nlevels_respa;
-  double _particle_split;
   double _binsize;
 };
 

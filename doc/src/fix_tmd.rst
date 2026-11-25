@@ -121,9 +121,9 @@ which a SHAKE fix is applied.  This is because LAMMPS assumes there
 are not multiple competing holonomic constraints applied to the same
 atoms.
 
-To read compressed target files, you must compile LAMMPS with the
-``-DLAMMPS_GZIP`` option.  See the :doc:`Build settings <Build_settings>`
-doc page for details.
+To read compressed target files, the corresponding compression program
+must be installed.  See the :ref:`Build settings <gzip>` page for
+details.
 
 Related commands
 """"""""""""""""

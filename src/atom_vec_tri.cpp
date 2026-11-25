@@ -21,7 +21,6 @@
 #include "math_eigen.h"
 #include "math_extra.h"
 #include "memory.h"
-#include "modify.h"
 
 #include <cmath>
 #include <cstring>
@@ -170,9 +169,7 @@ void AtomVecTri::clear_bonus()
 {
   nghost_bonus = 0;
 
-  if (atom->nextra_grow)
-    for (int iextra = 0; iextra < atom->nextra_grow; iextra++)
-      modify->fix[atom->extra_grow[iextra]]->clear_bonus();
+  for (auto *ifix : atom->extra_grow) ifix->clear_bonus();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -509,11 +506,14 @@ void AtomVecTri::data_atom_bonus(int m, const std::vector<std::string> &values)
   // check for duplicate points
 
   if (c1[0] == c2[0] && c1[1] == c2[1] && c1[2] == c2[2])
-    error->one(FLERR, "Invalid shape in Triangles section of data file");
+    error->one(FLERR, "Invalid shape for triangle atom {} in Triangles section of data file",
+               atom->tag[m]);
   if (c1[0] == c3[0] && c1[1] == c3[1] && c1[2] == c3[2])
-    error->one(FLERR, "Invalid shape in Triangles section of data file");
+    error->one(FLERR, "Invalid shape for triangle atom {} in Triangles section of data file",
+               atom->tag[m]);
   if (c2[0] == c3[0] && c2[1] == c3[1] && c2[2] == c3[2])
-    error->one(FLERR, "Invalid shape in Triangles section of data file");
+    error->one(FLERR, "Invalid shape for triangle atom {} in Triangles section of data file",
+               atom->tag[m]);
 
   // size = length of one edge
 

@@ -8,11 +8,14 @@ for structured programming than the LAMMPS input script syntax. Furthermore
 it is possible to "compute" what the next LAMMPS command should be.
 
 Same as in the equivalent :doc:`C library functions <Library_execute>`,
-commands can be read from a file, a single string, a list of strings and a
-block of commands in a single multi-line string. They are processed under the
-same boundary conditions as the C library counterparts.  The example below
-demonstrates the use of :py:func:`lammps.file()`, :py:func:`lammps.command()`,
-:py:func:`lammps.commands_list()`, and :py:func:`lammps.commands_string()`:
+commands can be read from a file, a single string, a list of strings and
+a block of commands in a single multi-line string. They are processed
+under the same boundary conditions as the C library counterparts.  The
+example below demonstrates the use of :py:meth:`lammps.file()
+<lammps.lammps.file()>`, :py:meth:`lammps.command()
+<lammps.lammps.command()>`, :py:meth:`lammps.commands_list()
+<lammps.lammps.commands_list()>`, and :py:meth:`lammps.commands_string()
+<lammps.lammps.commands_string()>`:
 
 .. code-block:: python
 

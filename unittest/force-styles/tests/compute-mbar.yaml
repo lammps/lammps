@@ -1,0 +1,20 @@
+---
+lammps_version: 30 Sep 2026
+tags: generated
+date_generated: Fri Oct  2 17:44:51 2026
+epsilon: 1e-07
+timestep: 0.25
+skip_tests:
+prerequisites: |
+  atom full
+  compute mbar
+pre_commands: ""
+post_commands: |
+  variable eps vector [0.02,0.03,0.05,0.08]
+  compute test all mbar 300.0 pair lj/cut epsilon 1 1 v_eps pair lj/cut sigma 3 3 3.2 2.9 4
+input_file: in.fourmol
+input_coeffs: coeffs.fourmol
+natoms: 29
+global_vector: |-
+  4  3.6649038254432230e+02  3.9909856401975389e+02  4.6656490907250657e+02  5.4700598049655821e+02
+...

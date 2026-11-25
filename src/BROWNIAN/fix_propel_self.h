@@ -29,13 +29,15 @@ class FixPropelSelf : public Fix {
 
   void init() override;
   void post_force(int) override;
+  void post_force_respa(int, int, int) override;
   void setup(int) override;
   int setmask() override;
 
- private:
+ protected:
   double magnitude;
   double sx, sy, sz;
   int mode;
+  int ilevel_respa;
 
   void post_force_dipole(int);
   void post_force_velocity(int);

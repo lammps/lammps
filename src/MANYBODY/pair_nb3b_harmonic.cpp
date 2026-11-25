@@ -39,7 +39,7 @@ namespace {
 constexpr int DELTA = 4;
 constexpr double SMALL = 0.001;
 
-const char *substyle[] = {"nb3n/harmonic", "nb3b/screened"};
+const char *substyle[] = {"nb3b/harmonic", "nb3b/screened"};
 }
 
 /* ---------------------------------------------------------------------- */
@@ -61,6 +61,8 @@ PairNb3bHarmonic::PairNb3bHarmonic(LAMMPS *lmp) : Pair(lmp), params(nullptr)
 
 PairNb3bHarmonic::~PairNb3bHarmonic()
 {
+  if (copymode) return;
+
   memory->destroy(params);
   memory->destroy(elem3param);
 

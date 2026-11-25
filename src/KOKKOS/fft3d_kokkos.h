@@ -19,6 +19,10 @@
 #include "remap_kokkos.h"
 #include "fftdata_kokkos.h"
 
+#if defined(FFT_KOKKOS_KISS)
+#include "kissfft_kokkos.h"
+#endif
+
 namespace LAMMPS_NS {
 
 #if defined(FFT_KOKKOS_MKL_GPU)

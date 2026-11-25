@@ -162,8 +162,8 @@ none
 
 .. _Schmid:
 
-.. _Fennell:
-
 **(Schmid)** S. Bureekaew, S. Amirjalayer, M. Tafipolsky, C. Spickermann, T.K. Roy and R. Schmid, Phys. Status Solidi B, 6, 1128 (2013).
+
+.. _Fennell:
 
 **(Fennell)** C. J. Fennell, J. D. Gezelter, J Chem Phys, 124, 234104 (2006).

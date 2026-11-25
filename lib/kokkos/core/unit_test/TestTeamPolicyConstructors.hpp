@@ -29,13 +29,9 @@ template <typename Policy>
 void test_run_time_parameters() {
   int league_size = 131;
 
-  using ExecutionSpace = typename Policy::execution_space;
-  using ParallelTag    = Kokkos::ParallelForTag;
-  int team_size =
-      4 < ExecutionSpace().concurrency() ? 4 : ExecutionSpace().concurrency();
-#ifdef KOKKOS_ENABLE_HPX
-  team_size = 1;
-#endif
+  using ParallelTag      = Kokkos::ParallelForTag;
+  int max_team_size      = Policy{}.team_size_max(FunctorFor{}, ParallelTag{});
+  const int team_size    = std::min(max_team_size, 4);
   int chunk_size         = 4;
   int per_team_scratch   = 1024;
   int per_thread_scratch = 16;

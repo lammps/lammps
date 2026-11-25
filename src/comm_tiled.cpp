@@ -1318,8 +1318,8 @@ void CommTiled::reverse_comm(Pair *pair, int size)
 {
   int i,irecv,n,nsize,nsend,nrecv;
 
-  if (size) nsize = MAX(pair->comm_reverse, pair->comm_reverse_off);
-  else nsize = pair->comm_reverse;
+  if (size) nsize = size;
+  else nsize = MAX(pair->comm_reverse, pair->comm_reverse_off);
 
   for (int iswap = nswap-1; iswap >= 0; iswap--) {
     nsend = nsendproc[iswap] - sendself[iswap];
@@ -1823,7 +1823,7 @@ void CommTiled::box_drop_brick(int idim, double *lo, double *hi, int &indexme)
   } else if (lo[idim] == boxlo[idim]) {
     index = 0;
     dir = 1;
-  } else error->one(FLERR,"Comm tiled mis-match in box drop brick");
+  } else error->one(FLERR,"Comm tiled mismatch in box drop brick");
 
   int other1,other2,proc;
   double lower,upper;

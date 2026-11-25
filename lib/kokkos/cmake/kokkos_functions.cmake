@@ -141,7 +141,7 @@ macro(kokkos_export_cmake_tpl NAME)
   #X_DIR or X_ROOT variables set prior to calling find_package
 
   #If Kokkos was configured to find the TPL through a _DIR variable
-  #make sure thar DIR variable is available to downstream packages
+  #make sure that DIR variable is available to downstream packages
   if(DEFINED ${NAME}_DIR)
     #The downstream project may override the TPL location that Kokkos used
     #Check if the downstream project chose its own TPL location
@@ -356,7 +356,7 @@ macro(kokkos_create_imported_tpl NAME)
       target_compile_options(${NAME} INTERFACE ${TPL_COMPILE_OPTIONS})
     endif()
     if(TPL_LINK_OPTIONS)
-      target_link_libraries(${NAME} INTERFACE ${TPL_LINK_OPTIONS})
+      target_link_options(${NAME} INTERFACE ${TPL_LINK_OPTIONS})
     endif()
   else()
     add_library(${NAME} UNKNOWN IMPORTED)
@@ -377,7 +377,7 @@ macro(kokkos_create_imported_tpl NAME)
       set_target_properties(${NAME} PROPERTIES INTERFACE_COMPILE_OPTIONS "${TPL_COMPILE_OPTIONS}")
     endif()
     if(TPL_LINK_OPTIONS)
-      set_target_properties(${NAME} PROPERTIES INTERFACE_LINK_LIBRARIES "${TPL_LINK_OPTIONS}")
+      set_target_properties(${NAME} PROPERTIES INTERFACE_LINK_OPTIONS "${TPL_LINK_OPTIONS}")
     endif()
   endif()
 endmacro()
@@ -518,7 +518,8 @@ macro(kokkos_find_library VAR_NAME LIB TPL_NAME)
     set(TPL_SUFFIXES lib lib64)
   endif()
 
-  set(${VAR_NAME} "${VARNAME}-NOTFOUND")
+  # Follow standard CMake <VAR_NAME>-NOTFOUND convention to improve readability.
+  set(${VAR_NAME} "${VAR_NAME}-NOTFOUND")
   set(HAVE_CUSTOM_PATHS FALSE)
 
   if(DEFINED ${TPL_NAME}_ROOT
@@ -954,6 +955,38 @@ int main()
   set(${_VAR} ${_RET} CACHE STRING "CXX compiler supports building CUDA")
 endfunction()
 
+# this function is provided to print messages from CMake's configure log:
+#
+#       START_REGEX     --> Keyword to mark start of output
+#       END_REGEX       --> Keyword to mark end of output
+#
+function(kokkos_print_cmake_configure_log START_REGEX END_REGEX)
+
+  if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.26.0)
+    set(OUTPUT_BLOCK "")
+    set(START_OUTPUT FALSE)
+    file(STRINGS "${CMAKE_BINARY_DIR}/CMakeFiles/CMakeConfigureLog.yaml" LOG_LINES)
+
+    foreach(LINE IN LISTS LOG_LINES)
+      if(LINE MATCHES ${START_REGEX})
+        set(START_OUTPUT TRUE)
+      endif()
+
+      if(START_OUTPUT)
+        string(APPEND OUTPUT_BLOCK "${LINE}\n")
+      endif()
+
+      if(LINE MATCHES ${END_REGEX} AND START_OUTPUT)
+        break()
+      endif()
+    endforeach()
+    if(START_OUTPUT)
+      message(WARNING "ConfigureLog.yaml shows:\n${OUTPUT_BLOCK}")
+    endif()
+  endif()
+
+endfunction()
+
 # this function is provided to easily select which files use nvcc_wrapper:
 #
 #       COMPILER    --> do check for compiler
@@ -993,6 +1026,7 @@ function(kokkos_check_flags)
         WARNING
           "The compiler for ${KOKKOS_COMPILE_LANGUAGE} can not consume flag(s) ${QUOTED_FLAGS} in combination with the CMAKE_${KOKKOS_COMPILE_LANGUAGE}_FLAGS=${CMAKE_${KOKKOS_COMPILE_LANGUAGE}_FLAGS}. Please check the given configuration."
       )
+      kokkos_print_cmake_configure_log("D ?KOKKOS_COMPILE_OPTIONS_CHECK" "exitCode")
     endif()
   endif()
 
@@ -1008,6 +1042,7 @@ function(kokkos_check_flags)
         WARNING
           "The linker for ${KOKKOS_COMPILE_LANGUAGE} can not consume flag(s) ${QUOTED_FLAGS}. Please check the given configuration."
       )
+      kokkos_print_cmake_configure_log("D ?KOKKOS_LINK_OPTIONS_CHECK" "exitCode")
     endif()
   endif()
 endfunction()
@@ -1058,9 +1093,9 @@ function(kokkos_compilation)
     PATH_SUFFIXES bin
   )
 
-  if(NOT Kokkos_COMPILE_LAUNCHER)
+  if(NOT Kokkos_NVCC_WRAPPER)
     message(
-      FATAL_ERROR "Kokkos could not find 'nvcc_wrapper'. Please set '-DKokkos_COMPILE_LAUNCHER=/path/to/nvcc_wrapper'"
+      FATAL_ERROR "Kokkos could not find 'nvcc_wrapper'. Please set '-DKokkos_NVCC_WRAPPER=/path/to/nvcc_wrapper'"
     )
   endif()
 

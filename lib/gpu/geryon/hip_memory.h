@@ -24,19 +24,6 @@ namespace ucl_hip {
 // --------------------------------------------------------------------------
 //typedef dim3 ucl_kernel_dim;
 
-#ifdef __HIP_PLATFORM_NVCC__
-typedef enum hipArray_Format {
-    HIP_AD_FORMAT_UNSIGNED_INT8 = 0x01,
-    HIP_AD_FORMAT_UNSIGNED_INT16 = 0x02,
-    HIP_AD_FORMAT_UNSIGNED_INT32 = 0x03,
-    HIP_AD_FORMAT_SIGNED_INT8 = 0x08,
-    HIP_AD_FORMAT_SIGNED_INT16 = 0x09,
-    HIP_AD_FORMAT_SIGNED_INT32 = 0x0a,
-    HIP_AD_FORMAT_HALF = 0x10,
-    HIP_AD_FORMAT_FLOAT = 0x20
-}hipArray_Format;
-#endif
-
 // --------------------------------------------------------------------------
 // - API SPECIFIC DEVICE POINTERS
 // --------------------------------------------------------------------------

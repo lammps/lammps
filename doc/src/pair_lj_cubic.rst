@@ -123,8 +123,8 @@ none
 
 .. _Holian:
 
-.. _Ravelo2:
-
 **(Holian)** Holian and Ravelo, Phys Rev B, 51, 11275 (1995).
+
+.. _Ravelo2:
 
 **(Ravelo)** Ravelo, Holian, Germann and Lomdahl, Phys Rev B, 70, 014103 (2004).

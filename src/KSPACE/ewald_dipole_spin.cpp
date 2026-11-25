@@ -116,9 +116,15 @@ void EwaldDipoleSpin::init()
   natoms_original = atom->natoms;
 
   // set accuracy (force units) from accuracy_relative or accuracy_absolute
+  // Unlike with standard charge-charge interactions, the two_charge_force criterion
+  // is no longer meaningful (different physics).
+  // We use the force between two 1 muB dipoles 1 Angstrom apart as the reference
+  // F = 6 mub2mu0 / r^4, r = 1 Angstrom (metal units)
+
+  double two_spin_force = 6.0*mub2mu0;
 
   if (accuracy_absolute >= 0.0) accuracy = accuracy_absolute;
-  else accuracy = accuracy_relative * two_charge_force;
+  else accuracy = accuracy_relative * two_spin_force;
 
   // setup K-space resolution
 
@@ -179,7 +185,7 @@ void EwaldDipoleSpin::init()
     mesg += fmt::format("  estimated absolute RMS force accuracy = {:.8g}\n",
                        estimated_accuracy);
     mesg += fmt::format("  estimated relative force accuracy = {:.8g}\n",
-                       estimated_accuracy/two_charge_force);
+                       estimated_accuracy/two_spin_force);
     mesg += fmt::format("  KSpace vectors: actual max1d max3d = {} {} {}\n",
                         kcount,kmax,kmax3d);
     mesg += fmt::format("                  kxmax kymax kzmax  = {} {} {}\n",
@@ -820,6 +826,11 @@ void EwaldDipoleSpin::spsum_musq()
   const int nlocal = atom->nlocal;
 
   musum = musqsum = mu2 = 0.0;
+
+  // spin-only systems have no charge channel and qsum_qsq() is never
+  // called, but the inherited error estimates access these members
+
+  qsum = qsqsum = q2 = 0.0;
   if (atom->sp_flag) {
     double** sp = atom->sp;
     double spx,spy,spz;
@@ -842,6 +853,6 @@ void EwaldDipoleSpin::spsum_musq()
     mu2 = musqsum * mub2mu0;
   }
 
-  if (mu2 == 0 && comm->me == 0)
+  if (mu2 == 0)
     error->all(FLERR,"Using kspace solver EwaldDipoleSpin on system with no spins");
 }

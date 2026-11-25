@@ -1,7 +1,10 @@
 .. index:: pair_style kolmogorov/crespi/z
+.. index:: pair_style kolmogorov/crespi/z/omp
 
 pair_style kolmogorov/crespi/z command
 ======================================
+
+Accelerator Variants: *kolmogorov/crespi/z/omp*
 
 Syntax
 """"""
@@ -54,6 +57,10 @@ is available to facilitate scaling of energies in accordance with
 
 This potential must be used in combination with hybrid/overlay.
 Other interactions can be set to zero using pair_style *none*\ .
+
+----------
+
+.. include:: accel_styles.rst
 
 Restrictions
 """"""""""""

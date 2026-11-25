@@ -2,7 +2,6 @@
 # it assumes the LAMMPS shared library is already installed
 from setuptools import setup
 from setuptools.dist import Distribution
-from sys import version_info
 import os,time
 
 versionfile = os.environ.get("LAMMPS_VERSION_FILE")
@@ -19,6 +18,8 @@ def get_lammps_version():
         end_pos = line.find('"', start_pos)
         t = time.strptime("".join(line[start_pos:end_pos].split()), "%d%b%Y")
         line = f.readline()
+        # increment the day like the numeric version in src/lammps.cpp. this may
+        # not be a valid date, so the version string must not be parsed as a date
         if line.find("Development") >= 0 or line.find("Maintenance") >= 0:
           return "{}.{}.{}".format(t.tm_year,t.tm_mon,t.tm_mday+1)
         return "{}.{}.{}".format(t.tm_year,t.tm_mon,t.tm_mday)
@@ -28,10 +29,7 @@ class BinaryDistribution(Distribution):
     def has_ext_modules(self):
         return True
 
-if version_info.major >= 3:
-    pkgs = ['lammps', 'lammps.mliap', 'lammps.ipython']
-else:
-    pkgs = ['lammps']
+pkgs = ['lammps', 'lammps.mliap', 'lammps.ipython']
 
 with open("README", "r") as fh:
     long_description = fh.read()
@@ -66,5 +64,5 @@ setup(
     packages = pkgs,
     package_data = pkgdata,
     distclass = bdist,
-    python_requires = '>=3.6',
+    python_requires = '>=3.9',
 )

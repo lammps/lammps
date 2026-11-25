@@ -5,7 +5,7 @@
 #define KOKKOS_STD_ALGORITHMS_EQUAL_HPP
 
 #include "impl/Kokkos_Equal.hpp"
-#include "Kokkos_BeginEnd.hpp"
+#include <Kokkos_Iterator.hpp>
 
 namespace Kokkos {
 namespace Experimental {
@@ -71,6 +71,10 @@ bool equal(const ExecutionSpace& ex,
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(view1);
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(view2);
 
+  if (!Impl::have_equal_extents(view1, view2)) {
+    return false;
+  }
+
   namespace KE = ::Kokkos::Experimental;
   return Impl::equal_exespace_impl("Kokkos::equal_view_api_default", ex,
                                    KE::cbegin(view1), KE::cend(view1),
@@ -86,6 +90,10 @@ bool equal(const std::string& label, const ExecutionSpace& ex,
            const ::Kokkos::View<DataType2, Properties2...>& view2) {
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(view1);
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(view2);
+
+  if (!Impl::have_equal_extents(view1, view2)) {
+    return false;
+  }
 
   namespace KE = ::Kokkos::Experimental;
   return Impl::equal_exespace_impl(label, ex, KE::cbegin(view1),
@@ -103,6 +111,10 @@ bool equal(const ExecutionSpace& ex,
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(view1);
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(view2);
 
+  if (!Impl::have_equal_extents(view1, view2)) {
+    return false;
+  }
+
   namespace KE = ::Kokkos::Experimental;
   return Impl::equal_exespace_impl("Kokkos::equal_view_api_default", ex,
                                    KE::cbegin(view1), KE::cend(view1),
@@ -119,6 +131,10 @@ bool equal(const std::string& label, const ExecutionSpace& ex,
            BinaryPredicateType predicate) {
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(view1);
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(view2);
+
+  if (!Impl::have_equal_extents(view1, view2)) {
+    return false;
+  }
 
   namespace KE = ::Kokkos::Experimental;
   return Impl::equal_exespace_impl(label, ex, KE::cbegin(view1),
@@ -218,6 +234,10 @@ KOKKOS_FUNCTION bool equal(
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(view1);
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(view2);
 
+  if (!Impl::have_equal_extents(view1, view2)) {
+    return false;
+  }
+
   namespace KE = ::Kokkos::Experimental;
   return Impl::equal_team_impl(teamHandle, KE::cbegin(view1), KE::cend(view1),
                                KE::cbegin(view2));
@@ -234,6 +254,10 @@ KOKKOS_FUNCTION bool equal(
     BinaryPredicateType predicate) {
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(view1);
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(view2);
+
+  if (!Impl::have_equal_extents(view1, view2)) {
+    return false;
+  }
 
   namespace KE = ::Kokkos::Experimental;
   return Impl::equal_team_impl(teamHandle, KE::cbegin(view1), KE::cend(view1),

@@ -26,6 +26,14 @@ PairStyle(dpd/kk/host,PairDPDKokkos<LMPHostType>);
 #include "pair_kokkos.h"
 #include "kokkos_type.h"
 
+// a build configured with -D KOKKOS_DEBUG_RNG=on draws the random numbers from
+// the host RanMars generator, so that the results can be compared bit for bit
+// with the plain style.  an explicit choice of generator still wins.
+
+#if defined(LMP_KOKKOS_DEBUG_RNG) && !defined(DPD_USE_Random_XorShift64) && !defined(Random_XorShift1024)
+#define DPD_USE_RAN_MARS
+#endif
+
 #if !defined(DPD_USE_RAN_MARS) && !defined(DPD_USE_Random_XorShift64) && !defined(Random_XorShift1024)
 #define DPD_USE_Random_XorShift64
 #endif
@@ -103,6 +111,7 @@ class PairDPDKokkos : public PairDPD {
   int eflag,vflag;
   int neighflag,nlocal;
   KK_FLOAT dtinvsqrt;
+  bigint ntimestep;    // update->ntimestep cached on the host for the device kernels
 
   int need_dup;
 

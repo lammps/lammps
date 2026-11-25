@@ -469,7 +469,7 @@ void MEAM::meam_force(int i, int eflag_global, int eflag_atom, int vflag_global,
 
         //     Compute derivatives of total density wrt rij, sij and rij(3)
         get_shpfcn(lattce_meam[elti][elti], stheta_meam[elti][elti], ctheta_meam[elti][elti], shpi);
-        get_shpfcn(lattce_meam[eltj][eltj], stheta_meam[elti][elti], ctheta_meam[elti][elti], shpj);
+        get_shpfcn(lattce_meam[eltj][eltj], stheta_meam[eltj][eltj], ctheta_meam[eltj][eltj], shpj);
 
         if (msmeamflag) {
           drhodr1 = dgamma1[i] * drho0dr1 +
@@ -704,10 +704,14 @@ void MEAM::meam_force(int i, int eflag_global, int eflag_atom, int vflag_global,
                     if (cikj >= Cmin && cikj <= Cmax) {
                       cikj = (cikj - Cmin) / delc;
                       sikj = dfcut(cikj, dfc);
-                      dCfunc2(rij2, rik2, rjk2, dCikj1, dCikj2);
-                      a = sij / delc * dfc / sikj;
-                      dsij1 = a * dCikj1;
-                      dsij2 = a * dCikj2;
+                      // sikj = dfc = 0 for cikj within rounding of Cmin while sij > 0,
+                      // see getscreen().  the contribution vanishes in this limit.
+                      if (sikj > 0.0) {
+                        dCfunc2(rij2, rik2, rjk2, dCikj1, dCikj2);
+                        a = sij / delc * dfc / sikj;
+                        dsij1 = a * dCikj1;
+                        dsij2 = a * dCikj2;
+                      }
                     }
                   }
                 }

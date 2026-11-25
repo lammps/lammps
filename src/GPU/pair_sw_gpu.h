@@ -38,7 +38,6 @@ class PairSWGPU : public PairSW {
   void allocate() override;
 
   int gpu_mode;
-  double cpu_time;
 };
 
 }    // namespace LAMMPS_NS

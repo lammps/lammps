@@ -31,7 +31,7 @@ class FixBrownian : public FixBrownianBase {
   void init() override;
   void initial_integrate(int) override;
 
- private:
+ protected:
   template <int Tp_UNIFORM, int Tp_GAUSS, int Tp_2D> void initial_integrate_templated();
 };
 

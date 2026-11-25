@@ -90,7 +90,7 @@ to halt.
 
 Note that by jumping to a label in the same input script, the if
 command can be used to break out of a loop.  See the :doc:`variable delete <variable>` command for info on how to delete the associated
-loop variable, so that it can be re-used later in the input script.
+loop variable, so that it can be reused later in the input script.
 
 Here is an example of a loop which checks every 1000 steps if the
 system temperature has reached a certain value, and if so, breaks out

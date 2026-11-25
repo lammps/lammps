@@ -24,6 +24,7 @@
 
 using namespace LAMMPS_NS;
 using MathSpecial::powint;
+using MathSpecial::powauto;
 
 /* ---------------------------------------------------------------------- */
 
@@ -124,9 +125,10 @@ void PairNMCutSplitOMP::eval(int iifrom, int iito, ThrData * const thr)
 
         // r < r0 --> use generalized LJ
         if (rsq < r0[itype][jtype]*r0[itype][jtype]) {
+          rninv = powauto(r,-nn[itype][jtype]);
+          rminv = powauto(r,-mm[itype][jtype]);
           forcenm = e0nm[itype][jtype]*nm[itype][jtype]*
-            (r0n[itype][jtype]/pow(r,nn[itype][jtype])
-             -r0m[itype][jtype]/pow(r,mm[itype][jtype]));
+            (r0n[itype][jtype]*rninv - r0m[itype][jtype]*rminv);
         }
         // r > r0 --> use standard LJ (m = 6 n = 12)
         else forcenm =(e0[itype][jtype]/6.0)*72.0*(4.0/powint(r,12)-2.0/powint(r,6));
@@ -145,15 +147,13 @@ void PairNMCutSplitOMP::eval(int iifrom, int iito, ThrData * const thr)
         if (EFLAG) {
           // r < r0 --> use generalized LJ
           if (rsq < r0[itype][jtype]*r0[itype][jtype]) {
-            rminv = pow(r2inv,mm[itype][jtype]/2.0);
-            rninv = pow(r2inv,nn[itype][jtype]/2.0);
 
             evdwl = e0nm[itype][jtype]*(mm[itype][jtype]*r0n[itype][jtype]*rninv -
                                         nn[itype][jtype]*r0m[itype][jtype]*rminv) -
               offset[itype][jtype];
           }
           // r > r0 --> use standard LJ (m = 6 n = 12)
-          else evdwl = (e0[itype][jtype]/6.0)*(24.0*powint(r2inv,6) - 24.0*pow(r2inv,3));
+          else evdwl = (e0[itype][jtype]/6.0)*(24.0*powint(r2inv,6) - 24.0*powint(r2inv,3));
           evdwl *= factor_lj;
         }
         if (EVFLAG) ev_tally_thr(this,i,j,nlocal,NEWTON_PAIR,evdwl,0.0,fpair,delx,dely,delz,thr);

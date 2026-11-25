@@ -1,0 +1,31 @@
+---
+lammps_version: 2 Sep 2026
+tags:
+date_generated: Thu Sep  3 12:56:10 2026
+epsilon: 1e-08
+timestep: 0.001
+skip_tests:
+prerequisites: |
+  atom sphere
+  pair zero
+  compute temp/sphere
+  compute temp/region
+pre_commands: |
+  variable atom_style delete
+  variable atom_style index sphere
+  variable pair_style delete
+  variable pair_style index 'zero 4.0'
+post_commands: |
+  pair_coeff * *
+  set group all diameter 1.0 density 2.0
+  set group all omega 0.4 -0.3 0.7
+  set atom 1*8 omega -0.2 0.5 -0.9
+  region half block INF INF INF INF 6.75 INF units box
+  compute tbias all temp/region half
+  compute test all temp/sphere bias tbias
+input_file: in.colloid
+natoms: 27
+global_scalar: 0.9879111478197116
+global_vector: |-
+  6  3.2762042542944300e+01  2.5094688884267381e+01  2.8091538433103207e+01  1.8860489288885243e+00 -1.4815358937769230e+00 -1.0846217647735578e+01
+...

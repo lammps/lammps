@@ -25,6 +25,7 @@
 #include "error.h"
 #include "force.h"
 #include "math_extra.h"
+#include "math_special.h"
 #include "memory.h"
 #include "neigh_list.h"
 #include "neighbor.h"
@@ -32,6 +33,9 @@
 #include <cmath>
 
 using namespace LAMMPS_NS;
+using MathSpecial::cube;
+using MathSpecial::powauto;
+using MathSpecial::powint;
 
 static const char cite_pair_gayberne[] =
   "pair gayberne command: https://doi.org/10.1063/1.3058435\n\n"
@@ -693,7 +697,7 @@ double PairGayBerne::gayberne_analytic(const int i,const int j,double a1[3][3],
   // compute u_r
 
   double varrho = sigma[type[i]][type[j]]/(h12+gamma*sigma[type[i]][type[j]]);
-  double varrho6 = pow(varrho,6.0);
+  double varrho6 = powint(varrho,6);
   double varrho12 = varrho6*varrho6;
   double u_r = 4.0*epsilon[type[i]][type[j]]*(varrho12-varrho6);
 
@@ -701,7 +705,7 @@ double PairGayBerne::gayberne_analytic(const int i,const int j,double a1[3][3],
 
   double eta = 2.0*lshape[type[i]]*lshape[type[j]];
   double det_g12 = MathExtra::det3(g12);
-  eta = pow(eta/det_g12,upsilon);
+  eta = powauto(eta/det_g12,upsilon);
 
   // compute chi_12
 
@@ -717,14 +721,14 @@ double PairGayBerne::gayberne_analytic(const int i,const int j,double a1[3][3],
   tempv[1] = iota[1]/r;
   tempv[2] = iota[2]/r;
   double chi = MathExtra::dot3(r12hat,tempv);
-  chi = pow(chi*2.0,mu);
+  chi = powauto(chi*2.0,mu);
 
   // force
   // compute dUr/dr
 
   temp1 = (2.0*varrho12*varrho-varrho6*varrho)/sigma[type[i]][type[j]];
   temp1 = temp1*24.0*epsilon[type[i]][type[j]];
-  double u_slj = temp1*pow(sigma12,3.0)/2.0;
+  double u_slj = temp1*cube(sigma12)/2.0;
   double dUr[3];
   temp2 = MathExtra::dot3(kappa,r12hat);
   double uslj_rsq = u_slj/rsq;
@@ -736,7 +740,7 @@ double PairGayBerne::gayberne_analytic(const int i,const int j,double a1[3][3],
 
   double dchi[3];
   temp1 = MathExtra::dot3(iota,r12hat);
-  temp2 = -4.0/rsq*mu*pow(chi,(mu-1.0)/mu);
+  temp2 = -4.0/rsq*mu*powauto(chi,(mu-1.0)/mu);
   dchi[0] = temp2*(iota[0]-temp1*r12hat[0]);
   dchi[1] = temp2*(iota[1]-temp1*r12hat[1]);
   dchi[2] = temp2*(iota[2]-temp1*r12hat[2]);
@@ -873,7 +877,7 @@ double PairGayBerne::gayberne_lj(const int i,const int j,double a1[3][3],
   // compute u_r
 
   double varrho = sigma[type[i]][type[j]]/(h12+gamma*sigma[type[i]][type[j]]);
-  double varrho6 = pow(varrho,6.0);
+  double varrho6 = powint(varrho,6);
   double varrho12 = varrho6*varrho6;
   double u_r = 4.0*epsilon[type[i]][type[j]]*(varrho12-varrho6);
 
@@ -881,7 +885,7 @@ double PairGayBerne::gayberne_lj(const int i,const int j,double a1[3][3],
 
   double eta = 2.0*lshape[type[i]]*lshape[type[j]];
   double det_g12 = MathExtra::det3(g12);
-  eta = pow(eta/det_g12,upsilon);
+  eta = powauto(eta/det_g12,upsilon);
 
   // compute chi_12
 
@@ -902,14 +906,14 @@ double PairGayBerne::gayberne_lj(const int i,const int j,double a1[3][3],
   tempv[1] = iota[1]/r;
   tempv[2] = iota[2]/r;
   double chi = MathExtra::dot3(r12hat,tempv);
-  chi = pow(chi*2.0,mu);
+  chi = powauto(chi*2.0,mu);
 
   // force
   // compute dUr/dr
 
   temp1 = (2.0*varrho12*varrho-varrho6*varrho)/sigma[type[i]][type[j]];
   temp1 = temp1*24.0*epsilon[type[i]][type[j]];
-  double u_slj = temp1*pow(sigma12,3.0)/2.0;
+  double u_slj = temp1*cube(sigma12)/2.0;
   double dUr[3];
   temp2 = MathExtra::dot3(kappa,r12hat);
   double uslj_rsq = u_slj/rsq;
@@ -921,7 +925,7 @@ double PairGayBerne::gayberne_lj(const int i,const int j,double a1[3][3],
 
   double dchi[3];
   temp1 = MathExtra::dot3(iota,r12hat);
-  temp2 = -4.0/rsq*mu*pow(chi,(mu-1.0)/mu);
+  temp2 = -4.0/rsq*mu*powauto(chi,(mu-1.0)/mu);
   dchi[0] = temp2*(iota[0]-temp1*r12hat[0]);
   dchi[1] = temp2*(iota[1]-temp1*r12hat[1]);
   dchi[2] = temp2*(iota[2]-temp1*r12hat[2]);

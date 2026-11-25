@@ -19,8 +19,8 @@ Syntax
 
   .. parsed-literal::
 
-     keyword = *checkqeq* or *lgvdw* or *safezone* or *mincap* or *minhbonds* or *tabulate* or *list/blocking*
-       *checkqeq* value = *yes* or *no* = whether or not to require one of fix qeq/reaxff, fix acks2/reaxff or fix qtpie/reaxff
+     keyword = *checkqeq* or *enobonds* or *lgvdw* or *safezone* or *mincap* or *minhbonds* or *tabulate* or *list/blocking*
+       *checkqeq* value = *yes* or *no* = whether or not to require a charge equilibration fix (see below)
        *enobonds* value = *yes* or *no* = whether or not to tally energy of atoms with no bonds
        *lgvdw* value = *yes* or *no* = whether or not to use a low gradient vdW correction
        *safezone* = factor used for array allocation
@@ -55,6 +55,15 @@ more technical details about the implementation of ReaxFF in pair style
 *reaxff*, see the :ref:`(Aktulga) <Aktulga>` paper. The *reaxff* style
 was initially implemented as a stand-alone C code and is now converted
 to C++ and integrated into LAMMPS as a package.
+
+.. note::
+
+   There are some differences between the equations in the paper cited
+   above and the ReaxFF reference implementation.  Also, some of the
+   printed equations imply sign conventions for force field parameters
+   that differ from those used in the published parameter files.  Where
+   the printed equations and the reference implementation disagree, pair
+   style *reaxff* follows the reference implementation.
 
 The *reaxff/kk* style is a Kokkos version of the ReaxFF potential that
 is derived from the *reaxff* style.  The Kokkos version can run on GPUs
@@ -108,8 +117,8 @@ control variable.  The format of the control file is described below.
    control file, the results from LAMMPS and the serial code will
    not agree.
 
-Examples using *pair_style reaxff* are provided in the examples/reax
-directory and its subdirectories.
+Examples using *pair_style reaxff* are provided in the
+``examples/reaxff`` directory and its subdirectories.
 
 Use of this pair style requires using an :doc:`atom_style <atom_style>`
 that includes a per-atom charge property *or* using
@@ -120,16 +129,15 @@ up that process.
 
 The ReaxFF parameter files provided were created using a charge
 equilibration (QEq) model for handling the electrostatic interactions.
-Therefore, by default, LAMMPS requires that
-:doc:`fix qeq/reaxff <fix_qeq_reaxff>` or :doc:`fix qeq/shielded <fix_qeq>`
-or :doc:`fix acks2/reaxff <fix_acks2_reaxff>`
-or :doc:`fix qtpie/reaxff <fix_qtpie_reaxff>`
+Therefore, by default, LAMMPS requires that one of
+:doc:`fix qeq/reaxff <fix_qeq_reaxff>`,
+:doc:`fix qeq/shielded or qeq/shielded/xlmd <fix_qeq>`,
+:doc:`fix qeq/rel/reaxff <fix_qeq_rel_reaxff>`,
+:doc:`fix acks2/reaxff <fix_acks2_reaxff>`, or
+:doc:`fix qtpie/reaxff <fix_qtpie_reaxff>`
 is used with *pair_style reaxff* when simulating a ReaxFF model,
 to equilibrate the charges at each timestep.
-See the :doc:`fix qeq/reaxff <fix_qeq_reaxff>` or :doc:`fix qeq/shielded <fix_qeq>`
-or :doc:`fix acks2/reaxff <fix_acks2_reaxff>`
-or :doc:`fix qtpie/reaxff <fix_qtpie_reaxff>`
-command documentation for more details.
+See the documentation of these fix commands for more details.
 
 Using the keyword *checkqeq* with the value *no* turns off the check
 for the QEq fixes, allowing a simulation to be run without charge
@@ -139,7 +147,7 @@ the system.
 
 Using the optional keyword *lgvdw* with the value *yes* turns on the
 low-gradient correction of ReaxFF for long-range London Dispersion,
-as described in the :ref:`(Liu) <Liu_2011>` paper. The bundled force
+as described in the :ref:`(Liu4) <Liu_2011>` paper. The bundled force
 field file *ffield.reax.lg* is designed for this correction, and is
 trained for several energetic materials (see "Liu"). When using *lgvdw yes*,
 the recommended value for parameter *thb* is 0.01, which can be set in the
@@ -400,6 +408,7 @@ Related commands
 
 :doc:`pair_coeff <pair_coeff>`, :doc:`fix qeq/reaxff <fix_qeq_reaxff>`,
 :doc:`fix acks2/reaxff <fix_acks2_reaxff>`, :doc:`fix qtpie/reaxff <fix_qtpie_reaxff>`,
+:doc:`fix qeq/rel/reaxff <fix_qeq_rel_reaxff>`,
 :doc:`fix reaxff/bonds <fix_reaxff_bonds>`, :doc:`fix reaxff/species <fix_reaxff_species>`,
 :doc:`compute reaxff/atom <compute_reaxff_atom>`
 
@@ -419,10 +428,10 @@ Journal of Physical Chemistry A, 112, 1040-1053 (2008).
 
 .. _Aktulga:
 
-(Aktulga) Aktulga, Fogarty, Pandit, Grama, Parallel Computing, 38,
+**(Aktulga)** Aktulga, Fogarty, Pandit, Grama, Parallel Computing, 38,
 245-259 (2012).
 
 .. _Liu_2011:
 
-**(Liu)** L. Liu, Y. Liu, S. V. Zybin, H. Sun and W. A. Goddard, Journal
+**(Liu4)** L. Liu, Y. Liu, S. V. Zybin, H. Sun and W. A. Goddard, Journal
 of Physical Chemistry A, 115, 11016-11022 (2011).

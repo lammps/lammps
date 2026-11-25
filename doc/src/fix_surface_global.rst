@@ -125,6 +125,14 @@ format; this command auto-detects the format.  One global triangle is
 created for each triangle in the STL file(s).  Note that STL files
 cannot be used for 2d simulations since they only define triangles.
 
+.. versionchanged:: 2Sep2026
+
+STL files exported by engineering design software may contain
+degenerate triangles, i.e. triangles with duplicate or collinear
+corner points and thus zero area.  Such triangles cannot be used as
+surface triangles and are now skipped when reading the file; a
+warning with the number of skipped triangles is printed.
+
 This `Wikipedia page
 <https://en.wikipedia.org/wiki/STL_(file_format)>`_ describes the
 format of both text and binary STL files.  Binary STL files can be
@@ -185,6 +193,8 @@ any of files read by the *input* keyword(s) or by the optional
 type/region <fix_modify>` command (described below) is used to assign
 new types to surfaces after they are read in.  As for particles, there
 is no requirement that triangles/lines exist for every surface type.
+Using a surface type larger than this number in a *model* keyword is an
+error.
 
 The *fstyle* argument (for force style) can be any of the styles
 defined by the :doc:`pair_style gran/\* <pair_gran>` or the more

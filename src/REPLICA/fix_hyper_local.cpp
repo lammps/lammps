@@ -313,7 +313,8 @@ void FixHyperLocal::init()
 
   auto *req = neighbor->add_request(this, NeighConst::REQ_FULL | NeighConst::REQ_OCCASIONAL);
   req->set_id(1);
-  req->set_cutoff(dcut);
+
+  req->set_cutoff_fixed(dcut);
 
   // also need occasional half neighbor list derived from pair style
   // used for building local bond list
@@ -581,7 +582,7 @@ void FixHyperLocal::pre_reverse(int /* eflag */, int /* vflag */)
     ncount = 0;
 
     for (jj = 0; jj < jnum; jj++) {
-      jold = jlist[jj];
+      jold = NEIGHMASK & jlist[jj];
       j = old2now[jold];
 
       // special case for missing (drifted) J atom
@@ -841,7 +842,7 @@ void FixHyperLocal::pre_reverse(int /* eflag */, int /* vflag */)
       jnum = numneigh[iold];
 
       for (jj = 0; jj < jnum; jj++) {
-        jold = jlist[jj];
+        jold = NEIGHMASK & jlist[jj];
         j = old2now[jold];
         if (j < 0) continue;
         if (biasflag[j] && biasflag[j] != tag[i]) checkbias_count++;

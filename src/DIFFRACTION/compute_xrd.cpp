@@ -56,7 +56,7 @@ ComputeXRD::ComputeXRD(LAMMPS *lmp, int narg, char **arg) :
   nlocalgroup = 0;
   if (lmp->citeme) lmp->citeme->add(cite_compute_xrd_c);
 
-  int ntypes = atom->ntypes;
+  ntypes = atom->ntypes;
   int natoms = group->count(igroup);
   int dimension = domain->dimension;
   int *periodicity = domain->periodicity;

@@ -199,9 +199,9 @@ void PairLebedevaZ::allocate()
 
 void PairLebedevaZ::settings(int narg, char **arg)
 {
-  if (narg != 1) error->all(FLERR,"Illegal pair_style command");
+  if (narg != 1) error->all(FLERR,"Pair style lebedeva/z requires exactly one argument");
   if (!utils::strmatch(force->pair_style,"^hybrid/overlay"))
-    error->all(FLERR,"Pair style lebedeva/z requires using hybrid/overlay");
+    error->all(FLERR,"Pair style lebedeva/z must be used as hybrid/overlay sub-style");
 
   cut_global = utils::numeric(FLERR,arg[0],false,lmp);
 }

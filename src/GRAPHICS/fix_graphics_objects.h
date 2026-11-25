@@ -30,6 +30,7 @@ class FixGraphicsObjects : public Fix {
   ~FixGraphicsObjects() override;
   int setmask() override;
   void init() override;
+  void setup(int) override;
   void end_of_step() override;
 
   int image(int *&, double **&) override;

@@ -18,6 +18,7 @@
 #include <cmath>
 
 #include "lal_edpd.h"
+#include "lammps_gpu.h"
 
 using namespace std;
 using namespace LAMMPS_AL;
@@ -27,6 +28,8 @@ static EDPD<PRECISION,ACC_PRECISION> EDPDMF;
 // ---------------------------------------------------------------------------
 // Allocate memory on host and device and copy constants to device
 // ---------------------------------------------------------------------------
+
+namespace LAMMPS_GPU {
 int edpd_gpu_init(const int ntypes, double **cutsq, double **host_a0,
                   double **host_gamma, double **host_cut, double **host_power,
                   double **host_kappa, double **host_powerT, double **host_cutT,
@@ -37,7 +40,6 @@ int edpd_gpu_init(const int ntypes, double **cutsq, double **host_a0,
                   const double cell_size, int &gpu_mode, FILE *screen) {
   EDPDMF.clear();
   gpu_mode=EDPDMF.device->gpu_mode();
-  double gpu_split=EDPDMF.device->particle_split();
   int first_gpu=EDPDMF.device->first_device();
   int last_gpu=EDPDMF.device->last_device();
   int world_me=EDPDMF.device->world_me();
@@ -62,7 +64,7 @@ int edpd_gpu_init(const int ntypes, double **cutsq, double **host_a0,
                         host_cutT, host_sc, host_kc, host_mass,
                         special_lj, power_flag, kappa_flag,
                         inum, nall, max_nbors,  maxspecial,
-                        cell_size, gpu_split, screen);
+                        cell_size, screen);
 
   EDPDMF.device->world_barrier();
   if (message)
@@ -83,7 +85,7 @@ int edpd_gpu_init(const int ntypes, double **cutsq, double **host_a0,
                           host_sc, host_kc, host_mass,
                           special_lj, power_flag, kappa_flag,
                           inum, nall, max_nbors, maxspecial,
-                          cell_size, gpu_split, screen);
+                          cell_size, screen);
 
     EDPDMF.device->serialize_init();
     if (message)
@@ -105,27 +107,25 @@ int ** edpd_gpu_compute_n(const int ago, const int inum_full, const int nall,
                          double **host_x, int *host_type, double *sublo,
                          double *subhi, tagint *tag, int **nspecial,
                          tagint **special, const bool eflag, const bool vflag,
-                         const bool eatom, const bool vatom, int &host_start,
-                         int **ilist, int **jnum, const double cpu_time, bool &success,
+                         const bool eatom, const bool vatom, int **ilist, int **jnum, bool &success,
                          double **host_v, const double dtinvsqrt,
                          const int seed, const int timestep,
                          double *boxlo, double *prd) {
   return EDPDMF.compute(ago, inum_full, nall, host_x, host_type, sublo,
                         subhi, tag, nspecial, special, eflag, vflag, eatom,
-                        vatom, host_start, ilist, jnum, cpu_time, success,
+                        vatom, ilist, jnum, success,
                         host_v, dtinvsqrt, seed, timestep, boxlo, prd);
 }
 
 void edpd_gpu_compute(const int ago, const int inum_full, const int nall,
                       double **host_x, int *host_type, int *ilist, int *numj,
                       int **firstneigh, const bool eflag, const bool vflag,
-                      const bool eatom, const bool vatom, int &host_start,
-                      const double cpu_time, bool &success, tagint *tag,
+                      const bool eatom, const bool vatom, bool &success, tagint *tag,
                       double **host_v, const double dtinvsqrt,
                       const int seed, const int timestep,
                       const int nlocal, double *boxlo, double *prd) {
   EDPDMF.compute(ago, inum_full, nall, host_x, host_type, ilist, numj,
-                firstneigh, eflag, vflag, eatom, vatom, host_start, cpu_time, success,
+                firstneigh, eflag, vflag, eatom, vatom, success,
                 tag, host_v, dtinvsqrt, seed, timestep, nlocal, boxlo, prd);
 }
 
@@ -140,3 +140,5 @@ void edpd_gpu_update_flux(void **flux_ptr) {
 double edpd_gpu_bytes() {
   return EDPDMF.host_memory_usage();
 }
+
+} // namespace LAMMPS_GPU

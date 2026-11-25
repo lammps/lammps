@@ -38,14 +38,14 @@ _texture_2d( vel_tex,int4);
     dE[i]=dEacc;                                                            \
   }
 #else
-#define store_drhoE(dEacc, ii, inum, tid, t_per_atom, offset, i, dE)        \
+#define store_dE(dEacc, ii, inum, tid, t_per_atom, offset, i, dE)           \
   if (t_per_atom>1) {                                                       \
     for (unsigned int s=t_per_atom/2; s>0; s>>=1) {                         \
       dEacc += shfl_down(dEacc, s, t_per_atom);                             \
     }                                                                       \
   }                                                                         \
   if (offset==0 && ii<inum) {                                               \
-    dE[i]=dEacc;                                                           \
+    dE[i]=dEacc;                                                            \
   }
 #endif
 
@@ -70,10 +70,17 @@ __kernel void k_sph_heatconduction(const __global numtyp4 *restrict x_,
   atom_info(t_per_atom,ii,tid,offset);
 
   int n_stride;
-#if (SHUFFLE_AVAIL == 0)
   local_allocate_store_pair();
-#endif
 
+  // this pair style computes no forces, energies, or virial, but the
+  // (zero) answers must still be stored since the host reads them back
+  acctyp3 f;
+  f.x=(acctyp)0; f.y=(acctyp)0; f.z=(acctyp)0;
+  acctyp energy, virial[6];
+  if (EVFLAG) {
+    energy=(acctyp)0;
+    for (int i=0; i<6; i++) virial[i]=(acctyp)0;
+  }
   acctyp dEacc = (acctyp)0;
 
   if (ii<inum) {
@@ -140,7 +147,9 @@ __kernel void k_sph_heatconduction(const __global numtyp4 *restrict x_,
     } // for nbor
   } // if ii
 
-  store_drhoE(dEacc,ii,inum,tid,t_per_atom,offset,i,dE);
+  store_answers(f,energy,virial,ii,inum,tid,t_per_atom,offset,eflag,vflag,
+                ans,engv);
+  store_dE(dEacc,ii,inum,tid,t_per_atom,offset,i,dE);
 }
 
 __kernel void k_sph_heatconduction_fast(const __global numtyp4 *restrict x_,
@@ -173,10 +182,17 @@ __kernel void k_sph_heatconduction_fast(const __global numtyp4 *restrict x_,
   #endif
 
   int n_stride;
-#if (SHUFFLE_AVAIL == 0)
   local_allocate_store_pair();
-#endif
 
+  // this pair style computes no forces, energies, or virial, but the
+  // (zero) answers must still be stored since the host reads them back
+  acctyp3 f;
+  f.x=(acctyp)0; f.y=(acctyp)0; f.z=(acctyp)0;
+  acctyp energy, virial[6];
+  if (EVFLAG) {
+    energy=(acctyp)0;
+    for (int i=0; i<6; i++) virial[i]=(acctyp)0;
+  }
   acctyp dEacc = (acctyp)0;
 
   if (ii<inum) {
@@ -227,7 +243,7 @@ __kernel void k_sph_heatconduction_fast(const __global numtyp4 *restrict x_,
         numtyp esphj = extraj.y;
 
         numtyp h = coeffy; // cut[itype][jtype]
-        numtyp ih = ih = ucl_recip(h); // (numtyp)1.0 / h;
+        numtyp ih = ucl_recip(h); // (numtyp)1.0 / h;
         numtyp ihsq = ih * ih;
 
         numtyp wfd = h - ucl_sqrt(rsq);
@@ -252,6 +268,8 @@ __kernel void k_sph_heatconduction_fast(const __global numtyp4 *restrict x_,
     } // for nbor
   } // if ii
 
-  store_drhoE(dEacc,ii,inum,tid,t_per_atom,offset,i,dE);
+  store_answers(f,energy,virial,ii,inum,tid,t_per_atom,offset,eflag,vflag,
+                ans,engv);
+  store_dE(dEacc,ii,inum,tid,t_per_atom,offset,i,dE);
 }
 

@@ -820,20 +820,12 @@ struct ThenFunctor {
   KOKKOS_FUNCTION void operator()(const TimesTwo) const { data() += 2 * value; }
 };
 
-// Supported graph node types.
-enum class GraphNodeType {
-  KERNEL    = 12,
-  AGGREGATE = 42,
-  THEN      = 66,
-  CAPTURE   = 666
-};
-
 template <typename Exec>
 struct GraphNodeTypes {
   // Type of a root node.
   using node_ref_root_t =
       Kokkos::Experimental::GraphNodeRef<Exec,
-                                         Kokkos::Experimental::TypeErasedTag,
+                                         Kokkos::Experimental::GraphNodeRootTag,
                                          Kokkos::Experimental::TypeErasedTag>;
 
 #if defined(KOKKOS_ENABLE_CUDA)
@@ -845,6 +837,12 @@ struct GraphNodeTypes {
 #else
   static constexpr bool support_capture = false;
 #endif
+
+  // Fully type-erased node.
+  using erased_t =
+      Kokkos::Experimental::GraphNodeRef<Exec,
+                                         Kokkos::Experimental::TypeErasedTag,
+                                         Kokkos::Experimental::TypeErasedTag>;
 
   // Type of a kernel node built using a Kokkos parallel construct.
   using kernel_t =
@@ -939,6 +937,33 @@ TEST(TEST_CATEGORY, when_all_type) {
   auto agg    = Kokkos::Experimental::when_all(node_A, node_B);
   auto tail   = agg.then_parallel_for(1, kernel_functor_t{});
 
+  static_assert(decltype(root)::node_kind ==
+                Kokkos::Experimental::GraphNodeKind::Root);
+  static_assert(decltype(node_A)::node_kind ==
+                Kokkos::Experimental::GraphNodeKind::Kernel);
+  static_assert(decltype(node_B)::node_kind ==
+                Kokkos::Experimental::GraphNodeKind::Kernel);
+  static_assert(decltype(agg)::node_kind ==
+                Kokkos::Experimental::GraphNodeKind::Aggregate);
+
+  static_assert(decltype(types::erased_t(root))::node_kind ==
+                Kokkos::Experimental::GraphNodeKind::TypeErased);
+  static_assert(decltype(types::erased_t(node_A))::node_kind ==
+                Kokkos::Experimental::GraphNodeKind::TypeErased);
+  static_assert(decltype(types::erased_t(node_B))::node_kind ==
+                Kokkos::Experimental::GraphNodeKind::TypeErased);
+  static_assert(decltype(types::erased_t(agg))::node_kind ==
+                Kokkos::Experimental::GraphNodeKind::TypeErased);
+
+  ASSERT_EQ(types::erased_t(root).get_node_kind(),
+            Kokkos::Experimental::GraphNodeKind::Root);
+  ASSERT_EQ(types::erased_t(node_A).get_node_kind(),
+            Kokkos::Experimental::GraphNodeKind::Kernel);
+  ASSERT_EQ(types::erased_t(node_B).get_node_kind(),
+            Kokkos::Experimental::GraphNodeKind::Kernel);
+  ASSERT_EQ(types::erased_t(agg).get_node_kind(),
+            Kokkos::Experimental::GraphNodeKind::Aggregate);
+
   static_assert(std::is_same_v<decltype(graph), graph_t>);
   static_assert(
       std::is_same_v<decltype(root), typename types::node_ref_root_t>);
@@ -949,7 +974,8 @@ TEST(TEST_CATEGORY, when_all_type) {
 }
 
 #if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP)
-template <GraphNodeType value, typename DstType, typename... SrcTypes>
+template <Kokkos::Experimental::GraphNodeKind value, typename DstType,
+          typename... SrcTypes>
 __global__ void set_to(DstType* const dst, const SrcTypes* const... srcs) {
   dst[threadIdx.y] += (srcs[threadIdx.y] + ...) + static_cast<DstType>(value);
 }
@@ -982,7 +1008,7 @@ struct ExternalCapture {
   template <typename DstType, typename... SrcTypes>
   static void compute(const Kokkos::Cuda& exec, DstType* const dst,
                       const SrcTypes* const... srcs) {
-    set_to<GraphNodeType::CAPTURE>
+    set_to<Kokkos::Experimental::GraphNodeKind::Capture>
         <<<dim3(1, 1, 1), dim3(1, 1, 1), 0, exec.cuda_stream()>>>(dst, srcs...);
   }
 #endif
@@ -990,7 +1016,7 @@ struct ExternalCapture {
   template <typename DstType, typename... SrcTypes>
   static void compute(const Kokkos::HIP& exec, DstType* const dst,
                       const SrcTypes* const... srcs) {
-    set_to<GraphNodeType::CAPTURE>
+    set_to<Kokkos::Experimental::GraphNodeKind::Capture>
         <<<dim3(1, 1, 1), dim3(1, 1, 1), 0, exec.hip_stream()>>>(dst, srcs...);
   }
 #endif
@@ -1001,7 +1027,8 @@ struct ExternalCapture {
     exec.sycl_queue().submit([&](sycl::handler& cgh) {
       cgh.parallel_for(sycl::range<1>(1), [=](int) {
         dst[0] +=
-            (srcs[0] + ...) + static_cast<DstType>(GraphNodeType::CAPTURE);
+            (srcs[0] + ...) +
+            static_cast<DstType>(Kokkos::Experimental::GraphNodeKind::Capture);
       });
     });
   }
@@ -1052,6 +1079,11 @@ void test_graph_capture() {
   auto captured_right =
       ExternalCapture<Exec>::add(memset_right, exec_left, data_3, data_4);
 
+  static_assert(decltype(captured_left)::node_kind ==
+                Kokkos::Experimental::GraphNodeKind::Capture);
+  static_assert(decltype(captured_right)::node_kind ==
+                Kokkos::Experimental::GraphNodeKind::Capture);
+
   // We don't keep a reference to the created external nodes, to mimic that
   // someone used capture in some deep-down library call (e.g. in
   // Kokkos Kernels).
@@ -1088,17 +1120,32 @@ void test_graph_capture() {
 
   graph.submit(exec_graph);
 
-  ASSERT_TRUE(contains(exec_graph, data_1,
-                       offset_left + static_cast<int>(GraphNodeType::CAPTURE)));
-  ASSERT_TRUE(
-      contains(exec_graph, data_3,
-               offset_right + static_cast<int>(GraphNodeType::CAPTURE)));
-  ASSERT_TRUE(contains(exec_graph, data_2,
-                       offset_left + offset_right +
-                           3 * static_cast<int>(GraphNodeType::CAPTURE)));
+  // Ensure the value added by the capture nodes was non-zero.
+  static_assert(
+      static_cast<int>(Kokkos::Experimental::GraphNodeKind::Capture) != 0);
+
+  ASSERT_TRUE(contains(
+      exec_graph, data_1,
+      offset_left +
+          static_cast<int>(Kokkos::Experimental::GraphNodeKind::Capture)));
+  ASSERT_TRUE(contains(
+      exec_graph, data_3,
+      offset_right +
+          static_cast<int>(Kokkos::Experimental::GraphNodeKind::Capture)));
+  ASSERT_TRUE(contains(
+      exec_graph, data_2,
+      offset_left + offset_right +
+          3 * static_cast<int>(Kokkos::Experimental::GraphNodeKind::Capture)));
 }
 
 TEST(TEST_CATEGORY, graph_capture) {
+#if defined(KOKKOS_ENABLE_HIP) && \
+    (HIP_VERSION_MAJOR < 7 ||     \
+     (HIP_VERSION_MAJOR == 7 && HIP_VERSION_MINOR < 2))
+  if constexpr (std::is_same_v<TEST_EXECSPACE, Kokkos::HIP>)
+    GTEST_SKIP() << "The test has only been fixed in ROCm 7.2 to run reliably.";
+#endif
+
   if constexpr (GraphNodeTypes<TEST_EXECSPACE>::support_capture) {
     test_graph_capture<TEST_EXECSPACE>();
   } else {
@@ -1200,7 +1247,8 @@ TEST(TEST_CATEGORY, then_host) {
   {
     // clang-format off
     auto graph = Kokkos::Experimental::create_graph(Kokkos::Experimental::get_device_handle(exec), [&](const auto& root) {
-      root.then_host("lonely", functor_h_t{{counter, view_h_t(Kokkos::view_alloc("internal buffer - lonely - host"))}});
+      auto host_node = root.then_host("lonely", functor_h_t{{counter, view_h_t(Kokkos::view_alloc("internal buffer - lonely - host"))}});
+      static_assert(decltype(host_node)::node_kind == Kokkos::Experimental::GraphNodeKind::Host);
     });
     // clang-format on
 
@@ -1303,6 +1351,7 @@ TEST(TEST_CATEGORY, execution_policy_with_default_execution_space_instance) {
   if (exec == TEST_EXECSPACE{}) {
     GTEST_SKIP();
   } else {
+    ::testing::FLAGS_gtest_death_test_style = "threadsafe";
     ASSERT_DEATH(graph.root_node().then_parallel_for(
                      Kokkos::RangePolicy(exec, 0, 1), NoOp{}),
                  "The execution space instance of the execution policy of a "
@@ -1422,6 +1471,183 @@ TEST(TEST_CATEGORY, graph_then_tag) {
   graph.submit(exec);
 
   ASSERT_TRUE(contains(exec, data, 5 * value_then));
+}
+
+// Functors for graph scratch/replay tests, at namespace scope for CUDA
+// compatibility.
+template <class ExecSpace>
+struct GraphScratchFunctor {
+  using mem_space   = typename ExecSpace::memory_space;
+  using team_policy = Kokkos::TeamPolicy<ExecSpace>;
+  using member_type = typename team_policy::member_type;
+  using scratch_view =
+      Kokkos::View<int*, typename ExecSpace::scratch_memory_space,
+                   Kokkos::MemoryTraits<Kokkos::Unmanaged>>;
+  Kokkos::View<int*, mem_space> out;
+  int scratch_elems;
+  KOKKOS_FUNCTION void operator()(const member_type& team) const {
+    scratch_view scratch(team.team_scratch(0), scratch_elems);
+    const int tid = team.team_rank();
+    scratch(tid)  = team.league_rank() * scratch_elems + tid + 1;
+    team.team_barrier();
+    out(team.league_rank() * scratch_elems + tid) = scratch(tid);
+  }
+};
+
+template <class ExecSpace>
+struct GraphLBFunctor {
+  using mem_space   = typename ExecSpace::memory_space;
+  using team_policy = Kokkos::TeamPolicy<ExecSpace, Kokkos::LaunchBounds<128>>;
+  using member_type = typename team_policy::member_type;
+  Kokkos::View<int*, mem_space> out;
+  KOKKOS_FUNCTION void operator()(const member_type& team) const {
+    if (team.team_rank() == 0) out(team.league_rank()) = team.league_rank() + 1;
+  }
+};
+
+// Test TeamPolicy with L0 scratch memory in graph nodes.
+TEST_F(TEST_CATEGORY_FIXTURE(graph), team_scratch_in_graph) {
+#ifdef KOKKOS_ENABLE_OPENACC  // FIXME_OPENACC
+  GTEST_SKIP() << "skipping since scratch memory is not yet implemented in the "
+                  "OpenACC backend";
+#else
+    using exec_space   = TEST_EXECSPACE;
+    using mem_space    = typename exec_space::memory_space;
+    using team_policy  = Kokkos::TeamPolicy<exec_space>;
+    using functor_type = GraphScratchFunctor<exec_space>;
+    using scratch_view = typename functor_type::scratch_view;
+
+    const int num_teams = 2;
+    const int team_size_max =
+        team_policy(num_teams, 1)
+            .team_size_max(functor_type{}, Kokkos::ParallelForTag());
+    const int team_size     = std::min(32, team_size_max);
+    const int N             = num_teams * team_size;
+    const int scratch_ints  = team_size;
+    const int scratch_bytes = scratch_view::shmem_size(scratch_ints);
+
+    Kokkos::View<int*, mem_space> result("result", N);
+
+    team_policy policy(num_teams, team_size);
+    policy.set_scratch_size(0, Kokkos::PerTeam(scratch_bytes));
+
+    auto graph = Kokkos::Experimental::create_graph(
+        Kokkos::Experimental::get_device_handle(ex), [&](auto root) {
+          root.then_parallel_for("TeamScratchGraph", policy,
+                                 functor_type{result, scratch_ints});
+        });
+    graph.submit(ex);
+    ex.fence();
+
+    auto result_h =
+        Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace{}, result);
+    bool pass = true;
+    for (int i = 0; i < N; ++i) {
+      if (result_h(i) != i + 1) {
+        pass = false;
+        break;
+      }
+    }
+    ASSERT_TRUE(pass);
+#endif
+}
+
+// Test that lvalue policies (stored in variables) work with then_parallel_for
+// and then_parallel_reduce. Before the remove_cvref_t fix in GraphNode.hpp,
+// passing any lvalue policy caused a compilation failure because the forwarding
+// reference deduced Policy as a reference type.
+TEST_F(TEST_CATEGORY_FIXTURE(graph), lvalue_policies) {
+  using exec_space = TEST_EXECSPACE;
+
+  auto graph = Kokkos::Experimental::create_graph(
+      Kokkos::Experimental::get_device_handle(ex), [&](auto root) {
+        // RangePolicy as lvalue
+        Kokkos::RangePolicy<exec_space> range_pol(0, 1);
+        auto n1 = root.then_parallel_for("range_lval", range_pol,
+                                         set_functor{count, 0});
+
+        // MDRangePolicy as lvalue
+        Kokkos::MDRangePolicy<exec_space, Kokkos::Rank<2>> md_pol({0, 0},
+                                                                  {1, 1});
+        auto n2 = n1.then_parallel_for("md_lval", md_pol,
+                                       count_functor{count, bugs, 0, 0});
+
+        // TeamPolicy as lvalue
+        Kokkos::TeamPolicy<exec_space> team_pol(1, 1);
+        auto n3 = n2.then_parallel_for("team_lval", team_pol,
+                                       count_functor{count, bugs, 1, 1});
+
+        // TeamPolicy with set_chunk_size as lvalue
+        Kokkos::TeamPolicy<exec_space> team_pol_chunk(1, 1);
+        team_pol_chunk.set_chunk_size(1);
+        n3.then_parallel_for("team_chunk_lval", team_pol_chunk,
+                             count_functor{count, bugs, 2, 2});
+      });
+
+  graph.submit(ex);
+
+  ASSERT_TRUE(contains(ex, count, 3));
+  ASSERT_TRUE(contains(ex, bugs, 0));
+}
+
+// Test lvalue policies with then_parallel_reduce.
+// This exercises both the remove_cvref_t fix and the new (Label, Policy,
+// Functor, ReturnType) overload for then_parallel_reduce.
+TEST_F(TEST_CATEGORY_FIXTURE(graph), lvalue_policies_reduce) {
+  using exec_space = TEST_EXECSPACE;
+  view_type reduction_out{"reduction_out"};
+  view_type reduction_out2{"reduction_out2"};
+
+  // Test 1: integer-size overload (already worked before)
+  auto graph = Kokkos::Experimental::create_graph(
+      Kokkos::Experimental::get_device_handle(ex), [&](auto root) {
+        auto n1 = root.then_parallel_for(1, set_functor{count, 42});
+        n1.then_parallel_reduce(1, set_result_functor{count}, reduction_out);
+      });
+  graph.submit(ex);
+  ASSERT_TRUE(contains(ex, reduction_out, 42));
+
+  // Test 2: explicit lvalue RangePolicy with label
+  auto graph2 = Kokkos::Experimental::create_graph(
+      Kokkos::Experimental::get_device_handle(ex), [&](auto root) {
+        auto n1 = root.then_parallel_for(1, set_functor{count, 99});
+        Kokkos::RangePolicy<exec_space> range_pol(0, 1);
+        n1.then_parallel_reduce("reduce_lval", range_pol,
+                                set_result_functor{count}, reduction_out2);
+      });
+  graph2.submit(ex);
+  ASSERT_TRUE(contains(ex, reduction_out2, 99));
+}
+
+// Test TeamPolicy with LaunchBounds in graph nodes.
+TEST_F(TEST_CATEGORY_FIXTURE(graph), team_launch_bounds_in_graph) {
+  using exec_space   = TEST_EXECSPACE;
+  using mem_space    = typename exec_space::memory_space;
+  using functor_type = GraphLBFunctor<exec_space>;
+  using team_policy  = typename functor_type::team_policy;
+
+  const int num_teams = 4;
+
+  Kokkos::View<int*, mem_space> result("result", num_teams);
+  functor_type functor{result};
+
+  auto team_size_max = Kokkos::TeamPolicy<TEST_EXECSPACE>(num_teams, 1)
+                           .team_size_max(functor, Kokkos::ParallelForTag());
+  const int team_size = std::min(32, team_size_max);
+
+  auto graph = Kokkos::Experimental::create_graph(
+      Kokkos::Experimental::get_device_handle(ex), [&](auto root) {
+        root.then_parallel_for("TeamLBGraph", team_policy(num_teams, team_size),
+                               functor);
+      });
+  graph.submit(ex);
+  ex.fence();
+
+  auto result_h =
+      Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace{}, result);
+  for (int i = 0; i < num_teams; ++i) {
+    ASSERT_EQ(result_h(i), i + 1);
+  }
 }
 
 }  // end namespace Test

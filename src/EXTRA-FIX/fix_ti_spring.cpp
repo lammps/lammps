@@ -78,8 +78,8 @@ FixTISpring::FixTISpring(LAMMPS *lmp, int narg, char **arg) :
   // Register with Atom class
   xoriginal = nullptr;
   FixTISpring::grow_arrays(atom->nmax);
-  atom->add_callback(Atom::GROW);
-  atom->add_callback(Atom::RESTART);
+  atom->add_callback(this, Atom::GROW);
+  atom->add_callback(this, Atom::RESTART);
 
   // xoriginal = initial unwrapped positions of atoms
 
@@ -118,9 +118,11 @@ FixTISpring::FixTISpring(LAMMPS *lmp, int narg, char **arg) :
 
 FixTISpring::~FixTISpring()
 {
+  if (copymode) return;
+
   // unregister callbacks to this fix from Atom class
-  atom->delete_callback(id,Atom::GROW);
-  atom->delete_callback(id,Atom::RESTART);
+  atom->delete_callback(this, Atom::GROW);
+  atom->delete_callback(this, Atom::RESTART);
 
   // delete locally stored array
   memory->destroy(xoriginal);

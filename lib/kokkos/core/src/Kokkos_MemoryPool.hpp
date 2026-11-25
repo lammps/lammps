@@ -770,6 +770,7 @@ class MemoryPool {
       KOKKOS_IF_ON_DEVICE(
           (return SpaceAccessibility<DefaultExecutionSpace,
                                      base_memory_space>::accessible;))
+      KOKKOS_IMPL_UNREACHABLE();
     }();
 
     if (can_access_state_array) {

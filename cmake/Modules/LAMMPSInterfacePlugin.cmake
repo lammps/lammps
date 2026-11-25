@@ -14,6 +14,16 @@ set(LAMMPS_SOURCE_DIR ""  CACHE PATH "Location of LAMMPS sources folder")
 if(NOT LAMMPS_SOURCE_DIR)
   message(FATAL_ERROR "Must set LAMMPS_SOURCE_DIR")
 endif()
+# top level folder of the LAMMPS sources, as in the main build, where the package modules find
+# their helper scripts and patches.  Also make the find modules of LAMMPS (e.g. FindFFTW3.cmake)
+# available, since the package modules expect their targets.
+get_filename_component(LAMMPS_DIR ${LAMMPS_SOURCE_DIR}/.. ABSOLUTE)
+list(APPEND CMAKE_MODULE_PATH ${LAMMPS_DIR}/cmake/Modules)
+
+# compile with optimization by default, as the main build does
+if(NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CXX_FLAGS)
+  set(CMAKE_BUILD_TYPE RelWithDebInfo CACHE STRING "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel." FORCE)
+endif()
 
 # by default, install into $HOME/.local (not /usr/local),
 # so that no root access (and sudo) is needed
@@ -56,10 +66,6 @@ endif()
 #endif()
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Need -restrict with Intel compilers
-if(CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -restrict")
-endif()
 set(CMAKE_POSITION_INDEPENDENT_CODE TRUE)
 
 # skip over obsolete MPI-2 C++ bindings
@@ -124,6 +130,42 @@ function(GetFallbackURL input output)
   endif()
 endfunction(GetFallbackURL)
 
+# Register the download URL and SHA256 checksum of an external library or tool as cache variables
+# <prefix>_URL and <prefix>_SHA256.  Caching them allows package developers and users to override
+# permanently for a build folder which archive is downloaded.  But this also means that the cached
+# settings are retained when LAMMPS is updated to a new version of the external library.  Thus the
+# default checksum is recorded and the cached settings are updated to the new defaults when they
+# still match the previous defaults.  Otherwise a warning is printed, i.e. when the settings were
+# customized, or when the build folder was last configured with an older LAMMPS version that did
+# not record the default.  Only the checksums are compared, since a customized URL may point to a
+# local copy of the same archive.
+function(SetDownloadSettings prefix name url sha256)
+  set(_url_var ${prefix}_URL)
+  set(_sha_var ${prefix}_SHA256)
+  set(_ref_var ${prefix}_SHA256_DEFAULT)
+  if((DEFINED CACHE{${_sha_var}}) AND (DEFINED CACHE{${_ref_var}}))
+    if(("${${_sha_var}}" STREQUAL "${${_ref_var}}") AND (NOT ("${${_sha_var}}" STREQUAL "${sha256}")))
+      message(STATUS "Updating cached download settings for ${name} to the current defaults")
+      set(${_url_var} "${url}" CACHE STRING "URL for ${name} tarball" FORCE)
+      set(${_sha_var} "${sha256}" CACHE STRING "SHA256 checksum of ${name} tarball" FORCE)
+    endif()
+  endif()
+  set(${_url_var} "${url}" CACHE STRING "URL for ${name} tarball")
+  set(${_sha_var} "${sha256}" CACHE STRING "SHA256 checksum of ${name} tarball")
+  set(${_ref_var} "${sha256}" CACHE INTERNAL "Default SHA256 checksum of ${name} tarball")
+  mark_as_advanced(${_url_var} ${_sha_var})
+  if(NOT ("${${_sha_var}}" STREQUAL "${sha256}"))
+    message(WARNING "Cached download settings for ${name} differ from the defaults:\n"
+      "  ${_url_var} = ${${_url_var}}\n"
+      "  ${_sha_var} = ${${_sha_var}}\n"
+      "The current default URL is:\n"
+      "  ${url}\n"
+      "If this is not intended, reset the cached settings with:\n"
+      "  cmake -U ${_url_var} -U ${_sha_var} <build folder>\n"
+      "For more information see https://docs.lammps.org/err0039")
+  endif()
+endfunction(SetDownloadSettings)
+
 #################################################################################
 # LAMMPS C++ interface. We only need the header related parts except on windows.
 add_library(lammps INTERFACE)
@@ -148,10 +190,9 @@ if(BUILD_MPI)
   # We use a non-standard procedure to cross-compile with MPI on Windows
   if((CMAKE_SYSTEM_NAME STREQUAL "Windows") AND CMAKE_CROSSCOMPILING)
     message(STATUS "Downloading and configuring MS-MPI 10.1 for Windows cross-compilation")
-    set(MPICH2_WIN64_DEVEL_URL "${LAMMPS_THIRDPARTY_URL}/msmpi-win64-devel.tar.gz" CACHE STRING "URL for MS-MPI (win64) tarball")
-    set(MPICH2_WIN64_DEVEL_SHA256 "939f5bad74311a84839196ca9140549189ef00785b0ef8e94ad6a180014ccb7f" CACHE STRING "SHA256 checksum of MS-MPI (win64) tarball")
-    mark_as_advanced(MPICH2_WIN64_DEVEL_URL)
-    mark_as_advanced(MPICH2_WIN64_DEVEL_SHA256)
+    SetDownloadSettings(MPICH2_WIN64_DEVEL "MS-MPI (win64)"
+      "${LAMMPS_THIRDPARTY_URL}/msmpi-win64-devel.tar.gz"
+      "939f5bad74311a84839196ca9140549189ef00785b0ef8e94ad6a180014ccb7f")
 
     include(ExternalProject)
     if(CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64")
@@ -213,10 +254,8 @@ if(BUILD_OMP)
 
   if (((CMAKE_CXX_COMPILER_ID STREQUAL "GNU") AND (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 9.0)) OR
       (CMAKE_CXX_COMPILER_ID STREQUAL "PGI") OR
-      ((CMAKE_CXX_COMPILER_ID STREQUAL "Clang") AND (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 10.0)) OR
-      ((CMAKE_CXX_COMPILER_ID STREQUAL "Intel") AND (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 19.0)))
+      ((CMAKE_CXX_COMPILER_ID STREQUAL "Clang") AND (CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 10.0)))
     # GCC 9.x and later plus Clang 10.x and later implement strict OpenMP 4.0 semantics for consts.
-    # Intel 18.0 was tested to support both, so we switch to OpenMP 4+ from 19.x onward to be safe.
     target_compile_definitions(lammps INTERFACE -DLAMMPS_OMP_COMPAT=4)
   else()
     target_compile_definitions(lammps INTERFACE -DLAMMPS_OMP_COMPAT=3)

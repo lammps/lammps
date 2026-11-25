@@ -19,6 +19,7 @@
 #include "error.h"
 #include "force.h"
 #include "kokkos.h"
+#include "math_special_kokkos.h"
 #include "memory_kokkos.h"
 #include "neigh_request.h"
 #include "neighbor.h"
@@ -154,7 +155,7 @@ compute_fpair(const KK_FLOAT &rsq, const int &, const int &, const int &itype, c
   const KK_FLOAT n_x = alpha_val*rx*rx + beta_val;
   const KK_FLOAT inv_rx = static_cast<KK_FLOAT>(1.0)/rx;
   const KK_FLOAT pow_rx_n_x   = Kokkos::pow(inv_rx, n_x);
-  const KK_FLOAT pow_rx_gamma = Kokkos::pow(inv_rx, gamma_val);
+  const KK_FLOAT pow_rx_gamma = MathSpecialKokkos::powauto(inv_rx, gamma_val);
   const KK_FLOAT denom = n_x - gamma_val;
   const KK_FLOAT denom_sq = denom*denom;
 
@@ -193,7 +194,7 @@ compute_evdwl(const KK_FLOAT &rsq, const int &, const int &, const int &itype, c
   const KK_FLOAT inv_rx = static_cast<KK_FLOAT>(1.0)/rx;
   const KK_FLOAT denom = n_x - gamma_val;
   const KK_FLOAT ilj1 = epsilon_val*gamma_val*Kokkos::pow(inv_rx, n_x)/denom;
-  const KK_FLOAT ilj2 = -epsilon_val*n_x*Kokkos::pow(inv_rx, gamma_val)/denom;
+  const KK_FLOAT ilj2 = -epsilon_val*n_x*MathSpecialKokkos::powauto(inv_rx, gamma_val)/denom;
   return ilj1 + ilj2 - offset_val;
 }
 

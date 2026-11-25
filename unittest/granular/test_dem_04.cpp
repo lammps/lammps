@@ -11,10 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-// DEM verification test 04: a sphere launched tangentially on a rough surface,
-// where sliding friction spins it up until it rolls without slipping.  Mirrors
-// MFiX-DEM VVUQ case DEM-04.  All test logic is shared via test_dem_common;
-// the reference systems live in tests/dem04-*.yaml.
+// DEM verification test 04: oblique impact of a sphere on a wall (gross-sliding friction).
+// All test logic is shared via test_dem_common; the reference systems
+// live in tests/dem04-*.yaml.
 
 #include "test_dem_common.h"
 #include "test_main.h"

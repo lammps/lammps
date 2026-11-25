@@ -1,9 +1,12 @@
 .. index:: pair_style thole
+.. index:: pair_style thole/omp
 .. index:: pair_style lj/cut/thole/long
 .. index:: pair_style lj/cut/thole/long/omp
 
 pair_style thole command
 ========================
+
+Accelerator Variants: *thole/omp*
 
 pair_style lj/cut/thole/long command
 ====================================
@@ -108,7 +111,7 @@ Drude particles inherit the 1-2, 1-3 and 1-4 neighbor relations from
 their respective cores.
 
 For pair_style *thole*, the following coefficients must be defined for
-each pair of atoms types via the :doc:`pair_coeff <pair_coeff>` command
+each pair of atom types via the :doc:`pair_coeff <pair_coeff>` command
 as in the example above.
 
 * :math:`\alpha` (distance units\^3)
@@ -121,7 +124,7 @@ command are used. In order to specify a cutoff (third argument) a damp
 parameter (second argument) must also be specified.
 
 For pair style *lj/cut/thole/long*, the following coefficients must be
-defined for each pair of atoms types via the :doc:`pair_coeff <pair_coeff>`
+defined for each pair of atom types via the :doc:`pair_coeff <pair_coeff>`
 command.
 
 * :math:`\epsilon` (energy units)

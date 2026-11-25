@@ -159,7 +159,6 @@ void PairHertz::compute(int eflag, int vflag) {
                                 }
 
                                 r = sqrt(rsq);
-                                //printf("hertz interaction, r=%f, cut=%f, h=%f\n", r, rcut, sqrt(rSq0));
 
                                 // Hertzian short-range forces
                                 delta = rcut - r; // overlap distance
@@ -198,12 +197,6 @@ void PairHertz::compute(int eflag, int vflag) {
                         }
                 }
         }
-
-//      double stable_time_increment_all = 0.0;
-//      MPI_Allreduce(&stable_time_increment, &stable_time_increment_all, 1, MPI_DOUBLE, MPI_MIN, world);
-//      if (comm->me == 0) {
-//              printf("stable time step for pair smd/hertz is %f\n", stable_time_increment_all);
-//      }
 }
 
 /* ----------------------------------------------------------------------
@@ -239,12 +232,11 @@ void PairHertz::settings(int narg, char **arg) {
                 error->all(FLERR, "Illegal number of args for pair_style hertz");
 
         scale = utils::numeric(FLERR, arg[0],false,lmp);
-        if (comm->me == 0) {
-                printf("\n>>========>>========>>========>>========>>========>>========>>========>>========\n");
-                printf("SMD/HERTZ CONTACT SETTINGS:\n");
-                printf("... effective contact radius is scaled by %f\n", scale);
-                printf(">>========>>========>>========>>========>>========>>========>>========>>========\n");
-        }
+        if (comm->me == 0)
+                utils::logmesg(lmp, "\n>>========>>========>>========>>========>>========>>========>>========>>========\n"
+                               "SMD/HERTZ CONTACT SETTINGS:\n"
+                               "... effective contact radius is scaled by {}\n"
+                               ">>========>>========>>========>>========>>========>>========>>========>>========\n", scale);
 
 }
 
@@ -309,9 +301,7 @@ double PairHertz::init_one(int i, int j) {
   cutoff = MAX(cutoff, maxrad_frozen[i] + maxrad_dynamic[j]);
   cutoff = MAX(cutoff, maxrad_dynamic[i] + maxrad_frozen[j]);
 
-  if (comm->me == 0) {
-    printf("cutoff for pair smd/hertz = %f\n", cutoff);
-  }
+  if (comm->me == 0) utils::logmesg(lmp, "cutoff for pair smd/hertz = {}\n", cutoff);
   return cutoff;
 }
 
@@ -367,7 +357,6 @@ double PairHertz::memory_usage() {
 }
 
 void *PairHertz::extract(const char *str, int &/*i*/) {
-        //printf("in PairTriSurf::extract\n");
         if (strcmp(str, "smd/hertz/stable_time_increment_ptr") == 0) {
                 return (void *) &stable_time_increment;
         }

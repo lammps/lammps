@@ -1,19 +1,21 @@
 .. index:: pair_style lj/cut/tip4p/cut
+.. index:: pair_style lj/cut/tip4p/cut/kk
 .. index:: pair_style lj/cut/tip4p/cut/omp
 .. index:: pair_style lj/cut/tip4p/long
 .. index:: pair_style lj/cut/tip4p/long/gpu
+.. index:: pair_style lj/cut/tip4p/long/kk
 .. index:: pair_style lj/cut/tip4p/long/omp
 .. index:: pair_style lj/cut/tip4p/long/opt
 
 pair_style lj/cut/tip4p/cut command
 ===================================
 
-Accelerator Variants: *lj/cut/tip4p/cut/omp*
+Accelerator Variants: *lj/cut/tip4p/cut/kk*, *lj/cut/tip4p/cut/omp*
 
 pair_style lj/cut/tip4p/long command
 ====================================
 
-Accelerator Variants: *lj/cut/tip4p/long/gpu*, *lj/cut/tip4p/long/omp*, *lj/cut/tip4p/long/opt*
+Accelerator Variants: *lj/cut/tip4p/long/gpu*, *lj/cut/tip4p/long/kk*, *lj/cut/tip4p/long/omp*, *lj/cut/tip4p/long/opt*
 
 Syntax
 """"""
@@ -141,12 +143,12 @@ computed in reciprocal space.
 Coefficients
 """"""""""""
 
-For all of the *lj/cut* pair styles, the following coefficients must
-be defined for each pair of atoms types via the
-:doc:`pair_coeff <pair_coeff>` command as in the examples above, or in
-the data file or restart files read by the :doc:`read_data <read_data>`
-or :doc:`read_restart <read_restart>` commands, or by mixing as
-described below:
+For all of the *lj/cut* pair styles, the following coefficients must be
+defined for each pair of atom types via the :doc:`pair_coeff
+<pair_coeff>` command as in the examples above, or in the data file or
+restart files read by the :doc:`read_data <read_data>` or
+:doc:`read_restart <read_restart>` commands, or by mixing as described
+below:
 
 * :math:`\epsilon` (energy units)
 * :math:`\sigma` (distance units)

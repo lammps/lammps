@@ -167,6 +167,11 @@ Grid3d::Grid3d(LAMMPS *lmp, MPI_Comm gcomm, int gnx, int gny, int gnz,
 
   ghostxlo = ghostxhi = ghostylo = ghostyhi = ghostzlo = ghostzhi = 0;
 
+  // neighbor procs are only assigned in extract_comm_info(), which may not
+  // be invoked; zero them so the instance never carries indeterminate values
+
+  procxlo = procxhi = procylo = procyhi = proczlo = proczhi = 0;
+
   // layout_grid = how this grid instance is distributed across procs
   // depends on comm->layout at time this Grid3d instance is created
 

@@ -39,6 +39,7 @@ all or parts of the code and modifications in this pull request.
 - [ ] The feature or features in this pull request is complete
 - [ ] Licensing information is complete
 - [ ] Corresponding author information is complete
+- [ ] AI tools attribution is included
 - [ ] The source code follows the LAMMPS formatting guidelines
 - [ ] Suitable new documentation files and/or updates to the existing docs are included
 - [ ] The added/updated documentation is integrated and tested with the documentation build system

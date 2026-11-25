@@ -46,6 +46,7 @@ class FixChargeRegulation : public Fix {
   int get_random_particle(int, double, double, double *);
   int insert_particle(int, double, double, double *);
   double energy_full();
+  void tail_reinit(const int *, int);
   int particle_number(int, double);
   int particle_number_xrd(int, double, double, double *);
   double compute_vector(int n) override;

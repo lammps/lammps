@@ -32,13 +32,20 @@ static constexpr double CUT2BIN_RATIO = 100.0;
 
 /* ---------------------------------------------------------------------- */
 
-NBinManual::NBinManual(LAMMPS *lmp) : NBin(lmp)
+NBinManual::NBinManual(LAMMPS *lmp) :
+  NBin(lmp), binhead_custom(nullptr), bins_custom(nullptr), custom2bin(nullptr)
 {
   cutoff_custom = 0.0;
   maxbin_custom = maxcustom = 0;
-  binhead_custom = nullptr;
-  bins_custom = nullptr;
-  custom2bin = nullptr;
+}
+
+/* ---------------------------------------------------------------------- */
+
+NBinManual::~NBinManual()
+{
+  memory->destroy(binhead_custom);
+  memory->destroy(bins_custom);
+  memory->destroy(custom2bin);
 }
 
 /* ----------------------------------------------------------------------

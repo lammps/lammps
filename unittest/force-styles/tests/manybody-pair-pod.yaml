@@ -1,8 +1,9 @@
 ---
 lammps_version: 17 Apr 2024
+tags: single_thread
 date_generated: Wed May 22 23:39:15 2024
 epsilon: 5e-11
-skip_tests: kokkos_omp kokkos_serial kokkos_gpu
+skip_tests:
 
 prerequisites: ! |
   pair pod

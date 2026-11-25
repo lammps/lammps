@@ -90,24 +90,22 @@ void ComputeEfieldAtom::init()
 
 void ComputeEfieldAtom::setup()
 {
-  if (strcmp(force->pair_style, "lj/cut/coul/long/dielectric") == 0)
-    efield_pair = (dynamic_cast<PairLJCutCoulLongDielectric *>(force->pair))->efield;
-  else if (strcmp(force->pair_style, "lj/cut/coul/long/dielectric/omp") == 0)
-    efield_pair = (dynamic_cast<PairLJCutCoulMSMDielectric *>(force->pair))->efield;
-  else if (strcmp(force->pair_style, "lj/cut/coul/msm/dielectric") == 0)
-    efield_pair = (dynamic_cast<PairLJCutCoulMSMDielectric *>(force->pair))->efield;
-  else if (strcmp(force->pair_style, "lj/cut/coul/cut/dielectric") == 0)
-    efield_pair = (dynamic_cast<PairLJCutCoulCutDielectric *>(force->pair))->efield;
-  else if (strcmp(force->pair_style, "lj/cut/coul/cut/dielectric/omp") == 0)
-    efield_pair = (dynamic_cast<PairLJCutCoulDebyeDielectric *>(force->pair))->efield;
-  else if (strcmp(force->pair_style, "lj/cut/coul/debye/dielectric") == 0)
-    efield_pair = (dynamic_cast<PairLJCutCoulDebyeDielectric *>(force->pair))->efield;
-  else if (strcmp(force->pair_style, "lj/cut/coul/debye/dielectric/omp") == 0)
-    efield_pair = (dynamic_cast<PairLJCutCoulCutDielectric *>(force->pair))->efield;
-  else if (strcmp(force->pair_style, "coul/long/dielectric") == 0)
-    efield_pair = (dynamic_cast<PairCoulLongDielectric *>(force->pair))->efield;
-  else if (strcmp(force->pair_style, "coul/cut/dielectric") == 0)
-    efield_pair = (dynamic_cast<PairCoulCutDielectric *>(force->pair))->efield;
+  // look up the electric field array via the class hierarchy, so that
+  // accelerated variants of the supported pair styles are recognized, too
+
+  efield_pair = nullptr;
+  if (auto *pair = dynamic_cast<PairLJCutCoulLongDielectric *>(force->pair))
+    efield_pair = pair->efield;
+  else if (auto *pair = dynamic_cast<PairLJCutCoulMSMDielectric *>(force->pair))
+    efield_pair = pair->efield;
+  else if (auto *pair = dynamic_cast<PairLJCutCoulCutDielectric *>(force->pair))
+    efield_pair = pair->efield;
+  else if (auto *pair = dynamic_cast<PairLJCutCoulDebyeDielectric *>(force->pair))
+    efield_pair = pair->efield;
+  else if (auto *pair = dynamic_cast<PairCoulLongDielectric *>(force->pair))
+    efield_pair = pair->efield;
+  else if (auto *pair = dynamic_cast<PairCoulCutDielectric *>(force->pair))
+    efield_pair = pair->efield;
   else
     error->all(FLERR, "Compute efield/atom not supported by pair style");
 
@@ -134,6 +132,11 @@ void ComputeEfieldAtom::compute_peratom()
   invoked_peratom = update->ntimestep;
   if (update->vflag_atom != invoked_peratom)
     error->all(FLERR, Error::NOLASTLINE, "Per-atom virial was not tallied on needed timestep{}", utils::errorurl(22));
+
+  // refresh pointers to the electric field arrays, since the pair and
+  // kspace styles reallocate them when the number of atoms grows
+
+  setup();
 
   // grow local stress array if necessary
   // needs to be atom->nmax in length

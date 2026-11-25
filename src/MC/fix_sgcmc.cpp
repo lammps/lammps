@@ -207,7 +207,8 @@ FixSemiGrandCanonicalMC::FixSemiGrandCanonicalMC(LAMMPS *_lmp, int narg, char **
 
   // Initialize random number generators.
   random = new RanPark(lmp, seed);
-  localRandom = new RanPark(lmp, seed + universe->me);
+  localRandom = new RanPark(lmp, seed);
+  localRandom->reset_rank(seed, universe->me);
 }
 
 /*********************************************************************
@@ -260,6 +261,12 @@ void FixSemiGrandCanonicalMC::init()
       error->all(FLERR, "SGC - Pair style does not support atomic energy method");
     }
   } else {
+    // KOKKOS EAM styles do not fill the base class rho and fp
+
+    if (force->pair->kokkosable && dynamic_cast<PairEAM*>(force->pair))
+      error->all(FLERR, Error::NOLASTLINE, "Fix {} requires the keyword 'atomic/energy yes' "
+                 "when used with a KOKKOS EAM pair style", style);
+
     // Save a pointer to the EAM potential.
     pairEAM = dynamic_cast<PairEAM*>(force->pair);
     if (!pairEAM) {
@@ -452,7 +459,7 @@ void FixSemiGrandCanonicalMC::doMC()
           A += deltaNGlobal[i] * deltaNGlobal[i];
           A += 2.0 * deltaNGlobal[i] * (speciesCounts[i] - (int)(targetConcentration[i] * atom->natoms));
         }
-        double deltaB = -(kappa / atom->natoms) * A;
+        double deltaB = -beta * (kappa / atom->natoms) * A;
         if (deltaB < 0.0) {
           if (deltaB < log(random->uniform())) {
             std::fill(deltaN.begin(), deltaN.end(), 0);

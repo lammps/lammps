@@ -420,7 +420,8 @@ void PairOxdna2Dh::coeff(int narg, char **arg)
   for (int in = 0; in < nlocal; in++) {
     qeff[in] = 1.0;
     // optionally set half a charge at terminal nucleotides to distribute charge equally
-    if ((id3p[in] == -1 || id5p[in] == -1) && half_charged_ends_flag == 1) qeff[in] = 0.5;
+    // (test the flag first so the per-atom id3p/id5p are only read when needed)
+    if ((half_charged_ends_flag == 1) && ((id3p[in] == -1) || (id5p[in] == -1))) qeff[in] = 0.5;
   }
 
   if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients in oxdna2/dh" + utils::errorurl(21));
@@ -433,7 +434,7 @@ void PairOxdna2Dh::init_style()
 {
   fix_lrf = nullptr;
   auto fixes = modify->get_fix_by_style("^OXDNA/LRF");
-  if (fixes.size() == 0) error->all(FLERR, "Fix OXDNA/LRF not found. Ensure pair oxdna/excv is present");
+  if (fixes.empty()) error->all(FLERR, "Fix OXDNA/LRF not found. Ensure pair oxdna/excv is present");
   else fix_lrf = dynamic_cast<FixOxdnaLRF *>(fixes[0]);
 
   neighbor->add_request(this, NeighConst::REQ_DEFAULT);

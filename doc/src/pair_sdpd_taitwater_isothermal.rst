@@ -1,7 +1,10 @@
 .. index:: pair_style sdpd/taitwater/isothermal
+.. index:: pair_style sdpd/taitwater/isothermal/omp
 
 pair_style sdpd/taitwater/isothermal command
 ============================================
+
+Accelerator Variants: *sdpd/taitwater/isothermal/omp*
 
 Syntax
 """"""
@@ -76,6 +79,10 @@ above.
 * :math:`\rho_0` reference density (mass/volume units)
 * :math:`c_0` reference soundspeed (distance/time units)
 * h kernel function cutoff (distance units)
+
+----------
+
+.. include:: accel_styles.rst
 
 ----------
 

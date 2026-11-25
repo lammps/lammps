@@ -6,7 +6,7 @@ atom_style	electron
 read_data  	data.eff
 
 pair_style      eff/cut 12
-pair_coeff	* * 
+pair_coeff	* *
 
 neigh_modify    one 6000 page 60000
 

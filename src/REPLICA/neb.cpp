@@ -46,8 +46,8 @@ enum { DEFAULT, TERSE, VERBOSE };
 /* ---------------------------------------------------------------------- */
 
 NEB::NEB(LAMMPS *lmp) :
-    Command(lmp), fp(nullptr), inpfile(nullptr), fneb(nullptr), all(nullptr), rdist(nullptr),
-    freplica(nullptr), fmaxatomInRepl(nullptr)
+    Command(lmp), roots(MPI_COMM_NULL), fp(nullptr), inpfile(nullptr), fneb(nullptr), all(nullptr),
+    rdist(nullptr), freplica(nullptr), fmaxatomInRepl(nullptr)
 {
   print_mode = DEFAULT;
 
@@ -452,8 +452,11 @@ void NEB::readfile(char *file, int flag)
         start = &line[strspn(line, " \t\n\v\f\r")];
         if (*start != '\0' && *start != '#') break;
       }
-      int rv = sscanf(line, "%d", &nlines);
-      if (rv != 1) nlines = -1;
+      try {
+        nlines = ValueTokenizer(line).next_int();
+      } catch (TokenizerException &) {
+        nlines = -1;
+      }
     }
     MPI_Bcast(&nlines, 1, MPI_INT, 0, uworld);
     if (nlines < 0) error->universe_all(FLERR, "Incorrectly formatted NEB file");
@@ -467,8 +470,11 @@ void NEB::readfile(char *file, int flag)
           start = &line[strspn(line, " \t\n\v\f\r")];
           if (*start != '\0' && *start != '#') break;
         }
-        int rv = sscanf(line, "%d", &nlines);
-        if (rv != 1) nlines = -1;
+        try {
+          nlines = ValueTokenizer(line).next_int();
+        } catch (TokenizerException &) {
+          nlines = -1;
+        }
       } else
         nlines = 0;
     }
@@ -596,7 +602,9 @@ void NEB::open(char *file)
   if (platform::has_compress_extension(file)) {
     compressed = 1;
     fp = platform::compressed_read(file);
-    if (!fp) error->one(FLERR, "Cannot open compressed file {}: {}", file, utils::getsyserror());
+    if (!fp)
+      error->one(FLERR, "Cannot open compressed file {}: {}", file,
+                 platform::compressed_open_error(file));
   } else
     fp = fopen(file, "r");
 

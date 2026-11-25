@@ -60,6 +60,7 @@ FixFFL::FixFFL(LAMMPS *lmp, int narg, char **arg) :
   restart_peratom = 1;
   time_integrate = 1;
   scalar_flag = 1;
+  extscalar = 1;
 
   //gamma = 1 / time constant(tau)
   gamma = utils::numeric(FLERR,arg[3],false,lmp);
@@ -112,8 +113,8 @@ FixFFL::FixFFL(LAMMPS *lmp, int narg, char **arg) :
   FixFFL::grow_arrays(atom->nmax);
 
   // add callbacks to enable restarts
-  atom->add_callback(Atom::GROW);
-  atom->add_callback(Atom::RESTART);
+  atom->add_callback(this, Atom::GROW);
+  atom->add_callback(this, Atom::RESTART);
 
   energy = 0.0;
 }
@@ -123,8 +124,8 @@ FixFFL::FixFFL(LAMMPS *lmp, int narg, char **arg) :
 FixFFL::~FixFFL() {
   delete random;
 
-  atom->delete_callback(id,Atom::GROW);
-  atom->delete_callback(id,Atom::RESTART);
+  atom->delete_callback(this, Atom::GROW);
+  atom->delete_callback(this, Atom::RESTART);
 
   memory->destroy(sqrt_m);
   memory->destroy(ffl_tmp1);

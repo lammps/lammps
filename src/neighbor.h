@@ -137,6 +137,10 @@ class Neighbor : protected Pointers {
   NeighRequest *add_request(class Compute *, int flags = 0);
   NeighRequest *add_request(class Command *, const char *, int flags = 0);
 
+  // discard neighbor list requests made after the first nkeep ones
+
+  void discard_requests(int nkeep);
+
   // set neighbor list request OpenMP flag
 
   void set_omp_neighbor(int);
@@ -170,7 +174,7 @@ class Neighbor : protected Pointers {
   NeighList *find_list(void *, const int id = 0) const;
   NeighRequest *find_request(void *, const int id = 0) const;
 
-  [[nodiscard]] const std::vector<NeighRequest *> get_pair_requests() const;
+  [[nodiscard]] std::vector<NeighRequest *> get_pair_requests() const;
   int any_full();                // check if any old requests had full neighbor lists
   void build_collection(int);    // build peratom collection array starting at the given index
 
@@ -284,6 +288,7 @@ class Neighbor : protected Pointers {
   int copymode;
 
   virtual void init_cutneighsq_kokkos(int) {}
+  virtual void init_cutneighghostsq_kokkos(int) {}
   virtual void create_kokkos_list(int);
   virtual void init_ex_type_kokkos(int) {}
   virtual void init_ex_bit_kokkos() {}

@@ -1,0 +1,43 @@
+# Minimal GFN2-xTB QM/MM example in a fixed triclinic periodic cell.
+#
+# The primitive lattice has equal edge lengths and equal 109.471-degree
+# angles; its Wigner-Seitz cell is a truncated octahedron.  Coordinates below
+# place the H2 QM region and two MM point charges near the cell center.  This
+# smoke test intentionally contains no short-range MM potential.
+
+units           real
+atom_style      charge
+atom_modify     map array
+boundary        p p p
+
+region          cell prism 0 20 0 18.8561808316 0 16.3299316186 &
+                -6.6666666667 -6.6666666667 -9.4280904158 units box
+create_box      3 cell
+create_atoms    1 single 2.9333333333 4.7140452079 8.1649658093 units box
+create_atoms    1 single 3.7333333333 4.7140452079 8.1649658093 units box
+create_atoms    2 single -2.6666666667 4.7140452079 8.1649658093 units box
+create_atoms    3 single 9.3333333333 4.7140452079 8.1649658093 units box
+
+mass            1 1.008
+mass            2 22.990
+mass            3 35.450
+set             atom 1 charge 0.0
+set             atom 2 charge 0.0
+set             atom 3 charge 1.0
+set             atom 4 charge -1.0
+
+group           qm id 1 2
+
+pair_style      coul/long 8.0
+pair_coeff      * *
+kspace_style    pppm/xtb 1.0e-5
+
+fix             qmmm qm qmmm/xtb elements H Na Cl cutoff 8.0 method gfn2 charge 0 uhf 0
+
+variable        q1 equal q[1]
+variable        q2 equal q[2]
+variable        fx1 equal fx[1]
+variable        fx2 equal fx[2]
+thermo_style    custom step pe f_qmmm v_q1 v_q2 v_fx1 v_fx2
+thermo          1
+run             0

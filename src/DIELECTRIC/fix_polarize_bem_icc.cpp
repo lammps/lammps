@@ -33,6 +33,7 @@
 #include "group.h"
 #include "kspace.h"
 #include "math_const.h"
+#include "modify.h"
 #include "msm_dielectric.h"
 #include "pair_coul_cut_dielectric.h"
 #include "pair_coul_long_dielectric.h"
@@ -147,45 +148,20 @@ void FixPolarizeBEMICC::init()
 
 void FixPolarizeBEMICC::setup(int /*vflag*/)
 {
-  // check if the pair styles in use are compatible
-
-  if (strcmp(force->pair_style, "lj/cut/coul/long/dielectric") == 0)
-    efield_pair = (dynamic_cast<PairLJCutCoulLongDielectric *>(force->pair))->efield;
-  else if (strcmp(force->pair_style, "lj/cut/coul/long/dielectric/omp") == 0)
-    efield_pair = (dynamic_cast<PairLJCutCoulLongDielectric *>(force->pair))->efield;
-  else if (strcmp(force->pair_style, "lj/cut/coul/msm/dielectric") == 0)
-    efield_pair = (dynamic_cast<PairLJCutCoulMSMDielectric *>(force->pair))->efield;
-  else if (strcmp(force->pair_style, "lj/cut/coul/cut/dielectric") == 0)
-    efield_pair = (dynamic_cast<PairLJCutCoulCutDielectric *>(force->pair))->efield;
-  else if (strcmp(force->pair_style, "lj/cut/coul/cut/dielectric/omp") == 0)
-    efield_pair = (dynamic_cast<PairLJCutCoulCutDielectric *>(force->pair))->efield;
-  else if (strcmp(force->pair_style, "lj/cut/coul/debye/dielectric") == 0)
-    efield_pair = (dynamic_cast<PairLJCutCoulDebyeDielectric *>(force->pair))->efield;
-  else if (strcmp(force->pair_style, "lj/cut/coul/debye/dielectric/omp") == 0)
-    efield_pair = (dynamic_cast<PairLJCutCoulDebyeDielectric *>(force->pair))->efield;
-  else if (strcmp(force->pair_style, "coul/long/dielectric") == 0)
-    efield_pair = (dynamic_cast<PairCoulLongDielectric *>(force->pair))->efield;
-  else if (strcmp(force->pair_style, "coul/cut/dielectric") == 0)
-    efield_pair = (dynamic_cast<PairCoulCutDielectric *>(force->pair))->efield;
-  else
-    error->all(FLERR, "Pair style not compatible with fix polarize/bem/icc");
-
   // check if kspace is used for force computation
 
   if (force->kspace) {
     kspaceflag = 1;
-    if (strcmp(force->kspace_style, "pppm/dielectric") == 0)
-      efield_kspace = (dynamic_cast<PPPMDielectric *>(force->kspace))->efield;
-    else if (strcmp(force->kspace_style, "msm/dielectric") == 0)
-      efield_kspace = (dynamic_cast<MSMDielectric *>(force->kspace))->efield;
-    else
-      error->all(FLERR, "Kspace style not compatible with fix polarize/bem/icc");
   } else {
     if (kspaceflag == 1) {    // users specified kspace yes but there is no kspace pair style
       error->warning(FLERR, "No Kspace pair style available for fix polarize/bem/icc");
       kspaceflag = 0;
     }
   }
+
+  // check if the pair and kspace styles in use are compatible
+
+  update_efield();
 
   // NOTE: epsilon0e2q converts (epsilon0 * efield) to the unit of (charge unit / squared distance unit)
   // efield is computed by pair and kspace styles in the unit of energy unit / charge unit / distance unit
@@ -274,6 +250,7 @@ void FixPolarizeBEMICC::compute_induced_charges()
   force_clear();
   force->pair->compute(eflag, vflag);
   if (kspaceflag) force->kspace->compute(eflag, vflag);
+  update_efield();
   if (force->newton) comm->reverse_comm();
 
   for (int i = 0; i < nlocal; i++) {
@@ -308,6 +285,7 @@ void FixPolarizeBEMICC::compute_induced_charges()
     force_clear();
     force->pair->compute(eflag, vflag);
     if (kspaceflag) force->kspace->compute(eflag, vflag);
+    update_efield();
     if (force->newton) comm->reverse_comm();
 
     double tol = 0;
@@ -365,10 +343,55 @@ void FixPolarizeBEMICC::compute_induced_charges()
   iterations = itr;
 }
 
+/* ----------------------------------------------------------------------
+   get the electric field arrays of the pair and kspace styles.  those styles
+   reallocate them in their compute() function when the number of atoms grows,
+   so this must be called after each call to their compute() functions.
+   the class hierarchy is used, so that accelerated variants are recognized, too.
+------------------------------------------------------------------------- */
+
+void FixPolarizeBEMICC::update_efield()
+{
+  if (auto *pair = dynamic_cast<PairLJCutCoulLongDielectric *>(force->pair))
+    efield_pair = pair->efield;
+  else if (auto *pair = dynamic_cast<PairLJCutCoulMSMDielectric *>(force->pair))
+    efield_pair = pair->efield;
+  else if (auto *pair = dynamic_cast<PairLJCutCoulCutDielectric *>(force->pair))
+    efield_pair = pair->efield;
+  else if (auto *pair = dynamic_cast<PairLJCutCoulDebyeDielectric *>(force->pair))
+    efield_pair = pair->efield;
+  else if (auto *pair = dynamic_cast<PairCoulLongDielectric *>(force->pair))
+    efield_pair = pair->efield;
+  else if (auto *pair = dynamic_cast<PairCoulCutDielectric *>(force->pair))
+    efield_pair = pair->efield;
+  else
+    error->all(FLERR, "Pair style not compatible with fix polarize/bem/icc");
+
+  if (kspaceflag) {
+    if (auto *kspace = dynamic_cast<PPPMDielectric *>(force->kspace))
+      efield_kspace = kspace->efield;
+    else if (auto *kspace = dynamic_cast<MSMDielectric *>(force->kspace))
+      efield_kspace = kspace->efield;
+    else
+      error->all(FLERR, "Kspace style not compatible with fix polarize/bem/icc");
+  }
+}
+
 /* ---------------------------------------------------------------------- */
 
 void FixPolarizeBEMICC::force_clear()
 {
+  // with the OPENMP package, the forces of /omp styles are collected in
+  // per-thread arrays, which are only summed up after all styles are computed.
+  // fix omp clears those arrays, so that the forces computed here are
+  // not added to the forces of the following regular force computation.
+
+  auto *fixomp = modify->get_fix_by_id("package_omp");
+  if (fixomp) {
+    fixomp->pre_force(0);
+    return;
+  }
+
   int nbytes = sizeof(double) * atom->nlocal;
   if (force->newton) nbytes += sizeof(double) * atom->nghost;
 

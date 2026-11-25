@@ -12,7 +12,7 @@ import kokkos.core;
 #endif
 #include "Kokkos_Constraints.hpp"
 #include "Kokkos_HelperPredicates.hpp"
-#include <std_algorithms/Kokkos_Distance.hpp>
+#include "Kokkos_MustUseKokkosSingleInTeam.hpp"
 #include <string>
 
 namespace Kokkos {
@@ -21,8 +21,68 @@ namespace Impl {
 
 template <class ValueType>
 struct StdPartitionCopyScalar {
-  ValueType true_count_;
-  ValueType false_count_;
+  ValueType true_count_  = {};
+  ValueType false_count_ = {};
+
+  KOKKOS_DEFAULTED_FUNCTION
+  StdPartitionCopyScalar() = default;
+
+  KOKKOS_FUNCTION StdPartitionCopyScalar& operator=(ValueType o) {
+    true_count_  = o;
+    false_count_ = o;
+    return *this;
+  }
+
+  KOKKOS_FUNCTION StdPartitionCopyScalar(ValueType true_count,
+                                         ValueType false_count)
+      : true_count_(true_count), false_count_(false_count) {}
+
+  // Non-explicit: team_scan scratch uses `type accum = 0` for generic ArgType.
+  KOKKOS_FUNCTION StdPartitionCopyScalar(ValueType o)
+      : StdPartitionCopyScalar(o, o) {}
+
+  // Threads team_scan returns through volatile scratch; copy from volatile.
+  KOKKOS_FUNCTION StdPartitionCopyScalar(
+      volatile StdPartitionCopyScalar const& o)
+      : true_count_(o.true_count_), false_count_(o.false_count_) {}
+
+  KOKKOS_DEFAULTED_FUNCTION
+  StdPartitionCopyScalar(StdPartitionCopyScalar const&) = default;
+
+  KOKKOS_DEFAULTED_FUNCTION
+  StdPartitionCopyScalar& operator=(StdPartitionCopyScalar const&) = default;
+
+  // Threads team_scan writes through volatile scratch. Return void so GCC
+  // -Wvolatile does not warn on *volatile_ptr = rhs (discarded volatile ref).
+  KOKKOS_FUNCTION
+  void operator=(StdPartitionCopyScalar const& o) volatile {
+    true_count_  = o.true_count_;
+    false_count_ = o.false_count_;
+  }
+
+  KOKKOS_DEFAULTED_FUNCTION
+  StdPartitionCopyScalar(StdPartitionCopyScalar&&) = default;
+
+  KOKKOS_DEFAULTED_FUNCTION
+  StdPartitionCopyScalar& operator=(StdPartitionCopyScalar&&) = default;
+
+  KOKKOS_DEFAULTED_FUNCTION
+  ~StdPartitionCopyScalar() = default;
+
+  KOKKOS_FUNCTION
+  StdPartitionCopyScalar& operator+=(StdPartitionCopyScalar const& o) {
+    true_count_ += o.true_count_;
+    false_count_ += o.false_count_;
+    return *this;
+  }
+
+  KOKKOS_FUNCTION
+  StdPartitionCopyScalar operator+(StdPartitionCopyScalar const& o) const {
+    StdPartitionCopyScalar res;
+    res.true_count_  = true_count_ + o.true_count_;
+    res.false_count_ = false_count_ + o.false_count_;
+    return res;
+  }
 };
 
 template <class FirstFrom, class FirstDestTrue, class FirstDestFalse,
@@ -64,10 +124,7 @@ struct StdPartitionCopyFunctor {
   }
 
   KOKKOS_FUNCTION
-  void init(value_type& update) const {
-    update.true_count_  = 0;
-    update.false_count_ = 0;
-  }
+  void init(value_type& update) const { update = value_type{}; }
 
   KOKKOS_FUNCTION
   void join(value_type& update, const value_type& input) const {
@@ -106,7 +163,7 @@ partition_copy_exespace_impl(const std::string& label, const ExecutionSpace& ex,
   // run
   const auto num_elements =
       Kokkos::Experimental::distance(from_first, from_last);
-  typename func_type::value_type counts{0, 0};
+  typename func_type::value_type counts;
   ::Kokkos::parallel_scan(
       label, RangePolicy<ExecutionSpace>(ex, 0, num_elements),
       func_type(from_first, to_first_true, to_first_false, pred), counts);
@@ -143,27 +200,42 @@ partition_copy_team_impl(const TeamHandleType& teamHandle,
   const std::size_t num_elements =
       Kokkos::Experimental::distance(from_first, from_last);
 
-  // FIXME: there is no parallel_scan overload that accepts TeamThreadRange and
-  // return_value, so temporarily serial implementation is used
-  using counts_t  = ::Kokkos::pair<std::size_t, std::size_t>;
-  counts_t counts = {};
-  Kokkos::single(
-      Kokkos::PerTeam(teamHandle),
-      [=](counts_t& lcounts) {
-        lcounts = {};
-        for (std::size_t i = 0; i < num_elements; ++i) {
-          const auto& myval = from_first[i];
-          if (pred(myval)) {
-            to_first_true[lcounts.first++] = myval;
-          } else {
-            to_first_false[lcounts.second++] = myval;
+  if constexpr (stdalgo_must_use_kokkos_single_for_team_scan_v<
+                    typename TeamHandleType::execution_space>) {
+    using counts_t  = ::Kokkos::pair<std::size_t, std::size_t>;
+    counts_t counts = {};
+    Kokkos::single(
+        Kokkos::PerTeam(teamHandle),
+        [=](counts_t& lcounts) {
+          lcounts = {};
+          for (std::size_t i = 0; i < num_elements; ++i) {
+            const auto& myval = from_first[i];
+            if (pred(myval)) {
+              to_first_true[lcounts.first++] = myval;
+            } else {
+              to_first_false[lcounts.second++] = myval;
+            }
           }
-        }
-      },
-      counts);
-  // no barrier needed since single above broadcasts to all members
+        },
+        counts);
+    // no barrier needed since single above broadcasts to all members
 
-  return {to_first_true + counts.first, to_first_false + counts.second};
+    return {to_first_true + counts.first, to_first_false + counts.second};
+
+  } else {
+    using func_type =
+        StdPartitionCopyFunctor<InputIteratorType, OutputIteratorTrueType,
+                                OutputIteratorFalseType, PredicateType>;
+
+    typename func_type::value_type counts;
+    ::Kokkos::parallel_scan(
+        TeamThreadRange(teamHandle, 0, num_elements),
+        func_type(from_first, to_first_true, to_first_false, pred), counts);
+    // no barrier needed since reducing into counts
+
+    return {to_first_true + counts.true_count_,
+            to_first_false + counts.false_count_};
+  }
 }
 
 }  // namespace Impl

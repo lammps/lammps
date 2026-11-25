@@ -83,6 +83,12 @@ void AngleFourierKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   k_C1.template sync<DeviceType>();
   k_C2.template sync<DeviceType>();
 
+  // sync and claim here too: the MC fixes call this outside run_style verlet/kk
+
+  atomKK->sync(execution_space,datamask_read);
+  if (eflag || vflag) atomKK->modified(execution_space,datamask_modify);
+  else atomKK->modified(execution_space,F_MASK);
+
   x = atomKK->k_x.template view<DeviceType>();
   f = atomKK->k_f.template view<DeviceType>();
   neighborKK->k_anglelist.template sync<DeviceType>();
@@ -150,14 +156,14 @@ void AngleFourierKokkos<DeviceType>::operator()(TagAngleFourierCompute<NEWTON_BO
   const KK_FLOAT delz1 = x(i1,2) - x(i2,2);
 
   const KK_FLOAT rsq1 = delx1*delx1 + dely1*dely1 + delz1*delz1;
-  const KK_FLOAT r1 = sqrt(rsq1);
+  const KK_FLOAT r1 = Kokkos::sqrt(rsq1);
 
   const KK_FLOAT delx2 = x(i3,0) - x(i2,0);
   const KK_FLOAT dely2 = x(i3,1) - x(i2,1);
   const KK_FLOAT delz2 = x(i3,2) - x(i2,2);
 
   const KK_FLOAT rsq2 = delx2*delx2 + dely2*dely2 + delz2*delz2;
-  const KK_FLOAT r2 = sqrt(rsq2);
+  const KK_FLOAT r2 = Kokkos::sqrt(rsq2);
 
   KK_FLOAT c = delx1*delx2 + dely1*dely2 + delz1*delz2;
   c /= r1*r2;

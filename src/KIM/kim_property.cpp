@@ -76,9 +76,9 @@ KimProperty::KimProperty(LAMMPS *lmp) : Pointers(lmp)
   // one-time initialization of Python interpreter
   python->init();
 
-  if (!python->has_minimum_version(3, 6))
-    error->all(FLERR, "Invalid Python version.\nThe kim-property Python "
-                      "package requires Python 3 >= 3.6 support");
+  if (!python->has_minimum_version(3, 9))
+    error->all(FLERR, "Invalid Python version.\nUsing the kim-property Python "
+                      "package with LAMMPS requires Python 3.9 or later");
 }
 
 void KimProperty::command(int narg, char **arg)

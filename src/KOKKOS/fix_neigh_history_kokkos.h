@@ -51,6 +51,9 @@ class FixNeighHistoryKokkos : public FixNeighHistory, public KokkosBase {
   void sort_kokkos(Kokkos::BinSort<KeyViewType, BinOp> &Sorter) override;
   int pack_exchange(int, double *) override;
   int unpack_exchange(int, double *) override;
+  int pack_restart(int, double *) override;
+  void unpack_restart(int, int) override;
+  int size_restart(int) override;
   double memory_usage() override;
 
 // NOLINTNEXTLINE
@@ -82,7 +85,7 @@ class FixNeighHistoryKokkos : public FixNeighHistory, public KokkosBase {
   typename DAT::tdual_int_2d k_firstflag;
   typename DAT::tdual_kkfloat_2d k_firstvalue;
 
- private:
+ protected:
   int nrecv1,nextrarecv1;
   int nlocal,nsend,beyond_contact;
 

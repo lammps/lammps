@@ -67,6 +67,8 @@ Pair::Pair(LAMMPS *lmp) :
     list_tally_compute(nullptr), elements(nullptr), elem1param(nullptr), elem2param(nullptr),
     elem3param(nullptr), map(nullptr)
 {
+  hybrid_index = -1;
+
   instance_me = instance_total++;
 
   eng_vdwl = eng_coul = 0.0;
@@ -151,6 +153,27 @@ Pair::~Pair()
   memory->destroy(eatom);
   memory->destroy(vatom);
   memory->destroy(cvatom);
+}
+
+/* ----------------------------------------------------------------------
+   index of this pair style within the current simulation
+
+   a pair style that keeps state in an internal fix has to find that fix
+   again when a restart file written by an earlier run is read back, so the
+   fix id must be the same in both runs.  instance_me cannot be used for it:
+   it counts every Pair ever created in the process, so it depends on how
+   many pair styles a run happened to create before it read the restart file.
+   the position in the sub-style list of a hybrid does not depend on that
+   history and is reproduced whenever the same pair style is set up again.
+
+   the numbering is the one a fresh process produces with instance_me -- the
+   hybrid itself is 0 and its sub-styles follow -- so that restart files
+   written before this became deterministic are still read correctly
+------------------------------------------------------------------------- */
+
+int Pair::instance_index()
+{
+  return (hybrid_index >= 0) ? hybrid_index + 1 : 0;
 }
 
 // clang-format off

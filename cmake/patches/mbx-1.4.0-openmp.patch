@@ -1,0 +1,87 @@
+diff -ru a/src/bblock/system.cpp b/src/bblock/system.cpp
+--- a/src/bblock/system.cpp	2026-09-02 19:10:06.811071029 -0400
++++ b/src/bblock/system.cpp	2026-09-02 20:15:10.624198316 -0400
+@@ -2304,6 +2304,8 @@
+ #pragma omp parallel shared(monomers_pool_index) reduction(+: e1b)
+         {
+             size_t rank = omp_get_thread_num();
++#else
++            size_t rank = 0;
+ #endif  // _OPENMP
+ 
+             // while (istart < mon_type_count_[k].second) {
+diff -ru a/src/potential/electrostatics/electrostatics.cpp b/src/potential/electrostatics/electrostatics.cpp
+--- a/src/potential/electrostatics/electrostatics.cpp	2026-09-02 19:10:06.876073484 -0400
++++ b/src/potential/electrostatics/electrostatics.cpp	2026-09-02 20:15:10.647648472 -0400
+@@ -1634,7 +1634,11 @@
+                     if (!use_ghost) include_monomer = true;
+                     if (use_ghost && islocal_all_[fi_mon + m]) include_monomer = true;
+ 
++#ifdef _OPENMP
+                     int rank = omp_get_thread_num();
++#else
++                    int rank = 0;
++#endif
+ 
+                     if (include_monomer) {
+                         field_pool[rank]->CalcPermanentElecField(
+@@ -2204,7 +2208,11 @@
+                     double ez = 0.0;
+                     double phi1 = 0.0;
+ 
++#ifdef _OPENMP
+                     int rank = omp_get_thread_num();
++#else
++                    int rank = 0;
++#endif
+                     
+                     field_pool[rank]->CalcPermanentElecField(
+                         xyz_all_.data() + fi_crd, xyz_all_.data() + fi_crd, chg_all_.data() + fi_sites,
+@@ -5906,7 +5914,11 @@
+                         double ey = 0.0;
+                         double ez = 0.0;
+ 
++#ifdef _OPENMP
+                         int rank = omp_get_thread_num();
++#else
++                        int rank = 0;
++#endif
+ 
+                         field_pool[rank]->CalcDipoleElecField(xyz_.data() + fi_crd, xyz_.data() + fi_crd, in_ptr + fi_crd,
+                                                     in_ptr + fi_crd, m, m, m + 1, nmon, nmon, i, j, Asqsqi, thread_aDD,
+@@ -7433,7 +7445,11 @@
+                     double ey = 0.0;
+                     double ez = 0.0;
+ 
++#ifdef _OPENMP
+                     int rank = omp_get_thread_num();
++#else
++                    int rank = 0;
++#endif
+                     
+                     field_pool[rank]->CalcDipoleElecField(xyz_.data() + fi_crd, xyz_.data() + fi_crd, in_ptr + fi_crd,
+                                                 in_ptr + fi_crd, m, m, m + 1, nmon, nmon, i, j, Asqsqi, thread_aDD,
+@@ -8230,7 +8246,11 @@
+                     if (!use_ghost) include_monomer = true;
+                     if (use_ghost && islocal_all_[fi_mon + m]) include_monomer = true;
+ 
++#ifdef _OPENMP
+                     int rank = omp_get_thread_num();
++#else
++                    int rank = 0;
++#endif
+ 
+                     if (include_monomer) {
+                         field_pool[rank]->CalcElecFieldGrads(
+@@ -9136,7 +9156,11 @@
+                     double ez = 0.0;
+                     double phi1 = 0.0;
+ 
++#ifdef _OPENMP
+                     int rank = omp_get_thread_num();
++#else
++                    int rank = 0;
++#endif
+ 
+                     field_pool[rank]->CalcElecFieldGrads(
+                         xyz_all_.data() + fi_crd, xyz_all_.data() + fi_crd, chg_all_.data() + fi_sites,

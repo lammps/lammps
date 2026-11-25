@@ -6,7 +6,7 @@ special_bonds   lj 0.0 1.0 1.0 coul 0.0 1.0 1.0
 newton          on off
 comm_modify     vel yes cutoff 2.6
 region          box block -10 60 -10 30 -10 10
-create_box      1 box bond/types 1 extra/bond/per/atom 2 extra/special/per/atom 4
+create_box      1 box bond/types 1 extra/bond/per/atom 2
 
 variable        Na1 equal 200
 variable        Na2 equal 480

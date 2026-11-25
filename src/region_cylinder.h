@@ -41,7 +41,7 @@ class RegCylinder : public Region {
   void set_velocity_shape() override;
   void velocity_contact_shape(double *, double *) override;
 
- private:
+ protected:
   char axis;
   double c1, c2;
   double radius;

@@ -193,6 +193,7 @@ FixIndent::FixIndent(LAMMPS *lmp, int narg, char **arg) :
 
 FixIndent::~FixIndent()
 {
+  if (copymode) return;
   delete[] xstr;
   delete[] ystr;
   delete[] zstr;

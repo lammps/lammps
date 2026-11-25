@@ -128,9 +128,9 @@ __kernel void k_born_coul_wolf_cs(const __global numtyp4 *restrict x_,
         } else forceborn = (numtyp)0.0;
 
         if (rsq < cut_coulsq) {
-          numtyp r = ucl_rsqrt(r2inv);
+          numtyp r = ucl_rsqrt((numtyp)r2inv);
           acctyp arij = alf * r;
-          acctyp erfcd = ucl_exp(-arij*arij);
+          acctyp erfcd = ucl_exp((numtyp)(-arij*arij));
           fetch(prefactor,j,q_tex);
           prefactor *= qqrd2e * qtmp/r;
 
@@ -255,23 +255,23 @@ __kernel void k_born_coul_wolf_cs_fast(const __global numtyp4 *restrict x_,
 
       if (rsq<cutsq_sigma[mtype].x) {
         rsq += EPSILON; // Add Epsilon for case: r = 0; Interaction must be removed by special bond;
-        acctyp r2inv = ucl_recip(rsq);
+        acctyp r2inv = (acctyp)1.0/rsq;
 
         numtyp forcecoul,forceborn,force,prefactor,rexp;
         acctyp v_sh,r6inv;
 
         if (rsq < cutsq_sigma[mtype].y) {
           r6inv = r2inv*r2inv*r2inv;
-          numtyp r = ucl_sqrt(rsq);
+          numtyp r = ucl_sqrt((numtyp)rsq);
           rexp = ucl_exp((cutsq_sigma[mtype].z-r)*coeff1[mtype].x);
           forceborn = (coeff1[mtype].y*r*rexp - coeff1[mtype].z*r6inv
             + coeff1[mtype].w*r2inv*r6inv)*factor_lj;
         } else forceborn = (numtyp)0.0;
 
        if (rsq < cut_coulsq) {
-          numtyp r = ucl_sqrt(rsq);
+          numtyp r = ucl_sqrt((numtyp)rsq);
           acctyp arij = alf * r;
-          acctyp erfcd = ucl_exp(-arij*arij);
+          acctyp erfcd = ucl_exp((numtyp)(-arij*arij));
           fetch(prefactor,j,q_tex);
           prefactor *= qqrd2e * qtmp/r;
 

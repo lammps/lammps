@@ -148,7 +148,6 @@ class HPX {
           Kokkos::Tools::Experimental::Impl::DirectFenceIDHandle{m_instance_id},
           [&]() {
             auto &s = m_sender;
-
             hpx::this_thread::experimental::sync_wait(std::move(s));
             s = hpx::execution::experimental::unique_any_sender<>(
                 hpx::execution::experimental::just());
@@ -162,8 +161,7 @@ class HPX {
     hpx::spinlock m_sender_mutex;
   };
 
-  static void default_instance_deleter(instance_data *) {}
-  static instance_data m_default_instance_data;
+  static Kokkos::Impl::HostSharedPtr<instance_data> m_default_instance_data;
   Kokkos::Impl::HostSharedPtr<instance_data> m_instance_data;
 
  public:
@@ -172,6 +170,7 @@ class HPX {
   using device_type          = Kokkos::Device<execution_space, memory_space>;
   using array_layout         = LayoutRight;
   using size_type            = memory_space::size_type;
+  using index_type           = memory_space::index_type;
   using scratch_memory_space = ScratchMemorySpace<HPX>;
 
 // FIXME_HPX spurious warnings like
@@ -183,8 +182,7 @@ class HPX {
       : m_instance_data(
             (Kokkos::Impl::check_execution_space_constructor_precondition(
                  name()),
-             Kokkos::Impl::HostSharedPtr<instance_data>(
-                 &m_default_instance_data, &default_instance_deleter))) {}
+             m_default_instance_data)) {}
 
 #pragma GCC diagnostic pop
 
@@ -198,8 +196,7 @@ class HPX {
              mode == instance_mode::independent
                  ? (Kokkos::Impl::HostSharedPtr<instance_data>(
                        new instance_data(m_next_instance_id++)))
-                 : Kokkos::Impl::HostSharedPtr<instance_data>(
-                       &m_default_instance_data, &default_instance_deleter))) {}
+                 : m_default_instance_data)) {}
   explicit HPX(hpx::execution::experimental::unique_any_sender<> &&sender)
       : m_instance_data(
             (Kokkos::Impl::check_execution_space_constructor_precondition(
@@ -473,7 +470,6 @@ struct MemorySpaceAccess<Kokkos::Experimental::HPX::memory_space,
                          Kokkos::Experimental::HPX::scratch_memory_space> {
   enum : bool { assignable = false };
   enum : bool { accessible = true };
-  enum : bool { deepcopy = false };
 };
 
 template <>
@@ -1583,7 +1579,7 @@ class ParallelReduce<CombinedFunctorReducerType,
     const auto buffer_size = std::min(nchunks, num_worker_threads);
     buffer.resize(buffer_size, value_size + m_shared);
 
-    for (int t = 0; t < num_worker_threads; ++t) {
+    for (int t = 0; t < buffer_size; ++t) {
       reducer.init(reinterpret_cast<pointer_type>(buffer.get(t)));
     }
   }
@@ -1622,8 +1618,11 @@ class ParallelReduce<CombinedFunctorReducerType,
     hpx_thread_buffer &buffer    = m_policy.space().impl_get_buffer();
     const ReducerType &reducer   = m_functor_reducer.get_reducer();
     const int num_worker_threads = m_policy.space().concurrency();
+    const auto nchunks =
+        get_num_chunks(0, m_policy.chunk_size(), m_policy.league_size());
+    const auto buffer_size = std::min(nchunks, num_worker_threads);
     const pointer_type ptr = reinterpret_cast<pointer_type>(buffer.get(0));
-    for (int t = 1; t < num_worker_threads; ++t) {
+    for (int t = 1; t < buffer_size; ++t) {
       reducer.join(ptr, reinterpret_cast<pointer_type>(buffer.get(t)));
     }
 
@@ -1964,7 +1963,7 @@ KOKKOS_INLINE_FUNCTION void parallel_scan(
       Kokkos::Impl::FunctorPatternInterface::SCAN, void, FunctorType,
       void>::value_type;
 
-  value_type scan_val;
+  value_type scan_val{};
   parallel_scan(loop_bounds, lambda, scan_val);
 }
 
@@ -1989,7 +1988,7 @@ KOKKOS_INLINE_FUNCTION void parallel_scan(
                                      TeamPolicy<Experimental::HPX>, FunctorType,
                                      void>::value_type;
 
-  value_type scan_val = value_type();
+  value_type scan_val{};
 
 #ifdef KOKKOS_ENABLE_PRAGMA_IVDEP
 #pragma ivdep

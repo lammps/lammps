@@ -1,6 +1,9 @@
+
 This folder contains files and tools for creating, modifying, and validating
 files in JSON format. This is work in progress while we are adding JSON
-support.
+support to LAMMPS.
+
+---
 
 # JSON file format validation.
 
@@ -10,10 +13,13 @@ We provide schema files for the file formats that LAMMPS supports following
 the specifications available on [JSON-Schema](https://json-schema.org) webpage.
 The following files are currently available.
 
-- `molecule-schema.json`  Schema file for JSON-format molecule files.
-- `dump-molecules-schema.json`  Schema file for the 'dump' format in the 'molecules' style.
-- `color-schema.json` Schema file for the colors and lights file used by 'dump image/movie' and in LAMMPS-GUI
-- `force-style-test-schema.json` Schema file for the force-style regression test reference files in `unittest/force-styles/`
+Schema file | Description
+--- | ---
+[molecule-schema.json](https://download.lammps.org/json/molecule-schema.json) | Schema file for JSON-format molecule files.
+[dump-molecules-schema.json](https://download.lammps.org/json/dump-molecules-schema.json) |  Schema file for the 'dump' format in the 'molecules' style.
+[color-schema.json](https://download.lammps.org/json/color-schema.json) | Schema file for the colors and lights file used by 'dump image/movie' and in LAMMPS-GUI
+[force-style-test-schema.json](https://download.lammps.org/json/force-style-test-schema.json) | Schema file for the force-style regression test reference files in `unittest/force-styles/`
+[fix-symmetry-schema.json](https://download.lammps.org/json/fix-symmetry-schema.json) | Schema file for the symmetry files read by 'fix symmetry'. Validates the list of symmetry operators and the optional supercell entry.
 
 These files provide a concise description of the hierarchy and supported fields
 in JSON file formats.  Thus they provide a detailed documentation and can also
@@ -35,6 +41,9 @@ pip install check-jsonschema
 
 # Validation of two molecule files "rxn1.json" and "twomols.json" with "molecule-schema.json"
 check-jsonschema --schemafile molecule-schema.json rxn1.json twomols.json
+
+# Validation of a fix-symmetry data file "p1.json" with "fix-symmetry-schema.json"
+check-jsonschema --schemafile fix-symmetry-schema.json p1.json
 ```
 
 If the files are conforming there should be the output:
@@ -84,4 +93,4 @@ g++ -I <path/to/lammps/src> -o reformat-json reformat-json.cpp
 
 -------
 
-updated by Axel Kohlmeyer, 2025-05-23
+updated by Axel Kohlmeyer, 2026-11-05

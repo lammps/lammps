@@ -3,7 +3,7 @@
 # distributed independent from the LAMMPS package.
 ##########################################
 
-cmake_minimum_required(VERSION 3.20)
+cmake_minimum_required(VERSION 3.27)
 
 # enforce out-of-source build
 if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
@@ -64,10 +64,6 @@ endif()
 #endif()
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Need -restrict with Intel compilers
-if(CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -restrict")
-endif()
 
 set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR})
 include(CheckIncludeFileCXX)
@@ -93,12 +89,7 @@ endif()
 # symbol interposition, so the full library must be (and safely can be)
 # linked in.
 if(LAMMPS_DIR AND (NOT BUILD_SHARED_LIBS) AND (NOT (CMAKE_SYSTEM_NAME STREQUAL "Windows")))
-  if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.27)
-    set(LAMMPS_LINK_TARGET "$<COMPILE_ONLY:lammps>")
-  else()
-    message(FATAL_ERROR "Building plugins inside a static LAMMPS library build "
-      "requires CMake 3.27 or later or setting BUILD_SHARED_LIBS=on")
-  endif()
+  set(LAMMPS_LINK_TARGET "$<COMPILE_ONLY:lammps>")
 else()
   set(LAMMPS_LINK_TARGET lammps)
 endif()

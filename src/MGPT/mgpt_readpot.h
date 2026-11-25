@@ -215,19 +215,21 @@ struct potdata2 {
       exit(1);
     }
 
-    const char *parmin_suffix = strchr(parmin_template,'}')+1;
-    const char * potin_suffix = strchr( potin_template,'}')+1;
+    const char *parmin_suffix = strchr(parmin_template,'}');
+    const char * potin_suffix = strchr( potin_template,'}');
 
-    if(parmin_suffix-1 == nullptr) {
+    if(parmin_suffix == nullptr) {
       fprintf(stderr,"No closing }. parmin_template=\'%s\'\n",
               parmin_template);
       exit(1);
     }
-    if(potin_suffix-1 == nullptr) {
+    if(potin_suffix == nullptr) {
       fprintf(stderr,"No closing }. potin_template=\'%s\'\n",
               potin_template);
       exit(1);
     }
+    parmin_suffix++;
+    potin_suffix++;
 
     printf("parmin_template = %s\n"
            "parmin_file = %s\n"

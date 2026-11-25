@@ -25,6 +25,7 @@
 #include "force.h"
 #include "kokkos.h"
 #include "math_const.h"
+#include "math_special_kokkos.h"
 #include "memory_kokkos.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
@@ -121,20 +122,24 @@ void PairNMCutCoulLongKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   copymode = 1;
 
-  ev = pair_compute<PairNMCutCoulLongKokkos<DeviceType>,void>
-    (this,(NeighListKokkos<DeviceType>*)list);
+  if (ncoultablebits)
+    ev = pair_compute<PairNMCutCoulLongKokkos<DeviceType>,CoulLongTable<1>>
+      (this,(NeighListKokkos<DeviceType>*)list);
+  else
+    ev = pair_compute<PairNMCutCoulLongKokkos<DeviceType>,CoulLongTable<0>>
+      (this,(NeighListKokkos<DeviceType>*)list);
 
   if (eflag) {
-    eng_vdwl += ev.evdwl;
-    eng_coul += ev.ecoul;
+    eng_vdwl += static_cast<double>(ev.evdwl);
+    eng_coul += static_cast<double>(ev.ecoul);
   }
   if (vflag_global) {
-    virial[0] += ev.v[0];
-    virial[1] += ev.v[1];
-    virial[2] += ev.v[2];
-    virial[3] += ev.v[3];
-    virial[4] += ev.v[4];
-    virial[5] += ev.v[5];
+    virial[0] += static_cast<double>(ev.v[0]);
+    virial[1] += static_cast<double>(ev.v[1]);
+    virial[2] += static_cast<double>(ev.v[2]);
+    virial[3] += static_cast<double>(ev.v[3]);
+    virial[4] += static_cast<double>(ev.v[4]);
+    virial[5] += static_cast<double>(ev.v[5]);
   }
 
   if (eflag_atom) {
@@ -171,8 +176,9 @@ compute_fpair(const KK_FLOAT& rsq, const int& /*i*/, const int& /*j*/,
   const KK_FLOAT r0n_val = (STACKPARAMS?m_params[itype][jtype].r0n:params(itype,jtype).r0n);
   const KK_FLOAT r0m_val = (STACKPARAMS?m_params[itype][jtype].r0m:params(itype,jtype).r0m);
   const KK_FLOAT e0nm_val = (STACKPARAMS?m_params[itype][jtype].e0nm:params(itype,jtype).e0nm);
-  const KK_FLOAT rninv = Kokkos::pow(r2inv, nn_val * static_cast<KK_FLOAT>(0.5));
-  const KK_FLOAT rminv = Kokkos::pow(r2inv, mm_val * static_cast<KK_FLOAT>(0.5));
+  const KK_FLOAT r = Kokkos::sqrt(rsq);
+  const KK_FLOAT rninv = MathSpecialKokkos::powauto(r, -nn_val);
+  const KK_FLOAT rminv = MathSpecialKokkos::powauto(r, -mm_val);
 
   const KK_FLOAT forcenm = e0nm_val * nm_val *
     (r0n_val * rninv - r0m_val * rminv);
@@ -192,19 +198,34 @@ compute_fcoul(const KK_FLOAT& rsq, const int& /*i*/, const int& j,
               const int& /*itype*/, const int& /*jtype*/,
               const KK_FLOAT& factor_coul, const KK_FLOAT& qtmp) const
 {
-  const KK_FLOAT r = Kokkos::sqrt(rsq);
-  const KK_FLOAT grij = g_ewald_kk * r;
-  const KK_FLOAT expm2 = Kokkos::exp(-grij*grij);
-  const KK_FLOAT t = static_cast<KK_FLOAT>(1.0) /
-    (static_cast<KK_FLOAT>(1.0) + static_cast<KK_FLOAT>(EWALD_P)*grij);
-  const KK_FLOAT rinv = static_cast<KK_FLOAT>(1.0) / r;
-  const KK_FLOAT erfc = t * (static_cast<KK_FLOAT>(A1)+t*(static_cast<KK_FLOAT>(A2)+
-                        t * (static_cast<KK_FLOAT>(A3)+t*(static_cast<KK_FLOAT>(A4)+
-                        t * static_cast<KK_FLOAT>(A5))))) * expm2;
-  const KK_FLOAT prefactor = qqrd2e * qtmp * q(j) * rinv;
-  KK_FLOAT forcecoul = prefactor * (erfc + static_cast<KK_FLOAT>(EWALD_F)*grij*expm2);
-  if (factor_coul < static_cast<KK_FLOAT>(1.0)) forcecoul -= (static_cast<KK_FLOAT>(1.0)-factor_coul)*prefactor;
-  return forcecoul * rinv * rinv;
+  if (Specialisation::DoTable && rsq > tabinnersq_kk) {
+    union_int_float_t rsq_lookup;
+    rsq_lookup.f = rsq;
+    const int itable = (rsq_lookup.i & ncoulmask) >> ncoulshiftbits;
+    const KK_FLOAT fraction = ((KK_FLOAT)rsq_lookup.f - d_rtable[itable]) * d_drtable[itable];
+    const KK_FLOAT table = d_ftable[itable] + fraction*d_dftable[itable];
+    KK_FLOAT forcecoul = qtmp*q(j) * table;
+    if (factor_coul < static_cast<KK_FLOAT>(1.0)) {
+      const KK_FLOAT table = d_ctable[itable] + fraction*d_dctable[itable];
+      const KK_FLOAT prefactor = qtmp*q(j) * table;
+      forcecoul -= (static_cast<KK_FLOAT>(1.0)-factor_coul)*prefactor;
+    }
+    return forcecoul/rsq;
+  } else {
+    const KK_FLOAT r = Kokkos::sqrt(rsq);
+    const KK_FLOAT grij = g_ewald_kk * r;
+    const KK_FLOAT expm2 = Kokkos::exp(-grij*grij);
+    const KK_FLOAT t = static_cast<KK_FLOAT>(1.0) /
+      (static_cast<KK_FLOAT>(1.0) + static_cast<KK_FLOAT>(EWALD_P)*grij);
+    const KK_FLOAT rinv = static_cast<KK_FLOAT>(1.0) / r;
+    const KK_FLOAT erfc = t * (static_cast<KK_FLOAT>(A1)+t*(static_cast<KK_FLOAT>(A2)+
+                          t * (static_cast<KK_FLOAT>(A3)+t*(static_cast<KK_FLOAT>(A4)+
+                          t * static_cast<KK_FLOAT>(A5))))) * expm2;
+    const KK_FLOAT prefactor = qqrd2e * qtmp * q(j) * rinv;
+    KK_FLOAT forcecoul = prefactor * (erfc + static_cast<KK_FLOAT>(EWALD_F)*grij*expm2);
+    if (factor_coul < static_cast<KK_FLOAT>(1.0)) forcecoul -= (static_cast<KK_FLOAT>(1.0)-factor_coul)*prefactor;
+    return forcecoul * rinv * rinv;
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -219,15 +240,15 @@ KK_FLOAT PairNMCutCoulLongKokkos<DeviceType>::
 compute_evdwl(const KK_FLOAT& rsq, const int& /*i*/, const int& /*j*/,
                const int& itype, const int& jtype) const
 {
-  const KK_FLOAT r2inv = static_cast<KK_FLOAT>(1.0) / rsq;
   const KK_FLOAT nn_val = (STACKPARAMS?m_params[itype][jtype].nn:params(itype,jtype).nn);
   const KK_FLOAT mm_val = (STACKPARAMS?m_params[itype][jtype].mm:params(itype,jtype).mm);
   const KK_FLOAT r0n_val = (STACKPARAMS?m_params[itype][jtype].r0n:params(itype,jtype).r0n);
   const KK_FLOAT r0m_val = (STACKPARAMS?m_params[itype][jtype].r0m:params(itype,jtype).r0m);
   const KK_FLOAT e0nm_val = (STACKPARAMS?m_params[itype][jtype].e0nm:params(itype,jtype).e0nm);
   const KK_FLOAT offset_val = (STACKPARAMS?m_params[itype][jtype].offset:params(itype,jtype).offset);
-  const KK_FLOAT rninv = Kokkos::pow(r2inv, nn_val * static_cast<KK_FLOAT>(0.5));
-  const KK_FLOAT rminv = Kokkos::pow(r2inv, mm_val * static_cast<KK_FLOAT>(0.5));
+  const KK_FLOAT r = Kokkos::sqrt(rsq);
+  const KK_FLOAT rninv = MathSpecialKokkos::powauto(r, -nn_val);
+  const KK_FLOAT rminv = MathSpecialKokkos::powauto(r, -mm_val);
 
   return e0nm_val * (mm_val * r0n_val * rninv - nn_val * r0m_val * rminv) - offset_val;
 }
@@ -245,18 +266,33 @@ compute_ecoul(const KK_FLOAT& rsq, const int& /*i*/, const int& j,
                const int& /*itype*/, const int& /*jtype*/,
                const KK_FLOAT& factor_coul, const KK_FLOAT& qtmp) const
 {
-  const KK_FLOAT r = Kokkos::sqrt(rsq);
-  const KK_FLOAT grij = g_ewald_kk * r;
-  const KK_FLOAT expm2 = Kokkos::exp(-grij*grij);
-  const KK_FLOAT t = static_cast<KK_FLOAT>(1.0) /
-    (static_cast<KK_FLOAT>(1.0) + static_cast<KK_FLOAT>(EWALD_P)*grij);
-  const KK_FLOAT erfc = t * (static_cast<KK_FLOAT>(A1)+t*(static_cast<KK_FLOAT>(A2)+
-                        t * (static_cast<KK_FLOAT>(A3)+t*(static_cast<KK_FLOAT>(A4)+
-                        t * static_cast<KK_FLOAT>(A5))))) * expm2;
-  const KK_FLOAT prefactor = qqrd2e * qtmp * q(j) / r;
-  KK_FLOAT ecoul = prefactor * erfc;
-  if (factor_coul < static_cast<KK_FLOAT>(1.0)) ecoul -= (static_cast<KK_FLOAT>(1.0)-factor_coul)*prefactor;
-  return ecoul;
+  if (Specialisation::DoTable && rsq > tabinnersq_kk) {
+    union_int_float_t rsq_lookup;
+    rsq_lookup.f = rsq;
+    const int itable = (rsq_lookup.i & ncoulmask) >> ncoulshiftbits;
+    const KK_FLOAT fraction = ((KK_FLOAT)rsq_lookup.f - d_rtable[itable]) * d_drtable[itable];
+    const KK_FLOAT table = d_etable[itable] + fraction*d_detable[itable];
+    KK_FLOAT ecoul = qtmp*q(j) * table;
+    if (factor_coul < static_cast<KK_FLOAT>(1.0)) {
+      const KK_FLOAT table = d_ctable[itable] + fraction*d_dctable[itable];
+      const KK_FLOAT prefactor = qtmp*q(j) * table;
+      ecoul -= (static_cast<KK_FLOAT>(1.0)-factor_coul)*prefactor;
+    }
+    return ecoul;
+  } else {
+    const KK_FLOAT r = Kokkos::sqrt(rsq);
+    const KK_FLOAT grij = g_ewald_kk * r;
+    const KK_FLOAT expm2 = Kokkos::exp(-grij*grij);
+    const KK_FLOAT t = static_cast<KK_FLOAT>(1.0) /
+      (static_cast<KK_FLOAT>(1.0) + static_cast<KK_FLOAT>(EWALD_P)*grij);
+    const KK_FLOAT erfc = t * (static_cast<KK_FLOAT>(A1)+t*(static_cast<KK_FLOAT>(A2)+
+                          t * (static_cast<KK_FLOAT>(A3)+t*(static_cast<KK_FLOAT>(A4)+
+                          t * static_cast<KK_FLOAT>(A5))))) * expm2;
+    const KK_FLOAT prefactor = qqrd2e * qtmp * q(j) / r;
+    KK_FLOAT ecoul = prefactor * erfc;
+    if (factor_coul < static_cast<KK_FLOAT>(1.0)) ecoul -= (static_cast<KK_FLOAT>(1.0)-factor_coul)*prefactor;
+    return ecoul;
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -283,6 +319,38 @@ void PairNMCutCoulLongKokkos<DeviceType>::allocate()
   k_params = Kokkos::DualView<params_nm_coul**,Kokkos::LayoutRight,DeviceType>(
     "PairNMCutCoulLong::params",n+1,n+1);
   params = k_params.template view<DeviceType>();
+}
+
+/* ----------------------------------------------------------------------
+   copy the tabulated Coulomb interpolation tables to the device
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+void PairNMCutCoulLongKokkos<DeviceType>::init_tables(double cut_coul, double *cut_respa)
+{
+  Pair::init_tables(cut_coul,cut_respa);
+
+  typedef typename AT::t_kkfloat_1d table_type;
+  typedef HAT::t_kkfloat_1d host_table_type;
+
+  int ntable = 1;
+  for (int i = 0; i < ncoultablebits; i++) ntable *= 2;
+
+  tabinnersq_kk = static_cast<KK_FLOAT>(tabinnersq);
+
+  const double *const h_src[8] = {rtable,drtable,ftable,dftable,
+                                  ctable,dctable,etable,detable};
+  typename AT::t_kkfloat_1d_randomread *const d_dst[8] =
+    {&d_rtable,&d_drtable,&d_ftable,&d_dftable,
+     &d_ctable,&d_dctable,&d_etable,&d_detable};
+
+  for (int n = 0; n < 8; n++) {
+    host_table_type h_table("HostTable",ntable);
+    table_type d_table("DeviceTable",ntable);
+    for (int i = 0; i < ntable; i++) h_table(i) = static_cast<KK_FLOAT>(h_src[n][i]);
+    Kokkos::deep_copy(d_table,h_table);
+    *d_dst[n] = d_table;
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -335,9 +403,9 @@ double PairNMCutCoulLongKokkos<DeviceType>::init_one(int i, int j)
   k_params.view_host()(j,i) = k_params.view_host()(i,j);
   if (i<MAX_TYPES_STACKPARAMS+1 && j<MAX_TYPES_STACKPARAMS+1) {
     m_params[i][j] = m_params[j][i] = k_params.view_host()(i,j);
-    m_cutsq[j][i] = m_cutsq[i][j] = cutone*cutone;
-    m_cut_ljsq[j][i] = m_cut_ljsq[i][j] = cut_ljsqm;
-    m_cut_coulsq[j][i] = m_cut_coulsq[i][j] = cut_coulsq;
+    m_cutsq[j][i] = m_cutsq[i][j] = static_cast<KK_FLOAT>(cutone*cutone);
+    m_cut_ljsq[j][i] = m_cut_ljsq[i][j] = static_cast<KK_FLOAT>(cut_ljsqm);
+    m_cut_coulsq[j][i] = m_cut_coulsq[i][j] = static_cast<KK_FLOAT>(cut_coulsq);
   }
 
   k_cutsq.view_host()(i,j) = k_cutsq.view_host()(j,i) = cutone*cutone;

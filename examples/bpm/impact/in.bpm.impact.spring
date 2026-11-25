@@ -7,7 +7,7 @@ newton          on off
 comm_modify     vel yes cutoff 2.6
 lattice         fcc 1.0
 region          box block -25 15 -22 22 -22 22
-create_box      1 box bond/types 2 extra/bond/per/atom 20 extra/special/per/atom 50
+create_box      1 box bond/types 2 extra/bond/per/atom 20
 
 region          disk cylinder x 0.0 0.0 20.0 -0.5 0.5
 create_atoms    1 region disk

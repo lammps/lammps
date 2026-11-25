@@ -75,11 +75,11 @@ int dbdsqr_(char *uplo, integer *n, integer *ncvt, integer *nru, integer *ncc, d
         *info = -4;
     } else if (*ncc < 0) {
         *info = -5;
-    } else if (*ncvt == 0 && *ldvt < 1 || *ncvt > 0 && *ldvt < max(1, *n)) {
+    } else if ((*ncvt == 0 && *ldvt < 1) || (*ncvt > 0 && *ldvt < max(1, *n))) {
         *info = -9;
     } else if (*ldu < max(1, *nru)) {
         *info = -11;
-    } else if (*ncc == 0 && *ldc < 1 || *ncc > 0 && *ldc < max(1, *n)) {
+    } else if ((*ncc == 0 && *ldc < 1) || (*ncc > 0 && *ldc < max(1, *n))) {
         *info = -13;
     }
     if (*info != 0) {
@@ -105,8 +105,8 @@ int dbdsqr_(char *uplo, integer *n, integer *ncvt, integer *nru, integer *ncc, d
     nm12 = nm1 + nm1;
     nm13 = nm12 + nm1;
     idir = 0;
-    eps = dlamch_((char *)"Epsilon", (ftnlen)7);
-    unfl = dlamch_((char *)"Safe minimum", (ftnlen)12);
+    eps = dlamch_((char *)"E", (ftnlen)1);
+    unfl = dlamch_((char *)"S", (ftnlen)1);
     if (lower) {
         i__1 = *n - 1;
         for (i__ = 1; i__ <= i__1; ++i__) {
@@ -235,7 +235,7 @@ L90:
     }
     if (idir == 1) {
         if ((d__2 = e[m - 1], abs(d__2)) <= abs(tol) * (d__1 = d__[m], abs(d__1)) ||
-            tol < 0. && (d__3 = e[m - 1], abs(d__3)) <= thresh) {
+            (tol < 0. && (d__3 = e[m - 1], abs(d__3)) <= thresh)) {
             e[m - 1] = 0.;
             goto L60;
         }
@@ -254,7 +254,7 @@ L90:
         }
     } else {
         if ((d__2 = e[ll], abs(d__2)) <= abs(tol) * (d__1 = d__[ll], abs(d__1)) ||
-            tol < 0. && (d__3 = e[ll], abs(d__3)) <= thresh) {
+            (tol < 0. && (d__3 = e[ll], abs(d__3)) <= thresh)) {
             e[ll] = 0.;
             goto L60;
         }

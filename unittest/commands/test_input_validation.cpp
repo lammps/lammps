@@ -17,6 +17,7 @@
 #include "lammps.h"
 
 #include "info.h"
+#include "library.h"
 #include "utils.h"
 
 #include "../testing/core.h"
@@ -126,23 +127,23 @@ TEST_F(InputValidationTest, fix_store_state_no_atoms)
     SUCCEED();
 }
 
-TEST_F(InputValidationTest, pair_rann_empty_potential)
+TEST_F(InputValidationTest, pair_tersoff_empty_potential)
 {
-    if (!Info::has_package("ML-RANN")) GTEST_SKIP();
+    if (!Info::has_package("MANYBODY")) GTEST_SKIP();
 
     // an empty or comment-only potential file used to hang forever
 
     {
-        std::ofstream out("empty_test.rann");
-        out << "# comment only, no data\n\n";
+        std::ofstream out("empty_test.tersoff");
+        out << "# DATE: 2007-06-11\n\n";
     }
     atomic_box();
     BEGIN_HIDE_OUTPUT();
-    command("pair_style rann");
+    command("pair_style tersoff");
     END_HIDE_OUTPUT();
-    TEST_FAILURE(".*(Unexpected end of RANN potential file|Invalid syntax in potential file).*",
-                 command("pair_coeff * * empty_test.rann X"););
-    delete_file("empty_test.rann");
+    TEST_FAILURE(".*Potential file is missing an entry for.*",
+                 command("pair_coeff * * empty_test.tersoff X"););
+    delete_file("empty_test.tersoff");
 }
 
 int main(int argc, char **argv)
@@ -160,6 +161,13 @@ int main(int argc, char **argv)
     if ((argc > 1) && (strcmp(argv[1], "-v") == 0)) verbose = true;
 
     int rv = RUN_ALL_TESTS();
+
+    // finalize the KOKKOS package explicitly: otherwise Kokkos is torn down by
+    // static destructors at program exit, leading to segfaults in some cases
+    // same workaround as the force-style and FFT3d test drivers
+
+    lammps_kokkos_finalize();
+
     MPI_Finalize();
     return rv;
 }

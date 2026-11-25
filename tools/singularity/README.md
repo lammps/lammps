@@ -18,11 +18,10 @@ built CentOS 7.x Singularity container.  For Apptainer replace the
 ```
 cd some/work/directory
 git clone --depth 500  https://github.com/lammps/lammps.git lammps
-mkdir build-centos7
-cd build-centos7
-sudo singularity build centos7.sif ../tools/singularity/centos7.def
+cd lammps
+sudo singularity build centos7.sif tools/singularity/centos7.def
 singularity exec centos7.sif bash --login
-cmake -C ../cmake/presets/most.cmake ../cmake
-make
+cmake -S cmake -B build-centos7 -C cmake/presets/most.cmake
+cmake --build build-centos7
 ```
 

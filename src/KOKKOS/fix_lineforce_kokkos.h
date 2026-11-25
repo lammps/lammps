@@ -37,7 +37,6 @@ class FixLineForceKokkos : public FixLineForce {
   typedef ArrayTypes<DeviceType> AT;
 
   FixLineForceKokkos(class LAMMPS *, int, char **);
-  ~FixLineForceKokkos() override {}
   void init() override;
   void post_force(int) override;
 

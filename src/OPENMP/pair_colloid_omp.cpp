@@ -75,6 +75,8 @@ void PairColloidOMP::compute(int eflag, int vflag)
     thr->timer(Timer::PAIR);
     reduce_thr(this, eflag, vflag, thr);
   } // end of omp parallel region
+
+  error_thr();
 }
 
 template <int EVFLAG, int EFLAG, int NEWTON_PAIR>
@@ -196,11 +198,14 @@ void PairColloidOMP::eval(int iifrom, int iito, ThrData * const thr)
         if (EFLAG)
           evdwl += a12[itype][jtype]/6.0 *
             (2.0*K[0]*(K[7]+K[8])-log(K[8]/K[7])) - offset[itype][jtype];
-        if (r <= K[1]) error->one(FLERR,"Overlapping large/large in pair colloid");
+        if (check_error_thr((r <= K[1]),tid,FLERR,
+                            "Overlapping large/large in pair colloid"))
+          return;
         break;
 
       default:
-        error->one(FLERR,"Unknown colloid interaction form");
+        check_error_thr(true,tid,FLERR,"Unknown colloid interaction form");
+        return;
       }
 
       if (EFLAG) evdwl *= factor_lj;

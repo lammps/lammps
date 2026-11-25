@@ -141,11 +141,15 @@ void PPPMDipoleSpin::init()
   natoms_original = atom->natoms;
 
   // set accuracy (force units) from accuracy_relative or accuracy_absolute
+  // Unlike with standard charge-charge interactions, the two_charge_force criterion
+  // is no longer meaningful (different physics).
+  // We use the force between two 1 muB dipoles 1 Angstrom apart as the reference
+  // F = 6 mub2mu0 / r^4, r = 1 Angstrom (metal units)
 
-  // is two_charge_force still relevant for spin systems?
+  double two_spin_force = 6.0*mub2mu0;
 
   if (accuracy_absolute >= 0.0) accuracy = accuracy_absolute;
-  else accuracy = accuracy_relative * two_charge_force;
+  else accuracy = accuracy_relative * two_spin_force;
 
   // free all arrays previously allocated
 
@@ -192,7 +196,7 @@ void PPPMDipoleSpin::init()
   if (order < minorder) error->all(FLERR,"PPPMDipoleSpin order < minimum allowed order");
   if (!overlap_allowed && !gc_dipole->ghost_adjacent())
     error->all(FLERR,"PPPMDipoleSpin grid stencil extends beyond nearest neighbor processor");
-  if (gc_dipole) delete gc_dipole;
+  delete gc_dipole;
 
   // adjust g_ewald
 
@@ -201,6 +205,19 @@ void PPPMDipoleSpin::init()
   // calculate the final accuracy
 
   double estimated_accuracy = final_accuracy_dipole();
+
+  // allocate K-space dependent memory
+  // don't invoke allocate peratom(), will be allocated when needed
+  // must happen before printing the stats below, since allocate()
+  // is what sets ngrid and nfft_both
+
+  allocate();
+
+  // pre-compute Green's function denominator expansion
+  // pre-compute 1d charge distribution coefficients
+
+  compute_gf_denom();
+  compute_rho_coeff();
 
   // print stats
 
@@ -215,23 +232,12 @@ void PPPMDipoleSpin::init()
     mesg += fmt::format("  estimated absolute RMS force accuracy = {:.8g}\n",
                        estimated_accuracy);
     mesg += fmt::format("  estimated relative force accuracy = {:.8g}\n",
-                       estimated_accuracy/two_charge_force);
+                       estimated_accuracy/two_spin_force);
     mesg += "  using " LMP_FFT_PREC " precision " LMP_FFT_LIB "\n";
     mesg += fmt::format("  3d grid and FFT values/proc = {} {}\n",
                        ngrid_max,nfft_both_max);
     utils::logmesg(lmp,mesg);
   }
-
-  // allocate K-space dependent memory
-  // don't invoke allocate peratom(), will be allocated when needed
-
-  allocate();
-
-  // pre-compute Green's function denominator expansion
-  // pre-compute 1d charge distribution coefficients
-
-  compute_gf_denom();
-  compute_rho_coeff();
 }
 
 /* ----------------------------------------------------------------------
@@ -288,7 +294,7 @@ void PPPMDipoleSpin::compute(int eflag, int vflag)
   //   to fully sum contribution in their 3d bricks
   // remap from 3d decomposition to FFT decomposition
 
-  gc_dipole->reverse_comm(Grid3d::KSPACE,this,REVERSE_MU,3,sizeof(FFT_SCALAR),
+  gc_dipole->reverse_comm(Grid3d::KSPACE,this,REVERSE_MU,4,sizeof(FFT_SCALAR),
                           gc_buf1,gc_buf2,MPI_FFT_SCALAR);
   brick2fft_dipole();
 
@@ -302,14 +308,14 @@ void PPPMDipoleSpin::compute(int eflag, int vflag)
   // all procs communicate E-field values
   // to fill ghost cells surrounding their 3d bricks
 
-  gc_dipole->forward_comm(Grid3d::KSPACE,this,FORWARD_MU,9,sizeof(FFT_SCALAR),
+  gc_dipole->forward_comm(Grid3d::KSPACE,this,FORWARD_MU,12,sizeof(FFT_SCALAR),
                           gc_buf1,gc_buf2,MPI_FFT_SCALAR);
 
   // extra per-atom energy/virial communication
 
   if (evflag_atom)
-    gc->forward_comm(Grid3d::KSPACE,this,FORWARD_MU_PERATOM,18,sizeof(FFT_SCALAR),
-                     gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+    gc_dipole->forward_comm(Grid3d::KSPACE,this,FORWARD_MU_PERATOM,25,sizeof(FFT_SCALAR),
+                            gc_buf1,gc_buf2,MPI_FFT_SCALAR);
 
   // calculate the force on my particles
 
@@ -395,6 +401,8 @@ void PPPMDipoleSpin::make_rho_spin()
   memset(&(densityy_brick_dipole[nzlo_out][nylo_out][nxlo_out]),0,
          ngrid*sizeof(FFT_SCALAR));
   memset(&(densityz_brick_dipole[nzlo_out][nylo_out][nxlo_out]),0,
+         ngrid*sizeof(FFT_SCALAR));
+  memset(&(density_brick[nzlo_out][nylo_out][nxlo_out]),0,
          ngrid*sizeof(FFT_SCALAR));
 
   // loop over my charges, add their contribution to nearby grid points
@@ -685,6 +693,11 @@ void PPPMDipoleSpin::spsum_spsq()
   const int nlocal = atom->nlocal;
 
   musum = musqsum = mu2 = 0.0;
+
+  // spin-only systems have no charge channel and qsum_qsq() is never
+  // called, but the inherited error estimates access these members
+
+  qsum = qsqsum = q2 = 0.0;
   if (atom->sp_flag) {
     double **sp = atom->sp;
     double spx, spy, spz;
@@ -711,6 +724,6 @@ void PPPMDipoleSpin::spsum_spsq()
     mu2 = musqsum * mub2mu0;
   }
 
-  if (mu2 == 0 && comm->me == 0)
+  if (mu2 == 0)
     error->all(FLERR,"Using kspace solver PPPMDipoleSpin on system with no spins");
 }

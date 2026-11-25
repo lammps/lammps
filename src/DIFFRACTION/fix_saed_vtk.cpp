@@ -27,23 +27,29 @@
 #include "error.h"
 #include "memory.h"
 #include "modify.h"
+#include "safe_pointers.h"
 #include "update.h"
+#include "vtk_writer.h"
 
 #include <cstring>
 #include <cmath>
+#include <utility>
+#include <string>
+#include <vector>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
 enum{ONE,RUNNING,WINDOW};
-enum{FIRST,MULTI};
+enum{VTKLEGACY,VTKXML};
 
 
 /* ---------------------------------------------------------------------- */
 
 FixSAEDVTK::FixSAEDVTK(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), ids(nullptr), fp(nullptr), vector(nullptr),
-  vector_total(nullptr), vector_list(nullptr), compute_saed(nullptr), filename(nullptr)
+  Fix(lmp, narg, arg), ids(nullptr), vector(nullptr),
+  vector_total(nullptr), vector_list(nullptr), compute_saed(nullptr), filename(nullptr),
+  nOutput(0)
 {
   if (narg < 7) error->all(FLERR,"Illegal fix saed/vtk command");
 
@@ -100,9 +106,6 @@ FixSAEDVTK::FixSAEDVTK(LAMMPS *lmp, int narg, char **arg) :
     error->all(FLERR,"Illegal fix saed/vtk command");
 
   // allocate memory for averaging
-
-  vector = vector_total = nullptr;
-  vector_list = nullptr;
 
   if (ave == WINDOW)
     memory->create(vector_list,nwindow,1,"saed/vtk:vector_list");
@@ -216,11 +219,17 @@ FixSAEDVTK::FixSAEDVTK(LAMMPS *lmp, int narg, char **arg) :
     }
 
    // Finding dimensions for vtk files
-    for (int i=0; i<3; i++) {
-      if (( (Knmin[i] > 0) && (Knmax[i] > 0) ) || ( (Knmin[i] < 0) && (Knmax[i] < 0) )) {
-        Dim[i] = abs( (int) Knmin[i] ) + abs( (int) Knmax[i] );
-      } else Dim[i] = abs( (int) Knmin[i] ) + abs( (int) Knmax[i] ) + 1;
-    }
+   // this must match the number of grid points written below, i.e. one per
+   // integer K value from Knmin to Knmax inclusive in each dimension
+
+    for (int i=0; i<3; i++) Dim[i] = Knmax[i] - Knmin[i] + 1;
+
+    // the search above finds nothing if the Ewald sphere slice misses the
+    // explored part of reciprocal space entirely
+
+    if ((Dim[0] < 1) || (Dim[1] < 1) || (Dim[2] < 1))
+      error->all(FLERR,"Fix saed/vtk found no reciprocal space points to output. "
+                 "Check the Kmax, Zone and dR_Ewald settings of compute {}", ids);
   }
 
   // initialization
@@ -250,7 +259,6 @@ FixSAEDVTK::~FixSAEDVTK()
   delete[] ids;
   memory->destroy(vector);
   memory->destroy(vector_total);
-  if (fp && comm->me == 0) fclose(fp);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -377,82 +385,55 @@ void FixSAEDVTK::invoke_vector(bigint ntimestep)
 
   // output result to file
 
-  if (fp && comm->me == 0) {
-    if (nOutput > 0) {
-      fclose(fp);
+  if (filename && comm->me == 0) {
 
-      std::string nName = fmt::format("{}.{}.vtk",filename,nOutput);
-      fp = fopen(nName.c_str(),"w");
+    // collect the intensity of each grid point of the reciprocal space map.
+    // points outside the explored volume, and outside the slice of the Ewald
+    // sphere when a zone axis is given, are marked with -1.
 
-      if (fp == nullptr)
-        error->one(FLERR,"Cannot open fix saed/vtk file {}: {}", nName,utils::getsyserror());
+    std::vector<double> intensity;
+    intensity.reserve((std::size_t)Dim[0] * Dim[1] * Dim[2]);
+
+    // a zone axis of 0 0 0 means the entire reciprocal space volume is used
+
+    const bool fullvolume = (Zone[0] == 0.0) && (Zone[1] == 0.0) && (Zone[2] == 0.0);
+    int NROW1 = 0;
+
+    for (int k = Knmin[2]; k <= Knmax[2]; k++) {
+      for (int j = Knmin[1]; j <= Knmax[1]; j++) {
+        for (int i = Knmin[0]; i <= Knmax[0]; i++) {
+          double K[3];
+          K[0] = i * dK[0];
+          K[1] = j * dK[1];
+          K[2] = k * dK[2];
+          double dinv2 = (K[0] * K[0] + K[1] * K[1] + K[2] * K[2]);
+
+          bool selected = (dinv2 < Kmax * Kmax);
+          if (selected && !fullvolume) {
+            double r = 0.0;
+            for (int m = 0; m < 3; m++) r += (K[m] - Zone[m]) * (K[m] - Zone[m]);
+            r = sqrt(r);
+            selected = (r > (R_Ewald - dR_Ewald)) && (r < (R_Ewald + dR_Ewald));
+          }
+
+          if (selected) intensity.push_back(vector_total[NROW1++] / norm);
+          else intensity.push_back(-1.0);
+        }
+      }
     }
 
-    fprintf(fp,"# vtk DataFile Version 3.0 c_%s\n",ids);
-    fprintf(fp,"Image data set\n");
-    fprintf(fp,"ASCII\n");
-    fprintf(fp,"DATASET STRUCTURED_POINTS\n");
-    fprintf(fp,"DIMENSIONS %d %d %d\n", Dim[0],  Dim[1], Dim[2]);
-    fprintf(fp,"ASPECT_RATIO %g %g %g\n", dK[0], dK[1], dK[2]);
-    fprintf(fp,"ORIGIN %g %g %g\n", Knmin[0] * dK[0],  Knmin[1] * dK[1], Knmin[2] * dK[2]);
-    fprintf(fp,"POINT_DATA %d\n",  Dim[0] *  Dim[1] * Dim[2] );
-    fprintf(fp,"SCALARS intensity float\n");
-    fprintf(fp,"LOOKUP_TABLE default\n");
+    const double origin[3] = {Knmin[0] * dK[0], Knmin[1] * dK[1], Knmin[2] * dK[2]};
+    std::string nName = filecurrent();
 
-
-    // Finding the intersection of the reciprical space and Ewald sphere
-    int NROW1 = 0;
-    double dinv2 = 0.0;
-    double r = 0.0;
-    double K[3];
-
-    // Zone flag to capture entire recrocal space volume
-    if ((Zone[0] == 0) && (Zone[1] == 0) && (Zone[2] == 0)) {
-      for (int k = Knmin[2]; k <= Knmax[2]; k++) {
-        for (int j = Knmin[1]; j <= Knmax[1]; j++) {
-          for (int i = Knmin[0]; i <= Knmax[0]; i++) {
-            K[0] = i * dK[0];
-            K[1] = j * dK[1];
-            K[2] = k * dK[2];
-            dinv2 = (K[0] * K[0] + K[1] * K[1] + K[2] * K[2]);
-            if (dinv2 < Kmax * Kmax) {
-              fprintf(fp,"%g\n",vector_total[NROW1]/norm);
-              fflush(fp);
-              NROW1++;
-            } else {
-              fprintf(fp,"%d\n",-1);
-              fflush(fp);
-            }
-          }
-        }
-      }
-    } else {
-      for (int k = Knmin[2]; k <= Knmax[2]; k++) {
-        for (int j = Knmin[1]; j <= Knmax[1]; j++) {
-          for (int i = Knmin[0]; i <= Knmax[0]; i++) {
-            K[0] = i * dK[0];
-            K[1] = j * dK[1];
-            K[2] = k * dK[2];
-            dinv2 = (K[0] * K[0] + K[1] * K[1] + K[2] * K[2]);
-            if (dinv2 < Kmax * Kmax) {
-              r=0.0;
-              for (int m=0; m<3; m++) r += pow(K[m] - Zone[m],2.0);
-              r = sqrt(r);
-              if  ( (r >  (R_Ewald - dR_Ewald) ) && (r < (R_Ewald + dR_Ewald) )) {
-                fprintf(fp,"%g\n",vector_total[NROW1]/norm);
-                fflush(fp);
-                NROW1++;
-              } else {
-                fprintf(fp,"%d\n",-1);
-                fflush(fp);
-              }
-            } else {
-              fprintf(fp,"%d\n",-1);
-              fflush(fp);
-            }
-          }
-        }
-      }
+    try {
+      VTKWriter writer((vtkformat == VTKXML) ? VTKWriter::XML : VTKWriter::LEGACY, binaryflag);
+      writer.set_title(fmt::format("Image data set c_{}", ids));
+      writer.set_image_data(Dim, origin, dK);
+      writer.add_point_array("intensity", 1, std::move(intensity));
+      writer.set_active_scalars("intensity");
+      writer.write(nName);
+    } catch (VTKWriterException &e) {
+      error->one(FLERR,"Cannot write fix saed/vtk file {}: {}", nName, e.what());
     }
   }
   nOutput++;
@@ -478,47 +459,73 @@ void FixSAEDVTK::options(int narg, char **arg)
 {
   // option defaults
 
-  fp = nullptr;
   ave = ONE;
   startstep = 0;
+  vtkformat = VTKLEGACY;
+  binaryflag = 0;
 
   // optional args
   int iarg = 7;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"file") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix saed/vtk command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR,"fix saed/vtk file",error);
       if (comm->me == 0) {
-
         nOutput = 0;
+        delete[] filename;
         filename = utils::strdup(arg[iarg+1]);
-
-        std::string nName = fmt::format("{}.{}.vtk",filename,nOutput);
-        fp = fopen(nName.c_str(),"w");
-
-        if (fp == nullptr)
-          error->one(FLERR,"Cannot open fix saed/vtk file {}: {}",
-                                       nName,utils::getsyserror());
       }
       iarg += 2;
+    } else if (strcmp(arg[iarg],"format") == 0) {
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR,"fix saed/vtk format",error);
+      if (strcmp(arg[iarg+1],"legacy") == 0) vtkformat = VTKLEGACY;
+      else if (strcmp(arg[iarg+1],"xml") == 0) vtkformat = VTKXML;
+      else error->all(FLERR,iarg+1,"Unknown fix saed/vtk format {}",arg[iarg+1]);
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"binary") == 0) {
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR,"fix saed/vtk binary",error);
+      binaryflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
+      iarg += 2;
     } else if (strcmp(arg[iarg],"ave") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix saed/vtk command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR,"fix saed/vtk ave",error);
       if (strcmp(arg[iarg+1],"one") == 0) ave = ONE;
       else if (strcmp(arg[iarg+1],"running") == 0) ave = RUNNING;
       else if (strcmp(arg[iarg+1],"window") == 0) ave = WINDOW;
       else error->all(FLERR,"Illegal fix saed/vtk command");
       if (ave == WINDOW) {
-        if (iarg+3 > narg) error->all(FLERR,"Illegal fix saed/vtk command");
+        if (iarg+3 > narg) utils::missing_cmd_args(FLERR,"fix saed/vtk ave window",error);
         nwindow = utils::inumeric(FLERR,arg[iarg+2],false,lmp);
         if (nwindow <= 0) error->all(FLERR,"Illegal fix saed/vtk command");
       }
       iarg += 2;
       if (ave == WINDOW) iarg++;
     } else if (strcmp(arg[iarg],"start") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal fix saed/vtk command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR,"fix saed/vtk start",error);
       startstep = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else error->all(FLERR,"Illegal fix saed/vtk command");
   }
+
+  // check right away that the requested location is writable, rather than
+  // failing on the first output step of a possibly long run.  this has to
+  // wait until all keywords are known, since the format determines the
+  // file name extension.
+
+  if (filename && comm->me == 0) {
+    std::string nName = filecurrent();
+    SafeFilePtr fp(fopen(nName.c_str(),"w"));
+    if (!fp)
+      error->one(FLERR,"Cannot open fix saed/vtk file {}: {}",nName,utils::getsyserror());
+  }
+}
+
+/* ----------------------------------------------------------------------
+   name of the file for the current output, the index is appended to the
+   base name given by the file keyword
+------------------------------------------------------------------------- */
+
+std::string FixSAEDVTK::filecurrent() const
+{
+  return fmt::format("{}.{}.{}",filename,nOutput,(vtkformat == VTKXML) ? "vti" : "vtk");
 }
 
 /* ----------------------------------------------------------------------
@@ -538,11 +545,4 @@ bigint FixSAEDVTK::nextvalid()
     nvalid -= ((bigint)nrepeat-1)*nevery;
   if (nvalid < update->ntimestep) nvalid += nfreq;
   return nvalid;
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixSAEDVTK::reset_timestep(bigint ntimestep)
-{
-  if (ntimestep > nvalid) error->all(FLERR,"Fix saed/vtk missed timestep");
 }

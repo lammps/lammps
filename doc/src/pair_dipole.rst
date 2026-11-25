@@ -4,11 +4,13 @@
 .. index:: pair_style lj/cut/dipole/cut/omp
 .. index:: pair_style lj/sf/dipole/sf
 .. index:: pair_style lj/sf/dipole/sf/gpu
+.. index:: pair_style lj/sf/dipole/sf/kk
 .. index:: pair_style lj/sf/dipole/sf/omp
 .. index:: pair_style lj/cut/dipole/long
 .. index:: pair_style lj/cut/dipole/long/gpu
 .. index:: pair_style lj/cut/dipole/long/omp
 .. index:: pair_style lj/long/dipole/long
+.. index:: pair_style lj/long/dipole/long/omp
 
 pair_style lj/cut/dipole/cut command
 ====================================
@@ -18,7 +20,7 @@ Accelerator Variants: *lj/cut/dipole/cut/gpu*, *lj/cut/dipole/cut/kk*, *lj/cut/d
 pair_style lj/sf/dipole/sf command
 ==================================
 
-Accelerator Variants: *lj/sf/dipole/sf/gpu*, *lj/sf/dipole/sf/omp*
+Accelerator Variants: *lj/sf/dipole/sf/gpu*, *lj/sf/dipole/sf/kk*, *lj/sf/dipole/sf/omp*
 
 pair_style lj/cut/dipole/long command
 =====================================
@@ -27,6 +29,8 @@ Accelerator Variants: *lj/cut/dipole/long/gpu*, *lj/cut/dipole/long/omp*
 
 pair_style lj/long/dipole/long command
 ======================================
+
+Accelerator Variants: *lj/long/dipole/long/omp*
 
 Syntax
 """"""
@@ -221,7 +225,7 @@ and Tij != -Tji since the torques do not act symmetrically.  The
 shifted-force formula for the Lennard-Jones potential is reported in
 :ref:`(Stoddard) <Stoddard>`.  The original (non-shifted) formulas for
 the electrostatic potentials, forces and torques can be found in
-:ref:`(Price) <Price2>`. The shifted-force electrostatic potentials
+:ref:`(Price2) <Price2>`. The shifted-force electrostatic potentials
 have been obtained by applying equation 5.13 of :ref:`(AllenTildesley)
 <Allen2>`. The formulas for the corresponding forces and torques have
 been obtained by applying the 'chain rule' as in appendix C.3 of
@@ -260,7 +264,7 @@ long-range LJ interactions, the :doc:`kspace_style ewald/disp
 
 ----------
 
-The following coefficients must be defined for each pair of atoms types
+The following coefficients must be defined for each pair of atom types
 via the :doc:`pair_coeff <pair_coeff>` command as in the examples above,
 or in the data file or restart files read by the :doc:`read_data
 <read_data>` or :doc:`read_restart <read_restart>` commands, or by
@@ -393,4 +397,4 @@ Clarendon Press, Oxford, 1987.
 
 .. _Price2:
 
-**(Price)** Price, Stone and Alderton, Mol Phys, 52, 987 (1984).
+**(Price2)** Price, Stone and Alderton, Mol Phys, 52, 987 (1984).

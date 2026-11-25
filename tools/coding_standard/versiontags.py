@@ -5,10 +5,10 @@ from __future__ import print_function
 import sys
 
 if sys.version_info.major < 3:
-    sys.exit('This script must be run with Python 3.5 or later')
+    sys.exit('This script must be run with Python 3.9 or later')
 
-if sys.version_info.minor < 5:
-    sys.exit('This script must be run with Python 3.5 or later')
+if sys.version_info.minor < 9:
+    sys.exit('This script must be run with Python 3.9 or later')
 
 import os
 import glob
@@ -37,7 +37,7 @@ patterns:
 """
 
 def check_pending_tag(f):
-    pattern = re.compile(r'^ *\.\. +(version(changed|added)|deprecated):: +TBD')
+    pattern = re.compile(r'^ *\.\. +(version(changed|added|removed)|deprecated):: +TBD')
     last_line = "\n"
     lineno = 1
     errors = set()
@@ -51,7 +51,7 @@ def check_pending_tag(f):
     return errors, last_line
 
 def check_bad_tag(f):
-    pattern = re.compile(r'^ *\.\. +(version(changed|added)|deprecated):\s+\w*')
+    pattern = re.compile(r'^ *\.\. +(version(changed|added|removed)|deprecated):\s+\w*')
     last_line = "\n"
     lineno = 1
     errors = set()

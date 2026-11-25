@@ -39,7 +39,7 @@ int dgelqf_(integer *m, integer *n, doublereal *a, integer *lda, doublereal *tau
     } else if (*lda < max(1, *m)) {
         *info = -4;
     } else if (!lquery) {
-        if (*lwork <= 0 || *n > 0 && *lwork < max(1, *m)) {
+        if (*lwork <= 0 || (*n > 0 && *lwork < max(1, *m))) {
             *info = -7;
         }
     }

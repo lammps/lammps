@@ -66,12 +66,11 @@ curvatures :ref:`(Everaers) <Everaers2>`:
 
 The variable names utilized as potential parameters are for the most
 part taken from :ref:`(Everaers) <Everaers2>` in order to be consistent with
-the :doc:`RE-squared pair potential <pair_resquared>`.  Details on the
-upsilon and mu parameters are given
-`here <PDF/pair_resquared_extra.pdf>`_.
-
-More details of the Gay-Berne formulation are given in the references
-listed below and in `this supplementary document <PDF/pair_gayberne_extra.pdf>`_.
+the :doc:`RE-squared pair potential <pair_resquared>`.  The role of
+the :math:`\upsilon` and :math:`\mu` parameters and more details of the
+Gay-Berne formulation as implemented in LAMMPS are given in the
+:ref:`Implementation details <gayberne_details>` section below and in
+the references listed at the end of this page.
 
 Use of this pair style requires the NVE, NVT, or NPT fixes with the
 *asphere* extension (e.g. :doc:`fix nve/asphere <fix_nve_asphere>`) in
@@ -144,10 +143,130 @@ that type. e.g. in a "pair_coeff I J" command.
    parameters for the particle to D.  The one exception is that if the 3
    shape parameters are set to 0.0, which is a valid way in LAMMPS to
    specify a point particle, then the Gay-Berne potential will treat
-   that as shape parameters of 1.0 (i.e. a LJ particle with
-   :math:`\sigma = 1`), since it requires finite-size particles.  In
-   this case you should still set the pair_coeff :math:`\sigma` to 1.0
-   as well.
+   that particle as a sphere with radius 1.0, i.e. the same as shape
+   parameters of 2.0, since it requires finite-size particles.  This
+   size only matters for interactions with ellipsoids, since the
+   interaction between two such particles is computed with the
+   Lennard-Jones formula and the pair_coeff :math:`\sigma`.  To be
+   consistent with the rule above, you should set the pair_coeff
+   :math:`\sigma` to 2.0 in this case.
+
+----------
+
+.. _gayberne_details:
+
+Implementation details
+""""""""""""""""""""""
+
+The following is a summary of the Gay-Berne formulas as implemented in
+LAMMPS by Mike Brown (Sandia National Labs) in 2007.  Let the shape
+matrices :math:`\mathbf{S}_i = \mathrm{diag}(a_i, b_i, c_i)` be given by
+the radii of particle *i*, i.e. half of the diameters set with the
+:doc:`set shape <set>` command or in the data file.  Let the relative
+energy matrices :math:`\mathbf{E}_i = \mathrm{diag}(\epsilon_{i,a}^{-1/\mu},
+\epsilon_{i,b}^{-1/\mu}, \epsilon_{i,c}^{-1/\mu})` be given by the
+relative well depths of the :doc:`pair_coeff <pair_coeff>` command.
+With the rotation matrices :math:`\mathbf{A}_i` from the simulation box
+frame to the body frame of particle *i*, the following matrices are
+defined:
+
+.. math::
+
+   \mathbf{G}_i = \mathbf{A}_i^T \mathbf{S}_i^2 \mathbf{A}_i, \qquad
+   \mathbf{B}_i = \mathbf{A}_i^T \mathbf{E}_i \mathbf{A}_i, \qquad
+   \mathbf{G}_{12} = \mathbf{G}_1 + \mathbf{G}_2, \qquad
+   \mathbf{B}_{12} = \mathbf{B}_1 + \mathbf{B}_2.
+
+The distance of closest approach :math:`h_{12}` in the formula for
+:math:`U_r` above is computed with the approximation of :ref:`(Perram)
+<Perram>`:
+
+.. math::
+
+   h_{12} = r - \sigma_{12}, \qquad \sigma_{12} = \left[ \frac{1}{2}
+   \hat{\mathbf{r}}_{12}^T \mathbf{G}_{12}^{-1} \hat{\mathbf{r}}_{12}
+   \right]^{-1/2},
+
+where :math:`\mathbf{r}_{12}` is the vector from the center of particle
+1 to the center of particle 2, :math:`r = |\mathbf{r}_{12}|`, and
+:math:`\hat{\mathbf{r}}_{12} = \mathbf{r}_{12}/r`.  The
+orientation-dependent energy terms with the exponents :math:`\upsilon`
+and :math:`\mu` from the pair_style command are
+
+.. math::
+
+   \eta_{12} = & \left[ \frac{2 s_1 s_2}{\det(\mathbf{G}_{12})}
+   \right]^{\upsilon/2}, \qquad s_i = \left( a_i b_i + c_i^2 \right)
+   \sqrt{a_i b_i}, \\
+   \chi_{12} = & \left[ 2 \hat{\mathbf{r}}_{12}^T \mathbf{B}_{12}^{-1}
+   \hat{\mathbf{r}}_{12} \right]^{\mu}.
+
+For a spherical particle with equal relative well depths,
+:math:`\mathbf{G}_i` and :math:`\mathbf{B}_i` are multiples of the unit
+matrix, which do not depend on the orientation of the particle.
+
+Since the analytic forces and torques were not available in the
+literature when this pair style was implemented, they are listed here.
+With the abbreviations
+
+.. math::
+
+   \boldsymbol{\kappa} = \mathbf{G}_{12}^{-1} \mathbf{r}_{12}, \qquad
+   \boldsymbol{\iota} = \mathbf{B}_{12}^{-1} \mathbf{r}_{12}, \qquad
+   u' = \frac{24 \epsilon}{\sigma} \left( 2 \varrho^{13} - \varrho^7
+   \right) = -\frac{\partial U_r}{\partial h_{12}},
+
+the force on particle 1 is
+
+.. math::
+
+   \mathbf{f}_1 = - \eta_{12} \left( U_r \frac{\partial
+   \chi_{12}}{\partial \mathbf{x}_1} + \chi_{12} \frac{\partial
+   U_r}{\partial \mathbf{x}_1} \right)
+
+with the derivatives with respect to the position :math:`\mathbf{x}_1`
+of particle 1 (see also :ref:`(Allen) <Allen3>`):
+
+.. math::
+
+   \frac{\partial U_r}{\partial \mathbf{x}_1} = & u' \,
+   \hat{\mathbf{r}}_{12} + \frac{u' \sigma_{12}^3}{2 r^2} \left[
+   \boldsymbol{\kappa} - \left( \boldsymbol{\kappa} \cdot
+   \hat{\mathbf{r}}_{12} \right) \hat{\mathbf{r}}_{12} \right], \\
+   \frac{\partial \chi_{12}}{\partial \mathbf{x}_1} = & - \frac{4
+   \mu}{r^2} \chi_{12}^{(\mu - 1)/\mu} \left[ \boldsymbol{\iota} -
+   \left( \boldsymbol{\iota} \cdot \hat{\mathbf{r}}_{12} \right)
+   \hat{\mathbf{r}}_{12} \right].
+
+The force on particle 2 is :math:`\mathbf{f}_2 = -\mathbf{f}_1`.  The
+torque on particle *i* is
+
+.. math::
+
+   \boldsymbol{\tau}_i = - \left( U_r \eta_{12} \frac{\partial
+   \chi_{12}}{\partial \boldsymbol{\phi}_i} + U_r \chi_{12} \frac{\partial
+   \eta_{12}}{\partial \boldsymbol{\phi}_i} + \eta_{12} \chi_{12}
+   \frac{\partial U_r}{\partial \boldsymbol{\phi}_i} \right),
+
+where :math:`\partial / \partial \boldsymbol{\phi}_i` denotes the
+derivative with respect to an infinitesimal rotation of particle *i*.
+Let :math:`\mathbf{a}_{m,i}` be the *m*-th row of :math:`\mathbf{A}_i`,
+i.e. the *m*-th axis of particle *i* in the simulation box frame, and
+:math:`s_{m,i}` the corresponding radius.  Then
+
+.. math::
+
+   \frac{\partial U_r}{\partial \boldsymbol{\phi}_i} = & - \frac{u'
+   \sigma_{12}^3}{2 r^2} \, \boldsymbol{\kappa} \times \left(
+   \mathbf{G}_i \boldsymbol{\kappa} \right), \\
+   \frac{\partial \chi_{12}}{\partial \boldsymbol{\phi}_i} = & \frac{4
+   \mu}{r^2} \chi_{12}^{(\mu - 1)/\mu} \, \boldsymbol{\iota} \times
+   \left( \mathbf{B}_i \boldsymbol{\iota} \right), \\
+   \frac{\partial \eta_{12}}{\partial \boldsymbol{\phi}_i} = &
+   \sum_{m=1}^3 \mathbf{a}_{m,i} \times \frac{\partial \eta_{12}}{\partial
+   \mathbf{a}_{m,i}} = - \upsilon \, \eta_{12} \sum_{m=1}^3 s_{m,i}^2 \,
+   \mathbf{a}_{m,i} \times \left( \mathbf{G}_{12}^{-1} \mathbf{a}_{m,i}
+   \right).
 
 ----------
 

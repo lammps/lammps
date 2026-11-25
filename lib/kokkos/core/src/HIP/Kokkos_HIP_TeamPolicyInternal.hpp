@@ -160,7 +160,7 @@ class TeamPolicyInternal<HIP, Properties...>
     // arbitrarily setting level 1 scratch limit to 20MB, for a
     // MI250 that would give us about 4.4GB for 2 teams per CU
     constexpr size_t max_l1_scratch_size =
-        static_cast<size_t>(20 * 1024 * 1024);
+        static_cast<size_t>(80 * 1024 * 1024);
 
     size_t max_shmem = HIP().hip_device_prop().sharedMemPerBlock;
     return (level == 0 ? max_shmem - max_reserved_shared_mem_per_team

@@ -26,7 +26,6 @@ if(BUILD_MPI)
   add_executable(test_nbody_mpi test_nbody_mpi.cpp)
   target_link_libraries(test_nbody_mpi PRIVATE lammps GTest::GMockMain MPI::MPI_CXX)
   add_mpi_test(NAME NbodyMPI NUM_PROCS 4 COMMAND $<TARGET_FILE:test_nbody_mpi>)
-  set_tests_properties(NbodyMPI PROPERTIES LABELS "mpi")
 endif()
 
 add_executable(test_argutils test_argutils.cpp)
@@ -66,6 +65,10 @@ add_executable(test_fmtlib test_fmtlib.cpp)
 target_link_libraries(test_fmtlib PRIVATE lammps GTest::GMockMain)
 add_test(NAME FmtLib COMMAND test_fmtlib)
 
+add_executable(test_sprintf test_sprintf.cpp)
+target_link_libraries(test_sprintf PRIVATE lammps GTest::GMockMain)
+add_test(NAME Sprintf COMMAND test_sprintf)
+
 add_executable(test_json test_json.cpp)
 target_link_libraries(test_json PRIVATE lammps GTest::GMockMain)
 add_test(NAME JSON COMMAND test_json)
@@ -78,6 +81,15 @@ add_test(NAME MathEigen COMMAND test_math_eigen_impl 10 5)
 # FFT Testing Infrastructure
 # =============================================================================
 
+if(PKG_KOKKOS)
+  # make certain we pull in the CUDA toolkit target when compiling KOKKOS for CUDA
+  if(Kokkos_ENABLE_CUDA)
+    if(NOT TARGET CUDA::cudart)
+      find_package(CUDAToolkit REQUIRED)
+    endif()
+  endif()
+endif()
+
 # -----------------------------------------------------------------------------
 # FFT3D Tests (Standard KSPACE FFT)
 # -----------------------------------------------------------------------------
@@ -89,12 +101,40 @@ if(PKG_KSPACE)
 
   # Add Kokkos if enabled
   if(PKG_KOKKOS)
-    target_link_libraries(test_fft3d PRIVATE Kokkos::kokkos)
+    target_link_libraries(test_fft3d PRIVATE $<COMPILE_ONLY:Kokkos::kokkos>)
+    if(Kokkos_ENABLE_CUDA)
+      target_link_libraries(test_fft3d PRIVATE CUDA::cudart)
+    endif()
+    if(Kokkos_ENABLE_OpenMP)
+      target_link_libraries(test_fft3d PRIVATE OpenMP::OpenMP_CXX)
+    endif()
   endif()
 
   # Propagate FFT_SINGLE preprocessor definition
   if(FFT_SINGLE)
     target_compile_definitions(test_fft3d PRIVATE -DFFT_SINGLE)
+  endif()
+
+  # Propagate the FFT library definitions (FFT_FFTW3, FFT_FFTW_THREADS, ...),
+  # so the library specific tests are not skipped
+  get_target_property(LAMMPS_FFT_DEFINITIONS lammps COMPILE_DEFINITIONS)
+  list(FILTER LAMMPS_FFT_DEFINITIONS INCLUDE REGEX "^-?D?FFT_")
+  target_compile_definitions(test_fft3d PRIVATE ${LAMMPS_FFT_DEFINITIONS})
+
+  # fft3d.h includes the header of the FFT library, but the lammps target links
+  # the FFT library privately, so its include path is not inherited (fails when
+  # the header is not in a default include path, e.g. FFTW3 with Homebrew on macOS)
+  if(FFT STREQUAL "FFTW3")
+    target_link_libraries(test_fft3d PRIVATE ${FFTW}::${FFTW})
+  elseif(FFT STREQUAL "MKL")
+    target_link_libraries(test_fft3d PRIVATE MKL::MKL)
+  elseif(FFT STREQUAL "NVPL")
+    target_link_libraries(test_fft3d PRIVATE nvpl::fftw)
+  endif()
+
+  # OpenMP lets the tests set the number of threads used by threaded FFTs
+  if(BUILD_OMP AND TARGET OpenMP::OpenMP_CXX)
+    target_link_libraries(test_fft3d PRIVATE OpenMP::OpenMP_CXX)
   endif()
 
   # Register serial test
@@ -107,15 +147,9 @@ if(PKG_KSPACE)
   if(BUILD_MPI)
     # Test with 2 processes
     add_mpi_test(NAME FFT3D_MPI_2proc NUM_PROCS 2 COMMAND $<TARGET_FILE:test_fft3d>)
-    set_tests_properties(FFT3D_MPI_2proc PROPERTIES
-      LABELS "fft;kspace;mpi;utils"
-      ENVIRONMENT "OMP_PROC_BIND=false")
 
     # Test with 4 processes
     add_mpi_test(NAME FFT3D_MPI_4proc NUM_PROCS 4 COMMAND $<TARGET_FILE:test_fft3d>)
-    set_tests_properties(FFT3D_MPI_4proc PROPERTIES
-      LABELS "fft;kspace;mpi;utils"
-      ENVIRONMENT "OMP_PROC_BIND=false")
   endif()
 endif()
 
@@ -125,7 +159,13 @@ endif()
 if(PKG_KSPACE AND PKG_KOKKOS)
   # Build test_fft3d_kokkos executable
   add_executable(test_fft3d_kokkos test_fft3d_kokkos.cpp ../error_stats.cpp)
-  target_link_libraries(test_fft3d_kokkos PRIVATE lammps GTest::GMockMain Kokkos::kokkos)
+  target_link_libraries(test_fft3d_kokkos PRIVATE lammps GTest::GMockMain $<COMPILE_ONLY:Kokkos::kokkos>)
+  if(Kokkos_ENABLE_CUDA)
+    target_link_libraries(test_fft3d_kokkos PRIVATE CUDA::cudart)
+  endif()
+  if(Kokkos_ENABLE_OPENMP)
+    target_link_libraries(test_fft3d_kokkos PRIVATE OpenMP::OpenMP_CXX)
+  endif()
   target_include_directories(test_fft3d_kokkos PRIVATE ${LAMMPS_SOURCE_DIR} ${LAMMPS_SOURCE_DIR}/KSPACE)
 
   # Propagate FFT_SINGLE preprocessor definition
@@ -178,15 +218,9 @@ if(PKG_KSPACE AND PKG_KOKKOS)
   if(BUILD_MPI)
     # Test with 2 processes
     add_mpi_test(NAME FFT3DKokkos_MPI_2proc NUM_PROCS 2 COMMAND $<TARGET_FILE:test_fft3d_kokkos>)
-    set_tests_properties(FFT3DKokkos_MPI_2proc PROPERTIES
-      LABELS "fft;kokkos;kspace;mpi;utils"
-      ENVIRONMENT "OMP_PROC_BIND=false")
 
     # Test with 4 processes
     add_mpi_test(NAME FFT3DKokkos_MPI_4proc NUM_PROCS 4 COMMAND $<TARGET_FILE:test_fft3d_kokkos>)
-    set_tests_properties(FFT3DKokkos_MPI_4proc PROPERTIES
-      LABELS "fft;kokkos;kspace;mpi;utils"
-      ENVIRONMENT "OMP_PROC_BIND=false")
   endif()
 endif()
 

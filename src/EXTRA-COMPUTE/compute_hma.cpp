@@ -156,8 +156,7 @@ ComputeHMA::ComputeHMA(LAMMPS *lmp, int narg, char **arg) :
 
 ComputeHMA::~ComputeHMA()
 {
-  // check nfix in case all fixes have already been deleted
-  if (modify->nfix) modify->delete_fix(id_fix);
+  modify->delete_fix(id_fix);
 
   delete[] id_fix;
   delete[] id_temp;
@@ -403,8 +402,8 @@ double ComputeHMA::virial_compute(int n)
   if (force->angle) v += sumVirial(n, force->angle->virial);
   if (force->dihedral) v += sumVirial(n, force->dihedral->virial);
   if (force->improper) v += sumVirial(n, force->improper->virial);
-  for (int i = 0; i < modify->nfix; i++)
-    if (modify->fix[i]->thermo_virial) v += sumVirial(n, modify->fix[i]->virial);
+  for (const auto &ifix : modify->get_fix_list())
+    if (ifix->thermo_virial) v += sumVirial(n, ifix->virial);
 
   // sum virial across procs
 

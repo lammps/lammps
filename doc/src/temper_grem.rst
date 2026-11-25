@@ -72,7 +72,8 @@ attempted swap of temperatures is either accepted or rejected based on
 a Metropolis criterion, derived for gREM by :ref:`(Kim) <Kim>`, which uses
 *seed2* in the random number generator.
 
-File management works identical to the :doc:`temper <temper>` command.
+File management, including writing and reading a separate restart file
+for each replica, works identical to the :doc:`temper <temper>` command.
 Dump files created by this fix contain continuous trajectories and
 require post-processing to obtain per-replica information.
 

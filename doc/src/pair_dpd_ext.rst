@@ -109,7 +109,7 @@ terms. There is no pairwise energy for style *dpd/ext/tstat*, but the
 last two terms of the formula contribute the virial.
 
 For the style *dpd/ext*, the following coefficients must be defined for
-each pair of atoms types via the :doc:`pair_coeff <pair_coeff>` command
+each pair of atom types via the :doc:`pair_coeff <pair_coeff>` command
 as in the examples above:
 
 * A (force units)
@@ -126,7 +126,7 @@ the :doc:`pair_style <pair_style>` command so it does not need to be
 specified.
 
 For the style *dpd/ext/tstat*, the coefficients defined for each pair of
-atoms types via the :doc:`pair_coeff <pair_coeff>` command are:
+atom types via the :doc:`pair_coeff <pair_coeff>` command are:
 
 * :math:`\gamma_{\parallel}` (force/velocity units)
 * :math:`\gamma_{\perp}` (force/velocity units)

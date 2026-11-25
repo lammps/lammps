@@ -599,6 +599,49 @@ TEST(TEST_CATEGORY, UnorderedMap_View_as_value) {
   ASSERT_GE(map_copy.capacity(), 200u);
   ASSERT_TRUE(map_copy.is_allocated());
 }
+
+struct NonComparableType {
+  bool operator==(NonComparableType const &) = delete;
+  bool operator!=(NonComparableType const &) = delete;
+  double dummy[3];  //>8bytes to force triggering the lock-table based atomics
+};
+
+/**
+ * @test This test ensures that an @ref UnorderedMap can be used with a
+ * value_type that does not provide comparison. This is relevant since we need a
+ * SYCL workaround for volatile_load and store to make the map work.
+ */
+TEST(TEST_CATEGORY, UnorderedMap_non_comparable_type_as_value) {
+  using value_type = NonComparableType;
+  using map_type   = Kokkos::UnorderedMap<int, value_type, Kokkos::HostSpace>;
+  map_type map(Kokkos::view_alloc("test NonComparableType umap"), 150);
+  // creation
+  ASSERT_EQ(map.size(), 0u);
+  ASSERT_GE(map.capacity(), 150u);
+  ASSERT_TRUE(map.is_allocated());
+
+  // insert
+  ASSERT_TRUE(map.insert(1, NonComparableType{}).success());
+  ASSERT_TRUE(map.insert(2, NonComparableType{}).success());
+  ASSERT_EQ(map.size(), 2u);
+
+  // copy
+  map_type map_copy(map);
+  ASSERT_EQ(map_copy.size(), 2u);
+  ASSERT_GE(map_copy.capacity(), 150u);
+  ASSERT_TRUE(map_copy.is_allocated());
+
+  // rehash
+  ASSERT_TRUE(map.rehash(200u));
+  ASSERT_GE(map.capacity(), 200u);
+  ASSERT_TRUE(map.is_allocated());
+
+  // assign
+  map_copy = map;
+  ASSERT_EQ(map_copy.size(), 2u);
+  ASSERT_GE(map_copy.capacity(), 200u);
+  ASSERT_TRUE(map_copy.is_allocated());
+}
 }  // namespace Test
 
 #endif  // KOKKOS_TEST_UNORDERED_MAP_HPP

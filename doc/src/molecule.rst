@@ -68,6 +68,7 @@ templates include:
 * :doc:`fix rigid/small <fix_rigid>`
 * :doc:`fix shake <fix_shake>`
 * :doc:`fix gcmc <fix_gcmc>`
+* :doc:`fix widom <fix_widom>`
 * :doc:`fix bond/react <fix_bond_react>`
 * :doc:`create_atoms <create_atoms>`
 * :doc:`atom_style template <atom_style>`
@@ -90,9 +91,11 @@ and underscores, same as other IDs in LAMMPS.
 A single template can contain multiple molecules, listed one per file.
 Some of the commands listed above currently use only the first
 molecule in the template, and will issue a warning if the template
-contains multiple molecules.  The :doc:`atom_style template
-<atom_style>` command allows multiple-molecule templates to define a
-system with more than one templated molecule.
+contains multiple molecules.  The :doc:`fix gcmc <fix_gcmc>` command
+can select a different molecule with its *molindex* keyword.  The
+:doc:`atom_style template <atom_style>` command allows
+multiple-molecule templates to define a system with more than one
+templated molecule.
 
 The molecule file can be either in a *native* format or in `JSON format
 <https://www.json.org/>`_.  JSON format filenames **must** have the

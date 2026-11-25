@@ -1,0 +1,21 @@
+---
+lammps_version: 2 Sep 2026
+tags:
+date_generated: Fri Sep  4 18:35:24 2026
+epsilon: 1e-08
+timestep: 0.25
+skip_tests:
+prerequisites: |
+  atom full
+  compute temp/profile
+pre_commands: ""
+post_commands: |
+  change_box all triclinic xy final 4.0 xz final -3.0 yz final 2.5 units box
+  compute test all temp/profile 1 1 1 x 5
+input_file: in.fourmol
+input_coeffs: coeffs.fourmol
+natoms: 29
+global_scalar: 3848.8532240290137
+global_vector: |-
+  6  1.0038697802395330e+02  1.2910315361438484e+02  3.2119948617736986e+02 -8.1783381453473339e+01 -1.0398128752787399e+02  1.3282205863381802e+02
+...

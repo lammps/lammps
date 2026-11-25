@@ -87,7 +87,7 @@ void AtomVecHybrid::process_args(int narg, char **arg)
     // by looking for the next known atom style name.
 
     int jarg = iarg + 1;
-    while ((jarg < narg) && !atom->avec_map->count(arg[jarg]) &&
+    while ((jarg < narg) && !Atom::avec_styles().contains(arg[jarg]) &&
            !lmp->match_style("atom", arg[jarg]))
       jarg++;
 

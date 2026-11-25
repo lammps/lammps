@@ -1,9 +1,12 @@
 .. index:: fix brownian
+.. index:: fix brownian/kk
 .. index:: fix brownian/sphere
 .. index:: fix brownian/asphere
 
 fix brownian command
 ===========================
+
+Accelerator Variants: *brownian/kk*
 
 fix brownian/sphere command
 ===========================
@@ -237,6 +240,10 @@ to the *x*\ -- *y* plane in a 3D simulation. Only compatible with
    For style *brownian/asphere*, the components *gamma_t_eigen* = (x,x,x) and
    *gamma_r_eigen* = (y,y,y), the dynamics will replicate those of the
    *brownian/sphere* style with *gamma_t* = x and *gamma_r* = y.
+
+----------
+
+.. include:: accel_styles.rst
 
 ----------
 

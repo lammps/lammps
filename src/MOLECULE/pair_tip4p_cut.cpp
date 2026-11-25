@@ -54,6 +54,8 @@ PairTIP4PCut::PairTIP4PCut(LAMMPS *lmp) : Pair(lmp)
 
 PairTIP4PCut::~PairTIP4PCut()
 {
+  if (copymode) return;
+
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);
@@ -399,7 +401,7 @@ void PairTIP4PCut::coeff(int narg, char **arg)
   // set atom types from pair_style command unless we were restarted
   // and the types are already set and the strings are empty.
 
-  if (typeO_str.size() > 0) {
+  if (!typeO_str.empty()) {
     typeO = utils::expand_type_int(FLERR, typeO_str, Atom::ATOM, lmp, true);
     typeH = utils::expand_type_int(FLERR, typeH_str, Atom::ATOM, lmp, true);
     typeB = utils::expand_type_int(FLERR, typeB_str, Atom::BOND, lmp, true);

@@ -1,7 +1,10 @@
 .. index:: pair_style multi/lucy
+.. index:: pair_style multi/lucy/omp
 
 pair_style multi/lucy command
 =============================
+
+Accelerator Variants: *multi/lucy/omp*
 
 Syntax
 """"""
@@ -165,6 +168,10 @@ density values must increase from one line to the next.
 Note that one file can contain many sections, each with a tabulated
 potential.  LAMMPS reads the file section by section until it finds
 one that matches the specified keyword.
+
+----------
+
+.. include:: accel_styles.rst
 
 ----------
 

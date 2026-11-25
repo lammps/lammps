@@ -84,16 +84,13 @@ void AtomVecOxdna::data_atom_post(int ilocal)
 ------------------------------------------------------------------------- */
 
 void AtomVecOxdna::data_bonds_post(int /*m*/, int /*num_bond*/, tagint atom1, tagint atom2,
-                                   tagint id_offset)
+                                   tagint /*id_offset*/)
 {
   int n;
   tagint *id3p = atom->id3p;
   tagint *id5p = atom->id5p;
 
-  if (id_offset) {
-    atom1 += id_offset;
-    atom2 += id_offset;
-  }
+  // atom1 and atom2 already include the ID offset of read_data add
 
   if ((n = atom->map(atom1)) >= 0) { id5p[n] = atom2; }
   if ((n = atom->map(atom2)) >= 0) { id3p[n] = atom1; }

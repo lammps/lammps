@@ -97,6 +97,40 @@ or Lines section, then triangles/lines will be read in and distributed
 along with any particles the data file includes, assuming an appropriate
 :doc:`atom_style <atom_style>` has been specified, as explained below.
 
+.. image:: img/mixer-drum.jpg
+   :width: 50%
+
+.. admonition:: Reusing STL files created for 3d-printing
+
+   There are a large number of STL files published and available for
+   download that were generated for 3d-printing (see the cement mixer
+   drum above for example, that was created for printing a cement truck
+   toy model).  Those can in principle be used with LAMMPS, but there
+   are a couple of quirks to watch out for.  Those STL files may contain
+   degenerate triangles; this is not a problem for 3d-printing but for
+   LAMMPS.  LAMMPS will either try to ignore those triangles or stop
+   with an error.  Another issue are duplicate triangles.  Those will
+   double the force in LAMMPS which is not likely what you want.
+   Finally, those STL files may have very long and narrow triangles.
+   These force LAMMPS to have a very large neighbor list and a long
+   communication cutoff (both are detected and warnings or errors are
+   printed).
+
+   Thus in many cases, it is advisable to *remesh* the STL file, i.e.
+   recreate the surface(s) with more regular and fewer triangles.  One
+   option to do this is by using `MeshLab or PyMeshLab
+   <https://meshlab.net>`_.  Here is an example:
+
+   .. code-block:: Python
+
+      import pymeshlab
+      ms = pymeshlab.MeshSet()
+      ms.load_new_mesh('input.stl')
+      ms.meshing_isotropic_explicit_remeshing(iterations=5,
+        targetlen=pymeshlab.PercentageValue(1.0)  # target edge length as % of bbox diagonal
+      )
+      ms.save_current_mesh("output.stl")
+
 ----------
 
 Surface attributes
@@ -109,7 +143,7 @@ molecule IDs, the :doc:`fix surface/global <fix_surface_global>` and
 :doc:`fix surface/local <fix_surface_local>` commands specify the type
 and molecule ID that will be assigned to the read-in triangles.  The
 :doc:`fix surface/global <fix_surface_global>` command also allows use
-of the :doc:`fix_modify type/region <fix_modify>` command to assign
+of the :doc:`fix_modify type/region <fix_surface_global>` command to assign
 types based on a geometric region.  Since local surfaces are effectively
 particles, the :doc:`set <set>` command can be used to alter the *type*
 or *molecule ID* of any triangle or line.
@@ -196,7 +230,7 @@ As an example of a valid intersection, consider a 2d simulation which
 mixes a container of granular particles.  *Global* line segments are
 used to define both the box-shaped container and the mixer in the
 center.  The 4 mixer blades are in the shape of a large X and are made
-to rotate using the :doc:`fix_modify <fix_modify>` command (see below).
+to rotate using the :doc:`fix_modify move <fix_surface_global>` command (see below).
 
 .. figure:: img/gransurf_mixer.png
             :figwidth: 50%
@@ -322,16 +356,16 @@ However, triangles/lines can be made to move in a prescribed manner.
 E.g. the rotation of 2d mixer blades in the example described above.
 These two commands can be used for that purpose:
 
-* :doc:`fix_modify move <fix_modify>` for *global* surfaces
+* :doc:`fix_modify move <fix_surface_global>` for *global* surfaces
 * :doc:`fix move <fix_move>` for *local* surfaces
 
-For *global* surfaces, the :doc:`fix_modify move <fix_modify>` command
+For *global* surfaces, the :doc:`fix_modify move <fix_surface_global>` command
 can move a specified subset of the triangles/lines in various ways
 (translation, rotation, etc).  Which triangles move is specified based
 on the *molecule ID* of each triangle.  Molecule IDs are specified when
 surfaces are defined by the :doc:`fix surface/global
 <fix_surface_global>` command.  They can also be defined by the
-:doc:`fix_modify mol/region <fix_modify>` command.
+:doc:`fix_modify mol/region <fix_surface_global>` command.
 
 For *local* surfaces, the :doc:`fix move <fix_move>` command can move a
 specified subset of the triangles/lines in various ways (translation,

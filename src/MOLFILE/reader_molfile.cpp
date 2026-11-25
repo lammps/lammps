@@ -62,7 +62,7 @@ ReaderMolfile::~ReaderMolfile()
     memory->destroy(types);
     memory->destroy(coords);
     memory->destroy(vels);
-    if (mf) delete mf;
+    delete mf;
   }
 }
 

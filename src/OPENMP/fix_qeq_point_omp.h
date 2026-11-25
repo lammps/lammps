@@ -11,6 +11,7 @@
 #ifdef FIX_CLASS
 // clang-format off
 FixStyle(qeq/point/omp,FixQEqPointOMP);
+FixStyle(qeq/point/xlmd/omp,FixQEqPointOMP);
 // clang-format on
 #else
 

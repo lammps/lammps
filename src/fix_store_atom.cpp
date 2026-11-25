@@ -75,9 +75,9 @@ FixStoreAtom::FixStoreAtom(LAMMPS *lmp, int narg, char **arg) :
   tstore = nullptr;
 
   FixStoreAtom::grow_arrays(atom->nmax);
-  atom->add_callback(Atom::GROW);
-  if (restartflag) atom->add_callback(Atom::RESTART);
-  if (ghostflag) atom->add_callback(Atom::BORDER);
+  atom->add_callback(this, Atom::GROW);
+  if (restartflag) atom->add_callback(this, Atom::RESTART);
+  if (ghostflag) atom->add_callback(this, Atom::BORDER);
 
   // zero the storage
 
@@ -100,9 +100,9 @@ FixStoreAtom::~FixStoreAtom()
 {
   // unregister callbacks to this fix from Atom class
 
-  atom->delete_callback(id, Atom::GROW);
-  if (restartflag) atom->delete_callback(id, Atom::RESTART);
-  if (ghostflag) atom->delete_callback(id, Atom::BORDER);
+  atom->delete_callback(this, Atom::GROW);
+  if (restartflag) atom->delete_callback(this, Atom::RESTART);
+  if (ghostflag) atom->delete_callback(this, Atom::BORDER);
 
   memory->destroy(vstore);
   memory->destroy(astore);
@@ -145,6 +145,22 @@ void FixStoreAtom::copy_arrays(int i, int j, int /*delflag*/)
     for (int m = 0; m < nvalues; m++) astore[j][m] = astore[i][m];
   } else if (tensorflag) {
     memcpy(&tstore[j][0][0], &tstore[i][0][0], nbytes);
+  }
+}
+
+/* ----------------------------------------------------------------------
+   zero the values of an atom added during a run
+   only called if the owner of this fix sets create_attribute
+------------------------------------------------------------------------- */
+
+void FixStoreAtom::set_arrays(int i)
+{
+  if (vecflag) {
+    vstore[i] = 0.0;
+  } else if (arrayflag) {
+    for (int m = 0; m < nvalues; m++) astore[i][m] = 0.0;
+  } else if (tensorflag) {
+    memset(&tstore[i][0][0], 0, nbytes);
   }
 }
 

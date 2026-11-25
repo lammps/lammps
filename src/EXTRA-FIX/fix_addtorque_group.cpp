@@ -89,6 +89,8 @@ FixAddTorqueGroup::FixAddTorqueGroup(LAMMPS *lmp, int narg, char **arg) :
 
 FixAddTorqueGroup::~FixAddTorqueGroup()
 {
+  if (copymode) return;
+
   delete [] xstr;
   delete [] ystr;
   delete [] zstr;

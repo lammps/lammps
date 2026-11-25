@@ -1,7 +1,10 @@
 .. index:: pair_style meam/sw/spline
+.. index:: pair_style meam/sw/spline/omp
 
 pair_style meam/sw/spline command
 =================================
+
+Accelerator Variants: *meam/sw/spline/omp*
 
 Syntax
 """"""
@@ -70,10 +73,9 @@ where N is the number of LAMMPS atom types:
 See the :doc:`pair_coeff <pair_coeff>` page for alternate ways
 to specify the path for the potential file.
 
-As an example, imagine the Ti.meam.sw.spline file has values for Ti.
-If your LAMMPS simulation has 3 atoms types and they are all to be
-treated with this potential, you would use the following pair_coeff
-command:
+As an example, imagine the Ti.meam.sw.spline file has values for Ti.  If
+your LAMMPS simulation has 3 atom types and they are all to be treated
+with this potential, you would use the following pair_coeff command:
 
 .. code-block:: LAMMPS
 
@@ -95,6 +97,10 @@ potentials.
 
 Example input scripts that use this pair style are provided
 in the examples/PACKAGES/meam_sw_spline directory.
+
+----------
+
+.. include:: accel_styles.rst
 
 ----------
 

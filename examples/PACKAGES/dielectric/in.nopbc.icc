@@ -1,0 +1,4 @@
+variable    method index icc  # gmres = BEM/GMRES
+                                # icc   = BEM/ICC*
+                                # dof   = Direct optimization of the functional
+include nopbc.inc

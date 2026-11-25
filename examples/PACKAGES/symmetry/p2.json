@@ -1,0 +1,5 @@
+{
+  "_comment": "space group P2 with the two-fold axis along z through the origin of the box",
+  "group_name": "P2",
+  "ops": [ "x,y,z", "-x,-y,z" ]
+}

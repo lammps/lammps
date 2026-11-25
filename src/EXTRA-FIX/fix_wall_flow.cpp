@@ -137,7 +137,7 @@ FixWallFlow::FixWallFlow(LAMMPS *lmp, int narg, char **arg) :
     walls[w] = utils::numeric(FLERR, arg[iarg], do_abort, lmp) * scale;
   }
   walls.back() = domain->boxhi[flowax];
-  if (!std::is_sorted(walls.begin(), walls.end(), std::less_equal<double>())) {
+  if (!std::is_sorted(walls.begin(), walls.end(), std::less_equal<>())) {
     error->all(FLERR,
                "Wrong fix wall/flow wall ordering or some walls are outside simulation domain");
   }
@@ -149,8 +149,8 @@ FixWallFlow::FixWallFlow(LAMMPS *lmp, int narg, char **arg) :
   }
 
   memory->grow(current_segment, atom->nmax, "WallFlow::current_segment");
-  atom->add_callback(Atom::GROW);
-  if (restart_peratom) atom->add_callback(Atom::RESTART);
+  atom->add_callback(this, Atom::GROW);
+  if (restart_peratom) atom->add_callback(this, Atom::RESTART);
 
   maxexchange = 1;
 
@@ -162,8 +162,8 @@ FixWallFlow::FixWallFlow(LAMMPS *lmp, int narg, char **arg) :
 FixWallFlow::~FixWallFlow()
 {
   if (copymode) return;
-  atom->delete_callback(id, Atom::GROW);
-  if (restart_peratom) atom->delete_callback(id, Atom::RESTART);
+  atom->delete_callback(this, Atom::GROW);
+  if (restart_peratom) atom->delete_callback(this, Atom::RESTART);
   memory->destroy(current_segment);
 
   delete random;

@@ -1,0 +1,25 @@
+---
+lammps_version: 2 Sep 2026
+tags:
+date_generated: Fri Sep 11 23:28:24 2026
+epsilon: 1e-08
+timestep: 1e-04
+skip_tests:
+prerequisites: |
+  atom spin
+  pair spin/exchange
+  fix nve/spin
+  compute spin
+pre_commands: |
+  variable newton_pair delete
+  variable newton_pair index on
+post_commands: |
+  pair_style spin/exchange 3.5
+  pair_coeff * * exchange 3.4 0.02726 0.2171 1.841 offset yes
+  fix move all nve/spin lattice yes
+  compute test all spin
+input_file: in.spin
+natoms: 54
+global_vector: |-
+  6  3.7496564871433345e-02  1.9820296777634382e-04 -1.5020073176336843e-01  1.5481050185250805e-01  6.1214523096087534e+00 -2.7943915053503088e+03
+...

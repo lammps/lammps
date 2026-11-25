@@ -25,6 +25,8 @@
 #include "memory_kokkos.h"
 #include "pair_reaxff_kokkos.h"
 
+#include <cmath>
+
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
@@ -85,8 +87,30 @@ void FixReaxFFBondsKokkos::Output_ReaxFF_Bonds()
     ((PairReaxFFKokkos<LMPHostType>*) reaxff)->PackBondBuffer(k_buf,nbuf_local);
   buf[0] = nlocal;
 
-  // Receive information from buffer for output
-  RecvBuffer(buf, nbuf, nbuf_local, nlocal_tot, numbonds_max);
+  // keep the bonds of the local atoms for dump image.  the buffer has the
+  // same layout as for the plain version, see FixReaxFFBonds::PassBuffer()
+
+  if (atom->nmax > nmax) {
+    destroy();
+    nmax = atom->nmax;
+    allocate();
+  }
+
+  numobjs = 0;
+  int j = 2;
+  for (int i = 0; i < nlocal; i++) {
+    const int nb = std::lround(buf[j+4]);
+    numneigh[i] = nb;
+    for (int k = 0; k < nb; k++) neighid[i][k] = static_cast<tagint>(buf[j+5+k]);
+    j += 5 + nb + 1;
+    for (int k = 0; k < nb; k++) abo[i][k] = buf[j+k];
+    j += 1 + nb;
+    numobjs += nb;
+  }
+
+  // no file output with NULL file name.
+
+  if (filename != "NULL") RecvBuffer(buf, nbuf, nbuf_local, nlocal_tot, numbonds_max);
 
   memoryKK->destroy_kokkos(k_buf,buf);
 }

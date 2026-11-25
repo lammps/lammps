@@ -61,6 +61,17 @@ the one electronic DOF is added afterward.  Use *dynamic/dof yes* when
 the atom count changes during a run.  Nuclear DOF must not be negative
 for a nonempty group, and combined DOF must be positive.
 
+:doc:`Fix uvt <fix_uvt>` creates a compute of this style automatically,
+with ID *fix-ID_temp*, and uses it for its combined thermostat.  Another
+compute of this style can be selected with :doc:`fix_modify temp
+<fix_modify>` if it references the same fix and uses the same group.
+Fix uvt also reports this temperature as the second entry of its global
+vector (*f_cp[2]* for the fix ID *cp* in the example above), so an
+explicit compute is not needed to print it; *c_combined* in the example
+reports the same value.  Other thermostats for the atoms do not scale
+the electron-number velocity and must not use this combined temperature
+to control the coupled system.
+
 Output info
 """""""""""
 
@@ -74,19 +85,6 @@ Restrictions
 This compute is part of the EXTRA-COMPUTE package. Using it also requires
 the EXTRA-FIX package for the referenced :doc:`fix uvt <fix_uvt>`, which
 must use the same group.
-
-Fix uvt creates a compute of this style automatically, with ID
-*fix-ID_temp*, and uses it for the combined thermostat.  An alternative
-temp/uvt compute can be selected with :doc:`fix_modify temp <fix_modify>`
-if it references the same UVT fix and uses the same group.
-
-The :doc:`fix uvt <fix_uvt>` command also exposes this temperature directly
-as its second vector entry
-(*f_cp[2]* for fix ID *cp*), so reporting it does not require an explicit
-compute command. When an explicit compute is used, *c_combined* in
-the example above reports its scalar temperature. Other atomic thermostats
-do not scale the electron-number velocity and must not use this combined
-temperature to control the coupled system.
 
 Related commands
 """"""""""""""""

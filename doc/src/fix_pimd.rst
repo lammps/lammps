@@ -41,12 +41,16 @@ Syntax
 
   .. parsed-literal::
 
-     *keywords* = *method* or *integrator* or *fmmode* or *fmass* or *sp* or *temp* or *removecom*
+     *keywords* = *method* or *integrator* or *fmmode* or *fmass* or *sp* or *lj* or *temp* or *removecom*
      *method* value = *pimd* or *nmpimd*
      *integrator* value = *obabo* or *baoab*
      *fmmode* value = *physical* or *normal*
      *fmass* value = scaling factor on mass
      *sp* value = scaling factor on Planck constant
+     *lj* values = epsilon sigma mass planck mvv2e
+          epsilon, sigma, mass = energy, length, and mass scales of *lj* units, in physical units
+          planck = Planck constant in the same physical units
+          mvv2e = factor converting mass times velocity squared to energy in those units
      *temp* value = temperature (temperature units)
      *removecom* value = *yes* or *no*
 
@@ -54,12 +58,16 @@ Syntax
 
   .. parsed-literal::
 
-     *keywords* = *method* or *integrator* or *fmmode* or *fmass* or *sp* or *temp* or *thermostat* or *Tdamp* or *tchain* or *nhc* or *tloop* or *drag* or *tdof* or *removecom*
+     *keywords* = *method* or *integrator* or *fmmode* or *fmass* or *sp* or *lj* or *temp* or *thermostat* or *Tdamp* or *tchain* or *nhc* or *tloop* or *drag* or *tdof* or *removecom*
      *method* value = *pimd* or *nmpimd* or *cmd*
      *integrator* value = *obabo* or *baoab*
      *fmmode* value = *physical* or *normal*
      *fmass* value = scaling factor on mass
      *sp* value = scaling factor on Planck constant
+     *lj* values = epsilon sigma mass planck mvv2e
+          epsilon, sigma, mass = energy, length, and mass scales of *lj* units, in physical units
+          planck = Planck constant in the same physical units
+          mvv2e = factor converting mass times velocity squared to energy in those units
      *temp* value = temperature (temperature units)
      *thermostat* value = *NHC* (optional, the only supported thermostat)
      *Tdamp* value = thermostat damping parameter (time units)
@@ -73,7 +81,7 @@ Syntax
 
   .. parsed-literal::
 
-     *keywords* = *method* or *integrator* or *fmmode* or *fmass* or *sp* or *temp* or *thermostat* or *Tdamp* or *tchain* or *tloop* or *drag* or *tdof* or *removecom* or *nhc*
+     *keywords* = *method* or *integrator* or *fmmode* or *fmass* or *sp* or *lj* or *temp* or *thermostat* or *Tdamp* or *tchain* or *nhc* or *tloop* or *drag* or *tdof* or *removecom*
      *method* value = *pimd*
      *tchain* or *nhc* value = number of thermostats in each Nose-Hoover chain
 
@@ -81,13 +89,17 @@ Syntax
 
   .. parsed-literal::
 
-     *keywords* = *method* or *integrator* or *ensemble* or *fmmode* or *fmass* or *scale* or *sp* or *temp* or *thermostat* or *tau* or *iso* or *aniso* or *barostat* or *taup* or *fixcom* or *esynch*
+     *keywords* = *method* or *integrator* or *ensemble* or *fmmode* or *fmass* or *scale* or *sp* or *lj* or *temp* or *thermostat* or *tau* or *iso* or *aniso* or *barostat* or *taup* or *fixcom* or *esynch*
      *method* value = *nmpimd* (default) or *pimd*
      *integrator* value = *obabo* or *baoab*
      *ensemble* value = *nvt* or *nve* or *nph* or *npt*
      *fmmode* value = *physical* or *normal*
      *fmass* value = scaling factor on mass
      *sp* value = scaling factor on Planck constant
+     *lj* values = epsilon sigma mass planck mvv2e
+          epsilon, sigma, mass = energy, length, and mass scales of *lj* units, in physical units
+          planck = Planck constant in the same physical units
+          mvv2e = factor converting mass times velocity squared to energy in those units
      *temp* value = temperature (temperature unit)
           temperature = target temperature of the thermostat
      *thermostat* values = style seed
@@ -298,6 +310,8 @@ Fix *pimd/nvt/bosonic* and fix *pimd/langevin/bosonic* only support the *pimd* m
 the default in this fix. This restriction is related to the use of
 normal modes, which change in bosons.
 
+.. versionadded:: TBD
+
 The keyword *integrator* specifies the Trotter splitting method.  See
 :ref:`(Liu3) <Liu>` for a discussion on the OBABO and BAOAB
 splitting schemes. Typically either of the two should work fine.
@@ -306,6 +320,8 @@ The keyword *fmass* sets a further scaling factor for the fictitious
 masses of beads, which can be used for the Partial Adiabatic CMD
 :ref:`(Hone) <Hone>`, or to be set as P, which results in the fictitious
 masses to be equal to the real particle masses.
+
+.. versionadded:: TBD
 
 The keyword *fmmode* determines the mode of fictitious
 mass preconditioning. There are two options: *physical* and *normal*. If *fmmode* is
@@ -381,6 +397,19 @@ Thus for a fully quantum simulation of Neon using *lj* units, *sp*
 should be set to 0.600.  The modification of the quantumness should be
 done by scaling :math:`\Lambda^{\ast}`.
 
+.. versionadded:: TBD
+
+For *lj* units, the keyword *lj* sets the Planck constant from physical
+values instead: *epsilon*, *sigma*, and *mass* are the energy, length,
+and mass scales of the *lj* units, *planck* is Planck's constant, and
+*mvv2e* converts mass times velocity squared to energy, all in one
+consistent set of physical units.  The Planck constant used in *lj*
+units is then :math:`\Lambda^{\ast} = \mathrm{planck}/(\sigma
+\sqrt{\mathrm{mass}\,\varepsilon\,\mathrm{mvv2e}})`, which is
+multiplied by *sp*.  All five values default to 1.0, so that *sp* alone
+sets :math:`\Lambda^{\ast}` as described above.  The *lj* keyword has
+no effect for other unit styles.
+
 The keyword *ensemble* for fix style *pimd/langevin* determines which
 ensemble is it going to sample. The value can be *nve* (microcanonical),
 *nvt* (canonical), *nph* (isoenthalpic), and *npt*
@@ -391,7 +420,7 @@ The keyword *temp* specifies the temperature parameter for fix styles
 *pimd/nve*, *pimd/nvt*, and *pimd/langevin*. It should read a positive
 floating-point number.
 
-.. versionchanged:: TBD
+.. versionadded:: TBD
 
 For fix style *pimd/nvt*, the optional keyword *thermostat* can only be
 set to *NHC*, since that is the only thermostat this style supports.
@@ -400,6 +429,20 @@ given, also for fix *pimd/nvt/bosonic*.  *tchain* specifies the length
 of the Nose-Hoover thermostat chain; *nhc* is an alternative name for
 *tchain*.  *tloop* specifies the number of Nose-Hoover chain sub-cycles,
 and *drag* specifies an optional thermostat drag factor.
+
+The keyword *removecom* controls whether the center-of-mass motion of
+the fix group is removed after each thermostat step of fix *pimd/nvt*,
+*pimd/nvt/bosonic*, and *pimd/uvt*.  With *method* = *pimd* it is
+removed for every bead, with *method* = *nmpimd* only for the centroid
+mode, and with *method* = *cmd* it is not removed.  When *removecom* is
+*yes*, the thermostat degrees of freedom of the first partition (the
+centroid mode for *method* = *nmpimd*) are reduced by the dimension of
+the system.
+
+The keyword *tdof* sets the number of degrees of freedom used by the
+thermostat.  By default, this is the number of degrees of freedom of
+the atoms in the fix group, minus those removed by *removecom* and by
+constraints from other fixes.
 
 .. note::
 

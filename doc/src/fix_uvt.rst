@@ -101,15 +101,22 @@ This fix supports temperature control only.  Pressure control keywords
 are not allowed.
 
 This fix is part of the EXTRA-FIX package.  It is only enabled if
-LAMMPS was built with both EXTRA-FIX and EXTRA-COMPUTE, which provides
-the required :doc:`compute temp/uvt <compute_temp_uvt>`.  See the :doc:`Build package
-<Build_package>` page for more info.
+LAMMPS was built with that package.  It also requires the EXTRA-COMPUTE
+package, because it creates a :doc:`compute temp/uvt <compute_temp_uvt>`
+for its thermostat.  See the :doc:`Build package <Build_package>` page
+for more info.
 
 Related commands
 """"""""""""""""
 
 :doc:`fix nvt <fix_nh>`, :doc:`fix pimd/uvt <fix_pimd>`,
 :doc:`read_restart <read_restart>`
+
+Default
+"""""""
+
+The default for *ne_velocity* is 0.0.  The optional Nose-Hoover keywords
+have the same defaults as for :doc:`fix nvt <fix_nh>`.
 
 ----------
 

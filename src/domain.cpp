@@ -623,6 +623,8 @@ void Domain::general_to_restricted_rotation(double *a, double *b, double *c,
 
   double alen = MathExtra::len3(a);
   MathExtra::cross3(a,xaxis,rot1);
+  // A along -x needs a nonzero axis for the 180-degree rotation
+  if ((a[0] < 0.0) && (a[1] == 0.0) && (a[2] == 0.0)) rot1[2] = 1.0;
   MathExtra::norm3(rot1);
   double theta1 = acos(a[0]/alen);
   MathExtra::axisangle_to_quat(rot1,theta1,quat1);

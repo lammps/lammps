@@ -1227,7 +1227,9 @@ void PPPMKokkos<DeviceType>::particle_map()
 
   k_flag.view_host()() = 0;
   k_flag.modify_host();
-  k_flag.template sync<DeviceType>();
+  // sync on the default instance only (not a device-wide fence), so kernels
+  // running on other streams, e.g. an asynchronous pair style, keep running
+  k_flag.template sync<DeviceType>(DeviceType());
 
   if (!std::isfinite(boxlo[0]) || !std::isfinite(boxlo[1]) || !std::isfinite(boxlo[2]))
     error->one(FLERR,"Non-numeric box dimensions - simulation unstable" + utils::errorurl(6));
@@ -1237,7 +1239,8 @@ void PPPMKokkos<DeviceType>::particle_map()
   copymode = 0;
 
   k_flag.template modify<DeviceType>();
-  k_flag.sync_host();
+  k_flag.sync_host(DeviceType());
+  DeviceType().fence();
   if (k_flag.view_host()())
     error->one(FLERR, Error::NOLASTLINE, "Out of range atoms - cannot compute PPPM" + utils::errorurl(4));
 }

@@ -54,6 +54,7 @@ class FixPIMDNVT : public FixPIMDNVE {
   double drag, tdrag_factor;
   double t_freq;
   double t_period;
+  int tdamp_flag;    // 1 if the Tdamp keyword was given
   double tdof;
   int tdof_override_flag;
   double tdof_override;

@@ -48,7 +48,7 @@ fix          harm all spring/self ${k}
 fix_modify   harm energy yes
 
 # PIMD command
-fix          pimdb all pimd/nvt/bosonic method pimd temp ${Temp} nhc ${nhc}
+fix          pimdb all pimd/nvt/bosonic method pimd temp ${Temp} Tdamp 100.0 nhc ${nhc}
 
 # Outputs
 variable virial        equal f_pimdb[6]

@@ -119,6 +119,7 @@ FixPIMDNVT::FixPIMDNVT(LAMMPS *lmp, int narg, char **arg, bool defer_setup) :
   mtchain = 3;
   nc_tchain = 1;
   t_period = 0.0;
+  tdamp_flag = 0;
   drag = 0.0;
 
   tdrag_factor = 1.0;
@@ -163,14 +164,17 @@ bool FixPIMDNVT::parse_keyword(int narg, char **arg, int &i)
   if (strcmp(arg[i], "Tdamp") == 0) {
     if (i + 2 > narg) utils::missing_cmd_args(FLERR, fmt::format("fix {} Tdamp", style), error);
     t_period = utils::numeric(FLERR, arg[i + 1], false, lmp);
+    tdamp_flag = 1;
     i += 2;
     return true;
   }
-  if (strcmp(arg[i], "tchain") == 0) {
-    if (i + 2 > narg) utils::missing_cmd_args(FLERR, fmt::format("fix {} tchain", style), error);
+  // nhc is the original keyword of fix pimd/nvt for the chain length
+  if ((strcmp(arg[i], "tchain") == 0) || (strcmp(arg[i], "nhc") == 0)) {
+    if (i + 2 > narg)
+      utils::missing_cmd_args(FLERR, fmt::format("fix {} {}", style, arg[i]), error);
     mtchain = utils::inumeric(FLERR, arg[i + 1], false, lmp);
     if (mtchain < 1)
-      error->all(FLERR, i + 1, "Invalid fix {} tchain argument: {}", style, mtchain);
+      error->all(FLERR, i + 1, "Invalid fix {} {} argument: {}", style, arg[i], mtchain);
     i += 2;
     return true;
   }
@@ -203,6 +207,7 @@ bool FixPIMDNVT::parse_keyword(int narg, char **arg, int &i)
 
 void FixPIMDNVT::finish_nuclear_constructor_setup()
 {
+  if (!tdamp_flag) error->all(FLERR, "Fix {} requires the Tdamp keyword", style);
   if (t_period <= 0.0) error->all(FLERR, "Temperature damping for fix {} must be > 0.0", style);
 
   if (tstat_flag) {

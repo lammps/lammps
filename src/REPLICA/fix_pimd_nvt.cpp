@@ -271,7 +271,7 @@ void FixPIMDNVT::nhc_init()
   int fix_dof = 0;
   for (auto &ifix : modify->get_fix_list())
     if (ifix->dof_flag) fix_dof += ifix->dof(igroup);
-  int extra_dof = (removecomflag && universe->iworld == 0) ? domain->dimension : 0;
+  int extra_dof = removes_com_motion() ? domain->dimension : 0;
   tdof = domain->dimension * group->count(igroup);
   tdof -= extra_dof + fix_dof;
   if (tdof_override_flag) tdof = tdof_override;

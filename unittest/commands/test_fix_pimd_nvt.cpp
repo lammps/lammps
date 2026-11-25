@@ -173,6 +173,58 @@ TEST_F(FixPIMDNVTSerialTest, RestartRestoresNuclearState)
   }
 }
 
+TEST(FixPIMDNVTMPI, RemovecomDOFMatchesRemovedMotion)
+{
+  int nprocs = 0;
+  MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
+  if (nprocs != 2) GTEST_SKIP() << "This test requires exactly 2 MPI ranks";
+
+  const char *args[] = {"LAMMPS_test", "-log", "none", "-partition", "2x1", "-echo",
+                        "screen",      "-nocite",       "-in",        "none", nullptr};
+  char **argv = (char **) args;
+  int argc = (sizeof(args) / sizeof(char *)) - 1;
+
+  void *lmp = nullptr;
+  ASSERT_NO_THROW(lmp = lammps_open(argc, argv, MPI_COMM_WORLD, nullptr));
+  ASSERT_NE(lmp, nullptr);
+  auto command = [lmp](const std::string &line) { lammps_command(lmp, line.c_str()); };
+  auto fix_value = [lmp](const char *id, int index) { return pimd_test::fix_value(lmp, id, index); };
+  const int iworld = static_cast<LAMMPS_NS::LAMMPS *>(lmp)->universe->iworld;
+
+  // 8 atoms, T = 0.8, 2 beads, tchain 3: the first chain potential energy is
+  // 2 * 0.8 * tdof * eta[0], with tdof = 21 where the center-of-mass motion is
+  // removed (every bead for pimd, the centroid for nmpimd) and 24 otherwise.
+  const int tchain = 3;
+  const int eta0 = 10;
+  const int pe_eta0 = 10 + 2 * tchain;
+  for (const std::string method : {"pimd", "nmpimd"}) {
+    command("clear");
+    command("units lj");
+    command("atom_style atomic");
+    command("atom_modify map yes");
+    command("boundary p p p");
+    command("lattice sc 0.7");
+    command("region box block 0 2 0 2 0 2");
+    command("create_box 1 box");
+    command("create_atoms 1 box");
+    command("mass 1 1.0");
+    command("pair_style zero 2.5");
+    command("pair_coeff * *");
+    command("timestep 0.002");
+    command("velocity all create 0.8 86420 mom yes rot no dist gaussian");
+    command("fix cp all pimd/nvt method " + method +
+            " temp 0.8 Tdamp 0.2 tchain 3 removecom yes");
+    command("run 20 post no");
+
+    const double eta = fix_value("cp", eta0);
+    ASSERT_NE(eta, 0.0);
+    const double tdof = fix_value("cp", pe_eta0) / eta / (2.0 * 0.8);
+    const double expected = ((method == "pimd") || (iworld == 0)) ? 21.0 : 24.0;
+    EXPECT_NEAR(tdof, expected, 1.0e-8) << "method " << method << ", partition " << iworld;
+  }
+  lammps_close(lmp);
+}
+
 TEST(FixPIMDNVTMPI, PIMDPartitionedRunSupportsOneRankPerBead)
 {
   int nprocs = 0;

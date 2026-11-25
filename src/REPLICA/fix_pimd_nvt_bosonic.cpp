@@ -46,6 +46,7 @@ FixPIMDBNVT::FixPIMDBNVT(LAMMPS *lmp, int narg, char **arg) :
 {
   method = PIMD;
   mtchain = 2;
+  removecomflag = 0;
 
   // process keywords
 

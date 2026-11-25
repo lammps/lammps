@@ -124,6 +124,7 @@ class FixPIMDNVE : public Fix {
   virtual void o_step();    // thermostat propagation; no-op for NVE
   virtual void a_step();
   virtual void spring_force();
+  bool removes_com_motion() const;    // true if this partition removes center-of-mass motion
   void remove_com_motion();
   void unmap_coordinates(double **, imageint *);
   void remap_coordinates(double **, imageint *);

@@ -16,7 +16,7 @@ Syntax
 * *temp* values = Tstart Tstop Tdamp (temperature, temperature, and time units)
 * *mu* value = constant chemical potential
 * *Udamp* value = positive electronic damping time (time units)
-* *ne* value = initial electronic coordinate
+* *ne* value = initial electron number
 * *dedn* value = global scalar or vector reference used as dE/dN
 
 Optional keywords are the Nose-Hoover keywords supported by
@@ -49,19 +49,15 @@ the combined temperature and :math:`g+1` degrees of freedom, where
 :math:`W_\mathrm{e}=g k_B T_\mathrm{target} \, \mathrm{Udamp}^2`.
 
 The standard thermo temperature remains nuclear-only unless explicitly
-changed.  The first two fix-vector entries report the electron number and combined
-temperature, independently of the thermostat chain length. Use::
+changed.  The first two entries of the global vector of this fix report
+the electron number and the combined temperature, so no explicit
+temperature compute is required to monitor them.  For the example
+above::
 
-   thermo_style custom step f_tp[1] temp f_tp[2]
+   thermo_style custom step f_cp[1] temp f_cp[2]
 
-Here *tp* is the fix ID; the columns are timestep, electron number,
-nuclear temperature, and combined temperature. No explicit temperature
-compute is required. The automatically created compute can alternatively
-be referenced as *c_ID_temp*, where *ID* is the fix ID. A temperature selected
-with *fix_modify temp*
-must be a temp/uvt compute for this fix and group.  The usual
-:doc:`compute_modify <compute_modify>` DOF options can be applied to that
-compute; the nuclear DOF must remain positive.
+prints the timestep, the electron number, the nuclear temperature, and
+the combined temperature.
 
 The *dedn* source may be an equal-style variable (*v_name*), a
 global compute (*c_ID*), or a global fix (*f_ID*).  If the source
@@ -71,7 +67,40 @@ provides a global vector, an entry can be selected with the usual
 The *mu* target is constant throughout a run. *Udamp* has time units
 and must be positive. Chemical-potential ramps are not supported.
 
-The global fix vector starts with six physical outputs:
+----------
+
+Restart, fix_modify, output, run start/stop, minimize info
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+This fix writes the state of the Nose-Hoover thermostat and of the
+electronic degree of freedom to :doc:`binary restart files <restart>`.
+See the :doc:`read_restart <read_restart>` command for info on how to
+re-specify a fix in an input script that reads a restart file, so that
+the operation of the fix continues in an uninterrupted fashion.
+
+The :doc:`fix_modify <fix_modify>` *temp* option is supported by this
+fix.  The selected compute must be a :doc:`compute temp/uvt
+<compute_temp_uvt>` that references this fix and uses the same group.
+The automatically created compute can also be referenced directly as
+*c_ID_temp*, where *ID* is the fix ID, and the usual
+:doc:`compute_modify <compute_modify>` options for degrees of freedom
+can be applied to it; the nuclear DOF must remain positive.
+
+The cumulative energy change in the system imposed by this fix, via
+thermostatting and the electronic degree of freedom, is included in the
+:doc:`thermodynamic output <thermo_style>` keywords *ecouple* and
+*econserve*.  See the :doc:`thermo_style <thermo_style>` page for
+details.
+
+This fix computes a global scalar which can be accessed by various
+:doc:`output commands <Howto_output>`.  The scalar is the thermostat
+energy of :doc:`fix nvt <fix_nh>` plus the electronic kinetic energy and
+the electronic potential contribution *-mu*Ne*.  The scalar value
+calculated by this fix is "extensive".
+
+This fix also computes a global vector of quantities, which can be
+accessed by various :doc:`output commands <Howto_output>`.  The vector
+values are "intensive".  The first six entries are:
 
 #. electron number *Ne*
 #. combined instantaneous temperature *T_ins*
@@ -80,19 +109,23 @@ The global fix vector starts with six physical outputs:
 #. electronic kinetic energy
 #. electronic potential contribution *-mu*Ne*
 
-The same six quantities appear in the same order at entries 11 through 16
-of :doc:`fix pimd/uvt <fix_pimd>`, following its ten nuclear outputs.
-For PIMD, the derivative is reported separately for each bead.
+They are followed by the Nose-Hoover thermostat entries of :doc:`fix nvt
+<fix_nh>`, starting at entry 7, so the vector has 6+4*M entries for a
+thermostat chain of length M.  The first six entries do not depend on
+M.  The same six quantities appear in the same order at entries 11
+through 16 of :doc:`fix pimd/uvt <fix_pimd>`.
 
-The regular Nose-Hoover vector follows, starting at entry 7. The total
-vector length is 6+4*M for a thermostat chain of length M. All six physical
-indices are independent of M. The temperature output is intensive and is
-not normalized by atom count.
+This fix supports automatically generated thermo column names when using
+:doc:`thermo_modify colname auto <thermo_modify>`.  The names of the
+first six entries are "f\_", followed by the fix ID, followed by a
+colon and one of *Ne*, *T_ins*, *Ne_dot*, *dEdN*, *ke_Ne*, and *pe_mu*.
+The thermostat entries use the names of :doc:`fix nvt <fix_nh>`.
 
-The fix writes restart data for the Nose-Hoover state and electronic
-degree of freedom, so simulations may be continued with
-:doc:`read_restart <read_restart>` followed by the same *fix uvt*
-command.
+This fix can ramp its target temperature over multiple runs, using the
+*start* and *stop* keywords of the :doc:`run <run>` command.  See the
+:doc:`run <run>` command for details of how to do this.
+
+This fix is not invoked during :doc:`energy minimization <minimize>`.
 
 Restrictions
 """"""""""""
@@ -110,6 +143,7 @@ Related commands
 """"""""""""""""
 
 :doc:`fix nvt <fix_nh>`, :doc:`fix pimd/uvt <fix_pimd>`,
+:doc:`compute temp/uvt <compute_temp_uvt>`,
 :doc:`read_restart <read_restart>`
 
 Default

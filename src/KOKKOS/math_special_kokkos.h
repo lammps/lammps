@@ -18,8 +18,6 @@
 #include <cmath>
 #include "kokkos_type.h"
 
-
-
 namespace LAMMPS_NS::MathSpecialKokkos {
 
   /* optimizer friendly implementation of exp2(x).
@@ -47,7 +45,7 @@ namespace LAMMPS_NS::MathSpecialKokkos {
   /* double precision constants */
   #define FM_DOUBLE_LOG2OFE  1.4426950408889634074
 
-  /*! Fast implementation of 2^x without argument checks for little endian CPUs
+  /* Fast implementation of 2^x without argument checks for little endian CPUs
    *
    *  This function implements an optimized version of pow(2.0, x) that does not
    *  check for valid arguments and thus may only be used where arguments are well
@@ -101,7 +99,7 @@ namespace LAMMPS_NS::MathSpecialKokkos {
   #endif
   }
 
-  /*! Fast implementation of exp(x) for little endian CPUs
+  /* Fast implementation of exp(x) for little endian CPUs
    *
    *  This function implements an optimized version of exp(x) for little endian CPUs.
    *  It calls the exp2_x86(x) function with a suitable prefactor to x to return exp(x).
@@ -130,7 +128,7 @@ namespace LAMMPS_NS::MathSpecialKokkos {
 
   extern double erfcx_y100(const double y100);
 
-  /*! Fast scaled error function complement exp(x*x)*erfc(x) for coul/long styles
+  /* Fast scaled error function complement exp(x*x)*erfc(x) for coul/long styles
    *
    *  This is a portable fast implementation of exp(x*x)*erfc(x) that can be used
    *  in coul/long pair styles as a replacement for the polynomial expansion that
@@ -150,7 +148,7 @@ namespace LAMMPS_NS::MathSpecialKokkos {
       return 2.0 * exp(x * x) - erfcx_y100(400.0 / (4.0 - x));
   }
 
-  /*! Fast implementation of exp(-x*x) for little endian CPUs for coul/long styles
+  /* Fast implementation of exp(-x*x) for little endian CPUs for coul/long styles
    *
    *  This function implements an optimized version of exp(-x*x) based on exp2_x86()
    *  for use with little endian CPUs. If little endian cannot be safely detected,
@@ -171,7 +169,7 @@ namespace LAMMPS_NS::MathSpecialKokkos {
 #endif
   }
 
-  /*! Fast inline version of pow(x, 2.0)
+  /* Fast inline version of pow(x, 2.0)
    *
    *  \param   x argument
    *  \return  x*x */
@@ -180,7 +178,7 @@ namespace LAMMPS_NS::MathSpecialKokkos {
   KOKKOS_INLINE_FUNCTION
   static T square(const T &x) { return x * x; }
 
-  /*! Fast inline version of pow(x, 3.0)
+  /* Fast inline version of pow(x, 3.0)
    *
    *  \param   x argument
    *  \return  x*x */

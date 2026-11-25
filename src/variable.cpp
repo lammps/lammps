@@ -232,6 +232,7 @@ Variable::Variable(LAMMPS *lmp) : Pointers(lmp)
 {
   randomequal = nullptr;
   randomatom = nullptr;
+  treetype = ATOM;
 
   // override initializer since LAMMPS class needs to be instantiated
 
@@ -1316,9 +1317,14 @@ void Variable::compute_atom(int ivar, int igroup, double *result, int stride, in
 
   var.eval_in_progress = 1;
 
+  // this evaluation can be nested in that of a vector-style formula,
+  // e.g. via compute reduce, so restore treetype for the outer formula
+
   if (var.style == ATOM) {
+    int treetype_outer = treetype;
     treetype = ATOM;
     evaluate(var.data[0],&tree,ivar);
+    treetype = treetype_outer;
     collapse_tree(tree);
   } else vstore = var.reader->fixstore->vstore;
 
@@ -1411,8 +1417,13 @@ int Variable::compute_vector(int ivar, double **result)
 
   var.eval_in_progress = 1;
 
+  // this evaluation can be nested in that of an atom-style formula,
+  // e.g. via sum(v_name), so restore treetype for the outer formula
+
+  int treetype_outer = treetype;
   treetype = VECTOR;
   evaluate(var.data[0],&tree,ivar);
+  treetype = treetype_outer;
   collapse_tree(tree);
   int nlen = size_tree_vector(tree);
   if (nlen == 0) print_var_error(FLERR,"Vector-style variable has zero length",ivar);

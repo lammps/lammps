@@ -314,8 +314,16 @@ TEST_F(VariableTest, AtomicSystem)
     command("variable  rgmax  equal   max(v_rg)");
     command("variable  rgsum  equal   sum(v_rg)");
     command("variable  loop   equal   v_loop+1");
+    command("compute  idsum all reduce sum v_id");
+    command("variable  idsum  equal   c_idsum");
+    command("variable  nest   vector  v_idsum+v_press");
     command("run 0 post no");
     END_HIDE_OUTPUT();
+
+    // c_idsum evaluates the atom-style variable id while the vector-style
+    // formula of nest is parsed.  this must not turn v_press into an error.
+
+    ASSERT_KKFLOAT_EQ(variable->compute_equal("v_nest[1]"), 2080.0);
 
     ASSERT_EQ(variable->atomstyle(variable->find("one")), 0);
     ASSERT_EQ(variable->atomstyle(variable->find("id")), 1);
@@ -404,6 +412,8 @@ TEST_F(VariableTest, Expressions)
     command("variable rmax   equal     rsort(v_vec4)[1]");
     command("variable xxxl   equal     rsort(v_vec4)[11]");
     command("variable isrt   vector    sort(v_one)");
+    command("variable dvec4  vector    v_vec4*2");
+    command("variable nest   atom      sum(v_dvec4)*v_vec4");
     command("variable pow30  equal     v_three^0");
     command("variable pow31  equal     v_three^1");
     command("variable pow32  equal     v_three^2");
@@ -469,6 +479,13 @@ TEST_F(VariableTest, Expressions)
         command("print \"${isrt}\""););
     TEST_FAILURE(".*ERROR: Variable vec4: index 11 exceeds vector size of 10.*",
                  command("print \"${xxxl}\""););
+
+    // evaluating the vector-style variable dvec4 must not hide that
+    // the vector-style variable vec4 cannot be used in an atom-style formula
+
+    std::vector<double> peratom(lmp->atom->nlocal);
+    TEST_FAILURE(".*ERROR: Variable vec4: Vector-style variable in atom-style variable formula.*",
+                 variable->compute_atom(variable->find("nest"), 0, peratom.data(), 1, 0););
     TEST_FAILURE(".*ERROR on proc 0: Variable err4: Invalid power expression in variable formula.*",
                  command("print \"${err4}\""););
     TEST_FAILURE(".*ERROR on proc 0: Invalid power expression in variable formula.*",

@@ -1,0 +1,120 @@
+LAMMPS (13 Nov 2026)
+Processor partition = 1
+# Restart regression for the PIMD quadratic constant-potential toy model.
+#
+# Run with the same partition layout used for in.electron_pimd_uvt, e.g.
+#
+#   mpirun -np 2 lmp -partition 2x1 -in in.electron_pimd_uvt_restart
+
+# Per-partition world id must match in.electron_pimd_uvt:
+# partition 0 reads pimd_uvt.restart.0, partition 1 reads pimd_uvt.restart.1
+variable        worldid   universe 0 1
+read_restart    pimd_uvt.restart.${worldid}
+read_restart    pimd_uvt.restart.1
+Reading restart file ...
+  restart file = 13 Nov 2026, LAMMPS = 13 Nov 2026
+  restoring atom style atomic from restart
+  orthogonal box = (0 0 0) to (2.2524958 2.2524958 2.2524958)
+  1 by 1 by 1 MPI processor grid
+  restoring pair style zero from restart
+  8 atoms
+  read_restart CPU = 0.000 seconds
+
+variable        mu_target equal 1.5
+variable        k_quad    equal 3.0
+variable        N0_quad   equal 1.2
+variable        Ne_init   equal 1.8
+# The electronic outputs f_cp[23:26] are global values and are not normalized by natoms.
+variable        dEdN      equal v_k_quad*(f_cp[11]-v_N0_quad)
+
+fix             cp all pimd/uvt method nmpimd thermostat NHC                 integrator obabo temp 0.8 Tdamp 0.2 tchain 3 tloop 1                 mu ${mu_target} Udamp 0.2 ne ${Ne_init}                 ne_velocity 0.0                 dedn v_dEdN
+fix             cp all pimd/uvt method nmpimd thermostat NHC                 integrator obabo temp 0.8 Tdamp 0.2 tchain 3 tloop 1                 mu 1.5 Udamp 0.2 ne ${Ne_init}                 ne_velocity 0.0                 dedn v_dEdN
+fix             cp all pimd/uvt method nmpimd thermostat NHC                 integrator obabo temp 0.8 Tdamp 0.2 tchain 3 tloop 1                 mu 1.5 Udamp 0.2 ne 1.8                 ne_velocity 0.0                 dedn v_dEdN
+Resetting global fix info from restart file:
+  fix style: pimd/uvt, fix ID: cp
+
+thermo          50
+thermo_style    custom step temp etotal f_cp[11] f_cp[12] f_cp[13] f_cp[14] v_mu_target
+thermo_modify   flush yes
+
+run             100
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+
+- fix pimd/nve, pimd/langevin, pimd/nvt, pimd/uvt: https://doi.org/10.1063/5.0328429
+
+@Article{Li26,
+ author = {Y. Li and A. Gomez and K. Cai and C. Zhang and L. Fu and W. Jia and
+    Y. M. Y. Feldman and O. Blumer and J. Higer and B. Hirshberg and S. Xu and
+    A. Kohlmeyer and R. Car},
+ title = {fix pimd/langevin: An Efficient Implementation of Path Integral Molecular
+    Dynamics in {LAMMPS}},
+ journal = {J.~Chem.\ Phys.},
+ year =    2026,
+ volume =  164,
+ number =  14,
+ pages =   {144119},
+ doi =     {10.1063/5.0328429}
+}
+
+- fix uvt, compute temp/uvt, and fix pimd/nve and derived styles: https://doi.org/10.48550/arXiv.2609.21935
+
+@Article{Fu26,
+ author = {L. Fu and Y. Li and S. Xu},
+ title = {fix uvt and fix pimd/uvt: A Unified {LAMMPS} Framework for
+    Constant-Potential Constant-Temperature Molecular Dynamics},
+ journal = {arXiv preprint arXiv:2609.21935},
+ year =    2026,
+ doi =     {10.48550/arXiv.2609.21935}
+}
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+All restart file global fix info was re-assigned
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 2.8
+  ghost atom cutoff = 2.8
+  binsize = 1.4, bins = 2 2 2
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair zero, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 2.962 | 2.962 | 2.962 Mbytes
+   Step          Temp          TotEng        f_cp[11]       f_cp[12]       f_cp[13]       f_cp[14]     v_mu_target  
+      1000   1.556135       2.0424273      1.6768505      0.67300021     0.25311023     1.4305516      1.5          
+      1050   3.1449813      4.127788       1.7041025      1.1645289      0.29268781     1.5123075      1.5          
+      1100   2.3524344      3.0875702      1.7343262      1.0622163      0.30672803     1.6029785      1.5          
+Loop time of 0.00136937 on 1 procs for 100 steps with 8 atoms
+
+Performance: 12618895.482 tau/day, 73026.016 timesteps/s, 584.208 katom-step/s
+88.3% CPU use with 1 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 5.1751e-05 | 5.1751e-05 | 5.1751e-05 |   0.0 |  3.78
+Neigh   | 2.85e-05   | 2.85e-05   | 2.85e-05   |   0.0 |  2.08
+Comm    | 6.737e-05  | 6.737e-05  | 6.737e-05  |   0.0 |  4.92
+Output  | 2.9541e-05 | 2.9541e-05 | 2.9541e-05 |   0.0 |  2.16
+Modify  | 0.0011733  | 0.0011733  | 0.0011733  |   0.0 | 85.68
+Other   |            | 1.888e-05  |            |       |  1.38
+
+Nlocal:              8 ave           8 max           8 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:            289 ave         289 max         289 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:            250 ave         250 max         250 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 250
+Ave neighs/atom = 31.25
+Neighbor list builds = 4
+Dangerous builds = 0
+Total wall time: 0:00:00

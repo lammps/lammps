@@ -1,0 +1,180 @@
+LAMMPS (13 Nov 2026)
+Processor partition = 5
+variable ibead uloop 8 pad
+
+units           real
+neigh_modify    delay 2 every 1
+
+atom_style      full
+bond_style      harmonic
+angle_style     charmm
+dihedral_style  charmm
+improper_style  harmonic
+
+pair_style      lj/charmm/coul/long 11 12
+pair_modify     mix arithmetic
+kspace_style    pppm 1e-4
+
+read_data system.data
+Reading data file ...
+  orthogonal box = (-23.109 -22.733 -23.141) to (22.853 22.912 22.8)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  8674 atoms
+  reading velocities ...
+  8674 velocities
+  scanning bonds ...
+  4 = max bonds/atom
+  scanning angles ...
+  6 = max angles/atom
+  scanning dihedrals ...
+  18 = max dihedrals/atom
+  scanning impropers ...
+  1 = max impropers/atom
+  orthogonal box = (-23.109 -22.733 -23.141) to (22.853 22.912 22.8)
+  1 by 1 by 1 MPI processor grid
+  reading bonds ...
+  5869 bonds
+  reading angles ...
+  3264 angles
+  reading dihedrals ...
+  708 dihedrals
+  reading impropers ...
+  38 impropers
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0        0        0       
+  special bond factors coul:  0        0        0       
+     4 = max # of 1-2 neighbors
+     9 = max # of 1-3 neighbors
+    17 = max # of 1-4 neighbors
+    21 = max # of special neighbors
+  special bonds CPU = 0.001 seconds
+  read_data CPU = 0.065 seconds
+#read_restart    system_${ibead}.rest1
+special_bonds   charmm
+
+fix 1 all pimd/nvt method nmpimd thermostat NHC temp 300.0 Tdamp 100.0 tchain 4 fmass 1.0 sp 2.0
+
+thermo          10
+thermo_style    custom step temp pe etotal f_1[1] f_1[2] f_1[3]
+thermo_modify   colname f_1[1] ke_bead colname f_1[2] se_bead colname f_1[3] pe_bead
+timestep        0.08
+
+# restart         100 system_${ibead}.rest1 system_${ibead}.rest2
+
+group prot id <= 256
+256 atoms in group prot
+# dump 1 prot dcd 100 prot_${ibead}.dcd
+
+run             200
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+
+- fix pimd/nve, pimd/langevin, pimd/nvt, pimd/uvt: https://doi.org/10.1063/5.0328429
+
+@Article{Li26,
+ author = {Y. Li and A. Gomez and K. Cai and C. Zhang and L. Fu and W. Jia and
+    Y. M. Y. Feldman and O. Blumer and J. Higer and B. Hirshberg and S. Xu and
+    A. Kohlmeyer and R. Car},
+ title = {fix pimd/langevin: An Efficient Implementation of Path Integral Molecular
+    Dynamics in {LAMMPS}},
+ journal = {J.~Chem.\ Phys.},
+ year =    2026,
+ volume =  164,
+ number =  14,
+ pages =   {144119},
+ doi =     {10.1063/5.0328429}
+}
+
+- fix uvt, compute temp/uvt, and fix pimd/nve and derived styles: https://doi.org/10.48550/arXiv.2609.21935
+
+@Article{Fu26,
+ author = {L. Fu and Y. Li and S. Xu},
+ title = {fix uvt and fix pimd/uvt: A Unified {LAMMPS} Framework for
+    Constant-Potential Constant-Temperature Molecular Dynamics},
+ journal = {arXiv preprint arXiv:2609.21935},
+ year =    2026,
+ doi =     {10.48550/arXiv.2609.21935}
+}
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+PPPM initialization ...
+  using 12-bit tables for long-range coulomb
+  G vector (1/distance) = 0.22071363
+  grid = 20 20 20
+  stencil order = 5
+  estimated absolute RMS force accuracy = 0.024910591
+  estimated relative force accuracy = 7.5017505e-05
+  using double precision KISS FFT
+  3d grid and FFT values/proc = 15625 8000
+Generated 231 of 231 mixed pair_coeff terms from arithmetic mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 2 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 14
+  ghost atom cutoff = 14
+  binsize = 7, bins = 7 7 7
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/charmm/coul/long, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d
+      bin: standard
+WARNING: Inconsistent image flags
+For more information see https://docs.lammps.org/err0027 (src/domain.cpp:1045)
+Per MPI rank memory allocation (min/avg/max) = 65.46 | 65.46 | 65.46 Mbytes
+   Step          Temp          PotEng         TotEng        ke_bead        se_bead        pe_bead    
+         0   306.20099     -26166.17      -18250.089      7916.0811      1.1290493e-21 -26166.17     
+        10   278.47749     -26483.673     -19284.315      7199.3577      414.22394     -26483.673    
+        20   211.75575     -27198.487     -21724.057      5474.4295      1510.0542     -27198.487    
+        30   141.02147     -27803.4       -24157.633      3645.7667      2931.7663     -27803.4      
+        40   91.517078     -27962.191     -25596.239      2365.9513      4296.2956     -27962.191    
+        50   64.769384     -27779.872     -26105.418      1674.4547      5327.5835     -27779.872    
+        60   50.213392     -27662.789     -26364.644      1298.145       5871.2141     -27662.789    
+        70   45.827248     -27911.198     -26726.446      1184.7519      5845.7699     -27911.198    
+        80   62.990841     -28427.203     -26798.728      1628.4748      5233.6506     -28427.203    
+        90   110.32075     -28813.88      -25961.805      2852.0744      4136.0847     -28813.88     
+       100   176.10569     -28767.624     -24214.84       4552.7838      2812.1759     -28767.624    
+       110   231.36351     -28391.321     -22409.98       5981.3402      1614.9534     -28391.321    
+       120   252.7058      -28127.167     -21594.073      6533.0933      840.9394      -28127.167    
+       130   241.49375     -28362.814     -22119.581      6243.233       609.09823     -28362.814    
+       140   218.79303     -29073.77      -23417.409      5656.3612      865.99034     -29073.77     
+       150   201.6207      -29829.863     -24617.451      5212.4123      1491.7538     -29829.863    
+       160   186.31459     -30164.743     -25348.033      4816.7101      2387.119      -30164.743    
+       170   156.83924     -29970.203     -25915.506      4054.6968      3457.4489     -29970.203    
+       180   108.23574     -29559.674     -26761.503      2798.1717      4535.2667     -29559.674    
+       190   58.721434     -29353.262     -27835.162      1518.0997      5358.8392     -29353.262    
+       200   36.421193     -29486.99      -28545.409      941.58128      5667.1778     -29486.99     
+Loop time of 24.2909 on 1 procs for 200 steps with 8674 atoms
+
+Performance: 0.057 ns/day, 421.716 hours/ns, 8.234 timesteps/s, 71.418 katom-step/s
+89.7% CPU use with 1 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 18.782     | 18.782     | 18.782     |   0.0 | 77.32
+Bond    | 0.05782    | 0.05782    | 0.05782    |   0.0 |  0.24
+Kspace  | 0.80642    | 0.80642    | 0.80642    |   0.0 |  3.32
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0.029728   | 0.029728   | 0.029728   |   0.0 |  0.12
+Output  | 0.00065363 | 0.00065363 | 0.00065363 |   0.0 |  0.00
+Modify  | 4.6057     | 4.6057     | 4.6057     |   0.0 | 18.96
+Other   |            | 0.008809   |            |       |  0.04
+
+Nlocal:           8674 ave        8674 max        8674 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:          27366 ave       27366 max       27366 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    4.48585e+06 ave 4.48585e+06 max 4.48585e+06 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 4485849
+Ave neighs/atom = 517.16036
+Ave special neighs/atom = 2.2573207
+Neighbor list builds = 0
+Dangerous builds = 0
+Total wall time: 0:00:24

@@ -14,3 +14,6 @@ examples.
 Run ``in.electron_pimd_uvt`` with a partitioned launch, for example
 ``mpirun -np 2 lmp -partition 2x1 -in in.electron_pimd_uvt``, before
 running ``in.electron_pimd_uvt_restart`` with the same partition layout.
+
+The ``log.*.g++.2`` files are the reference logs of both inputs, run
+with two partitions of one processor each.

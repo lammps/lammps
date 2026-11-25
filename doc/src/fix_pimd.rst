@@ -754,6 +754,16 @@ partition, with the same number of processors in every partition.
 Atom IDs must be consecutive.  The Cartesian *method* = *pimd* path currently supports one
 processor per bead partition.
 
+These fixes use the image flags of the atoms to keep the beads of each
+ring polymer together across periodic boundaries.  With the default
+size setting of LAMMPS, image flags roll over after an atom has moved
+through the periodic box more than 511 times in one direction (see
+:ref:`Build settings <size>`).  The ring polymers are then broken and
+LAMMPS usually stops with an error about lost atoms.  This does not
+occur in typical condensed-phase simulations.  For runs where it can
+occur, for example very long runs of fast-moving particles in a small
+box, build LAMMPS with the "bigbig" size setting.
+
 A PIMD simulation can be initialized with a single data file read via
 the :doc:`read_data <read_data>` command.  However, this means all
 quasi-beads in a ring polymer will have identical positions and

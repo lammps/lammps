@@ -318,3 +318,33 @@ TEST(ArgInfo, bad_idx2)
     ArgInfo arg("c_1[1][b]");
     ASSERT_EQ(arg.get_type(), ArgInfo::UNKNOWN);
 }
+
+TEST(ArgInfo, zero_idx1)
+{
+    ArgInfo arg("c_1[0]");
+    ASSERT_EQ(arg.get_type(), ArgInfo::UNKNOWN);
+}
+
+TEST(ArgInfo, negative_idx1)
+{
+    ArgInfo arg("d2_text[-1]", ArgInfo::DNAME);
+    ASSERT_EQ(arg.get_type(), ArgInfo::UNKNOWN);
+}
+
+TEST(ArgInfo, zero_idx2)
+{
+    ArgInfo arg("f_1[2][0]");
+    ASSERT_EQ(arg.get_type(), ArgInfo::UNKNOWN);
+}
+
+TEST(ArgInfo, negative_idx2)
+{
+    ArgInfo arg("c_1[2][-3]");
+    ASSERT_EQ(arg.get_type(), ArgInfo::UNKNOWN);
+}
+
+TEST(ArgInfo, huge_idx1)
+{
+    ArgInfo arg("c_1[99999999999]");
+    ASSERT_EQ(arg.get_type(), ArgInfo::UNKNOWN);
+}

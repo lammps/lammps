@@ -214,6 +214,21 @@ TEST_F(DumpCustomTest, custom_run0)
     delete_file(dump_file);
 }
 
+TEST_F(DumpCustomTest, bad_index)
+{
+    BEGIN_HIDE_OUTPUT();
+    command("fix prop all property/atom d2_flag 2");
+    command("compute 1 all property/atom x y");
+    END_HIDE_OUTPUT();
+
+    // indices count from 1, only the upper bound is checked against the data
+
+    TEST_FAILURE(".*ERROR: Invalid attribute d2_flag.-1. in dump custom command.*",
+                 command("dump bad all custom 1 dump.bad id d2_flag[-1]"););
+    TEST_FAILURE(".*ERROR: Invalid attribute c_1.0. in dump custom command.*",
+                 command("dump bad all custom 1 dump.bad id c_1[0]"););
+}
+
 TEST_F(DumpCustomTest, binary_run1)
 {
     if (!BINARY2TXT_EXECUTABLE) GTEST_SKIP();

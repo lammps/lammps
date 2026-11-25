@@ -232,11 +232,8 @@ Fix *pimd/nvt* applies a Nose-Hoover chain thermostat
 :ref:`(Tuckerman3) <pimd-Tuckerman>`.  The keyword *temp* sets the
 target temperature, *Tdamp* sets the thermostat damping time, and
 *tchain* (or its alternative name *nhc*) sets the number of thermostats
-in each chain.  Fix *pimd/nvt* now uses the same Nose-Hoover chain
-implementation as :doc:`fix nvt <fix_nh>`, with one chain per bead and
-a required *Tdamp* keyword.  Earlier versions coupled a separate chain
-to each degree of freedom of each bead and had no *Tdamp* keyword, so
-trajectories differ from those of earlier versions.
+in each chain.  Fix *pimd/nvt* uses the same Nose-Hoover chain
+implementation as :doc:`fix nvt <fix_nh>`, with one chain per bead.
 
 Fix *pimd/langevin* implements a Langevin thermostat for PIMD, and
 also provides a barostat to sample the NPH/NPT ensembles.
@@ -400,9 +397,8 @@ For fix style *pimd/nvt*, the optional keyword *thermostat* can only be
 set to *NHC*, since that is the only thermostat this style supports.
 *Tdamp* specifies the thermostat damping time parameter and must be
 given, also for fix *pimd/nvt/bosonic*.  *tchain* specifies the length
-of the Nose-Hoover thermostat chain; *nhc* is accepted as an alternative
-name for *tchain* for compatibility with earlier versions of this
-command.  *tloop* specifies the number of Nose-Hoover chain sub-cycles,
+of the Nose-Hoover thermostat chain; *nhc* is an alternative name for
+*tchain*.  *tloop* specifies the number of Nose-Hoover chain sub-cycles,
 and *drag* specifies an optional thermostat drag factor.
 
 .. note::
@@ -584,17 +580,9 @@ thermostat potential contributions, and the thermostat kinetic contributions.
 
 Fix *pimd/nvt/bosonic* uses the shared *pimd/nvt* global-vector layout
 and replaces the distinguishable-particle spring energy and primitive
-kinetic-energy estimator with the bosonic exchange contributions.
-
-In earlier versions, fix *pimd/nvt* computed a global 3-vector (total
-spring energy, temperature, and virial kinetic energy estimator), and
-fix *pimd/nvt/bosonic* computed a global 4-vector (the same three values
-followed by the primitive kinetic energy estimator).  Input scripts
-that use these entries must be updated: the primitive and virial kinetic
-energy estimators are now entries 5 and 6.  For fix *pimd/nvt/bosonic*,
-the primitive kinetic energy estimator is now the value for the whole
-ring polymer and is the same in all log files, instead of a
-contribution that had to be summed over all log files.
+kinetic-energy estimator with the bosonic exchange contributions.  Its
+primitive kinetic energy estimator is the value for the whole ring
+polymer and is the same in all log files.
 
 Fix *pimd/uvt* computes a global vector.  The first 10 entries are the
 shared nuclear energy and estimator outputs.  They are followed by:
@@ -628,13 +616,6 @@ about different beads or modes (see detailed explanations below). If
 
 The first 3 are different for different log files, and the others are
 the same for different log files.
-
-.. versionchanged:: TBD
-
-For *method* = *pimd*, the estimator entries 5 to 10 are now computed
-with the same code as for the other PIMD fixes, so their values can
-differ from those printed by earlier versions.  The trajectory itself is
-unchanged.
 
 If *ensemble* is *nph* or *npt*, the vector stores internal variables of
 the barostat. If *iso* is used, the vector has 15 values:

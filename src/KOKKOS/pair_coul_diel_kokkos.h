@@ -46,11 +46,11 @@ class PairCoulDielKokkos : public PairCoulDiel {
   struct params_coul_diel {
 // NOLINTNEXTLINE
     KOKKOS_INLINE_FUNCTION
-    params_coul_diel() {cutsq=0;sigmae=0;rme=0;offset=0;};
+    params_coul_diel() {cutsq=0;sigmae=0;rme=0;};
 // NOLINTNEXTLINE
     KOKKOS_INLINE_FUNCTION
-    params_coul_diel(int /*i*/) {cutsq=0;sigmae=0;rme=0;offset=0;};
-    KK_FLOAT cutsq,sigmae,rme,offset;
+    params_coul_diel(int /*i*/) {cutsq=0;sigmae=0;rme=0;};
+    KK_FLOAT cutsq,sigmae,rme;
   };
 
  protected:
@@ -117,8 +117,9 @@ class PairCoulDielKokkos : public PairCoulDiel {
   KK_FLOAT special_lj[4];
   KK_FLOAT qqrd2e;
 
-  // dielectric parameters (host scalars, copied to KK_FLOAT before each kernel launch)
-  KK_FLOAT m_a_eps, m_b_eps, m_eps_s;
+  // dielectric parameters (host scalars, copied to KK_FLOAT before each kernel launch):
+  // the dielectric at short distance (a_eps - b_eps), b_eps, and eps_s
+  KK_FLOAT m_eps_min, m_b_eps, m_eps_s;
 
   void allocate() override;
   friend struct PairComputeFunctor<PairCoulDielKokkos,FULL,true,0>;

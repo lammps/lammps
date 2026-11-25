@@ -49,6 +49,7 @@ smd                    convert Smooth Mach Dynamics triangles to VTK
 spin                   perform a cubic polynomial interpolation of a GNEB MEP
 stl_bin2txt            convert binary STL files to ASCII
 swig                   Interface file and demo scripts for SWIG wrappers for the LAMMPS C library interface
+symmetry               find space group operators for the fix symmetry command with spglib
 tabulate               Python scripts to generate tabulated potential files for LAMMPS
 tinker2lmp.py          convert Tinker input files to LAMMPS input files
 valgrind               suppression files for use with valgrind's memcheck tool

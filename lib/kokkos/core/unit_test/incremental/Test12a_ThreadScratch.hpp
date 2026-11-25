@@ -77,7 +77,7 @@ struct ThreadScratch {
         *this);
 
     Kokkos::fence();
-    auto v_H = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), v);
+    auto v_H = Kokkos::create_mirror_view_and_copy(v);
 
     size_t check   = 0;
     const size_t s = static_cast<size_t>(pN) * sX * sY;

@@ -53,7 +53,7 @@ variable        y equal "v_y0 + step*dt*v_vy"
 fix             2 all indent 1e17 sphere 0.0000 v_y 0.0000 0.0015 units box
 
 compute         dmg all property/atom d_damage
-compute         davg all reduce ave f_dmg
+compute         davg all reduce ave c_dmg
 timestep        1.0e-7
 thermo          200
 thermo_style    custom step atoms c_davg

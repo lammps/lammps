@@ -31,6 +31,9 @@ extern std::string INPUT_FOLDER;
 // convenience method to write out common entries
 void write_yaml_header(class YamlWriter *writer, TestConfig *cfg, const char *version);
 
+// force tiny stress tensor components to zero before writing them to a yaml file
+void zero_small_stress(double *stress);
+
 #define EXPECT_FP_LE_WITH_EPS(val1, val2, eps)                \
     do {                                                      \
         const double diff = fabs(val1 - val2);                \

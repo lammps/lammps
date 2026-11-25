@@ -42,8 +42,8 @@ and unsupported on Windows):
 * Check if you have an NVIDIA GPU: ``cat /proc/driver/nvidia/gpus/\*/information``
 * Go to https://developer.nvidia.com/cuda-downloads
 * Install a driver and toolkit appropriate for your system (SDK is not necessary)
-* Run ``lammps/lib/gpu/nvc_get_devices`` (after building the GPU library, see below) to
-  list supported devices and properties
+* Run ``nvc_get_devices`` in the build folder (it is compiled together with LAMMPS when
+  the GPU package is enabled, see below) to list supported devices and properties
 
 To compile and use this package in OpenCL mode, you currently need
 to have the OpenCL headers and the (vendor neutral) OpenCL library installed.
@@ -52,7 +52,7 @@ installed. There can be multiple of them for the same or different hardware
 (GPUs, CPUs, Accelerators) installed at the same time. OpenCL refers to those
 as 'platforms'.  The GPU library will try to auto-select the best suitable platform,
 but this can be overridden using the platform option of the :doc:`package <package>`
-command. run ``lammps/lib/gpu/ocl_get_devices`` to get a list of available
+command.  Run ``ocl_get_devices`` in the build folder to get a list of available
 platforms and devices with a suitable ICD available.
 
 To compile and use this package for Intel GPUs, OpenCL or the Intel oneAPI
@@ -112,13 +112,13 @@ cores.
 .. code-block:: bash
 
    # 1 MPI task uses 1 GPU
-   lmp_machine -sf gpu -pk gpu 1 -in in.script
+   lmp -sf gpu -pk gpu 1 -in in.script
 
    # 12 MPI tasks share 2 GPUs on a single 16-core (or whatever) node
-   mpirun -np 12 lmp_machine -sf gpu -pk gpu 2 -in in.script
+   mpirun -np 12 lmp -sf gpu -pk gpu 2 -in in.script
 
    # ditto on 4 16-core nodes
-   mpirun -np 48 -ppn 12 lmp_machine -sf gpu -pk gpu 2 -in in.script
+   mpirun -np 48 -ppn 12 lmp -sf gpu -pk gpu 2 -in in.script
 
 Note that if the ``-sf gpu`` switch is used, it also issues a default
 :doc:`package gpu 0 <package>` command, which will result in
@@ -194,17 +194,13 @@ Guidelines for best performance
   particles), it can be more efficient to run with fewer MPI tasks per
   GPU, even if you do not use all the cores on the compute node.
 * The :doc:`package gpu <package>` command has several options for tuning
-  performance.  Neighbor lists can be built on the GPU or CPU.  Force
-  calculations can be dynamically balanced across the CPU cores and
-  GPUs.  GPU-specific settings can be made which can be optimized
+  performance.  Neighbor lists can be built on the GPU or CPU.
+  GPU-specific settings can be made which can be optimized
   for different hardware.  See the :doc:`package <package>` command
   page for details.
 * As described by the :doc:`package gpu <package>` command, GPU
   accelerated pair styles can perform computations asynchronously with
-  CPU computations. The "Pair" time reported by LAMMPS will be the
-  maximum of the time required to complete the CPU pair style
-  computations and the time required to complete the GPU pair style
-  computations. Any time spent for GPU-enabled pair styles for
+  CPU computations.  Any time spent for GPU-enabled pair styles for
   computations that run simultaneously with :doc:`bond <bond_style>`,
   :doc:`angle <angle_style>`, :doc:`dihedral <dihedral_style>`,
   :doc:`improper <improper_style>`, and :doc:`long-range <kspace_style>`

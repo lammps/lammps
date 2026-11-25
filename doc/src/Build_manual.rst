@@ -53,7 +53,7 @@ incorporates programmer documentation extracted from the LAMMPS C++
 sources through the `Doxygen <https://doxygen.nl/>`_ program.  Currently
 the translation to HTML, PDF (via LaTeX), ePUB (for many e-book readers)
 and MOBI (for Amazon Kindle readers) are supported.  For that to work a
-Python interpreter version 3.8 or later, the ``doxygen`` tools and
+Python interpreter version 3.9 or later, the ``doxygen`` tools and
 internet access to download additional files and tools are required.
 This download is usually only required once or after the documentation
 folder is returned to a pristine state with ``make clean-all``.
@@ -64,11 +64,13 @@ For the documentation build a python virtual environment is set up in
 the folder ``doc/docenv`` and various python packages are installed into
 that virtual environment via the ``pip`` tool.  For rendering embedded
 LaTeX code also the `MathJax <https://www.mathjax.org/>`_ JavaScript
-engine needs to be downloaded.  If you need to pass additional options
-to the pip commands to work (e.g. to use a web proxy or to point to
-additional SSL certificates) you can set them via the ``PIP_OPTIONS``
-environment variable or uncomment and edit the ``PIP_OPTIONS`` setting
-at beginning of the makefile.
+engine and its fonts need to be downloaded.  Both are included in the
+generated ``html`` folder, so that the equations in the manual are
+displayed correctly without internet access.  If you need to pass
+additional options to the pip commands to work (e.g. to use a web proxy
+or to point to additional SSL certificates) you can set them via the
+``PIP_OPTIONS`` environment variable or uncomment and edit the
+``PIP_OPTIONS`` setting at beginning of the makefile.
 
 The actual translation is then done via ``make`` commands in the doc
 folder.  The following ``make`` commands are available:
@@ -88,11 +90,12 @@ folder.  The following ``make`` commands are available:
    make upgrade       # upgrade the python packages in the virtual environment
 
    make check         # run all checks listed in this block
-   make anchor_check  # check for duplicate anchor labels
+   make anchor_check  # check for duplicate and unused anchor labels
    make style_check   # check for complete and consistent style lists
    make package_check # check for complete and consistent package lists
    make char_check    # check for non-ASCII characters
    make role_check    # check for misformatted role keywords
+   make example_check # check for broken or missing links to examples
 
    make link_check    # check for broken external URLs
    make spelling      # spell-check the manual
@@ -106,24 +109,24 @@ It is also possible to create the HTML version (and **only** the HTML
 version) of the manual within the :doc:`CMake build directory
 <Build_cmake>`.  The reason for this option is to include the
 installation of the HTML manual pages into the "install" step when
-installing LAMMPS after the CMake build via ``cmake --build . --target
-install``.  The documentation build is included in the default build
-target, but can also be requested independently with
-``cmake --build . --target doc``.  If you need to pass additional options
+installing LAMMPS after the CMake build via ``cmake --install build``.
+The documentation build is included in the default build target, but can
+also be requested independently with ``cmake --build build --target
+doc``.  If you need to pass additional options
 to the pip commands to work (e.g. to use a web proxy or to point to
 additional SSL certificates) you can set them via the ``PIP_OPTIONS``
 environment variable.
 
 .. code-block:: bash
 
-   -D BUILD_DOC=value       # yes or no (default)
+   -D BUILD_DOC=value       # on or off (default)
 
 ----------
 
 Prerequisites for HTML
 ----------------------
 
-To run the HTML documentation build tool chain, Python 3.8 or later, git,
+To run the HTML documentation build tool chain, Python 3.9 or later, git,
 doxygen, and virtualenv have to be installed locally.  Here are
 instructions for common setups:
 
@@ -135,7 +138,7 @@ instructions for common setups:
 
          sudo apt-get install git doxygen
 
-   .. tab:: Fedora or RHEL/AlmaLinux/RockyLinux (8.x or later)
+   .. tab:: Fedora or RHEL/AlmaLinux/RockyLinux (9.x or later)
 
       .. code-block:: bash
 
@@ -305,6 +308,11 @@ be multiple tests run automatically:
      Pair style entry new is missing or incomplete in pair_style.rst
      Found 6 issue(s) with style lists
 
+- A test if references to files or folders in the examples tree have
+  become broken or are too deeply nested.  The test will examine the git
+  history to detect possible renames.
+
+------
 
 In addition, there is the option to run a spellcheck on the entire
 manual with ``make spelling``.  This requires `a library called enchant

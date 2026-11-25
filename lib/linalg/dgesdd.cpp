@@ -92,10 +92,10 @@ int dgesdd_(char *jobz, integer *m, integer *n, doublereal *a, integer *lda, dou
         *info = -3;
     } else if (*lda < max(1, *m)) {
         *info = -5;
-    } else if (*ldu < 1 || wntqas && *ldu < *m || wntqo && *m < *n && *ldu < *m) {
+    } else if (*ldu < 1 || (wntqas && *ldu < *m) || (wntqo && *m < *n && *ldu < *m)) {
         *info = -8;
-    } else if (*ldvt < 1 || wntqa && *ldvt < *n || wntqs && *ldvt < minmn ||
-               wntqo && *m >= *n && *ldvt < *n) {
+    } else if (*ldvt < 1 || (wntqa && *ldvt < *n) || (wntqs && *ldvt < minmn) ||
+               (wntqo && *m >= *n && *ldvt < *n)) {
         *info = -10;
     }
     if (*info == 0) {

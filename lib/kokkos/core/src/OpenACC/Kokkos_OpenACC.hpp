@@ -59,6 +59,7 @@ class OpenACC {
 
   using array_layout = LayoutLeft;
   using size_type    = memory_space::size_type;
+  using index_type   = memory_space::index_type;
 
   using scratch_memory_space = ScratchMemorySpace<OpenACC>;
 

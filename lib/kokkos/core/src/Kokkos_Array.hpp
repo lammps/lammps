@@ -247,10 +247,12 @@ KOKKOS_FUNCTION constexpr auto to_array(T (&&a)[N]) {
 
 //<editor-fold desc="Support for structured binding">
 template <class T, std::size_t N>
+// NOLINTNEXTLINE(bugprone-std-namespace-modification)
 struct std::tuple_size<Kokkos::Array<T, N>>
     : std::integral_constant<std::size_t, N> {};
 
 template <std::size_t I, class T, std::size_t N>
+// NOLINTNEXTLINE(bugprone-std-namespace-modification)
 struct std::tuple_element<I, Kokkos::Array<T, N>> {
   static_assert(I < N);
   using type = T;

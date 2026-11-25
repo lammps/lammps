@@ -1,0 +1,112 @@
+LAMMPS (2 Sep 2026)
+  using 1 OpenMP thread(s) per MPI task
+# Ar in lj units
+
+# simulation params in reduced units
+# settable from command line
+# epsilon = sigma = mass = 1.0
+
+variable        x index 5
+variable        y index 5
+variable        z index 5
+variable        rhostar index 0.8842
+variable        dt index 0.005
+variable        cutoff index 2.5
+variable        skin index 0.3
+variable        tinitial index 1.0
+variable        nthermo index 10
+variable        nsteps index 100
+
+# script
+
+units           lj
+atom_style      atomic
+
+lattice         fcc ${rhostar}
+lattice         fcc 0.8842
+Lattice spacing in x,y,z = 1.6538768 1.6538768 1.6538768
+region          box block 0 $x 0 $y 0 $z
+region          box block 0 5 0 $y 0 $z
+region          box block 0 5 0 5 0 $z
+region          box block 0 5 0 5 0 5
+create_box      1 box
+Created orthogonal box = (0 0 0) to (8.2693841 8.2693841 8.2693841)
+  1 by 1 by 1 MPI processor grid
+create_atoms    1 box
+Created 500 atoms
+  using lattice units in orthogonal box = (0 0 0) to (8.2693841 8.2693841 8.2693841)
+  create_atoms CPU = 0.000 seconds
+mass            1 1.0
+
+velocity        all create ${tinitial} 12345 loop geom
+velocity        all create 1.0 12345 loop geom
+
+pair_style      lj/cut ${cutoff}
+pair_style      lj/cut 2.5
+pair_coeff      1 1 1.0 1.0
+
+neighbor        ${skin} bin
+neighbor        0.3 bin
+neigh_modify    delay 0 every 20 check no
+
+fix             1 all nve
+
+timestep        ${dt}
+timestep        0.005
+
+thermo          10
+
+run             100
+Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 20 steps, delay = 0 steps, check = no
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 2.8
+  ghost atom cutoff = 2.8
+  binsize = 1.4, bins = 6 6 6
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cut, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 2.644 | 2.644 | 2.644 Mbytes
+   Step          Temp          E_pair         E_mol          TotEng         Press     
+         0   1             -7.1026383      0             -5.6056383     -5.1224757    
+        10   0.72980195    -6.7064685      0             -5.613955      -3.03846      
+        20   0.36169513    -6.1681324      0             -5.6266748     -0.38967687   
+        30   0.49316499    -6.3681311      0             -5.6298631     -1.2079742    
+        40   0.48018678    -6.3483527      0             -5.6295131     -1.1542861    
+        50   0.46815494    -6.3298199      0             -5.6289919     -1.0610318    
+        60   0.49261836    -6.3672782      0             -5.6298285     -1.244457     
+        70   0.51254887    -6.3985425      0             -5.6312568     -1.4375867    
+        80   0.52895409    -6.4228581      0             -5.6310139     -1.5812473    
+        90   0.51314994    -6.398712       0             -5.6305265     -1.4828938    
+       100   0.51994795    -6.4087678      0             -5.6304057     -1.4964095    
+Loop time of 0.0141783 on 1 procs for 100 steps with 500 atoms
+
+Performance: 3046911.648 tau/day, 7053.036 timesteps/s, 3.527 Matom-step/s
+99.4% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.01074    | 0.01074    | 0.01074    |   0.0 | 75.75
+Neigh   | 0.0025049  | 0.0025049  | 0.0025049  |   0.0 | 17.67
+Comm    | 0.0005361  | 0.0005361  | 0.0005361  |   0.0 |  3.78
+Output  | 6.1369e-05 | 6.1369e-05 | 6.1369e-05 |   0.0 |  0.43
+Modify  | 0.00025346 | 0.00025346 | 0.00025346 |   0.0 |  1.79
+Other   |            | 8.256e-05  |            |       |  0.58
+
+Nlocal:            500 ave         500 max         500 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:           1951 ave        1951 max        1951 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:          19592 ave       19592 max       19592 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 19592
+Ave neighs/atom = 39.184
+Neighbor list builds = 5
+Dangerous builds not checked
+Total wall time: 0:00:00

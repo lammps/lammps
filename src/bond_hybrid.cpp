@@ -257,7 +257,7 @@ void BondHybrid::settings(int narg, char **arg)
     // by looking for the next known bond style name.
 
     int jarg = i + 1;
-    while ((jarg < narg) && !force->bond_map->count(arg[jarg]) &&
+    while ((jarg < narg) && !Force::bond_styles().contains(arg[jarg]) &&
            !lmp->match_style("bond", arg[jarg]))
       jarg++;
 

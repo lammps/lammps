@@ -33,7 +33,7 @@ velocity to prevent the fluid from heating up.
 
 .. note::
 
-   A recent (2017) book by :ref:`(Daivis and Todd) <Daivis-viscosity>`
+   The book by :ref:`(Daivis and Todd) <Daivis-viscosity>`
    discusses use of the SLLOD method and non-equilibrium MD (NEMD)
    thermostatting generally, for both simple and complex fluids,
    e.g. molecular systems.  The latter can be tricky to do correctly.
@@ -58,7 +58,7 @@ See the :doc:`fix viscosity <fix_viscosity>` command for details.
 The fourth method is based on the Green-Kubo (GK) formula which
 relates the ensemble average of the auto-correlation of the
 stress/pressure tensor to :math:`\eta`.  This can be done in a fully
-equilibrated simulation which is in contrast to the two preceding
+equilibrated simulation which is in contrast to the three preceding
 non-equilibrium methods, where momentum flows continuously through the
 simulation box.
 

@@ -1,0 +1,74 @@
+# heap of 3d rounded polyhedron bodies with contact history
+#
+# cubes and tetrahedra are poured onto the floor, where the friction from the
+# tangential deformation at the contacts (history keyword of pair_style and
+# fix wall/body/polyhedron) lets them come to rest in a heap.  Then gravity
+# is tilted by 20 degrees, and the heap comes to rest again thanks to the
+# static friction (tan 20 degrees < mu), as the x coordinate of its center of
+# mass (v_xcm) shows.  Without the history keywords, the heap keeps sliding
+# along the floor.
+
+variable    steps       index 10000
+variable    steps_tilt  index 10000
+variable    tilt        index 20.0
+
+units       lj
+boundary    p p fm
+comm_modify vel yes
+
+atom_style  body rounded/polyhedron 1 8
+atom_modify map array
+
+region      reg block 0 20 0 20 0 40 units box
+create_box  2 reg
+
+variable cut_inner  equal 0.5
+variable k_n        equal 100
+variable k_na       equal 1
+variable c_n        equal 20
+variable c_t        equal 5
+variable mu         equal 0.5
+variable A_ua       equal 1
+
+pair_style body/rounded/polyhedron ${c_n} ${c_t} ${mu} ${A_ua} ${cut_inner} history
+pair_coeff * * ${k_n} ${k_na}
+
+neighbor     0.5 bin
+neigh_modify every 1 delay 0 check yes
+
+timestep     0.002
+
+fix          1 all nve/body
+fix          2 all gravity 1.0 vector 0.0 0.0 -1.0
+
+molecule     object molecule.cube molecule.tetra toff 1
+region       slab block 2 18 2 18 4 20 units box
+
+fix          ins all pour 50 0 4767548 vol 0.25 10 region slab mol object &
+             molfrac 0.5 0.5
+fix          4 all wall/body/polyhedron 2000 50 50 zplane 0.0 NULL history ${mu} NULL
+
+compute      tb all temp/body
+compute_modify thermo_temp dynamic/dof yes
+compute_modify tb dynamic/dof yes
+variable     xcm equal xcm(all,x)
+thermo_style custom step atoms ke c_tb pe v_xcm
+thermo_modify norm yes
+thermo       1000
+
+#dump         2 all image 1000 image.*.jpg type type body type 0.05 3 &
+#             fix 4 type 0 0 view 75 15 center s 0.5 0.5 0.3 zoom 1.4 box no 0.0
+#dump_modify  2 pad 6
+
+run          ${steps}
+
+# tilt gravity: the heap stays at rest
+# fix pour requires gravity along -z, and all bodies are inserted by now
+
+variable     sx equal sin(${tilt}*PI/180.0)
+variable     sz equal -cos(${tilt}*PI/180.0)
+unfix        ins
+unfix        2
+fix          2 all gravity 1.0 vector ${sx} 0.0 ${sz}
+
+run          ${steps_tilt}

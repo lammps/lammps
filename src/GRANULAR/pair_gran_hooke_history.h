@@ -59,6 +59,8 @@ class PairGranHookeHistory : public Pair {
 
   class FixDummy *fix_dummy;
   class FixNeighHistory *fix_history;
+  char *id_history;    // id of fix_history, kept so that it survives a restart
+  void set_history_id();
 
   // storage of rigid body masses for use in granular interactions
 

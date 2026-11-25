@@ -13,13 +13,15 @@
 ------------------------------------------------------------------------- */
 
 #include "neigh_list.h"
-#include "my_page.h"    // IWYU pragma: keep
+
 #include "atom.h"
 #include "comm.h"
+#include "memory.h"
+#include "my_page.h"    // IWYU pragma: keep
 #include "neighbor.h"
 #include "neigh_request.h"
-#include "my_page.h"
-#include "memory.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -229,6 +231,9 @@ void NeighList::grow(int nlocal, int nall)
   memory->create(numneigh,maxatom,"neighlist:numneigh");
   firstneigh = (int **) memory->smalloc(maxatom*sizeof(int *),
                                         "neighlist:firstneigh");
+  memset(ilist,0,maxatom*sizeof(int));
+  memset(numneigh,0,maxatom*sizeof(int));
+  memset(firstneigh,0,maxatom*sizeof(int *));
 
   if (respainner) {
     memory->destroy(ilist_inner);
@@ -238,6 +243,9 @@ void NeighList::grow(int nlocal, int nall)
     memory->create(numneigh_inner,maxatom,"neighlist:numneigh_inner");
     firstneigh_inner = (int **) memory->smalloc(maxatom*sizeof(int *),
                                                 "neighlist:firstneigh_inner");
+    memset(ilist_inner,0,maxatom*sizeof(int));
+    memset(numneigh_inner,0,maxatom*sizeof(int));
+    memset(firstneigh_inner,0,maxatom*sizeof(int *));
   }
 
   if (respamiddle) {
@@ -248,6 +256,9 @@ void NeighList::grow(int nlocal, int nall)
     memory->create(numneigh_middle,maxatom,"neighlist:numneigh_middle");
     firstneigh_middle = (int **) memory->smalloc(maxatom*sizeof(int *),
                                                  "neighlist:firstneigh_middle");
+    memset(ilist_middle,0,maxatom*sizeof(int));
+    memset(numneigh_middle,0,maxatom*sizeof(int));
+    memset(firstneigh_middle,0,maxatom*sizeof(int *));
   }
 }
 

@@ -31,7 +31,14 @@ using namespace LAMMPS_NS;
 static constexpr long STL_BIN_HEADER = 80 + sizeof(uint32_t);              // 84
 static constexpr long STL_BIN_PER_TRI = 12 * sizeof(float) + sizeof(uint16_t);  // 50
 
-/* ---------------------------------------------------------------------- */
+/** Create an STL reader class instance
+ *
+ * A class instance is only required for the STLReader::read_file() member
+ * function.  It owns the storage for the triangle vertices that this
+ * function returns, so the instance must be kept until the data has been
+ * copied or is no longer needed.
+ *
+ * \param  lmp  Pointer to LAMMPS instance */
 
 STLReader::STLReader(LAMMPS *lmp) : Pointers(lmp)
 {
@@ -39,18 +46,32 @@ STLReader::STLReader(LAMMPS *lmp) : Pointers(lmp)
   tris = nullptr;
 }
 
-/* ---------------------------------------------------------------------- */
+/** Free the storage for the triangle vertices */
 
 STLReader::~STLReader()
 {
   memory->destroy(tris);
 }
 
-/* ----------------------------------------------------------------------
-   read triangles on rank 0, broadcast vertex coords to all ranks
-   caller_tris is filled with 9 doubles per triangle (3 vertices, no normal)
-   allow for 9*ntris to exceed the max allowed size of a single MPI_Bcast()
-------------------------------------------------------------------------- */
+/** Read an STL file on MPI rank 0 and communicate the vertices to all ranks
+ *
+ * The file is read and parsed on MPI rank 0 only and then the vertex
+ * coordinates are broadcast to all MPI processes; the facet normals are
+ * discarded.  The storage for the vertices is allocated and owned by the
+ * class instance and thus freed by its destructor.  Reading an empty or
+ * unreadable file aborts LAMMPS with an error message.
+ *
+\verbatim embed:rst
+
+*See also*
+   :cpp:func:`STLReader::parse() <LAMMPS_NS::STLReader::parse>`
+
+\endverbatim
+ *
+ * \param  filename     Name of the STL file to be read
+ * \param  caller_tris  Reference to a pointer that is set to the storage
+ *                      with 9 coordinates (3 vertices) per triangle
+ * \return              Number of triangles read */
 
 int STLReader::read_file(const char *filename, double **&caller_tris)
 {
@@ -81,6 +102,8 @@ int STLReader::read_file(const char *filename, double **&caller_tris)
   if (ntris == 0) error->all(FLERR, "STL file {} has no triangles", filename);
   if (me) memory->create(tris, ntris, 9, "stl_reader:tris");
 
+  // allow for 9*ntris to exceed the max allowed size of a single MPI_Bcast()
+
   bigint ntotal = (bigint) ntris * 9;
   if (ntotal < MAXSMALLINT)
     MPI_Bcast(&tris[0][0], 9*ntris, MPI_DOUBLE, 0, world);
@@ -98,12 +121,23 @@ int STLReader::read_file(const char *filename, double **&caller_tris)
   return ntris;
 }
 
-/* ----------------------------------------------------------------------
-   stand-alone STL parser: auto-detect ASCII vs binary and return triangles
-   a binary STL file is exactly STL_BIN_HEADER + STL_BIN_PER_TRI*ntri bytes,
-   which is the robust way to distinguish it from an ASCII file (whose header
-   may legally also start with the word "solid")
-------------------------------------------------------------------------- */
+/** Read and parse an STL file and return its triangles
+ *
+ * This function is independent from any LAMMPS instance and does not
+ * communicate, so it can be called from anywhere.  It detects whether the
+ * file is in text or binary format from its contents: a binary STL file has
+ * a size of exactly 84 + 50*N bytes for N triangles, which is a more robust
+ * test than looking for the word "solid" at the beginning of the file, since
+ * the header of a binary file may legally start with that word, too.
+ *
+ * Any error while opening, reading, or parsing the file is reported by
+ * throwing an STLReaderException with a suitable message.  Files with zero
+ * triangles are *not* an error and result in an empty vector.
+ *
+ * \param  filename   Name of the STL file to be read
+ * \param  title_out  Optional pointer to a string that is set to the name of
+ *                    the mesh stored in the file (may be an empty string)
+ * \return            Vector with the triangles read from the file */
 
 std::vector<STLReader::Triangle> STLReader::parse(const std::string &filename, std::string *title_out)
 {

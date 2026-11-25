@@ -14,8 +14,8 @@ wherever they appear in LAMMPS input or output files.  The total number
 Ntypes for each interaction is "locked in" when the simulation box
 is created.
 
-A recent addition to LAMMPS is the option to use strings - referred to
-as type labels - as an alternative.  Using type labels instead of
+LAMMPS also offers the option to use strings - referred to as type
+labels - as an alternative.  Using type labels instead of
 numeric types can be advantageous in various scenarios.  For example,
 type labels can make inputs more readable and generic (i.e. usable
 through the :doc:`include command <include>` for different systems with
@@ -23,8 +23,8 @@ different numerical values assigned to types.  This generality also
 applies to other inputs like data files read by :doc:`read_data
 <read_data>` or molecule template files read by the :doc:`molecule
 <molecule>` command.  A discussion of the current type label support can
-be found in :ref:`(Gissinger) <Typelabel24>`.  See below for a list of
-other commands that can use type labels in different ways.
+be found in :ref:`(Gissinger) <Typelabel24>`.  See below for examples
+of workflows that benefit from using type labels.
 
 LAMMPS will *internally* continue to use numeric types, which means
 that many previous restrictions still apply.  For example, the total
@@ -90,8 +90,9 @@ project.  If an input script command (or a section in a file read by a
 command) allows substituting a type label for a numeric type argument,
 it will be explicitly mentioned in that command's documentation page.
 
-As a temporary measure, input script commands can take advantage of
-variables and how they can be expanded during processing of the input.
+For commands that do not (yet) support type labels, input scripts can
+take advantage of variables and how they can be expanded during
+processing of the input.
 The variables can use functions that will translate type label strings
 to their respective number as defined in the current label map.  See the
 :doc:`variable <variable>` command for details.

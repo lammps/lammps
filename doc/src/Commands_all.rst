@@ -102,6 +102,7 @@ An alphabetic list of general LAMMPS commands.
    * :doc:`units <units>`
    * :doc:`variable <variable>`
    * :doc:`velocity <velocity>`
+   * :doc:`velocity/tspin <velocity_tspin>`
    * :doc:`write_coeff <write_coeff>`
    * :doc:`write_data <write_data>`
    * :doc:`write_dump <write_dump>`
@@ -116,6 +117,7 @@ additional letter in parentheses: k = KOKKOS.
    :columns: 6
 
    * :doc:`dynamical_matrix (k) <dynamical_matrix>`
+   * :doc:`fenix <fenix>`
    * :doc:`group2ndx <group2ndx>`
    * :doc:`hyper <hyper>`
    * :doc:`kim <kim_commands>`

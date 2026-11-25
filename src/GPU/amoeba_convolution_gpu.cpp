@@ -37,8 +37,10 @@ enum{GRIDBRICK_OUT,GRIDBRICK_IN,FFT,CFFT1,CFFT2};
 //#define USE_AMOEBA_FFT
 #ifdef USE_AMOEBA_FFT
 // External functions from GPU library
-int amoeba_setup_fft(const int size, const int numel, const int element_type);
-int amoeba_compute_fft1d(void* in, void* out, const int numel, const int mode);
+namespace LAMMPS_GPU {
+void amoeba_setup_fft(const int numel, const int element_type);
+void amoeba_compute_fft1d(void* in, void* out, const int numel, const int mode);
+}    // namespace LAMMPS_GPU
 #endif
 
 /* ----------------------------------------------------------------------
@@ -107,7 +109,7 @@ FFT_SCALAR *AmoebaConvolutionGPU::pre_convolution_4d()
   // perform forward FFT
 
   #ifdef USE_AMOEBA_FFT
-  amoeba_compute_fft1d(cfft,cfft,2*nfft_owned,FFT3d::FORWARD);
+  LAMMPS_GPU::amoeba_compute_fft1d(cfft,cfft,2*nfft_owned,FFT3d::FORWARD);
   #else
   fft1->compute(cfft,cfft,FFT3d::FORWARD);
   #endif

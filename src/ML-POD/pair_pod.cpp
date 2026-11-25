@@ -186,24 +186,31 @@ void PairPOD::compute(int eflag, int vflag)
 
   int blockMode = 0;
   if (blockMode==0) {
+
+  // determine the maximum number of neighbor list candidates for all local atoms
+  // and allocate temporary memory accordingly.  a minimum of one guarantees that
+  // the buffers always exist, even if no atom has any neighbors at all.
+
+  int jnummax = 1;
+  for (int ii = 0; ii < inum; ii++) jnummax = MAX(jnummax, numneigh[ilist[ii]]);
+
+  if (nijmax < jnummax) {
+    nijmax = jnummax;
+    fastpodptr->free_temp_memory();
+    fastpodptr->allocate_temp_memory(nijmax);
+  }
+
+  double *rij1 = &fastpodptr->tmpmem[0];
+  double *fij1 = &fastpodptr->tmpmem[3*nijmax];
+  double *tmp = &fastpodptr->tmpmem[6*nijmax];
+  int *ai1 = &fastpodptr->tmpint[0];
+  int *aj1 = &fastpodptr->tmpint[nijmax];
+  int *ti1 = &fastpodptr->tmpint[2*nijmax];
+  int *tj1 = &fastpodptr->tmpint[3*nijmax];
+
   for (int ii = 0; ii < inum; ii++) {
     int i = ilist[ii];
-    int jnum = numneigh[i];
 
-    // allocate temporary memory
-    if (nijmax < jnum) {
-      nijmax = MAX(nijmax, jnum);
-      fastpodptr->free_temp_memory();
-      fastpodptr->allocate_temp_memory(nijmax);
-    }
-
-    double *rij1 = &fastpodptr->tmpmem[0];
-    double *fij1 = &fastpodptr->tmpmem[3*nijmax];
-    double *tmp = &fastpodptr->tmpmem[6*nijmax];
-    int *ai1 = &fastpodptr->tmpint[0];
-    int *aj1 = &fastpodptr->tmpint[nijmax];
-    int *ti1 = &fastpodptr->tmpint[2*nijmax];
-    int *tj1 = &fastpodptr->tmpint[3*nijmax];
     lammpsNeighborList(rij1, ai1, aj1, ti1, tj1, x, firstneigh, type, map, numneigh, rcutsq, i);
 
     evdwl = fastpodptr->peratomenergyforce2(fij1, rij1, tmp, ti1, tj1, nij);
@@ -305,8 +312,11 @@ void PairPOD::coeff(int narg, char **arg)
   copy_data_from_pod_class();
   rcut = fastpodptr->rcut;
 
-  memory->destroy(fastpodptr->tmpmem);
-  memory->destroy(fastpodptr->tmpint);
+  // release the temporary memory allocated by the EAPOD constructor and reset
+  // nijmax, so PairPOD::compute() re-allocates based on actual neighbor counts
+
+  fastpodptr->free_temp_memory();
+  nijmax = 0;
 
   for (int ii = 0; ii < np1; ii++)
     for (int jj = 0; jj < np1; jj++) cutsq[ii][jj] = fastpodptr->rcut * fastpodptr->rcut;
@@ -365,10 +375,12 @@ void PairPOD::lammpsNeighborList(double *rij1, int *ai1, int *aj1, int *ti1, int
 {
   nij = 0;
   int itype = map[atomtypes[gi]] + 1;
+  // always store the type of the central atom, so that the one-body energy
+  // can be computed even when the atom has no neighbors within the cutoff
   ti1[nij] = itype;
   int m = numneigh[gi];
   for (int l = 0; l < m; l++) {           // loop over each atom around atom i
-    int gj = firstneigh[gi][l];           // atom j
+    int gj = firstneigh[gi][l] & NEIGHMASK;    // atom j
     double delx = x[gj][0] - x[gi][0];    // xj - xi
     double dely = x[gj][1] - x[gi][1];    // xj - xi
     double delz = x[gj][2] - x[gi][2];    // xj - xi
@@ -396,7 +408,7 @@ void PairPOD::NeighborCount(double **x, int **firstneigh, int *ilist, int *numne
     int m = numneigh[gi];
     int n = 0;
     for (int l = 0; l < m; l++) {           // loop over each atom around atom i
-      int gj = firstneigh[gi][l];           // atom j
+      int gj = firstneigh[gi][l] & NEIGHMASK;    // atom j
       double delx = x[gj][0] - xi0;    // xj - xi
       double dely = x[gj][1] - xi1;    // xj - xi
       double delz = x[gj][2] - xi2;    // xj - xi
@@ -431,7 +443,7 @@ void PairPOD::NeighborList(double **x, int **firstneigh, int *atomtypes, int *ma
     int nij0 = numij[i];
     int k = 0;
     for (int l = 0; l < m; l++) {           // loop over each atom around atom i
-      int gj = firstneigh[gi][l];           // atom j
+      int gj = firstneigh[gi][l] & NEIGHMASK;    // atom j
       double delx = x[gj][0] - xi0;    // xj - xi
       double dely = x[gj][1] - xi1;    // xj - xi
       double delz = x[gj][2] - xi2;    // xj - xi

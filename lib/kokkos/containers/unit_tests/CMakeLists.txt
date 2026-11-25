@@ -28,6 +28,7 @@ foreach(Tag Threads;Serial;OpenMP;HPX;Cuda;HIP;SYCL)
       ScatterView
       WithoutInitializing
       UnorderedMap
+      UnorderedSet
       ViewCtorPropEmbeddedDim
     )
       # Write to a temporary intermediate file and call configure_file to avoid
@@ -56,7 +57,5 @@ foreach(Tag Threads;Serial;OpenMP;HPX;Cuda;HIP;SYCL)
   endif()
 endforeach()
 
-set(COMPILE_ONLY_SOURCES TestCreateMirror.cpp TestDualViewParameterPack.cpp TestIsViewTrait.cpp
-                         TestDynRankViewTypedefs.cpp
-)
+set(COMPILE_ONLY_SOURCES TestCreateMirror.cpp TestIsViewTrait.cpp TestDynRankViewTypedefs.cpp)
 kokkos_add_executable(ContainersTestCompileOnly SOURCES TestCompileMain.cpp ${COMPILE_ONLY_SOURCES})

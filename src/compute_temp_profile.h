@@ -43,7 +43,7 @@ class ComputeTempProfile : public Compute {
   void restore_bias_all() override;
   double memory_usage() override;
 
- private:
+ protected:
   int xflag, yflag, zflag, ncount, outflag;
   int nbinx, nbiny, nbinz, nbins;
   int ivx, ivy, ivz;

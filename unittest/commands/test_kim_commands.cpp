@@ -86,8 +86,7 @@ TEST_F(KimCommandsTest, kim_init)
     command("kim init LennardJones_Ar real");
     END_HIDE_OUTPUT();
 
-    int ifix = lmp->modify->find_fix("KIM_MODEL_STORE");
-    ASSERT_GE(ifix, 0);
+    ASSERT_NE(lmp->modify->get_fix_by_id("KIM_MODEL_STORE"), nullptr);
 }
 
 TEST_F(KimCommandsTest, kim_interactions)
@@ -195,8 +194,7 @@ TEST_F(KimCommandsTest, kim_interactions)
     command("mass 1 39.95");
     END_HIDE_OUTPUT();
 
-    int ifix = lmp->modify->find_fix("KIM_MODEL_STORE");
-    ASSERT_GE(ifix, 0);
+    ASSERT_NE(lmp->modify->get_fix_by_id("KIM_MODEL_STORE"), nullptr);
 
     BEGIN_HIDE_OUTPUT();
     command("clear");
@@ -406,10 +404,10 @@ TEST_F(KimCommandsTest, kim_property)
     if (!Info::has_package("KIM")) GTEST_SKIP();
     if (!Info::has_package("PYTHON")) GTEST_SKIP();
 
-    if (!lmp->python->has_minimum_version(3, 6)) {
+    if (!lmp->python->has_minimum_version(3, 9)) {
         TEST_FAILURE(".*ERROR: Invalid Python version.\n"
-                     "The kim-property Python package requires Python "
-                     "3 >= 3.6 support.*",
+                     "Using the kim-property Python package with LAMMPS "
+                     "requires Python 3.9 or later.*",
                      command("kim property"););
     } else {
         TEST_FAILURE(".*ERROR: Illegal kim property command: missing argument.*",

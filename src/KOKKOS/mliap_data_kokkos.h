@@ -61,6 +61,8 @@ template <class DeviceType> class MLIAPDataKokkos : public MLIAPData {
   MLIAPDataKokkos(class LAMMPS *, int, int *, class MLIAPModel *, class MLIAPDescriptor *,
                   class PairMLIAPKokkos<DeviceType> * = nullptr);
   ~MLIAPDataKokkos() override;
+  // checked conversion from a base class pointer, see the .cpp file
+  static MLIAPDataKokkos<DeviceType> *cast(class MLIAPData *);
   ExecutionSpace execution_space;
 
   void generate_neighdata(class NeighList *, int = 0, int = 0) override;
@@ -141,7 +143,7 @@ public:
     graddesc(base.k_graddesc.view_device().data()),
     eflag(base.eflag),
     vflag(base.vflag),
-    pairmliap(dynamic_cast<PairMLIAPKokkos<LMPDeviceType> *>(base.pairmliap)),
+    pairmliap(PairMLIAPKokkos<LMPDeviceType>::cast(base.pairmliap)),
 #if defined(KOKKOS_ENABLE_CUDA)
     dev(1)
 #else

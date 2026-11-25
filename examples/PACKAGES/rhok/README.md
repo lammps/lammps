@@ -1,7 +1,7 @@
 # The Interface Pinning method for studying solid-liquid transitions
 
-In this example we will use the interface pinnig method to study a solid-liquid transition.
-This is done by adding a harmonic potential to the Hamiltonian 
+In this example we will use the interface pinning method to study a solid-liquid transition.
+This is done by adding a harmonic potential to the Hamiltonian
 that bias the system towards two-phase configurations:
 
   U_bias = 0.5*K*(Q-a)^2
@@ -29,7 +29,7 @@ and a brief introduction can be found at YouTube:
 
   [![Interface Pinning](http://img.youtube.com/vi/F_79JZNdyoQ/0.jpg)](http://www.youtube.com/watch?v=F_79JZNdyoQ)
 
-### Implimentation in LAMMPS
+### Implementation in LAMMPS
 
 For this example we will be using the rhok fix.
 

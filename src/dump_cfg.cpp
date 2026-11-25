@@ -139,7 +139,7 @@ void DumpCFG::write_header(bigint n)
   header += fmt::format(".NO_VELOCITY.\n");
   header += fmt::format("entry_count = {}\n",nfield-2);
   for (int i = 5; i < nfield; i++)
-    if (keyword_user[i].size())
+    if (!keyword_user[i].empty())
       header += fmt::format("auxiliary[{}] = {}\n",i-5,keyword_user[i]);
     else
       header += fmt::format("auxiliary[{}] = {}\n",i-5,auxname[i-5]);

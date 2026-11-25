@@ -4,7 +4,7 @@ How-to reference for porting LAMMPS pair, fix, and compute styles to the KOKKOS 
 template skeletons plus the accumulated lessons from past porting work, by theme. The
 always-on rules (copymode guard, virtual allocate, `AT::` vs `DAT::`, datamask/sync,
 full-ports-only, doc checklist) live in `.github/instructions/kokkos.instructions.md` and
-are not repeated here; remaining work is in `.github/dev-docs/kokkos-porting-backlog.md`.
+are not repeated here; remaining work is in `.github/dev-docs/accelerator-porting-backlog.md`.
 
 ## Porting a pair style
 
@@ -609,12 +609,19 @@ capturer can exist at a time" failure -- the drivers echo each captured section 
 completes, so the last echoed line pinpoints where the throw escaped. A style with no
 `/kk` variant that cannot run under VerletKokkos needs `skip_tests: kokkos_gpu` in YAML.
 
+Mixed precision is a separate validation target per backend: a style that passes the
+mixed-precision fixtures in a HOST-only KOKKOS build can still produce NaNs on a GPU
+build when intermediate float-range limits are hit (class example: `exp()` of a large
+positive argument overflows in `float` -- reaxff/kk).  Run the `kokkos_gpu_mixed`
+fixture on a real device before declaring mixed-precision support clean; if a style is
+numerically unfit for single/mixed, add the corresponding `skip_tests` entries instead.
+
 ## KOKKOS test build
 
 ```bash
 cmake -S cmake -B build -C cmake/presets/gcc.cmake -C cmake/presets/most.cmake \
   -D PKG_KOKKOS=on -D Kokkos_ENABLE_OPENMP=on \
-  -D DOWNLOAD_POTENTIALS=off -D ENABLE_TESTING=on -G Ninja
+  -D DOWNLOAD_POTENTIALS=off -D ENABLE_TESTING=on -D BUILD_SHARED_LIBS=on -G Ninja
 cmake --build build -j 4
-cd build && ctest -V -R pair
+ctest --test-dir build -V -R pair
 ```

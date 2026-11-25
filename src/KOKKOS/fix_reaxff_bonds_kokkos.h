@@ -34,10 +34,11 @@ class FixReaxFFBondsKokkos : public FixReaxFFBonds {
 
   void init() override;
 
+  double memory_usage() override;
+
  private:
   int nbuf;
   void Output_ReaxFF_Bonds() override;
-  double memory_usage() override;
 };
 }
 

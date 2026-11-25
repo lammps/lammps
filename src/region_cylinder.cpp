@@ -247,6 +247,8 @@ RegCylinder::RegCylinder(LAMMPS *lmp, int narg, char **arg) :
 
 RegCylinder::~RegCylinder()
 {
+  if (copymode) return;
+
   delete[] c1str;
   delete[] c2str;
   delete[] rstr;

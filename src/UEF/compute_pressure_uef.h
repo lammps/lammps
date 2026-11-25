@@ -39,7 +39,7 @@ class ComputePressureUef : public ComputePressure {
  protected:
   bool ext_flags[3];    // true if used in average output pressure
   void virial_rot(double *, const double[3][3]);
-  int ifix_uef;
+  class FixNHUef *fix_uef = nullptr;
   double rot[3][3];
 };
 

@@ -18,13 +18,15 @@
 
 #include "fix_reaxff_species_kokkos.h"
 
-#include "atom.h"
+#include "atom_kokkos.h"
 #include "atom_masks.h"
 #include "comm.h"
 #include "error.h"
 #include "force.h"
 #include "kokkos_type.h"
 #include "neigh_list_kokkos.h"
+#include "pair_reaxff_kokkos.h"
+#include "update.h"
 
 #include "fix_ave_atom.h"
 #include "pair_reaxff.h"
@@ -45,10 +47,11 @@ FixReaxFFSpeciesKokkos::FixReaxFFSpeciesKokkos(LAMMPS *lmp, int narg, char **arg
 
   atomKK = (AtomKokkos *) atom;
 
-  // NOTE: Could improve performance if a Kokkos version of ComputeSpecAtom is added
+  // the per-atom data and the bonds are only copied to the host on the steps
+  // when they are needed, see post_integrate()
 
-  datamask_read = X_MASK | V_MASK | Q_MASK | MASK_MASK | DVECTOR_MASK | TYPE_MASK | RMASS_MASK | TAG_MASK;
-  datamask_modify = DVECTOR_MASK;
+  datamask_read = EMPTY_MASK;
+  datamask_modify = EMPTY_MASK;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -61,6 +64,60 @@ void FixReaxFFSpeciesKokkos::init()
                "Cannot use fix reaxff/species/kk without pair_style reaxff/kk");
 
   FixReaxFFSpecies::init();
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixReaxFFSpeciesKokkos::setup(int vflag)
+{
+  sync_host_data();
+  FixReaxFFSpecies::setup(vflag);
+  atomKK->modified(Host, DVECTOR_MASK);
+}
+
+/* ----------------------------------------------------------------------
+   the averaging of the bond data samples on the steps of the averaging
+   windows that end on multiples of Nfreq, which also include the steps of
+   the analysis.  on all other steps, no per-atom data is used on the host.
+------------------------------------------------------------------------- */
+
+void FixReaxFFSpeciesKokkos::post_integrate()
+{
+  if (sample_step()) {
+    sync_host_data();
+    FixReaxFFSpecies::post_integrate();
+    atomKK->modified(Host, DVECTOR_MASK);
+  } else {
+    FixReaxFFSpecies::post_integrate();
+  }
+}
+
+/* ----------------------------------------------------------------------
+   true if the current step is within an averaging window on a step that
+   is a multiple of Nevery.  this includes all steps on which the averaging
+   samples the bond data, see FixAveAtom::nextvalid()
+------------------------------------------------------------------------- */
+
+bool FixReaxFFSpeciesKokkos::sample_step() const
+{
+  const bigint ntimestep = update->ntimestep;
+  if (ntimestep % nevery) return false;
+  const bigint ahead = (nfreq - (ntimestep % nfreq)) % nfreq;
+  return ahead <= static_cast<bigint>(nrepeat - 1) * nevery;
+}
+
+/* ----------------------------------------------------------------------
+   make the per-atom data and the bonds of pair reaxff/kk current on the host
+------------------------------------------------------------------------- */
+
+void FixReaxFFSpeciesKokkos::sync_host_data()
+{
+  atomKK->sync(Host, X_MASK | V_MASK | Q_MASK | MASK_MASK | DVECTOR_MASK | TYPE_MASK |
+                         RMASS_MASK | TAG_MASK);
+  if (reaxff->execution_space == HostKK)
+    static_cast<PairReaxFFKokkos<LMPHostType> *>(reaxff)->sync_species_host();
+  else
+    static_cast<PairReaxFFKokkos<LMPDeviceType> *>(reaxff)->sync_species_host();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -114,7 +171,7 @@ void FixReaxFFSpeciesKokkos::FindMolecule()
         for (jj = 0; jj < MAXSPECBOND; jj++) {
           j = reaxff->tmpid[i][jj];
 
-          if ((j == 0) && (j < i)) continue;
+          if ((j == 0) || (j < i)) continue;
           if (!(mask[j] & groupbit)) continue;
 
           if (clusterID[i] == clusterID[j]
@@ -141,4 +198,20 @@ void FixReaxFFSpeciesKokkos::FindMolecule()
     if (looptot >= 400*comm->nprocs) break;
 
   }
+}
+
+/* ----------------------------------------------------------------------
+   deleting molecules removes atoms from the host copy of all per-atom
+   data with AtomVec::copy(), so all of it must be current on the host
+   before, and the device copy must be updated after atoms were removed
+------------------------------------------------------------------------- */
+
+void FixReaxFFSpeciesKokkos::DeleteSpecies(int Nmole, int Nspec)
+{
+  atomKK->sync(Host, ALL_MASK);
+  const int nlocal_old = atom->nlocal;
+
+  FixReaxFFSpecies::DeleteSpecies(Nmole, Nspec);
+
+  if (atom->nlocal != nlocal_old) atomKK->modified(Host, ALL_MASK);
 }

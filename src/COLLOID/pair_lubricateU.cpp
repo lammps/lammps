@@ -1778,6 +1778,7 @@ void PairLubricateU::init_style()
       error->all(FLERR,"Pair lubricateU requires monodisperse particles");
     if (i > 1 && radtype != rad)
       error->all(FLERR,"Pair lubricateU requires monodisperse particles");
+    rad = radtype;
   }
 
   // check for fix deform, if exists it must use "remap v"
@@ -1792,7 +1793,7 @@ void PairLubricateU::init_style()
   flagdeform = flagwall = 0;
   wallfix = nullptr;
 
-  if (modify->get_fix_by_style("^deform").size() > 0) flagdeform = 1;
+  if (!modify->get_fix_by_style("^deform").empty()) flagdeform = 1;
   auto fixes = modify->get_fix_by_style("^wall");
   if (fixes.size() > 1)
     error->all(FLERR, "Cannot use multiple fix wall commands with pair lubricateU");

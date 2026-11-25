@@ -582,9 +582,11 @@ void FixDeform::init()
     int flag = 0;
     double lo,hi;
     if (flipflag && set[3].style == VARIABLE)
-      error->all(FLERR, "Fix {} cannot use yz variable with xy unless xz is erate/rescale", style);
+      error->all(FLERR, "Fix {} cannot use yz variable with box flips and a defined xy unless xz is erate/rescale",
+                 style);
     if (flipflag && set[3].style == ERATERS)
-      error->all(FLERR, "Fix {} cannot use yz erate/rescale with xy if xz is not erate/rescale", style);
+      error->all(FLERR, "Fix {} cannot use yz erate/rescale with box flips and a defined xy unless xz is erate/rescale",
+                 style);
     if (set[3].style == WIGGLE) {
       lo = set[3].tilt_min;
       hi = set[3].tilt_max;
@@ -696,7 +698,7 @@ void FixDeform::init()
     if (ifix->rigid_flag) rfix.push_back(ifix);
 
   auto fix_sllod = modify->get_fix_by_style("nvt/sllod");
-  if (fix_sllod.size() > 0) {
+  if (!fix_sllod.empty()) {
     const auto *ifix = fix_sllod[0];
 
     // warn about flows which may produce a non-constant flow tensor
@@ -770,12 +772,15 @@ void FixDeform::init()
 
 /* ----------------------------------------------------------------------
   box flipped on previous step
-  reset box tilts for flipped config and create new box in domain
+  reset box tilts for flipped config and create new box via Domain
   image_flip() adjusts image flags due to box shape change induced by flip
-  remap() puts atoms outside the new box back into the new box
-  perform irregular on atoms in lamda coords to migrate atoms to new procs
+  remap_all() puts atoms outside the new box back into the new box,
+    adjusts their image flags further, adjusts velocity due to "remap v"
   important that image_flip comes before remap, since remap may change
     image flags to new values, making eqs in doc of Domain:image_flip incorrect
+  Domain::image_flip() also calls modify->image_flip() so rigid fixes flip
+    their body image flags; they remap body xcm,vcm,imagebody in pre_neighbor()
+  finally irregular comm of atoms in lamda coords to migrate atoms to new procs
 ------------------------------------------------------------------------- */
 
 void FixDeform::pre_exchange()
@@ -821,10 +826,17 @@ void FixDeform::pre_exchange()
   domain->remap_all();
 
   domain->x2lamda(atom->nlocal);
-  irregular->migrate_atoms();
+  migrate_atoms();
   domain->lamda2x(atom->nlocal);
 
   flip = 0;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixDeform::migrate_atoms()
+{
+  irregular->migrate_atoms();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1076,7 +1088,8 @@ void FixDeform::apply_volume()
                  (set[fixed].hi_start - set[fixed].lo_start));
     }
 
-    h_rate[i] = (2.0 * shift / (domain->boxhi[i] - domain->boxlo[i]) - 1.0) / update->dt;
+    // (2*shift - L_old)/dt is d(box length)/dt; domain->h_rate is not a strain rate
+    h_rate[i] = (2.0 * shift - (domain->boxhi[i] - domain->boxlo[i])) / update->dt;
     h_ratelo[i] = -0.5 * h_rate[i];
 
     set[i].lo_target = 0.5 * (set[i].lo_start + set[i].hi_start) - shift;
@@ -1356,7 +1369,9 @@ void FixDeform::options(int narg, char **arg)
       auto nskip = child_options[arg[iarg]];
       if (iarg + nskip > narg)
         utils::missing_cmd_args(FLERR, fmt::format("fix {} {}", style, arg[iarg]), error);
-      for (int i = 0; i < nskip; i++) leftover_iarg.push_back(iarg + i);
+      // arg here is shifted, but need to store unshifted indices in leftover => add start location
+      //   (see options(narg - iarg, &arg[iarg]) call in the constructor)
+      for (int i = 0; i < nskip; i++) leftover_iarg.push_back(iarg_options_start + iarg + i);
       iarg += nskip;
     } else error->all(FLERR, "Unknown fix {} keyword: {}", style, arg[iarg]);
   }

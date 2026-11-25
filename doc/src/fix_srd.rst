@@ -310,6 +310,37 @@ if no thermostatting is performed (the default), it may take a long time for
 the SRD fluid to come to equilibrium with a velocity profile that matches the
 simulation box deformation.
 
+.. note::
+
+   When :doc:`fix deform <fix_deform>` is used, the profile-biased
+   thermostat (*unbiased* = *no*) does not conserve momentum, because
+   it replaces the mean velocity of the SRD particles in each bin with
+   the streaming velocity.  In a system that also contains big
+   particles, the total momentum thus fluctuates while the thermostat
+   is active.  When the thermostat is turned off or changed to
+   *unbiased* = *yes* for a subsequent run, the total momentum keeps
+   the value it had at that moment, and the entire system drifts with a
+   small but constant center-of-mass velocity.  For a system under
+   shear this is not harmless: a drift along the direction of the
+   velocity gradient steadily accelerates the system in the flow
+   direction, because particles that cross the periodic boundary in
+   that direction have their velocities changed by the *remap v* option
+   of fix deform.
+
+   The drift can be removed by applying :doc:`fix momentum
+   <fix_momentum>` for a single step after changing the thermostat
+   settings.  For shear flow along *x*, only the momentum in the other
+   two directions should be reset, as shown below.  Without flow, all
+   three components can be reset.  The profile-unbiased thermostat does
+   not alter the mean velocity of the bins and thus does not cause such
+   a drift.
+
+   .. code-block:: LAMMPS
+
+      fix             mom all momentum 1 linear 0 1 1
+      run             1
+      unfix           mom
+
 The *rescale* keyword enables rescaling of an SRD particle's velocity
 if it would travel more than 4 mean-free paths in an SRD timestep.  If
 an SRD particle exceeds this velocity it is possible it will be lost

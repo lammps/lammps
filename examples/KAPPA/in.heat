@@ -2,14 +2,20 @@
 # use fix heat to add/subtract energy from 2 regions
 
 # settings
+# (index-style variables can be overridden from the command line or a wrapper
+# input for abbreviated runs, e.g. by the tests in the unittest tree)
 
-variable        x equal 10
-variable        y equal 10
+variable        x index 10
+variable        y index 10
 variable        z equal 20
 
 variable        rho equal 0.6
 variable        t equal 1.35
 variable        rc equal 2.5
+
+variable        nequil index 1000
+variable        nsteady index 10000
+variable        nprod index 20000
 
 #variable       rho equal 0.85
 #variable        t equal 0.7
@@ -45,7 +51,7 @@ compute         Tcold all temp/region cold
 
 fix             1 all nvt temp $t $t 0.5
 thermo          100
-run             1000
+run             ${nequil}
 
 velocity        all scale $t
 
@@ -60,7 +66,7 @@ fix             cold all heat 1 -100.0 region cold
 thermo_style    custom step temp c_Thot c_Tcold
 thermo_modify   colname c_Thot Temp_hot colname c_Tcold Temp_cold
 thermo          1000
-run             10000
+run             ${nsteady}
 
 # thermal conductivity calculation
 
@@ -71,12 +77,12 @@ compute         layers all chunk/atom bin/1d z lower 0.05 units reduced
 fix             2 all ave/chunk 10 100 1000 layers v_temp file profile.heat
 
 variable        tdiff equal f_2[1][3]-f_2[11][3]
-fix             ave all ave/time 1 1 1000 v_tdiff ave running start 13000
+fix             ave all ave/time 1 1 1000 v_tdiff ave running start $(v_nequil+v_nsteady+v_nprod/10)
 
 variable kappa equal (100/(lx*ly)/2.0)*(lz/2.0)/f_ave
 thermo_style    custom step temp c_Thot c_Tcold v_tdiff f_ave
 thermo_modify   colname c_Thot Temp_hot colname c_Tcold Temp_cold &
                 colname v_tdiff  dTemp_step colname f_ave dTemp
 
-run             20000
+run             ${nprod}
 print           "Running average thermal conductivity: $(v_kappa:%.2f)"

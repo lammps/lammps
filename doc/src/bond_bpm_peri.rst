@@ -31,15 +31,15 @@ Examples
 .. code-block:: LAMMPS
 
    bond_style bpm/peri
-   bond_coeff 1 pmb 1.6863e22 0.0015001 0.0005 0.25
-   bond_coeff 1 lps 14.9e9 14.9e9 0.0015001 0.0005 0.25
-   bond_coeff 1 ves 14.9e9 14.9e9 0.5 0.001 0.0015001 0.0005 0.25
-   bond_coeff 1 eps 14.9e9 14.9e9 118.43 0.0015001 0.0005 0.25
+   bond_coeff 1 pmb 2e22 0.0015 0.0005 0.25
+   bond_coeff 1 lps 15e9 15e9 0.0015 0.0005 0.25
+   bond_coeff 1 ves 15e9 15e9 0.5 0.001 0.0015 0.0005 0.25
+   bond_coeff 1 eps 15e9 15e9 120 0.0015 0.0005 0.25
 
 Description
 """""""""""
 
-.. versionadded:: TBD
+.. versionadded:: 2Sep2026
 
 The *bpm/peri* bond style implements the four peridynamic constitutive
 models of the :doc:`PERI package <pair_peri>` --- bond-based prototype
@@ -136,11 +136,12 @@ endpoints, which the bond style accumulates and communicates internally
 each step.  The canonical references are :ref:`(Silling 2000)
 <Silling2000-bpm>`, :ref:`(Silling 2007) <Silling2007-bpm>`, and
 :ref:`(Parks) <Parks-bpm>`.  The *ves* and *eps* formulations are from
-:ref:`(Mitchell 2011a) <Mitchell2011-bpm>` and :ref:`(Mitchell 2011b)
+:ref:`(Mitchell) <Mitchell2011-bpm>` and :ref:`(Mitchell2)
 <Mitchell2011a-bpm>`; the underlying state-based viscoplasticity theory is
 :ref:`(Foster 2010) <Foster2010-bpm>`, and the original PDLAMMPS
 implementations of these two models by Rahman and Foster are described in
-:ref:`(Rahman) <Rahman-bpm>`.
+:ref:`(Rahman) <Rahman-bpm>` and summarized in the :doc:`Peridynamics
+Howto <Howto_peri>`.
 
 .. note::
 
@@ -274,13 +275,13 @@ none
 
 .. _Mitchell2011-bpm:
 
-**(Mitchell 2011a)** Mitchell. A non-local, ordinary-state-based
+**(Mitchell)** Mitchell. A non-local, ordinary-state-based
 viscoelasticity model for peridynamics. Sandia National Lab Report,
 8064:1-28 (2011).
 
 .. _Mitchell2011a-bpm:
 
-**(Mitchell 2011b)** Mitchell. A Nonlocal, Ordinary, State-Based
+**(Mitchell2)** Mitchell. A Nonlocal, Ordinary, State-Based
 Plasticity Model for Peridynamics. Sandia National Lab Report,
 3166:1-34 (2011).
 
@@ -293,7 +294,4 @@ peridynamics, Int J Numer Methods Eng, 81(10), 1242-1258 (2010).
 
 **(Rahman)** Rahman, Foster, Implementation of linear viscoelasticity model
 in PDLAMMPS (2013) and Implementation of elastic-plastic model in PDLAMMPS,
-technical reports, University of Texas at San Antonio (included in the LAMMPS
-distribution as `PDLammps_VES.pdf <PDF/PDLammps_VES.pdf>`_ and
-`PDLammps_EPS.pdf <PDF/PDLammps_EPS.pdf>`_; see also the PDLAMMPS overview
-`PDLammps_overview.pdf <PDF/PDLammps_overview.pdf>`_).
+technical reports, University of Texas at San Antonio.

@@ -6,9 +6,12 @@
 /lmp_*
 
 /style_*.h
+/style_*.cpp
 /packages_*.h
+/package_registry.cpp
 /lmpinstalledpkgs.h
 /lmpgitversion.h
+/stylegen.exe
 
 /*_gpu.h
 /*_gpu.cpp
@@ -195,6 +198,11 @@
 /fix_*manifold*.cpp
 /fix_*manifold*.h
 
+/fix_symmetry.cpp
+/fix_symmetry.h
+/symmetry_group.cpp
+/symmetry_group.h
+
 /meam*.h
 /meam*.cpp
 /pair_meam.cpp
@@ -217,6 +225,15 @@
 
 /fix_qeq*.cpp
 /fix_qeq*.h
+
+/fix_qmmm_xtb.cpp
+/fix_qmmm_xtb.h
+/pppm_tip4p_xtb.h
+/pppm_xtb.h
+/qmmm_xtb_adapter.h
+/qmmm_xtb_ewald.cpp
+/qmmm_xtb_ewald.h
+/qmmm_xtb_pppm.cpp
 
 /fix_*cauchy.cpp
 /fix_*cauchy.h
@@ -374,16 +391,32 @@
 /atom_vec_spin.h
 /compute_spin.cpp
 /compute_spin.h
+/compute_temp_tspin.cpp
+/compute_temp_tspin.h
 /fix_langevin_spin.cpp
 /fix_langevin_spin.h
+/fix_langevin_tspin.cpp
+/fix_langevin_tspin.h
 /fix_neb_spin.cpp
 /fix_neb_spin.h
+/fix_nh_tspin.cpp
+/fix_nh_tspin.h
 /fix_nve_spin.cpp
 /fix_nve_spin.h
+/fix_nve_tspin.cpp
+/fix_nve_tspin.h
+/fix_nph_tspin.cpp
+/fix_nph_tspin.h
+/fix_npt_tspin.cpp
+/fix_npt_tspin.h
+/fix_nvt_tspin.cpp
+/fix_nvt_tspin.h
 /fix_precession_spin.cpp
 /fix_precession_spin.h
 /fix_setforce_spin.cpp
 /fix_setforce_spin.h
+/fix_spring_tspin.cpp
+/fix_spring_tspin.h
 /min_spin.cpp
 /min_spin.h
 /min_spin_cg.cpp
@@ -408,6 +441,9 @@
 /pair_spin_magelec.h
 /pair_spin_neel.cpp
 /pair_spin_neel.h
+/tspin.h
+/velocity_tspin.cpp
+/velocity_tspin.h
 
 /atom_vec_mesont.cpp
 /atom_vec_mesont.h
@@ -425,6 +461,8 @@
 /pair_mesocnt.h
 /pair_mesocnt_viscous.cpp
 /pair_mesocnt_viscous.h
+/pair_mesomem_dipole.cpp
+/pair_mesomem_dipole.h
 
 /ldd_indicator.cpp
 /ldd_indicator_dpd.cpp
@@ -438,7 +476,6 @@
 /ldd_indicator_smooth.h
 /ldd_indicator_sphere.cpp
 /ldd_indicator_sphere.h
-/ldd_indicator_styles.h
 /ldd_potential_constant.cpp
 /ldd_potential_constant.h
 /ldd_potential.cpp
@@ -459,7 +496,6 @@
 /ldd_potential_tablelin.h
 /ldd_potential_tablespline.cpp
 /ldd_potential_tablespline.h
-/ldd_potential_styles.h
 /pair_ldd.cpp
 /pair_ldd.h
 
@@ -670,8 +706,6 @@
 /bond_gaussian.h
 /bond_gromos.cpp
 /bond_gromos.h
-/bond_gromos_kokkos.cpp
-/bond_gromos_kokkos.h
 /bond_harmonic.cpp
 /bond_harmonic.h
 /bond_harmonic_restrain.cpp
@@ -718,6 +752,8 @@
 /compute_born_matrix.h
 /compute_cnp_atom.cpp
 /compute_cnp_atom.h
+/compute_continuum_chunk.cpp
+/compute_continuum_chunk.h
 /compute_damage_atom.cpp
 /compute_damage_atom.h
 /compute_dilatation_atom.cpp
@@ -746,8 +782,12 @@
 /compute_fep.h
 /compute_fep_ta.cpp
 /compute_fep_ta.h
+/compute_mbar.cpp
+/compute_mbar.h
 /compute_force_tally.cpp
 /compute_force_tally.h
+/compute_frenkel.cpp
+/compute_frenkel.h
 /compute_gyration_shape.cpp
 /compute_gyration_shape.h
 /compute_gyration_shape_chunk.cpp
@@ -788,6 +828,8 @@
 /compute_rattlers_atom.h
 /compute_reaxff_atom.cpp
 /compute_reaxff_atom.h
+/compute_rigid_atom.cpp
+/compute_rigid_atom.h
 /compute_rigid_local.cpp
 /compute_rigid_local.h
 /compute_slcsa_atom.cpp
@@ -820,6 +862,8 @@
 /compute_temp_region_eff.h
 /compute_temp_rotate.cpp
 /compute_temp_rotate.h
+/compute_temp_uvt.cpp
+/compute_temp_uvt.h
 /compute_ti.cpp
 /compute_ti.h
 /compute_viscosity_cos.cpp
@@ -1128,12 +1172,8 @@
 /fix_qeq_fire.h
 /fix_qeq_reaxff.cpp
 /fix_qeq_reaxff.h
-/fix_qeq_rel_reaxff.cpp
-/fix_qeq_rel_reaxff.h
 /fix_qmmm.cpp
 /fix_qmmm.h
-/fix_qtpie_reaxff.cpp
-/fix_qtpie_reaxff.h
 /fix_reaxff.cpp
 /fix_reaxff.h
 /fix_reaxff_bonds.cpp
@@ -1215,6 +1255,8 @@
 /fix_wall_body_polygon.h
 /fix_wall_body_polyhedron.cpp
 /fix_wall_body_polyhedron.h
+/fix_wall_body_polyhedron_granular.cpp
+/fix_wall_body_polyhedron_granular.h
 /fix_wall_colloid.cpp
 /fix_wall_colloid.h
 /fix_wall_ees.cpp
@@ -1313,6 +1355,9 @@
 /pair_body_rounded_polygon.h
 /pair_body_rounded_polyhedron.cpp
 /pair_body_rounded_polyhedron.h
+/pair_body_rounded_polyhedron_granular.cpp
+/pair_body_rounded_polyhedron_granular.h
+/pair_body_rounded_polyhedron_omp_impl.h
 /pair_bop.cpp
 /pair_bop.h
 /pair_born_coul_long.cpp
@@ -1396,6 +1441,14 @@
 /pair_eam_fs.h
 /pair_eam_he.cpp
 /pair_eam_he.h
+/pair_eam_he_gpu.cpp
+/pair_eam_he_gpu.h
+/pair_eam_he_kokkos.cpp
+/pair_eam_he_kokkos.h
+/pair_eam_he_omp.cpp
+/pair_eam_he_omp.h
+/pair_eam_he_opt.cpp
+/pair_eam_he_opt.h
 /pair_lebedeva_z.cpp
 /pair_lebedeva_z.h
 /pair_lj_expand_coul_long.cpp
@@ -1479,12 +1532,16 @@
 /pair_lj_class2_coul_cut.h
 /pair_lj_class2_coul_cut_soft.cpp
 /pair_lj_class2_coul_cut_soft.h
+/pair_lj_class2_coul_cut_soft_gapsys.cpp
+/pair_lj_class2_coul_cut_soft_gapsys.h
 /pair_lj_class2_coul_long.cpp
 /pair_lj_class2_coul_long.h
 /pair_lj_class2_coul_long_soft.cpp
 /pair_lj_class2_coul_long_soft.h
 /pair_lj_class2_soft.cpp
 /pair_lj_class2_soft.h
+/pair_lj_class2_soft_gapsys.cpp
+/pair_lj_class2_soft_gapsys.h
 /pair_lj_coul.cpp
 /pair_lj_coul.h
 /pair_coul_cut_soft.cpp
@@ -1495,6 +1552,8 @@
 /pair_coul_long_soft.h
 /pair_lj_cut_coul_cut_soft.cpp
 /pair_lj_cut_coul_cut_soft.h
+/pair_lj_cut_coul_cut_soft_gapsys.cpp
+/pair_lj_cut_coul_cut_soft_gapsys.h
 /pair_lj_cut_tip4p_cut.cpp
 /pair_lj_cut_tip4p_cut.h
 /pair_lj_cut_coul_esp.cpp
@@ -1891,6 +1950,8 @@
 /fix_ttm_mod.h
 /fix_ttm_thermal.cpp
 /fix_ttm_thermal.h
+/fix_ttm_cascade.cpp
+/fix_ttm_cascade.h
 /granular_model.cpp
 /granular_model.h
 /gran_sub_mod_normal.cpp

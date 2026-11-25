@@ -47,8 +47,8 @@ int dlasq2_(integer *n, doublereal *z__, integer *info)
     extern int dlasrt_(char *, integer *, doublereal *, integer *, ftnlen);
     --z__;
     *info = 0;
-    eps = dlamch_((char *)"Precision", (ftnlen)9);
-    safmin = dlamch_((char *)"Safe minimum", (ftnlen)12);
+    eps = dlamch_((char *)"P", (ftnlen)1);
+    safmin = dlamch_((char *)"S", (ftnlen)1);
     tol = eps * 100.;
     d__1 = tol;
     tol2 = d__1 * d__1;
@@ -158,8 +158,8 @@ int dlasq2_(integer *n, doublereal *z__, integer *info)
     i0 = 1;
     n0 = *n;
     if (z__[(i0 << 2) - 3] * 1.5 < z__[(n0 << 2) - 3]) {
-        ipn4 = i0 + n0 << 2;
-        i__1 = i0 + n0 - 1 << 1;
+        ipn4 = (i0 + n0) << 2;
+        i__1 = (i0 + n0 - 1) << 1;
         for (i4 = i0 << 2; i4 <= i__1; i4 += 4) {
             temp = z__[i4 - 3];
             z__[i4 - 3] = z__[ipn4 - i4 - 3];
@@ -173,7 +173,7 @@ int dlasq2_(integer *n, doublereal *z__, integer *info)
     for (k = 1; k <= 2; ++k) {
         d__ = z__[(n0 << 2) + pp - 3];
         i__1 = (i0 << 2) + pp;
-        for (i4 = (n0 - 1 << 2) + pp; i4 >= i__1; i4 += -4) {
+        for (i4 = ((n0 - 1) << 2) + pp; i4 >= i__1; i4 += -4) {
             if (z__[i4 - 1] <= tol2 * d__) {
                 z__[i4 - 1] = -0.;
                 d__ = z__[i4 - 3];
@@ -183,7 +183,7 @@ int dlasq2_(integer *n, doublereal *z__, integer *info)
         }
         emin = z__[(i0 << 2) + pp + 1];
         d__ = z__[(i0 << 2) + pp - 3];
-        i__1 = (n0 - 1 << 2) + pp;
+        i__1 = ((n0 - 1) << 2) + pp;
         for (i4 = (i0 << 2) + pp; i4 <= i__1; i4 += 4) {
             z__[i4 - (pp << 1) - 2] = d__ + z__[i4 - 1];
             if (z__[i4 - 1] <= tol2 * d__) {
@@ -222,7 +222,7 @@ int dlasq2_(integer *n, doublereal *z__, integer *info)
     tau = 0.;
     iter = 2;
     nfail = 0;
-    ndiv = n0 - i0 << 1;
+    ndiv = (n0 - i0) << 1;
     i__1 = *n + 1;
     for (iwhila = 1; iwhila <= i__1; ++iwhila) {
         if (n0 < 1) {
@@ -277,10 +277,10 @@ int dlasq2_(integer *n, doublereal *z__, integer *info)
                     kmin = (i4 + 3) / 4;
                 }
             }
-            if (kmin - i0 << 1 < n0 - kmin && deemin <= z__[(n0 << 2) - 3] * .5) {
-                ipn4 = i0 + n0 << 2;
+            if ((kmin - i0) << 1 < n0 - kmin && deemin <= z__[(n0 << 2) - 3] * .5) {
+                ipn4 = (i0 + n0) << 2;
                 pp = 2;
-                i__2 = i0 + n0 - 1 << 1;
+                i__2 = (i0 + n0 - 1) << 1;
                 for (i4 = i0 << 2; i4 <= i__2; i4 += 4) {
                     temp = z__[i4 - 3];
                     z__[i4 - 3] = z__[ipn4 - i4 - 3];
@@ -314,7 +314,7 @@ int dlasq2_(integer *n, doublereal *z__, integer *info)
                     qmax = z__[(i0 << 2) - 3];
                     emin = z__[(i0 << 2) - 1];
                     oldemn = z__[i0 * 4];
-                    i__3 = n0 - 3 << 2;
+                    i__3 = (n0 - 3) << 2;
                     for (i4 = i0 << 2; i4 <= i__3; i4 += 4) {
                         if (z__[i4] <= tol2 * z__[i4 - 3] || z__[i4 - 1] <= tol2 * sigma) {
                             z__[i4 - 1] = -sigma;

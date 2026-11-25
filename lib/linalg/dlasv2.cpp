@@ -44,7 +44,7 @@ int dlasv2_(doublereal *f, doublereal *g, doublereal *h__, doublereal *ssmin, do
         gasmal = TRUE_;
         if (ga > fa) {
             pmax = 2;
-            if (fa / ga < dlamch_((char *)"EPS", (ftnlen)3)) {
+            if (fa / ga < dlamch_((char *)"E", (ftnlen)1)) {
                 gasmal = FALSE_;
                 *ssmax = ga;
                 if (ha > 1.) {

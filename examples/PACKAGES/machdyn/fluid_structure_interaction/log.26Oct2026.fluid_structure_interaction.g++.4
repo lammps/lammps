@@ -1,0 +1,398 @@
+LAMMPS (30 Sep 2026 - Development - patch_30Sep2026-523-gdbc38a263e-modified)
+  using 1 OpenMP thread(s) per MPI task
+####################################################################################################
+#
+# combined TLSPH / ULSPH example
+#
+# A column of water is placed in a container and allowed to collapse unter the
+# influence of gravity. Several solid objects are also placed in the container.
+# The water flow pushes the solid objects around until the system comes to halt due to
+# viscous damping. The solid objects have a lower mass density than water and finally float on
+# the water surface.
+#
+# Water is modelled using the Updated Lagrangian formalism. Solid bodies are modelled using the
+# Total Lagrangian formalism. Contact forces between container, solid bodies, and water prevent
+# mutual penetration of these physical entities.
+#
+# unit system: SI (kg / m / s)
+#
+# the default number of steps is short for testing, use "-var nsteps 10000" for the full example
+#
+####################################################################################################
+variable        nsteps index 4000
+
+####################################################################################################
+# MATERIAL PARAMETERS
+####################################################################################################
+variable        rho_water equal 1000 # mass density water
+variable        rho_obj equal 300 # mass density solid objects
+variable        c0 equal 10.0 # speed of sound for water
+variable        E equal 5*${c0}*${c0}*${rho_water} # Young's modulus for solid objects
+variable        E equal 5*10*${c0}*${rho_water} 
+variable        E equal 5*10*10*${rho_water} 
+variable        E equal 5*10*10*1000 
+variable        nu equal 0.3 # Poisson ratio for solid objects
+variable        sigma_yield equal 0.1*${E} # plastic yield stress for solid objects
+variable        sigma_yield equal 0.1*500000 
+variable        hardening_parameter equal 0 # plastic hardening parameter for solid objects
+variable        contact_stiffness equal 2.5*${c0}^2*${rho_water} # contact force amplitude
+variable        contact_stiffness equal 2.5*10^2*${rho_water} 
+variable        contact_stiffness equal 2.5*10^2*1000 
+variable        q1 equal 1.0 # artificial viscosity
+variable        q2 equal 0.0 # artificial viscosity
+variable        Hg equal 10 # Hourglass control coefficient for solid objects
+variable        Cp equal 1.0 # heat capacity -- not used here
+
+####################################################################################################
+# INITIALIZE LAMMPS
+####################################################################################################
+units           si
+dimension       2
+boundary        sm sm p
+atom_style      smd
+neigh_modify    every 5 delay 0 check yes
+comm_modify     vel yes
+newton          off
+atom_modify     map array
+comm_style      tiled
+
+####################################################################################################
+# CREATE INITIAL GEOMETRY
+####################################################################################################
+# create simulation box, a container, and a water column
+variable        l0 equal 0.05 # initial particle lattice spacing
+region          box block 0 6 0 8 -0.01 0.01 units box
+create_box      3 box
+Created orthogonal box = (0 0 -0.01) to (6 8 0.01)
+  2 by 2 by 1 MPI processor grid
+region          water block 0.25 1 0.25 4 EDGE EDGE units box
+region          container block 0.15 5.85 0.15 8 -0.01 0.01 units box side out # container
+lattice         sq ${l0}
+lattice         sq 0.05
+Lattice spacing in x,y,z = 0.05 0.05 0.05
+create_atoms    1 region water
+Created 1216 atoms
+  using lattice units in orthogonal box = (-0.0006 -0.0008 -0.01) to (6 8 0.01)
+  create_atoms CPU = 0.001 seconds
+group           water type 1
+1216 atoms in group water
+create_atoms    3 region container
+Created 1302 atoms
+  using lattice units in orthogonal box = (-0.0006 -0.0008 -0.01) to (6 8 0.01)
+  create_atoms CPU = 0.000 seconds
+group           container type 3
+1302 atoms in group container
+
+# create some solid objects to be pushed around
+region          obj1 prism 2 2.6 0.25 0.85 EDGE EDGE 0.3 0 0 units box
+region          obj2 block 3 3.6 0.25 0.85 EDGE EDGE units box
+region          obj3 sphere 4.3 0.5 0 0.25 units box
+create_atoms    2 region obj1
+Created 146 atoms
+  using lattice units in orthogonal box = (-0.0006 -0.0008 -0.01) to (6 8 0.01)
+  create_atoms CPU = 0.000 seconds
+create_atoms    2 region obj2
+Created 156 atoms
+  using lattice units in orthogonal box = (-0.0006 -0.0008 -0.01) to (6 8 0.01)
+  create_atoms CPU = 0.000 seconds
+create_atoms    2 region obj3
+Created 77 atoms
+  using lattice units in orthogonal box = (-0.0006 -0.0008 -0.01) to (6 8 0.01)
+  create_atoms CPU = 0.000 seconds
+group           solids type 2
+379 atoms in group solids
+group           tlsph type 2
+379 atoms in group tlsph
+
+####################################################################################################
+# DISCRETIZATION PARAMETERS
+####################################################################################################
+variable        h equal 2.5*${l0} # SPH kernel diameter
+variable        h equal 2.5*0.05 
+variable        vol_one equal ${l0}^2 # initial particle volume for 2d simulation
+variable        vol_one equal 0.05^2 
+set             group all diameter ${h}
+set             group all diameter 0.125
+Setting atom values ...
+  2897 settings made for diameter
+set             group all smd/contact/radius ${l0}
+set             group all smd/contact/radius 0.05
+Setting atom values ...
+  2897 settings made for smd/contact/radius
+set             group all volume  ${vol_one}
+set             group all volume  0.0025
+Setting atom values ...
+  2897 settings made for volume
+set             group all smd/mass/density ${rho_water}
+set             group all smd/mass/density 1000
+Setting atom values ...
+  2897 settings made for smd/mass/density
+set             group solids smd/mass/density ${rho_obj}
+set             group solids smd/mass/density 300
+Setting atom values ...
+  379 settings made for smd/mass/density
+variable        contact_scale equal 1.5 # scale factor to increase contact gap between bodies
+variable        skin equal ${h} # Verlet list range
+variable        skin equal 0.125 
+neighbor        ${skin} bin
+neighbor        0.125 bin
+
+####################################################################################################
+# DEFINE BOUNDARY CONDITIONS
+#
+# note that the the particles constituting the container are simply not integrated in time,
+# thus these particles never move. This is equivalent to a fixed displacement boundary condition.
+####################################################################################################
+fix             gfix all gravity -9.81 vector 0 1 0 # add gravity
+
+####################################################################################################
+# INTERACTION PHYSICS / MATERIAL MODEL
+# 3 different pair styles are used:
+#     - updated Lagrangian SPH for water
+#     - total Lagrangian SPH for solid objects
+#     - a repulsive Hertzian potential for contact forces between different physical bodies
+####################################################################################################
+pair_style      hybrid/overlay smd/ulsph *DENSITY_CONTINUITY *VELOCITY_GRADIENT *NO_GRADIENT_CORRECTION                                smd/tlsph smd/hertz ${contact_scale}
+pair_style      hybrid/overlay smd/ulsph *DENSITY_CONTINUITY *VELOCITY_GRADIENT *NO_GRADIENT_CORRECTION                                smd/tlsph smd/hertz 1.5
+
+>>========>>========>>========>>========>>========>>========>>========>>========
+... SMD / ULSPH PROPERTIES
+
+... density continuity active
+... computation of velocity gradients active
+... first order correction of kernel gradients is NOT active
+>>========>>========>>========>>========>>========>>========>>========>>========
+
+>>========>>========>>========>>========>>========>>========>>========>>========>>========>>========>>========>>========
+TLSPH settings
+... will never update reference configuration
+>>========>>========>>========>>========>>========>>========>>========>>========>>========>>========>>========>>========
+
+>>========>>========>>========>>========>>========>>========>>========>>========
+SMD/HERTZ CONTACT SETTINGS:
+... effective contact radius is scaled by 1.5
+>>========>>========>>========>>========>>========>>========>>========>>========
+pair_coeff      1 1 smd/ulsph *COMMON ${rho_water} ${c0} ${q1} ${Cp} 0                 *EOS_TAIT 7.0                 *END
+pair_coeff      1 1 smd/ulsph *COMMON 1000 ${c0} ${q1} ${Cp} 0                 *EOS_TAIT 7.0                 *END
+pair_coeff      1 1 smd/ulsph *COMMON 1000 10 ${q1} ${Cp} 0                 *EOS_TAIT 7.0                 *END
+pair_coeff      1 1 smd/ulsph *COMMON 1000 10 1 ${Cp} 0                 *EOS_TAIT 7.0                 *END
+pair_coeff      1 1 smd/ulsph *COMMON 1000 10 1 1 0                 *EOS_TAIT 7.0                 *END
+
+>>========>>========>>========>>========>>========>>========>>========>>========
+...SMD / ULSPH PROPERTIES OF PARTICLE TYPE 1
+
+material unspecific properties for SMD/ULSPH definition of particle type 1:
+                                           reference density : 1000
+                                    reference speed of sound : 10
+                                linear viscosity coefficient : 1
+               heat capacity [energy / (mass * temperature)] : 1
+                                                bulk modulus : 100000
+                                 hourglass control amplitude : 0
+
+.............................. Tait EOS
+                                                    Exponent : 7
+>>========>>========>>========>>========>>========>>========>>========>>========
+pair_coeff      2 2 smd/tlsph *COMMON ${rho_obj} ${E} ${nu} ${q1} ${q2} ${Hg} ${Cp}                 *STRENGTH_LINEAR_PLASTIC ${sigma_yield} ${hardening_parameter}                 *EOS_LINEAR                 *END
+pair_coeff      2 2 smd/tlsph *COMMON 300 ${E} ${nu} ${q1} ${q2} ${Hg} ${Cp}                 *STRENGTH_LINEAR_PLASTIC ${sigma_yield} ${hardening_parameter}                 *EOS_LINEAR                 *END
+pair_coeff      2 2 smd/tlsph *COMMON 300 500000 ${nu} ${q1} ${q2} ${Hg} ${Cp}                 *STRENGTH_LINEAR_PLASTIC ${sigma_yield} ${hardening_parameter}                 *EOS_LINEAR                 *END
+pair_coeff      2 2 smd/tlsph *COMMON 300 500000 0.3 ${q1} ${q2} ${Hg} ${Cp}                 *STRENGTH_LINEAR_PLASTIC ${sigma_yield} ${hardening_parameter}                 *EOS_LINEAR                 *END
+pair_coeff      2 2 smd/tlsph *COMMON 300 500000 0.3 1 ${q2} ${Hg} ${Cp}                 *STRENGTH_LINEAR_PLASTIC ${sigma_yield} ${hardening_parameter}                 *EOS_LINEAR                 *END
+pair_coeff      2 2 smd/tlsph *COMMON 300 500000 0.3 1 0 ${Hg} ${Cp}                 *STRENGTH_LINEAR_PLASTIC ${sigma_yield} ${hardening_parameter}                 *EOS_LINEAR                 *END
+pair_coeff      2 2 smd/tlsph *COMMON 300 500000 0.3 1 0 10 ${Cp}                 *STRENGTH_LINEAR_PLASTIC ${sigma_yield} ${hardening_parameter}                 *EOS_LINEAR                 *END
+pair_coeff      2 2 smd/tlsph *COMMON 300 500000 0.3 1 0 10 1                 *STRENGTH_LINEAR_PLASTIC ${sigma_yield} ${hardening_parameter}                 *EOS_LINEAR                 *END
+pair_coeff      2 2 smd/tlsph *COMMON 300 500000 0.3 1 0 10 1                 *STRENGTH_LINEAR_PLASTIC 50000 ${hardening_parameter}                 *EOS_LINEAR                 *END
+pair_coeff      2 2 smd/tlsph *COMMON 300 500000 0.3 1 0 10 1                 *STRENGTH_LINEAR_PLASTIC 50000 0                 *EOS_LINEAR                 *END
+
+>>========>>========>>========>>========>>========>>========>>========>>========>>========>>========>>========>>========
+SMD / TLSPH PROPERTIES OF PARTICLE TYPE 2:
+
+material unspecific properties for SMD/TLSPH definition of particle type 2:
+reference density                                            : 300
+Young's modulus                                              : 5e+05
+Poisson ratio                                                : 0.3
+linear viscosity coefficient                                 : 1
+quadratic viscosity coefficient                              : 0
+hourglass control coefficient                                : 10
+heat capacity [energy / (mass * temperature)]                : 1
+Lame constant lambda                                         : 288461.53846153844
+shear modulus                                                : 192307.6923076923
+bulk modulus                                                 : 416666.6666666666
+signal velocity                                              : 47.366546671567086
+reading *STRENGTH_LINEAR_PLASTIC
+Linear elastic / perfectly plastic strength based on strain rateYoung's modulus                                              : 5e+05
+Poisson ratio                                                : 0.3
+shear modulus                                                : 192307.6923076923
+constant yield stress                                        : 50000
+constant hardening parameter                                 : 0
+reading *EOS_LINEAR
+
+linear EOS based on strain rate
+bulk modulus                                                 : 416666.6666666666
+found *END keyword
+>>========>>========>>========>>========>>========>>========>>========>>========>>========>>========>>========>>========
+
+pair_coeff      3 3 none
+pair_coeff      1 2 smd/hertz ${contact_stiffness}
+pair_coeff      1 2 smd/hertz 250000
+pair_coeff      1 3 smd/hertz ${contact_stiffness}
+pair_coeff      1 3 smd/hertz 250000
+pair_coeff      2 3 smd/hertz ${contact_stiffness}
+pair_coeff      2 3 smd/hertz 250000
+pair_coeff      2 2 smd/hertz ${contact_stiffness}
+pair_coeff      2 2 smd/hertz 250000
+
+####################################################################################################
+# TIME INTEGRATION
+####################################################################################################
+fix             dtfix tlsph smd/adjust_dt 0.1 # dynamically adjust time increment every step
+fix             integration_fix_water water smd/integrate_ulsph adjust_radius 1.01 10 15
+
+>>========>>========>>========>>========>>========>>========>>========>>========
+fix smd/integrate_ulsph is active for group: water
+... will adjust smoothing length dynamically with factor 1.01 to achieve 10 to 15 neighbors per particle.
+>>========>>========>>========>>========>>========>>========>>========>>========
+
+fix             integration_fix_solids solids smd/integrate_tlsph
+
+>>========>>========>>========>>========>>========>>========>>========>>========
+fix smd/integrate_tlsph is active for group: solids
+>>========>>========>>========>>========>>========>>========>>========>>========
+
+####################################################################################################
+# SPECIFY TRAJECTORY OUTPUT
+####################################################################################################
+compute         eint all smd/internal/energy
+compute         contact_radius all smd/contact/radius
+compute         S solids smd/tlsph/stress
+compute         nn water smd/ulsph/num/neighs
+compute         epl solids smd/plastic/strain
+compute         vol all smd/vol
+compute         rho all smd/rho
+
+#dump            dump_id all custom 100 dump.LAMMPS id type x y #                fx fy vx vy c_eint c_contact_radius mol #                c_S[1] c_S[2] c_S[4] mass radius c_epl c_vol c_rho c_nn proc
+#dump_modify     dump_id first yes
+
+
+####################################################################################################
+# STATUS OUTPUT
+####################################################################################################
+compute         alleint all reduce sum c_eint
+variable        etot equal pe+ke+c_alleint+f_gfix # total energy of the system
+thermo          100
+thermo_style    custom step ke pe v_etot c_alleint f_dtfix dt
+thermo_modify   lost ignore
+
+####################################################################################################
+# RUN SIMULATION
+####################################################################################################
+fix             balance_fix all balance 500 0.9 rcb # load balancing for MPI
+run             ${nsteps}
+run             4000
+cutoff for pair smd/hertz = 0.125
+cutoff for pair smd/hertz = 0.125
+cutoff for pair smd/hertz = 0.125
+cutoff for pair smd/hertz = 0.125
+Generated 0 of 3 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 5 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 0.25
+  ghost atom cutoff = 0.25
+  binsize = 0.125, bins = 49 65 1
+  4 neighbor lists, perpetual/occasional/extra = 4 0 0
+  (1) pair smd/ulsph, perpetual, skip from (4)
+      attributes: half, newton off, size
+      pair build: skip/half/size
+      stencil: none
+      bin: none
+  (2) pair smd/tlsph, perpetual, skip from (4)
+      attributes: half, newton off, size
+      pair build: skip/half/size
+      stencil: none
+      bin: none
+  (3) pair smd/hertz, perpetual, skip from (4)
+      attributes: half, newton off, size
+      pair build: skip/half/size
+      stencil: none
+      bin: none
+  (4) neighbor class addition, perpetual
+      attributes: half, newton off, size
+      pair build: half/size/bin/atomonly/newtoff
+      stencil: full/bin/2d
+      bin: standard
+
+>>========>>========>>========>>========>>========>>========>>========>>========
+TLSPH neighbors:
+  max # of neighbors for a single particle = 20
+  average # of neighbors/particle in group tlsph = 16.1953
+>>========>>========>>========>>========>>========>>========>>========>>========
+
+Per MPI rank memory allocation (min/avg/max) = 30.76 | 31.05 | 31.22 Mbytes
+   Step         KinEng         PotEng         v_etot       c_alleint       f_dtfix           Dt      
+         0   0              2061.4431      160890.25      0              0              1e-16        
+       100   110.38483      1974.0319      160890.91      83.958227      0.025850826    0.00026152059
+       200   410.9998       1980.3731      160890.98      96.652105      0.052002352    0.00026164496
+       300   862.92747      2032.91        160890.79      103.49371      0.078169741    0.00026169298
+       400   1475.0476      2060.9237      160890.74      132.98616      0.10434325     0.00026167602
+       500   2222.5964      2085.0285      160890.87      179.57         0.13051706     0.00026168892
+       600   3094.6488      2120.0243      160890.99      242.61995      0.1566886      0.00026173387
+       700   4105.8784      2146.5075      160891.07      325.53014      0.18285775     0.00026171391
+       800   5247.7398      2172.2379      160891.16      425.42573      0.20902811     0.00026168535
+       900   6499.9584      2205.5968      160891.26      542.68096      0.2351982      0.00026169831
+      1000   7860.7882      2232.9696      160891.28      673.519        0.2613694      0.00026172796
+      1100   9341.2891      2236.5819      160891.32      809.66021      0.28754068     0.00026172733
+      1200   10912.001      2237.9563      160891.42      957.43887      0.31371344     0.00026172798
+      1300   12552.004      2245.8632      160891.59      1132.7199      0.33988625     0.0002617283 
+      1400   14246.853      2262.0913      160891.8       1347.5916      0.36605911     0.00026172825
+      1500   15866.379      2366.879       160892.63      1639.1772      0.39219431     0.00026009533
+      1600   17341.368      2517.4637      160893.05      2086.5435      0.41827701     0.00026165088
+      1700   18867.401      2571.2558      160893.24      2594.7072      0.44444158     0.00026137908
+      1800   20459.221      2547.2114      160893.12      3092.9812      0.47060324     0.0002617438 
+      1900   21960.773      2564.3855      160893.58      3629.442       0.49677656     0.00026172693
+      2000   23319.918      2622.9544      160893.92      4259.9621      0.52294912     0.00026172494
+      2100   24377.644      2882.5329      160894.56      4973.9483      0.54911541     0.00026137954
+      2200   25430.827      3039.9698      160895.1       5752.9782      0.57521248     0.00026087071
+      2300   26271.379      3123.1708      160895.67      6746.5541      0.60135585     0.00026159423
+      2400   27059.111      3139.5429      160895.59      7742.1161      0.6275021      0.00026160385
+      2500   27508.933      3368.076       160895.85      8718.2215      0.65366646     0.00026162198
+      2600   28094.936      3418.1261      160894.07      9562.0049      0.67981916     0.0002615721 
+      2700   28787.355      3310.3589      160893.77      10267.434      0.70597716     0.0002615586 
+      2800   29336.45       3297.5857      160893.38      10825.402      0.73214103     0.00026174244
+      2900   29991.889      3179.6992      160891.61      11184.363      0.75818764     0.00025998806
+      3000   30688.958      3013.4253      160891.61      11366.212      0.78428218     0.00026137377
+      3100   31326.322      2795.4081      160891.15      11492.417      0.81040043     0.00026111003
+      3200   31847.633      2617.773       160890.98      11569.31       0.83655938     0.00026139625
+      3300   32313.831      2444.1932      160890.95      11616.693      0.86271621     0.00026157968
+      3400   32691.546      2310.6105      160890.99      11674.542      0.88887621     0.00026144794
+      3500   32192.445      2870.8241      160890.46      11913.837      0.9150388      0.00026154188
+      3600   32817.36       2517.3965      160895.3       11970.017      0.94119262     0.00026171503
+      3700   31147.98       3146.4192      160888.4       13325.589      0.96476165     0.00020512803
+      3800   29823.459      3988.1418      160898.94      14208.015      0.99059864     0.00025968427
+      3900   28452.626      4228.8969      160905.02      15702.514      1.0158802      0.00024057395
+      4000   27568.981      4385.2883      160905.71      16683.879      1.0396349      0.0002605873 
+Loop time of 3.63372 on 4 procs for 4000 steps with 2897 atoms
+
+97.0% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 2.4528     | 2.7919     | 3.1183     |  14.1 | 76.83
+Neigh   | 0.011537   | 0.02179    | 0.03136    |   5.5 |  0.60
+Comm    | 0.021224   | 0.024393   | 0.028951   |   1.8 |  0.67
+Output  | 0.0011356  | 0.0011872  | 0.0013338  |   0.2 |  0.03
+Modify  | 0.46365    | 0.78955    | 1.1204     |  26.2 | 21.73
+Other   |            | 0.004899   |            |       |  0.13
+
+Nlocal:         724.25 ave         726 max         722 min
+Histogram: 1 0 0 0 0 1 0 1 0 1
+Nghost:         131.25 ave         188 max          85 min
+Histogram: 1 1 0 0 0 0 1 0 0 1
+Neighs:              0 ave           0 max           0 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 0
+Ave neighs/atom = 0
+Neighbor list builds = 80
+Dangerous builds = 0
+Total wall time: 0:00:03

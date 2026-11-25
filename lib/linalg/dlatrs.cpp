@@ -68,7 +68,7 @@ int dlatrs_(char *uplo, char *trans, char *diag, char *normin, integer *n, doubl
     if (*n == 0) {
         return 0;
     }
-    smlnum = dlamch_((char *)"Safe minimum", (ftnlen)12) / dlamch_((char *)"Precision", (ftnlen)9);
+    smlnum = dlamch_((char *)"S", (ftnlen)1) / dlamch_((char *)"P", (ftnlen)1);
     bignum = 1. / smlnum;
     if (lsame_(normin, (char *)"N", (ftnlen)1, (ftnlen)1)) {
         if (upper) {
@@ -91,7 +91,7 @@ int dlatrs_(char *uplo, char *trans, char *diag, char *normin, integer *n, doubl
     if (tmax <= bignum) {
         tscal = 1.;
     } else {
-        if (tmax <= dlamch_((char *)"Overflow", (ftnlen)8)) {
+        if (tmax <= dlamch_((char *)"O", (ftnlen)1)) {
             tscal = 1. / (smlnum * tmax);
             dscal_(n, &tscal, &cnorm[1], &c__1);
         } else {
@@ -112,11 +112,11 @@ int dlatrs_(char *uplo, char *trans, char *diag, char *normin, integer *n, doubl
                     tmax = max(d__1, tmax);
                 }
             }
-            if (tmax <= dlamch_((char *)"Overflow", (ftnlen)8)) {
+            if (tmax <= dlamch_((char *)"O", (ftnlen)1)) {
                 tscal = 1. / (smlnum * tmax);
                 i__1 = *n;
                 for (j = 1; j <= i__1; ++j) {
-                    if (cnorm[j] <= dlamch_((char *)"Overflow", (ftnlen)8)) {
+                    if (cnorm[j] <= dlamch_((char *)"O", (ftnlen)1)) {
                         cnorm[j] *= tscal;
                     } else {
                         cnorm[j] = 0.;

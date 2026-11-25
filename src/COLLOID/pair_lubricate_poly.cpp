@@ -281,29 +281,31 @@ void PairLubricatePoly::compute(int eflag, int vflag)
         beta1 = 1.0 + beta0;
 
         // scalar resistances
+        // log terms use the gap xi = 2*gap/(radi+radj) of Jeffrey and Onishi
 
         if (flaglog) {
+          const double logxi = log(0.5*beta1/h_sep);
           a_sq = beta0*beta0/beta1/beta1/h_sep +
-            (1.0+7.0*beta0+beta0*beta0)/5.0/pow(beta1,3.0)*log(1.0/h_sep);
+            beta0*(1.0+7.0*beta0+beta0*beta0)/5.0/pow(beta1,3.0)*logxi;
           a_sq += (1.0+18.0*beta0-29.0*beta0*beta0+18.0 *
                    pow(beta0,3.0)+pow(beta0,4.0))/21.0/pow(beta1,4.0) *
-            h_sep*log(1.0/h_sep);
+            h_sep*logxi;
           a_sq *= 6.0*MY_PI*mu*radi;
           a_sh = 4.0*beta0*(2.0+beta0+2.0*beta0*beta0)/15.0/pow(beta1,3.0) *
-            log(1.0/h_sep);
+            logxi;
           a_sh += 4.0*(16.0-45.0*beta0+58.0*beta0*beta0-45.0*pow(beta0,3.0) +
                        16.0*pow(beta0,4.0))/375.0/pow(beta1,4.0) *
-            h_sep*log(1.0/h_sep);
+            h_sep*logxi;
           a_sh *= 6.0*MY_PI*mu*radi;
           // old invalid eq for pumping term
-          // changed 29Jul16 from eq 9.25 -> 9.27 in Kim and Karilla
+          // changed 29Jul16 from eq 9.25 -> 9.27 in Kim and Karrila
 //          a_pu = beta0*(4.0+beta0)/10.0/beta1/beta1*log(1.0/h_sep);
 //          a_pu += (32.0-33.0*beta0+83.0*beta0*beta0+43.0 *
 //                   pow(beta0,3.0))/250.0/pow(beta1,3.0)*h_sep*log(1.0/h_sep);
 //          a_pu *= 8.0*MY_PI*mu*pow(radi,3.0);
-          a_pu = 2.0*beta0/5.0/beta1*log(1.0/h_sep);
+          a_pu = 2.0*beta0/5.0/beta1*logxi;
           a_pu += 2.0*(8.0+6.0*beta0+33.0*beta0*beta0)/125.0/beta1/beta1*
-                   h_sep*log(1.0/h_sep);
+                   h_sep*logxi;
           a_pu *= 8.0*MY_PI*mu*pow(radi,3.0);
         } else a_sq = 6.0*MY_PI*mu*radi*(beta0*beta0/beta1/beta1/h_sep);
 
@@ -459,7 +461,7 @@ void PairLubricatePoly::init_style()
   shearing = flagdeform = flagwall = 0;
 
   auto fixes = modify->get_fix_by_style("^deform");
-  if (fixes.size() > 0) {
+  if (!fixes.empty()) {
     shearing = flagdeform = 1;
     auto *myfix = dynamic_cast<FixDeform *>(fixes[0]);
     if (myfix && (myfix->remapflag != Domain::V_REMAP))
@@ -522,17 +524,6 @@ void PairLubricatePoly::init_style()
     RT0 = 8*MY_PI*mu*(1.0 + 0.749*vol_f - 2.469*vol_f*vol_f);
     RS0 = 20.0/3.0*MY_PI*mu*(1.0 + 3.64*vol_f - 6.95*vol_f*vol_f);
   }
-
-  // check for fix deform, if exists it must use "remap v"
-
-  shearing = 0;
-  for (int i = 0; i < modify->nfix; i++)
-    if (strcmp(modify->fix[i]->style,"deform") == 0) {
-      shearing = 1;
-      if ((dynamic_cast<FixDeform *>(modify->fix[i]))->remapflag != Domain::V_REMAP)
-        error->all(FLERR,"Using pair lubricate/poly with inconsistent "
-                   "fix deform remap option");
-    }
 
   // set Ef = 0 since used whether shearing or not
 

@@ -323,7 +323,7 @@ by:
 
 .. math::
 
-   \mathbf{F}_\mathrm{t,damp} = -\eta_t \mathbf{v}_{t,rel}
+   \mathbf{F}_\mathrm{t,damp} = \eta_t \mathbf{v}_{t,rel}
 
 The tangential damping prefactor :math:`\eta_t` is calculated by scaling
 the normal damping :math:`\eta_n` (see above):

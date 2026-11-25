@@ -13,6 +13,7 @@ integer pow_lmp_ii(integer *ap, integer *bp)
 
     if (n <= 0) {
         if (n == 0 || x == 1) return 1;
+        if (x == 0) return 0;
         if (x != -1) return x == 0 ? 1 / x : 0;
         n = -n;
     }

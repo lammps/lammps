@@ -45,6 +45,7 @@ PairSpinDipoleCut::PairSpinDipoleCut(LAMMPS *lmp) :
     PairSpin(lmp), sigma(nullptr), cut_spin_long(nullptr)
 {
   spinflag = 1;
+  full_spin_gradient = 1;
 
   hbar = force->hplanck/MY_2PI;                       // eV/(rad.THz)
   mub = 9.274e-4;                             // in A.Ang^2
@@ -139,7 +140,8 @@ double PairSpinDipoleCut::init_one(int i, int j)
 }
 
 /* ----------------------------------------------------------------------
-   extract the larger cutoff if "cut" or "cut_coul"
+   extract the larger cutoff if "cut" or "cut_coul",
+   or the per-type cutoffs if "cut_spin"
 ------------------------------------------------------------------------- */
 
 void *PairSpinDipoleCut::extract(const char *str, int &dim)
@@ -147,6 +149,9 @@ void *PairSpinDipoleCut::extract(const char *str, int &dim)
   if (strcmp(str,"cut") == 0) {
     dim = 0;
     return (void *) &cut_spin_long_global;
+  } else if (strcmp(str,"cut_spin") == 0) {
+    dim = 2;
+    return (void *) cut_spin_long;
   } else if (strcmp(str,"cut_coul") == 0) {
     dim = 0;
     return (void *) &cut_spin_long_global;
@@ -283,12 +288,12 @@ void PairSpinDipoleCut::compute(int eflag, int vflag)
 
 void PairSpinDipoleCut::compute_single_pair(int ii, double fmi[3])
 {
-  int j,jnum,itype,jtype,ntypes;
+  int j,jnum,itype,jtype;
   int *jlist,*numneigh,**firstneigh;
   double rsq,rinv,r2inv,r3inv,local_cut2;
   double xi[3],rij[3],eij[3],spi[4],spj[4];
 
-  int k,locflag;
+  int locflag;
   int *type = atom->type;
   double **x = atom->x;
   double **sp = atom->sp;
@@ -299,24 +304,7 @@ void PairSpinDipoleCut::compute_single_pair(int ii, double fmi[3])
   // check if interaction applies to type of ii
 
   itype = type[ii];
-  ntypes = atom->ntypes;
-  locflag = 0;
-  k = 1;
-  while (k <= ntypes) {
-    if (k <= itype) {
-      if (setflag[k][itype] == 1) {
-        locflag =1;
-        break;
-      }
-      k++;
-    } else if (k > itype) {
-      if (setflag[itype][k] == 1) {
-        locflag =1;
-        break;
-      }
-      k++;
-    } else error->all(FLERR,"Wrong type number");
-  }
+  locflag = typeflag_spin[itype];
 
 
   // if interaction applies to type ii,

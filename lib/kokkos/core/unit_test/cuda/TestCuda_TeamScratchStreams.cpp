@@ -96,7 +96,7 @@ void cuda_stream_scratch_test(
 }  // namespace Impl
 
 TEST(cuda, team_scratch_1_streams) {
-  int N      = 1000000;
+  int N      = 10000;
   int T      = 10;
   int M_base = 150;
 

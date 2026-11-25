@@ -49,7 +49,7 @@ static constexpr double BIG = 1.0e20;
 
 // XYZ PLANE need to be 0,1,2
 
-enum {NOSTYLE=-1,XPLANE=0,YPLANE=1,ZPLANE=2,REGION};
+enum {NOSTYLE=-1,XPLANE=0,YPLANE=1,ZPLANE=2,REGION=3};
 enum {NONE,CONSTANT,EQUAL};
 
 /* ---------------------------------------------------------------------- */
@@ -272,8 +272,8 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
   // register with Atom class
 
   FixWallGran::grow_arrays(atom->nmax);
-  atom->add_callback(Atom::GROW);
-  atom->add_callback(Atom::RESTART);
+  atom->add_callback(this, Atom::GROW);
+  atom->add_callback(this, Atom::RESTART);
 
   nmax = 0;
 
@@ -326,8 +326,8 @@ FixWallGran::~FixWallGran()
 
   // unregister callbacks to this fix from Atom class
 
-  atom->delete_callback(id,Atom::GROW);
-  atom->delete_callback(id,Atom::RESTART);
+  atom->delete_callback(this, Atom::GROW);
+  atom->delete_callback(this, Atom::RESTART);
 
   // delete local storage
 
@@ -338,6 +338,7 @@ FixWallGran::~FixWallGran()
   delete[] xstr[1];
   memory->destroy(history_one);
   memory->destroy(mass_rigid);
+  memory->destroy(array_atom);
 
   memory->destroy(imgobjs);
   memory->destroy(imgparms);
@@ -376,9 +377,9 @@ void FixWallGran::init()
 
   // check for FixRigid so can extract rigid body masses
 
-  for (i = 0; i < modify->nfix; i++)
-    if (modify->fix[i]->rigid_flag) break;
-  if (i < modify->nfix) fix_rigid = modify->fix[i];
+  fix_rigid = nullptr;
+  for (const auto &ifix : modify->get_fix_list())
+    if (ifix->rigid_flag) { fix_rigid = ifix; break; }
 
   // Define history indices
 
@@ -615,6 +616,7 @@ void FixWallGran::post_force(int /*vflag*/)
     add3(f[i], forces, f[i]);
 
     add3(torque[i], torquesi, torque[i]);
+
     if (heat_flag) heatflow[i] += model->dq;
 
     // store contact info

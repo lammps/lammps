@@ -5,7 +5,7 @@
 #define KOKKOS_STD_ALGORITHMS_TRASFORM_EXCLUSIVE_SCAN_HPP
 
 #include "impl/Kokkos_TransformExclusiveScan.hpp"
-#include "Kokkos_BeginEnd.hpp"
+#include <Kokkos_Iterator.hpp>
 
 namespace Kokkos {
 namespace Experimental {
@@ -63,6 +63,8 @@ auto transform_exclusive_scan(
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(view_dest);
   static_assert(std::is_move_constructible_v<ValueType>,
                 "ValueType must be move constructible.");
+  Impl::expect_less_or_equal_extents(view_from, view_dest);
+
   namespace KE = ::Kokkos::Experimental;
   return Impl::transform_exclusive_scan_exespace_impl(
       "Kokkos::transform_exclusive_scan_custom_functors_view_api", ex,
@@ -84,6 +86,8 @@ auto transform_exclusive_scan(
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(view_dest);
   static_assert(std::is_move_constructible_v<ValueType>,
                 "ValueType must be move constructible.");
+  Impl::expect_less_or_equal_extents(view_from, view_dest);
+
   namespace KE = ::Kokkos::Experimental;
   return Impl::transform_exclusive_scan_exespace_impl(
       label, ex, KE::cbegin(view_from), KE::cend(view_from),
@@ -126,6 +130,8 @@ KOKKOS_FUNCTION auto transform_exclusive_scan(
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(view_dest);
   static_assert(std::is_move_constructible_v<ValueType>,
                 "ValueType must be move constructible.");
+  Impl::expect_less_or_equal_extents(view_from, view_dest);
+
   namespace KE = ::Kokkos::Experimental;
   return Impl::transform_exclusive_scan_team_impl(
       teamHandle, KE::cbegin(view_from), KE::cend(view_from),

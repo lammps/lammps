@@ -22,6 +22,6 @@ to the final states.
   The hexane is described by the *lj/class2/coul/long/soft* potential.
 
 * `quicktests` -- very short runs with charged Lennard-Jones atoms to test
-  *compute fep*, *fix adapt/fep* and *pair lj/cut/coul/long/soft*.
+  *compute fep*, *compute mbar*, *fix adapt/fep* and *pair lj/cut/coul/long/soft*.
 
 * `ta` -- surface tension of SPCE water without constraints. Test-area method.

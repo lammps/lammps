@@ -48,7 +48,7 @@ int zherk_(char *uplo, char *trans, integer *n, integer *k, doublereal *alpha, d
         xerbla_((char *)"ZHERK ", &info, (ftnlen)6);
         return 0;
     }
-    if (*n == 0 || (*alpha == 0. || *k == 0) && *beta == 1.) {
+    if (*n == 0 || ((*alpha == 0. || *k == 0) && *beta == 1.)) {
         return 0;
     }
     if (*alpha == 0.) {

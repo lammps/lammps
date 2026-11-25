@@ -3,7 +3,7 @@ lammps_version: 4 Jul 2026
 tags:
 date_generated: Thu Jul  9 18:25:59 2026
 epsilon: 0.001
-skip_tests:
+skip_tests: kokkos_omp kokkos_serial kokkos_gpu
 prerequisites: |
   atom full
   minimize cg

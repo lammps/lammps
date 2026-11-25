@@ -1,0 +1,21 @@
+variable        bnd index "p p f"
+include         common_lj.mod
+fix             cnf all wall/reflect zlo EDGE zhi EDGE
+fix             1 all nve
+fix             sf  all store/force
+fix             fg  all flow/gauss 1 0 0
+fix             who all wall/harmonic/outside zlo 0.5 1.0 1.0 2.0 units box
+thermo_style    custom step temp pe ke etotal press f_fg[1]
+thermo          5
+run             20 post no
+unfix           sf
+unfix           fg
+unfix           who
+unfix           1
+fix             2 all nvk
+thermo_style    custom step temp pe ke etotal press
+run             10 post no
+unfix           2
+fix             3 all nve
+fix             pv all propel/self velocity 0.02
+run             10 post no

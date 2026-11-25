@@ -39,14 +39,15 @@ all or parts of the code and modifications in this pull request.
 - [ ] The feature or features in this pull request is complete
 - [ ] Licensing information is complete
 - [ ] Corresponding author information is complete
+- [ ] AI tools attribution is included
 - [ ] The source code follows the LAMMPS formatting guidelines
 - [ ] Suitable new documentation files and/or updates to the existing docs are included
 - [ ] The added/updated documentation is integrated and tested with the documentation build system
 - [ ] The feature has been verified to work with the conventional build system
 - [ ] The feature has been verified to work with the CMake based build system
-- [ ] Suitable tests have been added to the unittest tree.
-- [ ] A package specific README file has been included or updated
-- [ ] One or more example input decks are included
+- [ ] Suitable tests in the unittest tree have been added or updated
+- [ ] A package specific README file has been added or updated
+- [ ] One or more example input decks were added or updated
 
 **Further Information, Files, and Links**
 

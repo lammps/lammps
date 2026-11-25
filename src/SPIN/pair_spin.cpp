@@ -27,7 +27,9 @@
 #include "atom.h"
 #include "comm.h"
 #include "error.h"
+#include "fix_nh_tspin.h"
 #include "fix_nve_spin.h"
+#include "fix_nve_tspin.h"
 #include "force.h"
 #include "math_const.h"
 #include "memory.h"
@@ -43,13 +45,21 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-PairSpin::PairSpin(LAMMPS *lmp) : Pair(lmp), emag(nullptr)
+PairSpin::PairSpin(LAMMPS *lmp) : Pair(lmp), emag(nullptr), typeflag_spin(nullptr)
 {
   hbar = force->hplanck/MY_2PI;
   single_enable = 0;
   respa_enable = 0;
   no_virial_fdotr_compute = 1;
   lattice_flag = 0;
+  full_spin_gradient = 0;
+}
+
+/* ---------------------------------------------------------------------- */
+
+PairSpin::~PairSpin()
+{
+  memory->destroy(typeflag_spin);
 }
 
 /* ----------------------------------------------------------------------
@@ -76,11 +86,32 @@ void PairSpin::init_style()
   if (!atom->sp_flag)
     error->all(FLERR,"Pair spin requires atom/spin style");
 
-  // checking if nve/spin or neb/spin is a listed fix
+  auto tspin_nve = modify->get_fix_by_style("^nve/tspin");
+  auto tspin_nvt = modify->get_fix_by_style("^nvt/tspin");
+  auto tspin_npt = modify->get_fix_by_style("^npt/tspin");
+  auto tspin_nph = modify->get_fix_by_style("^nph/tspin");
+  const int ntspin = tspin_nve.size() + tspin_nvt.size() + tspin_npt.size() + tspin_nph.size();
+  auto spin_fixes = modify->get_fix_by_style("^nve/spin");
 
-  if ((comm->me == 0) && ((modify->get_fix_by_style("^nve/spin").size()
-                           + modify->get_fix_by_style("^neb/spin").size()) == 0))
-    error->warning(FLERR,"Using spin pair style without nve/spin or neb/spin");
+  if ((!spin_fixes.empty()) && (ntspin > 0))
+    error->all(FLERR,
+               "Cannot combine fix nve/spin with tspin integrators "
+               "when using SPIN pair styles");
+
+  // the tspin integrators need the derivative of the energy with respect to
+  // the full spin vector, magnitude as well as direction
+
+  if ((ntspin > 0) && !full_spin_gradient)
+    error->all(FLERR, Error::NOLASTLINE,
+               "Pair style {} does not provide the derivative of the energy with respect "
+               "to the full spin vector and cannot be used with the tspin integrators",
+               force->pair_style);
+
+  // checking if a spin integrator or neb/spin is a listed fix
+
+  if ((comm->me == 0) &&
+      ((spin_fixes.size() + modify->get_fix_by_style("^neb/spin").size() + ntspin) == 0))
+    error->warning(FLERR,"Using spin pair style without a spin integrator or neb/spin");
 
   // check if newton pair is on
 
@@ -91,18 +122,46 @@ void PairSpin::init_style()
 
   neighbor->add_request(this, NeighConst::REQ_FULL);
 
-  // get the lattice_flag from nve/spin
+  // get the lattice_flag from the spin integrator
 
-  auto fixes = modify->get_fix_by_style("^nve/spin");
-  if (fixes.size() == 1)
-    lattice_flag = (dynamic_cast<FixNVESpin *>(fixes.front()))->lattice_flag;
-  else if (fixes.size() > 1)
+  if (spin_fixes.size() == 1)
+    lattice_flag = (dynamic_cast<FixNVESpin *>(spin_fixes.front()))->lattice_flag;
+  else if (spin_fixes.size() > 1)
     error->warning(FLERR,"Using multiple instances of fix nve/spin or neb/spin");
+
+  if (ntspin == 1) {
+    if (!tspin_nve.empty())
+      lattice_flag = (dynamic_cast<FixNVETSpin *>(tspin_nve.front()))->lattice_flag;
+    else if (!tspin_nvt.empty())
+      lattice_flag = (dynamic_cast<FixNHTSpin *>(tspin_nvt.front()))->lattice_flag;
+    else if (!tspin_npt.empty())
+      lattice_flag = (dynamic_cast<FixNHTSpin *>(tspin_npt.front()))->lattice_flag;
+    else
+      lattice_flag = (dynamic_cast<FixNHTSpin *>(tspin_nph.front()))->lattice_flag;
+  } else if (ntspin > 1) {
+    error->warning(FLERR, "Using multiple instances of tspin integrators");
+  }
 
   // init. size of energy stacking lists
 
   nlocal_max = atom->nlocal;
   memory->grow(emag,nlocal_max,"pair/spin:emag");
+
+  // flag atom types for which this style has coefficients with any type,
+  //   so compute_single_pair() does not need to search setflag for every spin
+
+  const int ntypes = atom->ntypes;
+  memory->destroy(typeflag_spin);
+  memory->create(typeflag_spin,ntypes+1,"pair/spin:typeflag_spin");
+  for (int i = 1; i <= ntypes; i++) {
+    typeflag_spin[i] = 0;
+    for (int j = 1; j <= ntypes; j++) {
+      if (setflag[MIN(i,j)][MAX(i,j)] == 1) {
+        typeflag_spin[i] = 1;
+        break;
+      }
+    }
+  }
 }
 
 /* ---------------------------------------------------------------------- */

@@ -1,0 +1,35 @@
+# fix symmetry example: relaxation of an LJ FCC crystal with the full
+# cubic symmetry of the FCC structure (space group Fm-3m)
+#
+# The symmetry file was written with the find-symmetry tool:
+#   find-symmetry -g 225 -s 4 4 4 -o fm-3m.json
+# It contains the 192 operators of the conventional cubic unit cell and
+# a supercell entry for the 4 x 4 x 4 unit cells in the box.  With all
+# translations between unit cells included, every atom is related to
+# every other atom and there are no free coordinates: only the volume
+# of the box can change.  The minimization with fix box/relax finds the
+# lattice constant at zero pressure for this potential.
+
+units           lj
+atom_style      atomic
+
+lattice         fcc 0.8442
+region          box block 0 4 0 4 0 4
+create_box      1 box
+create_atoms    1 box
+mass            1 1.0
+
+pair_style      lj/cut 2.5
+pair_coeff      * * 1.0 1.0
+pair_modify     shift yes
+
+fix             sym all symmetry fm-3m.json
+fix             relax all box/relax iso 0.0
+
+variable        a equal lx/4
+thermo_style    custom step pe press vol v_a
+thermo_modify   format float %14.8g
+print           "Initial lattice constant: $(lx/4:%.8f)"
+min_modify      line quadratic
+minimize        0.0 1.0e-10 1000 10000
+print           "Final lattice constant: $(lx/4:%.8f)"

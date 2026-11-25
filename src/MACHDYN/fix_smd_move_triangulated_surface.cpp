@@ -47,11 +47,11 @@ FixSMDMoveTriSurf::FixSMDMoveTriSurf(LAMMPS *lmp, int narg, char **arg) :
                 Fix(lmp, narg, arg) {
 
         if (atom->smd_flag != 1) {
-                error->all(FLERR, "fix fix smd/move_tri_surf command requires atom_style smd");
+                error->all(FLERR, "fix smd/move_tri_surf command requires atom_style smd");
         }
 
         if (narg < 3)
-                error->all(FLERR, "Illegal number of arguments for fix fix smd/move_tri_surf command");
+                error->all(FLERR, "Illegal number of arguments for fix smd/move_tri_surf command");
 
         rotateFlag = linearFlag = wiggleFlag = false;
         wiggle_direction  = 1.0;
@@ -59,10 +59,9 @@ FixSMDMoveTriSurf::FixSMDMoveTriSurf(LAMMPS *lmp, int narg, char **arg) :
 
         int iarg = 3;
 
-        if (comm->me == 0) {
-                printf("\n>>========>>========>>========>>========>>========>>========>>========>>========\n");
-                printf("fix fix smd/move_tri_surf is active for group: %s \n", arg[1]);
-        }
+        if (comm->me == 0)
+                utils::logmesg(lmp, "\n>>========>>========>>========>>========>>========>>========>>========>>========\n"
+                               "fix smd/move_tri_surf is active for group: {}\n", arg[1]);
         while (true) {
 
                 if (iarg >= narg) {
@@ -71,9 +70,7 @@ FixSMDMoveTriSurf::FixSMDMoveTriSurf(LAMMPS *lmp, int narg, char **arg) :
 
                 if (strcmp(arg[iarg], "*LINEAR") == 0) {
                         linearFlag = true;
-                        if (comm->me == 0) {
-                                printf("... will move surface in a linear fashion\n");
-                        }
+                        if (comm->me == 0) utils::logmesg(lmp, "... will move surface in a linear fashion\n");
 
                         iarg++;
                         if (iarg == narg) {
@@ -95,9 +92,7 @@ FixSMDMoveTriSurf::FixSMDMoveTriSurf(LAMMPS *lmp, int narg, char **arg) :
 
                 } else if (strcmp(arg[iarg], "*WIGGLE") == 0) {
                         wiggleFlag = true;
-                        if (comm->me == 0) {
-                                printf("... will move surface in wiggle fashion\n");
-                        }
+                        if (comm->me == 0) utils::logmesg(lmp, "... will move surface in wiggle fashion\n");
 
                         iarg++;
                         if (iarg == narg) {
@@ -186,29 +181,20 @@ FixSMDMoveTriSurf::FixSMDMoveTriSurf(LAMMPS *lmp, int narg, char **arg) :
 
                         uxu = rotation_axis * rotation_axis.transpose();
 
-                        if (comm->me == 0) {
-                                printf("will rotate with period %f\n", rotation_period);
-                        }
+                        if (comm->me == 0) utils::logmesg(lmp, "... will rotate with period {}\n", rotation_period);
 
                 } else {
-                        char msg[128];
-                        snprintf(msg,128, "Illegal keyword for fix smd/move_tri_surf: %s\n", arg[iarg]);
-                        error->all(FLERR, msg);
+                        error->all(FLERR, iarg, "Unknown fix smd/move_tri_surf keyword: {}", arg[iarg]);
                 }
 
                 iarg++;
 
         }
 
-        if (comm->me == 0) {
-                printf(">>========>>========>>========>>========>>========>>========>>========>>========\n\n");
-        }
+        if (comm->me == 0) utils::logmesg(lmp, ">>========>>========>>========>>========>>========>>========>>========>>========\n\n");
 
         // set comm sizes needed by this fix
         comm_forward = 12;
-
-        //atom->add_callback(Atom::GROW);
-        //atom->add_callback(Atom::RESTART);
 
         time_integrate = 1;
 }
@@ -218,7 +204,6 @@ FixSMDMoveTriSurf::FixSMDMoveTriSurf(LAMMPS *lmp, int narg, char **arg) :
 int FixSMDMoveTriSurf::setmask() {
         int mask = 0;
         mask |= INITIAL_INTEGRATE;
-        //mask |= PRE_EXCHANGE;
         return mask;
 }
 
@@ -296,8 +281,6 @@ void FixSMDMoveTriSurf::initial_integrate(int /*vflag*/) {
                 double wiggle_vy = wiggle_direction * vy;
                 double wiggle_vz = wiggle_direction * vz;
 
-                //printf("wiggle vz is %f, wiggle_max_travel is %f, dir=%f\n", wiggle_vz, wiggle_max_travel, wiggle_direction);
-
                 for (i = 0; i < nlocal; i++) {
                         if (mask[i] & groupbit) {
 
@@ -348,7 +331,6 @@ void FixSMDMoveTriSurf::initial_integrate(int /*vflag*/) {
                  */
 
                 phi = MY_2PI * dtv / rotation_period;
-                //printf("dt=%f, phi =%f, T=%f\n", dtv, phi, rotation_period);
                 Rot = cos(phi) * eye + sin(phi) * u_cross + (1.0 - cos(phi)) * uxu;
 
                 for (i = 0; i < nlocal; i++) {
@@ -449,7 +431,6 @@ int FixSMDMoveTriSurf::pack_forward_comm(int n, int *list, double *buf, int /*pb
         double **x0 = atom->x0;
         double **smd_data_9 = atom->smd_data_9;
 
-        //printf("in FixSMDIntegrateTlsph::pack_forward_comm\n");
         m = 0;
         for (i = 0; i < n; i++) {
                 j = list[i];
@@ -478,7 +459,6 @@ void FixSMDMoveTriSurf::unpack_forward_comm(int n, int first, double *buf) {
         double **x0 = atom->x0;
         double **smd_data_9 = atom->smd_data_9;
 
-        //printf("in FixSMDMoveTriSurf::unpack_forward_comm\n");
         m = 0;
         last = first + n;
         for (i = first; i < last; i++) {

@@ -12,8 +12,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing author: Claude Opus 4.8 (Anthropic), under the direction of
-   Joel Clemmer (SNL) and Axel Kohlmeyer (Temple U).
+   Contributing author: Joel Clemmer (SNL) and Axel Kohlmeyer (Temple U).
 
    Re-implementation of the four PERI package constitutive models on the BPM
    framework, derived from pair_peri.cpp and pair_peri_{pmb,lps,ves,eps}.cpp.
@@ -130,7 +129,7 @@ BondBPMPeri::~BondBPMPeri()
   memory->destroy(tdnorm);
 
   if (id_fix_property_peri) {
-    if (modify->nfix) modify->delete_fix(id_fix_property_peri);
+    modify->delete_fix(id_fix_property_peri);
     delete[] id_fix_property_peri;
   }
 

@@ -31,7 +31,7 @@ FixReadRestart::FixReadRestart(LAMMPS *lmp, int narg, char **arg) :
   // register with Atom class
 
   FixReadRestart::grow_arrays(atom->nmax);
-  atom->add_callback(Atom::GROW);
+  atom->add_callback(this, Atom::GROW);
 
   // extra = copy of atom->extra
 
@@ -53,7 +53,7 @@ FixReadRestart::~FixReadRestart()
 {
   // unregister callback to this fix from Atom class
 
-  atom->delete_callback(id, Atom::GROW);
+  atom->delete_callback(this, Atom::GROW);
 
   // delete locally stored arrays
 

@@ -290,6 +290,7 @@ accelerated styles exist.
 * :doc:`langevin/drude <fix_langevin_drude>` - Langevin temperature control of Drude oscillators
 * :doc:`langevin/eff <fix_langevin_eff>` - Langevin temperature control for the electron force field model
 * :doc:`langevin/spin <fix_langevin_spin>` - Langevin temperature control for a spin or spin-lattice system
+* :doc:`langevin/tspin <fix_langevin_tspin>` - Langevin temperature control for inertial spin dynamics
 * :doc:`lb/fluid <fix_lb_fluid>` - lattice-Boltzmann fluid on a uniform mesh
 * :doc:`lb/momentum <fix_lb_momentum>` - :doc:`fix momentum <fix_momentum>` replacement for use with a lattice-Boltzmann fluid
 * :doc:`lb/viscous <fix_lb_viscous>` - :doc:`fix viscous <fix_viscous>` replacement for use with a lattice-Boltzmann fluid
@@ -340,6 +341,9 @@ accelerated styles exist.
 * :doc:`nve/sphere <fix_nve_sphere>` - NVE for spherical particles
 * :doc:`nve/bpm/sphere <fix_nve_bpm_sphere>` - NVE for spherical particles used in the BPM package
 * :doc:`nve/spin <fix_nve_spin>` - NVE for a spin or spin-lattice system
+* :doc:`nve/tspin <fix_nve_tspin>` - NVE for inertial spin dynamics with a dynamical spin modulus
+* :doc:`nph/tspin <fix_nvt_tspin>` - NPH for inertial spin dynamics
+* :doc:`npt/tspin <fix_nvt_tspin>` - NPT for inertial spin dynamics
 * :doc:`nve/tri <fix_nve_tri>` - NVE for triangles
 * :doc:`nvk <fix_nvk>` - constant kinetic energy time integration
 * :doc:`nvt <fix_nh>` - NVT time integration via Nose/Hoover
@@ -350,6 +354,7 @@ accelerated styles exist.
 * :doc:`nvt/sllod <fix_nvt_sllod>` - NVT for NEMD with SLLOD equations
 * :doc:`nvt/sllod/eff <fix_nvt_sllod_eff>` - NVT for NEMD with SLLOD equations for the electron force field model
 * :doc:`nvt/sphere <fix_nvt_sphere>` - NVT for spherical particles
+* :doc:`nvt/tspin <fix_nvt_tspin>` - NVT for inertial spin dynamics via Nose/Hoover
 * :doc:`nvt/uef <fix_nh_uef>` - NVT style time integration with diagonal flow
 * :doc:`oneway <fix_oneway>` - constrain particles on move in one direction
 * :doc:`orient/bcc <fix_orient>` - add grain boundary migration force for BCC
@@ -384,11 +389,15 @@ accelerated styles exist.
 * :doc:`qeq/dynamic <fix_qeq>` - charge equilibration via dynamic method
 * :doc:`qeq/fire <fix_qeq>` - charge equilibration via FIRE minimizer
 * :doc:`qeq/point <fix_qeq>` - charge equilibration via point method
+* :doc:`qeq/point/xlmd <fix_qeq>` - charge equilibration via point method with extended-Lagrangian propagation
 * :doc:`qeq/reaxff <fix_qeq_reaxff>` - charge equilibration for ReaxFF potential
 * :doc:`qeq/rel/reaxff <fix_qeq_rel_reaxff>` - charge equilibration for ReaxFF potential with alternate efield implementation
 * :doc:`qeq/shielded <fix_qeq>` - charge equilibration via shielded method
+* :doc:`qeq/shielded/xlmd <fix_qeq>` - charge equilibration via shielded method with extended-Lagrangian propagation
 * :doc:`qeq/slater <fix_qeq>` - charge equilibration via Slater method
+* :doc:`qeq/slater/xlmd <fix_qeq>` - charge equilibration via Slater method with extended-Lagrangian propagation
 * :doc:`qmmm <fix_qmmm>` - functionality to enable a quantum mechanics/molecular mechanics coupling
+* :doc:`qmmm/xtb <fix_qmmm_xtb>` - self-consistent GFN-xTB QM/MM with periodic PPPM electrostatics
 * :doc:`qtb <fix_qtb>` - implement quantum thermal bath scheme
 * :doc:`qtpie/reaxff <fix_qtpie_reaxff>` - apply QTPIE charge equilibration
 * :doc:`rattle <fix_shake>` - RATTLE constraints on bonds and/or angles
@@ -435,11 +444,13 @@ accelerated styles exist.
 * :doc:`spring/chunk <fix_spring_chunk>` - apply harmonic spring force to each chunk of atoms
 * :doc:`spring/rg <fix_spring_rg>` - spring on radius of gyration of group of atoms
 * :doc:`spring/self <fix_spring_self>` - spring from each atom to its origin
+* :doc:`spring/tspin <fix_spring_tspin>` - harmonic restoring potential on the spin modulus
 * :doc:`srd <fix_srd>` - stochastic rotation dynamics (SRD)
 * :doc:`store/force <fix_store_force>` - store force on each atom
 * :doc:`store/state <fix_store_state>` - store attributes for each atom
 * :doc:`surface/global <fix_surface_global>` - global granular surface model, each proc has copy
 * :doc:`surface/local <fix_surface_local>` - local granular surface model, distributed across procs
+* :doc:`symmetry <fix_symmetry>` - constrain MD to obey a chosen crystallographic space-group symmetry
 * :doc:`tdpd/source <fix_dpd_source>` - add external concentration source
 * :doc:`temp/berendsen <fix_temp_berendsen>` - temperature control by Berendsen thermostat
 * :doc:`temp/csld <fix_temp_csvr>` - canonical sampling thermostat with Langevin dynamics
@@ -453,6 +464,7 @@ accelerated styles exist.
 * :doc:`ti/spring <fix_ti_spring>` - perform thermodynamic integration between a solid and an Einstein crystal
 * :doc:`tmd <fix_tmd>` - guide a group of atoms to a new configuration
 * :doc:`ttm <fix_ttm>` - two-temperature model for electronic/atomic coupling (replicated grid)
+* :doc:`ttm/cascade <fix_ttm>` - a two-temperature model for radiation damage cascades
 * :doc:`ttm/grid <fix_ttm>` - two-temperature model for electronic/atomic coupling (distributed grid)
 * :doc:`ttm/mod <fix_ttm>` - enhanced two-temperature model with additional options
 * :doc:`ttm/thermal <fix_ttm>` - a two-temperature model for thermal transport
@@ -465,6 +477,7 @@ accelerated styles exist.
 * :doc:`viscous/sphere <fix_viscous_sphere>` - viscous damping on angular velocity for granular simulations
 * :doc:`wall/body/polygon <fix_wall_body_polygon>` - time integration for body particles of style :doc:`rounded/polygon <Howto_body>`
 * :doc:`wall/body/polyhedron <fix_wall_body_polyhedron>` - time integration for body particles of style :doc:`rounded/polyhedron <Howto_body>`
+* :doc:`wall/body/polyhedron/granular <fix_wall_body_polyhedron_granular>` - walls with the contact models of pair style granular for body particles of style :doc:`rounded/polyhedron <Howto_body>`
 * :doc:`wall/colloid <fix_wall>` - Lennard-Jones wall interacting with finite-size particles
 * :doc:`wall/ees <fix_wall_ees>` - wall for ellipsoidal particles
 * :doc:`wall/flow <fix_wall_flow>` - flow boundary conditions

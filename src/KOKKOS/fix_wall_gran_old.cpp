@@ -448,8 +448,8 @@ FixWallGranOld::FixWallGranOld(LAMMPS *lmp, int narg, char **arg) :
 
   history_one = nullptr;
   FixWallGranOld::grow_arrays(atom->nmax);
-  atom->add_callback(Atom::GROW);
-  atom->add_callback(Atom::RESTART);
+  atom->add_callback(this, Atom::GROW);
+  atom->add_callback(this, Atom::RESTART);
 
   nmax = 0;
   mass_rigid = nullptr;
@@ -479,14 +479,15 @@ FixWallGranOld::~FixWallGranOld()
 
   // unregister callbacks to this fix from Atom class
 
-  atom->delete_callback(id,Atom::GROW);
-  atom->delete_callback(id,Atom::RESTART);
+  atom->delete_callback(this, Atom::GROW);
+  atom->delete_callback(this, Atom::RESTART);
 
   // delete local storage
 
   delete [] idregion;
   memory->destroy(history_one);
   memory->destroy(mass_rigid);
+  memory->destroy(array_atom);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -503,8 +504,6 @@ int FixWallGranOld::setmask()
 
 void FixWallGranOld::init()
 {
-  int i;
-
   dt = update->dt;
 
   if (utils::strmatch(update->integrate_style,"^respa"))
@@ -513,9 +512,8 @@ void FixWallGranOld::init()
   // check for FixRigid so can extract rigid body masses
 
   fix_rigid = nullptr;
-  for (i = 0; i < modify->nfix; i++)
-    if (modify->fix[i]->rigid_flag) break;
-  if (i < modify->nfix) fix_rigid = modify->fix[i];
+  for (const auto &ifix : modify->get_fix_list())
+    if (ifix->rigid_flag) { fix_rigid = ifix; break; }
 
   if(pairstyle == GRANULAR) {
     tangential_history_index = 0;
@@ -549,6 +547,7 @@ void FixWallGranOld::init()
       normal_coeffs[1] = 1.2728-4.2783*cor+11.087*pow(cor,2)-22.348*pow(cor,3)+
           27.467*pow(cor,4)-18.022*pow(cor,5)+
           4.8218*pow(cor,6);
+      normal_coeffs[1] *= MY_SQRT2;
     }
   }
 }

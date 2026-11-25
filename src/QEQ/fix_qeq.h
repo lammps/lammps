@@ -15,6 +15,7 @@
 #define LMP_FIX_QEQ_H
 
 #include "fix.h"
+#include "xl_qeq.h"
 
 namespace LAMMPS_NS {
 
@@ -43,6 +44,7 @@ class FixQEq : public Fix {
   void unpack_reverse_comm(int, int *, double *) override;
   void grow_arrays(int) override;
   void copy_arrays(int, int, int) override;
+  void set_arrays(int) override;
   int pack_exchange(int, double *) override;
   int unpack_exchange(int, double *) override;
   double memory_usage() override;
@@ -78,6 +80,13 @@ class FixQEq : public Fix {
   double **s_hist, **t_hist;
   int nprev;
 
+  // extended-Lagrangian (XL) charge propagation for qeq/*/xlmd styles
+
+  XLQEq xl;                      // settings and warm-up state
+  int imax;                      // CG iteration bound for the current solve
+  double cg_resid;               // relative residual at the end of the last CG solve
+  double **xls_hist, **xlt_hist; // auxiliary variable trajectories, newest first
+
   // NOLINTBEGIN
   typedef struct {
     int n, m;
@@ -108,6 +117,12 @@ class FixQEq : public Fix {
 
   void vector_sum(double *, double, double *, double, double *, int);
   void vector_add(double *, double, double *, int);
+
+  int parse_common_keyword(int, char **, int);
+  void finalize_xl();
+  int solve_st();
+  void xl_predict();
+  void xl_update(bool);
 
   void init_storage();
   void read_file(char *);

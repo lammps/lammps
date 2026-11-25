@@ -57,7 +57,7 @@ class PairCoulCTIP : public Pair {
 
   double *qeq_x, *qeq_j, *qeq_g, *qeq_z, *qeq_c, *qeq_q1, *qeq_q2, *qeq_w;
 
-  void allocate();
+  virtual void allocate();
 
   void read_file(char *);
   void setup_params();

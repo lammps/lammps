@@ -168,12 +168,13 @@ std::vector<triangle> transform_normals(const std::vector<triangle> &norms, cons
 // "bot" to "tip" is 1.0, "tiplength is "mid" to "tip". "diameter" is the width at "bot"
 // "tipwidth" is the additional width at "mid".
 //
-//          |\
-// |--------| \
-// |--------| /
-//          |/
-// ^        ^  ^
-// bot    mid tip
+/*          |\
+ * |--------| \
+ * |--------| /
+ *          |/
+ * ^        ^  ^
+ * bot    mid tip
+ */
 
 ArrowObj::ArrowObj(double _tipl, double _tipw, double radius, int res) :
     tiplength(_tipl), tipwidth(_tipw), diameter(2.0 * radius), resolution(res)
@@ -232,7 +233,7 @@ void ArrowObj::draw(Image *img, const double *color, const double *center, doubl
                     const double *data, double scale, double opacity)
 {
   // nothing to draw
-  if (!triangles.size()) return;
+  if (triangles.empty()) return;
 
   // transform the template into the arrow object we want to draw
 
@@ -244,7 +245,7 @@ void ArrowObj::draw(Image *img, const double *color, const double *center, doubl
   auto norms = transform_normals(normals, dir);
 
   // nothing to draw
-  if (!arrow.size()) return;
+  if (arrow.empty()) return;
 
   // draw tip and bottom from list of triangles with per-vertex normals
   for (size_t i = 0; i < arrow.size(); ++i)
@@ -264,7 +265,7 @@ void ArrowObj::draw(Image *img, const double *color, const double *bottom, const
                     double scale, double opacity)
 {
   // nothing to draw
-  if (!triangles.size()) return;
+  if (triangles.empty()) return;
 
   // transform the template into the arrow object we want to draw
 
@@ -277,7 +278,7 @@ void ArrowObj::draw(Image *img, const double *color, const double *bottom, const
   auto norms = transform_normals(normals, dir);
 
   // nothing to draw
-  if (!arrow.size()) return;
+  if (arrow.empty()) return;
 
   // draw tip and bottom from list of triangles with per-vertex normals
   for (size_t i = 0; i < arrow.size(); ++i)
@@ -301,14 +302,14 @@ void ArrowObj::draw(Image *img, const double *color, const double *bottom, const
 // diameter on either side of the cone is zero.
 // a cylinder is just a special case of a cone with both radii of the same value.
 //
-// |\
-// | \
-// |  |  _ center
-// |  |
-// | /
-// |/
-// ^  ^
-//bot top
+/* |\
+ * | \
+ * |  |  _ center
+ * |  |
+ * | /
+ * |/
+ * ^  ^
+ *bot top */
 
 ConeObj::ConeObj(double length, double topwidth, double botwidth, int flag, int resolution)
 {
@@ -386,7 +387,7 @@ void ConeObj::draw(Image *img, int flag, const vec3 &dir, const vec3 &mid, const
                    Region *reg, double diameter, double opacity)
 {
   // nothing to draw
-  if (!triangles.size()) return;
+  if (triangles.empty()) return;
 
   // rotate to selected axis and translate from origin to original center
   // no need of scaling here since length and width was already applied during construction
@@ -394,7 +395,7 @@ void ConeObj::draw(Image *img, int flag, const vec3 &dir, const vec3 &mid, const
   auto norms = transform_normals(normals, dir);
 
   // nothing to draw
-  if (!cone.size()) return;
+  if (cone.empty()) return;
 
   // get the offset from forward_transform to extract rotation-only for normals
   double ox = 0.0, oy = 0.0, oz = 0.0;
@@ -439,7 +440,7 @@ void ConeObj::draw(Image *img, const vec3 &bot, const vec3 &top, const double *c
                    double opacity)
 {
   // nothing to draw
-  if (!triangles.size()) return;
+  if (triangles.empty()) return;
 
   vec3 mid{0.5 * (top + bot)};
   vec3 dir{top - bot};
@@ -452,7 +453,7 @@ void ConeObj::draw(Image *img, const vec3 &bot, const vec3 &top, const double *c
   auto norms = transform_normals(normals, dir);
 
   // nothing to draw
-  if (!cone.size()) return;
+  if (cone.empty()) return;
 
   for (size_t k = 0; k < cone.size(); ++k) {
     // draw triangle with per-vertex normals
@@ -603,7 +604,7 @@ void EllipsoidObj::draw(Image *img, int flag, const double *color, const double 
   }
 
   // nothing to draw
-  if (!triangles.size()) return;
+  if (triangles.empty()) return;
 
   // get the offset from forward_transform to extract rotation-only for normals
   double ox = 0.0, oy = 0.0, oz = 0.0;
@@ -676,7 +677,7 @@ void EllipsoidObj::draw(Image *img, int flag, const double *color, const double 
   }
 
   // nothing to draw
-  if (!triangles.size()) return;
+  if (triangles.empty()) return;
 
   // get rotation matrix for body frame to box frame
   MathExtra::quat_to_mat(quat, p);
@@ -800,7 +801,7 @@ void PlaneObj::draw(Image *img, int flag, const double *color, const double *cen
 
   // nothing to draw
 
-  if (!triangles.size()) return;
+  if (triangles.empty()) return;
 
   // draw triangles after scaling and shifting the mesh
 

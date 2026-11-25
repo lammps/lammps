@@ -27,8 +27,11 @@ particles and a rigid wall boundary defined via the
 
 The contact forces are calculated using a Hertz potential, which
 evaluates the overlap between a particle (whose spatial extents are
-defined via its contact radius) and the triangle.  The effect is that
-a particle cannot penetrate into the triangular surface.  The
+defined via its contact radius) and the triangle.  In addition, a
+particle that comes closer to a triangle than its contact radius is
+moved back to that distance, and the component of its velocity that
+points toward the triangle is reflected.  The effect is that a particle
+cannot penetrate into the triangular surface.  The
 parameter <contact_stiffness> has units of pressure and should equal
 roughly one half of the Young's modulus (or bulk modulus in the case
 of fluids) of the material model associated with the SPH particle

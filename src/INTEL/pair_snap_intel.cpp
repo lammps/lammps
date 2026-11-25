@@ -13,7 +13,7 @@
 ------------------------------------------------------------------------- */
 
 #if defined(__AVX512F__)
-#if defined(__INTEL_COMPILER) || defined(__INTEL_LLVM_COMPILER)
+#if defined(__INTEL_LLVM_COMPILER)
 
 #include "pair_snap_intel.h"
 

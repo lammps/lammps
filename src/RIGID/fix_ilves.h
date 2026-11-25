@@ -24,8 +24,6 @@ FixStyle(ilves,FixIlves);
 
 #include "ilves.h"
 
-#include <vector>
-
 namespace LAMMPS_NS {
 
 class FixIlves : public Fix {
@@ -41,6 +39,7 @@ class FixIlves : public Fix {
   void post_force(int) override;
   void post_force_respa(int, int, int) override;
   void min_post_force(int) override;
+  void post_run() override;
 
   int pack_forward_comm(int, int *, double *, int, int *) override;
   void unpack_forward_comm(int, int, double *) override;
@@ -98,6 +97,7 @@ class FixIlves : public Fix {
   int nconstraints;
   std::vector<int> clist_a, clist_b, clist_node_a, clist_node_b, clist_btype, clist_vertex;
   std::vector<double> clist_d;
+  int list_current;    // 1 from building the list in a run setup until the end of the run
 
   // near-linear angles handled by the restrain substitute, rebuilt every
   // reneighbor: a stiff harmonic bond on the A-C "virtual bond" between the
@@ -142,6 +142,9 @@ class FixIlves : public Fix {
   int nlocal;
 
   void build_constraint_list();
+  bigint count_constraints(int);    // count from the topology, without the constraint list
+  void check_overlap();             // stop if fix shake or rattle constrains the same atoms
+  void correct_coordinates();       // move the atoms onto the constraint manifold
   int run_newton();           // drive prepared xpred onto the constraint manifold; returns # iters
   int solve_constraints();    // run_newton, then turn the displacement into forces; returns # iters
   void apply_linear_restraint();
@@ -155,6 +158,15 @@ class FixIlves : public Fix {
   int angle_selected(int i, int m, int &a, int &c, int &atype);
   int find_bond_type(int i, int j);
   int masscheck(double massone);
+
+  // rendezvous communication of the bonded partner properties for
+  // count_constraints().  partnerID = 0 announces the owning proc of atomID,
+  // otherwise the datum carries the properties of partnerID to the owner of atomID.
+  struct PartnerInfo {
+    tagint atomID, partnerID;
+    int proc, mask, type, massflag, bondtype;
+  };
+  static int rendezvous_partner_info(int, char *, int &, int *&, char *&, void *);
 };
 
 }    // namespace LAMMPS_NS

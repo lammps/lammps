@@ -105,13 +105,14 @@ The data file is similar to a standard LAMMPS data file for
 bonds <bond_harmonic>` connecting them to their DC should appear in the
 data file as normal atoms and bonds.
 
-You can use the *polarizer* tool (Python script distributed with the
-DRUDE package) to convert a non-polarizable data file (here
+You can use the *polarizer* tool (the Python script
+``tools/drude/polarizer.py`` in the LAMMPS distribution, see the
+:ref:`Tools <drude>` page) to convert a non-polarizable data file (here
 *data.102494.lmp*\ ) to a polarizable data file (\ *data-p.lmp*\ )
 
 .. code-block:: bash
 
-   polarizer -q -f phenol.dff data.102494.lmp data-p.lmp
+   python3 tools/drude/polarizer.py -q -f phenol.dff data.102494.lmp data-p.lmp
 
 This will automatically insert the new atoms and bonds.
 The masses and charges of DCs and DPs are computed
@@ -237,7 +238,9 @@ invoked after the fix *langevin/drude* for more accuracy.
 .. note::
 
    The group of the fix *shake* must not include the DPs.  If the
-   group *ATOMS* is defined by non-DPs atom types, you could use
+   group *ATOMS* is defined by the atom types of the DCs and the
+   non-polarizable atoms only (as in the input script below), it can be
+   used for the fix *shake* command as shown above.
 
 Since the fix *langevin/drude* does not perform time integration (just
 modification of forces but no position/velocity updates), the fix

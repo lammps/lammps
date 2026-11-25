@@ -3,7 +3,8 @@
 add_executable(test_lammps_class test_lammps_class.cpp)
 target_link_libraries(test_lammps_class PRIVATE lammps GTest::GMock)
 add_test(NAME LammpsClass COMMAND test_lammps_class)
-set_tests_properties(LammpsClass PROPERTIES ENVIRONMENT "OMP_NUM_THREADS=2;OMP_PROC_BIND=false")
+# the label kokkos marks tests that also exercise the KOKKOS package (ctest -L kokkos)
+set_tests_properties(LammpsClass PROPERTIES ENVIRONMENT "OMP_NUM_THREADS=2;OMP_PROC_BIND=false" LABELS "kokkos")
 
 add_executable(test_input_class test_input_class.cpp)
 target_link_libraries(test_input_class PRIVATE lammps GTest::GTestMain)
@@ -17,6 +18,12 @@ add_executable(test_error_class test_error_class.cpp)
 target_link_libraries(test_error_class PRIVATE lammps GTest::GMock)
 add_test(NAME ErrorClass COMMAND test_error_class)
 
+add_executable(test_kspace_styles test_kspace_styles.cpp)
+target_link_libraries(test_kspace_styles PRIVATE lammps GTest::GMock)
+add_test(NAME KSpaceStyles COMMAND test_kspace_styles)
+set_tests_properties(KSpaceStyles PROPERTIES LABELS "slow"
+  ENVIRONMENT "OMP_NUM_THREADS=2;OMP_PROC_BIND=false")
+
 add_executable(test_neighbor_class test_neighbor_class.cpp)
 target_link_libraries(test_neighbor_class PRIVATE lammps GTest::GMock)
 if(PKG_OPENMP)
@@ -24,3 +31,8 @@ if(PKG_OPENMP)
 endif()
 add_test(NAME NeighborClass COMMAND test_neighbor_class)
 set_tests_properties(NeighborClass PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR}")
+
+add_executable(test_modify_class test_modify_class.cpp)
+target_link_libraries(test_modify_class PRIVATE lammps GTest::GMock)
+add_test(NAME ModifyClass COMMAND test_modify_class)
+add_kokkos_test(NAME ModifyClass COMMAND test_modify_class)

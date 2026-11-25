@@ -154,19 +154,20 @@ box length :math:`L` evolves according to the equation
 
 .. math::
 
-   \frac{d L(t)}{dt} = L(t) k (P_t - P)
+   \frac{d L(t)}{dt} = L(t) k (P - P_t)
 
-where :math:`k` is a proportional gain constant, :math:`P_t` is the target
-pressure, and :math:`P` is the current pressure along that dimension. This
-approach is similar to the method used to control the pressure by
-:doc:`fix press/berendsen <fix_press_berendsen>`. The target pressure
-accepts either a constant numeric value or a LAMMPS :ref:`variable <variable>`.
-Notably, this variable can be a function of time or other components of
-the pressure tensor. By default, :math:`k` has units of 1/(time * pressure)
-although this will change if the *normalize/pressure* option is set as
-:ref:`discussed below <deform_normalize>`. There is no proven method
-to choosing an appropriate value of :math:`k` as it will depend on the
-specific details of a simulation. Testing different values is recommended.
+where :math:`k` is a proportional gain constant, :math:`P_t` is the
+target pressure, and :math:`P` is the current pressure along that
+dimension. This approach is similar to the method used to control the
+pressure by :doc:`fix press/berendsen <fix_press_berendsen>`. The target
+pressure accepts either a constant numeric value or a LAMMPS
+:ref:`variable <variable_output>`.  Notably, this variable can be a
+function of time or other components of the pressure tensor. By default,
+:math:`k` has units of 1/(time * pressure) although this will change if
+the *normalize/pressure* option is set as :ref:`discussed below
+<deform_normalize>`. There is no proven method to choosing an
+appropriate value of :math:`k` as it will depend on the specific details
+of a simulation. Testing different values is recommended.
 
 By default, there is no limit on the resulting strain rate in any dimension.
 A maximum limit can be applied using the :ref:`max/rate <deform_max_rate>`
@@ -207,18 +208,17 @@ tilt factor T evolves according to the equation
    \frac{d T(t)}{dt} = L(t) k (P - P_t)
 
 where :math:`k` is a proportional gain constant, :math:`P_t` is the
-target pressure, :math:`P` is the current pressure, and :math:`L` is
-the perpendicular box length. The target pressure accepts either a
-constant numeric value or a LAMMPS :ref:`variable
-<variable>`. Notably, this variable can be a function of time or other
-components of the pressure tensor. By default, :math:`k` has units of
-1/(time * pressure) although this will change if the
-*normalize/pessure* option is set as :ref:`discussed below
-<deform_normalize>`.  There is no proven method to choosing an
-appropriate value of :math:`k` as it will depend on the specific
-details of a simulation and testing different values is
-recommended. One can also apply a maximum limit to the magnitude of
-the applied strain using the :ref:`max/rate <deform_max_rate>` option.
+target pressure, :math:`P` is the current pressure, and :math:`L` is the
+perpendicular box length. The target pressure accepts either a constant
+numeric value or a LAMMPS :ref:`variable <variable_output>`. Notably,
+this variable can be a function of time or other components of the
+pressure tensor. By default, :math:`k` has units of 1/(time * pressure)
+although this will change if the *normalize/pessure* option is set as
+:ref:`discussed below <deform_normalize>`.  There is no proven method to
+choosing an appropriate value of :math:`k` as it will depend on the
+specific details of a simulation and testing different values is
+recommended. One can also apply a maximum limit to the magnitude of the
+applied strain using the :ref:`max/rate <deform_max_rate>` option.
 
 ----------
 
@@ -242,7 +242,7 @@ deforming the shape of the box), while maintaining a constant volume.
 The *pressure* style isotropically scales box lengths in an attempt to
 maintain a target mean pressure (the trace of the pressure tensor) of the
 system. This is accomplished by isotropically scaling all box lengths
-:math:`L` by an additional factor of :math:`k (P_t - P_m)` where :math:`k`
+:math:`L` by an additional factor of :math:`k (P_m - P_t)` where :math:`k`
 is the proportional gain constant, :math:`P_t` is the target pressure, and
 :math:`P_m` is the current mean pressure. This style may be useful in
 scenarios where one wants to apply a constant deviatoric strain rate
@@ -308,14 +308,16 @@ of style "temp" and "pressure", as if these commands had been issued:
 
 .. code-block:: LAMMPS
 
-   compute fix-ID_temp group-ID temp
-   compute fix-ID_press group-ID pressure fix-ID_temp
+   compute fix-ID_temp all temp
+   compute fix-ID_press all pressure fix-ID_temp
 
 See the :doc:`compute temp <compute_temp>` and :doc:`compute pressure
 <compute_pressure>` commands for details.  Note that the IDs of the
 new computes are the fix-ID + underscore + "temp" or fix_ID
-+ underscore + "press", and the group for the new computes is the same
-as the fix group.
++ underscore + "press", and the group for the new computes is always
+*all*, regardless of the fix group, since pressure is a global quantity
+and its kinetic energy and temperature contributions should therefore
+also be computed over all atoms.
 
 Note that these are NOT the computes used by thermodynamic output (see
 the :doc:`thermo_style <thermo_style>` command) with ID =

@@ -160,6 +160,10 @@ zero-point motion.  In this formalism, the isomorphism of a quantum
 partition function for the original system to a classical partition
 function for a ring-polymer system is exploited, to efficiently sample
 configurations from the canonical ensemble :ref:`(Feynman) <Feynman>`.
+The implementation of fix *pimd/langevin* and the shared code of fix
+*pimd/nve*, *pimd/nvt*, and *pimd/uvt* are described in
+:ref:`(Li2026) <pimd-Li2026>`; fix *pimd/uvt* and the restructured fix
+*pimd/nve* base are described in :ref:`(Fu2026) <pimd-Fu2026>`.
 
 .. versionadded:: 2Apr2025
 
@@ -219,7 +223,7 @@ To sample the canonical ensemble, any thermostat can be applied.
 
 Fix *pimd/nve* performs path-integral time integration without a
 thermostat.  Fix *pimd/nvt* applies a Nose-Hoover chain thermostat
-:ref:`(Tuckerman) <pimd-Tuckerman>`.  The keyword *temp* sets the
+:ref:`(Tuckerman3) <pimd-Tuckerman>`.  The keyword *temp* sets the
 target temperature, *Tdamp* sets the thermostat damping time, and
 *tchain* sets the number of thermostats in each chain.
 
@@ -287,7 +291,7 @@ the default in this fix. This restriction is related to the use of
 normal modes, which change in bosons.
 
 The keyword *integrator* specifies the Trotter splitting method.  See
-:ref:`(Liu) <Liu>` for a discussion on the OBABO and BAOAB
+:ref:`(Liu3) <Liu>` for a discussion on the OBABO and BAOAB
 splitting schemes. Typically either of the two should work fine.
 
 The keyword *fmass* sets a further scaling factor for the fictitious
@@ -394,7 +398,7 @@ specifies an optional thermostat drag factor.
 
 The keyword *thermostat* reads *style* and *seed* of thermostat for fix
 style *pimd/langevin*.  *style* can only be *PILE_L* (path integral
-Langevin equation local thermostat, as described in :ref:`Ceriotti
+Langevin equation local thermostat, as described in :ref:`Ceriotti3
 <Ceriotti3>`), and *seed* should a positive integer number, which serves
 as the seed of the pseudo random number generator.
 
@@ -435,7 +439,7 @@ pressure.  These parameters are not supported in
 The keyword *barostat* reads *style* of barostat for fix style
 *pimd/langevin*. *style* can be *BZP* (Bussi-Zykova-Parrinello, as
 described in :ref:`Bussi <Bussi>`) or *MTTK*
-(Martyna-Tuckerman-Tobias-Klein, as described in :ref:`Martyna1
+(Martyna-Tuckerman-Tobias-Klein, as described in :ref:`Martyna
 <Martyna3>` and :ref:`Martyna2 <Martyna4>`).
 
 The keyword *taup* specifies the barostat damping time parameter for fix
@@ -471,7 +475,7 @@ MxN processors (cores) and run the simulation as follows:
 
 .. code-block:: bash
 
-   mpirun -np P lmp_mpi -partition MxN -in script
+   mpirun -np P lmp -partition MxN -in script
 
 Note that in the LAMMPS input script for a multi-partition simulation,
 it is often very useful to define a :doc:`uloop-style variable
@@ -482,8 +486,13 @@ it is often very useful to define a :doc:`uloop-style variable
    variable ibead uloop M pad
 
 where M is the number of quasi-beads (partitions) used in the
-calculation.  The uloop variable can then be used to manage I/O related
-tasks for each of the partitions, e.g.
+calculation.  Since each partition holds a different set of quasi-beads,
+files written by commands like :doc:`dump <dump>` or :doc:`restart
+<restart>` must have a different name on each partition.  Otherwise all
+partitions write to the same file at the same time and the resulting
+file may contain a garbled mix of data from several partitions.  The
+uloop variable can be used to manage I/O related tasks for each of the
+partitions, e.g.
 
 .. code-block:: LAMMPS
 
@@ -741,7 +750,7 @@ Path Integrals, McGraw-Hill, New York (1965).
 
 .. _pimd-Tuckerman:
 
-**(Tuckerman)** M. Tuckerman and B. Berne, J Chem Phys, 99, 2796 (1993).
+**(Tuckerman3)** M. Tuckerman and B. Berne, J Chem Phys, 99, 2796 (1993).
 
 .. _Cao1:
 
@@ -775,11 +784,11 @@ Path Integrals, McGraw-Hill, New York (1965).
 
 .. _Ceriotti3:
 
-**(Ceriotti)** M. Ceriotti, M. Parrinello, T. Markland, D. Manolopoulos, J. Chem. Phys. 133, 124104 (2010).
+**(Ceriotti3)** M. Ceriotti, M. Parrinello, T. Markland, D. Manolopoulos, J. Chem. Phys. 133, 124104 (2010).
 
 .. _Martyna3:
 
-**(Martyna1)** G. Martyna, D. Tobias, M. Klein, J. Chem. Phys. 101, 4177 (1994).
+**(Martyna)** G. Martyna, D. Tobias, M. Klein, J. Chem. Phys. 101, 4177 (1994).
 
 .. _Martyna4:
 
@@ -804,3 +813,16 @@ Path Integrals, McGraw-Hill, New York (1965).
 .. _HigerFeldman:
 
 **(Higer)** J. Higer, Y. M. Y. Feldman, and B. Hirshberg, "Periodic Boundary Conditions for Bosonic Path Integral Molecular Dynamics," J. Chem. Phys. 163, 024101 (2025)
+
+.. _pimd-Li2026:
+
+**(Li2026)** Y. Li, A. Gomez, K. Cai, C. Zhang, L. Fu, W. Jia, Y. M. Y. Feldman,
+O. Blumer, J. Higer, B. Hirshberg, S. Xu, A. Kohlmeyer, and R. Car,
+"fix pimd/langevin: An efficient implementation of path integral molecular
+dynamics in LAMMPS," J. Chem. Phys. 164, 144119 (2026).
+
+.. _pimd-Fu2026:
+
+**(Fu2026)** L. Fu, Y. Li, and S. Xu, "fix uvt and fix pimd/uvt: A unified
+LAMMPS framework for constant-potential constant-temperature molecular
+dynamics," arXiv:2609.21935 (2026).

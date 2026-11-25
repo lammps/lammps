@@ -87,7 +87,7 @@ In addition, bending and twisting torques, proportional to angular
 bending and twisting displacements with stiffnesses of
 :math:`k_\mathrm{bend}` and :math:`k_\mathrm{twist}`, respectively, are
 also applied to particles.  Details on the calculations of shear and
-angular displacements can be found in :ref:`(Wang) <Wang2009>`,
+angular displacements can be found in :ref:`(Wang2) <Wang2009>`,
 :ref:`(Wang and Mora) <Wang2009b>`, and/or :ref:`(Alkuino et al)
 <Alkuino2026>` depending on the *frame* (discussed below).
 
@@ -126,7 +126,7 @@ respectively.
 Finally, additional damping forces and torques are applied to the two
 particles.  A force is applied proportional to the difference in the
 normal velocity of particles using a similar construction to that of
-dissipative particle dynamics :ref:`(Groot and Warren) <Groot3>`:
+dissipative particle dynamics :ref:`(Groot) <Groot3>`:
 
 .. math::
 
@@ -202,7 +202,7 @@ details can be found in the :doc:`how to <Howto_bpm>` page on BPMs.
 
 The *frame* setting determines the reference used to calculate the
 relative displacement and rotation.  The *particle* option uses the
-frame of one particle as described in :ref:`(Wang) <Wang2009>` and
+frame of one particle as described in :ref:`(Wang2) <Wang2009>` and
 :ref:`(Wang and Mora) <Wang2009b>`.  This determination is based on
 particle ID in LAMMPS.  The *average* option (the default) defines a
 central frame across the two particles as described in :ref:`(Alkuino et
@@ -333,7 +333,7 @@ The option defaults are *overlay/pair* = *no*, *smooth* = *yes*, *normalize* = *
 
 .. _Wang2009:
 
-**(Wang)** Wang, Acta Geotechnica, 4,
+**(Wang2)** Wang, Acta Geotechnica, 4,
 p 117-127 (2009).
 
 .. _Wang2009b:
@@ -348,7 +348,7 @@ p 117-127 (2009).
 
 .. _Groot3:
 
-**(Groot and Warren)** Groot and Warren, J Chem Phys, 107, 4423-35 (1997).
+**(Groot)** Groot and Warren, J Chem Phys, 107, 4423-35 (1997).
 
 .. _Wang20152:
 

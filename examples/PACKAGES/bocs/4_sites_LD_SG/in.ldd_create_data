@@ -38,5 +38,5 @@ thermo 1000
 fix 0 all box/relax aniso 100.0
 minimize 1.0e-10 1.0e-10 10000 100000
 
-write_data data.ldd_molecule nocoeff
+# write_data data.ldd_molecule nocoeff
 

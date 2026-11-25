@@ -21,14 +21,17 @@
 #include "error.h"
 #include "fix.h"
 #include "memory_kokkos.h"
-#include "modify.h"
 
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-AtomVecMolecularKokkos::AtomVecMolecularKokkos(LAMMPS *lmp) : AtomVec(lmp),
-AtomVecKokkos(lmp), AtomVecMolecular(lmp)
+AtomVecMolecularKokkos::AtomVecMolecularKokkos(LAMMPS *lmp) :
+    AtomVec(lmp), AtomVecKokkos(lmp), AtomVecMolecular(lmp), molecule(nullptr), special(nullptr),
+    bond_atom(nullptr), angle_atom1(nullptr), angle_atom2(nullptr), angle_atom3(nullptr),
+    dihedral_atom1(nullptr), dihedral_atom2(nullptr), dihedral_atom3(nullptr),
+    dihedral_atom4(nullptr), improper_atom1(nullptr), improper_atom2(nullptr),
+    improper_atom3(nullptr), improper_atom4(nullptr)
 {
 }
 
@@ -118,9 +121,7 @@ void AtomVecMolecularKokkos::grow(int n)
   grow_pointers();
   atomKK->sync(Host,ALL_MASK);
 
-  if (atom->nextra_grow)
-    for (int iextra = 0; iextra < atom->nextra_grow; iextra++)
-      modify->fix[atom->extra_grow[iextra]]->grow_arrays(nmax);
+  for (auto *ifix : atom->extra_grow) ifix->grow_arrays(nmax);
 }
 
 /* ----------------------------------------------------------------------

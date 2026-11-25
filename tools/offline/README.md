@@ -66,10 +66,9 @@ create a CMake preset file, which sets the URL for all of the known dependencies
 # export LAMMPS_CACHING_DIR=path/to/folder
 source tools/offline/use_caches.sh
 
-mkdir build
-cd build
-cmake -D LAMMPS_DOWNLOADS_URL=${HTTP_CACHE_URL} -C "${LAMMPS_HTTP_CACHE_CONFIG}" -C ../cmake/presets/most.cmake ../cmake
-make -j 8
+cmake -S cmake -B build -D LAMMPS_DOWNLOADS_URL=${HTTP_CACHE_URL} \
+      -C "${LAMMPS_HTTP_CACHE_CONFIG}" -C cmake/presets/most.cmake
+cmake --build build
 
 deactivate_caches
 ```

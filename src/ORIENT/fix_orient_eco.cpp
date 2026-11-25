@@ -28,8 +28,8 @@
 #include "neigh_list.h"
 #include "neighbor.h"
 #include "pair.h"
+#include "potential_file_reader.h"
 #include "respa.h"
-#include "safe_pointers.h"
 #include "update.h"
 
 #include <cmath>
@@ -83,19 +83,11 @@ FixOrientECO::FixOrientECO(LAMMPS *lmp, int narg, char **arg) :
 
   dir_filename = utils::strdup(arg[6]);
   if (me == 0) {
-    char line[IMGMAX];
-    char *result;
-    int count;
-
-    SafeFilePtr infile = utils::open_potential(dir_filename,lmp,nullptr);
-    if (infile == nullptr)
-      error->one(FLERR,"Cannot open fix orient/eco file {}: {}",
-                                   dir_filename, utils::getsyserror());
-    for (int i = 0; i < 6; ++i) {
-      result = fgets(line, IMGMAX, infile);
-      if (!result) error->one(FLERR, "Fix orient/eco file read failed");
-      count = sscanf(line, "%lg %lg %lg", &dir_vec[i][0], &dir_vec[i][1], &dir_vec[i][2]);
-      if (count != 3) error->one(FLERR, "Fix orient/eco file read failed");
+    try {
+      PotentialFileReader reader(lmp, dir_filename, "fix orient/eco");
+      reader.next_dvector(&dir_vec[0][0], 6*3);
+    } catch (std::exception &e) {
+      error->one(FLERR, "Fix orient/eco file read failed: {}", e.what());
     }
 
     // calculate reciprocal lattice vectors

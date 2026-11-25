@@ -431,6 +431,10 @@ INPUT                  = @LAMMPS_SOURCE_DIR@/utils.cpp                 \
                          @LAMMPS_SOURCE_DIR@/text_file_reader.h        \
                          @LAMMPS_SOURCE_DIR@/potential_file_reader.cpp \
                          @LAMMPS_SOURCE_DIR@/potential_file_reader.h   \
+                         @LAMMPS_SOURCE_DIR@/stl_reader.cpp            \
+                         @LAMMPS_SOURCE_DIR@/stl_reader.h              \
+                         @LAMMPS_SOURCE_DIR@/vtk_writer.cpp            \
+                         @LAMMPS_SOURCE_DIR@/vtk_writer.h              \
                          @LAMMPS_SOURCE_DIR@/label_map.cpp             \
                          @LAMMPS_SOURCE_DIR@/label_map.h               \
                          @LAMMPS_SOURCE_DIR@/my_page.cpp               \

@@ -5,3 +5,19 @@ fluid_structure_interaction : multiple solid objects interact with fluid flow, 2
 funnel_flow: fluid flows through a complex 3d object read from a .STL file
 rubber_rings_3d: two solid bodies impact each other and deform
 rubber_strip_pull: a 2d check for the correctness of linear elasticity
+
+Most of these inputs run only a small number of time steps by default,
+so that they can also be used for regression testing.  For those, the
+number of time steps is set with the index style variable "nsteps",
+which can be changed from the command line with the -var flag:
+
+aluminum_strip_pull : default 2000, use "-var nsteps 30000" to reach failure
+fluid_structure_interaction : default 4000, use "-var nsteps 10000" for the full example
+funnel_flow : default 2000, use "-var nsteps 5000" for the full example
+rubber_rings_3d : default 2000, use "-var nsteps 5000" for the full example
+
+Example: lmp -in in.aluminum_strip_pull -var nsteps 30000
+
+See the MACHDYN how to page in the LAMMPS documentation,
+https://docs.lammps.org/Howto_machdyn.html
+for a detailed explanation of these examples.

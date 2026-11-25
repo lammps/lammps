@@ -393,9 +393,9 @@ needed to generate absolute, unscaled coordinates.
 Restrictions
 """"""""""""
 
-To read gzipped dump files, you must compile LAMMPS with the
--DLAMMPS_GZIP option.  See the :doc:`Build settings <Build_settings>`
-doc page for details.
+To read compressed dump files, the corresponding compression program
+must be installed.  See the :ref:`Build settings <gzip>` page for
+details.
 
 The *molfile* dump file formats are part of the MOLFILE package.
 They are only enabled if LAMMPS was built with that packages.  See the

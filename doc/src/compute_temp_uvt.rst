@@ -42,7 +42,8 @@ Here :math:`g` is the nuclear number of degrees of freedom, determined
 as for :doc:`compute temp <compute_temp>`, and :math:`K_\mathrm{nuc}` is
 the nuclear kinetic energy.  The electronic mass :math:`W_\mathrm{e}` and
 velocity :math:`\dot{N}_\mathrm{e}` are read from the referenced fix.
-The reported number of degrees of freedom is :math:`g+1`.
+The reported number of degrees of freedom is :math:`g+1`.  See
+:ref:`(Fu2026) <temp-uvt-Fu2026>` for details.
 
 The nuclear contribution follows the same mass, group, and unit conventions
 as :doc:`compute temp <compute_temp>`. The electronic contribution adds one
@@ -97,3 +98,11 @@ Default
 """""""
 
 none
+
+----------
+
+.. _temp-uvt-Fu2026:
+
+**(Fu2026)** L. Fu, Y. Li, and S. Xu, "fix uvt and fix pimd/uvt: A unified
+LAMMPS framework for constant-potential constant-temperature molecular
+dynamics," arXiv:2609.21935 (2026).

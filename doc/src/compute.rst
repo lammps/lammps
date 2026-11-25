@@ -210,6 +210,7 @@ The individual style names on the :doc:`Commands compute <Commands_compute>` pag
 * :doc:`com/chunk <compute_com_chunk>` - center of mass for each chunk
 * :doc:`composition/atom <compute_composition_atom>` - local composition for each atom
 * :doc:`contact/atom <compute_contact_atom>` - contact count for each spherical particle
+* :doc:`continuum/chunk <compute_continuum_chunk>` - coarse-grained continuum fields for each chunk
 * :doc:`coord/atom <compute_coord_atom>` - coordination number for each atom
 * :doc:`count/type <compute_count_type>` - count of atoms or bonds by type
 * :doc:`damage/atom <compute_damage_atom>` - Peridynamic damage for each atom
@@ -235,6 +236,7 @@ The individual style names on the :doc:`Commands compute <Commands_compute>` pag
 * :doc:`fabric <compute_fabric>` - calculates fabric tensors from pair interactions
 * :doc:`fep <compute_fep>` - compute free energies for alchemical transformation from perturbation theory
 * :doc:`fep/ta <compute_fep_ta>` - compute free energies for a test area perturbation
+* :doc:`frenkel <compute_frenkel>` - identify point defects by Wigner-Seitz analysis
 * :doc:`force/tally <compute_tally>` - force between two groups of atoms via the tally callback mechanism
 * :doc:`fragment/atom <compute_cluster_atom>` - fragment ID for each atom
 * :doc:`gaussian/grid/local <compute_gaussian_grid_local>` - local array of Gaussian atomic contributions on a regular grid
@@ -252,12 +254,14 @@ The individual style names on the :doc:`Commands compute <Commands_compute>` pag
 * :doc:`hma <compute_hma>` - harmonically mapped averaging for atomic crystals
 * :doc:`improper <compute_improper>` - energy of each improper sub-style
 * :doc:`improper/local <compute_improper_local>` - angle of each improper
+* :doc:`inertia <compute_inertia>` - inertia tensor of group of atoms
 * :doc:`inertia/chunk <compute_inertia_chunk>` - inertia tensor for each chunk
 * :doc:`ke <compute_ke>` - translational kinetic energy
 * :doc:`ke/atom <compute_ke_atom>` - kinetic energy for each atom
 * :doc:`ke/atom/eff <compute_ke_atom_eff>` - per-atom translational and radial kinetic energy in the electron force field model
 * :doc:`ke/eff <compute_ke_eff>` - kinetic energy of a group of nuclei and electrons in the electron force field model
 * :doc:`ke/rigid <compute_ke_rigid>` - translational kinetic energy of rigid bodies
+* :doc:`mbar <compute_mbar>` - reduced potential energies at a series of lambda states for the MBAR free-energy method
 * :doc:`mliap <compute_mliap>` - gradients of energy and forces with respect to model parameters and related quantities for training machine learning interatomic potentials
 * :doc:`momentum <compute_momentum>` - translational momentum
 * :doc:`msd <compute_msd>` - mean-squared displacement of group of atoms
@@ -267,6 +271,7 @@ The individual style names on the :doc:`Commands compute <Commands_compute>` pag
 * :doc:`omega/chunk <compute_omega_chunk>` - angular velocity for each chunk
 * :doc:`orientorder/atom <compute_orientorder_atom>` - Steinhardt bond orientational order parameters Ql
 * :doc:`pace <compute_pace>` - atomic cluster expansion descriptors and related quantities
+* :doc:`pace/atom <compute_pace>` - per-atom atomic cluster expansion descriptors
 * :doc:`pair <compute_pair>` - values computed by a pair style
 * :doc:`pair/local <compute_pair_local>` - distance/energy/force of each pairwise interaction
 * :doc:`pe <compute_pe>` - potential energy
@@ -293,6 +298,7 @@ The individual style names on the :doc:`Commands compute <Commands_compute>` pag
 * :doc:`reduce/chunk <compute_reduce_chunk>` - reduce per-atom quantities within each chunk
 * :doc:`reduce/region <compute_reduce>` - same as compute reduce, within a region
 * :doc:`rheo/property/atom <compute_rheo_property_atom>` - convert atom attributes in RHEO package to per-atom vectors/arrays
+* :doc:`rigid/atom <compute_rigid_atom>` - copy of rigid body attributes for each atom
 * :doc:`rigid/local <compute_rigid_local>` - extract rigid body attributes
 * :doc:`saed <compute_saed>` - electron diffraction intensity on a mesh of reciprocal lattice nodes
 * :doc:`slcsa/atom <compute_slcsa_atom>` - perform Supervised Learning Crystal Structure Analysis (SL-CSA)
@@ -353,6 +359,7 @@ The individual style names on the :doc:`Commands compute <Commands_compute>` pag
 * :doc:`temp/region/eff <compute_temp_region_eff>` - temperature of a region of nuclei and electrons in the electron force field model
 * :doc:`temp/rotate <compute_temp_rotate>` - temperature of a group of atoms after subtracting out their center-of-mass and angular velocities
 * :doc:`temp/sphere <compute_temp_sphere>` - temperature of spherical particles
+* :doc:`temp/tspin <compute_temp_tspin>` - auxiliary kinetic temperature and kinetic energy of the spin degrees of freedom in TSPIN
 * :doc:`temp/uef <compute_temp_uef>` - kinetic energy tensor in the reference frame of an applied flow field
 * :doc:`temp/uvt <compute_temp_uvt>` - combined nuclear and electronic temperature for constant-potential dynamics
 * :doc:`ti <compute_ti>` - thermodynamic integration free energy values

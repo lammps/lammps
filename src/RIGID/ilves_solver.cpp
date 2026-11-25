@@ -26,7 +26,6 @@
 #include <functional>
 #include <iterator>
 #include <map>
-#include <memory_resource>
 #include <tuple>
 #include <utility>
 #include <vector>

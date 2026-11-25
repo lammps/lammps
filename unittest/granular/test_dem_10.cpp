@@ -11,12 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-// DEM verification test 10: bulk behaviour -- a small deterministic heap of
-// particles settling under gravity (angle of repose) and multi-sphere rigid
-// clumps.  Inspired by the draw-down test of Mohajeri, Coetzee & Schott,
-// Powder Technology 447 (2024) and the angle-of-repose round robin of Saomoto
-// et al., Soils and Foundations 63 (2023).  All test logic is shared via
-// test_dem_common; the reference systems live in tests/dem10-*.yaml.
+// DEM verification test 10: exact integration and static contact (free fall, stacked compression).
+// All test logic is shared via test_dem_common; the reference systems
+// live in tests/dem10-*.yaml.
 
 #include "test_dem_common.h"
 #include "test_main.h"

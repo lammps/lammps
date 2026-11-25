@@ -23,6 +23,7 @@ namespace LAMMPS_NS {
 class NBin : protected Pointers {
  public:
   int istyle;              // 1-N index into binnames
+  int copymode;            // 1 while a copy of this object lives in a device functor
   bigint last_bin;         // last timestep atoms were binned
   double cutoff_custom;    // cutoff set by requestor
 

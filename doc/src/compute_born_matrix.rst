@@ -191,10 +191,9 @@ The array values calculated by this compute are all "extensive".
 Restrictions
 """"""""""""
 
-This compute is part of the EXTRA-COMPUTE package.  It is only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package
-<Build_package>` page for more info.  LAMMPS was built with that package.  See
-the :doc:`Build package <Build_package>` page for more info.
+This compute is part of the EXTRA-COMPUTE package.  It is only enabled
+if LAMMPS was built with that package.  See the :doc:`Build package
+<Build_package>` page for more info.
 
 The Born term can be decomposed as a product of two terms. The first one is a
 general term which depends on the configuration. The second one is specific to

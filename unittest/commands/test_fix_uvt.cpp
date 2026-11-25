@@ -146,10 +146,10 @@ TEST_F(FixUVTTest, DerivativeIsInitializedAndUpdatedAfterCoordinateDrift)
 TEST_F(FixUVTTest, ForceStageProviderIsReadOncePerStep)
 {
     setup_quadratic_system();
-    (*lmp->modify->fix_map)["dedn/provider"] =
-        [](LAMMPS *lmp, int narg, char **arg) -> Fix * {
+    Modify::fix_styles().set_plugin(
+        "dedn/provider", [](LAMMPS *lmp, int narg, char **arg) -> Fix * {
             return new FixDEDNProvider(lmp, narg, arg);
-        };
+        });
     command("fix provider all dedn/provider");
     command("fix cp all uvt temp 1 1 0.5 mu 2 Udamp 0.5 ne 1.8 dedn f_provider");
     command("run 10 post no");
@@ -178,10 +178,10 @@ TEST_F(FixUVTTest, ComputeDependencyIsRefreshedAfterDrift)
     command("velocity all set 1.0 0.0 0.0");
     command("compute position all reduce sum x y");
     command("variable response equal c_position[1]");
-    (*lmp->modify->fix_map)["early/compute"] =
-        [](LAMMPS *lmp, int narg, char **arg) -> Fix * {
+    Modify::fix_styles().set_plugin(
+        "early/compute", [](LAMMPS *lmp, int narg, char **arg) -> Fix * {
             return new FixEarlyCompute(lmp, narg, arg);
-        };
+        });
     command("fix early all early/compute");
     command("fix cp all uvt temp 1 1 100000 mu 2 Udamp 0.5 ne 1.8 dedn v_response");
     command("run 1 post no");

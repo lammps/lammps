@@ -58,10 +58,9 @@ Traditional make:
 CMake:
 
 % cd ~/lammps
-% mkdir build; cd build
-% cmake -DPKG_MDI=yes -DPKG_MOLECULE=yes -DPKG_KSPACE=yes ../cmake
-% make -j
-% cp lmp ~/lammps/examples/QUANTUM/PySCF/lmp_mpi
+% cmake -S cmake -B build -D PKG_MDI=on -D PKG_MOLECULE=on -D PKG_KSPACE=on
+% cmake --build build
+% cp build/lmp ~/lammps/examples/QUANTUM/PySCF/lmp_mpi
 
 ---------------------------------
 ---------------------------------

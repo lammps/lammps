@@ -85,6 +85,12 @@ void AngleMWLCKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   boltz = static_cast<KK_FLOAT>(force->boltz);
 
+  // sync and claim here too: the MC fixes call this outside run_style verlet/kk
+
+  atomKK->sync(execution_space,datamask_read);
+  if (eflag || vflag) atomKK->modified(execution_space,datamask_modify);
+  else atomKK->modified(execution_space,F_MASK);
+
   x = atomKK->k_x.template view<DeviceType>();
   f = atomKK->k_f.template view<DeviceType>();
   neighborKK->k_anglelist.template sync<DeviceType>();
@@ -152,14 +158,14 @@ void AngleMWLCKokkos<DeviceType>::operator()(TagAngleMWLCCompute<NEWTON_BOND,EVF
   const KK_FLOAT delz1 = x(i1,2) - x(i2,2);
 
   const KK_FLOAT rsq1 = delx1*delx1 + dely1*dely1 + delz1*delz1;
-  const KK_FLOAT r1 = sqrt(rsq1);
+  const KK_FLOAT r1 = Kokkos::sqrt(rsq1);
 
   const KK_FLOAT delx2 = x(i3,0) - x(i2,0);
   const KK_FLOAT dely2 = x(i3,1) - x(i2,1);
   const KK_FLOAT delz2 = x(i3,2) - x(i2,2);
 
   const KK_FLOAT rsq2 = delx2*delx2 + dely2*dely2 + delz2*delz2;
-  const KK_FLOAT r2 = sqrt(rsq2);
+  const KK_FLOAT r2 = Kokkos::sqrt(rsq2);
 
   KK_FLOAT c = delx1*delx2 + dely1*dely2 + delz1*delz2;
   c /= r1*r2;
@@ -168,14 +174,14 @@ void AngleMWLCKokkos<DeviceType>::operator()(TagAngleMWLCCompute<NEWTON_BOND,EVF
   if (c < static_cast<KK_FLOAT>(-1.0)) c = static_cast<KK_FLOAT>(-1.0);
 
   const KK_FLOAT kbt = d_temp[type] * boltz;
-  const KK_FLOAT v_min = -kbt * log(static_cast<KK_FLOAT>(1.0) + exp(-d_mu[type] / kbt));
+  const KK_FLOAT v_min = -kbt * Kokkos::log(static_cast<KK_FLOAT>(1.0) + Kokkos::exp(-d_mu[type] / kbt));
 
-  const KK_FLOAT q  = exp(-d_k1[type] * (static_cast<KK_FLOAT>(1.0) + c) / kbt);
-  const KK_FLOAT qm = exp((-d_k2[type] * (static_cast<KK_FLOAT>(1.0) + c) - d_mu[type]) / kbt);
+  const KK_FLOAT q  = Kokkos::exp(-d_k1[type] * (static_cast<KK_FLOAT>(1.0) + c) / kbt);
+  const KK_FLOAT qm = Kokkos::exp((-d_k2[type] * (static_cast<KK_FLOAT>(1.0) + c) - d_mu[type]) / kbt);
   const KK_FLOAT Q  = q + qm;
 
   KK_FLOAT eangle = static_cast<KK_FLOAT>(0.0);
-  if (eflag) eangle = -kbt * log(Q) - v_min;
+  if (eflag) eangle = -kbt * Kokkos::log(Q) - v_min;
 
   const KK_FLOAT a   = (d_k1[type] * q + d_k2[type] * qm) / Q;
   const KK_FLOAT a11 = a*c / rsq1;

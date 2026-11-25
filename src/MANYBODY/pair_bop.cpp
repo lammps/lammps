@@ -1821,11 +1821,11 @@ double PairBOP::PiBo(int itmp, int jtmp)
   // dPiB2 is derivative of piB w.r.t. BB
   // dPiB3 is derivative of piB w.r.t. r_ij
 
-  dPiB1 = -0.5*(pow(ABrtR1,3)+pow(ABrtR2,3))*pi_c[param_ij]*pi_a[param_ij]*
+  dPiB1 = -0.5*(cube(ABrtR1)+cube(ABrtR2))*pi_c[param_ij]*pi_a[param_ij]*
     betaP_ij;
-  dPiB2 = 0.25*BBrtR*(pow(ABrtR2,3)-pow(ABrtR1,3))*pi_c[param_ij]*
+  dPiB2 = 0.25*BBrtR*(cube(ABrtR2)-cube(ABrtR1))*pi_c[param_ij]*
     pi_a[param_ij]*betaP_ij;
-  dPiB3 = ((ABrtR1+ABrtR2)*pi_a[param_ij]-(pow(ABrtR1,3)+pow(ABrtR2,3))*
+  dPiB3 = ((ABrtR1+ABrtR2)*pi_a[param_ij]-(cube(ABrtR1)+cube(ABrtR2))*
            pi_a[param_ij]*betaP_ij*betaP_ij)*dBetaP_ij / r_ij;
   for (loop = 0; loop < nb_t; loop++) {
     temp_kk = bt_pi[loop].temp;

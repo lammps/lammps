@@ -54,13 +54,9 @@ class UCL_Timer {
   /** \note init() must be called to reuse timer after a clear() **/
   inline void clear() {
     if (_initialized) {
-      if (has_measured_time) {
-        #ifndef GERYON_NO_OCL_MARKERS
-        clReleaseEvent(start_event);
-        clReleaseEvent(stop_event);
-        #endif
-        has_measured_time = false;
-      }
+      free_event(start_event);
+      free_event(stop_event);
+      has_measured_time = false;
       CL_DESTRUCT_CALL(clReleaseCommandQueue(_cq));
       _initialized=false;
       _total_time=0.0;
@@ -81,18 +77,14 @@ class UCL_Timer {
 
   /// Start timing on default command queue
   inline void start() {
-    if (has_measured_time) {
-      #ifndef GERYON_NO_OCL_MARKERS
-      clReleaseEvent(start_event);
-      clReleaseEvent(stop_event);
-      #endif
-      has_measured_time = false;
-    }
+    free_event(start_event);
+    has_measured_time = false;
     UCL_OCL_MARKER(_cq,&start_event);
   }
 
   /// Stop timing on default command queue
   inline void stop() {
+    free_event(stop_event);
     UCL_OCL_MARKER(_cq,&stop_event);
     has_measured_time = true;
   }
@@ -102,8 +94,8 @@ class UCL_Timer {
     #ifndef GERYON_NO_OCL_MARKERS
     CL_SAFE_CALL(clWaitForEvents(1,&start_event));
     if (has_measured_time) {
-      clReleaseEvent(start_event);
-      clReleaseEvent(stop_event);
+      free_event(start_event);
+      free_event(stop_event);
       has_measured_time = false;
     }
     #else
@@ -124,6 +116,8 @@ class UCL_Timer {
 
   /// Set the time elapsed to zero (not the total_time)
   inline void zero() {
+    free_event(start_event);
+    free_event(stop_event);
     has_measured_time = false;
     UCL_OCL_MARKER(_cq,&start_event);
     UCL_OCL_MARKER(_cq,&stop_event);
@@ -152,8 +146,8 @@ class UCL_Timer {
     CL_SAFE_CALL(clGetEventProfilingInfo(start_event,
                                          CL_PROFILING_COMMAND_END,
                                          sizeof(cl_ulong), &tstart, nullptr));
-    clReleaseEvent(start_event);
-    clReleaseEvent(stop_event);
+    free_event(start_event);
+    free_event(stop_event);
     has_measured_time = false;
     return (tend-tstart)*1e-6;
     #else
@@ -178,6 +172,18 @@ class UCL_Timer {
   double _total_time;
   bool _initialized;
   bool has_measured_time;
+
+  // events from clEnqueueMarker(WithWaitList) must be released before the
+  // handle is overwritten or the runtime objects are leaked; a released or
+  // never-created event is a null handle
+  inline void free_event(cl_event &event) {
+    #ifndef GERYON_NO_OCL_MARKERS
+    if (event) {
+      clReleaseEvent(event);
+      event = nullptr;
+    }
+    #endif
+  }
 };
 
 } // namespace

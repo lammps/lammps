@@ -71,7 +71,7 @@ cdef public int MLIAPPYKokkos_load_model(MLIAPModelPythonKokkosDevice * c_model,
     else:
         if str_fname.endswith(".pt") or str_fname.endswith('.pth'):
             import torch
-            model = torch.load(str_fname)
+            model = torch.load(str_fname, weights_only=False)
         else:
             with open(str_fname,'rb') as pfile:
                 model = pickle.load(pfile)

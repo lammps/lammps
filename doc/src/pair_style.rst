@@ -112,6 +112,7 @@ accelerated styles exist.
 * :doc:`hybrid/overlay <pair_hybrid>` - multiple styles of superposed pairwise interactions
 * :doc:`hybrid/scaled <pair_hybrid>` - multiple styles of scaled superposed pairwise interactions
 * :doc:`zero <pair_zero>` - neighbor list but no interactions
+* :doc:`zero/coul <pair_zero>` - like *zero*, but presents itself as a Coulombic pair style
 
 * :doc:`adp <pair_adp>` - angular dependent potential (ADP) of Mishin
 * :doc:`aip/water/2dm <pair_aip_water_2dm>` - anisotropic interfacial potential for water in 2d geometries
@@ -124,6 +125,7 @@ accelerated styles exist.
 * :doc:`body/nparticle <pair_body_nparticle>` - interactions between body particles
 * :doc:`body/rounded/polygon <pair_body_rounded_polygon>` - granular-style 2d polygon potential
 * :doc:`body/rounded/polyhedron <pair_body_rounded_polyhedron>` - granular-style 3d polyhedron potential
+* :doc:`body/rounded/polyhedron/granular <pair_body_rounded_polyhedron_granular>` - 3d polyhedron potential with the contact models of pair style granular
 * :doc:`bondval <pair_bondval>` - Bond-Valence potential
 * :doc:`bondval/vec <pair_bondval>` - Bond-Valence vector potential
 * :doc:`bop <pair_bop>` - BOP potential of Pettifor
@@ -246,15 +248,18 @@ accelerated styles exist.
 * :doc:`lj/class2 <pair_class2>` - COMPASS (class 2) force field without Coulomb
 * :doc:`lj/class2/coul/cut <pair_class2>` - COMPASS with cutoff Coulomb
 * :doc:`lj/class2/coul/cut/soft <pair_fep_soft>` - COMPASS with cutoff Coulomb with a soft core
+* :doc:`lj/class2/coul/cut/soft/gapsys <pair_fep_soft>` - COMPASS (class 2) force field with short-range Coulomb and a soft core with continuous force and first derivative of force
 * :doc:`lj/class2/coul/long <pair_class2>` - COMPASS with long-range Coulomb
 * :doc:`lj/class2/coul/long/cs <pair_cs>` - COMPASS with long-range Coulomb with core/shell adjustments
 * :doc:`lj/class2/coul/long/soft <pair_fep_soft>` - COMPASS with long-range Coulomb with a soft core
 * :doc:`lj/class2/soft <pair_fep_soft>` - COMPASS (class 2) force field with no Coulomb with a soft core
+* :doc:`lj/class2/soft/gapsys <pair_fep_soft>` - COMPASS (class 2) force field with a soft core with continuous force and first derivative of force
 * :doc:`lj/cubic <pair_lj_cubic>` - LJ with cubic after inflection point
 * :doc:`lj/cut <pair_lj>` - cutoff Lennard-Jones potential without Coulomb
 * :doc:`lj/cut/coul/cut <pair_lj_cut_coul>` - LJ with cutoff Coulomb
 * :doc:`lj/cut/coul/cut/dielectric <pair_dielectric>` -
 * :doc:`lj/cut/coul/cut/soft <pair_fep_soft>` - LJ with cutoff Coulomb with a soft core
+* :doc:`lj/cut/coul/cut/soft/gapsys <pair_fep_soft>` - LJ with cutoff Coulomb and a soft core with continuous force and first derivative of force
 * :doc:`lj/cut/coul/debye <pair_lj_cut_coul>` - LJ with Debye screening added to Coulomb
 * :doc:`lj/cut/coul/debye/dielectric <pair_dielectric>` -
 * :doc:`lj/cut/coul/dsf <pair_lj_cut_coul>` - LJ with Coulomb via damped shifted forces
@@ -309,6 +314,7 @@ accelerated styles exist.
 * :doc:`meam/sw/spline <pair_meam_sw_spline>` - Splined version of MEAM with a Stillinger-Weber term
 * :doc:`mesocnt <pair_mesocnt>` - Mesoscopic vdW potential for (carbon) nanotubes
 * :doc:`mesocnt/viscous <pair_mesocnt>` - Mesoscopic vdW potential for (carbon) nanotubes with friction
+* :doc:`mesomem/dipole <pair_mesomem_dipole>` - MesoMem model for one-particle-thick fluid membranes
 * :doc:`mgpt <pair_mgpt>` - Simplified model generalized pseudopotential theory (MGPT) potential
 * :doc:`mie/cut <pair_mie>` - Mie potential
 * :doc:`mliap <pair_mliap>` - Multiple styles of machine-learning potential

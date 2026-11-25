@@ -33,6 +33,7 @@
 #include "improper.h"
 #include "kokkos.h"
 #include "kspace.h"
+#include "fix.h"
 #include "modify.h"
 #include "neighbor.h"
 #include "output.h"
@@ -217,8 +218,12 @@ void MinKokkos::setup(int flag)
 
   lmp->kokkos->auto_sync = 0;
   modify->setup(vflag);
-  output->setup(flag);
   lmp->kokkos->auto_sync = 1;
+
+  // VerletKokkos::setup() runs the setup output with auto_sync on
+
+  atomKK->sync(Host,ALL_MASK);
+  output->setup(flag);
   update->setupflag = 0;
 
   // stats for initial thermo output
@@ -386,8 +391,11 @@ void MinKokkos::run(int n)
     modify->addstep_compute_all(update->ntimestep);
     ecurrent = energy_force(0);
 
+    int prev_auto_sync = lmp->kokkos->auto_sync;
+    lmp->kokkos->auto_sync = 1;
     atomKK->sync(Host,ALL_MASK);
     output->write(update->ntimestep);
+    lmp->kokkos->auto_sync = prev_auto_sync;
   }
 
   atomKK->sync(Host,ALL_MASK);
@@ -414,7 +422,7 @@ double MinKokkos::energy_force(int resetflag)
     comm->forward_comm();
     timer->stamp(Timer::COMM);
   } else {
-    if (modify->n_min_pre_exchange) {
+    if (modify->has_fixes(FixConst::MIN_PRE_EXCHANGE)) {
       timer->stamp();
       modify->min_pre_exchange();
       timer->stamp(Timer::MODIFY);
@@ -433,13 +441,13 @@ double MinKokkos::energy_force(int resetflag)
     comm->borders();
     if (triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
     timer->stamp(Timer::COMM);
-    if (modify->n_min_pre_neighbor) {
+    if (modify->has_fixes(FixConst::MIN_PRE_NEIGHBOR)) {
       modify->min_pre_neighbor();
       timer->stamp(Timer::MODIFY);
     }
     neighbor->build(1);
     timer->stamp(Timer::NEIGH);
-    if (modify->n_min_post_neighbor) {
+    if (modify->has_fixes(FixConst::MIN_POST_NEIGHBOR)) {
       modify->min_post_neighbor();
       timer->stamp(Timer::MODIFY);
     }
@@ -450,7 +458,7 @@ double MinKokkos::energy_force(int resetflag)
 
   timer->stamp();
 
-  if (modify->n_min_pre_force) {
+  if (modify->has_fixes(FixConst::MIN_PRE_FORCE)) {
     modify->min_pre_force(vflag);
     timer->stamp(Timer::MODIFY);
   }
@@ -516,7 +524,7 @@ double MinKokkos::energy_force(int resetflag)
     timer->stamp(Timer::KSPACE);
   }
 
-  if (modify->n_min_pre_reverse) {
+  if (modify->has_fixes(FixConst::MIN_PRE_REVERSE)) {
     modify->min_pre_reverse(eflag,vflag);
     timer->stamp(Timer::MODIFY);
   }
@@ -535,7 +543,7 @@ double MinKokkos::energy_force(int resetflag)
 
   // fixes that affect minimization
 
-  if (modify->n_min_post_force) {
+  if (modify->has_fixes(FixConst::MIN_POST_FORCE)) {
      timer->stamp();
      modify->min_post_force(vflag);
      atomKK->sync(Device,F_MASK);
@@ -624,14 +632,14 @@ double MinKokkos::fnorm_sqr()
     if constexpr (F_LAYOUTRIGHT) {
       auto l_fvec = fvec;
       Kokkos::parallel_reduce(nvec, LAMMPS_LAMBDA(int i, double& local_norm2_sqr) {
-        local_norm2_sqr += l_fvec[i]*l_fvec[i];
+        local_norm2_sqr += static_cast<double>(l_fvec[i]*l_fvec[i]);
       },local_norm2_sqr);
     } else {
       auto l_f = atomKK->k_f.view_device();
       Kokkos::parallel_reduce(atom->nlocal, LAMMPS_LAMBDA(int i, double& local_norm2_sqr) {
-        local_norm2_sqr += l_f(i,0)*l_f(i,0);
-        local_norm2_sqr += l_f(i,1)*l_f(i,1);
-        local_norm2_sqr += l_f(i,2)*l_f(i,2);
+        local_norm2_sqr += static_cast<double>(l_f(i,0)*l_f(i,0));
+        local_norm2_sqr += static_cast<double>(l_f(i,1)*l_f(i,1));
+        local_norm2_sqr += static_cast<double>(l_f(i,2)*l_f(i,2));
       },local_norm2_sqr);
     }
   }
@@ -661,14 +669,14 @@ double MinKokkos::fnorm_inf()
     if constexpr (F_LAYOUTRIGHT) {
       auto l_fvec = fvec;
       Kokkos::parallel_reduce(nvec, LAMMPS_LAMBDA(int i, double& local_norm_inf) {
-        local_norm_inf = MAX(l_fvec[i]*l_fvec[i],local_norm_inf);
+        local_norm_inf = MAX(static_cast<double>(l_fvec[i]*l_fvec[i]),local_norm_inf);
       },Kokkos::Max<double>(local_norm_inf));
     } else {
       auto l_f = atomKK->k_f.view_device();
       Kokkos::parallel_reduce(atom->nlocal, LAMMPS_LAMBDA(int i, double& local_norm_inf) {
-        local_norm_inf = MAX(l_f(i,0)*l_f(i,0),local_norm_inf);
-        local_norm_inf = MAX(l_f(i,1)*l_f(i,1),local_norm_inf);
-        local_norm_inf = MAX(l_f(i,2)*l_f(i,2),local_norm_inf);
+        local_norm_inf = MAX(static_cast<double>(l_f(i,0)*l_f(i,0)),local_norm_inf);
+        local_norm_inf = MAX(static_cast<double>(l_f(i,1)*l_f(i,1)),local_norm_inf);
+        local_norm_inf = MAX(static_cast<double>(l_f(i,2)*l_f(i,2)),local_norm_inf);
       },Kokkos::Max<double>(local_norm_inf));
     }
   }
@@ -697,14 +705,15 @@ double MinKokkos::fnorm_max()
 
     if constexpr (F_LAYOUTRIGHT) {
       auto l_fvec = fvec;
-      Kokkos::parallel_reduce(nvec, LAMMPS_LAMBDA(int i, double& local_norm_max) {
-        double fdotf = l_fvec[i]*l_fvec[i]+l_fvec[i+1]*l_fvec[i+1]+l_fvec[i+2]*l_fvec[i+2];
+      Kokkos::parallel_reduce(nvec/3, LAMMPS_LAMBDA(int i, double& local_norm_max) {
+        const int n = 3*i;
+        double fdotf = static_cast<double>(l_fvec[n]*l_fvec[n]+l_fvec[n+1]*l_fvec[n+1]+l_fvec[n+2]*l_fvec[n+2]);
         local_norm_max = MAX(fdotf,local_norm_max);
       },Kokkos::Max<double>(local_norm_max));
     } else {
       auto l_f = atomKK->k_f.view_device();
       Kokkos::parallel_reduce(atom->nlocal, LAMMPS_LAMBDA(int i, double& local_norm_max) {
-        double fdotf = l_f(i,0)*l_f(i,0)+l_f(i,1)*l_f(i,1)+l_f(i,2)*l_f(i,2);
+        double fdotf = static_cast<double>(l_f(i,0)*l_f(i,0)+l_f(i,1)*l_f(i,1)+l_f(i,2)*l_f(i,2));
         local_norm_max = MAX(fdotf,local_norm_max);
       },Kokkos::Max<double>(local_norm_max));
     }

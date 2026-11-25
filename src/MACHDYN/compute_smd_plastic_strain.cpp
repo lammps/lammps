@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
  *
  *                    *** Smooth Mach Dynamics ***
@@ -9,7 +8,6 @@
  * Eckerstrasse 4, D-79104 Freiburg i.Br, Germany.
  *
  * ----------------------------------------------------------------------- */
-
 
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
@@ -25,23 +23,28 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_smd_plastic_strain.h"
-#include <cstring>
+
 #include "atom.h"
-#include "update.h"
-#include "modify.h"
 #include "comm.h"
-#include "memory.h"
 #include "error.h"
+#include "memory.h"
+#include "modify.h"
+#include "update.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
 ComputeSMDPlasticStrain::ComputeSMDPlasticStrain(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg)
+    Compute(lmp, narg, arg)
 {
-  if (narg != 3) error->all(FLERR,"Illegal compute smd/plastic_strain command");
-  if (atom->eff_plastic_strain_flag != 1) error->all(FLERR,"compute smd/plastic_strain command requires atom_style with plastic_strain (e.g. smd)");
+  if (narg != 3) error->all(FLERR, 2, "Illegal compute smd/plastic/strain command");
+  if (atom->eff_plastic_strain_flag != 1)
+    error->all(
+        FLERR,
+        "compute smd/plastic/strain command requires atom_style with plastic_strain");
 
   peratom_flag = 1;
   size_peratom_cols = 0;
@@ -62,11 +65,8 @@ ComputeSMDPlasticStrain::~ComputeSMDPlasticStrain()
 void ComputeSMDPlasticStrain::init()
 {
 
-  int count = 0;
-  for (int i = 0; i < modify->ncompute; i++)
-    if (strcmp(modify->compute[i]->style,"smd/plastic_strain") == 0) count++;
-  if (count > 1 && comm->me == 0)
-    error->warning(FLERR,"More than one compute smd/plastic_strain");
+  if ((comm->me == 0) && (modify->get_compute_by_style("^smd/plastic/strain$").size() > 1))
+    error->warning(FLERR, "More than one compute {}", style);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -80,7 +80,8 @@ void ComputeSMDPlasticStrain::compute_peratom()
   if (atom->nmax > nmax) {
     memory->sfree(plastic_strain_vector);
     nmax = atom->nmax;
-    plastic_strain_vector = (double *) memory->smalloc(nmax*sizeof(double),"atom:plastic_strain_vector");
+    plastic_strain_vector =
+        (double *) memory->smalloc(nmax * sizeof(double), "atom:plastic_strain_vector");
     vector_atom = plastic_strain_vector;
   }
 
@@ -88,14 +89,13 @@ void ComputeSMDPlasticStrain::compute_peratom()
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
-    for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
-              plastic_strain_vector[i] = plastic_strain[i];
-      }
-      else {
-              plastic_strain_vector[i] = 0.0;
-      }
+  for (int i = 0; i < nlocal; i++) {
+    if (mask[i] & groupbit) {
+      plastic_strain_vector[i] = plastic_strain[i];
+    } else {
+      plastic_strain_vector[i] = 0.0;
     }
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -104,6 +104,6 @@ void ComputeSMDPlasticStrain::compute_peratom()
 
 double ComputeSMDPlasticStrain::memory_usage()
 {
-  double bytes = (double)nmax * sizeof(double);
+  double bytes = (double) nmax * sizeof(double);
   return bytes;
 }

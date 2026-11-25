@@ -65,12 +65,6 @@ void Velocity::command(int narg, char **arg)
   if (igroup == -1) error->all(FLERR, Error::ARGZERO, "Could not find velocity group ID {}", arg[0]);
   groupbit = group->bitmask[igroup];
 
-  // check if velocities of atoms in rigid bodies are updated
-
-  if (modify->check_rigid_group_overlap(groupbit) && (comm->me == 0))
-    error->warning(FLERR, "Changing velocities of atoms in rigid bodies. "
-                   "This has no effect unless rigid bodies are rebuilt");
-
   // identify style
 
   if (strcmp(arg[1],"create") == 0) style = CREATE;
@@ -99,6 +93,14 @@ void Velocity::command(int narg, char **arg)
   else if (style == SCALE) options(narg-3,&arg[3]);
   else if (style == RAMP) options(narg-8,&arg[8]);
   else if (style == ZERO) options(narg-3,&arg[3]);
+
+  // check if velocities of atoms in rigid bodies are updated
+  // no warning if zeroing is applied directly to the bodies with the rigid keyword
+
+  if (!((style == ZERO) && rigid_fix) && modify->check_rigid_group_overlap(groupbit) &&
+      (comm->me == 0))
+    error->warning(FLERR, "Changing velocities of atoms in rigid bodies. "
+                   "This has no effect unless rigid bodies are rebuilt");
 
   // special cases where full init and border communication must be done first
   // for ZERO if fix rigid/small is used

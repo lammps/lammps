@@ -41,7 +41,7 @@ script is re-opened and read again.
 
 .. code-block:: bash
 
-   lmp_g++ < in.script
+   lmp < in.script
 
 since the SELF option invokes the C-library rewind() call, which may
 not be supported for stdin on some systems or by some MPI
@@ -49,7 +49,7 @@ implementations.  This can be worked around by using the :doc:`-in command-line 
 
 .. code-block:: bash
 
-   lmp_g++ -in in.script
+   lmp -in in.script
 
 or by using the :doc:`-var command-line switch <Run_options>` to pass
 the script name as a variable to the input script.  In the latter
@@ -58,7 +58,7 @@ of SELF, e.g.
 
 .. code-block:: bash
 
-   lmp_g++ -var fname in.script < in.script
+   lmp -var fname in.script < in.script
 
 The second argument to the jump command is optional.  If specified, it is
 treated as a label and the new file is scanned (without executing
@@ -89,7 +89,7 @@ simulation.
 
 .. code-block:: LAMMPS
 
-   mpirun -np 40 lmp_ibm -partition 4x10 -in in.file
+   mpirun -np 40 lmp -partition 4x10 -in in.file
 
    variable f world script.1 script.2 script.3 script.4
    jump $f

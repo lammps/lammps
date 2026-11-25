@@ -13,7 +13,7 @@ Syntax
 
    pair_style hybrid/overlay drip [styles ...]
 
-* styles = other styles to be overlayed with drip (optional)
+* styles = other pair styles to be added to drip (optional)
 
 Examples
 """"""""

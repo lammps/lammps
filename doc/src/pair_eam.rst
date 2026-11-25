@@ -19,6 +19,10 @@
 .. index:: pair_style eam/fs/omp
 .. index:: pair_style eam/fs/opt
 .. index:: pair_style eam/he
+.. index:: pair_style eam/he/gpu
+.. index:: pair_style eam/he/kk
+.. index:: pair_style eam/he/omp
+.. index:: pair_style eam/he/opt
 
 pair_style eam command
 ======================
@@ -43,6 +47,8 @@ Accelerator Variants: *eam/fs/gpu*, *eam/fs/intel*, *eam/fs/kk*, *eam/fs/omp*, *
 
 pair_style eam/he command
 =========================
+
+Accelerator Variants: *eam/he/gpu*, *eam/he/kk*, *eam/he/omp*, *eam/he/opt*
 
 Syntax
 """"""
@@ -253,12 +259,12 @@ where N is the number of LAMMPS atom types:
 * filename
 * N element names = mapping of *setfl* elements to atom types
 
-As an example, the potentials/NiAlH_jea.eam.alloy file is a *setfl*
-file which has tabulated EAM values for 3 elements and their alloy
+As an example, the potentials/NiAlH_jea.eam.alloy file is a *setfl* file
+which has tabulated EAM values for 3 elements and their alloy
 interactions: Ni, Al, and H.  See the :doc:`pair_coeff <pair_coeff>` doc
-page for alternate ways to specify the path for the potential file.
-If your LAMMPS simulation has 4 atoms types and you want the first 3 to
-be Ni, and the fourth to be Al, you would use the following pair_coeff
+page for alternate ways to specify the path for the potential file.  If
+your LAMMPS simulation has 4 atom types and you want the first 3 to be
+Ni, and the fourth to be Al, you would use the following pair_coeff
 command:
 
 .. code-block:: LAMMPS

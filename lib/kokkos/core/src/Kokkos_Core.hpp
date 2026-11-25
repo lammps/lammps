@@ -45,6 +45,7 @@
 #include <Kokkos_MemoryPool.hpp>
 #include <Kokkos_Array.hpp>
 #include <Kokkos_View.hpp>
+#include <Kokkos_Iterator.hpp>
 #include <Kokkos_Vectorization.hpp>
 #include <Kokkos_Atomic.hpp>
 #include <Kokkos_hwloc.hpp>

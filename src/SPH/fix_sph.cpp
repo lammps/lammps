@@ -36,6 +36,7 @@ FixSPH::FixSPH(LAMMPS *lmp, int narg, char **arg) :
     error->all(FLERR,"Illegal number of arguments for fix sph command");
 
   time_integrate = 1;
+  comm_forward = 3;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -80,6 +81,21 @@ void FixSPH::setup_pre_force(int /*vflag*/)
       vest[i][2] = v[i][2];
     }
   }
+
+  // the ghost atoms were already communicated, so their vest must be updated, too.
+  // with ghost velocities (required for remapped velocities) copy them directly,
+  // since they include the velocity remap for periodic images.
+
+  if (comm->ghost_velocity) {
+    const int nall = atom->nlocal + atom->nghost;
+    for (int i = atom->nlocal; i < nall; i++) {
+      if (mask[i] & groupbit) {
+        vest[i][0] = v[i][0];
+        vest[i][1] = v[i][1];
+        vest[i][2] = v[i][2];
+      }
+    }
+  } else comm->forward_comm(this);
 }
 
 /* ----------------------------------------------------------------------
@@ -156,11 +172,9 @@ void FixSPH::pre_force(int /*vflag*/)
   double **v = atom->v;
   double **vest = atom->vest;
   int *mask = atom->mask;
-  int nlocal = atom->nlocal;
-  if (igroup == atom->firstgroup)
-    nlocal = atom->nfirst;
 
-  int nall = nlocal + atom->nghost;
+  // ghost atoms are stored after all local atoms, so do not use nfirst here
+  const int nall = atom->nlocal + atom->nghost;
   for (int i = 0; i < nall; i++) {
     if (mask[i] & groupbit) {
       vest[i][0] += v[i][0];
@@ -216,4 +230,33 @@ void FixSPH::reset_dt()
 {
   dtv = update->dt;
   dtf = 0.5 * update->dt * force->ftm2v;
+}
+
+/* ---------------------------------------------------------------------- */
+
+int FixSPH::pack_forward_comm(int n, int *list, double *buf, int /*pbc_flag*/, int * /*pbc*/)
+{
+  double **vest = atom->vest;
+  int m = 0;
+  for (int i = 0; i < n; i++) {
+    const int j = list[i];
+    buf[m++] = vest[j][0];
+    buf[m++] = vest[j][1];
+    buf[m++] = vest[j][2];
+  }
+  return m;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixSPH::unpack_forward_comm(int n, int first, double *buf)
+{
+  double **vest = atom->vest;
+  int m = 0;
+  const int last = first + n;
+  for (int i = first; i < last; i++) {
+    vest[i][0] = buf[m++];
+    vest[i][1] = buf[m++];
+    vest[i][2] = buf[m++];
+  }
 }

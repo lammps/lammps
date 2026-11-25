@@ -53,16 +53,18 @@ non-granular pair styles.
 Use one of these 4 pair potentials, which compute forces and torques
 between interacting pairs of particles:
 
-* :doc:`pair_style gran/history <pair_gran>`
-* :doc:`pair_style gran/no_history <pair_gran>`
-* :doc:`pair_style gran/hertzian <pair_gran>`
+* :doc:`pair_style gran/hooke <pair_gran>`
+* :doc:`pair_style gran/hooke/history <pair_gran>`
+* :doc:`pair_style gran/hertz/history <pair_gran>`
 * :doc:`pair_style granular <pair_granular>`
 
 The first 3 are the older, original granular pair styles implemented
-in LAMMPS.  The 4th :doc:`pair_style gran/no_history <pair_gran>` is
-the newest and most flexible.  It's pairwise interaction models
+in LAMMPS.  The 4th, :doc:`pair_style granular <pair_granular>`, is
+the newest and most flexible.  Its pairwise interaction models
 include options similar to the first 3 pair styles, plus many
-additional models.
+additional models.  For superellipsoid particles, the :doc:`pair_style
+granular/superellipsoid <pair_granular_superellipsoid>` command can be
+used.
 
 To add your own custom granular contact model to the :doc:`pair_style
 granular <pair_granular>` command, see the :doc:`Modifying granular

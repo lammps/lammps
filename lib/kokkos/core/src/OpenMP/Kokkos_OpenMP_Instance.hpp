@@ -101,12 +101,10 @@ inline bool execute_in_serial(OpenMP const& space = OpenMP()) {
       (space.impl_internal_space_instance()->get_level() < omp_get_level() &&
        !(is_nested && (omp_get_level() == 1)));
 
-#ifndef KOKKOS_ENABLE_DEPRECATED_CODE_4
   if (max_parallel_level_exceeded)
     Kokkos::abort(
         "Kokkos::OpenMP: Nested parallelism requires the maximum active levels "
         "to be larger than 1 and not more than two levels are supported!");
-#endif
 
   return max_parallel_level_exceeded;
 }

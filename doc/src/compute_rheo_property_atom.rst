@@ -136,7 +136,7 @@ Related commands
 :doc:`fix rheo/viscosity <fix_rheo_viscosity>`,
 :doc:`fix rheo/pressure <fix_rheo_pressure>`,
 :doc:`fix rheo/thermal <fix_rheo_thermal>`,
-:doc:`fix rheo/oxdiation <fix_rheo_oxidation>`,
+:doc:`fix rheo/oxdation <fix_rheo_oxidation>`,
 :doc:`fix rheo <fix_rheo>`
 
 Default

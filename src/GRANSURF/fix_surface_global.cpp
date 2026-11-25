@@ -142,6 +142,7 @@ FixSurfaceGlobal::FixSurfaceGlobal(LAMMPS *lmp, int narg, char **arg) :
   // disable bonded/history option for now
 
   class GranularModel* model;
+  std::vector<int> stype_args;
   nmodel = maxmodel = 0;
   heat_flag = 0;
   use_history = 0;
@@ -162,13 +163,12 @@ FixSurfaceGlobal::FixSurfaceGlobal(LAMMPS *lmp, int narg, char **arg) :
 
       models[nmodel] = model = new GranularModel(lmp);
 
-      // assign range of particle and surf types to this model
-      // use MAXSURFTYPE for now, in case smax keyword extends input surf types
+      // assign range of particle types to this model
+      // range of surf types is set below, since smaxtype keyword can extend input surf types
 
       utils::bounds(FLERR, arg[iarg+1], 1, atom->ntypes,
                     modeltypes[nmodel].plo, modeltypes[nmodel].phi, error);
-      utils::bounds(FLERR, arg[iarg+2], 1, MAXSURFTYPE,
-                    modeltypes[nmodel].slo, modeltypes[nmodel].shi, error);
+      stype_args.push_back(iarg+2);
       nmodel++;
 
       model->contact_type = SURFACE;
@@ -307,12 +307,13 @@ FixSurfaceGlobal::FixSurfaceGlobal(LAMMPS *lmp, int narg, char **arg) :
   if (heat_flag && !Twall_defined)
     error->all(FLERR, "Must define wall temperature with a heat model");
 
-  // reset modeltypes shi from MAXSURFTYPE to maxsurtype
+  // set range of surf types for all models, now that maxsurftype is final
   // initialize types2model for all particle/surf type pairs
   // check that a model has been assigned to every type pair
 
   for (int i = 0; i < nmodel; i++)
-    if (modeltypes[i].shi == MAXSURFTYPE) modeltypes[i].shi = maxsurftype;
+    utils::bounds(FLERR, arg[stype_args[i]], 1, maxsurftype,
+                  modeltypes[i].slo, modeltypes[i].shi, error, stype_args[i]);
 
   types2model = new Granular_NS::GranularModel**[atom->ntypes+1];
   for (int i = 1; i <= atom->ntypes; i++)
@@ -445,6 +446,9 @@ FixSurfaceGlobal::~FixSurfaceGlobal()
   memory->destroy(fflag_c1);
   memory->destroy(fflag_c2);
   memory->destroy(fflag_c3);
+  memory->destroy(nside_c1);
+  memory->destroy(nside_c2);
+  memory->destroy(nside_c3);
 
   memory->sfree(connect2d);
   memory->sfree(connect3d);
@@ -1180,6 +1184,7 @@ void FixSurfaceGlobal::post_force(int /*vflag*/)
     model = models[n];
     model->history_update = 1;
     model->radj = 0.0;
+    model->dt = update->dt;
     if (update->setupflag) model->history_update = 0;
     if (heat_flag) {
       if (tstr)
@@ -1351,7 +1356,7 @@ void FixSurfaceGlobal::post_force(int /*vflag*/)
     }
 
 
-    if (contact_surfs.size() == 0)
+    if (contact_surfs.empty())
       continue;
 
     // Sort contacts by overlap and create a map
@@ -1415,6 +1420,8 @@ void FixSurfaceGlobal::post_force(int /*vflag*/)
 
       jtype = contact_surfs[n].type;
       model = types2model[itype][jtype];
+      model->i = i;
+      model->j = j;
       model->xi = x[i];
       model->radi = radi;
       model->vi = v[i];
@@ -1580,8 +1587,7 @@ int FixSurfaceGlobal::modify_param(int narg, char **arg)
         xsurf_original = nullptr;
         pointmove = nullptr;
 
-        int ifix = modify->find_fix(id);
-        modify->fmask[ifix] &= ~INITIAL_INTEGRATE;
+        modify->clear_fix_mask(this, INITIAL_INTEGRATE);
         force_reneighbor = 0;
         next_reneighbor = -1;
       }
@@ -1631,8 +1637,7 @@ int FixSurfaceGlobal::modify_param(int narg, char **arg)
     if (mstyle == VARIABLE) anymove_variable = 1;
     motions[imotion].time_origin = update->ntimestep;
 
-    int ifix = modify->find_fix(id);
-    modify->fmask[ifix] |= INITIAL_INTEGRATE;
+    modify->set_fix_mask(this, INITIAL_INTEGRATE);
 
     force_reneighbor = 1;
     next_reneighbor = -1;

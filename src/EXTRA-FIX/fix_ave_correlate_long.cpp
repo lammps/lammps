@@ -145,7 +145,8 @@ FixAveCorrelateLong::FixAveCorrelateLong(LAMMPS *lmp, int narg, char **arg) :
       else if (strcmp(arg[iarg + 1], "first") == 0)
         type = FIRST;
       else
-        error->all(FLERR, iarg_orig + 1, "Unknown fix ave/correlate/long type: {}");
+        error->all(FLERR, iarg_orig + 1, "Unknown fix ave/correlate/long type: {}",
+                   arg[iarg + 1]);
       iarg += 2;
     } else if (strcmp(arg[iarg], "start") == 0) {
       if (iarg + 2 > nargnew)
@@ -274,7 +275,7 @@ FixAveCorrelateLong::FixAveCorrelateLong(LAMMPS *lmp, int narg, char **arg) :
   if (fp && comm->me == 0) {
     clearerr(fp);
     if (title1) fprintf(fp,"%s\n",title1);
-    else fprintf(fp,"# Time-correlated data for fix %s\n",id);
+    else fprintf(fp,"# Time-correlated data for fix %s version %d\n",id,lmp->num_ver);
     if (title2) fprintf(fp,"%s\n",title2);
     else {
       fprintf(fp,"# Time");
@@ -287,7 +288,7 @@ FixAveCorrelateLong::FixAveCorrelateLong(LAMMPS *lmp, int narg, char **arg) :
             fprintf(fp," %s*%s",earg[i],earg[j]);
       else if (type == LOWER)
         for (int i = 0; i < nvalues; i++)
-          for (int j = 0; j < i-1; j++)
+          for (int j = 0; j < i; j++)
             fprintf(fp," %s*%s",earg[i],earg[j]);
       else if (type == AUTOUPPER)
         for (int i = 0; i < nvalues; i++)
@@ -295,7 +296,7 @@ FixAveCorrelateLong::FixAveCorrelateLong(LAMMPS *lmp, int narg, char **arg) :
             fprintf(fp," %s*%s",earg[i],earg[j]);
       else if (type == AUTOLOWER)
         for (int i = 0; i < nvalues; i++)
-          for (int j = 0; j < i; j++)
+          for (int j = 0; j <= i; j++)
             fprintf(fp," %s*%s",earg[i],earg[j]);
       else if (type == FULL)
         for (int i = 0; i < nvalues; i++)

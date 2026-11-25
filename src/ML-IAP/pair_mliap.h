@@ -31,7 +31,7 @@ class PairMLIAP : public Pair {
   void compute(int, int) override;
   void settings(int, char **) override;
   void coeff(int, char **) override;
-  void e_tally(class MLIAPData *);
+  virtual void e_tally(class MLIAPData *);
   void v_tally(int, int, double *, double *);
   void init_style() override;
   double init_one(int, int) override;

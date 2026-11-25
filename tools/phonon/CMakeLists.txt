@@ -2,7 +2,7 @@
 
 # Support Linux from Ubuntu 22.04LTS onward, RHEL 9.x (with EPEL),
 # macOS, MSVC 2019 (=Version 16)
-cmake_minimum_required(VERSION 3.20)
+cmake_minimum_required(VERSION 3.27)
 
 # set timestamp of downloaded files to that of archive
 if(POLICY CMP0135)
@@ -80,44 +80,7 @@ endif()
 
 option(USE_SPGLIB "Download and use spglib for phonon DOS and other optional properties" ON)
 if(USE_SPGLIB)
-  set(SPGLIB_URL "https://github.com/spglib/spglib/archive/refs/tags/v1.11.2.1.tar.gz" CACHE STRING "URL for spglib v1.x tarball")
-  set(SPGLIB_SHA256 "f6795523a04871e012e7f5f5ab97b249fa36657b73cdc9b4ea53ef023cfcaac4" CACHE STRING "SHA256 checksum for spglib tarball")
-  mark_as_advanced(SPGLIB_URL)
-  mark_as_advanced(SPGLIB_SHA256)
-  include(LAMMPSUtils)
-  GetFallbackURL(SPGLIB_URL SPGLIB_FALLBACK)
-
-  string(REPLACE ";" "$<SEMICOLON>" CMAKE_OSX_ARCHITECTURES_ "${CMAKE_OSX_ARCHITECTURES}")
-  include(ExternalProject)
-  ExternalProject_Add(spglib_build
-    URL ${SPGLIB_URL} ${SPGLIB_FALLBACK}
-    URL_HASH SHA256=${SPGLIB_SHA256}
-    PREFIX ${CMAKE_CURRENT_BINARY_DIR}/spglib_build_ext
-    EXCLUDE_FROM_ALL TRUE
-    CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${CMAKE_CURRENT_BINARY_DIR}/spglib_build_ext
-    -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
-    -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
-    -DCMAKE_MAKE_PROGRAM=${CMAKE_MAKE_PROGRAM}
-    -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}
-    -DCMAKE_POSITION_INDEPENDENT_CODE=ON
-    -DCMAKE_OSX_ARCHITECTURES=${CMAKE_OSX_ARCHITECTURES_}
-    -DCMAKE_OSX_DEPLOYMENT_TARGET=${CMAKE_OSX_DEPLOYMENT_TARGET}
-    UPDATE_COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_CURRENT_SOURCE_DIR}/CMakeLists.spglib ${CMAKE_CURRENT_BINARY_DIR}/spglib_build_ext/src/spglib_build/CMakeLists.txt
-    INSTALL_COMMAND ${CMAKE_COMMAND} --install ${CMAKE_CURRENT_BINARY_DIR}/spglib_build_ext/src/spglib_build-build --prefix ${CMAKE_CURRENT_BINARY_DIR}/spglib_build_ext
-    BUILD_BYPRODUCTS "${CMAKE_CURRENT_BINARY_DIR}/spglib_build_ext/lib/${CMAKE_STATIC_LIBRARY_PREFIX}symspg${CMAKE_STATIC_LIBRARY_SUFFIX}"
-  )
-
-  # workaround for older CMake versions
-  file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/spglib_build_ext/lib)
-  file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/spglib_build_ext/include)
-
-  add_library(SPGLIB::SYMSPG UNKNOWN IMPORTED)
-  add_dependencies(SPGLIB::SYMSPG spglib_build)
-  set_target_properties(SPGLIB::SYMSPG PROPERTIES
-    IMPORTED_LOCATION "${CMAKE_CURRENT_BINARY_DIR}/spglib_build_ext/lib/${CMAKE_STATIC_LIBRARY_PREFIX}symspg${CMAKE_STATIC_LIBRARY_SUFFIX}"
-    INTERFACE_INCLUDE_DIRECTORIES ${CMAKE_CURRENT_BINARY_DIR}/spglib_build_ext/include
-  )
-
+  include(BuildSpglib)
   target_compile_definitions(phana PRIVATE UseSPG)
   target_link_libraries(phana PRIVATE SPGLIB::SYMSPG)
 endif()

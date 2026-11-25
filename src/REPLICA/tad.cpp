@@ -58,7 +58,7 @@ TAD::TAD(LAMMPS *lmp) :
 TAD::~TAD()
 {
   memory->sfree(fix_event_list);
-  if (neb_logfilename != nullptr) delete[] neb_logfilename;
+  delete[] neb_logfilename;
   delete[] min_style;
   delete[] min_style_neb;
 }
@@ -473,8 +473,8 @@ void TAD::quench()
 
   update->ntimestep = ntimestep_hold;
   update->endstep = update->laststep = endstep_hold;
-  for (int i = 0; i < modify->ncompute; i++)
-    if (modify->compute[i]->timeflag) modify->compute[i]->clearstep();
+  for (const auto &icompute : modify->get_compute_list())
+    if (icompute->timeflag) icompute->clearstep();
 }
 
 /* ----------------------------------------------------------------------

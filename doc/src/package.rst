@@ -22,21 +22,20 @@ Syntax
     *gpu* args = Ngpu keyword value ...
       Ngpu = # of GPUs per node
       zero or more keyword/value pairs may be appended
-      keywords = *neigh* or *newton* or *pair/only* or *binsize* or *split* or *gpuID* or *tpa* or *blocksize* or *omp* or *platform* or *device_type* or *ocl_args*
+      keywords = *neigh* or *newton* or *pair/only* or *binsize* or *gpuID* or *tpa* or *blocksize* or *omp* or *platform* or *device_type* or *ocl_args* or *split* (deprecated)
         *neigh* value = *yes* or *no* or *hybrid*
-          *yes* = neighbor list build on GPU (default)
+          *yes* = neighbor list build on GPU (default), same as *hybrid*
           *no* = neighbor list build on CPU
           *hybrid* = perform binning on the CPU but build neighbor list on the GPU
         *newton* = *off* or *on*
-          *off* = set Newton pairwise flag off (default and required)
-          *on* = set Newton pairwise flag on (currently not allowed)
+          *off* = set Newton pairwise flag off (default)
+          *on* = set Newton pairwise flag on
         *pair/only* = *off* or *on*
           *off* = apply "gpu" suffix to all available styles in the GPU package (default)
           *on* = apply "gpu" suffix only pair styles
         *binsize* value = size
           size = bin size for neighbor list construction (distance units)
-        *split* = fraction
-          fraction = fraction of atoms assigned to GPU (default = 1.0)
+        *split* = fraction (deprecated, value is ignored)
         *tpa* value = Nlanes
           Nlanes = # of GPU vector lanes (CUDA threads) used per atom
         *blocksize* value = size
@@ -54,7 +53,7 @@ Syntax
     *intel* args = Narg keyword value ...
       Narg = accepted for backward compatibility and ignored
       zero or more keyword/value pairs may be appended
-      keywords = *mode* or *omp* or *lrt* or *pppm_table*
+      keywords = *mode* or *omp* or *lrt* or *pppm_table* or *ftz*
         *mode* value = *single* or *mixed* or *double*
           single = perform force calculations in single precision
           mixed = perform force calculations in mixed precision
@@ -67,6 +66,9 @@ Syntax
         *pppm_table* value = *yes* or *no*
           *yes* = Precompute pppm values in table (doesn't change accuracy)
           *no* = Compute pppm values on the fly
+        *ftz* value = *yes* or *no*
+          *yes* = flush very small (subnormal) floating-point numbers to zero
+          *no* = keep subnormal floating-point numbers
     *kokkos* args = keyword value ...
       zero or more keyword/value pairs may be appended
       keywords = *neigh* or *neigh/qeq* or *neigh/thread* or *neigh/transpose* or *newton* or *binsize* or *comm* or *comm/exchange* or *comm/forward* or *comm/pair/forward* or *comm/fix/forward* or *comm/compute/forward* or *comm/reverse* or *comm/pair/reverse* or *comm/fix/reverse* or *sort* or *atom/map* or *gpu/aware* or *pair/only*
@@ -146,8 +148,6 @@ Examples
 .. code-block:: LAMMPS
 
    package gpu 0
-   package gpu 1 split 0.75
-   package gpu 2 split -1.0
    package gpu 0 omp 2 device_type intelgpu
    package kokkos neigh half comm device
    package omp 0 neigh no
@@ -231,7 +231,8 @@ computation will be built.  If *neigh* is *yes*, which is the default,
 neighbor list building is performed on the GPU.  If *neigh* is *no*,
 neighbor list building is instead performed on the CPU.  If *neigh* is
 *hybrid* the binning step of the neighbor list build is performed on the
-CPU and the list themselves on the GPU.  GPU neighbor list building
+CPU and the list themselves on the GPU.  Since binning on the GPU is no
+longer supported, *yes* and *hybrid* are equivalent.  GPU neighbor list building
 currently is not fully compatible with a triclinic box; if the behavior
 is significantly different from the CPU case, use the *neigh no*
 setting.  GPU neighbor lists are not accessible for commands that are
@@ -244,20 +245,26 @@ default setting it will automatically change to *neigh no*.
 
 The *newton* keyword sets the Newton flags for pairwise (not bonded)
 interactions to *off* or *on*, the same as the :doc:`newton <newton>`
-command allows.  Currently, only an *off* value is allowed, since all
-the GPU package pair styles require this setting.  This means more
-computation is done, but less communication.  In the future a value of
-*on* may be allowed, so the *newton* keyword is included as an option
-for compatibility with the package command for other accelerator
-styles.  Note that the newton setting for bonded interactions is not
-affected by this keyword.
+command allows.  If this keyword is not used, the pairwise Newton setting
+is left unchanged, that is it keeps the value selected by the
+:doc:`newton <newton>` command, which is *on* by default.  A setting of
+*off* causes more computation but less communication.  Note that the
+newton setting for bonded interactions is not affected by this keyword.
 
-The *pair/only* keyword can change how any "gpu" suffix is applied.
-By default a suffix is applied to all styles for which an accelerated
+.. versionchanged:: 2Sep2026
+
+A pairwise Newton setting of *on* is no longer restricted.  Previously,
+combining it with a *split* value of less than 1.0 was an error, because
+the host/device particle-split load balancing required the setting to be
+*off*.  That load balancing has been removed, so the restriction no
+longer applies.
+
+The *pair/only* keyword can change how any "gpu" suffix is applied.  By
+default a suffix is applied to all styles for which an accelerated
 variant is available.  However, that is not always the most effective
-way to use an accelerator.  With *pair/only* set to *on* the suffix
-will only by applied to supported pair styles, which tend to be the
-most effective in using an accelerator and their operation can be
+way to use an accelerator w.  With *pair/only* set to *on* the
+suffix will only by applied to supported pair styles, which tend to be
+the most effective in using an accelerator and their operation can be
 overlapped with all other computations on the CPU.
 
 The *binsize* keyword sets the size of bins used to bin atoms in
@@ -265,44 +272,27 @@ neighbor list builds performed on the GPU, if *neigh* = *yes* is set.
 If *binsize* is set to 0.0 (the default), then the binsize is set
 automatically using heuristics in the GPU package.
 
-The *split* keyword can be used for load balancing force calculations
-between CPU and GPU cores in GPU-enabled pair styles. If 0 < *split* <
-1.0, a fixed fraction of particles is offloaded to the GPU while force
-calculation for the other particles occurs simultaneously on the CPU.
-If *split* < 0.0, the optimal fraction (based on CPU and GPU timings)
-is calculated every 25 timesteps, i.e. dynamic load-balancing across
-the CPU and GPU is performed.  If *split* = 1.0, all force
-calculations for GPU accelerated pair styles are performed on the GPU.
-In this case, other :doc:`hybrid <pair_hybrid>` pair interactions,
-:doc:`bond <bond_style>`, :doc:`angle <angle_style>`,
+The *split* keyword is deprecated and its value is ignored.  The GPU
+package formerly supported offloading a fraction of pair force calculations
+to the CPU concurrently with the GPU; this host/device particle-split
+load-balancing has been removed.  All pair force calculations for
+GPU-accelerated styles are now performed entirely on the GPU.  Other
+computations (:doc:`bond <bond_style>`, :doc:`angle <angle_style>`,
 :doc:`dihedral <dihedral_style>`, :doc:`improper <improper_style>`, and
-:doc:`long-range <kspace_style>` calculations can be performed on the
-CPU while the GPU is performing force calculations for the GPU-enabled
-pair style.  If all CPU force computations complete before the GPU
-completes, LAMMPS will block until the GPU has finished before
-continuing the timestep.
+:doc:`long-range <kspace_style>`) still run on the CPU concurrently with
+the GPU pair force calculation, which is the primary source of GPU/CPU
+overlap performance.
 
-As an example, if you have two GPUs per node and 8 CPU cores per node,
-and would like to run on 4 nodes (32 cores) with dynamic balancing of
-force calculation across CPU and GPU cores, you could specify
+.. versionchanged:: 2Sep2026
 
-.. code-block:: bash
-
-   mpirun -np 32 -sf gpu -in in.script    # launch command
-   package gpu 2 split -1                 # input script command
-
-In this case, all CPU cores and GPU devices on the nodes would be
-utilized.  Each GPU device would be shared by 4 CPU cores. The CPU
-cores would perform force calculations for some fraction of the
-particles at the same time the GPUs performed force calculation for
-the other particles.
+   The *split* keyword is deprecated; its value is ignored.
 
 The *gpuID* keyword is used to specify the first ID for the GPU or
 other accelerator that LAMMPS will use. For example, if the ID is
 1 and *Ngpu* is 3, GPUs 1-3 will be used. Device IDs should be
 determined from the output of nvc\_get\_devices, ocl\_get\_devices,
-or hip\_get\_devices
-as provided in the lib/gpu directory. When using OpenCL with
+or hip\_get\_devices, which are compiled together with LAMMPS and
+can be found in the build folder. When using OpenCL with
 accelerators that have main memory NUMA, the accelerators can be
 split into smaller virtual accelerators for more efficient use
 with MPI.
@@ -334,8 +324,8 @@ The meaning of *Nthreads* is exactly the same for the GPU, INTEL,
 and GPU packages.
 
 The *platform* keyword is only used with OpenCL to specify the ID for
-an OpenCL platform. See the output from ocl\_get\_devices in the lib/gpu
-directory. In LAMMPS only one platform can be active at a time and by
+an OpenCL platform. See the output from ocl\_get\_devices in the build
+folder. In LAMMPS only one platform can be active at a time and by
 default (id=-1) the platform is auto-selected to find the GPU with the
 most compute cores. When *Ngpu* or other keywords are specified, the
 auto-selection is appropriately restricted. For example, if *Ngpu* is
@@ -377,7 +367,7 @@ INTEL package settings
 The *intel* style invokes settings associated with the use of the INTEL
 package.
 
-.. deprecated:: 4Jul2026
+.. versionremoved:: 4Jul2026
 
 Support for offloading to Intel(R) Xeon Phi(TM) co-processors was
 removed.  The leading numeric argument (formerly the number of
@@ -429,6 +419,21 @@ The *pppm_table* keyword with the argument yes allows to use a
 pre-computed table to efficiently spread the charge to the PPPM grid.
 This feature is enabled by default but can be turned off using the
 keyword with the argument *no*.
+
+.. versionadded:: 13Nov2026
+
+The *ftz* keyword determines whether very small floating-point numbers
+(subnormal numbers) are flushed to zero.  On most CPUs, calculations
+with subnormal numbers are much slower than with normal numbers, and
+some styles in the INTEL package can produce many of them, e.g. in
+mixed precision.  With *yes*, which is the default, LAMMPS sets the CPU
+to flush subnormal numbers to zero while the INTEL package is in use,
+and it restores the previous setting with the :doc:`clear <clear>`
+command or when the LAMMPS instance is closed.  When LAMMPS is used as
+a library, this can also affect calculations outside of LAMMPS in the
+same process (e.g. in a Python script that uses LAMMPS as a module).
+With *no*, subnormal numbers are kept, also in a LAMMPS executable that
+was compiled with the ``-ftz`` flag of the Intel compilers.
 
 KOKKOS package settings
 ^^^^^^^^^^^^^^^^^^^^^^^
@@ -561,6 +566,23 @@ keywords above. If a value of *host* is used it will be automatically be
 changed to *no* since the *sort* keyword does not support *host* mode. Not
 all fix styles with extra atom data support *device* mode and in that case
 a warning will be given and atom sorting will run in *no* mode instead.
+
+.. note::
+
+   With *device* mode, the order of the atoms that are sorted into the
+   same bin is not defined: it can differ from that of the sorting
+   without the KOKKOS package, and between GPUs (e.g. of AMD and
+   NVIDIA).  This
+   order determines with which of its two atoms a pair is stored in a
+   half neighbor list, and the order in which forces are added up.  The
+   latter changes results only within floating-point precision, as a
+   different number of MPI processes does, but output that depends on
+   how a pair is stored can differ more: e.g. the sign of the
+   force components of :doc:`compute pair/local <compute_pair_local>`,
+   which atom of a pair is first in :doc:`compute property/local
+   <compute_property_local>`, and the results of :doc:`compute
+   stress/spherical <compute_stress_curvilinear>`.  Use *sort no* when
+   such output has to match that of a run without the KOKKOS package.
 
 .. versionadded:: 17Apr2024
 
@@ -771,9 +793,9 @@ launching LAMMPS:
 
 .. code-block:: bash
 
-   env OMP_NUM_THREADS=4 lmp_machine -sf omp -in in.script
-   env OMP_NUM_THREADS=2 mpirun -np 2 lmp_machine -sf omp -in in.script
-   mpirun -x OMP_NUM_THREADS=2 -np 2 lmp_machine -sf omp -in in.script
+   env OMP_NUM_THREADS=4 lmp -sf omp -in in.script
+   env OMP_NUM_THREADS=2 mpirun -np 2 lmp -sf omp -in in.script
+   mpirun -x OMP_NUM_THREADS=2 -np 2 lmp -sf omp -in in.script
 
 or you can set it permanently in your shell's start-up script.
 All three of these examples use a total of 4 CPU cores.
@@ -843,6 +865,16 @@ The *omp* style of this command can only be invoked if LAMMPS was built
 with the OPENMP package.  See the :doc:`Build package <Build_package>`
 doc page for more info.
 
+.. versionchanged:: 13Nov2026
+
+The *omp* style of this command cannot be used again while styles with
+OpenMP support (e.g. a pair style with the */omp* suffix) are defined,
+since those styles depend on the settings of the previous *package omp*
+command.  Such styles have to be reset first (e.g. with "pair_style
+none"), or the *package omp* command must be used before defining them.
+This also applies to styles that were defined with the */omp* suffix
+added by the "-sf omp" :doc:`command-line switch <Run_options>`.
+
 Related commands
 """"""""""""""""
 
@@ -855,7 +887,7 @@ For the GPU package, the default parameters and settings are:
 
 .. parsed-literal::
 
-   Ngpu = 0, neigh = yes, newton = off, binsize = 0.0, split = 1.0, gpuID = 0 to Ngpu-1, tpa = 1, omp = 0, platform=-1.
+   Ngpu = 0, neigh = yes, newton = on, binsize = 0.0, gpuID = 0 to Ngpu-1, tpa = 1, omp = 0, platform=-1.
 
 These settings are made automatically if the "-sf gpu"
 :doc:`command-line switch <Run_options>` is used.  If it is not used,
@@ -866,7 +898,7 @@ For the INTEL package, the default parameters and settings are:
 
 .. parsed-literal::
 
-   omp = 0, mode = mixed, lrt = no, pppm_table = yes
+   omp = 0, mode = mixed, lrt = no, pppm_table = yes, ftz = yes
 
 These settings are made automatically if the "-sf intel"
 :doc:`command-line switch <Run_options>` is used.  If it is not used, you

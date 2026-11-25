@@ -1,9 +1,14 @@
 .. index:: pair_style nm/cut
+.. index:: pair_style nm/cut/gpu
 .. index:: pair_style nm/cut/kk
 .. index:: pair_style nm/cut/split
+.. index:: pair_style nm/cut/split/gpu
+.. index:: pair_style nm/cut/split/kk
 .. index:: pair_style nm/cut/coul/cut
+.. index:: pair_style nm/cut/coul/cut/gpu
 .. index:: pair_style nm/cut/coul/cut/kk
 .. index:: pair_style nm/cut/coul/long
+.. index:: pair_style nm/cut/coul/long/gpu
 .. index:: pair_style nm/cut/coul/long/kk
 .. index:: pair_style nm/cut/omp
 .. index:: pair_style nm/cut/split/omp
@@ -13,22 +18,22 @@
 pair_style nm/cut command
 =========================
 
-Accelerator Variants: *nm/cut/kk*, *nm/cut/omp*
+Accelerator Variants: *nm/cut/gpu*, *nm/cut/kk*, *nm/cut/omp*
 
 pair_style nm/cut/split command
 ===============================
 
-Accelerator Variants: *nm/cut/split/omp*
+Accelerator Variants: *nm/cut/split/gpu*, *nm/cut/split/kk*, *nm/cut/split/omp*
 
 pair_style nm/cut/coul/cut command
 ==================================
 
-Accelerator Variants: *nm/cut/coul/cut/kk*, *nm/cut/coul/cut/omp*
+Accelerator Variants: *nm/cut/coul/cut/gpu*, *nm/cut/coul/cut/kk*, *nm/cut/coul/cut/omp*
 
 pair_style nm/cut/coul/long command
 ====================================
 
-Accelerator Variants: *nm/cut/coul/long/kk*, *nm/cut/coul/long/omp*
+Accelerator Variants: *nm/cut/coul/long/gpu*, *nm/cut/coul/long/kk*, *nm/cut/coul/long/omp*
 
 Syntax
 """"""
@@ -119,12 +124,11 @@ specified for this style means that pairwise interactions within this
 distance are computed directly; interactions outside that distance are
 computed in reciprocal space.
 
-For all of the *nm* pair styles, the following coefficients must
-be defined for each pair of atoms types
-via the :doc:`pair_coeff <pair_coeff>` command as in the
-examples above, or in the data file or restart files read by the
-:doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
-commands.
+For all of the *nm* pair styles, the following coefficients must be
+defined for each pair of atom types via the :doc:`pair_coeff
+<pair_coeff>` command as in the examples above, or in the data file or
+restart files read by the :doc:`read_data <read_data>` or
+:doc:`read_restart <read_restart>` commands.
 
 * :math:`E_0` (energy units)
 * :math:`r_0` (distance units)

@@ -19,6 +19,7 @@
 #include "error.h"
 #include "force.h"
 #include "kokkos.h"
+#include "math_special_kokkos.h"
 #include "memory_kokkos.h"
 #include "neigh_request.h"
 #include "neighbor.h"
@@ -141,8 +142,9 @@ compute_fpair(const KK_FLOAT &rsq, const int &, const int &, const int &itype, c
   const KK_FLOAT nn_val = (STACKPARAMS?m_params[itype][jtype].nn:params(itype,jtype).nn);
   const KK_FLOAT mm_val = (STACKPARAMS?m_params[itype][jtype].mm:params(itype,jtype).mm);
   const KK_FLOAT nm_val = (STACKPARAMS?m_params[itype][jtype].nm:params(itype,jtype).nm);
-  const KK_FLOAT rninv = Kokkos::pow(r2inv, nn_val * static_cast<KK_FLOAT>(0.5));
-  const KK_FLOAT rminv = Kokkos::pow(r2inv, mm_val * static_cast<KK_FLOAT>(0.5));
+  const KK_FLOAT r = Kokkos::sqrt(rsq);
+  const KK_FLOAT rninv = MathSpecialKokkos::powauto(r, -nn_val);
+  const KK_FLOAT rminv = MathSpecialKokkos::powauto(r, -mm_val);
 
   const KK_FLOAT forcenm =
     (STACKPARAMS?m_params[itype][jtype].e0nm:params(itype,jtype).e0nm) * nm_val *
@@ -158,11 +160,11 @@ template<bool STACKPARAMS, class Specialisation>
 KOKKOS_INLINE_FUNCTION
 KK_FLOAT PairNMCutKokkos<DeviceType>::
 compute_evdwl(const KK_FLOAT &rsq, const int &, const int &, const int &itype, const int &jtype) const {
-  const KK_FLOAT r2inv = static_cast<KK_FLOAT>(1.0) / rsq;
   const KK_FLOAT nn_val = (STACKPARAMS?m_params[itype][jtype].nn:params(itype,jtype).nn);
   const KK_FLOAT mm_val = (STACKPARAMS?m_params[itype][jtype].mm:params(itype,jtype).mm);
-  const KK_FLOAT rninv = Kokkos::pow(r2inv, nn_val * static_cast<KK_FLOAT>(0.5));
-  const KK_FLOAT rminv = Kokkos::pow(r2inv, mm_val * static_cast<KK_FLOAT>(0.5));
+  const KK_FLOAT r = Kokkos::sqrt(rsq);
+  const KK_FLOAT rninv = MathSpecialKokkos::powauto(r, -nn_val);
+  const KK_FLOAT rminv = MathSpecialKokkos::powauto(r, -mm_val);
 
   return (STACKPARAMS?m_params[itype][jtype].e0nm:params(itype,jtype).e0nm) *
     (mm_val*(STACKPARAMS?m_params[itype][jtype].r0n:params(itype,jtype).r0n)*rninv -

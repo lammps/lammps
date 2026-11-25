@@ -29,6 +29,8 @@
 
 using namespace LAMMPS_NS;
 
+static constexpr double EPSILON = 1.0e-12;
+
 /* ---------------------------------------------------------------------- */
 
 ComputeGyrationShapeChunk::ComputeGyrationShapeChunk(LAMMPS *lmp, int narg, char **arg) :
@@ -141,6 +143,13 @@ void ComputeGyrationShapeChunk::compute_array()
         }
       }
     }
+
+    // the gyration tensor is positive semi-definite: eigenvalues that are
+    // negative or negligible compared to the largest one are roundoff noise,
+    // e.g. for planar or linear molecules, and are reported as exactly zero
+
+    for (int i = 1; i < 3; i++)
+      if (fabs(evalues[i]) < EPSILON * fabs(evalues[0])) evalues[i] = 0.0;
 
     // compute the shape parameters of the gyration tensor
     double sq_eigen_x = MathSpecial::square(evalues[0]);

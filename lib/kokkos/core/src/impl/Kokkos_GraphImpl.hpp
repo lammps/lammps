@@ -10,13 +10,22 @@
 #include <Kokkos_Graph_fwd.hpp>
 
 #include <Kokkos_Concepts.hpp>  // is_execution_policy
-#include <Kokkos_PointerOwnership.hpp>
 #include <impl/Kokkos_GraphImpl_fwd.hpp>
 
+#include <concepts>
 #include <memory>  // std::make_shared
 
 namespace Kokkos {
 namespace Impl {
+
+template <Kokkos::ExecutionSpace Exec>
+using root_impl_t =
+    Kokkos::Impl::GraphNodeImpl<Exec, Kokkos::Experimental::GraphNodeRootTag,
+                                Kokkos::Experimental::TypeErasedTag>;
+
+template <typename T>
+constexpr bool is_graph_root_v =
+    std::same_as<T, Kokkos::Experimental::GraphNodeRootTag>;
 
 template <typename T>
 struct is_graph_capture<

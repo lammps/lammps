@@ -94,6 +94,7 @@ void FixQEqFire::pre_force(int /*vflag*/)
   int i, ii, iloop;
 
   double *q = atom->q;
+  int *mask = atom->mask;
   double vmax, vdotf, vdotfall, vdotv, vdotvall, fdotf, fdotfall;
   double scale1, scale2;
   double dtvone, dtv;
@@ -116,6 +117,9 @@ void FixQEqFire::pre_force(int /*vflag*/)
     qv[i] = 0.0;
   }
 
+  // only the charges of atoms in the group are updated: qv remains zero
+  // for all other atoms
+
   dt = qstep;
   dtmax = TMAX * dt;
 
@@ -136,7 +140,7 @@ void FixQEqFire::pre_force(int /*vflag*/)
 
     for (ii = 0; ii < inum; ii++) {
       i = ilist[ii];
-      qf[i] -= enegtot;    // Enforce adiabatic
+      if (mask[i] & groupbit) qf[i] -= enegtot;    // Enforce adiabatic
     }
 
     // FIRE minimization algorithm
@@ -144,7 +148,7 @@ void FixQEqFire::pre_force(int /*vflag*/)
     vdotf = 0.0;
     for (ii = 0; ii < inum; ii++) {
       i = ilist[ii];
-      vdotf += (qv[i] * qf[i]);
+      if (mask[i] & groupbit) vdotf += (qv[i] * qf[i]);
     }
     MPI_Allreduce(&vdotf, &vdotfall, 1, MPI_DOUBLE, MPI_SUM, world);
 
@@ -152,8 +156,10 @@ void FixQEqFire::pre_force(int /*vflag*/)
       vdotv = fdotf = 0.0;
       for (ii = 0; ii < inum; ii++) {
         i = ilist[ii];
-        vdotv += qv[i] * qv[i];
-        fdotf += qf[i] * qf[i];
+        if (mask[i] & groupbit) {
+          vdotv += qv[i] * qv[i];
+          fdotf += qf[i] * qf[i];
+        }
       }
       MPI_Allreduce(&vdotv, &vdotvall, 1, MPI_DOUBLE, MPI_SUM, world);
       MPI_Allreduce(&fdotf, &fdotfall, 1, MPI_DOUBLE, MPI_SUM, world);
@@ -166,7 +172,7 @@ void FixQEqFire::pre_force(int /*vflag*/)
 
       for (ii = 0; ii < inum; ii++) {
         i = ilist[ii];
-        qv[i] = scale1 * qv[i] + scale2 * qf[i];
+        if (mask[i] & groupbit) qv[i] = scale1 * qv[i] + scale2 * qf[i];
       }
       if (ntimestep - last_negative > DELAYSTEP) {
         dt = MIN(dt * DT_GROW, dtmax);
@@ -197,9 +203,11 @@ void FixQEqFire::pre_force(int /*vflag*/)
     enegchk = 0.0;
     for (ii = 0; ii < inum; ii++) {
       i = ilist[ii];
-      q[i] -= dtv * qv[i];
-      qv[i] += dtv * qf[i];
-      enegchk += fabs(qf[i]);
+      if (mask[i] & groupbit) {
+        q[i] -= dtv * qv[i];
+        qv[i] += dtv * qf[i];
+        enegchk += fabs(qf[i]);
+      }
     }
     MPI_Allreduce(&enegchk, &enegchkall, 1, MPI_DOUBLE, MPI_SUM, world);
     enegchk = enegchkall / ngroup;
@@ -242,33 +250,36 @@ double FixQEqFire::compute_eneg()
   pack_flag = 2;
   comm->forward_comm(this);
 
+  // include the rows of atoms outside the group, since the half neighbor list
+  // may store their pairs with atoms in the group there
+
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
     itype = type[i];
+    const bool igroup = mask[i] & groupbit;
 
-    if (mask[i] & groupbit) {
+    if (igroup) qf[i] += chi[itype] + eta[itype] * q[i];
 
-      qf[i] += chi[itype] + eta[itype] * q[i];
+    jlist = firstneigh[i];
+    jnum = numneigh[i];
 
-      jlist = firstneigh[i];
-      jnum = numneigh[i];
+    for (jj = 0; jj < jnum; jj++) {
+      j = jlist[jj];
+      j &= NEIGHMASK;
+      const bool jgroup = mask[j] & groupbit;
+      if (!igroup && !jgroup) continue;
 
-      for (jj = 0; jj < jnum; jj++) {
-        j = jlist[jj];
-        j &= NEIGHMASK;
+      delr[0] = x[i][0] - x[j][0];
+      delr[1] = x[i][1] - x[j][1];
+      delr[2] = x[i][2] - x[j][2];
+      rsq = delr[0] * delr[0] + delr[1] * delr[1] + delr[2] * delr[2];
 
-        delr[0] = x[i][0] - x[j][0];
-        delr[1] = x[i][1] - x[j][1];
-        delr[2] = x[i][2] - x[j][2];
-        rsq = delr[0] * delr[0] + delr[1] * delr[1] + delr[2] * delr[2];
+      if (rsq > cutoff_sq) continue;
 
-        if (rsq > cutoff_sq) continue;
-
-        r = sqrt(rsq);
-        rinv = 1.0 / r;
-        qf[i] += q[j] * rinv;
-        qf[j] += q[i] * rinv;
-      }
+      r = sqrt(rsq);
+      rinv = 1.0 / r;
+      if (igroup) qf[i] += q[j] * rinv;
+      if (jgroup) qf[j] += q[i] * rinv;
     }
   }
 

@@ -21,6 +21,7 @@ DumpStyle(grid/vtk,DumpGridVTK);
 #define LMP_DUMP_GRID_VTK_H
 
 #include "dump_grid.h"
+#include "vtk_writer.h"
 
 namespace LAMMPS_NS {
 
@@ -31,7 +32,12 @@ class DumpGridVTK : public DumpGrid {
 
  protected:
   int mode;
+  int vtkflavor;                     // VTKLEGACY or VTKXML
+  int dataset;                       // RECTILINEAR or IMAGE
+  int precision_warned;              // 1 after the single precision warning was printed
+  VTKWriter::Precision writeprec;    // precision of floating point output, dump_modify double
   double *xcoord, *ycoord, *zcoord;
+  std::vector<double> values;    // grid cell data collected for one snapshot
 
   // methods
 
@@ -39,6 +45,7 @@ class DumpGridVTK : public DumpGrid {
   void write_header(bigint) override;
   void write_data(int, double *) override;
   void write_footer() override;
+  int modify_param(int, char **) override;
 
   void xyz_grid();
 };

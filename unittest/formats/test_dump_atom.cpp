@@ -12,9 +12,12 @@
 ------------------------------------------------------------------------- */
 
 #include "../testing/core.h"
+#include <algorithm>
+#include <cmath>
 #include "../testing/systems/melt.h"
 #include "../testing/utils.h"
 #include "fmt/format.h"
+#include "library.h"
 #include "output.h"
 #include "thermo.h"
 #include "utils.h"
@@ -141,14 +144,18 @@ TEST_F(DumpAtomTest, run0)
     ASSERT_EQ(utils::split_words(lines[5]).size(), 2);
     ASSERT_THAT(lines[8], Eq("ITEM: ATOMS id type xs ys zs"));
     ASSERT_EQ(utils::split_words(lines[9]).size(), 5);
-    ASSERT_THAT(lines[9], Eq("1 1 0 0 0"));
+    ASSERT_THAT(lines[9], Eq("1 1 0.125 0.125 0.125"));
     delete_file(dump_file);
 }
 
 TEST_F(DumpAtomTest, format_line_run0)
 {
     auto dump_file = dump_filename("format_line_run0");
-    generate_dump(dump_file, "format line \"%d %d %20.15g %g %g\" scale yes image no", 0);
+
+    // the precision of the first coordinate must not resolve the round-off of
+    // the single precision coordinates in a reduced precision KOKKOS build
+
+    generate_dump(dump_file, "format line \"%d %d %20.8g %g %g\" scale yes image no", 0);
 
     ASSERT_FILE_EXISTS(dump_file);
     auto lines = read_lines(dump_file);
@@ -157,7 +164,7 @@ TEST_F(DumpAtomTest, format_line_run0)
     ASSERT_EQ(utils::split_words(lines[5]).size(), 2);
     ASSERT_THAT(lines[8], Eq("ITEM: ATOMS id type xs ys zs"));
     ASSERT_EQ(utils::split_words(lines[9]).size(), 5);
-    ASSERT_THAT(lines[9], Eq("1 1                    0 0 0"));
+    ASSERT_THAT(lines[9], Eq("1 1                0.125 0.125 0.125"));
     delete_file(dump_file);
 }
 
@@ -542,12 +549,12 @@ TEST_F(DumpAtomTest, rerun)
         command(fmt::format("rerun {} first 1 last 1 every 1 post no dump x y z", dump_file));
     });
     lmp->output->thermo->evaluate_keyword("pe", &pe_rerun);
-    ASSERT_DOUBLE_EQ(pe_1, pe_rerun);
+    ASSERT_NEAR(pe_1, pe_rerun, prec_tol(pe_1, 1.0e-14));
     HIDE_OUTPUT([&] {
         command(fmt::format("rerun {} first 2 last 2 every 1 post yes dump x y z", dump_file));
     });
     lmp->output->thermo->evaluate_keyword("pe", &pe_rerun);
-    ASSERT_DOUBLE_EQ(pe_2, pe_rerun);
+    ASSERT_NEAR(pe_2, pe_rerun, prec_tol(pe_2, 1.0e-14));
     delete_file(dump_file);
 }
 
@@ -569,12 +576,12 @@ TEST_F(DumpAtomTest, rerun_bin)
         command(fmt::format("rerun {} first 1 last 1 every 1 post no dump x y z", dump_file));
     });
     lmp->output->thermo->evaluate_keyword("pe", &pe_rerun);
-    ASSERT_NEAR(pe_1, pe_rerun, 1.0e-14);
+    ASSERT_NEAR(pe_1, pe_rerun, prec_tol(pe_1, 1.0e-14));
     HIDE_OUTPUT([&] {
         command(fmt::format("rerun {} first 2 last 2 every 1 post yes dump x y z", dump_file));
     });
     lmp->output->thermo->evaluate_keyword("pe", &pe_rerun);
-    ASSERT_NEAR(pe_2, pe_rerun, 1.0e-14);
+    ASSERT_NEAR(pe_2, pe_rerun, prec_tol(pe_2, 1.0e-14));
     delete_file(dump_file);
 }
 
@@ -751,6 +758,11 @@ TEST_F(DumpAtomTest, frequency)
     command("undump id");
     END_HIDE_OUTPUT();
 
+    // the KOKKOS minimizer of a reduced precision build stops after a different
+    // number of iterations, so the dump is written on different timesteps
+    if (kokkos_reduced_precision())
+        GTEST_SKIP() << "minimizer of a reduced precision KOKKOS build takes a different path";
+
     values   = extract_items(dump_file, "TIMESTEP");
     expected = {"0", "10", "15", "20", "30"};
     ASSERT_EQ(values.size(), expected.size());
@@ -807,25 +819,25 @@ TEST_F(DumpAtomTest, colname)
 
     std::vector<std::string> expected, values;
     values   = extract_items(dump_file, "ATOMS id type xs ys zs");
-    expected = {"1 1 0 0 0", "1 1 0 0 0"};
+    expected = {"1 1 0.125 0.125 0.125", "1 1 0.125 0.125 0.125"};
     ASSERT_EQ(values.size(), expected.size());
     for (std::size_t i = 0; i < expected.size(); ++i)
         ASSERT_THAT(values[i], Eq(expected[i]));
 
     values   = extract_items(dump_file, "ATOMS AtomID type x-scaled ys z-scaled");
-    expected = {"1 1 0 0 0"};
+    expected = {"1 1 0.125 0.125 0.125"};
     ASSERT_EQ(values.size(), expected.size());
     for (std::size_t i = 0; i < expected.size(); ++i)
         ASSERT_THAT(values[i], Eq(expected[i]));
 
     values   = extract_items(dump_file, "ATOMS id type x y z ix iy iz");
-    expected = {"1 1 0 0 0 0 0 0", "1 1 0 0 0 0 0 0"};
+    expected = {"1 1 0.419899 0.419899 0.419899 0 0 0", "1 1 0.419899 0.419899 0.419899 0 0 0"};
     ASSERT_EQ(values.size(), expected.size());
     for (std::size_t i = 0; i < expected.size(); ++i)
         ASSERT_THAT(values[i], Eq(expected[i]));
 
     values   = extract_items(dump_file, "ATOMS AtomID type X y Z img_x iy iz");
-    expected = {"1 1 0 0 0 0 0 0"};
+    expected = {"1 1 0.419899 0.419899 0.419899 0 0 0"};
     ASSERT_EQ(values.size(), expected.size());
     for (std::size_t i = 0; i < expected.size(); ++i)
         ASSERT_THAT(values[i], Eq(expected[i]));
@@ -977,6 +989,13 @@ int main(int argc, char **argv)
     if ((argc > 1) && (strcmp(argv[1], "-v") == 0)) verbose = true;
 
     int rv = RUN_ALL_TESTS();
+
+    // finalize the KOKKOS package explicitly: otherwise Kokkos is torn down by
+    // static destructors at program exit, leading to segfaults in some cases
+    // same workaround as the force-style and FFT3d test drivers
+
+    lammps_kokkos_finalize();
+
     MPI_Finalize();
     return rv;
 }

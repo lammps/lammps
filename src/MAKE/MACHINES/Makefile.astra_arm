@@ -27,7 +27,7 @@ SIZE =          size
 # LAMMPS ifdef settings
 # see possible settings in Section 3.5 of the manual
 
-LMP_INC =       -DLAMMPS_GZIP
+LMP_INC =
 
 # MPI library
 # see discussion in Section 3.4 of the manual

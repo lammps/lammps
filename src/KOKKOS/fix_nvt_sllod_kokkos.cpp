@@ -254,52 +254,54 @@ template<bool PSLLOD>
 KOKKOS_INLINE_FUNCTION
 void FixNVTSllodKokkos<DeviceType>::operator()(TagFixNVTSllod_nvex<PSLLOD>, const int& i) const {
   if (mask[i] & this->groupbit) {
+    const KK_FLOAT dthalf_kk = static_cast<KK_FLOAT>(this->dthalf);
+    const KK_FLOAT dtv_kk = static_cast<KK_FLOAT>(this->dtv);
     // first half sllod update
     if (PSLLOD) {
-      v(i,2) -= this->dthalf*this->d_h_two[2]*this->d_h_two[2]*x(i,2);
-      v(i,1) -= this->dthalf*this->d_h_two[3]*v(i,2) + this->dthalf*this->d_h_two[1]*this->d_h_two[1]*x(i,1);
-      v(i,0) -= this->dthalf*(this->d_h_two[5]*v(i,1) + this->d_h_two[4]*v(i,2))
-                 + this->dthalf*this->d_h_two[0]*this->d_h_two[0]*x(i,0);
+      v(i,2) -= dthalf_kk*static_cast<KK_FLOAT>(this->d_h_two[2])*static_cast<KK_FLOAT>(this->d_h_two[2])*x(i,2);
+      v(i,1) -= dthalf_kk*static_cast<KK_FLOAT>(this->d_h_two[3])*v(i,2) + dthalf_kk*static_cast<KK_FLOAT>(this->d_h_two[1])*static_cast<KK_FLOAT>(this->d_h_two[1])*x(i,1);
+      v(i,0) -= dthalf_kk*(static_cast<KK_FLOAT>(this->d_h_two[5])*v(i,1) + static_cast<KK_FLOAT>(this->d_h_two[4])*v(i,2))
+                 + dthalf_kk*static_cast<KK_FLOAT>(this->d_h_two[0])*static_cast<KK_FLOAT>(this->d_h_two[0])*x(i,0);
     } else {
-      v(i,1) -= this->dthalf*this->d_h_two[3]*v(i,2);
-      v(i,0) -= this->dthalf*(this->d_h_two[5]*v(i,1) + this->d_h_two[4]*v(i,2));
+      v(i,1) -= dthalf_kk*static_cast<KK_FLOAT>(this->d_h_two[3])*v(i,2);
+      v(i,0) -= dthalf_kk*(static_cast<KK_FLOAT>(this->d_h_two[5])*v(i,1) + static_cast<KK_FLOAT>(this->d_h_two[4])*v(i,2));
     }
-    v(i,0) *= this->d_vfac[0];
-    v(i,1) *= this->d_vfac[1];
-    v(i,2) *= this->d_vfac[2];
+    v(i,0) *= static_cast<KK_FLOAT>(this->d_vfac[0]);
+    v(i,1) *= static_cast<KK_FLOAT>(this->d_vfac[1]);
+    v(i,2) *= static_cast<KK_FLOAT>(this->d_vfac[2]);
 
-    x(i,1) += this->dthalf * this->d_h_two[3]*(x(i,2) - this->d_xlo[2]);
-    x(i,0) += this->dthalf * (this->d_h_two[5]*(x(i,1) - this->d_xlo[1]) + this->d_h_two[4]*(x(i,2) - this->d_xlo[2]));
-    x(i,0) = this->d_xmid[0] + (x(i,0) - this->d_xmid[0])*this->d_xfac[0];
-    x(i,1) = this->d_xmid[1] + (x(i,1) - this->d_xmid[1])*this->d_xfac[1];
-    x(i,2) = this->d_xmid[2] + (x(i,2) - this->d_xmid[2])*this->d_xfac[2];
+    x(i,1) += dthalf_kk * static_cast<KK_FLOAT>(this->d_h_two[3])*(x(i,2) - static_cast<KK_FLOAT>(this->d_xlo[2]));
+    x(i,0) += dthalf_kk * (static_cast<KK_FLOAT>(this->d_h_two[5])*(x(i,1) - static_cast<KK_FLOAT>(this->d_xlo[1])) + static_cast<KK_FLOAT>(this->d_h_two[4])*(x(i,2) - static_cast<KK_FLOAT>(this->d_xlo[2])));
+    x(i,0) = static_cast<KK_FLOAT>(this->d_xmid[0]) + (x(i,0) - static_cast<KK_FLOAT>(this->d_xmid[0]))*static_cast<KK_FLOAT>(this->d_xfac[0]);
+    x(i,1) = static_cast<KK_FLOAT>(this->d_xmid[1]) + (x(i,1) - static_cast<KK_FLOAT>(this->d_xmid[1]))*static_cast<KK_FLOAT>(this->d_xfac[1]);
+    x(i,2) = static_cast<KK_FLOAT>(this->d_xmid[2]) + (x(i,2) - static_cast<KK_FLOAT>(this->d_xmid[2]))*static_cast<KK_FLOAT>(this->d_xfac[2]);
 
     // nve position update
-    x(i,0) += this->dtv * v(i,0);
-    x(i,1) += this->dtv * v(i,1);
-    x(i,2) += this->dtv * v(i,2);
+    x(i,0) += dtv_kk * v(i,0);
+    x(i,1) += dtv_kk * v(i,1);
+    x(i,2) += dtv_kk * v(i,2);
 
     // 2nd half sllod update
-    x(i,0) = this->d_xmid[0] + (x(i,0) - this->d_xmid[0])*this->d_xfac[0];
-    x(i,1) = this->d_xmid[1] + (x(i,1) - this->d_xmid[1])*this->d_xfac[1];
-    x(i,2) = this->d_xmid[2] + (x(i,2) - this->d_xmid[2])*this->d_xfac[2];
+    x(i,0) = static_cast<KK_FLOAT>(this->d_xmid[0]) + (x(i,0) - static_cast<KK_FLOAT>(this->d_xmid[0]))*static_cast<KK_FLOAT>(this->d_xfac[0]);
+    x(i,1) = static_cast<KK_FLOAT>(this->d_xmid[1]) + (x(i,1) - static_cast<KK_FLOAT>(this->d_xmid[1]))*static_cast<KK_FLOAT>(this->d_xfac[1]);
+    x(i,2) = static_cast<KK_FLOAT>(this->d_xmid[2]) + (x(i,2) - static_cast<KK_FLOAT>(this->d_xmid[2]))*static_cast<KK_FLOAT>(this->d_xfac[2]);
     // d_xlo[3] is propagated xlo[1], d_xlo[4] is propagated xlo[2]
-    x(i,0) += this->dthalf * (this->d_h_two[5]*(x(i,1) - this->d_xlo[3]) + this->d_h_two[4]*(x(i,2) - this->d_xlo[4]));
-    x(i,1) += this->dthalf * this->d_h_two[3]*(x(i,2) - this->d_xlo[4]);
+    x(i,0) += dthalf_kk * (static_cast<KK_FLOAT>(this->d_h_two[5])*(x(i,1) - static_cast<KK_FLOAT>(this->d_xlo[3])) + static_cast<KK_FLOAT>(this->d_h_two[4])*(x(i,2) - static_cast<KK_FLOAT>(this->d_xlo[4])));
+    x(i,1) += dthalf_kk * static_cast<KK_FLOAT>(this->d_h_two[3])*(x(i,2) - static_cast<KK_FLOAT>(this->d_xlo[4]));
 
     // second half sllod velocity step
     // apply here so streaming component matches x when storing in lab frame
-    v(i,0) *= this->d_vfac[0];
-    v(i,1) *= this->d_vfac[1];
-    v(i,2) *= this->d_vfac[2];
+    v(i,0) *= static_cast<KK_FLOAT>(this->d_vfac[0]);
+    v(i,1) *= static_cast<KK_FLOAT>(this->d_vfac[1]);
+    v(i,2) *= static_cast<KK_FLOAT>(this->d_vfac[2]);
     if (PSLLOD) {
-      v(i,0) -= this->dthalf*(this->d_h_two[5]*v(i,1) + this->d_h_two[4]*v(i,2))
-                 + this->dthalf*this->d_h_two[0]*this->d_h_two[0]*x(i,0);
-      v(i,1) -= this->dthalf*this->d_h_two[3]*v(i,2) + this->dthalf*this->d_h_two[1]*this->d_h_two[1]*x(i,1);
-      v(i,2) -= this->dthalf*this->d_h_two[2]*this->d_h_two[2]*x(i,2);
+      v(i,0) -= dthalf_kk*(static_cast<KK_FLOAT>(this->d_h_two[5])*v(i,1) + static_cast<KK_FLOAT>(this->d_h_two[4])*v(i,2))
+                 + dthalf_kk*static_cast<KK_FLOAT>(this->d_h_two[0])*static_cast<KK_FLOAT>(this->d_h_two[0])*x(i,0);
+      v(i,1) -= dthalf_kk*static_cast<KK_FLOAT>(this->d_h_two[3])*v(i,2) + dthalf_kk*static_cast<KK_FLOAT>(this->d_h_two[1])*static_cast<KK_FLOAT>(this->d_h_two[1])*x(i,1);
+      v(i,2) -= dthalf_kk*static_cast<KK_FLOAT>(this->d_h_two[2])*static_cast<KK_FLOAT>(this->d_h_two[2])*x(i,2);
     } else {
-      v(i,0) -= this->dthalf*(this->d_h_two[5]*v(i,1) + this->d_h_two[4]*v(i,2));
-      v(i,1) -= this->dthalf*this->d_h_two[3]*v(i,2);
+      v(i,0) -= dthalf_kk*(static_cast<KK_FLOAT>(this->d_h_two[5])*v(i,1) + static_cast<KK_FLOAT>(this->d_h_two[4])*v(i,2));
+      v(i,1) -= dthalf_kk*static_cast<KK_FLOAT>(this->d_h_two[3])*v(i,2);
     }
   }
 }
@@ -324,10 +326,14 @@ void FixNVTSllodKokkos<DeviceType>::nh_v_temp()
   //   computed on current nlocal atoms to remove bias
 
   if (nondeformbias) {
-    atomKK->sync(this->temperature->execution_space,this->temperature->datamask_read);
-    this->temperature->compute_scalar();
-    atomKK->modified(this->temperature->execution_space,this->temperature->datamask_modify);
-    atomKK->sync(this->execution_space,this->temperature->datamask_modify);
+    if (this->temperature->kokkosable)
+      this->temperature->compute_scalar();
+    else {
+      atomKK->sync(this->temperature->execution_space,this->temperature->datamask_read);
+      this->temperature->compute_scalar();
+      atomKK->modified(this->temperature->execution_space,this->temperature->datamask_modify);
+      atomKK->sync(this->execution_space,this->temperature->datamask_modify);
+    }
   }
 
   v = atomKK->k_v.view<DeviceType>();
@@ -391,9 +397,9 @@ template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void FixNVTSllodKokkos<DeviceType>::operator()(TagFixNVTSllod_temp1, const int &i) const {
   if (mask[i] & this->groupbit) {
-    vdelu(i,0) = d_h_two[0]*v(i,0) + d_h_two[5]*v(i,1) + d_h_two[4]*v(i,2);
-    vdelu(i,1) = d_h_two[1]*v(i,1) + d_h_two[3]*v(i,2);
-    vdelu(i,2) = d_h_two[2]*v(i,2);
+    vdelu(i,0) = static_cast<KK_FLOAT>(d_h_two[0])*v(i,0) + static_cast<KK_FLOAT>(d_h_two[5])*v(i,1) + static_cast<KK_FLOAT>(d_h_two[4])*v(i,2);
+    vdelu(i,1) = static_cast<KK_FLOAT>(d_h_two[1])*v(i,1) + static_cast<KK_FLOAT>(d_h_two[3])*v(i,2);
+    vdelu(i,2) = static_cast<KK_FLOAT>(d_h_two[2])*v(i,2);
   }
 }
 
@@ -402,9 +408,9 @@ template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void FixNVTSllodKokkos<DeviceType>::operator()(TagFixNVTSllod_temp2, const int &i) const {
   if (mask[i] & this->groupbit) {
-    v(i,0) = v(i,0)*this->factor_eta - this->dthalf*vdelu(i,0);
-    v(i,1) = v(i,1)*this->factor_eta - this->dthalf*vdelu(i,1);
-    v(i,2) = v(i,2)*this->factor_eta - this->dthalf*vdelu(i,2);
+    v(i,0) = v(i,0)*static_cast<KK_FLOAT>(this->factor_eta) - static_cast<KK_FLOAT>(this->dthalf)*vdelu(i,0);
+    v(i,1) = v(i,1)*static_cast<KK_FLOAT>(this->factor_eta) - static_cast<KK_FLOAT>(this->dthalf)*vdelu(i,1);
+    v(i,2) = v(i,2)*static_cast<KK_FLOAT>(this->factor_eta) - static_cast<KK_FLOAT>(this->dthalf)*vdelu(i,2);
   }
 }
 

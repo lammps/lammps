@@ -11,13 +11,6 @@
 /// \file Kokkos_StdAlgorithms.hpp
 /// \brief Kokkos counterparts for Standard C++ Library algorithms
 
-#include "std_algorithms/impl/Kokkos_Constraints.hpp"
-#include "std_algorithms/impl/Kokkos_RandomAccessIterator.hpp"
-#include "std_algorithms/Kokkos_BeginEnd.hpp"
-
-// distance
-#include "std_algorithms/Kokkos_Distance.hpp"
-
 // note that we categorize below the headers
 // following the std classification.
 

@@ -1151,7 +1151,7 @@ void SNA::compute_duarray(double x, double y, double z,
   b_r = y * r0inv;
   b_i = -x * r0inv;
 
-  dr0invdr = -pow(r0inv, 3.0) * (r + z0 * dz0dr);
+  dr0invdr = -cube(r0inv) * (r + z0 * dz0dr);
 
   dr0inv[0] = dr0invdr * ux;
   dr0inv[1] = dr0invdr * uy;

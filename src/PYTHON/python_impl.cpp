@@ -75,20 +75,15 @@ PythonImpl::PythonImpl(LAMMPS *lmp) : Pointers(lmp)
   nfunc = 0;
   pfuncs = nullptr;
 
-#if PY_MAJOR_VERSION >= 3 && !defined(Py_LIMITED_API)
+#if !defined(Py_LIMITED_API)
   // check for PYTHONUNBUFFERED environment variable
   const char *PYTHONUNBUFFERED = getenv("PYTHONUNBUFFERED");
   // Force the stdout and stderr streams to be unbuffered.
   bool unbuffered = PYTHONUNBUFFERED != nullptr && strcmp(PYTHONUNBUFFERED, "1") == 0;
 
-#if (PY_VERSION_HEX >= 0x030800f0)
   PyConfig config;
   PyConfig_InitPythonConfig(&config);
   config.buffered_stdio = !unbuffered;
-#else
-  // Python Global configuration variable
-  Py_UnbufferedStdioFlag = unbuffered;
-#endif
 #endif
 
 #ifdef MLIAP_PYTHON
@@ -122,18 +117,11 @@ PythonImpl::PythonImpl(LAMMPS *lmp) : Pointers(lmp)
   }
 #endif
 
-#if PY_VERSION_HEX >= 0x030800f0 && !defined(Py_LIMITED_API)
+#if !defined(Py_LIMITED_API)
   Py_InitializeFromConfig(&config);
   PyConfig_Clear(&config);
 #else
   Py_Initialize();
-#endif
-
-  // only needed for Python 2.x and Python 3 < 3.7
-  // With Python 3.7 this function is now called by Py_Initialize()
-  // Deprecated since version 3.9, will be removed in version 3.11
-#if PY_VERSION_HEX < 0x030700f0
-  if (!PyEval_ThreadsInitialized()) PyEval_InitThreads();
 #endif
 
   PyUtils::GIL lock;
@@ -365,7 +353,7 @@ void PythonImpl::invoke_function(int ifunc, char *result, double *dvalue)
           error->all(FLERR, Error::NOLASTLINE,
                      "Could not evaluate Python function {} input variable: {}", pfuncs[ifunc].name,
                      pfuncs[ifunc].svalue[i]);
-        pValue = PY_INT_FROM_LONG(PY_LONG_FROM_STRING(str));
+        pValue = PyLong_FromLongLong(utils::bnumeric(FLERR, str, false, lmp));
       } else if (pfuncs[ifunc].ivarflag[i] == INTERNALVAR) {
         double value = input->variable->compute_equal(pfuncs[ifunc].internal_var[i]);
         pValue = PyLong_FromDouble(value);

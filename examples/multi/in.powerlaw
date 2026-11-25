@@ -25,6 +25,14 @@ fix             3 all deform 1 xy erate 1e-4
 
 # dump          1 all custom 20000 dump.granular id x y z radius
 
+#variable        dumpfreq index 1000
+#fix             cmap all graphics/labels ${dumpfreq} colorscale viz "Neighbor list diameter intervals" 450 50 0 &
+#                         length 1200 size 28
+#dump            viz all image ${dumpfreq} powerlaw-*.ppm diameter diameter size 900 600 &
+#                     zoom 1.4 shiny 0.4  fsaa yes box yes 0.025 center s 0.5 0.4 0 fix cmap const 1 0
+#dump_modify     viz pad 6 backcolor black boxcolor gray &
+#                amap 0 200 da 0.0 6 0 1.5 red 1.5 3 yellow 3 10 green 10 30 cyan 30 100 blue min max purple
+
 thermo_style    custom step temp epair etotal press vol pxy
 thermo          100
 

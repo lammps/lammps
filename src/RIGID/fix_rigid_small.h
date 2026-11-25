@@ -26,6 +26,7 @@ namespace LAMMPS_NS {
 
 class FixRigidSmall : public Fix {
   friend class ComputeRigidLocal;
+  friend class ComputeRigidAtom;
 
  public:
   FixRigidSmall(class LAMMPS *, int, char **);
@@ -40,12 +41,11 @@ class FixRigidSmall : public Fix {
   void final_integrate_respa(int, int) override;
   void write_restart_file(const char *) override;
 
-
   void grow_arrays(int) override;
   void copy_arrays(int, int, int) override;
   void set_arrays(int) override;
   void set_molecule(int, tagint, int, double *, double *, double *) override;
-  void resample_momenta(int, int, class RanPark *, double);
+  virtual void resample_momenta(int, int, class RanPark *, double);
 
   int pack_exchange(int, double *) override;
   int unpack_exchange(int, double *) override;
@@ -54,6 +54,7 @@ class FixRigidSmall : public Fix {
   int pack_reverse_comm(int, int, double *) override;
   void unpack_reverse_comm(int, int *, double *) override;
 
+  void image_flip(int, int, int) override;
   void setup_pre_neighbor() override;
   void pre_neighbor() override;
   bigint dof(int) override;
@@ -63,25 +64,10 @@ class FixRigidSmall : public Fix {
   void zero_rotation() override;
   int modify_param(int, char **) override;
   void *extract(const char *, int &) override;
-  double extract_ke();
-  double extract_erotational();
+  virtual double extract_ke();
+  virtual double extract_erotational();
   double compute_scalar() override;
   double memory_usage() override;
-
- protected:
-  double dtv, dtf, dtq;
-  double *step_respa;
-  int triclinic;
-
-  char *inpfile;       // file to read rigid body attributes from
-  int setupflag;       // 1 if body properties are setup, else 0
-  int earlyflag;       // 1 if forces/torques are computed at post_force()
-  int commflag;        // various modes of forward/reverse comm
-  int customflag;      // 1 if custom property/variable define bodies
-  bigint nbody;        // total # of rigid bodies (supports >2^31)
-  int nlinear;         // total # of linear rigid bodies
-  tagint maxmol;       // max mol-ID
-  double maxextent;    // furthest distance from body owner to body atom
 
   struct Body {
     int natoms;            // total number of atoms in body
@@ -105,6 +91,21 @@ class FixRigidSmall : public Fix {
     imageint image;        // image flags of xcm
     imageint dummy;        // dummy entry for better alignment
   };
+
+ protected:
+  double dtv, dtf, dtq;
+  double *step_respa;
+  int triclinic;
+
+  char *inpfile;       // file to read rigid body attributes from
+  int setupflag;       // 1 if body properties are setup, else 0
+  int earlyflag;       // 1 if forces/torques are computed at post_force()
+  int commflag;        // various modes of forward/reverse comm
+  int customflag;      // 1 if custom property/variable define bodies
+  bigint nbody;        // total # of rigid bodies (supports >2^31)
+  int nlinear;         // total # of linear rigid bodies
+  tagint maxmol;       // max mol-ID
+  double maxextent;    // furthest distance from body owner to body atom
 
   Body *body;         // list of rigid bodies, owned and ghost
   int nlocal_body;    // # of owned rigid bodies
@@ -146,6 +147,13 @@ class FixRigidSmall : public Fix {
   double *mass_body;
   int nmax_mass;
 
+  // rigid bodies in conjunction with fix deform
+
+  int deform_vremap;       // 1 if fix deform with V_REMAP exists
+                           //   if so, special treatment of bodies when cross PBC
+                           //   if so, add/sub bias with Langevin
+  int deform_groupbit;     // groupbit of fix deform command
+
   // Langevin thermostatting
 
   int langflag;                        // 0/1 = no/yes Langevin thermostat
@@ -154,8 +162,9 @@ class FixRigidSmall : public Fix {
   int maxlang;                         // max size of langextra
   class RanMars *random;               // RNG
 
-  int tstat_flag, pstat_flag;    // 0/1 = no/yes thermostat/barostat
+  // Nose/Hoover thermostat & barostat
 
+  int tstat_flag, pstat_flag;    // 0/1 = no/yes thermostat/barostat
   int t_chain, t_iter, t_order;
 
   double p_start[3], p_stop[3];
@@ -195,18 +204,20 @@ class FixRigidSmall : public Fix {
 
   // local methods
 
-  void image_shift();
+  virtual void image_shift();
   void set_xv();
   void set_v();
   void create_bodies(tagint *);
   void setup_bodies_static();
   void setup_bodies_dynamic();
   void apply_langevin_thermostat();
+  void remove_bias(int, double *, double *);
+  void restore_bias(double *, double *);
   virtual void compute_forces_and_torques();
-  void enforce2d();
+  virtual void enforce2d();
   void readfile(int, double **, int *);
-  void grow_body();
-  void reset_atom2body();
+  virtual void grow_body();
+  virtual void reset_atom2body();
 
   // callback function for rendezvous communication
 

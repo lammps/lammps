@@ -1,11 +1,12 @@
 ---
 lammps_version: 4 Jul 2026
-tags: no_respa
+tags: no_respa kokkos
 date_generated: Fri Jul 10 18:25:45 2026
 epsilon: 5e-14
 timestep: 5e-04
 skip_tests:
 prerequisites: |
+  atom dipole
   atom sphere
   fix viscous/nonlinear
 pre_commands: ""

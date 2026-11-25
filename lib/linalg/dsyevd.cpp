@@ -113,8 +113,8 @@ int dsyevd_(char *jobz, char *uplo, integer *n, doublereal *a, integer *lda, dou
         }
         return 0;
     }
-    safmin = dlamch_((char *)"Safe minimum", (ftnlen)12);
-    eps = dlamch_((char *)"Precision", (ftnlen)9);
+    safmin = dlamch_((char *)"S", (ftnlen)1);
+    eps = dlamch_((char *)"P", (ftnlen)1);
     smlnum = safmin / eps;
     bignum = 1. / smlnum;
     rmin = sqrt(smlnum);

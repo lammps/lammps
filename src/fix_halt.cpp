@@ -144,6 +144,8 @@ FixHalt::FixHalt(LAMMPS *lmp, int narg, char **arg) :
 
 FixHalt::~FixHalt()
 {
+  if (copymode) return;
+
   delete[] idvar;
   delete[] dlimit_path;
 }

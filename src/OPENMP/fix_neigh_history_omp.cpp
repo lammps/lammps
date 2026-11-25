@@ -64,8 +64,13 @@ void FixNeighHistoryOMP::pre_exchange_onesided()
   const int nlocal = atom->nlocal;
   maxpartner = 0;
 
+  if (surface_global && !otherlist)
+    error->all(FLERR, "Cannot find fix surface/global neighbor list");
+
+  int overflow = 0;
+
 #if defined(_OPENMP)
-#pragma omp parallel LMP_DEFAULT_NONE
+#pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(overflow)
 #endif
   {
 
@@ -106,8 +111,6 @@ void FixNeighHistoryOMP::pre_exchange_onesided()
     tagint *tag = atom->tag;
     NeighList *list;
     if (surface_global) {
-      if (!otherlist)
-        error->all(FLERR, "Cannot find fix surface/global neighbor list");
       list = otherlist;
     } else {
       list = pair->list;
@@ -136,8 +139,17 @@ void FixNeighHistoryOMP::pre_exchange_onesided()
         n = npartner[i];
         partner[i] = ipg.get(n);
         valuepartner[i] = dpg.get(dnum * n);
-        if (partner[i] == nullptr || valuepartner[i] == nullptr)
-          error->one(FLERR, Error::NOLASTLINE, "Neighbor history overflow, boost neigh_modify one" + utils::errorurl(36));
+        if (partner[i] == nullptr || valuepartner[i] == nullptr) {
+          // errors must be deferred until the end of the threaded region.
+          // skip storing the partners of this thread's atoms, which are
+          // not accessed by other threads.
+#if defined(_OPENMP)
+#pragma omp atomic
+#endif
+          overflow |= 1;
+          inum = 0;
+          break;
+        }
       }
     }
 
@@ -174,8 +186,10 @@ void FixNeighHistoryOMP::pre_exchange_onesided()
 
     // set maxpartner = max # of partners of any owned atom
     // maxexchange = max # of values for any Comm::exchange() atom
+    // maxpartner is zeroed before the parallel region; do not reset it
+    // here since another thread may already have merged its result
 
-    maxpartner = m = 0;
+    m = 0;
     for (i = lfrom; i < lto; i++) m = MAX(m, npartner[i]);
 
 #if defined(_OPENMP)
@@ -187,6 +201,10 @@ void FixNeighHistoryOMP::pre_exchange_onesided()
     }
   }
 
+  if (overflow)
+    error->one(FLERR, Error::NOLASTLINE,
+               "Neighbor history overflow, boost neigh_modify one" + utils::errorurl(36));
+
   // zero npartner values from previous nlocal_neigh to current nlocal
   for (int i = nlocal_neigh; i < nlocal; ++i) npartner[i] = 0;
 }
@@ -197,11 +215,18 @@ void FixNeighHistoryOMP::pre_exchange_newton()
 {
   const int nthreads = comm->nthreads;
 
+  // ensure npartner is zeroed for all current atoms: nall can be larger than
+  // nall_neigh when restart files are written that involve communication calls
+  // but modify->post_neighbor() isn't called
+
   maxpartner = 0;
-  for (int i = 0; i < nall_neigh; i++) npartner[i] = 0;
+  const int nall = atom->nlocal + atom->nghost;
+  for (int i = 0; i < MAX(nall_neigh, nall); i++) npartner[i] = 0;
+
+  int overflow = 0;
 
 #if defined(_OPENMP)
-#pragma omp parallel LMP_DEFAULT_NONE
+#pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(overflow)
 #endif
   {
 
@@ -234,8 +259,6 @@ void FixNeighHistoryOMP::pre_exchange_newton()
     firstneigh = list->firstneigh;
 
     // each thread works on a fixed chunk of local and ghost atoms.
-    // Ensure npartner is zeroed across all atoms, nall_neigh can be less than nall
-    // when restart files are written that involve communication calls but modify->post_neighbor() isn't called
     const int ldelta = 1 + nall_neigh / nthreads;
     const int lfrom = tid * ldelta;
     const int lmax = lfrom + ldelta;
@@ -259,45 +282,53 @@ void FixNeighHistoryOMP::pre_exchange_newton()
     }
 #if defined(_OPENMP)
 #pragma omp barrier
-    {
-      ;
-    }
 
     // perform reverse comm to augment owned npartner counts with ghost counts
 
+#if _OPENMP >= 202011
+#pragma omp masked
+#else
 #pragma omp master
+#endif
 #endif
     {
       commflag = NPARTNER;
       comm->reverse_comm(this, 0);
     }
 
-    // get page chunks to store atom IDs and shear history for my atoms
-
-    for (ii = 0; ii < inum; ii++) {
-      i = ilist[ii];
-      if ((i >= lfrom) && (i < lto)) {
-        n = npartner[i];
-        partner[i] = ipg.get(n);
-        valuepartner[i] = dpg.get(dnum * n);
-        if (partner[i] == nullptr || valuepartner[i] == nullptr)
-          error->one(FLERR, Error::NOLASTLINE, "Neighbor history overflow, boost neigh_modify one" + utils::errorurl(36));
-      }
-    }
+    // wait for the reverse comm to complete: the augmented npartner counts
+    // of owned atoms determine the sizes of the page chunks allocated below
 
 #if defined(_OPENMP)
-#pragma omp master
+#pragma omp barrier
 #endif
-    {
-      for (i = lfrom; i < lto; i++) {
-        n = npartner[i];
-        partner[i] = ipg.get(n);
-        valuepartner[i] = dpg.get(dnum * n);
-        if (partner[i] == nullptr || valuepartner[i] == nullptr) {
-          error->one(FLERR, Error::NOLASTLINE, "Neighbor history overflow, boost neigh_modify one" + utils::errorurl(36));
-        }
+
+    // get page chunks to store atom IDs and shear history for
+    // this thread's chunk of owned and ghost atoms
+
+    for (i = lfrom; i < lto; i++) {
+      n = npartner[i];
+      partner[i] = ipg.get(n);
+      valuepartner[i] = dpg.get(dnum * n);
+      if (partner[i] == nullptr || valuepartner[i] == nullptr) {
+        // errors must be deferred until the end of the threaded region
+#if defined(_OPENMP)
+#pragma omp atomic
+#endif
+        overflow |= 1;
+        break;
       }
     }
+
+    // the reverse comm below stores partners of owned atoms of all threads.
+    // after a failed allocation in any thread, all threads must skip storing
+    // partners and the reverse comm. the error is reported after the threaded region.
+
+#if defined(_OPENMP)
+#pragma omp barrier
+#endif
+    const bool failed = (overflow != 0);
+    if (failed) inum = 0;
 
     // 2nd loop over neighbor list
     // store partner IDs and values for owned+ghost atoms
@@ -338,13 +369,14 @@ void FixNeighHistoryOMP::pre_exchange_newton()
     }
 #if defined(_OPENMP)
 #pragma omp barrier
-    {
-      ;
-    }
 
+#if _OPENMP >= 202011
+#pragma omp masked
+#else
 #pragma omp master
 #endif
-    {
+#endif
+    if (!failed) {
       // perform reverse comm to augment
       // owned atom partner/valuepartner with ghost info
       // use variable variant b/c size of packed data can be arbitrarily large
@@ -353,6 +385,13 @@ void FixNeighHistoryOMP::pre_exchange_newton()
       commflag = PERPARTNER;
       comm->reverse_comm_variable(this);
     }
+
+    // wait for the reverse comm to complete: it appends the ghost atom
+    // contributions to partner, valuepartner, and npartner of owned atoms
+
+#if defined(_OPENMP)
+#pragma omp barrier
+#endif
 
     // set maxpartner = max # of partners of any owned atom
     // maxexchange = max # of values for any Comm::exchange() atom
@@ -369,6 +408,10 @@ void FixNeighHistoryOMP::pre_exchange_newton()
     }
   }
 
+  if (overflow)
+    error->one(FLERR, Error::NOLASTLINE,
+               "Neighbor history overflow, boost neigh_modify one" + utils::errorurl(36));
+
   // zero npartner values from previous nlocal_neigh to current nlocal
 
   int nlocal = atom->nlocal;
@@ -382,8 +425,10 @@ void FixNeighHistoryOMP::pre_exchange_no_newton()
   const int nthreads = comm->nthreads;
   maxpartner = 0;
 
+  int overflow = 0;
+
 #if defined(_OPENMP)
-#pragma omp parallel LMP_DEFAULT_NONE
+#pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(overflow)
 #endif
   {
 
@@ -451,8 +496,17 @@ void FixNeighHistoryOMP::pre_exchange_no_newton()
         n = npartner[i];
         partner[i] = ipg.get(n);
         valuepartner[i] = dpg.get(dnum * n);
-        if (partner[i] == nullptr || valuepartner[i] == nullptr)
-          error->one(FLERR, Error::NOLASTLINE, "Neighbor history overflow, boost neigh_modify one" + utils::errorurl(36));
+        if (partner[i] == nullptr || valuepartner[i] == nullptr) {
+          // errors must be deferred until the end of the threaded region.
+          // skip storing the partners of this thread's atoms, which are
+          // not accessed by other threads.
+#if defined(_OPENMP)
+#pragma omp atomic
+#endif
+          overflow |= 1;
+          inum = 0;
+          break;
+        }
       }
     }
 
@@ -508,6 +562,10 @@ void FixNeighHistoryOMP::pre_exchange_no_newton()
       maxexchange = (dnum + 1) * maxpartner + 1;
     }
   }
+
+  if (overflow)
+    error->one(FLERR, Error::NOLASTLINE,
+               "Neighbor history overflow, boost neigh_modify one" + utils::errorurl(36));
 }
 
 /* -------------------------------------------------------------------- */

@@ -12,6 +12,9 @@ on:
 
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   build:
     name: Build with GNU Make
@@ -25,6 +28,7 @@ jobs:
       uses: actions/checkout@v7
       with:
         fetch-depth: 2
+        persist-credentials: false
 
     - name: Install extra Linux packages
       run: |
@@ -36,7 +40,7 @@ jobs:
                                 mpi-default-dev
 
     - name: Set up ccache
-      uses: actions/cache@v5
+      uses: actions/cache@v6
       with:
         path: ${{ env.CCACHE_DIR }}
         key: linux-gnu-ccache-${{ github.sha }}
@@ -55,6 +59,8 @@ jobs:
         make -j2 CC="ccache g++" serial
         make -j2 CC="ccache mpicxx" mpi
         ccache -s
+        # drop entries no build used for two weeks (e.g. from older compiler flags) before saving the cache
+        ccache --evict-older-than 14d
 
     - name: Running serial LAMMPS
       shell: bash

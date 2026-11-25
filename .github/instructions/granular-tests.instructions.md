@@ -4,11 +4,13 @@ applyTo: "unittest/granular/**,src/GRANULAR/**"
 
 # Granular / DEM Test Suite (`unittest/granular/`)
 
-YAML-driven regression + analytic tests for DEM/granular models.  Eleven programs
-`test_dem_01`..`test_dem_11` (43 tests): DEM-01..06 mirror the MFiX-DEM VVUQ cases;
+YAML-driven regression + analytic tests for DEM/granular models.  Sixteen programs
+`test_dem_01`..`test_dem_16` (63 tests): DEM-01..06 mirror the MFiX-DEM VVUQ cases;
 DEM-07..11 add rolling resistance, cohesion (JKR/DMT pull-off), two-sphere and
 spinning-sphere collisions, bulk angle-of-repose/rigid clumps, and elastic Hertzian
-normal impact (benchmark sets from Mohajeri 2024, Saomoto 2023, and Chung & Ooi 2011).
+normal impact (benchmark sets from Mohajeri 2024, Saomoto 2023, and Chung & Ooi 2011);
+DEM-12..15 cover superellipsoids, twisting friction, heat conduction, and two-sphere
+oblique impact; DEM-16 is a reference-only regression for the contact history transfer.
 Documented in `doc/src/Developer_unittest.rst` ("Tests for granular (DEM) models").
 
 ## Architecture
@@ -61,6 +63,13 @@ and radii from the live `atom` arrays, assert relative error with `EXPECT_LE`).
   hard-sphere/instantaneous-contact ideal.  Use `coeff_restitution` when the analytic
   model needs a known restitution `e`.  Free-fall is exact (velocity-Verlet integrates
   constant acceleration exactly, ~1e-15).
+- Soft contacts corrupt closed forms in two more ways: rigid-rolling kinematics
+  (`omega = v/(r - delta)`) needs `delta/r << tol`, and in two-sphere oblique impacts
+  the line of centers rotates during the finite contact, throwing fixed-normal impulse
+  forms off by ~5% at `emod` 7e10.  Stiffen the contact (e.g. `emod` 7e11 / `kn` 3e8
+  brings it to ~0.1%) instead of loosening tolerances.
+- The harness requires `pair_style`/`pair_coeff` keys even for wall-only tests; a
+  missing key produces a confusing error from the default `pair_style zero` fallback.
 - Physics setup: start a particle resting on a wall at the gravity-equilibrium overlap
   (`z0 = r - mg/kn`) so the normal force is steady at `mg` (DEM-04).  The gross-sliding
   oblique-impact closed form needs a grazing angle (`vx_in > (7/2)mu(1+e)vz_in`)
@@ -73,6 +82,12 @@ and radii from the live `atom` arrays, assert relative error with `EXPECT_LE`).
   cleanly to ~76 deg (DEM-05); the 76-deg `dem05-hookehistory-grazing`
   `energy_dissipation` test locks the fix in.  Do NOT reintroduce the old "keep
   oblique tests <=45 deg" restriction.
+- Contacts that persist across a neighbor list rebuild go through
+  `PairGranular::transfer_history()` (fix neigh/history builds the partner's copy), and
+  the stored i/j order of a pair can flip at a rebuild, with newton on as well.  Isolated
+  two- or few-particle tests never exercise this path; DEM-16 does (dense overlapping
+  periodic fcc packing, rebuilds every 10 steps).  Its many-contact trajectory amplifies
+  rounding differences more than the two-particle tests, hence `epsilon: 1e-08`.
 - DEM-06 exercises the production fix `viscous/nonlinear` (Schiller-Naumann drag) in
   `src/GRANULAR/`; it reduces to Stokes drag (`6 pi mu r v`) at low Reynolds number.
 - DEM-10/11 setup: `fix pour` needs the insertion region wider than one diameter AND

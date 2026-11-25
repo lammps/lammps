@@ -44,6 +44,7 @@ class UniqueToken<OpenMP, UniqueTokenScope::Instance> {
     KOKKOS_IF_ON_HOST((return m_count;))
 
     KOKKOS_IF_ON_DEVICE((return 0;))
+    KOKKOS_IMPL_UNREACHABLE();
   }
 
   /// \brief acquire value such that 0 <= value < size()
@@ -65,6 +66,7 @@ class UniqueToken<OpenMP, UniqueTokenScope::Instance> {
          return result.first;))
 
     KOKKOS_IF_ON_DEVICE((return 0;))
+    KOKKOS_IMPL_UNREACHABLE();
   }
 
   /// \brief release a value acquired by generate
@@ -96,6 +98,7 @@ class UniqueToken<OpenMP, UniqueTokenScope::Global> {
         (return Kokkos::Impl::OpenMPInternal::max_hardware_threads();))
 
     KOKKOS_IF_ON_DEVICE((return 0;))
+    KOKKOS_IMPL_UNREACHABLE();
   }
 
   /// \brief acquire value such that 0 <= value < size()
@@ -106,6 +109,7 @@ class UniqueToken<OpenMP, UniqueTokenScope::Global> {
     KOKKOS_IF_ON_HOST((return omp_get_thread_num();))
 
     KOKKOS_IF_ON_DEVICE((return 0;))
+    KOKKOS_IMPL_UNREACHABLE();
   }
 
   /// \brief release a value acquired by generate

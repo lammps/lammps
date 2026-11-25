@@ -36,6 +36,7 @@
 #include "kokkos.h"
 #include "math_const.h"
 #include "math_special.h"
+#include "math_special_kokkos.h"
 #include "memory_kokkos.h"
 #include "neigh_request.h"
 #include "neighbor.h"
@@ -52,6 +53,23 @@ using namespace ReaxFF;
 namespace LAMMPS_NS {
 using namespace MathConst;
 using namespace MathSpecial;
+
+/* ----------------------------------------------------------------------
+   sine of the angle between two vectors from the norm of their cross
+   product, with ab = |a| |b|.  in single precision, the cosine computed
+   from the dot product rounds to -1 or 1 when the angle is within about
+   0.02 degrees of 180 or 0 degrees, so sin(acos(cos_theta)) is useless
+   there, while the cross product stays accurate
+------------------------------------------------------------------------- */
+
+KOKKOS_INLINE_FUNCTION
+static KK_FLOAT sin_angle(const KK_FLOAT *a, const KK_FLOAT *b, const KK_FLOAT ab)
+{
+  const KK_FLOAT c0 = a[1]*b[2] - a[2]*b[1];
+  const KK_FLOAT c1 = a[2]*b[0] - a[0]*b[2];
+  const KK_FLOAT c2 = a[0]*b[1] - a[1]*b[0];
+  return sqrt(c0*c0 + c1*c1 + c2*c2) / ab;
+}
 
 template<class DeviceType>
 PairReaxFFKokkos<DeviceType>::PairReaxFFKokkos(LAMMPS *lmp) : PairReaxFF(lmp)
@@ -174,11 +192,11 @@ void PairReaxFFKokkos<DeviceType>::init_style()
     if (!ifix->kokkosable)
       error->all(FLERR,"Must use Kokkos version of acks2/reaxff with pair reaxff/kk");
     if (ifix->execution_space == HostKK) {
-      auto k_s = ((FixACKS2ReaxFFKokkos<LMPHostType>*) ifix)->get_s();
+      auto k_s = ((FixACKS2ReaxFFKokkos<LMPHostType>*) ifix)->get_k_s();
       k_s.sync<DeviceType>();
       d_s = k_s.view<DeviceType>();
     } else {
-      auto k_s = ((FixACKS2ReaxFFKokkos<LMPDeviceType>*) ifix)->get_s();
+      auto k_s = ((FixACKS2ReaxFFKokkos<LMPDeviceType>*) ifix)->get_k_s();
       k_s.sync<DeviceType>();
       d_s = k_s.view<DeviceType>();
     }
@@ -363,13 +381,16 @@ void PairReaxFFKokkos<DeviceType>::setup()
   // bond order cutoffs
   bo_cut = static_cast<KK_FLOAT>(0.01 * gp[29]);
   thb_cut = static_cast<KK_FLOAT>(api->control->thb_cut);
-  thb_cutsq = static_cast<KK_FLOAT>(0.000010); //thb_cut*thb_cut;
+  thb_cutsq = static_cast<KK_FLOAT>(api->control->thb_cutsq);
 
   // misc precision conversions
   C_ele_reduced = static_cast<KK_FLOAT>(C_ele);
 
-  if (atom->nmax > nmax) {
-    nmax = atom->nmax;
+  // the hydrogen bond arrays only exist with a positive hydrogen bond cutoff.
+  // a later pair_style command may enable them or grow nmax while they are off.
+
+  if ((atom->nmax > nmax) || ((cut_hbsq > 0.0) && ((int) d_hb_num.extent(0) < nmax))) {
+    nmax = MAX(nmax, atom->nmax);
     allocate_array();
   }
 }
@@ -508,6 +529,10 @@ int PairReaxFFKokkos<DeviceType>::Init_Lookup_Tables()
 
   for (i = 1; i <= num_atom_types; ++i) {
     for (j = i; j <= num_atom_types; ++j) {
+
+      // skip atom types that are not handled by this pair style (NULL in pair_coeff)
+      if ((map[i] == -1) || (map[j] == -1)) continue;
+
       LR[i][j].xmin = 0;
       LR[i][j].xmax = api->control->nonb_cut;
       LR[i][j].n = api->control->tabulate + 2;
@@ -746,11 +771,11 @@ void PairReaxFFKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   if (acks2_flag) {
     auto ifix = modify->get_fix_by_style("^acks2/reax").front();
     if (ifix->execution_space == HostKK) {
-      auto k_s = ((FixACKS2ReaxFFKokkos<LMPHostType>*) ifix)->get_s();
+      auto k_s = ((FixACKS2ReaxFFKokkos<LMPHostType>*) ifix)->get_k_s();
       k_s.sync<DeviceType>();
       d_s = k_s.view<DeviceType>();
     } else {
-      auto k_s = ((FixACKS2ReaxFFKokkos<LMPDeviceType>*) ifix)->get_s();
+      auto k_s = ((FixACKS2ReaxFFKokkos<LMPDeviceType>*) ifix)->get_k_s();
       k_s.sync<DeviceType>();
       d_s = k_s.view<DeviceType>();
     }
@@ -1257,7 +1282,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeLJCoulomb<NEIGHF
       exp1 = exp2*exp2;
       etmp = epsilon*(exp1-static_cast<KK_FLOAT>(2.0)*exp2);
       evdwl = Tap*etmp;
-      fvdwl = dTap*etmp-Tap*epsilon*(alpha/r_vdw)*(exp1-exp2)*rij;
+      fvdwl = dTap*etmp-Tap*epsilon*(alpha/r_vdw)*(exp1-exp2)/rij;
     }
     // inner wall
     if (vdwflag == 2 || vdwflag == 3) {
@@ -1300,8 +1325,8 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeLJCoulomb<NEIGHF
 
       if (rij <= xcut) {
         const KK_FLOAT d = rij / xcut;
-        const KK_FLOAT bond_softness = gp[34] * pow( d, static_cast<KK_FLOAT>(3.0) )
-                                    * pow( static_cast<KK_FLOAT>(1.0) - d, static_cast<KK_FLOAT>(6.0) );
+        const KK_FLOAT bond_softness = gp[34] * MathSpecialKokkos::cube(d)
+                                    * MathSpecialKokkos::powint(static_cast<KK_FLOAT>(1.0) - d, 6);
 
         if (bond_softness > static_cast<KK_FLOAT>(0.0)) {
           /* Coulombic energy contribution */
@@ -1315,8 +1340,8 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeLJCoulomb<NEIGHF
           /* forces contribution */
           KK_FLOAT d_bond_softness;
           d_bond_softness = gp[34]
-                          * static_cast<KK_FLOAT>(3.0) / xcut * pow( d, static_cast<KK_FLOAT>(2.0) )
-                          * pow( static_cast<KK_FLOAT>(1.0) - d, static_cast<KK_FLOAT>(5.0) ) * (static_cast<KK_FLOAT>(1.0) - static_cast<KK_FLOAT>(3.0) * d);
+                          * static_cast<KK_FLOAT>(3.0) / xcut * MathSpecialKokkos::square(d)
+                          * MathSpecialKokkos::powint(static_cast<KK_FLOAT>(1.0) - d, 5) * (static_cast<KK_FLOAT>(1.0) - static_cast<KK_FLOAT>(3.0) * d);
           d_bond_softness = -static_cast<KK_FLOAT>(0.5) * d_bond_softness
                           * SQR( effpot_diff );
           d_bond_softness = static_cast<KK_FLOAT>(KCALpMOL_to_EV) * d_bond_softness
@@ -1454,8 +1479,8 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeTabulatedLJCoulo
 
       if (rij <= xcut) {
         const KK_FLOAT d = rij / xcut;
-        const KK_FLOAT bond_softness = gp[34] * pow( d, static_cast<KK_FLOAT>(3.0) )
-                                    * pow( static_cast<KK_FLOAT>(1.0) - d, static_cast<KK_FLOAT>(6.0) );
+        const KK_FLOAT bond_softness = gp[34] * MathSpecialKokkos::cube(d)
+                                    * MathSpecialKokkos::powint(static_cast<KK_FLOAT>(1.0) - d, 6);
 
         if (bond_softness > 0) {
           /* Coulombic energy contribution */
@@ -1469,8 +1494,8 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeTabulatedLJCoulo
           /* forces contribution */
           KK_FLOAT d_bond_softness;
           d_bond_softness = gp[34]
-                          * static_cast<KK_FLOAT>(3.0) / xcut * pow( d, static_cast<KK_FLOAT>(2.0) )
-                          * pow( static_cast<KK_FLOAT>(1.0) - d, static_cast<KK_FLOAT>(5.0) ) * (static_cast<KK_FLOAT>(1.0) - static_cast<KK_FLOAT>(3.0) * d);
+                          * static_cast<KK_FLOAT>(3.0) / xcut * MathSpecialKokkos::square(d)
+                          * MathSpecialKokkos::powint(static_cast<KK_FLOAT>(1.0) - d, 5) * (static_cast<KK_FLOAT>(1.0) - static_cast<KK_FLOAT>(3.0) * d);
           d_bond_softness = -static_cast<KK_FLOAT>(0.5) * d_bond_softness
                           * SQR( effpot_diff );
           d_bond_softness = static_cast<KK_FLOAT>(KCALpMOL_to_EV) * d_bond_softness
@@ -1593,7 +1618,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxZero, const int &n) con
   d_total_bo(n) = 0;
   d_CdDelta(n) = 0;
   d_bo_num(n) = 0;
-  d_hb_num(n) = 0;
+  if (cut_hbsq > 0.0) d_hb_num(n) = 0;
   for (int j = 0; j < 3; j++)
     d_dDeltap_self(n,j) = 0;
 }
@@ -2155,8 +2180,8 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBondOrder2, const int &
       }
 
       if (v13cor >= 0.001) {
-        exp_f4 =exp(-(p_boc4*(d_BO(i,j_index)*d_BO(i,j_index))-d_Deltap_boc[i])*p_boc3+p_boc5);
-        exp_f5 =exp(-(p_boc4*(d_BO(i,j_index)*d_BO(i,j_index))-d_Deltap_boc[j])*p_boc3+p_boc5);
+        exp_f4 =exp((double)(-(p_boc4*(d_BO(i,j_index)*d_BO(i,j_index))-d_Deltap_boc[i])*p_boc3+p_boc5));
+        exp_f5 =exp((double)(-(p_boc4*(d_BO(i,j_index)*d_BO(i,j_index))-d_Deltap_boc[j])*p_boc3+p_boc5));
         f4 = 1. / (1. + exp_f4);
         f5 = 1. / (1. + exp_f5);
         f4f5 = f4 * f5;
@@ -2312,8 +2337,8 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeMulti2<NEIGHFLAG
 
   // lone pair
   const KK_FLOAT p_lp2 = paramssing(itype).p_lp2;
-  const KK_FLOAT expvd2 = exp(-75 * d_Delta_lp[i]);
-  const KK_FLOAT inv_expvd2 = 1.0 / (1.0+expvd2);
+  const double expvd2 = exp(-75.0 * (double)d_Delta_lp[i]);
+  const double inv_expvd2 = 1.0 / (1.0+expvd2);
 
   int numbonds = d_bo_num[i];
 
@@ -2331,11 +2356,11 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeMulti2<NEIGHFLAG
   //if (eflag_atom) this->template e_tally<NEIGHFLAG>(ev,i,i,e_lp);
 
   // over coordination
-  const double exp_ovun1 = p_ovun3 * exp(p_ovun4 * d_sum_ovun(i,2));
+  const double exp_ovun1 = p_ovun3 * exp((double)(p_ovun4 * d_sum_ovun(i,2)));
   const double inv_exp_ovun1 = 1.0 / (1 + exp_ovun1);
   const KK_FLOAT Delta_lpcorr  = d_Delta[i] - (dfvl * d_Delta_lp_temp[i]) * inv_exp_ovun1;
 
-  const double exp_ovun2 = exp(p_ovun2 * Delta_lpcorr);
+  const double exp_ovun2 = exp((double)(p_ovun2 * Delta_lpcorr));
   const double inv_exp_ovun2 = 1.0 / (1.0 + exp_ovun2);
   const KK_FLOAT DlpVi = 1.0 / (Delta_lpcorr + val_i + 1e-8);
 
@@ -2354,8 +2379,8 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeMulti2<NEIGHFLAG
   // under coordination
 
   const double exp_ovun2n = 1.0 / exp_ovun2;
-  const double exp_ovun6 = exp(p_ovun6 * Delta_lpcorr);
-  const double exp_ovun8 = p_ovun7 * exp(p_ovun8 * d_sum_ovun(i,2));
+  const double exp_ovun6 = exp((double)(p_ovun6 * Delta_lpcorr));
+  const double exp_ovun8 = p_ovun7 * exp((double)(p_ovun8 * d_sum_ovun(i,2)));
   const double inv_exp_ovun2n = 1.0 / (1.0 + exp_ovun2n);
   const double inv_exp_ovun8 = 1.0 / (1.0 + exp_ovun8);
 
@@ -2396,11 +2421,11 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeMulti2<NEIGHFLAG
     // multibody lone pair: correction for C2
     if (p_lp3 > 0.001 && imass == 12.0 && jmass == 12.0) {
       const KK_FLOAT Di = d_Delta[i];
-      const KK_FLOAT vov3 = d_BO(i,j_index) - Di - 0.040*pow(Di,4.0);
+      const KK_FLOAT vov3 = d_BO(i,j_index) - Di - 0.040*MathSpecialKokkos::powint(Di,4);
       if (vov3 > 3.0) {
         const KK_FLOAT e_lph = p_lp3 * (vov3-3.0)*(vov3-3.0);
         const KK_FLOAT deahu2dbo = 2.0 * p_lp3 * (vov3 - 3.0);
-        const KK_FLOAT deahu2dsbo = 2.0 * p_lp3 * (vov3 - 3.0) * (-1.0 - 0.16 * pow(Di,3.0));
+        const KK_FLOAT deahu2dsbo = 2.0 * p_lp3 * (vov3 - 3.0) * (-1.0 - 0.16 * MathSpecialKokkos::cube(Di));
         d_Cdbo(i,j_index) += deahu2dbo;
         CdDelta_i += deahu2dsbo;
 
@@ -2708,9 +2733,9 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeAngularPreproces
   KK_FLOAT p_val6, p_val7, p_val10;
   KK_FLOAT p_pen1, p_pen2, p_pen3, p_pen4;
   KK_FLOAT p_coa1, p_coa2, p_coa3, p_coa4;
-  KK_FLOAT expval6, expval7, expval2theta, expval12theta, exp3ij, exp3jk;
+  KK_FLOAT expval2theta, expval12theta, exp3ij, exp3jk;
   // FP64 to prevent overflow in single precision
-  double exp_pen2ij, exp_pen2jk, exp_pen3, exp_pen4, trm_pen34, exp_coa2;
+  double expval6, expval7, exp_pen2ij, exp_pen2jk, exp_pen3, exp_pen4, trm_pen34, exp_coa2;
   KK_FLOAT dSBO1, dSBO2, SBO2, CSBO2;
   KK_FLOAT CEval1, CEval2, CEval3, CEval4, CEval5, CEval6, CEval7, CEval8;
   KK_FLOAT CEpen1, CEpen2, CEpen3;
@@ -2762,7 +2787,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeAngularPreproces
   dSBO1 = d_angular_intermediates(i, 2);
   dSBO2 = d_angular_intermediates(i, 3);
 
-  expval6 = exp(p_val6 * d_Delta_boc[i]);
+  expval6 = exp((double)(p_val6 * d_Delta_boc[i]));
 
   KK_ACC_FLOAT CdDelta_i = 0.0;
   KK_ACC_FLOAT fitmp[3],fjtmp[3];
@@ -2797,7 +2822,8 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeAngularPreproces
   cos_theta = (delij[0]*delik[0]+delij[1]*delik[1]+delij[2]*delik[2])/(rij*rik);
   if (cos_theta > 1.0) cos_theta  = 1.0;
   if (cos_theta < -1.0) cos_theta  = -1.0;
-  theta = acos(cos_theta);
+  sin_theta = sin_angle(delij, delik, rij*rik);
+  theta = atan2(sin_theta, cos_theta);
 
   const KK_FLOAT inv_dists = 1.0 / (rij * rik);
   const KK_FLOAT Cdot_inv3 = cos_theta * inv_dists * inv_dists;
@@ -2808,7 +2834,6 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeAngularPreproces
     dcos_theta_dk[t] = delij[t] * inv_dists - Cdot_inv3 * rsqij * delik[t];
   }
 
-  sin_theta = sin(theta);
   if (sin_theta < 1.0e-5) sin_theta = 1.0e-5;
   p_val1 = paramsthbp(jtype,itype,ktype).p_val1;
 
@@ -2826,7 +2851,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeAngularPreproces
   exp3jk = exp(-p_val3 * pow(BOA_ik, p_val4));
   f7_jk = 1.0 - exp3jk;
   Cf7jk = p_val3 * p_val4 * pow(BOA_ik, p_val4 - 1.0) * exp3jk;
-  expval7 = exp(-p_val7 * d_Delta_boc[i]);
+  expval7 = exp((double)(-p_val7 * d_Delta_boc[i]));
   trm8 = 1.0 + expval6 + expval7;
   f8_Dj = p_val5 - ((p_val5 - 1.0) * (2.0 + expval6) / trm8);
   Cf8j = ((1.0 - p_val5) / (trm8*trm8)) *
@@ -2859,8 +2884,8 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeAngularPreproces
 
   exp_pen2ij = exp(-p_pen2 * (BOA_ij - 2.0)*(BOA_ij - 2.0));
   exp_pen2jk = exp(-p_pen2 * (BOA_ik - 2.0)*(BOA_ik - 2.0));
-  exp_pen3 = exp(-p_pen3 * d_Delta[i]);
-  exp_pen4 = exp(p_pen4 * d_Delta[i]);
+  exp_pen3 = exp((double)(-p_pen3 * d_Delta[i]));
+  exp_pen4 = exp((double)(p_pen4 * d_Delta[i]));
   trm_pen34 = 1.0 + exp_pen3 + exp_pen4;
   f9_Dj = (2.0 + exp_pen3) / trm_pen34;
   Cf9j = (-p_pen3 * exp_pen3 * trm_pen34 - (2.0 + exp_pen3) *
@@ -2877,7 +2902,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeAngularPreproces
   // ConjAngle energy
 
   p_coa1 = paramsthbp(jtype,itype,ktype).p_coa1;
-  exp_coa2 = exp(p_coa2 * Delta_val);
+  exp_coa2 = exp((double)(p_coa2 * Delta_val));
   e_coa = p_coa1 / (1. + exp_coa2) *
           exp(-p_coa3 * SQR(d_total_bo[j]-BOA_ij)) *
           exp(-p_coa3 * SQR(d_total_bo[k]-BOA_ik)) *
@@ -2968,7 +2993,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeTorsionPreproces
   // FP64 to prevent overflow in single precision
   double exp_tor2_ij, exp_tor2_ik, exp_tor2_jl, exp_tor1, exp_tor3_DiDj, exp_tor4_DiDj, exp_tor34_inv;
   double exp_cot2_ij, exp_cot2_ik, exp_cot2_jl, fn10, f11_DiDj, dfn11, fn12;
-  KK_FLOAT theta_ijk, theta_jil, sin_ijk, sin_jil, cos_ijk, cos_jil, tan_ijk_i, tan_jil_i;
+  KK_FLOAT sin_ijk, sin_jil, cos_ijk, cos_jil, tan_ijk_i, tan_jil_i;
   KK_FLOAT cos_omega, cos2omega, cos3omega;
   KK_FLOAT CV, cmn, CEtors1, CEtors2, CEtors3, CEtors4;
   KK_FLOAT CEtors5, CEtors6, CEtors7, CEtors8, CEtors9;
@@ -3016,8 +3041,8 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeTorsionPreproces
   Delta_j = d_Delta_boc[j];
   exp_tor2_ij = exp(-p_tor2 * BOA_ij);
   exp_cot2_ij = exp(-p_cot2 * SQR(BOA_ij - 1.5));
-  exp_tor3_DiDj = exp(-p_tor3 * (Delta_i + Delta_j));
-  exp_tor4_DiDj = exp(p_tor4  * (Delta_i + Delta_j));
+  exp_tor3_DiDj = exp((double)(-p_tor3 * (Delta_i + Delta_j)));
+  exp_tor4_DiDj = exp((double)(p_tor4  * (Delta_i + Delta_j)));
   exp_tor34_inv = 1.0 / (1.0 + exp_tor3_DiDj + exp_tor4_DiDj);
   f11_DiDj = (2.0 + exp_tor3_DiDj) * exp_tor34_inv;
 
@@ -3033,7 +3058,6 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeTorsionPreproces
   cos_ijk = (delij[0]*delik[0]+delij[1]*delik[1]+delij[2]*delik[2])/(rij*rik);
   if (cos_ijk > 1.0) cos_ijk  = 1.0;
   if (cos_ijk < -1.0) cos_ijk  = -1.0;
-  theta_ijk = acos(cos_ijk);
 
   // dcos_ijk
   const KK_FLOAT inv_dists = 1.0 / (rij * rik);
@@ -3045,7 +3069,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeTorsionPreproces
     dcos_ijk_dk[d] = delij[d] * inv_dists - cos_ijk_tmp * rsqij * delik[d];
   }
 
-  sin_ijk = sin(theta_ijk);
+  sin_ijk = sin_angle(delij, delik, rij*rik);
   if (sin_ijk >= 0 && sin_ijk <= MIN_SINE)
     tan_ijk_i = cos_ijk / MIN_SINE;
   else if (sin_ijk <= 0 && sin_ijk >= -MIN_SINE)
@@ -3067,7 +3091,6 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeTorsionPreproces
   cos_jil = -(delij[0]*deljl[0]+delij[1]*deljl[1]+delij[2]*deljl[2])/(rij*rjl);
   if (cos_jil > 1.0) cos_jil  = 1.0;
   if (cos_jil < -1.0) cos_jil  = -1.0;
-  theta_jil = acos(cos_jil);
 
   // dcos_jil
   const KK_FLOAT inv_distjl = 1.0 / (rij * rjl);
@@ -3079,7 +3102,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeTorsionPreproces
     dcos_jil_dk[d] = -delij[d] * inv_distjl - cos_jil_tmp * rsqij * deljl[d];
   }
 
-  sin_jil = sin(theta_jil);
+  sin_jil = sin_angle(delij, deljl, rij*rjl);
   if (sin_jil >= 0 && sin_jil <= MIN_SINE)
     tan_jil_i = cos_jil / MIN_SINE;
   else if (sin_jil <= 0 && sin_jil >= -MIN_SINE)
@@ -3574,8 +3597,8 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeBond1<NEIGHFLAG,
     KK_FLOAT estriph = 0.0;
 
     if (BO_i >= 1.00) {
-      if (gp[37] == 2 || (imass == 12.0000 && jmass == 15.9990) ||
-                         (jmass == 12.0000 && imass == 15.9990)) {
+      if (gp[37] == 2 || (imass == (KK_FLOAT)12.0000 && jmass == (KK_FLOAT)15.9990) ||
+                         (jmass == (KK_FLOAT)12.0000 && imass == (KK_FLOAT)15.9990)) {
         const KK_FLOAT exphu = exp(-gp[7] * SQR(BO_i - 2.50));
         const KK_FLOAT exphua1 = exp(-gp[3] * (d_total_bo[i]-BO_i));
         const KK_FLOAT exphub1 = exp(-gp[3] * (d_total_bo[j]-BO_i));
@@ -4227,6 +4250,11 @@ void PairReaxFFKokkos<DeviceType>::PackBondBuffer(DAT::tdual_double_1d k_buf, in
   k_buf.sync_host();
   k_nbuf_local.sync_host();
   nbuf_local = k_nbuf_local.view_host()();
+
+  // without local atoms the functor never sets the size: the buffer then holds
+  // only the number of atoms in buf[0], as in FixReaxFFBonds::PassBuffer()
+
+  if (nlocal == 0) nbuf_local = 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -4361,18 +4389,19 @@ void PairReaxFFKokkos<DeviceType>::FindBondSpecies()
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxFindBondSpecies>(0,nlocal),*this);
   copymode = 0;
 
-  // NOTE: Could improve performance if a Kokkos version of ComputeSpecAtom is added
+  // fix reaxff/species/kk copies the bonds to the host only on the steps
+  // when it needs them, see sync_species_host()
 
   k_tmpbo.modify<DeviceType>();
   k_tmpid.modify<DeviceType>();
   k_error_flag.modify<DeviceType>();
 
-  k_tmpbo.sync_host();
-  k_tmpid.sync_host();
   k_error_flag.sync_host();
 
   if (k_error_flag.view_host()())
-    error->all(FLERR,"Increase MAXSPECBOND in reaxff_defs.h");
+    error->one(FLERR, Error::NOLASTLINE,
+               "Atom(s) with more than {} bonds for ReaxFF species analysis; "
+               "increase MAXSPECBOND in reaxff_defs.h", MAXSPECBOND);
 }
 
 template<class DeviceType>
@@ -4400,10 +4429,13 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxFindBondSpecies, const 
     KK_FLOAT bo_tmp = d_BO(i, j_index);
 
     if (bo_tmp >= 0.10) { // Why is this a hardcoded value?
+      if (nj >= MAXSPECBOND) {
+        k_error_flag.view<DeviceType>()() = 1;
+        return;
+      }
       d_tmpid(i,nj) = j;
       d_tmpbo(i,nj) = bo_tmp;
       nj++;
-      if (nj > MAXSPECBOND) k_error_flag.view<DeviceType>()() = 1;
     }
   }
 }

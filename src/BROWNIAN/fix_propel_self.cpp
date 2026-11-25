@@ -47,6 +47,7 @@ FixPropelSelf::FixPropelSelf(LAMMPS *lmp, int narg, char **arg) :
 {
 
   virial_global_flag = virial_peratom_flag = 1;
+  respa_level_support = 1;
 
   if (narg != 5 && narg != 9) error->all(FLERR, "Incorrect number of fix propel/self arguments");
 
@@ -96,6 +97,7 @@ int FixPropelSelf::setmask()
 {
   int mask = 0;
   mask |= POST_FORCE;
+  mask |= POST_FORCE_RESPA;
   return mask;
 }
 

@@ -99,9 +99,6 @@ class LAMMPSLexer(RegexLexer):
             (r'([0-9]+\.?[0-9]*|\.[0-9]+)([eE][+-]?[0-9]+)?', Number),
             (r'\$?\(', Name.Variable, 'expression'),
             (r'\$\{', Name.Variable, 'variable'),
-            # Highlight command styles in the same blue, bold style used by
-            # the LAMMPS website for documented command names.
-            (words(('temp/uef', 'temp/uvt', 'uvt', 'pimd/uvt'), suffix=r'\b', prefix=r'(?<=\s)'), Name.Class),
             # words with forward slashes (style names, file paths) are one name
             (r'[A-Za-z][\w\.\[\]]*(/[\w\.\[\]]+)+', Name),
             (r'[\w_\.\[\]]+', Name),

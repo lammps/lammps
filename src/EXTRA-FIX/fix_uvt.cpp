@@ -23,7 +23,6 @@
 #include "atom.h"
 #include "citeme.h"
 #include "compute.h"
-#include "compute_temp_uvt.h"
 #include "domain.h"
 #include "group.h"
 #include "input.h"
@@ -212,8 +211,8 @@ void FixUVT::init()
 {
   FixNH::init();
 
-  auto *combined = dynamic_cast<ComputeTempUVT *>(temperature);
-  if (!combined || strcmp(combined->id_fix, id) != 0 || combined->igroup != igroup)
+  // compute temp/uvt checks in its init() that it references this fix and group
+  if (strcmp(temperature->style, "temp/uvt") != 0)
     error->all(FLERR, "Fix uvt requires a compute temp/uvt for the same fix and group");
 
   dedn_var = -1;
@@ -489,6 +488,7 @@ void *FixUVT::extract(const char *str, int &dim)
   if (strcmp(str, "mu") == 0) return &mu;
   if (strcmp(str, "u_current") == 0) return &dedn_current;
   if (strcmp(str, "u_freq") == 0) return &u_freq;
+  if (strcmp(str, "id_temp") == 0) return id_temp;
 
   dim = 1;
   if (strcmp(str, "ne") == 0) return &Ne;

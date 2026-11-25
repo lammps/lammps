@@ -75,6 +75,15 @@ void ComputeTempUVT::init()
   ne_mass = static_cast<double *>(fix->extract("ne_mass", dim));
   if (!ne_dot || !ne_mass)
     error->all(FLERR, "Fix {} does not expose electronic state for compute temp/uvt", id_fix);
+
+  // a fix uvt that thermostats with this compute must be the fix it references
+
+  for (auto *ifix : modify->get_fix_by_style("^uvt$")) {
+    auto *id_temp = static_cast<char *>(ifix->extract("id_temp", dim));
+    if (id_temp && (strcmp(id_temp, id) == 0) &&
+        ((strcmp(ifix->id, id_fix) != 0) || (ifix->igroup != igroup)))
+      error->all(FLERR, "Fix uvt requires a compute temp/uvt for the same fix and group");
+  }
 }
 
 /* ---------------------------------------------------------------------- */

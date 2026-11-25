@@ -414,6 +414,10 @@ TEST_F(VariableTest, Expressions)
     command("variable isrt   vector    sort(v_one)");
     command("variable dvec4  vector    v_vec4*2");
     command("variable nest   atom      sum(v_dvec4)*v_vec4");
+    command("variable empty  vector    '[]'");
+    command("variable esum   equal     sum(v_empty)");
+    command("variable etrp   equal     trap(v_empty)");
+    command("variable eave   equal     ave(v_empty)");
     command("variable pow30  equal     v_three^0");
     command("variable pow31  equal     v_three^1");
     command("variable pow32  equal     v_three^2");
@@ -486,6 +490,14 @@ TEST_F(VariableTest, Expressions)
     std::vector<double> peratom(lmp->atom->nlocal);
     TEST_FAILURE(".*ERROR: Variable vec4: Vector-style variable in atom-style variable formula.*",
                  variable->compute_atom(variable->find("nest"), 0, peratom.data(), 1, 0););
+
+    // ave() and trap() of an empty vector are undefined, sum() is zero
+
+    ASSERT_DOUBLE_EQ(variable->compute_equal("v_esum"), 0.0);
+    TEST_FAILURE(".*ERROR: Variable etrp: Cannot compute trap\\(\\) of an empty vector.*",
+                 command("print \"${etrp}\""););
+    TEST_FAILURE(".*ERROR: Variable eave: Cannot compute ave\\(\\) of an empty vector.*",
+                 command("print \"${eave}\""););
     TEST_FAILURE(".*ERROR on proc 0: Variable err4: Invalid power expression in variable formula.*",
                  command("print \"${err4}\""););
     TEST_FAILURE(".*ERROR on proc 0: Invalid power expression in variable formula.*",

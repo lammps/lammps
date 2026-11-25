@@ -4846,11 +4846,12 @@ int Variable::special_function(const std::string &word, char *contents, Tree **t
       nvec = compute_vector(jvar,&vec);
       nstride = 1;
 
-      if ((method == AVE) && (nvec == 0))
-        print_var_error(FLERR,"Cannot compute average of empty vector",ivar);
-
-
     } else print_var_error(FLERR,"Invalid special function in variable formula",ivar);
+
+    // ave() divides by the number of elements, trap() reads the first and the last element
+
+    if (((method == AVE) || (method == TRAP)) && (nvec == 0))
+      print_var_error(FLERR, fmt::format("Cannot compute {}() of an empty vector", word), ivar);
 
     value = 0.0;
     if (method == SLOPE) sx = sxx = sy = sxy = 0.0;

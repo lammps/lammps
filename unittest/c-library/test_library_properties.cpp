@@ -845,6 +845,50 @@ TEST_F(LibraryProperties, create_atoms_after_run)
     }
 };
 
+TEST_F(LibraryProperties, create_atoms_invalid)
+{
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lammps_commands_string(lmp, sc_setup("array").c_str());
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    lammps_set_show_error(lmp, 0);
+    EXPECT_EQ(lammps_get_natoms(lmp), 125.0);
+
+    const double pos[] = {0.5, 0.5, 0.5, 1.5, 0.5, 0.5};
+    const tagint ids[] = {126, 127};
+    char errmsg[256];
+
+    // atom types outside 1 to ntypes: no atoms are created
+    const int badtypes[][2] = {{1, 3}, {0, 1}, {-1, 2}};
+    for (const auto &types : badtypes) {
+        EXPECT_EQ(lammps_create_atoms(lmp, 2, ids, types, pos, nullptr, nullptr, 0), -1);
+        EXPECT_EQ(lammps_get_last_error_message(lmp, errmsg, 256), 1);
+        EXPECT_THAT(errmsg, HasSubstr("Invalid atom type"));
+        EXPECT_EQ(lammps_get_natoms(lmp), 125.0);
+    }
+
+    // atom IDs that are zero or negative: no atoms are created
+    const int types[]        = {1, 2};
+    const tagint badids[][2] = {{126, 0}, {-5, 126}};
+    const char *badidtexts[] = {"Invalid atom ID 0", "Invalid atom ID -5"};
+    for (int i = 0; i < 2; ++i) {
+        EXPECT_EQ(lammps_create_atoms(lmp, 2, badids[i], types, pos, nullptr, nullptr, 0), -1);
+        EXPECT_EQ(lammps_get_last_error_message(lmp, errmsg, 256), 1);
+        EXPECT_THAT(errmsg, HasSubstr(badidtexts[i]));
+        EXPECT_EQ(lammps_get_natoms(lmp), 125.0);
+    }
+
+    // valid atom types and IDs
+    EXPECT_EQ(lammps_create_atoms(lmp, 2, ids, types, pos, nullptr, nullptr, 0), 2);
+    EXPECT_EQ(lammps_has_error(lmp), 0);
+    EXPECT_EQ(lammps_get_natoms(lmp), 127.0);
+
+    // an atom ID that already exists is reported after the atom is created
+    const tagint dupid = 7;
+    EXPECT_EQ(lammps_create_atoms(lmp, 1, &dupid, types, pos, nullptr, nullptr, 0), -1);
+    EXPECT_EQ(lammps_get_last_error_message(lmp, errmsg, 256), 1);
+    EXPECT_THAT(errmsg, HasSubstr("Duplicate atom IDs exist"));
+};
+
 static constexpr char lj_setup[] = "lattice         fcc 0.8442\n"
                                    "region          box block 0 10 0 10 0 10\n"
                                    "create_box      1 box\n"

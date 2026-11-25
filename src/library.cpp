@@ -6177,8 +6177,19 @@ provided.
 The function returns the number of atoms created or -1 on failure (e.g.,
 when called before as box has been created).
 
+.. versionchanged:: TBD
+
+The function stops with an error and creates no atoms when an atom type
+is outside the range 1 to the number of atom types or when an atom ID
+is zero or negative.  Like the :doc:`create_atoms command <create_atoms>`,
+it checks the atom IDs after creating the atoms, e.g. for duplicate IDs.
+The function now returns -1 in all cases where it stops with an error.
+
 Coordinates and velocities have to be given in a 1d-array in the order
 X(1), Y(1), Z(1), X(2), Y(2), Z(2), ..., X(N), Y(N), Z(N).
+
+All MPI processes must be called with the same data: each of them
+creates the atoms that fall into its subdomain.
 
 \endverbatim
  *
@@ -6208,6 +6219,7 @@ int lammps_create_atoms(void *handle, int n, const tagint *id, const int *type,
   }
   if (!type || !x) return -1;
   bigint natoms_prev = lmp->atom->natoms;
+  int ncreated = -1;
 
   BEGIN_CAPTURE
   {
@@ -6217,6 +6229,18 @@ int lammps_create_atoms(void *handle, int n, const tagint *id, const int *type,
                       "{}(): Cannot create atoms before before simulation box is defined", FNERR);
     } else if (lmp->atom->tag_enable == 0) {
       lmp->error->all(FLERR, Error::NOLASTLINE, "{}(): Must have atom IDs to create atoms", FNERR);
+    }
+
+    // check atom types and atom IDs of all N atoms before creating any of them.
+    // all MPI ranks get the same data, so they all stop with the same error.
+
+    for (int i = 0; i < n; i++) {
+      if ((type[i] <= 0) || (type[i] > lmp->atom->ntypes))
+        lmp->error->all(FLERR, Error::NOLASTLINE, "{}(): Invalid atom type {} for atom {} of {}",
+                        FNERR, type[i], i + 1, n);
+      if (id && ((id[i] <= 0) || (id[i] >= MAXTAGINT)))
+        lmp->error->all(FLERR, Error::NOLASTLINE, "{}(): Invalid atom ID {} for atom {} of {}",
+                        FNERR, id[i], i + 1, n);
     }
 
     // loop over all N atoms on all MPI ranks
@@ -6289,6 +6313,10 @@ int lammps_create_atoms(void *handle, int n, const tagint *id, const int *type,
     MPI_Allreduce(&ncurrent,&lmp->atom->natoms,1,MPI_LMP_BIGINT,
                   MPI_SUM,lmp->world);
 
+    // check that atom IDs are valid, same as the create_atoms command
+
+    atom->tag_check();
+
     // init per-atom fix/compute/variable values for created atoms
 
     atom->data_fix_compute_variable(nlocal_prev,nlocal);
@@ -6302,9 +6330,10 @@ int lammps_create_atoms(void *handle, int n, const tagint *id, const int *type,
       lmp->atom->map_init();
       lmp->atom->map_set();
     }
+    ncreated = (int) (lmp->atom->natoms - natoms_prev);
   }
   END_CAPTURE;
-  return (int) lmp->atom->natoms - natoms_prev;
+  return ncreated;
 }
 
 /* ---------------------------------------------------------------------- */

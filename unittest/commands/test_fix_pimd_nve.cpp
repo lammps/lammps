@@ -1,0 +1,626 @@
+/* ----------------------------------------------------------------------
+   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
+   https://www.lammps.org/, Sandia National Laboratories
+
+   Copyright (2003) Sandia Corporation.  Under the terms of Contract
+   DE-AC04-94AL85000 with the U.S. Government retains
+   certain rights in this software.
+------------------------------------------------------------------------- */
+
+#define LAMMPS_LIB_MPI 1
+
+#include "atom.h"
+#include "force.h"
+#include "universe.h"
+#include "update.h"
+#include "lammps.h"
+#include "platform.h"
+
+#include "../testing/core.h"
+#include "gtest/gtest.h"
+#include "pimd_test_utils.h"
+#include "modify.h"
+
+#include "../../src/REPLICA/fix_pimd_nve.h"
+
+#include <cmath>
+#include <mpi.h>
+#include <string>
+#include <vector>
+
+bool verbose = false;
+
+namespace LAMMPS_NS {
+
+// Keep the production class declaration unchanged: MSVC encodes member access
+// in symbol names. Member pointers allow access without downcasting the fix.
+struct PIMDNVEAccess : FixPIMDNVE {
+  using FixPIMDNVE::Lan_c;
+  using FixPIMDNVE::Lan_s;
+  using FixPIMDNVE::_omega_k;
+  using FixPIMDNVE::a_step;
+  using FixPIMDNVE::bufbeads;
+  using FixPIMDNVE::centroid_vir;
+  using FixPIMDNVE::comm_init;
+  using FixPIMDNVE::compute_cvir;
+  using FixPIMDNVE::compute_p_prim;
+  using FixPIMDNVE::compute_spring_energy;
+  using FixPIMDNVE::compute_t_prim;
+  using FixPIMDNVE::compute_t_vir;
+  using FixPIMDNVE::compute_xf_vir;
+  using FixPIMDNVE::fbond;
+  using FixPIMDNVE::inter_replica_comm;
+  using FixPIMDNVE::ireplica;
+  using FixPIMDNVE::lam;
+  using FixPIMDNVE::mass;
+  using FixPIMDNVE::p_prim;
+  using FixPIMDNVE::reallocate;
+  using FixPIMDNVE::remove_com_motion;
+  using FixPIMDNVE::se_bead;
+  using FixPIMDNVE::t_cv;
+  using FixPIMDNVE::t_prim;
+  using FixPIMDNVE::t_vir;
+  using FixPIMDNVE::total_spring_energy;
+  using FixPIMDNVE::vir_;
+  using FixPIMDNVE::x_unwrap;
+  using FixPIMDNVE::xc;
+};
+
+class FixPIMDNVESerialTest : public LAMMPSTest {
+ protected:
+  void setup_zero_pair_system()
+  {
+    command("units lj");
+    command("atom_style atomic");
+    command("atom_modify map yes");
+    command("boundary p p p");
+    command("lattice sc 0.7");
+    command("region box block 0 2 0 2 0 2");
+    command("create_box 1 box");
+    command("create_atoms 1 box");
+    command("mass 1 1.0");
+    command("pair_style zero 2.5");
+    command("pair_coeff * *");
+    command("neighbor 0.3 bin");
+    command("neigh_modify every 1 delay 0 check yes");
+    command("velocity all create 1.0 492845 mom yes rot no dist gaussian");
+    command("timestep 0.005");
+  }
+
+  void setup_nve_fix(const char *method = "nmpimd")
+  {
+    command(std::string("fix cp all pimd/nve method ") + method + " temp 1.0");
+  }
+
+  double fix_value(const char *id, int index)
+  {
+    return pimd_test::fix_value(lmp, id, index);
+  }
+};
+
+class FixPIMDIntegrationCompatibilityTest : public FixPIMDNVESerialTest,
+                                          public ::testing::WithParamInterface<const char *> {
+ protected:
+  void setup_pimd_fix()
+  {
+    const std::string style = GetParam();
+    const std::string method = style.find("bosonic") == std::string::npos ? "nmpimd" : "pimd";
+    std::string options = " method " + method + " temp 1.0";
+    if (style.find("langevin") != std::string::npos)
+      options += " ensemble nve";
+    else if (style != "pimd/nve")
+      options += " Tdamp 0.5";
+    if (style == "pimd/uvt") {
+      command("variable derivative equal 0.0");
+      options += " mu 0.0 Udamp 0.5 ne 1.0 dedn v_derivative";
+    }
+    command("fix cp all " + style + options);
+  }
+
+  void expect_run_error(const std::string &message)
+  {
+    try {
+      command("run 0 post no");
+      FAIL() << "Accepted unsupported integration setting for " << GetParam();
+    } catch (const LAMMPSException &e) {
+      EXPECT_NE(std::string(e.what()).find(message), std::string::npos) << e.what();
+    }
+  }
+};
+
+TEST_P(FixPIMDIntegrationCompatibilityTest, IntegrationSettings)
+{
+  setup_zero_pair_system();
+  setup_pimd_fix();
+  command("run 1 post no");
+  command("timestep 0.0025");
+  command("run 1 post no");
+  command("run_style respa 1");
+  expect_run_error("requires run_style verlet");
+  command("clear");
+  for (bool reset_first : {false, true}) {
+    setup_zero_pair_system();
+    if (reset_first) command("fix adaptive all dt/reset 1 NULL 0.005 0.001 units box");
+    setup_pimd_fix();
+    if (!reset_first) command("fix adaptive all dt/reset 1 NULL 0.005 0.001 units box");
+    expect_run_error("does not support fix dt/reset");
+    command("clear");
+  }
+}
+
+INSTANTIATE_TEST_SUITE_P(PIMDStyles, FixPIMDIntegrationCompatibilityTest,
+                         ::testing::Values("pimd/nve", "pimd/nvt", "pimd/uvt", "pimd/langevin",
+                                           "pimd/nvt/bosonic", "pimd/langevin/bosonic"));
+
+TEST_F(FixPIMDNVESerialTest, RemovecomRemovesUniformDrift)
+{
+  command("units lj");
+  command("atom_style atomic");
+  command("atom_modify map yes");
+  command("boundary p p p");
+  command("region box block 0 4 0 4 0 4");
+  command("create_box 1 box");
+  command("create_atoms 1 single 1.0 1.0 1.0");
+  command("create_atoms 1 single 2.5 2.5 2.5");
+  command("mass * 1.0");
+  command("pair_style zero 2.5");
+  command("pair_coeff * *");
+  command("timestep 0.002");
+  command("velocity all set 0.2 0.1 -0.05");
+
+  const double drift_ke = 2.0 * 0.5 * (0.2 * 0.2 + 0.1 * 0.1 + 0.05 * 0.05);
+  // the default for pimd/nve is removecom no
+  command("fix cp all pimd/nve temp 1.0");
+  command("run 5 post no");
+  EXPECT_NEAR(fix_value("cp", 0), drift_ke, 1.0e-12);
+
+  command("unfix cp");
+  command("fix cp all pimd/nve temp 1.0 removecom yes");
+  command("run 5 post no");
+  EXPECT_NEAR(fix_value("cp", 0), 0.0, 1.0e-12);
+}
+
+TEST_F(FixPIMDNVESerialTest, DoesNotMoveAtomsOutsideFixGroup)
+{
+  command("units lj");
+  command("atom_style atomic");
+  command("atom_modify map yes");
+  command("boundary p p p");
+  command("region box block 0 4 0 4 0 4");
+  command("create_box 2 box");
+  command("create_atoms 1 single 1.0 1.0 1.0");
+  command("create_atoms 2 single 2.5 2.5 2.5");
+  command("mass * 1.0");
+  command("group mobile type 1");
+  command("pair_style zero 2.5");
+  command("pair_coeff * *");
+  command("neighbor 0.3 bin");
+  command("neigh_modify every 1 delay 0 check yes");
+  command("velocity all set 0.2 0.1 -0.05");
+  command("timestep 0.002");
+
+  auto *atom = lmp->atom;
+  double initial[3] = {0.0, 0.0, 0.0};
+  bool found = false;
+  for (int i = 0; i < atom->nlocal; ++i) {
+    if (atom->type[i] == 2) {
+      initial[0] = atom->x[i][0];
+      initial[1] = atom->x[i][1];
+      initial[2] = atom->x[i][2];
+      found = true;
+      break;
+    }
+  }
+  ASSERT_TRUE(found);
+
+  // removecom no: removing the center-of-mass motion would stop the single mobile atom
+  command("fix cp mobile pimd/nve temp 1.0 removecom no");
+  command("run 0 post no");
+  // Only the mobile atom contributes, even though the other atom has velocity.
+  const double mobile_ke = 0.5 * (0.2 * 0.2 + 0.1 * 0.1 + 0.05 * 0.05);
+  EXPECT_NEAR(fix_value("cp", 0), mobile_ke, 1.0e-12);
+  EXPECT_NEAR(fix_value("cp", 3), mobile_ke, 1.0e-12);
+  command("run 10 post no");
+  EXPECT_NEAR(fix_value("cp", 0), mobile_ke, 1.0e-12);
+  EXPECT_NEAR(fix_value("cp", 3), mobile_ke, 1.0e-12);
+
+  found = false;
+  for (int i = 0; i < atom->nlocal; ++i) {
+    if (atom->type[i] == 2) {
+      EXPECT_NEAR(atom->x[i][0], initial[0], 1.0e-12);
+      EXPECT_NEAR(atom->x[i][1], initial[1], 1.0e-12);
+      EXPECT_NEAR(atom->x[i][2], initial[2], 1.0e-12);
+      found = true;
+      break;
+    }
+  }
+  ASSERT_TRUE(found);
+
+  command("unfix cp");
+  command("fix cp all pimd/nve temp 1.0 removecom no");
+  command("run 0 post no");
+  EXPECT_NEAR(fix_value("cp", 0), 2.0 * mobile_ke, 1.0e-12);
+  EXPECT_NEAR(fix_value("cp", 3), 2.0 * mobile_ke, 1.0e-12);
+}
+
+TEST_F(FixPIMDNVESerialTest, GroupRestrictedSpringAndVirialEstimators)
+{
+  setup_zero_pair_system();
+  command("group mobile id 1");
+  command("fix cp mobile pimd/nve temp 1.0");
+  command("run 0 post no");
+  auto *fix = dynamic_cast<FixPIMDNVE *>(lmp->modify->get_fix_by_id("cp"));
+  ASSERT_NE(fix, nullptr);
+
+  // Exercise a nonzero mode's estimator algebra without requiring MPI partitions.
+  // Every atom outside the group has a much larger position and force.
+  (fix->*&PIMDNVEAccess::lam)[0] = 2.0;
+  (fix->*&PIMDNVEAccess::fbond) = 1.0;
+  for (int i = 0; i < lmp->atom->nlocal; ++i) {
+    const bool mobile = lmp->atom->tag[i] == 1;
+    for (int d = 0; d < 3; ++d) {
+      lmp->atom->x[i][d] = mobile ? 1.0 : 10.0;
+      (fix->*&PIMDNVEAccess::x_unwrap)[i][d] = lmp->atom->x[i][d];
+      (fix->*&PIMDNVEAccess::xc)[i][d] = (fix->*&PIMDNVEAccess::x_unwrap)[i][d] - 0.5;
+      lmp->atom->f[i][d] = (mobile ? 1.0 : 10.0) * (d + 1);
+    }
+  }
+  (fix->*&PIMDNVEAccess::compute_spring_energy)();
+  (fix->*&PIMDNVEAccess::compute_xf_vir)();
+  (fix->*&PIMDNVEAccess::compute_cvir)();
+  (fix->*&PIMDNVEAccess::compute_t_prim)();
+  (fix->*&PIMDNVEAccess::compute_t_vir)();
+  (fix->*&PIMDNVEAccess::compute_p_prim)();
+
+  EXPECT_NEAR((fix->*&PIMDNVEAccess::se_bead), 3.0, 1.0e-12);
+  EXPECT_NEAR((fix->*&PIMDNVEAccess::total_spring_energy), 3.0, 1.0e-12);
+  EXPECT_NEAR((fix->*&PIMDNVEAccess::vir_), 6.0, 1.0e-12);
+  EXPECT_NEAR((fix->*&PIMDNVEAccess::centroid_vir), 3.0, 1.0e-12);
+  EXPECT_NEAR((fix->*&PIMDNVEAccess::t_prim), -1.5, 1.0e-12);
+  EXPECT_NEAR((fix->*&PIMDNVEAccess::t_vir), -3.0, 1.0e-12);
+  EXPECT_NEAR((fix->*&PIMDNVEAccess::t_cv), 0.0, 1.0e-12);
+  // The cubic lattice contains eight atoms at number density 0.7.
+  EXPECT_NEAR((fix->*&PIMDNVEAccess::p_prim), -0.7 / 8.0, 1.0e-12);
+}
+
+TEST_F(FixPIMDNVESerialTest, MethodsAndInputValidation)
+{
+  for (const char *method : {"nmpimd", "pimd"}) {
+    setup_zero_pair_system();
+    setup_nve_fix(method);
+    command("run 2 post no");
+    for (int i = 0; i < 10; ++i) EXPECT_TRUE(std::isfinite(fix_value("cp", i)));
+    command("clear");
+  }
+  setup_zero_pair_system();
+  EXPECT_ANY_THROW(command("fix cp all pimd/nve temp 1.0 fmass 0.0"));
+  EXPECT_ANY_THROW(command("fix cp all pimd/nve method cmd temp 1.0"));
+}
+
+TEST_F(FixPIMDNVESerialTest, RestartRestoresNuclearPrefix)
+{
+  std::vector<double> before(10);
+
+  setup_zero_pair_system();
+  setup_nve_fix();
+  command("run 10 post no");
+  for (int i = 0; i < 10; ++i) before[i] = fix_value("cp", i);
+
+  command("write_restart pimd_nve.restart");
+  command("clear");
+  command("read_restart pimd_nve.restart");
+  setup_nve_fix();
+  command("run 0 post no");
+  platform::unlink("pimd_nve.restart");
+
+  for (int i = 0; i < 10; ++i) {
+    EXPECT_NEAR(fix_value("cp", i), before[i], 1.0e-10) << "index=" << i;
+  }
+}
+
+TEST(FixPIMDNVEMPI, FreeRingPolymerMatchesAnalyticalMotion)
+{
+  int nprocs = 0;
+  MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
+  if (nprocs != 2) GTEST_SKIP() << "This test requires two bead partitions";
+
+  for (const std::string units : {"lj", "real", "metal"})
+    for (const std::string style : {"pimd/nve", "pimd/nvt", "pimd/uvt", "pimd/langevin"})
+      for (const std::string mode : {"physical", "normal"})
+        for (const std::string fmass : {"0.25", "1.0"}) {
+          SCOPED_TRACE(units + " " + style + " " + mode + " fmass=" + fmass);
+          const char *args[] = {"LAMMPS_test", "-log", "none", "-screen", "none",
+                               "-partition", "2x1", "-in", "none", "-nocite"};
+          auto *lmp = static_cast<LAMMPS *>(lammps_open(
+              sizeof(args) / sizeof(char *), (char **) args, MPI_COMM_WORLD, nullptr));
+          auto command = [lmp](const std::string &line) { lmp->input->one(line); };
+          command("units " + units);
+          command("atom_style atomic");
+          command("atom_modify map yes");
+          command("region box block 0 4 0 4 0 4");
+          command("create_box 1 box");
+          command("create_atoms 1 single 1 1 1");
+          command("mass 1 2.0");
+          command("pair_style zero 1.0");
+          command("pair_coeff * *");
+          command("timestep " + std::string(units == "real" ? "0.1" : "0.001"));
+          std::string options = (style == "pimd/nvt" || style == "pimd/uvt") ? " Tdamp 1.0 tloop 2" : "";
+          if (style == "pimd/langevin") options = " ensemble nvt thermostat PILE_L 1234 tau 1.0";
+          if (style == "pimd/uvt") {
+            command("variable dEdN equal 0.0");
+            options += " mu 0.0 Udamp 1.0 ne 1.0 ne_velocity 0.0 dedn v_dEdN";
+          }
+          options += style == "pimd/langevin" ? " fixcom no" : " removecom no";
+          command("fix cp all " + style + " method nmpimd temp 1.0 fmmode " + mode +
+                  " fmass " + fmass + options);
+          command("run 0 post no");
+          auto *fix = dynamic_cast<FixPIMDNVE *>(lmp->modify->get_fix_by_id("cp"));
+          ASSERT_NE(fix, nullptr);
+          EXPECT_DOUBLE_EQ((fix->*&PIMDNVEAccess::_omega_k)[0], 0.0);
+          EXPECT_DOUBLE_EQ((fix->*&PIMDNVEAccess::Lan_c)[0], 1.0);
+          EXPECT_DOUBLE_EQ((fix->*&PIMDNVEAccess::Lan_s)[0], 0.0);
+          if (lmp->universe->iworld == 1) {
+            // Derive frequency from spring curvature and integration mass,
+            // independently of the cached normal-mode propagation coefficients.
+            const double expected_mass = 2.0 * std::stod(fmass) * (mode == "normal" ? 4.0 : 1.0);
+            EXPECT_DOUBLE_EQ((fix->*&PIMDNVEAccess::mass)[1], expected_mass);
+            const double stiffness = (fix->*&PIMDNVEAccess::fbond) * lmp->atom->mass[1] * (fix->*&PIMDNVEAccess::lam)[1];
+            const double omega = std::sqrt(stiffness * lmp->force->ftm2v / (fix->*&PIMDNVEAccess::mass)[1]);
+            EXPECT_NEAR((fix->*&PIMDNVEAccess::_omega_k)[1], omega, 1.0e-10 * omega);
+            const double x0 = 0.3, v0 = 0.2;
+            lmp->atom->x[0][0] = x0;
+            lmp->atom->v[0][0] = v0;
+            for (int step = 0; step < 100; ++step) (fix->*&PIMDNVEAccess::a_step)();
+            const double angle = omega * 50.0 * lmp->update->dt;
+            const double expected_x = x0 * std::cos(angle) + v0 / omega * std::sin(angle);
+            const double expected_v = v0 * std::cos(angle) - x0 * omega * std::sin(angle);
+            EXPECT_NEAR(lmp->atom->x[0][0], expected_x, 1.0e-10);
+            EXPECT_NEAR(lmp->atom->v[0][0], expected_v, 1.0e-10);
+          }
+          lammps_close(lmp);
+        }
+}
+
+TEST(FixPIMDNVEMPI, PIMDPartitionedRunSupportsOneRankPerBead)
+{
+  int nprocs = 0;
+  MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
+  if (nprocs != 2) GTEST_SKIP() << "This test requires exactly 2 MPI ranks";
+
+  const char *args[] = {"LAMMPS_test", "-log", "none", "-partition", "2x1", "-echo",
+                        "screen",      "-nocite",       "-in",        "none", nullptr};
+  char **argv = (char **) args;
+  int argc = (sizeof(args) / sizeof(char *)) - 1;
+
+  void *lmp = nullptr;
+  ASSERT_NO_THROW(lmp = lammps_open(argc, argv, MPI_COMM_WORLD, nullptr));
+  ASSERT_NE(lmp, nullptr);
+
+  auto command = [lmp](const char *line) { lammps_command(lmp, line); };
+  auto fix_value = [lmp](const char *id, int index) { return pimd_test::fix_value(lmp, id, index); };
+
+  command("units lj");
+  command("atom_style atomic");
+  command("atom_modify map yes");
+  command("boundary p p p");
+  command("lattice sc 0.7");
+  command("region box block 0 2 0 2 0 2");
+  command("create_box 1 box");
+  command("create_atoms 1 box");
+  command("mass 1 1.0");
+  command("pair_style zero 2.5");
+  command("pair_coeff * *");
+  command("neighbor 0.3 bin");
+  command("neigh_modify every 1 delay 0 check yes");
+  command("timestep 0.002");
+  command("variable beadshift universe 0.0 0.15");
+  command("displace_atoms all move ${beadshift} 0.0 0.0 units box");
+  command("velocity all create 0.8 13579 mom yes rot no dist gaussian");
+  command("fix cp all pimd/nve method pimd temp 0.8");
+  command("run 10 post no");
+
+  for (int i = 0; i < 10; ++i) {
+    EXPECT_TRUE(std::isfinite(fix_value("cp", i))) << "index=" << i;
+  }
+
+  lammps_close(lmp);
+}
+
+TEST(FixPIMDNVEMPI, ConservesTotalEnergyOverShortRun)
+{
+  int nprocs = 0;
+  MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
+  if (nprocs != 2) GTEST_SKIP() << "This test requires exactly 2 MPI ranks";
+
+  const char *args[] = {"LAMMPS_test", "-log", "none", "-partition", "2x1", "-echo",
+                        "screen",      "-nocite",       "-in",        "none", nullptr};
+  char **argv = (char **) args;
+  int argc = (sizeof(args) / sizeof(char *)) - 1;
+
+  void *lmp = nullptr;
+  ASSERT_NO_THROW(lmp = lammps_open(argc, argv, MPI_COMM_WORLD, nullptr));
+  ASSERT_NE(lmp, nullptr);
+
+  auto command = [lmp](const char *line) { lammps_command(lmp, line); };
+  auto fix_value = [lmp](const char *id, int index) { return pimd_test::fix_value(lmp, id, index); };
+
+  command("units lj");
+  command("atom_style atomic");
+  command("atom_modify map yes");
+  command("boundary p p p");
+  command("lattice sc 0.7");
+  command("region box block 0 2 0 2 0 2");
+  command("create_box 1 box");
+  command("create_atoms 1 box");
+  command("mass 1 1.0");
+  command("pair_style zero 2.5");
+  command("pair_coeff * *");
+  command("neighbor 0.3 bin");
+  command("neigh_modify every 1 delay 0 check yes");
+  command("timestep 0.002");
+  command("variable beadshift universe 0.0 0.15");
+  command("displace_atoms all move ${beadshift} 0.0 0.0 units box");
+  command("velocity all create 0.8 97531 mom yes rot no dist gaussian");
+  command("fix cp all pimd/nve temp 0.8");
+  command("run 0 post no");
+
+  double energy_before = fix_value("cp", 3);
+  command("run 100 post no");
+  double energy_after = fix_value("cp", 3);
+
+  EXPECT_NEAR(energy_after, energy_before, 1.0e-8);
+
+  lammps_close(lmp);
+}
+
+TEST(FixPIMDNVEMPI, RemoveCOMRespectsRepresentationAndGroup)
+{
+  int nprocs;
+  MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
+  if (nprocs != 2) GTEST_SKIP() << "This test requires exactly 2 MPI ranks";
+
+  for (const char *method : {"pimd", "nmpimd", "cmd"}) {
+    const char *args[] = {"LAMMPS_test", "-log", "none", "-partition", "2x1",
+                          "-nocite", "-in", "none"};
+    auto *lmp = static_cast<LAMMPS *>(lammps_open(sizeof(args) / sizeof(char *),
+                                                const_cast<char **>(args), MPI_COMM_WORLD, nullptr));
+    auto command = [lmp](const char *line) { lammps_command(lmp, line); };
+    command("units lj");
+    command("atom_style atomic");
+    command("atom_modify map yes");
+    command("region box block 0 4 0 4 0 4");
+    command("create_box 1 box");
+    command("create_atoms 1 single 1 1 1");
+    command("create_atoms 1 single 2 2 2");
+    command("mass 1 1.0");
+    command("group mobile id 1");
+    command("pair_style zero 0.4");
+    command("pair_coeff * *");
+    const bool cmd = std::string(method) == "cmd";
+    const std::string style = cmd ? "pimd/nvt" : "pimd/nve";
+    command(("fix cp mobile " + style + " temp 1.0 method " + method +
+             (cmd ? " Tdamp 1.0 removecom no" : " removecom yes")).c_str());
+    command("run 0 post no");
+    command("velocity all set 1.0 2.0 3.0");
+    auto *fix = dynamic_cast<FixPIMDNVE *>(lmp->modify->get_fix_by_id("cp"));
+    ASSERT_NE(fix, nullptr);
+    (fix->*&PIMDNVEAccess::remove_com_motion)();
+    for (int i = 0; i < lmp->atom->nlocal; ++i) {
+      const bool removed = lmp->atom->tag[i] == 1 &&
+          !cmd && (std::string(method) == "pimd" || (fix->*&PIMDNVEAccess::ireplica) == 0);
+      for (int d = 0; d < 3; ++d)
+        EXPECT_DOUBLE_EQ(lmp->atom->v[i][d], removed ? 0.0 : d + 1.0);
+    }
+    lammps_close(lmp);
+  }
+}
+
+TEST(FixPIMDNVEMPI, CommunicationMatchesTagsAcrossDifferentDecompositions)
+{
+  int nprocs;
+  MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
+  if (nprocs != 6) GTEST_SKIP() << "This test requires exactly 6 MPI ranks";
+  const char *args[] = {"LAMMPS_test", "-log", "none", "-partition", "3x2",
+                        "-nocite", "-in", "none"};
+  auto *lmp = static_cast<LAMMPS *>(lammps_open(sizeof(args) / sizeof(char *), const_cast<char **>(args),
+                                               MPI_COMM_WORLD, nullptr));
+  auto command = [lmp](const char *line) { lammps_command(lmp, line); };
+  command("units lj");
+  command("atom_style atomic");
+  command("atom_modify map yes");
+  command("processors 2 1 1");
+  command("region box block 0 4 0 2 0 2");
+  command("create_box 1 box");
+  command("variable xpos universe 0.5 2.5 0.5");
+  command("create_atoms 1 single ${xpos} 0.5 0.5");
+  command("create_atoms 1 single 0.5 1.5 0.5");
+  command("create_atoms 1 single 2.5 1.5 0.5");
+  command("mass 1 1.0");
+  command("pair_style zero 0.4");
+  command("pair_coeff * *");
+  command("fix cp all pimd/nve temp 1.0");
+  command("run 0 post no");
+  auto *fix = dynamic_cast<FixPIMDNVE *>(lmp->modify->get_fix_by_id("cp"));
+  ASSERT_NE(fix, nullptr);
+  // Repeat initialization and buffer replacement to check ownership and capacity tracking.
+  for (int pass = 0; pass < 2; ++pass) {
+    (fix->*&PIMDNVEAccess::comm_init)();
+    (fix->*&PIMDNVEAccess::reallocate)();
+    for (int i = 0; i < lmp->atom->nlocal; ++i)
+      for (int d = 0; d < 3; ++d)
+        lmp->atom->v[i][d] = 100.0 * (fix->*&PIMDNVEAccess::ireplica) + 10.0 * lmp->atom->tag[i] + d;
+    (fix->*&PIMDNVEAccess::inter_replica_comm)(lmp->atom->v);
+    for (int bead = 0; bead < 3; ++bead)
+      for (int i = 0; i < lmp->atom->nlocal; ++i)
+        for (int d = 0; d < 3; ++d)
+          EXPECT_DOUBLE_EQ((fix->*&PIMDNVEAccess::bufbeads)[bead][3*i+d],
+                           100.0 * bead + 10.0 * lmp->atom->tag[i] + d);
+  }
+  lammps_close(lmp);
+}
+
+TEST(FixPIMDNVEMPI, MultiRankPerBeadRunProducesFiniteVector)
+{
+  int nprocs = 0;
+  MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
+  if (nprocs != 4) GTEST_SKIP() << "This test requires exactly 4 MPI ranks";
+
+  const char *args[] = {"LAMMPS_test", "-log", "none", "-partition", "2x2", "-echo",
+                        "screen",      "-nocite",       "-in",        "none", nullptr};
+  char **argv = (char **) args;
+  int argc = (sizeof(args) / sizeof(char *)) - 1;
+
+  void *lmp = nullptr;
+  ASSERT_NO_THROW(lmp = lammps_open(argc, argv, MPI_COMM_WORLD, nullptr));
+  ASSERT_NE(lmp, nullptr);
+
+  auto command = [lmp](const char *line) { lammps_command(lmp, line); };
+  auto fix_value = [lmp](const char *id, int index) { return pimd_test::fix_value(lmp, id, index); };
+
+  command("units lj");
+  command("atom_style atomic");
+  command("atom_modify map yes");
+  command("boundary p p p");
+  command("lattice sc 0.7");
+  command("region box block 0 2 0 2 0 2");
+  command("create_box 1 box");
+  command("create_atoms 1 box");
+  command("mass 1 1.0");
+  command("pair_style zero 2.5");
+  command("pair_coeff * *");
+  command("neighbor 0.3 bin");
+  command("neigh_modify every 1 delay 0 check yes");
+  command("timestep 0.002");
+  command("variable beadshift universe 0.0 0.15");
+  command("displace_atoms all move ${beadshift} 0.0 0.0 units box");
+  command("velocity all create 0.8 97531 mom yes rot no dist gaussian");
+  command("fix cp all pimd/nve temp 0.8");
+  command("run 10 post no");
+
+  for (int i = 0; i < 10; ++i) {
+    EXPECT_TRUE(std::isfinite(fix_value("cp", i))) << "index=" << i;
+  }
+
+  lammps_close(lmp);
+}
+
+}    // namespace LAMMPS_NS
+
+int main(int argc, char **argv)
+{
+  MPI_Init(&argc, &argv);
+  ::testing::InitGoogleMock(&argc, argv);
+
+  if (const char *var = getenv("TEST_ARGS")) {
+    std::vector<std::string> env = LAMMPS_NS::utils::split_words(var);
+    for (auto arg : env) {
+      if (arg == "-v") verbose = true;
+    }
+  }
+
+  if ((argc > 1) && (strcmp(argv[1], "-v") == 0)) verbose = true;
+
+  int rv = RUN_ALL_TESTS();
+  MPI_Finalize();
+  return rv;
+}

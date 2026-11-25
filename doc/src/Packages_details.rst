@@ -2797,7 +2797,10 @@ nudged elastic band (NEB), parallel replica dynamics (PRD),
 temperature accelerated dynamics (TAD), parallel tempering, and a
 verlet/split algorithm for performing long-range Coulombics on one set
 of processors, and the remainder of the force field calculation on
-another set.
+another set.  The package also contains path integral molecular
+dynamics (PIMD) for distinguishable particles and bosons, including
+constant-potential PIMD, where each replica is one bead of the ring
+polymers.
 
 **Supporting info:**
 
@@ -2810,10 +2813,19 @@ another set.
 * :doc:`temper/npt <temper_npt>`,
 * :doc:`temper/grem <temper_grem>`,
 * :doc:`run_style verlet/split <run_style>`
+* :doc:`fix pimd/nve <fix_pimd>`
+* :doc:`fix pimd/nvt <fix_pimd>`
+* :doc:`fix pimd/langevin <fix_pimd>`
+* :doc:`fix pimd/nvt/bosonic <fix_pimd>`
+* :doc:`fix pimd/langevin/bosonic <fix_pimd>`
+* :doc:`fix pimd/uvt <fix_pimd>`
 * ``examples/neb``
 * ``examples/prd``
 * ``examples/tad``
 * ``examples/PACKAGES/grem``
+* ``examples/PACKAGES/pimd``
+* ``examples/PACKAGES/pimd_bosonic``
+* ``examples/PACKAGES/uvt``
 
 ----------
 

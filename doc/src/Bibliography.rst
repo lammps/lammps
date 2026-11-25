@@ -571,6 +571,9 @@ Bibliography
 **(Fu)**
    Fu, Peng, Yuan, Kfoury, Young, Comput. Phys. Commun, 210, 193-203(2017).
 
+**(Fu2026)**
+   L. Fu, Y. Li, and S. Xu, "fix uvt and fix pimd/uvt: A unified LAMMPS framework for constant-potential constant-temperature molecular dynamics", arXiv:2609.21935 (2026).
+
 **(FumiTosi)**
    Fumi and Tosi, J Phys Chem Solids, 25, 31 (1964), Fumi and Tosi, J Phys Chem Solids, 25, 45 (1964).
 
@@ -1020,6 +1023,9 @@ Bibliography
 
 **(Li2015_CC)**
    Li, Tang, Li, Karniadakis, Chem Commun, 51: 11038-11040 (2015).  DOI:10.1039/C5CC01684C.
+
+**(Li2026)**
+   Y. Li, A. Gomez, K. Cai, C. Zhang, L. Fu, W. Jia, Y. M. Y. Feldman, O. Blumer, J. Higer, B. Hirshberg, S. Xu, A. Kohlmeyer, and R. Car, "fix pimd/langevin: An efficient implementation of path integral molecular dynamics in LAMMPS", J. Chem. Phys. 164, 144119 (2026).  DOI: 10.1063/5.0328429
 
 **(Liang)**
    Liang, Phillpot, Sinnott Phys. Rev. B79 245110, (2009), Erratum: Phys. Rev. B85 199903(E), (2012)

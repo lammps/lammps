@@ -17,6 +17,7 @@ These are the relevant commands:
 * :doc:`temper/npt <temper_npt>` for parallel tempering extended for NPT
 * :doc:`temper/grem <temper_grem>` for parallel tempering with generalized replica exchange (gREM)
 * :doc:`fix pimd/langevin and fix pimd/nvt <fix_pimd>` (and their bosonic variants) for path-integral molecular dynamics (PIMD)
+* :doc:`fix pimd/uvt <fix_pimd>` for constant-potential path-integral molecular dynamics
 * :doc:`fix alchemy <fix_alchemy>` for alchemical transformations between two systems
 
 NEB is a method for finding transition states and barrier potential energies.
@@ -30,8 +31,9 @@ systems as two replicas and gradually transforms one into the other.
 
 These commands can only be used if LAMMPS was built with the REPLICA
 package (or the SPIN package in the case of the :doc:`neb/spin
-<neb_spin>` command).  See the :doc:`Build package <Build_package>`
-page for more info.
+<neb_spin>` command).  The :doc:`fix pimd/uvt <fix_pimd>` style also
+lives in the REPLICA package and uses the same multi-partition launch
+model.  See the :doc:`Build package <Build_package>` page for more info.
 
 In all these cases, you must run with one or more processors per
 replica.  The processors assigned to each replica are determined at

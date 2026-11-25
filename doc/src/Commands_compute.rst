@@ -185,6 +185,7 @@ OPT.
    * :doc:`temp/sphere (k) <compute_temp_sphere>`
    * :doc:`temp/tspin <compute_temp_tspin>`
    * :doc:`temp/uef <compute_temp_uef>`
+   * :doc:`temp/uvt <compute_temp_uvt>`
    * :doc:`ti <compute_ti>`
    * :doc:`torque/chunk <compute_torque_chunk>`
    * :doc:`vacf <compute_vacf>`

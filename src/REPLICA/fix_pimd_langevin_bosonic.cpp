@@ -18,8 +18,7 @@
    Copyright    Hirshberg lab @ Tel Aviv University
    Authors      Ofir Blumer, Jacob Higer, Yotam Feldman (yotam.feldman at gmail.com), Barak Hirshberg (hirshb at tauex.tau.ac.il)
 
-   Updated      Jan-06-2025
-   Version      1.0
+   Updated      Nov-25-2026 by Yifan Li @ Princeton University (yifanl0716@gmail.com)
 ------------------------------------------------------------------------- */
 
 #include "fix_pimd_langevin_bosonic.h"
@@ -27,6 +26,7 @@
 #include "bosonic_exchange.h"
 
 #include "atom.h"
+#include "comm.h"
 #include "error.h"
 #include "memory.h"
 #include "universe.h"
@@ -83,7 +83,7 @@ FixPIMDBLangevin::FixPIMDBLangevin(LAMMPS *lmp, int narg, char **arg) :
   size_vector = 6;
   memory->create(f_tag_order, nbosons, 3, "FixPIMDBLangevin:f_tag_order");
 
-  if (cmode != SINGLE_PROC)
+  if (comm->nprocs != 1)
     error->universe_all(FLERR,
                         fmt::format("Fix {} only supports a single processor per bead", style));
 }

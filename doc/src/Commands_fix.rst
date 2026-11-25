@@ -185,10 +185,12 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`pafi <fix_pafi>`
    * :doc:`pair <fix_pair>`
    * :doc:`phonon <fix_phonon>`
-   * :doc:`pimd/langevin <fix_pimd>`
+   * :doc:`pimd/nve <fix_pimd>`
    * :doc:`pimd/nvt <fix_pimd>`
+   * :doc:`pimd/langevin <fix_pimd>`
    * :doc:`pimd/langevin/bosonic <fix_pimd>`
    * :doc:`pimd/nvt/bosonic <fix_pimd>`
+   * :doc:`pimd/uvt <fix_pimd>`
    * :doc:`planeforce (k) <fix_planeforce>`
    * :doc:`plumed <fix_plumed>`
    * :doc:`polarize/bem/gmres <fix_polarize>`
@@ -289,6 +291,7 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`ttm/mod <fix_ttm>`
    * :doc:`ttm/thermal <fix_ttm>`
    * :doc:`tune/kspace <fix_tune_kspace>`
+   * :doc:`uvt <fix_uvt>`
    * :doc:`vector <fix_vector>`
    * :doc:`viscosity <fix_viscosity>`
    * :doc:`viscous (k) <fix_viscous>`

@@ -361,6 +361,7 @@ The individual style names on the :doc:`Commands compute <Commands_compute>` pag
 * :doc:`temp/sphere <compute_temp_sphere>` - temperature of spherical particles
 * :doc:`temp/tspin <compute_temp_tspin>` - auxiliary kinetic temperature and kinetic energy of the spin degrees of freedom in TSPIN
 * :doc:`temp/uef <compute_temp_uef>` - kinetic energy tensor in the reference frame of an applied flow field
+* :doc:`temp/uvt <compute_temp_uvt>` - combined nuclear and electronic temperature for constant-potential dynamics
 * :doc:`ti <compute_ti>` - thermodynamic integration free energy values
 * :doc:`torque/chunk <compute_torque_chunk>` - torque applied on each chunk
 * :doc:`vacf <compute_vacf>` - velocity auto-correlation function of group of atoms

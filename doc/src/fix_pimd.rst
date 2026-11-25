@@ -1,19 +1,31 @@
-.. index:: fix pimd/langevin
+.. index:: fix pimd/nve
 .. index:: fix pimd/nvt
+.. index:: fix pimd/langevin
 .. index:: fix pimd/langevin/bosonic
 .. index:: fix pimd/nvt/bosonic
+.. index:: fix pimd/uvt
 
-fix pimd/langevin command
-=========================
+fix pimd/nve command
+====================
 
 fix pimd/nvt command
 ====================
+
+fix pimd/langevin command
+=========================
 
 fix pimd/langevin/bosonic command
 =================================
 
 fix pimd/nvt/bosonic command
 ============================
+
+.. _fix-pimd-uvt:
+
+fix pimd/uvt command
+====================
+
+.. versionadded:: TBD
 
 Syntax
 """"""
@@ -23,30 +35,71 @@ Syntax
    fix ID group-ID style keyword value ...
 
 * ID, group-ID are documented in :doc:`fix <fix>` command
-* style = *pimd/langevin* or *pimd/nvt* or *pimd/langevin/bosonic* or *pimd/nvt/bosonic* = style name of this fix command
+* style = *pimd/langevin* or *pimd/nve* or *pimd/nvt* or *pimd/langevin/bosonic*, *pimd/nvt/bosonic*, or *pimd/uvt* = style name of this fix command
 * zero or more keyword/value pairs may be appended
+* keywords for style *pimd/nve*
+
+  .. parsed-literal::
+
+     *keywords* = *method* or *integrator* or *fmmode* or *fmass* or *sp* or *lj* or *temp* or *removecom*
+     *method* value = *pimd* or *nmpimd*
+     *integrator* value = *obabo* or *baoab*
+     *fmmode* value = *physical* or *normal*
+     *fmass* value = scaling factor on mass
+     *sp* value = scaling factor on Planck constant
+     *lj* values = epsilon sigma mass planck mvv2e
+          epsilon, sigma, mass = energy, length, and mass scales of *lj* units, in physical units
+          planck = Planck constant in the same physical units
+          mvv2e = factor converting mass times velocity squared to energy in those units
+     *temp* value = temperature (temperature units)
+     *removecom* value = *yes* or *no*
+
 * keywords for style *pimd/nvt*
 
   .. parsed-literal::
 
-     *keywords* = *method* or *fmass* or *sp* or *temp* or *nhc*
+     *keywords* = *method* or *integrator* or *fmmode* or *fmass* or *sp* or *lj* or *temp* or *thermostat* or *Tdamp* or *tchain* or *nhc* or *tloop* or *drag* or *tdof* or *removecom*
      *method* value = *pimd* or *nmpimd* or *cmd*
+     *integrator* value = *obabo* or *baoab*
+     *fmmode* value = *physical* or *normal*
      *fmass* value = scaling factor on mass
      *sp* value = scaling factor on Planck constant
+     *lj* values = epsilon sigma mass planck mvv2e
+          epsilon, sigma, mass = energy, length, and mass scales of *lj* units, in physical units
+          planck = Planck constant in the same physical units
+          mvv2e = factor converting mass times velocity squared to energy in those units
      *temp* value = temperature (temperature units)
-     *nhc* value = Nc = number of chains in Nose-Hoover thermostat
+     *thermostat* value = *NHC* (optional, the only supported thermostat)
+     *Tdamp* value = thermostat damping parameter (time units)
+     *tchain* or *nhc* value = number of thermostats in each Nose-Hoover chain
+     *tloop* value = number of Nose-Hoover chain sub-cycles
+     *drag* value = drag factor added to the thermostat
+     *tdof* value = user-specified thermostat degrees of freedom
+     *removecom* value = *yes* or *no*
+
+* keywords for style *pimd/nvt/bosonic*
+
+  .. parsed-literal::
+
+     *keywords* = *method* or *integrator* or *fmmode* or *fmass* or *sp* or *lj* or *temp* or *thermostat* or *Tdamp* or *tchain* or *nhc* or *tloop* or *drag* or *tdof* or *removecom*
+     *method* value = *pimd*
+     *tchain* or *nhc* value = number of thermostats in each Nose-Hoover chain
 
 * keywords for style *pimd/langevin*
 
   .. parsed-literal::
 
-     *keywords* = *method* or *integrator* or *ensemble* or *fmmode* or *fmass* or *scale* or *sp* or *temp* or *thermostat* or *tau* or *iso* or *aniso* or *barostat* or *taup* or *fixcom* or *esynch*
+     *keywords* = *method* or *integrator* or *ensemble* or *fmmode* or *fmass* or *scale* or *sp* or *lj* or *temp* or *thermostat* or *tau* or *iso* or *aniso* or *barostat* or *taup* or *fixcom* or *esynch*
      *method* value = *nmpimd* (default) or *pimd*
      *integrator* value = *obabo* or *baoab*
      *ensemble* value = *nvt* or *nve* or *nph* or *npt*
      *fmmode* value = *physical* or *normal*
      *fmass* value = scaling factor on mass
      *sp* value = scaling factor on Planck constant
+     *lj* values = epsilon sigma mass planck mvv2e
+          epsilon, sigma, mass = energy, length, and mass scales of *lj* units, in physical units
+          planck = Planck constant in the same physical units
+          mvv2e = factor converting mass times velocity squared to energy in those units
      *temp* value = temperature (temperature unit)
           temperature = target temperature of the thermostat
      *thermostat* values = style seed
@@ -61,17 +114,50 @@ Syntax
      *fixcom* value = *yes* or *no*
      *esynch* value = *yes* or *no* (only in *pimd/langevin/bosonic*)
 
+
+* keywords for style *pimd/uvt*
+
+  .. parsed-literal::
+
+     *method* value = *nmpimd*
+     *thermostat* value = *NHC* (optional, the only supported thermostat)
+     *temp* value = target temperature (temperature units)
+     *Tdamp* value = nuclear thermostat damping parameter (time units)
+     *mu* value = chemical potential
+     *Udamp* value = electronic damping time (time units)
+     *ne* value = initial electron number
+     *dedn* value = equal-style variable, global compute, or global fix providing dE/dN
+     *ne_velocity* value = initial electron-number velocity (electron number per time)
+
+  Optional keywords include *integrator*, *drag*, *fmass*, *fmmode*, *sp*,
+  *lj*, *removecom*, *tchain* (or *nhc*), *tloop*, and *tdof*.  The *ne_velocity*
+  keyword defaults to zero.
+
 Examples
 """"""""
 
 .. code-block:: LAMMPS
 
-   fix 1 all pimd/nvt method nmpimd fmass 1.0 sp 2.0 temp 300.0 nhc 4
+   fix 1 all pimd/nvt method nmpimd thermostat NHC temp 300.0 Tdamp 100.0 tchain 4 fmass 1.0 sp 2.0
+   fix 1 all pimd/nve method nmpimd temp 300.0 fmass 1.0 sp 2.0
+   fix 1 all pimd/nvt/bosonic method pimd temp 17.4 Tdamp 100.0 nhc 4
    fix 1 all pimd/langevin ensemble npt integrator obabo temp 113.15 thermostat PILE_L 1234 tau 1.0 iso 1.0 barostat BZP taup 1.0
-   fix 1 all pimd/nvt/bosonic method pimd fmass 1.0 sp 1.0 temp 2.0 nhc 4
    fix 1 all pimd/langevin/bosonic integrator obabo temp 113.15 thermostat PILE_L 1234 tau 1.0
 
-Example input files are provided in the examples/PACKAGES/pimd and examples/PACKAGES/pimd_bosonic directories.
+.. code-block:: LAMMPS
+
+   variable dEdN equal 3.0*(f_cp[11]-1.2)
+   fix cp all pimd/uvt method nmpimd thermostat NHC temp 0.8 Tdamp 0.2 &
+          tchain 3 tloop 1 mu 1.5 Udamp 0.2 ne 1.8 dedn v_dEdN
+
+Launch the input file with two bead partitions using:
+
+.. code-block:: bash
+
+   mpirun -np 2 lmp -partition 2x1 -in in.electron_pimd_uvt
+
+Example input files are provided in the examples/PACKAGES/pimd,
+examples/PACKAGES/pimd_bosonic, and examples/PACKAGES/uvt directories.
 
 Description
 """""""""""
@@ -86,6 +172,10 @@ zero-point motion.  In this formalism, the isomorphism of a quantum
 partition function for the original system to a classical partition
 function for a ring-polymer system is exploited, to efficiently sample
 configurations from the canonical ensemble :ref:`(Feynman) <Feynman>`.
+The implementation of fix *pimd/langevin* and the shared code of fix
+*pimd/nve*, *pimd/nvt*, and *pimd/uvt* are described in
+:ref:`(Li2026) <pimd-Li2026>`; fix *pimd/uvt* and the restructured fix
+*pimd/nve* base are described in :ref:`(Fu2026) <pimd-Fu2026>`.
 
 .. versionadded:: 2Apr2025
 
@@ -93,7 +183,16 @@ configurations from the canonical ensemble :ref:`(Feynman) <Feynman>`.
 
 Fix *pimd/nvt* and fix *pimd/langevin* simulate *distinguishable* quantum particles.
 Simulations of bosons, including exchange effects, are supported with the
-fix *pimd/langevin/bosonic* and the *pimd/nvt/bosonic* commands.
+fix *pimd/nvt/bosonic* and fix *pimd/langevin/bosonic* commands.
+
+Fix *pimd/uvt* performs constant-potential path-integral molecular
+dynamics.  It extends the Nose-Hoover PIMD scheme with a global electronic
+coordinate shared by all beads.  The number of beads is set by the number
+of LAMMPS partitions, with one partition required for each bead.
+
+The *dedn* source may be an equal-style variable (*v_name*), a global
+compute (*c_ID*), or a global fix (*f_ID*).  A vector entry can be selected
+with the usual *[index]* syntax.
 
 For distinguishable particles, the isomorphic classical partition function and its components are given
 by the following equations:
@@ -134,27 +233,32 @@ discussion of the validity of the approximation is available in
 
 To sample the canonical ensemble, any thermostat can be applied.
 
-Fix *pimd/nvt* applies a Nose-Hoover massive chain thermostat
-:ref:`(Tuckerman3) <pimd-Tuckerman>`.  With the massive chain
-algorithm, a chain of NH thermostats is coupled to each degree of
-freedom for each quasi-bead.  The keyword *temp* sets the target
-temperature for the system and the keyword *nhc* sets the number *Nc* of
-thermostats in each chain.  For example, for a simulation of N particles
-with P beads in each ring-polymer, the total number of NH thermostats
-would be 3 x N x P x Nc.
+.. versionadded:: TBD
 
-Fix *pimd/langevin* implements a Langevin thermostat in the normal mode
-representation, and also provides a barostat to sample the NPH/NPT ensembles.
+Fix *pimd/nve* performs path-integral time integration without a
+thermostat.
+
+.. versionchanged:: TBD
+
+Fix *pimd/nvt* applies a Nose-Hoover chain thermostat
+:ref:`(Tuckerman3) <pimd-Tuckerman>`.  The keyword *temp* sets the
+target temperature, *Tdamp* sets the thermostat damping time, and
+*tchain* (or its alternative name *nhc*) sets the number of thermostats
+in each chain.  Fix *pimd/nvt* uses the same Nose-Hoover chain
+implementation as :doc:`fix nvt <fix_nh>`, with one chain per bead.
+
+Fix *pimd/langevin* implements a Langevin thermostat for PIMD, and
+also provides a barostat to sample the NPH/NPT ensembles.
 
 .. note::
 
-   Both these *fix* styles implement a complete velocity-verlet integrator
-   combined with a thermostat, so no other time integration fix should be used.
+   These *fix* styles implement complete time integrators, including
+   thermostats or barostats where applicable, so no other time
+   integration fix should be used.
 
 The *method* keyword determines what style of PIMD is performed.  A
 value of *pimd* is standard PIMD.  A value of *nmpimd* is for
-normal-mode PIMD.  A value of *cmd* is for centroid molecular dynamics
-(CMD).  The difference between the styles is as follows.
+normal-mode PIMD.  The difference between the styles is as follows.
 
    In standard PIMD, the value used for a bead's fictitious mass is
    arbitrary.  A common choice is to use :math:`M_i = m/P`, which results in the
@@ -190,22 +294,26 @@ normal-mode PIMD.  A value of *cmd* is for centroid molecular dynamics
 
    Mode *pimd* added to fix pimd/langevin.
 
-Fix pimd/langevin supports the *method* values *nmpimd* and *pimd*. The
-default value is *nmpimd*.  If *method* is *nmpimd*, the normal mode
-representation is used to integrate the equations of motion.  The exact
-solution of harmonic oscillator is used to propagate the free ring
-polymer part of the Hamiltonian.  If *method* is *pimd*, the Cartesian
-representation is used to integrate the equations of motion.  The
-harmonic force is added to the total force of the system, and the
-numerical integrator is used to propagate the Hamiltonian.
+Fix pimd/nve, fix pimd/nvt, and fix pimd/langevin support the *method*
+values *nmpimd* and *pimd*. The default value is *nmpimd*.  Fix
+*pimd/nvt* also supports *method* = *cmd*. If *method* is *nmpimd* or
+*cmd*, the normal mode representation is used to integrate the equations
+of motion. The exact solution of harmonic oscillator is used to
+propagate the free ring polymer part of the Hamiltonian.  For
+*method* = *cmd*, the centroid mode is not thermostatted.  If *method*
+is *pimd*, the Cartesian representation is used to integrate the
+equations of motion. The harmonic force is added to the total force of
+the system, and the numerical integrator is used to propagate the
+Hamiltonian.
 
-Fix *pimd/nvt/bosonic* only supports the *pimd* and *nmpimd*
-methods. Fix *pimd/langevin/bosonic* only supports the *pimd* method,
-which is the default in this fix. These restrictions are related to the
-use of normal modes, which change in bosons.
+Fix *pimd/nvt/bosonic* and fix *pimd/langevin/bosonic* only support the *pimd* method, which is
+the default in this fix. This restriction is related to the use of
+normal modes, which change in bosons.
 
-The keyword *integrator* specifies the Trotter splitting method used by *fix
-pimd/langevin*.  See :ref:`(Liu3) <Liu>` for a discussion on the OBABO and BAOAB
+.. versionadded:: TBD
+
+The keyword *integrator* specifies the Trotter splitting method.  See
+:ref:`(Liu3) <Liu>` for a discussion on the OBABO and BAOAB
 splitting schemes. Typically either of the two should work fine.
 
 The keyword *fmass* sets a further scaling factor for the fictitious
@@ -213,12 +321,14 @@ masses of beads, which can be used for the Partial Adiabatic CMD
 :ref:`(Hone) <Hone>`, or to be set as P, which results in the fictitious
 masses to be equal to the real particle masses.
 
-The keyword *fmmode* of *fix pimd/langevin* determines the mode of fictitious
+.. versionadded:: TBD
+
+The keyword *fmmode* determines the mode of fictitious
 mass preconditioning. There are two options: *physical* and *normal*. If *fmmode* is
 *physical*, then the physical mass of the particles are used (and then multiplied by
 *fmass*). If *fmmode* is *normal*, then the physical mass is first multiplied by the
 eigenvalue of each normal mode, and then multiplied by *fmass*. More precisely, the
-fictitious mass of *fix pimd/langevin* is determined by two factors: *fmmode* and *fmass*.
+fictitious mass is determined by two factors: *fmmode* and *fmass*.
 If *fmmode* is *physical*, then the fictitious mass is
 
 .. math::
@@ -232,6 +342,18 @@ If *fmmode* is *normal*, then the fictitious mass is
    M_i = \mathrm{fmass} \times \lambda_i \times m
 
 where :math:`\lambda_i` is the eigenvalue of the :math:`i`-th normal mode.
+
+The centroid has no spring restoring force and uses
+:math:`M_0=\mathrm{fmass}\,m` for either mass mode.  The mass factor *fmass*
+must be positive.  These mass definitions are shared by *pimd/nve*,
+*pimd/nvt*, *pimd/uvt*, and *pimd/langevin*.
+
+For internal normal modes, the harmonic propagation frequency is
+:math:`\omega_i=\omega_P\sqrt{\lambda_i/\mathrm{fmass}}` for *physical*
+masses, and :math:`\omega_i=\omega_P/\sqrt{\mathrm{fmass}}` for *normal*
+masses, where :math:`\omega_P=P k_B T/\hbar`.  The exact harmonic
+propagator uses this same frequency in both its velocity/position
+prefactors and its sine and cosine arguments.
 
 In *pimd/langevin/bosonic*, *fmmode* should not be used, and would raise
 an error if set to a value other than *physical*, due to the lack of
@@ -275,15 +397,55 @@ Thus for a fully quantum simulation of Neon using *lj* units, *sp*
 should be set to 0.600.  The modification of the quantumness should be
 done by scaling :math:`\Lambda^{\ast}`.
 
+.. versionadded:: TBD
+
+For *lj* units, the keyword *lj* sets the Planck constant from physical
+values instead: *epsilon*, *sigma*, and *mass* are the energy, length,
+and mass scales of the *lj* units, *planck* is Planck's constant, and
+*mvv2e* converts mass times velocity squared to energy, all in one
+consistent set of physical units.  The Planck constant used in *lj*
+units is then :math:`\Lambda^{\ast} = \mathrm{planck}/(\sigma
+\sqrt{\mathrm{mass}\,\varepsilon\,\mathrm{mvv2e}})`, which is
+multiplied by *sp*.  All five values default to 1.0, so that *sp* alone
+sets :math:`\Lambda^{\ast}` as described above.  The *lj* keyword has
+no effect for other unit styles.
+
 The keyword *ensemble* for fix style *pimd/langevin* determines which
 ensemble is it going to sample. The value can be *nve* (microcanonical),
 *nvt* (canonical), *nph* (isoenthalpic), and *npt*
 (isothermal-isobaric).  Fix *pimd/langevin/bosonic* currently does not
 support *ensemble* other than *nve*, *nvt*.
 
-The keyword *temp* specifies temperature parameter for fix styles
-*pimd/nvt* and *pimd/langevin*. It should read a positive floating-point
-number.
+The keyword *temp* specifies the temperature parameter for fix styles
+*pimd/nve*, *pimd/nvt*, and *pimd/langevin*. It should read a positive
+floating-point number.
+
+.. versionadded:: TBD
+
+For fix style *pimd/nvt*, the optional keyword *thermostat* can only be
+set to *NHC*, since that is the only thermostat this style supports.
+*Tdamp* specifies the thermostat damping time parameter and must be
+given, also for fix *pimd/nvt/bosonic*.  *tchain* specifies the length
+of the Nose-Hoover thermostat chain; *nhc* is an alternative name for
+*tchain*.  *tloop* specifies the number of Nose-Hoover chain sub-cycles,
+and *drag* specifies an optional thermostat drag factor.
+
+The keyword *removecom* controls whether the center-of-mass motion of
+the fix group is removed for fix *pimd/nve*, *pimd/nvt*,
+*pimd/nvt/bosonic*, and *pimd/uvt*.  It is removed at the thermostat
+steps of the time integration; fix *pimd/nve* has no thermostat and
+removes it at the same points of the time step.  With *method* = *pimd*
+the motion is removed for every bead, with *method* = *nmpimd* only for
+the centroid mode, and with *method* = *cmd* it is not removed.  For
+every bead or mode from which it is removed, the thermostat degrees of
+freedom are reduced by the dimension of the system.  Removing the
+center-of-mass motion changes the total energy when external forces act
+on the group.
+
+The keyword *tdof* sets the number of degrees of freedom used by the
+thermostat.  By default, this is the number of degrees of freedom of
+the atoms in the fix group, minus those removed by *removecom* and by
+constraints from other fixes.
 
 .. note::
 
@@ -300,8 +462,12 @@ as the seed of the pseudo random number generator.
 
 .. note::
 
-   The fix style *pimd/langevin* uses the stochastic PILE_L thermostat to control temperature. This thermostat works on the normal modes
-   of the ring polymer. The *tau* parameter controls the centroid mode, and the *scale* parameter controls the non-centroid modes.
+   The fix style *pimd/langevin* uses the stochastic PILE_L thermostat
+   to control temperature.  With *method* = *nmpimd*, this thermostat
+   works on the normal modes of the ring polymer. The *tau* parameter
+   controls the centroid mode, and the *scale* parameter controls the
+   non-centroid modes.  With *method* = *pimd*, it acts on Cartesian bead
+   velocities.
 
 The keyword *tau* specifies the thermostat damping time parameter for
 fix style *pimd/langevin*. It is in time unit. It only works on the
@@ -406,22 +572,21 @@ partitions, e.g.
 
 Major differences of *fix pimd/nvt* and *fix pimd/langevin* are:
 
-   #. *Fix pimd/nvt* includes Cartesian pimd, normal mode pimd, and centroid md. *Fix pimd/langevin* only intends to support normal mode pimd, as it is commonly enough for thermodynamic sampling.
+   #. *Fix pimd/nvt* supports normal-mode PIMD and Cartesian PIMD with a Nose-Hoover chain thermostat. *Fix pimd/langevin* supports normal-mode PIMD and Cartesian PIMD with a Langevin thermostat.
    #. *Fix pimd/nvt* uses Nose-Hoover chain thermostat. *Fix pimd/langevin* uses Langevin thermostat.
    #. *Fix pimd/langevin* provides barostat, so the npt ensemble can be sampled. *Fix pimd/nvt* only support nvt ensemble.
-   #. *Fix pimd/langevin* provides several quantum estimators in output.
-   #. *Fix pimd/langevin* allows multiple processes for each bead. For *fix pimd/nvt*, there is a large chance that multi-process tasks for each bead may fail.
+   #. Both fixes provide path-integral energy and estimator output.
    #. The dump of *fix pimd/nvt* are all Cartesian. *Fix pimd/langevin* dumps normal-mode velocities and forces, and Cartesian coordinates.
 
-Initially, the inter-replica communication and normal mode
-transformation parts of *fix pimd/langevin* are written based on those
-of *fix pimd/nvt*, but are significantly revised.
+The normal-mode propagation and inter-partition communication machinery
+is shared by the current PIMD NVE/NVT hierarchy.
 
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-Fix *pimd/nvt* writes the state of the Nose/Hoover thermostat over all
-quasi-beads to :doc:`binary restart files <restart>`.  See the
+Fix *pimd/nvt* writes the Nose/Hoover thermostat-chain state to
+:doc:`binary restart files <restart>`.  Fix *pimd/nve* has no
+additional thermostat state to write.  See the
 :doc:`read_restart <read_restart>` command for info on how to re-specify
 a fix in an input script that reads a restart file, so that the
 operation of the fix continues in an uninterrupted fashion.
@@ -432,27 +597,51 @@ thermostat, the state of the thermostat is not written. However, the
 state of the system can be restored by reading the restart file, except
 that it will re-initialize the random number generator.
 
+Fix *pimd/uvt* writes the nuclear thermostat state and electronic
+degree of freedom to :doc:`binary restart files <restart>`.
+
 None of the :doc:`fix_modify <fix_modify>` options are relevant to fix
-pimd/nvt.
+pimd/nvt or fix *pimd/uvt*.
 
-Fix *pimd/nvt* computes a global 3-vector, which can be accessed by
-various :doc:`output commands <Howto_output>`.  The three quantities in
-the global vector are:
+.. versionchanged:: TBD
 
-   #. the total spring energy of the quasi-beads,
-   #. the current temperature of the classical system of ring polymers,
-   #. the current value of the scalar virial estimator for the kinetic
-      energy of the quantum system :ref:`(Herman) <Herman>`.
+Fix *pimd/nve* and fix *pimd/nvt* compute a global vector, which can be accessed by
+various :doc:`output commands <Howto_output>`.  The first 10 quantities
+are the shared path-integral energy and estimator outputs:
 
-The vector values calculated by fix *pimd/nvt* are "extensive", except for the
-temperature, which is "intensive".
+   #. kinetic energy of the bead or normal mode,
+   #. spring elastic energy of the bead or normal mode,
+   #. potential energy of the bead or normal mode,
+   #. total energy of all beads,
+   #. primitive kinetic energy estimator :ref:`(Hirshberg1) <Hirshberg>`,
+   #. virial kinetic energy estimator :ref:`(Herman) <Herman>`,
+   #. centroid-virial kinetic energy estimator,
+   #. primitive pressure estimator,
+   #. molecular-dynamics pressure estimator,
+   #. centroid-virial pressure estimator.
 
-Fix *pimd/nvt/bosonic* computes a global 4-vector. The first three are
-the same as in *pimd/nvt* (the justification for the correctness of the
-virial estimator for bosons appears in the supporting information of
-:ref:`(Hirshberg2) <HirshbergInvernizzi>`). The fourth is the current
-value of the scalar primitive estimator for the kinetic energy of the
-quantum system :ref:`(Hirshberg1) <Hirshberg>`.
+These entries are followed by four sets of *tchain* Nose-Hoover
+thermostat-chain entries: the *eta* values, the *eta_dot* values, the
+thermostat potential contributions, and the thermostat kinetic contributions.
+
+Fix *pimd/nvt/bosonic* uses the shared *pimd/nvt* global-vector layout
+and replaces the distinguishable-particle spring energy and primitive
+kinetic-energy estimator with the bosonic exchange contributions.  Its
+primitive kinetic energy estimator is the value for the whole ring
+polymer and is the same in all log files.
+
+Fix *pimd/uvt* computes a global vector.  The first 10 entries are the
+shared nuclear energy and estimator outputs.  They are followed by:
+
+   #. electron number *Ne*,
+   #. combined instantaneous temperature *T_ins*,
+   #. electron-number velocity *Ne_dot*,
+   #. energy derivative *dEdN*,
+   #. electronic kinetic energy, and
+   #. electronic potential contribution *-mu*Ne*.
+
+The Nose-Hoover chain entries follow, starting at entry 17.  The six UVT
+entries do not depend on *tchain*.
 
 Fix *pimd/langevin* computes a global vector of quantities, which can be
 accessed by various :doc:`output commands <Howto_output>`. Note that it
@@ -534,39 +723,46 @@ classical energy can then be obtained by adding the sum of second output
 over all log files.  All vector values calculated by fix
 *pimd/langevin/bosonic* are "extensive".
 
-For both *pimd/nvt/bosonic* and *pimd/langevin/bosonic*, the
-contribution of the exterior spring to the primitive estimator is
-printed to the first log file.  The contribution of the :math:`P-1`
-interior springs is printed to the other :math:`P-1` log files.  The
-contribution of the constant :math:`\frac{PdN}{2 \beta}` (with :math:`d`
-being the dimensionality) is equally divided over log files.
+For *pimd/langevin/bosonic*, the contribution of the exterior spring to
+the primitive estimator is printed to the first log file.  The
+contribution of the :math:`P-1` interior springs is printed to the other
+:math:`P-1` log files.  The contribution of the constant
+:math:`\frac{PdN}{2 \beta}` (with :math:`d` being the dimensionality) is
+equally divided over log files.
 
-No parameter of fix *pimd/nvt* or *pimd/langevin* can be used with the
-*start/stop* keywords of the :doc:`run <run>` command.  Fix *pimd/nvt*
-or *pimd/langevin* is not invoked during :doc:`energy minimization
-<minimize>`.
+No parameter of fix *pimd/nvt*, *pimd/langevin*, or *pimd/uvt* can be
+used with the *start/stop* keywords of the :doc:`run <run>` command.  Fix
+*pimd/nvt*, *pimd/langevin*, and *pimd/uvt* are not invoked during
+:doc:`energy minimization <minimize>`.
 
 Restrictions
 """"""""""""
+
+These fixes require :doc:`run_style verlet <run_style>` and do not
+support :doc:`fix dt/reset <fix_dt_reset>`.
 
 These fixes are part of the REPLICA package.  They are only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package
 <Build_package>` page for more info.
 
-Fix *pimd/nvt* cannot be used with :doc:`lj units <units>`.
-Fix *pimd/langevin* can be used with :doc:`lj units <units>`.
-See the documentation above for how to use it.
+Fix *pimd/nve*, fix *pimd/nvt*, and fix *pimd/langevin* can be used with
+:doc:`lj units <units>`.  See the documentation above for how to use
+the *sp* and *lj* keywords.
 
-.. versionchanged:: 30Sep2026
+The normal-mode PIMD path supports one or more processors per bead
+partition, with the same number of processors in every partition.
+Atom IDs must be consecutive.  The Cartesian *method* = *pimd* path currently supports one
+processor per bead partition.
 
-Fixes *pimd/nvt* and *pimd/nvt/bosonic* require at least two beads,
-i.e. running with the :doc:`-partition <Run_options>` command-line
-switch, and stop with an error otherwise.  A ring polymer of a single
-bead has no neighboring beads to couple to.
-
-Only some combinations of fix styles and their options support
-partitions with multiple processors.  LAMMPS will stop with an error if
-multi-processor partitions are not supported.
+These fixes use the image flags of the atoms to keep the beads of each
+ring polymer together across periodic boundaries.  With the default
+size setting of LAMMPS, image flags roll over after an atom has moved
+through the periodic box more than 511 times in one direction (see
+:ref:`Build settings <size>`).  The ring polymers are then broken and
+LAMMPS usually stops with an error about lost atoms.  This does not
+occur in typical condensed-phase simulations.  For runs where it can
+occur, for example very long runs of fast-moving particles in a small
+box, build LAMMPS with the "bigbig" size setting.
 
 A PIMD simulation can be initialized with a single data file read via
 the :doc:`read_data <read_data>` command.  However, this means all
@@ -580,21 +776,45 @@ variable, e.g.
 
    velocity all create 300.0 1234${ibead} rot yes dist gaussian
 
+Fix *pimd/uvt* requires an atom map and consecutive atom IDs.  Use the
+:doc:`atom_modify map <atom_modify>` command to create an atom map.  All
+bead partitions must use the same number of processors.  The bead count equals
+the number of LAMMPS partitions.  This fix supports only 3d systems and
+does not support pressure control.
+
 Related commands
 """"""""""""""""
 
-:doc:`fix ipi <fix_ipi>`
+:doc:`fix ipi <fix_ipi>`, :doc:`fix uvt <fix_uvt>`,
+:doc:`read_restart <read_restart>`, :doc:`run_style <run_style>`
 
 Default
 """""""
 
-The keyword defaults for fix *pimd/nvt* are method = pimd, fmass = 1.0,
-sp = 1.0, temp = 300.0, and nhc = 2.
+The keyword defaults for fix *pimd/nve* are integrator = obabo,
+method = nmpimd, fmmode = physical, fmass = 1.0, sp = 1.0,
+temp = 298.15, and removecom = no.
+
+The keyword defaults for fix *pimd/nvt* are integrator = obabo,
+method = nmpimd, fmmode = physical, fmass = 1.0, sp = 1.0,
+temp = 298.15, tchain = 3, tloop = 1, drag = 0.0, and
+removecom = yes, and thermostat = NHC.  The *Tdamp* keyword must be
+specified.
+
+The keyword defaults for fix *pimd/nvt/bosonic* are method = pimd,
+fmmode = physical, temp = 298.15, nhc = 2, and removecom = no.  The
+*Tdamp* keyword must be specified.
 
 The keyword defaults for fix *pimd/langevin* are integrator = obabo,
 method = nmpimd, ensemble = nvt, fmmode = physical, fmass = 1.0, scale =
 1, temp = 298.15, thermostat = PILE_L, tau = 1.0, iso = 1.0, taup = 1.0,
 barostat = BZP, fixcom = yes, and sp = 1.0 for all its arguments.
+
+The keyword defaults for fix *pimd/uvt* are method = nmpimd,
+integrator = obabo, fmmode = physical, fmass = 1.0, sp = 1.0,
+temp = 298.15, tchain = 3, tloop = 1, drag = 0.0, and removecom = yes.
+The thermostat is always *NHC*.  The *Tdamp*, *mu*, *Udamp*,
+*ne*, and *dedn* keywords must be specified.
 
 ----------
 
@@ -668,3 +888,16 @@ Path Integrals, McGraw-Hill, New York (1965).
 .. _HigerFeldman:
 
 **(Higer)** J. Higer, Y. M. Y. Feldman, and B. Hirshberg, "Periodic Boundary Conditions for Bosonic Path Integral Molecular Dynamics," J. Chem. Phys. 163, 024101 (2025)
+
+.. _pimd-Li2026:
+
+**(Li2026)** Y. Li, A. Gomez, K. Cai, C. Zhang, L. Fu, W. Jia, Y. M. Y. Feldman,
+O. Blumer, J. Higer, B. Hirshberg, S. Xu, A. Kohlmeyer, and R. Car,
+"fix pimd/langevin: An efficient implementation of path integral molecular
+dynamics in LAMMPS," J. Chem. Phys. 164, 144119 (2026).
+
+.. _pimd-Fu2026:
+
+**(Fu2026)** L. Fu, Y. Li, and S. Xu, "fix uvt and fix pimd/uvt: A unified
+LAMMPS framework for constant-potential constant-temperature molecular
+dynamics," arXiv:2609.21935 (2026).

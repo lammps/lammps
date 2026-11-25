@@ -788,6 +788,63 @@ TEST_F(LibraryProperties, neighlist)
     }
 };
 
+// simple cubic lattice with 125 atoms and atom IDs 1 to 125 in a periodic box
+static std::string sc_setup(const char *mapstyle)
+{
+    return std::string("clear\n"
+                       "units           lj\n"
+                       "atom_modify     map ") +
+           mapstyle +
+           "\n"
+           "lattice         sc 1.0\n"
+           "region          box block 0 5 0 5 0 5\n"
+           "create_box      2 box\n"
+           "create_atoms    1 box\n"
+           "mass            * 1.0\n"
+           "pair_style      lj/cut 2.5\n"
+           "pair_coeff      * * 1.0 1.0\n";
+}
+
+TEST_F(LibraryProperties, create_atoms_after_run)
+{
+    // after a run, lammps_create_atoms() must discard the ghost atoms of that run
+    // before it adds atoms and rebuilds the atom map
+    for (const char *mapstyle : {"array", "hash"}) {
+        if (!verbose) ::testing::internal::CaptureStdout();
+        lammps_commands_string(lmp, sc_setup(mapstyle).c_str());
+        lammps_command(lmp, "run 0 post no");
+        if (!verbose) ::testing::internal::GetCapturedStdout();
+        EXPECT_EQ(lammps_extract_setting(lmp, "nlocal"), 125);
+        EXPECT_GT(lammps_extract_setting(lmp, "nghost"), 0);
+
+        for (int k = 0; k < 4; ++k) {
+            const tagint newid  = 126 + k;
+            const int newtype   = 1;
+            const double pos[3] = {0.5 + k, 0.5, 0.5};
+            EXPECT_EQ(lammps_create_atoms(lmp, 1, &newid, &newtype, pos, nullptr, nullptr, 0), 1);
+            const int nlocal = lammps_extract_setting(lmp, "nlocal");
+            EXPECT_EQ(nlocal, 126 + k);
+            EXPECT_EQ(lammps_extract_setting(lmp, "nghost"), 0);
+
+            // all atoms, old and new, must map to their own local index
+            auto *tags = (tagint *)lammps_extract_atom(lmp, "id");
+            for (tagint id = 1; id <= newid; ++id) {
+                const int idx = lammps_map_atom(lmp, &id);
+                ASSERT_GE(idx, 0);
+                ASSERT_LT(idx, nlocal);
+                EXPECT_EQ(tags[idx], id);
+            }
+
+            if (!verbose) ::testing::internal::CaptureStdout();
+            lammps_command(lmp, "run 0 post no");
+            if (!verbose) ::testing::internal::GetCapturedStdout();
+            EXPECT_GT(lammps_extract_setting(lmp, "nghost"), 0);
+        }
+        EXPECT_EQ(lammps_get_natoms(lmp), 129.0);
+        EXPECT_EQ(lammps_has_error(lmp), 0);
+    }
+};
+
 static constexpr char lj_setup[] = "lattice         fcc 0.8442\n"
                                    "region          box block 0 10 0 10 0 10\n"
                                    "create_box      1 box\n"

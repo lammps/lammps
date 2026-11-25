@@ -120,6 +120,34 @@ INSTANTIATE_TEST_SUITE_P(PIMDStyles, FixPIMDIntegrationCompatibilityTest,
                          ::testing::Values("pimd/nve", "pimd/nvt", "pimd/uvt", "pimd/langevin",
                                            "pimd/nvt/bosonic", "pimd/langevin/bosonic"));
 
+TEST_F(FixPIMDNVESerialTest, RemovecomRemovesUniformDrift)
+{
+  command("units lj");
+  command("atom_style atomic");
+  command("atom_modify map yes");
+  command("boundary p p p");
+  command("region box block 0 4 0 4 0 4");
+  command("create_box 1 box");
+  command("create_atoms 1 single 1.0 1.0 1.0");
+  command("create_atoms 1 single 2.5 2.5 2.5");
+  command("mass * 1.0");
+  command("pair_style zero 2.5");
+  command("pair_coeff * *");
+  command("timestep 0.002");
+  command("velocity all set 0.2 0.1 -0.05");
+
+  const double drift_ke = 2.0 * 0.5 * (0.2 * 0.2 + 0.1 * 0.1 + 0.05 * 0.05);
+  // the default for pimd/nve is removecom no
+  command("fix cp all pimd/nve temp 1.0");
+  command("run 5 post no");
+  EXPECT_NEAR(fix_value("cp", 0), drift_ke, 1.0e-12);
+
+  command("unfix cp");
+  command("fix cp all pimd/nve temp 1.0 removecom yes");
+  command("run 5 post no");
+  EXPECT_NEAR(fix_value("cp", 0), 0.0, 1.0e-12);
+}
+
 TEST_F(FixPIMDNVESerialTest, DoesNotMoveAtomsOutsideFixGroup)
 {
   command("units lj");
@@ -153,7 +181,8 @@ TEST_F(FixPIMDNVESerialTest, DoesNotMoveAtomsOutsideFixGroup)
   }
   ASSERT_TRUE(found);
 
-  command("fix cp mobile pimd/nve temp 1.0");
+  // removecom no: removing the center-of-mass motion would stop the single mobile atom
+  command("fix cp mobile pimd/nve temp 1.0 removecom no");
   command("run 0 post no");
   // Only the mobile atom contributes, even though the other atom has velocity.
   const double mobile_ke = 0.5 * (0.2 * 0.2 + 0.1 * 0.1 + 0.05 * 0.05);
@@ -176,7 +205,7 @@ TEST_F(FixPIMDNVESerialTest, DoesNotMoveAtomsOutsideFixGroup)
   ASSERT_TRUE(found);
 
   command("unfix cp");
-  command("fix cp all pimd/nve temp 1.0");
+  command("fix cp all pimd/nve temp 1.0 removecom no");
   command("run 0 post no");
   EXPECT_NEAR(fix_value("cp", 0), 2.0 * mobile_ke, 1.0e-12);
   EXPECT_NEAR(fix_value("cp", 3), 2.0 * mobile_ke, 1.0e-12);
@@ -438,7 +467,7 @@ TEST(FixPIMDNVEMPI, RemoveCOMRespectsRepresentationAndGroup)
     const bool cmd = std::string(method) == "cmd";
     const std::string style = cmd ? "pimd/nvt" : "pimd/nve";
     command(("fix cp mobile " + style + " temp 1.0 method " + method +
-             (cmd ? " Tdamp 1.0 removecom no" : "")).c_str());
+             (cmd ? " Tdamp 1.0 removecom no" : " removecom yes")).c_str());
     command("run 0 post no");
     command("velocity all set 1.0 2.0 3.0");
     auto *fix = dynamic_cast<FixPIMDNVE *>(lmp->modify->get_fix_by_id("cp"));

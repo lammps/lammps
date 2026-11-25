@@ -137,7 +137,7 @@ if(PKG_REPLICA)
            COMMAND test_fix_pimd_nvt --gtest_filter=FixPIMDNVTSerialTest.*)
   add_mpi_test(NAME FixPIMDNVTMPI NUM_PROCS 2
                COMMAND $<TARGET_FILE:test_fix_pimd_nvt>
-                       --gtest_filter=FixPIMDNVTMPI.PIMDPartitionedRunSupportsOneRankPerBead:FixPIMDNVTMPI.CMDLeavesCentroidChainInactive)
+                       --gtest_filter=FixPIMDNVTMPI.PIMDPartitionedRunSupportsOneRankPerBead:FixPIMDNVTMPI.CMDLeavesCentroidChainInactive:FixPIMDNVTMPI.RemovecomDOFMatchesRemovedMotion)
   add_mpi_test(NAME FixPIMDNVTMultiRankPerBead NUM_PROCS 4
                COMMAND $<TARGET_FILE:test_fix_pimd_nvt>
                        --gtest_filter=FixPIMDNVTMPI.MultiRankPerBeadRunProducesFiniteThermostatState)

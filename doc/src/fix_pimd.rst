@@ -431,13 +431,16 @@ of the Nose-Hoover thermostat chain; *nhc* is an alternative name for
 and *drag* specifies an optional thermostat drag factor.
 
 The keyword *removecom* controls whether the center-of-mass motion of
-the fix group is removed after each thermostat step of fix *pimd/nvt*,
-*pimd/nvt/bosonic*, and *pimd/uvt*.  With *method* = *pimd* it is
-removed for every bead, with *method* = *nmpimd* only for the centroid
-mode, and with *method* = *cmd* it is not removed.  When *removecom* is
-*yes*, the thermostat degrees of freedom of the first partition (the
-centroid mode for *method* = *nmpimd*) are reduced by the dimension of
-the system.
+the fix group is removed for fix *pimd/nve*, *pimd/nvt*,
+*pimd/nvt/bosonic*, and *pimd/uvt*.  It is removed at the thermostat
+steps of the time integration; fix *pimd/nve* has no thermostat and
+removes it at the same points of the time step.  With *method* = *pimd*
+the motion is removed for every bead, with *method* = *nmpimd* only for
+the centroid mode, and with *method* = *cmd* it is not removed.  For
+every bead or mode from which it is removed, the thermostat degrees of
+freedom are reduced by the dimension of the system.  Removing the
+center-of-mass motion changes the total energy when external forces act
+on the group.
 
 The keyword *tdof* sets the number of degrees of freedom used by the
 thermostat.  By default, this is the number of degrees of freedom of
@@ -780,7 +783,7 @@ Default
 
 The keyword defaults for fix *pimd/nve* are integrator = obabo,
 method = nmpimd, fmmode = physical, fmass = 1.0, sp = 1.0,
-temp = 298.15, and removecom = yes.
+temp = 298.15, and removecom = no.
 
 The keyword defaults for fix *pimd/nvt* are integrator = obabo,
 method = nmpimd, fmmode = physical, fmass = 1.0, sp = 1.0,
@@ -789,8 +792,8 @@ removecom = yes, and thermostat = NHC.  The *Tdamp* keyword must be
 specified.
 
 The keyword defaults for fix *pimd/nvt/bosonic* are method = pimd,
-fmmode = physical, temp = 298.15, and nhc = 2.  The *Tdamp* keyword must
-be specified.
+fmmode = physical, temp = 298.15, nhc = 2, and removecom = no.  The
+*Tdamp* keyword must be specified.
 
 The keyword defaults for fix *pimd/langevin* are integrator = obabo,
 method = nmpimd, ensemble = nvt, fmmode = physical, fmass = 1.0, scale =

@@ -148,6 +148,9 @@ FixPIMDNVE::FixPIMDNVE(LAMMPS *lmp, int narg, char **arg, bool defer_setup) :
   // Derived styles initialize their own options before parsing the full command.
   if (defer_setup) return;
 
+  // without a thermostat, keep the center-of-mass motion unless requested
+  removecomflag = 0;
+
   // process keywords
 
   for (int i = 3; i < narg;) {
@@ -484,7 +487,11 @@ void FixPIMDNVE::final_integrate()
 
 /* ---------------------------------------------------------------------- */
 
-void FixPIMDNVE::o_step() {}
+void FixPIMDNVE::o_step()
+{
+  // no thermostat; only the optional removal of center-of-mass motion
+  if (removecomflag) remove_com_motion();
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -1191,13 +1198,18 @@ void FixPIMDNVE::ring_collect(const std::vector<tagint> &miss_tag, double **ptr,
 
 /* ---------------------------------------------------------------------- */
 
+bool FixPIMDNVE::removes_com_motion() const
+{
+  // Cartesian PIMD: every bead; NMPIMD: only the centroid mode; CMD: never.
+  if (!removecomflag || (method == CMD)) return false;
+  return (method == PIMD) || (universe->iworld == 0);
+}
+
+/* ---------------------------------------------------------------------- */
+
 void FixPIMDNVE::remove_com_motion()
 {
-  // Do not remove center-of-mass motion for CMD.
-  if (method == CMD) return;
-
-  // Cartesian PIMD: every bead; NMPIMD: only the centroid mode.
-  if (method == PIMD || universe->iworld == 0) {
+  if (removes_com_motion()) {
     double **v = atom->v;
     int *mask = atom->mask;
     int nlocal = atom->nlocal;

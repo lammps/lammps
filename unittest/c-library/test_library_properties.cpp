@@ -889,6 +889,29 @@ TEST_F(LibraryProperties, create_atoms_invalid)
     EXPECT_THAT(errmsg, HasSubstr("Duplicate atom IDs exist"));
 };
 
+TEST_F(LibraryProperties, map_atom_invalid)
+{
+    for (const char *mapstyle : {"array", "hash"}) {
+        if (!verbose) ::testing::internal::CaptureStdout();
+        lammps_commands_string(lmp, sc_setup(mapstyle).c_str());
+        if (!verbose) ::testing::internal::GetCapturedStdout();
+
+        // atom IDs that do not exist: zero, negative, or larger than the largest atom ID
+        const tagint badids[] = {0, -1, -1000, 126, 1000000};
+        for (const auto &badid : badids)
+            EXPECT_EQ(lammps_map_atom(lmp, &badid), -1);
+
+        auto *tags             = (tagint *)lammps_extract_atom(lmp, "id");
+        const tagint goodids[] = {1, 125};
+        for (const auto &goodid : goodids) {
+            const int idx = lammps_map_atom(lmp, &goodid);
+            ASSERT_GE(idx, 0);
+            EXPECT_EQ(tags[idx], goodid);
+        }
+        EXPECT_EQ(lammps_has_error(lmp), 0);
+    }
+};
+
 static constexpr char lj_setup[] = "lattice         fcc 0.8442\n"
                                    "region          box block 0 10 0 10 0 10\n"
                                    "create_box      1 box\n"

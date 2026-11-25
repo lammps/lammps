@@ -135,6 +135,18 @@ static void ptr_argument_warning()
     lammps_last_global_errormessage = std::move(message);   \
   }
 
+/* ----------------------------------------------------------------------
+   local index of the atom with an atom ID provided by the caller, or -1.
+   Atom::map() does not check its argument, so atom IDs outside the range
+   of the atom map (1 to map_tag_max) are rejected here.
+------------------------------------------------------------------------- */
+
+static int map_atom_id(Atom *atom, tagint id)
+{
+  if ((id <= 0) || (id > atom->map_tag_max)) return -1;
+  return atom->map(id);
+}
+
 // ----------------------------------------------------------------------
 // Library functions to create/destroy an instance of LAMMPS
 // ----------------------------------------------------------------------
@@ -2496,7 +2508,7 @@ int lammps_map_atom(void *handle, const void *id)
 
   const auto *tag = (const tagint *) id;
   if (lmp->atom->map_style > Atom::MAP_NONE)
-    return lmp->atom->map(*tag);
+    return map_atom_id(lmp->atom, *tag);
   else
     return -1;
 }
@@ -3926,6 +3938,9 @@ x[100][2], x[57][0], x[57][1], x[57][2], x[210][0], :math:`\dots`);
 *data* must be pre-allocated by the caller to length
 (*count* :math:`\times` *ndata*).
 
+Entries for atom IDs that do not exist (e.g. zero, negative, or larger
+than the largest atom ID) are set to zero.
+
 .. admonition:: Restrictions
     :class: warning
 
@@ -4010,14 +4025,14 @@ void lammps_gather_atoms_subset(void *handle, const char *name, int dtype,
       if (count == 1) {
         for (i = 0; i < ndata; i++) {
           id = ids[i];
-          if ((m = lmp->atom->map(id)) >= 0 && m < nlocal)
+          if ((m = map_atom_id(lmp->atom, id)) >= 0 && m < nlocal)
             copy[i] = vector[m];
         }
 
       } else if (imgunpack) {
         for (i = 0; i < ndata; i++) {
           id = ids[i];
-          if ((m = lmp->atom->map(id)) >= 0 && m < nlocal) {
+          if ((m = map_atom_id(lmp->atom, id)) >= 0 && m < nlocal) {
             offset = count*i;
             const int image = vector[m];
             copy[offset++] = (image & IMGMASK) - IMGMAX;
@@ -4029,7 +4044,7 @@ void lammps_gather_atoms_subset(void *handle, const char *name, int dtype,
       } else {
         for (i = 0; i < ndata; i++) {
           id = ids[i];
-          if ((m = lmp->atom->map(id)) >= 0 && m < nlocal) {
+          if ((m = map_atom_id(lmp->atom, id)) >= 0 && m < nlocal) {
             offset = count*i;
             for (j = 0; j < count; j++)
               copy[offset++] = array[m][j];
@@ -4055,14 +4070,14 @@ void lammps_gather_atoms_subset(void *handle, const char *name, int dtype,
       if (count == 1) {
         for (i = 0; i < ndata; i++) {
           id = ids[i];
-          if ((m = lmp->atom->map(id)) >= 0 && m < nlocal)
+          if ((m = map_atom_id(lmp->atom, id)) >= 0 && m < nlocal)
             copy[i] = vector[m];
         }
 
       } else {
         for (i = 0; i < ndata; i++) {
           id = ids[i];
-          if ((m = lmp->atom->map(id)) >= 0 && m < nlocal) {
+          if ((m = map_atom_id(lmp->atom, id)) >= 0 && m < nlocal) {
             offset = count*i;
             for (j = 0; j < count; j++)
               copy[offset++] = array[m][j];
@@ -4232,6 +4247,9 @@ to be the array {x[1][0], x[1][1], x[1][2], x[100][0], x[100][1], x[100][2],
 x[57][0], x[57][1], x[57][2]}, then *count* = 3, *ndata* = 3, and *ids* would
 be {1, 100, 57}.
 
+Atom IDs that do not exist (e.g. zero, negative, or larger than the
+largest atom ID) are skipped.
+
 .. admonition:: Restrictions
     :class: warning
 
@@ -4318,14 +4336,14 @@ void lammps_scatter_atoms_subset(void *handle, const char *name, int dtype,
       if (count == 1) {
         for (i = 0; i < ndata; i++) {
           id = ids[i];
-          if ((m = lmp->atom->map(id)) >= 0)
+          if ((m = map_atom_id(lmp->atom, id)) >= 0)
             vector[m] = dptr[i];
         }
 
       } else if (imgpack) {
         for (i = 0; i < ndata; i++) {
           id = ids[i];
-          if ((m = lmp->atom->map(id)) >= 0) {
+          if ((m = map_atom_id(lmp->atom, id)) >= 0) {
             offset = count*i;
             int image = dptr[offset++] + IMGMAX;
             image += (dptr[offset++] + IMGMAX) << IMGBITS;
@@ -4337,7 +4355,7 @@ void lammps_scatter_atoms_subset(void *handle, const char *name, int dtype,
       } else {
         for (i = 0; i < ndata; i++) {
           id = ids[i];
-          if ((m = lmp->atom->map(id)) >= 0) {
+          if ((m = map_atom_id(lmp->atom, id)) >= 0) {
             offset = count*i;
             for (j = 0; j < count; j++)
               array[m][j] = dptr[offset++];
@@ -4355,14 +4373,14 @@ void lammps_scatter_atoms_subset(void *handle, const char *name, int dtype,
       if (count == 1) {
         for (i = 0; i < ndata; i++) {
           id = ids[i];
-          if ((m = lmp->atom->map(id)) >= 0)
+          if ((m = map_atom_id(lmp->atom, id)) >= 0)
             vector[m] = dptr[i];
         }
 
       } else {
         for (i = 0; i < ndata; i++) {
           id = ids[i];
-          if ((m = lmp->atom->map(id)) >= 0) {
+          if ((m = map_atom_id(lmp->atom, id)) >= 0) {
             offset = count*i;
             for (j = 0; j < count; j++)
               array[m][j] = dptr[offset++];
@@ -5397,6 +5415,9 @@ look like {x[100][0], x[100][1], x[100][2], x[57][0], x[57][1], x[57][2], x[210]
 :math:`\dots`}); *ids* must be provided by the user with length *ndata*, and *data* must be
 pre-allocated by the caller to length (*count*\ :math:`{}\times{}`\ *ndata*).
 
+Entries for atom IDs that do not exist (e.g. zero, negative, or larger
+than the largest atom ID) are set to zero.
+
 .. admonition:: Restrictions
     :class: warning
 
@@ -5585,14 +5606,14 @@ void lammps_gather_subset(void *handle, const char *name, int dtype, int count, 
       if (count == 1) {
         for (i = 0; i < ndata; i++) {
           id = ids[i];
-          if ((m = lmp->atom->map(id)) >= 0 && m < nlocal)
+          if ((m = map_atom_id(lmp->atom, id)) >= 0 && m < nlocal)
             copy[i] = vector[m];
         }
 
       } else if (imgunpack) {
         for (i = 0; i < ndata; i++) {
           id = ids[i];
-          if ((m = lmp->atom->map(id)) >= 0 && m < nlocal) {
+          if ((m = map_atom_id(lmp->atom, id)) >= 0 && m < nlocal) {
             offset = count*i;
             const int image = vector[m];
             copy[offset++] = (image & IMGMASK) - IMGMAX;
@@ -5604,7 +5625,7 @@ void lammps_gather_subset(void *handle, const char *name, int dtype, int count, 
       } else {
         for (i = 0; i < ndata; i++) {
           id = ids[i];
-          if ((m = lmp->atom->map(id)) >= 0 && m < nlocal) {
+          if ((m = map_atom_id(lmp->atom, id)) >= 0 && m < nlocal) {
             offset = count*i;
             for (j = 0; j < count; j++)
               copy[offset++] = array[m][j];
@@ -5631,14 +5652,14 @@ void lammps_gather_subset(void *handle, const char *name, int dtype, int count, 
       if (count == 1) {
         for (i = 0; i < ndata; i++) {
           id = ids[i];
-          if ((m = lmp->atom->map(id)) >= 0 && m < nlocal)
+          if ((m = map_atom_id(lmp->atom, id)) >= 0 && m < nlocal)
             copy[i] = vector[m];
         }
 
       } else {
         for (i = 0; i < ndata; i++) {
           id = ids[i];
-          if ((m = lmp->atom->map(id)) >= 0 && m < nlocal) {
+          if ((m = map_atom_id(lmp->atom, id)) >= 0 && m < nlocal) {
             offset = count*i;
             for (j = 0; j < count; j++)
               copy[offset++] = array[m][j];
@@ -5911,6 +5932,9 @@ to be the array {x[1][0], x[1][1], x[1][2], x[100][0], x[100][1], x[100][2],
 x[57][0], x[57][1], x[57][2]}, then *count* = 3, *ndata* = 3, and *ids* would
 be {1, 100, 57}.
 
+Atom IDs that do not exist (e.g. zero, negative, or larger than the
+largest atom ID) are skipped.
+
 .. admonition:: Restrictions
     :class: warning
 
@@ -6085,14 +6109,14 @@ void lammps_scatter_subset(void *handle, const char *name, int dtype, int count,
       if (count == 1) {
         for (i = 0; i < ndata; i++) {
           id = ids[i];
-          if ((m = lmp->atom->map(id)) >= 0)
+          if ((m = map_atom_id(lmp->atom, id)) >= 0)
             vector[m] = dptr[i];
         }
 
       } else if (imgpack) {
         for (i = 0; i < ndata; i++) {
           id = ids[i];
-          if ((m = lmp->atom->map(id)) >= 0) {
+          if ((m = map_atom_id(lmp->atom, id)) >= 0) {
             offset = count*i;
             int image = dptr[offset++] + IMGMAX;
             image += (dptr[offset++] + IMGMAX) << IMGBITS;
@@ -6104,7 +6128,7 @@ void lammps_scatter_subset(void *handle, const char *name, int dtype, int count,
       } else {
         for (i = 0; i < ndata; i++) {
           id = ids[i];
-          if ((m = lmp->atom->map(id)) >= 0) {
+          if ((m = map_atom_id(lmp->atom, id)) >= 0) {
             offset = count*i;
             for (j = 0; j < count; j++)
               array[m][j] = dptr[offset++];
@@ -6122,14 +6146,14 @@ void lammps_scatter_subset(void *handle, const char *name, int dtype, int count,
       if (count == 1) {
         for (i = 0; i < ndata; i++) {
           id = ids[i];
-          if ((m = lmp->atom->map(id)) >= 0)
+          if ((m = map_atom_id(lmp->atom, id)) >= 0)
             vector[m] = dptr[i];
         }
 
       } else {
         for (i = 0; i < ndata; i++) {
           id = ids[i];
-          if ((m = lmp->atom->map(id)) >= 0) {
+          if ((m = map_atom_id(lmp->atom, id)) >= 0) {
             offset = count*i;
             for (j = 0; j < count; j++)
               array[m][j] = dptr[offset++];

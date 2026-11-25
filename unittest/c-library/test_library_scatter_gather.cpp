@@ -5,6 +5,7 @@
 #include "lmptype.h"
 #include "platform.h"
 #include <string>
+#include <vector>
 
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
@@ -17,6 +18,7 @@
 using ::LAMMPS_NS::bigint;
 using ::LAMMPS_NS::tagint;
 using ::LAMMPS_NS::platform::path_join;
+using ::testing::ElementsAre;
 using ::testing::HasSubstr;
 using ::testing::StartsWith;
 
@@ -367,4 +369,63 @@ TEST_F(GatherProperties, gather_impropers_newton_off)
     EXPECT_EQ(count, 2);
     delete[] impropers;
 #undef CHECK_IMPROPERS
+};
+
+#if !defined(LAMMPS_BIGBIG)
+// simple cubic lattice with 125 atoms and atom IDs 1 to 125
+static std::string sc_setup(const char *mapstyle)
+{
+    return std::string("clear\n"
+                       "atom_modify     map ") +
+           mapstyle +
+           "\n"
+           "lattice         sc 1.0\n"
+           "region          box block 0 5 0 5 0 5\n"
+           "create_box      2 box\n"
+           "create_atoms    1 box\n"
+           "mass            * 1.0\n";
+}
+#endif
+
+TEST_F(GatherProperties, subset_invalid_ids)
+{
+#if defined(LAMMPS_BIGBIG)
+    GTEST_SKIP();
+#else
+    for (const char *mapstyle : {"array", "hash"}) {
+        if (!verbose) ::testing::internal::CaptureStdout();
+        lammps_commands_string(lmp, sc_setup(mapstyle).c_str());
+        if (!verbose) ::testing::internal::GetCapturedStdout();
+
+        // atom IDs that do not exist: zero, negative, or larger than the largest atom ID
+        int ids[]       = {5, 0, -3, 126, 1000000, 7};
+        const int ndata = sizeof(ids) / sizeof(int);
+
+        // gather: entries for atom IDs that do not exist are zero
+        std::vector<int> types(ndata, -1);
+        lammps_gather_atoms_subset(lmp, "type", 0, 1, ndata, ids, types.data());
+        EXPECT_THAT(types, ElementsAre(1, 0, 0, 0, 0, 1));
+        types.assign(ndata, -1);
+        lammps_gather_subset(lmp, "type", 0, 1, ndata, ids, types.data());
+        EXPECT_THAT(types, ElementsAre(1, 0, 0, 0, 0, 1));
+
+        // scatter: atom IDs that do not exist are skipped, only atoms 5 and 7 change
+        std::vector<int> newtypes(ndata, 2);
+        std::vector<int> alltypes(125, 0);
+        lammps_scatter_atoms_subset(lmp, "type", 0, 1, ndata, ids, newtypes.data());
+        lammps_gather_atoms(lmp, "type", 0, 1, alltypes.data());
+        for (int i = 0; i < 125; ++i)
+            EXPECT_EQ(alltypes[i], ((i == 4) || (i == 6)) ? 2 : 1);
+
+        if (!verbose) ::testing::internal::CaptureStdout();
+        lammps_command(lmp, "set group all type 1");
+        if (!verbose) ::testing::internal::GetCapturedStdout();
+        lammps_scatter_subset(lmp, "type", 0, 1, ndata, ids, newtypes.data());
+        lammps_gather_atoms(lmp, "type", 0, 1, alltypes.data());
+        for (int i = 0; i < 125; ++i)
+            EXPECT_EQ(alltypes[i], ((i == 4) || (i == 6)) ? 2 : 1);
+
+        EXPECT_EQ(lammps_has_error(lmp), 0);
+    }
+#endif
 };

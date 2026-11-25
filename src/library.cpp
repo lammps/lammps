@@ -4108,6 +4108,11 @@ atom ID (e.g., if *name* is *x* and *count* = 3, then
 *data* = {x[0][0], x[0][1], x[0][2], x[1][0], x[1][1], x[1][2], x[2][0],
 :math:`\dots`}); *data* must be of length (*count* :math:`\times` *natoms*).
 
+.. versionchanged:: TBD
+
+The atom IDs (*name* = "id") cannot be changed with this function; the
+:doc:`reset_atoms id <reset_atoms>` command renumbers atoms.
+
 .. admonition:: Restrictions
     :class: warning
 
@@ -4166,6 +4171,12 @@ void lammps_scatter_atoms(void *handle, const char *name, int dtype, int count, 
                       "{}(): Atom-IDs must exist, be consecutive, and be mapped", FNERR);
 
     int natoms = static_cast<int> (lmp->atom->natoms);
+
+    // changing atom IDs here would leave the atom map and bond partners inconsistent
+
+    if (strcmp(name, "id") == 0)
+      lmp->error->all(FLERR, Error::NOLASTLINE,
+                      "{}(): Cannot change atom IDs, use the reset_atoms id command", FNERR);
 
     void *vptr = lmp->atom->extract(name);
     if (!vptr) lmp->error->all(FLERR, Error::NOLASTLINE, "{}(): unknown property {}", FNERR, name);
@@ -4250,6 +4261,11 @@ be {1, 100, 57}.
 Atom IDs that do not exist (e.g. zero, negative, or larger than the
 largest atom ID) are skipped.
 
+.. versionchanged:: TBD
+
+The atom IDs (*name* = "id") cannot be changed with this function; the
+:doc:`reset_atoms id <reset_atoms>` command renumbers atoms.
+
 .. admonition:: Restrictions
     :class: warning
 
@@ -4320,6 +4336,12 @@ void lammps_scatter_atoms_subset(void *handle, const char *name, int dtype,
     if (lmp->atom->map_style == Atom::MAP_NONE) flag = 1;
     if (flag)
       lmp->error->all(FLERR, Error::NOLASTLINE, "{}(): Atom-IDs must exist and be mapped", FNERR);
+
+    // changing atom IDs here would leave the atom map and bond partners inconsistent
+
+    if (strcmp(name, "id") == 0)
+      lmp->error->all(FLERR, Error::NOLASTLINE,
+                      "{}(): Cannot change atom IDs, use the reset_atoms id command", FNERR);
 
     void *vptr = lmp->atom->extract(name);
     if (!vptr) lmp->error->all(FLERR, Error::NOLASTLINE, "{}(): Unknown property {}", FNERR, name);
@@ -5689,6 +5711,11 @@ The *data* array needs to be ordered in groups of *count* values, sorted by atom
 *name* is *x* and *count* = 3, then *data* = {x[0][0], x[0][1], x[0][2], x[1][0], x[1][1],
 x[1][2], x[2][0], :math:`\dots`}); *data* must be of length (*count* :math:`\times` *natoms*).
 
+.. versionchanged:: TBD
+
+The atom IDs (*name* = "id") cannot be changed with this function; the
+:doc:`reset_atoms id <reset_atoms>` command renumbers atoms.
+
 .. admonition:: Restrictions
     :class: warning
 
@@ -5768,6 +5795,12 @@ void lammps_scatter(void *handle, const char *name, int dtype, int count, void *
                       "{}(): Atom-IDs must exist, be consecutive, and be mapped", FNERR);
 
     int natoms = static_cast<int> (lmp->atom->natoms);
+    // changing atom IDs here would leave the atom map and bond partners inconsistent
+
+    if (strcmp(name, "id") == 0)
+      lmp->error->all(FLERR, Error::NOLASTLINE,
+                      "{}(): Cannot change atom IDs, use the reset_atoms id command", FNERR);
+
     void *vptr = lmp->atom->extract(name);
 
     // fix
@@ -5935,6 +5968,11 @@ be {1, 100, 57}.
 Atom IDs that do not exist (e.g. zero, negative, or larger than the
 largest atom ID) are skipped.
 
+.. versionchanged:: TBD
+
+The atom IDs (*name* = "id") cannot be changed with this function; the
+:doc:`reset_atoms id <reset_atoms>` command renumbers atoms.
+
 .. admonition:: Restrictions
     :class: warning
 
@@ -6011,6 +6049,12 @@ void lammps_scatter_subset(void *handle, const char *name, int dtype, int count,
     if (lmp->atom->map_style == Atom::MAP_NONE) flag = 1;
     if (flag)
       lmp->error->all(FLERR, Error::NOLASTLINE, "{}(): Atom-IDs must exist and be mapped", FNERR);
+
+    // changing atom IDs here would leave the atom map and bond partners inconsistent
+
+    if (strcmp(name, "id") == 0)
+      lmp->error->all(FLERR, Error::NOLASTLINE,
+                      "{}(): Cannot change atom IDs, use the reset_atoms id command", FNERR);
 
     void *vptr = lmp->atom->extract(name);
 

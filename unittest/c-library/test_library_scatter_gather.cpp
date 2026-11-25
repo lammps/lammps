@@ -429,3 +429,43 @@ TEST_F(GatherProperties, subset_invalid_ids)
     }
 #endif
 };
+
+TEST_F(GatherProperties, scatter_ids_refused)
+{
+#if defined(LAMMPS_BIGBIG)
+    GTEST_SKIP();
+#else
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lammps_commands_string(lmp, sc_setup("array").c_str());
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    lammps_set_show_error(lmp, 0);
+
+    auto expect_refused = [&]() {
+        char errmsg[256];
+        EXPECT_EQ(lammps_get_last_error_message(lmp, errmsg, 256), 1);
+        EXPECT_THAT(errmsg, HasSubstr("Cannot change atom IDs"));
+    };
+
+    // new atom IDs 1001 to 1125 for all atoms, or 1001 and 1002 for atoms 1 and 2
+    std::vector<int> newids(125);
+    for (int i = 0; i < 125; ++i)
+        newids[i] = 1001 + i;
+    int ids[] = {1, 2};
+
+    lammps_scatter_atoms(lmp, "id", 0, 1, newids.data());
+    expect_refused();
+    lammps_scatter(lmp, "id", 0, 1, newids.data());
+    expect_refused();
+    lammps_scatter_atoms_subset(lmp, "id", 0, 1, 2, ids, newids.data());
+    expect_refused();
+    lammps_scatter_subset(lmp, "id", 0, 1, 2, ids, newids.data());
+    expect_refused();
+
+    // the atom IDs are unchanged
+    std::vector<int> allids(125, 0);
+    lammps_gather_atoms(lmp, "id", 0, 1, allids.data());
+    for (int i = 0; i < 125; ++i)
+        EXPECT_EQ(allids[i], i + 1);
+    EXPECT_EQ(lammps_has_error(lmp), 0);
+#endif
+};

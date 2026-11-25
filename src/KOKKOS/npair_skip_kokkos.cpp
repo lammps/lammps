@@ -93,6 +93,8 @@ void NPairSkipKokkos<DeviceType,TRIM>::build(NeighList *list)
   // skip I atom entirely if iskip is set for type[I]
   // skip I,J pair if ijskip is set for type[I],type[J]
 
+  // An empty scan never executes the final pass that writes d_inum.
+  if (num_skip == 0) Kokkos::deep_copy(d_inum,0);
   copymode = 1;
   Kokkos::parallel_scan(Kokkos::RangePolicy<DeviceType, TagNPairSkipCompute>(0,num_skip),*this);
 

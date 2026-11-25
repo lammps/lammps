@@ -149,6 +149,14 @@ FixShakeKokkos<DeviceType>::~FixShakeKokkos()
   memoryKK->destroy_kokkos(k_vatom,vatom);
 }
 
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+int FixShakeKokkos<DeviceType>::setmask()
+{
+  return FixShake::setmask() | MIN_PRE_NEIGHBOR;
+}
+
 /* ----------------------------------------------------------------------
    set bond and angle distances
    this init must happen after force->bond and force->angle inits
@@ -333,6 +341,18 @@ void FixShakeKokkos<DeviceType>::operator()(TagFixShakePreNeighbor, const int &i
       }
     }
   }
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+void FixShakeKokkos<DeviceType>::min_pre_neighbor()
+{
+  // Unlike the CPU restraint loop, the device kernel caches cluster and
+  // closest-image indices.  Migration and periodic wrapping invalidate
+  // these indices during minimization just as they do during dynamics.
+
+  pre_neighbor();
 }
 
 /* ----------------------------------------------------------------------

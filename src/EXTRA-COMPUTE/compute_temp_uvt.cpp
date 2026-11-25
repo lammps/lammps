@@ -11,8 +11,14 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------
+   Contributing authors: Yifan Li @ Princeton University (yifanl0716@gmail.com)
+                         Li Fu @ Peking University
+------------------------------------------------------------------------- */
+
 #include "compute_temp_uvt.h"
 
+#include "citeme.h"
 #include "error.h"
 #include "fix.h"
 #include "force.h"
@@ -23,11 +29,25 @@
 
 using namespace LAMMPS_NS;
 
+static const char cite_compute_temp_uvt[] =
+    "fix uvt, compute temp/uvt, and fix pimd/nve and derived styles: "
+    "https://doi.org/10.48550/arXiv.2609.21935\n\n"
+    "@Article{Fu26,\n"
+    " author = {L. Fu and Y. Li and S. Xu},\n"
+    " title = {fix uvt and fix pimd/uvt: A Unified {LAMMPS} Framework for\n"
+    "    Constant-Potential Constant-Temperature Molecular Dynamics},\n"
+    " journal = {arXiv preprint arXiv:2609.21935},\n"
+    " year =    2026,\n"
+    " doi =     {10.48550/arXiv.2609.21935}\n"
+    "}\n\n";
+
 /* ---------------------------------------------------------------------- */
 
 ComputeTempUVT::ComputeTempUVT(LAMMPS *lmp, int narg, char **arg) :
     ComputeTemp(lmp, 3, arg), id_fix(nullptr), ne_dot(nullptr), ne_mass(nullptr)
 {
+  if (lmp->citeme) lmp->citeme->add(cite_compute_temp_uvt);
+
   if (narg != 4) error->all(FLERR, "Illegal compute temp/uvt command");
   id_fix = utils::strdup(arg[3]);
 }

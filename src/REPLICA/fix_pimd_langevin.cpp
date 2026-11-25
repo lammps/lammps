@@ -12,17 +12,8 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Package      FixPIMDLangevin
-   Purpose      Path Integral Molecular Dynamics with Langevin Thermostat
-
-   Yifan Li @ Princeton University (yifanl0716@gmail.com)
-   Current Features:
-   - Multi-processor parallelism for each bead
-   - White-noise Langevin thermostat
-   - Bussi-Zykova-Parrinello barostat (isotropic and anisotropic)
-   - Several quantum estimators
-   Futher plans:
-   - Triclinic barostat
+   Contributing authors: Yifan Li @ Princeton University (yifanl0716@gmail.com)
+                         Li Fu @ Peking University
 ------------------------------------------------------------------------- */
 
 #include "fix_pimd_langevin.h"

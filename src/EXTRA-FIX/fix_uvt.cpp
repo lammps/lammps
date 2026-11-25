@@ -11,11 +11,17 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------
+   Contributing authors: Yifan Li @ Princeton University (yifanl0716@gmail.com)
+                         Li Fu @ Peking University
+------------------------------------------------------------------------- */
+
 #include "fix_uvt.h"
 
 #include "arg_info.h"
 #include "error.h"
 #include "atom.h"
+#include "citeme.h"
 #include "compute.h"
 #include "compute_temp_uvt.h"
 #include "domain.h"
@@ -108,6 +114,18 @@ void release_uvt_args()
 }
 }    // namespace
 
+static const char cite_fix_uvt[] =
+    "fix uvt, compute temp/uvt, and fix pimd/nve and derived styles: "
+    "https://doi.org/10.48550/arXiv.2609.21935\n\n"
+    "@Article{Fu26,\n"
+    " author = {L. Fu and Y. Li and S. Xu},\n"
+    " title = {fix uvt and fix pimd/uvt: A Unified {LAMMPS} Framework for\n"
+    "    Constant-Potential Constant-Temperature Molecular Dynamics},\n"
+    " journal = {arXiv preprint arXiv:2609.21935},\n"
+    " year =    2026,\n"
+    " doi =     {10.48550/arXiv.2609.21935}\n"
+    "}\n\n";
+
 /* ---------------------------------------------------------------------- */
 
 FixUVT::FixUVT(LAMMPS *lmp, int narg, char **arg) :
@@ -116,6 +134,8 @@ FixUVT::FixUVT(LAMMPS *lmp, int narg, char **arg) :
     Ne(0.0), Ne_dot(0.0), Ne_mass(0.0), dedn_name(nullptr), dedn_which(ArgInfo::NONE),
     dedn_index(0), dedn_var(-1), dedn_compute(nullptr), dedn_fix(nullptr), dedn_current(0.0)
 {
+  if (lmp->citeme) lmp->citeme->add(cite_fix_uvt);
+
   if (narg < 4) utils::missing_cmd_args(FLERR, std::string("fix ") + style, error);
 
   bool mu_seen = false;

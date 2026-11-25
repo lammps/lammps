@@ -11,6 +11,11 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------
+   Contributing authors: Yifan Li @ Princeton University (yifanl0716@gmail.com)
+                         Li Fu @ Peking University
+------------------------------------------------------------------------- */
+
 #include "fix_pimd_uvt.h"
 
 #include "atom.h"

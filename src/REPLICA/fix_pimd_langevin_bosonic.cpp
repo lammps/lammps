@@ -18,8 +18,7 @@
    Copyright    Hirshberg lab @ Tel Aviv University
    Authors      Ofir Blumer, Jacob Higer, Yotam Feldman (yotam.feldman at gmail.com), Barak Hirshberg (hirshb at tauex.tau.ac.il)
 
-   Updated      Jan-06-2025
-   Version      1.0
+   Updated      Nov-25-2026 by Yifan Li @ Princeton University (yifanl0716@gmail.com)
 ------------------------------------------------------------------------- */
 
 #include "fix_pimd_langevin_bosonic.h"

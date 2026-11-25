@@ -11,6 +11,15 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------
+   Contributing authors: Yifan Li @ Princeton University (yifanl0716@gmail.com)
+                         Li Fu @ Peking University
+
+   Refactored from the PIMD code with the NHC thermostat originally
+   contributed by Chris Knight & Yuxing Peng (yuxing at uchicago.edu)
+   from Voth Group @ University of Chicago on Oct-01-2011.
+------------------------------------------------------------------------- */
+
 #include "fix_pimd_nvt.h"
 
 #include "domain.h"

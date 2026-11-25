@@ -11,9 +11,15 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------
+   Contributing authors: Yifan Li @ Princeton University (yifanl0716@gmail.com)
+                         Li Fu @ Peking University
+------------------------------------------------------------------------- */
+
 #include "fix_pimd_nve.h"
 
 #include "atom.h"
+#include "citeme.h"
 #include "comm.h"
 #include "compute.h"
 #include "domain.h"
@@ -53,6 +59,34 @@ constexpr int TAG_RING_REP_VALS   = 404;
 enum { PHYSICAL, NORMAL };
 enum { SINGLE_PROC, MULTI_PROC };
 
+static const char cite_fix_pimd_langevin[] =
+    "fix pimd/nve, pimd/langevin, pimd/nvt, pimd/uvt: https://doi.org/10.1063/5.0328429\n\n"
+    "@Article{Li26,\n"
+    " author = {Y. Li and A. Gomez and K. Cai and C. Zhang and L. Fu and W. Jia and\n"
+    "    Y. M. Y. Feldman and O. Blumer and J. Higer and B. Hirshberg and S. Xu and\n"
+    "    A. Kohlmeyer and R. Car},\n"
+    " title = {fix pimd/langevin: An Efficient Implementation of Path Integral Molecular\n"
+    "    Dynamics in {LAMMPS}},\n"
+    " journal = {J.~Chem.\\ Phys.},\n"
+    " year =    2026,\n"
+    " volume =  164,\n"
+    " number =  14,\n"
+    " pages =   {144119},\n"
+    " doi =     {10.1063/5.0328429}\n"
+    "}\n\n";
+
+static const char cite_fix_pimd_uvt[] =
+    "fix uvt, compute temp/uvt, and fix pimd/nve and derived styles: "
+    "https://doi.org/10.48550/arXiv.2609.21935\n\n"
+    "@Article{Fu26,\n"
+    " author = {L. Fu and Y. Li and S. Xu},\n"
+    " title = {fix uvt and fix pimd/uvt: A Unified {LAMMPS} Framework for\n"
+    "    Constant-Potential Constant-Temperature Molecular Dynamics},\n"
+    " journal = {arXiv preprint arXiv:2609.21935},\n"
+    " year =    2026,\n"
+    " doi =     {10.48550/arXiv.2609.21935}\n"
+    "}\n\n";
+
 /* ---------------------------------------------------------------------- */
 
 FixPIMDNVE::FixPIMDNVE(LAMMPS *lmp, int narg, char **arg, bool defer_setup) :
@@ -63,6 +97,11 @@ FixPIMDNVE::FixPIMDNVE(LAMMPS *lmp, int narg, char **arg, bool defer_setup) :
     _omega_k(nullptr), Lan_s(nullptr), Lan_c(nullptr), xc(nullptr), xcall(nullptr),
     x_unwrap(nullptr), id_pe(nullptr), id_press(nullptr), c_pe(nullptr), c_press(nullptr)
 {
+  if (lmp->citeme) {
+    lmp->citeme->add(cite_fix_pimd_langevin);
+    lmp->citeme->add(cite_fix_pimd_uvt);
+  }
+
   restart_global = 1;
   time_integrate = 1;
   global_freq = 1;

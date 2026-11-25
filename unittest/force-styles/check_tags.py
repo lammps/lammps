@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-"""Check or update the "gpu" and "kokkos" entries on the tags: line of the YAML
-files of the force-style tests.
+"""Check or update the tags: lines of the YAML files of the force-style tests:
+the "gpu" and "kokkos" entries, and the entries that must not stay in a file.
 
 The test programs run every YAML file also with the accelerated variants of
 the tested style, as far as they are compiled in: "gpu" when the GPU package
@@ -31,6 +31,13 @@ applies the rules of the test programs to the styles in the source tree:
     precision or "_devicerng" apply only to some builds and are ignored, so
     a file can have a tag although some builds skip all its variants
 
+The tags in UNWANTED below must not stay in a file:
+
+  - "generated": the test programs add it whenever they write reference
+    data, which is then not reviewed yet; remove it after the review
+  - a tag that is no longer used can be added there, so that the check
+    finds the files that still have it and -u removes it
+
 Without options it lists the files whose tags differ and exits with status 1
 if there are any; with -u it rewrites the tags: lines of those files.
 """
@@ -40,8 +47,9 @@ import re
 import sys
 from argparse import ArgumentParser
 
-parser = ArgumentParser(prog='check_accelerator_tags.py',
-                        description="Check or update the gpu and kokkos tags of the force-style tests")
+parser = ArgumentParser(prog='check_tags.py',
+                        description="Check or update the tags of the force-style tests: the gpu "
+                        "and kokkos tags, and tags that must be removed")
 parser.add_argument("-u", "--update", action='store_true',
                     help="Rewrite the tags: lines of the YAML files that differ")
 parser.add_argument("-v", "--verbose", action='store_true',
@@ -72,6 +80,8 @@ GROUPS = {'mol-pair-': PAIR, 'atomic-pair-': PAIR, 'manybody-pair-': PAIR,
           'compute-': ('test_output_style', None), 'fix-output-': ('test_output_style', None)}
 # the tags this script manages, in the order it writes them
 MANAGED = ('gpu', 'kokkos')
+# the tags that must not stay in a file (removed with -u), with the reason
+UNWANTED = {'generated': 'reference data written by a test program and not reviewed yet'}
 
 # registered styles: category -> set of style names (with suffixes)
 style_pattern = re.compile(r'^\s*(\w+)Style\(\s*([\w/.-]+)\s*,', re.M)
@@ -154,38 +164,50 @@ def wanted(program, kind, skip, prereq):
     return tags
 
 
+def unwanted(tags):
+    """The tags of a YAML file that must be removed"""
+    return [t for t in tags if t in UNWANTED]
+
+
 def new_tags(tags, want):
-    """The tags line with the managed tags replaced, "generated" stays last"""
-    keep = [t for t in tags if t not in MANAGED and t != 'generated']
-    return keep + want + (['generated'] if 'generated' in tags else [])
+    """The tags line with the managed tags replaced and the unwanted tags removed"""
+    keep = [t for t in tags if t not in MANAGED and t not in UNWANTED]
+    return keep + want
 
 
 changed = unknown = 0
 counts = {t: 0 for t in MANAGED}
+found = {t: 0 for t in UNWANTED}
 for name in sorted(os.listdir(tests_dir)):
     if not name.endswith('.yaml'):
         continue
-    group = [p for p in GROUPS if name.startswith(p)]
-    if not group:
-        unknown += 1
-        if args.verbose:
-            print(f"{name}: not a file of a force-style test program, not checked")
-        continue
-    program, kind = GROUPS[group[0]]
     path = os.path.join(tests_dir, name)
     with open(path) as f:
         lines = f.read().splitlines(keepends=True)
     tags, skip, prereq = read_yaml(lines)
-    want = wanted(program, kind, skip, prereq)
-    for t in want:
-        counts[t] += 1
-    result = new_tags(tags, want)
-    if args.verbose:
-        print(f"{name}: {' '.join(want) or '-'}")
+    remove = unwanted(tags)
+    for t in remove:
+        found[t] += 1
+    group = [p for p in GROUPS if name.startswith(p)]
+    if group:
+        program, kind = GROUPS[group[0]]
+        want = wanted(program, kind, skip, prereq)
+        for t in want:
+            counts[t] += 1
+        result = new_tags(tags, want)
+        if args.verbose:
+            print(f"{name}: {' '.join(want) or '-'}")
+    else:
+        # only the unwanted tags are checked
+        unknown += 1
+        result = [t for t in tags if t not in remove]
+        if args.verbose:
+            print(f"{name}: not a file of a force-style test program, only unwanted tags checked")
     if result == tags:
         continue
     changed += 1
-    print(f"{name}: tags '{' '.join(tags)}' -> '{' '.join(result)}'")
+    note = f" (remove: {' '.join(remove)})" if remove else ''
+    print(f"{name}: tags '{' '.join(tags)}' -> '{' '.join(result)}'{note}")
     if not args.update:
         continue
     line = ('tags: ' + ' '.join(result)).rstrip() + '\n'
@@ -200,7 +222,11 @@ for name in sorted(os.listdir(tests_dir)):
         f.write(''.join(lines))
 
 print(f"{counts['gpu']} files with the tag gpu, {counts['kokkos']} with the tag kokkos, "
-      f"{unknown} other files not checked")
+      f"{unknown} other files with only unwanted tags checked")
+for tag, num in found.items():
+    if num:
+        print(f"{num} files with the tag {tag} ({UNWANTED[tag]}), "
+              f"{'removed' if args.update else 'to be removed'}")
 if changed:
     print(f"{changed} files {'updated' if args.update else 'differ (update them with -u)'}")
 if changed and not args.update:

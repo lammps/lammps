@@ -2,7 +2,7 @@
 
 # the entries of the tags: line of a YAML file become the CTest labels of its test.  The tags gpu
 # and kokkos (the test runs variants with these packages, ctest -L gpu or -L kokkos) are set by
-# check_accelerator_tags.py in this folder.
+# check_tags.py in this folder, which also checks for tags that must be removed (e.g. generated).
 function(extract_tags out yaml_file)
   file(STRINGS ${yaml_file} TAGS_LINE REGEX "^tags:")
   string(REPLACE "tags:" "" TAGS_LINE "${TAGS_LINE}")

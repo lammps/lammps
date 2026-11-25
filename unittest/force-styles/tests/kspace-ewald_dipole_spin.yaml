@@ -1,6 +1,6 @@
 ---
 lammps_version: 13 Nov 2026
-tags: spin generated
+tags: spin
 date_generated: Mon Nov 23 13:02:49 2026
 epsilon: 5e-13
 skip_tests:

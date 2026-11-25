@@ -6226,6 +6226,15 @@ int lammps_create_atoms(void *handle, int n, const tagint *id, const int *type,
     Atom *atom = lmp->atom;
     Domain *domain = lmp->domain;
 
+    // clear global->local map for owned and ghost atoms
+    // clear ghost count and any ghost bonus data internal to AtomVec
+    // same logic as in CreateAtoms::command() and at the beginning of Comm::exchange()
+    // do it now b/c creating atoms will overwrite ghost atoms
+
+    if (atom->map_style != Atom::MAP_NONE) atom->map_clear();
+    atom->nghost = 0;
+    atom->avec->clear_bonus();
+
     // the loop below creates atoms and writes their per-atom data through the
     // plain pointers, so bring the host side up to date first and hand the
     // writes over afterwards; without the KOKKOS package these do nothing.

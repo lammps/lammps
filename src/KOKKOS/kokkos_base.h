@@ -52,6 +52,11 @@ class KokkosBase {
   using BinOp = BinOp3DLAMMPS<KeyViewType>;
   virtual void
     sort_kokkos(Kokkos::BinSort<KeyViewType, BinOp> & /*Sorter*/) {}
+
+  // Pair: complete a force computation that compute() left running on a
+  // separate device stream; called by VerletKokkos after the kspace compute
+  virtual void finish_async_compute() {}
+  virtual bool async_compute_pending() const { return false; }
 };
 
 }

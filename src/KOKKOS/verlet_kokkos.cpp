@@ -30,6 +30,7 @@
 #include "modify_kokkos.h"
 #include "timer.h"
 #include "kokkos.h"
+#include "kokkos_base.h"
 
 using namespace LAMMPS_NS;
 
@@ -469,6 +470,27 @@ void VerletKokkos::run(int n)
       }
     }
 
+    // with the pair force still running on a second stream, compute kspace
+    // before the bonded terms: the host-side syncs in kspace then wait only for
+    // its own kernels, so kspace overlaps the pair kernel.  kspace tallies no
+    // pairwise energy/virial, so only pair must precede the bonded styles.
+
+    auto kspace_compute = [&]() {
+      int prev_auto_sync = lmp->kokkos->auto_sync;
+      if (!force->kspace->kokkosable) lmp->kokkos->auto_sync = 1;
+      atomKK->sync(force->kspace->execution_space,~(~force->kspace->datamask_read|datamask_exclude));
+      force->kspace->compute(eflag,vflag);
+      lmp->kokkos->auto_sync = prev_auto_sync;
+      atomKK->modified(force->kspace->execution_space,~(~force->kspace->datamask_modify|datamask_exclude));
+      timer->stamp(Timer::KSPACE);
+    };
+    bool kspace_first = false;
+    if (kspace_compute_flag && pair_compute_flag && !execute_on_host) {
+      auto *kkbase = dynamic_cast<KokkosBase *>(force->pair);
+      kspace_first = kkbase && kkbase->async_compute_pending();
+    }
+    if (kspace_first) kspace_compute();
+
     if (atomKK->molecular) {
       if (force->bond) {
         int prev_auto_sync = lmp->kokkos->auto_sync;
@@ -505,15 +527,7 @@ void VerletKokkos::run(int n)
       timer->stamp(Timer::BOND);
     }
 
-    if (kspace_compute_flag) {
-      int prev_auto_sync = lmp->kokkos->auto_sync;
-      if (!force->kspace->kokkosable) lmp->kokkos->auto_sync = 1;
-      atomKK->sync(force->kspace->execution_space,~(~force->kspace->datamask_read|datamask_exclude));
-      force->kspace->compute(eflag,vflag);
-      lmp->kokkos->auto_sync = prev_auto_sync;
-      atomKK->modified(force->kspace->execution_space,~(~force->kspace->datamask_modify|datamask_exclude));
-      timer->stamp(Timer::KSPACE);
-    }
+    if (kspace_compute_flag && !kspace_first) kspace_compute();
 
     if (execute_on_host) {
       if (f_merge_copy.extent(0) < atomKK->k_f.extent(0))
@@ -525,6 +539,14 @@ void VerletKokkos::run(int n)
         ForceAdder<DAT::t_kkacc_1d_3,DAT::t_kkacc_1d_3>(atomKK->k_f.view_device(),f_merge_copy));
       atomKK->k_f.clear_sync_state(); // special case
       atomKK->k_f.modify_device();
+    }
+
+    // a pair style may overlap its force kernel with the bonded and kspace
+    // computations on a second device stream: join it before forces are used
+
+    if (pair_compute_flag) {
+      auto *kkbase = dynamic_cast<KokkosBase *>(force->pair);
+      if (kkbase) kkbase->finish_async_compute();
     }
 
     if (n_pre_reverse) {

@@ -283,6 +283,13 @@ void NeighRequest::apply_flags(int flags)
 
 /* ---------------------------------------------------------------------- */
 
+void NeighRequest::set_occasional(int flag)
+{
+  occasional = flag;
+}
+
+/* ---------------------------------------------------------------------- */
+
 void NeighRequest::set_cutoff(double _cutoff)
 {
   cut = 1;

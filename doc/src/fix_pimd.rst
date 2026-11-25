@@ -816,6 +816,8 @@ temp = 298.15, tchain = 3, tloop = 1, drag = 0.0, and removecom = yes.
 The thermostat is always *NHC*.  The *Tdamp*, *mu*, *Udamp*,
 *ne*, and *dedn* keywords must be specified.
 
+----------
+
 .. _Feynman:
 
 **(Feynman)** R. Feynman and A. Hibbs, Chapter 7, Quantum Mechanics and

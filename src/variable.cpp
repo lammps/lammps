@@ -4737,7 +4737,7 @@ int Variable::special_function(const std::string &word, char *contents, Tree **t
     Fix *fix = nullptr;
     int index,nvec,nstride;
     char *ptr1,*ptr2;
-    int ivar = -1;
+    int jvar = -1;
 
     // argument is compute
 
@@ -4835,15 +4835,15 @@ int Variable::special_function(const std::string &word, char *contents, Tree **t
 
       if (index)
         print_var_error(FLERR,"Invalid special function in variable formula",ivar);
-      ivar = find(&args[0][2]);
-      if (ivar < 0)
+      jvar = find(&args[0][2]);
+      if (jvar < 0)
         print_var_error(FLERR,"Invalid special function in variable formula",ivar);
-      if (variables[ivar].style != VECTOR)
+      if (variables[jvar].style != VECTOR)
         print_var_error(FLERR,"Mis-matched special function variable in variable formula",ivar);
-      if (variables[ivar].eval_in_progress) print_var_error(FLERR,"has a circular dependency",ivar);
+      if (variables[jvar].eval_in_progress) print_var_error(FLERR,"has a circular dependency",jvar);
 
       double *vec;
-      nvec = compute_vector(ivar,&vec);
+      nvec = compute_vector(jvar,&vec);
       nstride = 1;
 
       if ((method == AVE) && (nvec == 0))
@@ -4911,9 +4911,9 @@ int Variable::special_function(const std::string &word, char *contents, Tree **t
       }
     }
 
-    if (ivar >= 0) {
+    if (jvar >= 0) {
       double one;
-      double *vec = variables[ivar].vec.values;
+      double *vec = variables[jvar].vec.values;
       for (int i = 0; i < nvec; i++) {
         one = vec[i];
         if (method == SUM) value += one;
@@ -4970,7 +4970,7 @@ int Variable::special_function(const std::string &word, char *contents, Tree **t
           ptr = &str[istr];
           int index = int_between_brackets(ptr,1);
           if (index > nvec)
-            print_var_error(FLERR, fmt::format("index {} exceeds vector size of {}\n", index, nvec),ivar);
+            print_var_error(FLERR, fmt::format("index {} exceeds vector size of {}", index, nvec),ivar);
           istr = ptr-str+1;
           argstack[nargstack++] = unsorted[index-1];
         }

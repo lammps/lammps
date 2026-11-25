@@ -300,7 +300,9 @@ TEST_F(VariableTest, AtomicSystem)
     command("fix  press all ave/time 1 1 1 c_press mode vector");
     command("fix  rg    all ave/time 1 1 1 c_rg mode vector");
     command("fix  vacf  all ave/time 1 1 1 c_vacf mode vector");
+    command("fix  pa    all ave/time 1 1 1 c_press c_rg mode vector");
 
+    command("variable  big    equal   1.0e30");
     command("variable  press  vector  f_press");
     command("variable  rg     vector  f_rg");
     command("variable  vacf   vector  f_vacf");
@@ -370,6 +372,22 @@ TEST_F(VariableTest, AtomicSystem)
                  variable->compute_equal("c_press[-2]"););
     TEST_FAILURE(".*ERROR: Index between variable brackets must be positive.*",
                  variable->compute_equal("c_press[0]"););
+
+    // an index too large for tagint must not wrap around to a different index,
+    // neither in a formula nor in the argument of sum() and the like
+
+    TEST_FAILURE(".*ERROR: Index 9223372036854775807 between variable brackets is too large.*",
+                 variable->compute_equal("c_press[9223372036854775807]"););
+    TEST_FAILURE(".*ERROR: Index 1e.30 between variable brackets is too large.*",
+                 variable->compute_equal("c_press[v_big]"););
+    ASSERT_KKFLOAT_EQ(variable->compute_equal("sum(f_pa[2])"), 3.75);
+#if defined(LAMMPS_BIGBIG)
+    TEST_FAILURE(".*ERROR: Variable formula fix array is accessed out-of-range.*",
+                 variable->compute_equal("sum(f_pa[2147483649])"););
+#else
+    TEST_FAILURE(".*ERROR: Index 2147483649 between variable brackets is too large.*",
+                 variable->compute_equal("sum(f_pa[2147483649])"););
+#endif
 }
 
 TEST_F(VariableTest, Expressions)

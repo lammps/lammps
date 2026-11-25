@@ -3848,8 +3848,12 @@ tagint Variable::int_between_brackets(char *&ptr, int varallow)
 
   *ptr = '\0';
 
-  // evaluate index as floating point variable or as tagint via stoll()
+  // evaluate index as floating point variable or as integer via stoll().
+  // check the range before the conversion to tagint, so that a value too
+  // large for tagint cannot wrap around to a different index.
 
+  double dvalue = 0.0;
+  long long lvalue = 0;
   try {
     if (varflag) {
       char *id = start+2;
@@ -3860,15 +3864,27 @@ tagint Variable::int_between_brackets(char *&ptr, int varallow)
       char *var = retrieve(id);
       if (var == nullptr)
         error->all(FLERR,"Invalid variable evaluation for variable {} in variable formula", id);
-      index = static_cast<tagint>(std::stod(var));
-    } else index = static_cast<tagint>(std::stoll(start));
+      dvalue = std::stod(var);
+    } else lvalue = std::stoll(start);
   } catch (std::exception &e) {
     error->all(FLERR,"Illegal value in brackets: {}({})", e.what(), start);
   }
   *ptr = ']';
 
-  if (index <= 0)
-    error->all(FLERR,"Index between variable brackets must be positive");
+  if (varflag) {
+    // also true for NaN
+    if (!(dvalue >= 1.0))
+      error->all(FLERR,"Index between variable brackets must be positive");
+    if (dvalue >= (double) MAXTAGINT)
+      error->all(FLERR,"Index {} between variable brackets is too large", dvalue);
+    index = static_cast<tagint>(dvalue);
+  } else {
+    if (lvalue <= 0)
+      error->all(FLERR,"Index between variable brackets must be positive");
+    if (lvalue >= MAXTAGINT)
+      error->all(FLERR,"Index {} between variable brackets is too large", lvalue);
+    index = static_cast<tagint>(lvalue);
+  }
   return index;
 }
 
@@ -4747,7 +4763,11 @@ int Variable::special_function(const std::string &word, char *contents, Tree **t
 
     Compute *compute = nullptr;
     Fix *fix = nullptr;
-    int index,nvec,nstride;
+    // index is a column of a global array.  keep it as tagint like int_between_brackets()
+    // returns it, so that it is compared to the number of columns before any conversion.
+
+    tagint index;
+    int nvec,nstride;
     char *ptr1,*ptr2;
     int jvar = -1;
 
@@ -4757,7 +4777,7 @@ int Variable::special_function(const std::string &word, char *contents, Tree **t
       ptr1 = strchr(args[0],'[');
       if (ptr1) {
         ptr2 = ptr1;
-        index = (int) int_between_brackets(ptr2,0);
+        index = int_between_brackets(ptr2,0);
         *ptr1 = '\0';
       } else index = 0;
 
@@ -4801,7 +4821,7 @@ int Variable::special_function(const std::string &word, char *contents, Tree **t
       ptr1 = strchr(args[0],'[');
       if (ptr1) {
         ptr2 = ptr1;
-        index = (int) int_between_brackets(ptr2,0);
+        index = int_between_brackets(ptr2,0);
         *ptr1 = '\0';
       } else index = 0;
 
@@ -4841,7 +4861,7 @@ int Variable::special_function(const std::string &word, char *contents, Tree **t
       ptr1 = strchr(args[0],'[');
       if (ptr1) {
         ptr2 = ptr1;
-        index = (int) int_between_brackets(ptr2,0);
+        index = int_between_brackets(ptr2,0);
         *ptr1 = '\0';
       } else index = 0;
 
@@ -4901,7 +4921,7 @@ int Variable::special_function(const std::string &word, char *contents, Tree **t
     if (fix) {
       double one;
       for (int i = 0; i < nvec; i++) {
-        if (index) one = fix->compute_array(i,index-1);
+        if (index) one = fix->compute_array(i,(int) index-1);
         else one = fix->compute_vector(i);
         if (method == SUM) value += one;
         else if (method == XMIN) value = MIN(value,one);
@@ -4917,8 +4937,8 @@ int Variable::special_function(const std::string &word, char *contents, Tree **t
         }
       }
       if (method == TRAP) {
-        if (index) value -= 0.5*fix->compute_array(0,index-1) +
-                     0.5*fix->compute_array(nvec-1,index-1);
+        if (index) value -= 0.5*fix->compute_array(0,(int) index-1) +
+                     0.5*fix->compute_array(nvec-1,(int) index-1);
         else value -= 0.5*fix->compute_vector(0) +
                0.5*fix->compute_vector(nvec-1);
       }

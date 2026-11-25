@@ -656,6 +656,42 @@ TEST_F(SimpleCommandsTest, run)
     END_HIDE_OUTPUT();
     EXPECT_EQ(lmp->update->ntimestep, 60);
 }
+
+TEST_F(SimpleCommandsTest, MinimizeLineStyle)
+{
+    // the KOKKOS minimizers have their own check, they support only line quadratic
+    if (using_accelerator()) GTEST_SKIP() << "KOKKOS minimizers check the line style themselves";
+
+    BEGIN_HIDE_OUTPUT();
+    command("region box block 0 4 0 4 0 4");
+    command("create_box 1 box");
+    command("create_atoms 1 single 1.0 1.0 1.0");
+    command("create_atoms 1 single 2.0 1.0 1.0");
+    command("mass 1 1.0");
+    command("pair_style lj/cut 2.5");
+    command("pair_coeff * * 1.0 1.0");
+    command("min_modify line spin_none");
+    END_HIDE_OUTPUT();
+
+    // the spin_cubic and spin_none line styles are only for the SPIN package minimizers
+
+    TEST_FAILURE(".*ERROR: Min_style cg supports only the min_modify line styles backtrack, "
+                 "quadratic, and forcezero.*",
+                 command("minimize 0.0 1.0e-6 100 1000"););
+    BEGIN_HIDE_OUTPUT();
+    command("min_style sd");
+    command("min_modify line spin_cubic");
+    END_HIDE_OUTPUT();
+    TEST_FAILURE(".*ERROR: Min_style sd supports only the min_modify line styles backtrack, "
+                 "quadratic, and forcezero.*",
+                 command("minimize 0.0 1.0e-6 100 1000"););
+
+    BEGIN_HIDE_OUTPUT();
+    command("min_modify line backtrack");
+    command("minimize 0.0 1.0e-6 100 1000");
+    END_HIDE_OUTPUT();
+    EXPECT_GT(lmp->update->ntimestep, 0);
+}
 } // namespace LAMMPS_NS
 
 int main(int argc, char **argv)

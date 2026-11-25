@@ -412,6 +412,10 @@ TEST_F(VariableTest, Expressions)
     command("variable rmax   equal     rsort(v_vec4)[1]");
     command("variable xxxl   equal     rsort(v_vec4)[11]");
     command("variable isrt   vector    sort(v_one)");
+    command("variable srt2   equal     2*sort(v_vec4)");
+    command("variable srt3   equal     rsort(v_vec4)+1");
+    command("variable srt4   equal     sort(v_vec4)");
+    command("variable srt5   atom      sort(v_vec4)");
     command("variable dvec4  vector    v_vec4*2");
     command("variable nest   atom      sum(v_dvec4)*v_vec4");
     command("variable empty  vector    '[]'");
@@ -490,6 +494,21 @@ TEST_F(VariableTest, Expressions)
     std::vector<double> peratom(lmp->atom->nlocal);
     TEST_FAILURE(".*ERROR: Variable vec4: Vector-style variable in atom-style variable formula.*",
                  variable->compute_atom(variable->find("nest"), 0, peratom.data(), 1, 0););
+
+    // sort() and rsort() return a vector: equal-style formulas must select
+    // one element and atom-style formulas cannot use them
+
+    TEST_FAILURE(".*ERROR: Variable srt2: sort\\(\\) in equal-style variable formula requires "
+                 "an index in brackets.*",
+                 command("print \"${srt2}\""););
+    TEST_FAILURE(".*ERROR: Variable srt3: rsort\\(\\) in equal-style variable formula requires "
+                 "an index in brackets.*",
+                 command("print \"${srt3}\""););
+    TEST_FAILURE(".*ERROR: Variable srt4: sort\\(\\) in equal-style variable formula requires "
+                 "an index in brackets.*",
+                 command("print \"${srt4}\""););
+    TEST_FAILURE(".*ERROR: Variable srt5: Cannot use sort\\(\\) in atom-style variable formula.*",
+                 variable->compute_atom(variable->find("srt5"), 0, peratom.data(), 1, 0););
 
     // ave() and trap() of an empty vector are undefined, sum() is zero
 

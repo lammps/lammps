@@ -4733,6 +4733,18 @@ int Variable::special_function(const std::string &word, char *contents, Tree **t
     if (narg != 1)
       print_var_error(FLERR,fmt::format("Invalid special function {}() in variable formula", word),ivar);
 
+    // sort() and rsort() return a global vector: an atom-style formula cannot use it
+    // and an equal-style formula must select one element with a trailing index
+
+    if ((method == SORT) || (method == RSORT)) {
+      if (tree && (treetype == ATOM))
+        print_var_error(FLERR, fmt::format("Cannot use {}() in atom-style variable formula", word),
+                        ivar);
+      if (!tree && (str[istr] != '['))
+        print_var_error(FLERR, fmt::format("{}() in equal-style variable formula requires an "
+                                           "index in brackets", word), ivar);
+    }
+
     Compute *compute = nullptr;
     Fix *fix = nullptr;
     int index,nvec,nstride;
@@ -4962,19 +4974,17 @@ int Variable::special_function(const std::string &word, char *contents, Tree **t
 
       } else {
 
-        // process one pair of trailing brackets
-        // point istr beyond last bracket
-        // nbracket = # of bracket pairs
-        // index    = int inside each bracket pair, vector index
+        // process the pair of trailing brackets, its presence was checked above
+        // point istr beyond the closing bracket
+        // element = int inside the bracket pair, vector index
 
-        if (str[istr] == '[') {
-          ptr = &str[istr];
-          int index = int_between_brackets(ptr,1);
-          if (index > nvec)
-            print_var_error(FLERR, fmt::format("index {} exceeds vector size of {}", index, nvec),ivar);
-          istr = ptr-str+1;
-          argstack[nargstack++] = unsorted[index-1];
-        }
+        ptr = &str[istr];
+        tagint element = int_between_brackets(ptr,1);
+        if (element > nvec)
+          print_var_error(FLERR, fmt::format("index {} exceeds vector size of {}", element, nvec),
+                          ivar);
+        istr = ptr-str+1;
+        argstack[nargstack++] = unsorted[element-1];
       }
     } else {
 

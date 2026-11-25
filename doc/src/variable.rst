@@ -1046,7 +1046,12 @@ has a single point or is vertical, it returns 1.0e20.
 
 The sort(x) and rsort(x) functions sort the data of the input vector by
 their numeric value: sort(x) sorts in ascending order, rsort(x) sorts
-in descending order.
+in descending order.  In a vector-style variable, the result is the
+sorted vector.  In an equal-style variable, the function must be
+followed by an index in brackets that selects one element of the sorted
+vector, e.g. "sort(c_ID)[1]" for the smallest value or "rsort(c_ID)[2]"
+for the second largest value.  These two functions cannot be used in
+atom-style variables.
 
 The gmask(x) function takes 1 argument which is a group ID.  It
 can only be used in atom-style variables.  It returns a 1 for

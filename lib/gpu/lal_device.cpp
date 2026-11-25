@@ -16,7 +16,6 @@
 #include "lal_device.h"
 #include "lal_precision.h"
 #include "lammps_gpu.h"
-#include <algorithm>
 #include <map>
 #include <cmath>
 #include <cstdlib>
@@ -70,10 +69,10 @@ template <class numtyp, class acctyp>
 DeviceT::Device() : _init_count(0), _device_init(false),
                     _comm_gpu_allocated(false),
                     _gpu_mode(GPU_FORCE), _first_device(0),
-                    _last_device(0), _platform_id(-1), _param_stamp(0),
+                    _last_device(0), _platform_id(-1), _compiled(false),
+                    _param_stamp(0),
                     _tuning(0), _max_block_pair(0), _max_block_bio_pair(0),
-                    _compiled(false),
-                    _use_old_nbor_build(0), _use_device_sort(0) {
+                    _use_old_nbor_build(0) {
 }
 
 template <class numtyp, class acctyp>

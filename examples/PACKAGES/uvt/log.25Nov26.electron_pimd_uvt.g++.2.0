@@ -1,0 +1,187 @@
+LAMMPS (13 Nov 2026)
+Processor partition = 0
+# Quadratic toy model regression for PIMD at constant potential.
+#
+# Launch this example with one partition per bead, e.g.
+#
+#   mpirun -np 2 lmp -partition 2x1 -in in.electron_pimd_uvt
+#
+# The electronic generalized coordinate Ne is coupled to
+#
+#   dE/dN = k * (Ne - N0)
+#
+# so the analytic equilibrium is
+#
+#   Ne* = N0 + mu/k
+
+units           lj
+atom_style      atomic
+atom_modify     map yes
+boundary        p p p
+
+lattice         sc 0.7
+Lattice spacing in x,y,z = 1.1262479 1.1262479 1.1262479
+region          box block 0 2 0 2 0 2
+create_box      1 box
+Created orthogonal box = (0 0 0) to (2.2524958 2.2524958 2.2524958)
+  1 by 1 by 1 MPI processor grid
+create_atoms    1 box
+Created 8 atoms
+  using lattice units in orthogonal box = (0 0 0) to (2.2524958 2.2524958 2.2524958)
+  create_atoms CPU = 0.000 seconds
+
+mass            1 1.0
+pair_style      zero 2.5
+pair_coeff      * *
+
+neighbor        0.3 bin
+neigh_modify    every 1 delay 0 check yes
+
+timestep        0.002
+
+# Give each bead a small initial offset to exercise the inter-partition path.
+variable        beadshift universe 0.0 0.15
+displace_atoms  all move ${beadshift} 0.0 0.0 units box
+displace_atoms  all move 0.0 0.0 0.0 units box
+Displacing atoms ...
+velocity        all create 0.8 97531 mom yes rot no dist gaussian
+
+variable        mu_target equal 1.5
+variable        k_quad    equal 3.0
+variable        N0_quad   equal 1.2
+variable        Ne_init   equal 1.8
+variable        Ne_target equal v_N0_quad + v_mu_target/v_k_quad
+print           "Quadratic toy model target Ne* = ${Ne_target}"
+Quadratic toy model target Ne* = 1.7
+
+# Per-partition world id for partition-specific restart filenames.
+# In a 2-bead PIMD run, partition 0 gets 0, partition 1 gets 1.
+variable        worldid   universe 0 1
+
+# For tchain 3, Ne, T_ins, Ne_dot, and bead dEdN are f_cp[11:14].
+# These electronic outputs are global values and are not normalized by natoms.
+variable        dEdN      equal v_k_quad*(f_cp[11]-v_N0_quad)
+
+fix             cp all pimd/uvt method nmpimd thermostat NHC                 integrator obabo temp 0.8 Tdamp 0.2 tchain 3 tloop 1                 mu ${mu_target} Udamp 0.2 ne ${Ne_init}                 ne_velocity 0.0                 dedn v_dEdN
+fix             cp all pimd/uvt method nmpimd thermostat NHC                 integrator obabo temp 0.8 Tdamp 0.2 tchain 3 tloop 1                 mu 1.5 Udamp 0.2 ne ${Ne_init}                 ne_velocity 0.0                 dedn v_dEdN
+fix             cp all pimd/uvt method nmpimd thermostat NHC                 integrator obabo temp 0.8 Tdamp 0.2 tchain 3 tloop 1                 mu 1.5 Udamp 0.2 ne 1.8                 ne_velocity 0.0                 dedn v_dEdN
+
+thermo          50
+thermo_style    custom step temp etotal f_cp[11] f_cp[12] f_cp[13] f_cp[14] v_mu_target
+thermo_modify   flush yes
+
+run             1000
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+
+- fix pimd/nve, pimd/langevin, pimd/nvt, pimd/uvt: https://doi.org/10.1063/5.0328429
+
+@Article{Li26,
+ author = {Y. Li and A. Gomez and K. Cai and C. Zhang and L. Fu and W. Jia and
+    Y. M. Y. Feldman and O. Blumer and J. Higer and B. Hirshberg and S. Xu and
+    A. Kohlmeyer and R. Car},
+ title = {fix pimd/langevin: An Efficient Implementation of Path Integral Molecular
+    Dynamics in {LAMMPS}},
+ journal = {J.~Chem.\ Phys.},
+ year =    2026,
+ volume =  164,
+ number =  14,
+ pages =   {144119},
+ doi =     {10.1063/5.0328429}
+}
+
+- fix uvt, compute temp/uvt, and fix pimd/nve and derived styles: https://doi.org/10.48550/arXiv.2609.21935
+
+@Article{Fu26,
+ author = {L. Fu and Y. Li and S. Xu},
+ title = {fix uvt and fix pimd/uvt: A Unified {LAMMPS} Framework for
+    Constant-Potential Constant-Temperature Molecular Dynamics},
+ journal = {arXiv preprint arXiv:2609.21935},
+ year =    2026,
+ doi =     {10.48550/arXiv.2609.21935}
+}
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+Initializing path-integral Nose-Hoover thermostat chain...
+  Bead ID    |    omega    |    timescale
+      0     0.00000000e+00 2.00000000e-01
+      1     2.01061930e+01 2.48679599e-02
+  NHC thermostat successfully initialized!
+
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 2.8
+  ghost atom cutoff = 2.8
+  binsize = 1.4, bins = 2 2 2
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair zero, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 2.962 | 2.962 | 2.962 Mbytes
+   Step          Temp          TotEng        f_cp[11]       f_cp[12]       f_cp[13]       f_cp[14]     v_mu_target  
+         0   0.8            1.05           1.8            0.36521739     0              1.8            1.5          
+        50   0.9260231      1.2154053      1.7977284      0.59322319    -0.046225063    1.7931851      1.5          
+       100   1.3477782      1.7689589      1.7903837      0.69798793    -0.10245734     1.7711512      1.5          
+       150   1.5263602      2.0033478      1.7776743      0.61764732    -0.14899773     1.7330229      1.5          
+       200   1.6686593      2.1901154      1.7607408      0.92536509    -0.18875985     1.6822225      1.5          
+       250   1.886841       2.4764788      1.7401477      0.85787658    -0.22374932     1.620443       1.5          
+       300   2.3516734      3.0865713      1.7158013      0.91644136    -0.26340321     1.5474038      1.5          
+       350   2.9477473      3.8689183      1.687293       1.4498608     -0.30312487     1.461879       1.5          
+       400   2.636215       3.4600321      1.657263       1.1084645     -0.28666177     1.3717889      1.5          
+       450   1.7136364      2.2491478      1.6315831      0.87596204    -0.22781449     1.2947494      1.5          
+       500   1.5016576      1.9709256      1.6111355      1.0682748     -0.18121494     1.2334064      1.5          
+       550   1.3959663      1.8322058      1.595653       0.69537915    -0.12813631     1.1869591      1.5          
+       600   1.3452128      1.7655918      1.5855122      0.75326915    -0.074042058    1.1565366      1.5          
+       650   1.4082445      1.8483209      1.5808098      0.87530324    -0.020451573    1.1424293      1.5          
+       700   1.7566143      2.3055563      1.5814351      0.69049392     0.033363706    1.1443053      1.5          
+       750   2.2259545      2.9215652      1.587556       0.97543313     0.088582463    1.1626679      1.5          
+       800   2.3635311      3.1021346      1.5989439      1.0340787      0.13804721     1.1968318      1.5          
+       850   1.7587136      2.3083116      1.6145391      0.68689717     0.1682002      1.2436174      1.5          
+       900   1.2662913      1.6620073      1.6324048      0.83524248     0.19187184     1.2972144      1.5          
+       950   1.2289687      1.6130214      1.6530548      0.77114824     0.2221803      1.3591645      1.5          
+      1000   1.3881467      1.8219425      1.6768505      0.67300021     0.25311023     1.4305516      1.5          
+Loop time of 0.00988108 on 1 procs for 1000 steps with 8 atoms
+
+Performance: 17487961.593 tau/day, 101203.481 timesteps/s, 809.628 katom-step/s
+92.4% CPU use with 1 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.00063885 | 0.00063885 | 0.00063885 |   0.0 |  6.47
+Neigh   | 0.00026934 | 0.00026934 | 0.00026934 |   0.0 |  2.73
+Comm    | 0.00076346 | 0.00076346 | 0.00076346 |   0.0 |  7.73
+Output  | 0.00015642 | 0.00015642 | 0.00015642 |   0.0 |  1.58
+Modify  | 0.0078454  | 0.0078454  | 0.0078454  |   0.0 | 79.40
+Other   |            | 0.0002076  |            |       |  2.10
+
+Nlocal:              8 ave           8 max           8 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:            277 ave         277 max         277 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:            255 ave         255 max         255 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 255
+Ave neighs/atom = 31.875
+Neighbor list builds = 35
+Dangerous builds = 0
+
+write_restart   pimd_uvt.restart.${worldid}
+write_restart   pimd_uvt.restart.0
+System init for write_restart ...
+Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+Initializing path-integral Nose-Hoover thermostat chain...
+  Bead ID    |    omega    |    timescale
+      0     0.00000000e+00 2.00000000e-01
+      1     2.01061930e+01 2.48679599e-02
+  NHC thermostat successfully initialized!
+
+Total wall time: 0:00:00

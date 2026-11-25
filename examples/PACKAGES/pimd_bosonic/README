@@ -1,6 +1,6 @@
 This directory contains example input files for the pimd/nvt/bosonic and pimd/langevin/bosonic fix commands.
 The demonstrated system is that of 3 non-interacting bosons in a harmonic trap.
-The input files initiate a simulation of 100 steps using 4 beads.
+The input files initiate a simulation of 100 steps using 4 beads. The expected output log files are included.
 
 The input files can be edited to provide a physically meaningful output, by extending the simulations to a few nanoseconds 
 and increasing the number of beads (32 beads should be enough).

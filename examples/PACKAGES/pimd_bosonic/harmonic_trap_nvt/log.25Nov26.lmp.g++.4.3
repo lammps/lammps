@@ -1,0 +1,267 @@
+LAMMPS (13 Nov 2026)
+Processor partition = 3
+# Units and dimensions
+units        electron
+dimension    3
+boundary     p p p
+atom_style   atomic
+atom_modify  map yes
+pair_style   none
+
+# Time step (in femtoseconds)
+timestep     0.5
+
+# Temperature (in Kelvin)
+variable     Temp equal 17.4
+
+# Number of Nose-Hoover chains
+variable     nhc equal 4
+
+# Force constant (in Hartree energies per Bohr radius squared)
+variable     k equal 1.2154614120000001e-08
+
+# Number of beads
+variable     Nbeads equal 4
+variable     ibead uloop ${Nbeads} pad
+variable     ibead uloop 4 pad
+variable     seed equal 18889
+
+# Create box and atoms. All distances are in Bohr
+region       box block -1500 1500 -1500 1500 -1500 1500
+create_box   1 box
+Created orthogonal box = (-1500 -1500 -1500) to (1500 1500 1500)
+  1 by 1 by 1 MPI processor grid
+variable     a loop 3
+label        loop
+variable     x1 equal -15.0+0.5*v_a
+variable     y1 equal 10.0-0.5*v_a
+variable     z1 equal 1+0.5*v_a
+create_atoms 1 single ${x1} ${y1} ${z1}
+create_atoms 1 single -14.5 ${y1} ${z1}
+create_atoms 1 single -14.5 9.5 ${z1}
+create_atoms 1 single -14.5 9.5 1.5
+Created 1 atoms
+  using lattice units in orthogonal box = (-1500 -1500 -1500) to (1500 1500 1500)
+  create_atoms CPU = 0.001 seconds
+next         a
+jump         SELF loop
+variable     x1 equal -15.0+0.5*v_a
+variable     y1 equal 10.0-0.5*v_a
+variable     z1 equal 1+0.5*v_a
+create_atoms 1 single ${x1} ${y1} ${z1}
+create_atoms 1 single -14 ${y1} ${z1}
+create_atoms 1 single -14 9 ${z1}
+create_atoms 1 single -14 9 2
+Created 1 atoms
+  using lattice units in orthogonal box = (-1500 -1500 -1500) to (1500 1500 1500)
+  create_atoms CPU = 0.000 seconds
+next         a
+jump         SELF loop
+variable     x1 equal -15.0+0.5*v_a
+variable     y1 equal 10.0-0.5*v_a
+variable     z1 equal 1+0.5*v_a
+create_atoms 1 single ${x1} ${y1} ${z1}
+create_atoms 1 single -13.5 ${y1} ${z1}
+create_atoms 1 single -13.5 8.5 ${z1}
+create_atoms 1 single -13.5 8.5 2.5
+Created 1 atoms
+  using lattice units in orthogonal box = (-1500 -1500 -1500) to (1500 1500 1500)
+  create_atoms CPU = 0.000 seconds
+next         a
+jump         SELF loop
+
+# Electron mass (in amu)
+mass         1 0.00054858
+
+# Initialize velocities
+velocity     all create ${Temp} ${seed}${ibead} mom yes rot yes dist gaussian
+velocity     all create 17.4 ${seed}${ibead} mom yes rot yes dist gaussian
+velocity     all create 17.4 18889${ibead} mom yes rot yes dist gaussian
+velocity     all create 17.4 188894 mom yes rot yes dist gaussian
+
+# Add harmonic external force
+fix          harm all spring/self ${k}
+fix          harm all spring/self 1.215461412e-08
+
+# Add harmonic potential energy to total energy and potential energy
+fix_modify   harm energy yes
+
+# PIMD command
+fix          pimdb all pimd/nvt/bosonic method pimd temp ${Temp} Tdamp 100.0 nhc ${nhc}
+fix          pimdb all pimd/nvt/bosonic method pimd temp 17.4 Tdamp 100.0 nhc ${nhc}
+fix          pimdb all pimd/nvt/bosonic method pimd temp 17.4 Tdamp 100.0 nhc 4
+
+# Outputs
+variable virial        equal f_pimdb[6]
+variable prim_kinetic  equal f_pimdb[5]
+
+thermo_style custom step pe v_virial v_prim_kinetic
+thermo          1
+
+run             100
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+
+- fix pimd/nve, pimd/langevin, pimd/nvt, pimd/uvt: https://doi.org/10.1063/5.0328429
+
+@Article{Li26,
+ author = {Y. Li and A. Gomez and K. Cai and C. Zhang and L. Fu and W. Jia and
+    Y. M. Y. Feldman and O. Blumer and J. Higer and B. Hirshberg and S. Xu and
+    A. Kohlmeyer and R. Car},
+ title = {fix pimd/langevin: An Efficient Implementation of Path Integral Molecular
+    Dynamics in {LAMMPS}},
+ journal = {J.~Chem.\ Phys.},
+ year =    2026,
+ volume =  164,
+ number =  14,
+ pages =   {144119},
+ doi =     {10.1063/5.0328429}
+}
+
+- fix uvt, compute temp/uvt, and fix pimd/nve and derived styles: https://doi.org/10.48550/arXiv.2609.21935
+
+@Article{Fu26,
+ author = {L. Fu and Y. Li and S. Xu},
+ title = {fix uvt and fix pimd/uvt: A Unified {LAMMPS} Framework for
+    Constant-Potential Constant-Temperature Molecular Dynamics},
+ journal = {arXiv preprint arXiv:2609.21935},
+ year =    2026,
+ doi =     {10.48550/arXiv.2609.21935}
+}
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+WARNING: No pairwise cutoff or binsize set. Atom sorting therefore disabled. (src/atom.cpp:2483)
+WARNING: Communication cutoff is 0.0. No ghost atoms will be generated. Energies and forces may be wrong and atoms may get lost. (src/comm_brick.cpp:188)
+Per MPI rank memory allocation (min/avg/max) = 2.801 | 2.801 | 2.801 Mbytes
+   Step         PotEng        v_virial    v_prim_kinetic
+         0   0              1.3661449e-08  0.0009918329 
+         1   8.5845309e-10  1.0643011e-09  0.00099182262
+         2   3.4336261e-09  3.8453874e-09  0.00099180035
+         3   7.725137e-09   8.3429718e-09  0.00099176612
+         4   1.3732467e-08  1.4556626e-08  0.00099171991
+         5   2.1454962e-08  2.2485781e-08  0.00099166175
+         6   3.089183e-08   3.2129725e-08  0.00099159164
+         7   4.2042142e-08  4.3487607e-08  0.00099150959
+         8   5.4904836e-08  5.6558435e-08  0.0009914156 
+         9   6.9478712e-08  7.1341075e-08  0.00099130971
+        10   8.5762434e-08  8.7834253e-08  0.00099119191
+        11   1.0375453e-07  1.0603656e-07  0.00099106223
+        12   1.234534e-07   1.2594643e-07  0.00099092069
+        13   1.448573e-07   1.4756219e-07  0.00099076731
+        14   1.6796436e-07  1.7088199e-07  0.00099060211
+        15   1.9277256e-07  1.9590386e-07  0.00099042512
+        16   2.1927976e-07  2.226257e-07   0.00099023635
+        17   2.474837e-07   2.5104526e-07  0.00099003585
+        18   2.7738196e-07  2.8116016e-07  0.00098982364
+        19   3.08972e-07    3.1296786e-07  0.00098959974
+        20   3.4225115e-07  3.4646571e-07  0.0009893642 
+        21   3.7721661e-07  3.8165092e-07  0.00098911705
+        22   4.1386544e-07  4.1852056e-07  0.00098885832
+        23   4.5219458e-07  4.5707156e-07  0.00098858806
+        24   4.9220085e-07  4.9730072e-07  0.0009883063 
+        25   5.338809e-07   5.392047e-07   0.00098801308
+        26   5.7723131e-07  5.8278005e-07  0.00098770845
+        27   6.2224848e-07  6.2802316e-07  0.00098739245
+        28   6.6892873e-07  6.749303e-07   0.00098706513
+        29   7.1726821e-07  7.2349762e-07  0.00098672653
+        30   7.6726297e-07  7.7372111e-07  0.00098637671
+        31   8.1890894e-07  8.2559666e-07  0.00098601572
+        32   8.7220192e-07  8.7912002e-07  0.00098564361
+        33   9.2713757e-07  9.3428682e-07  0.00098526043
+        34   9.8371145e-07  9.9109254e-07  0.00098486624
+        35   1.041919e-06   1.0495326e-06  0.0009844611 
+        36   1.1017555e-06  1.1096021e-06  0.00098404507
+        37   1.1632162e-06  1.1712964e-06  0.00098361821
+        38   1.2262962e-06  1.2346103e-06  0.00098318058
+        39   1.2909903e-06  1.2995387e-06  0.00098273224
+        40   1.3572935e-06  1.3660764e-06  0.00098227326
+        41   1.4252005e-06  1.4342181e-06  0.00098180371
+        42   1.4947059e-06  1.5039582e-06  0.00098132366
+        43   1.5658041e-06  1.5752912e-06  0.00098083317
+        44   1.6384897e-06  1.6482113e-06  0.00098033232
+        45   1.7127567e-06  1.7227126e-06  0.00097982117
+        46   1.7885996e-06  1.7987893e-06  0.00097929982
+        47   1.8660121e-06  1.8764353e-06  0.00097876832
+        48   1.9449884e-06  1.9556444e-06  0.00097822675
+        49   2.0255223e-06  2.0364103e-06  0.00097767521
+        50   2.1076075e-06  2.1187266e-06  0.00097711375
+        51   2.1912377e-06  2.2025868e-06  0.00097654248
+        52   2.2764063e-06  2.2879843e-06  0.00097596146
+        53   2.3631069e-06  2.3749124e-06  0.00097537079
+        54   2.4513327e-06  2.4633642e-06  0.00097477055
+        55   2.5410769e-06  2.5533328e-06  0.00097416082
+        56   2.6323328e-06  2.6448112e-06  0.00097354169
+        57   2.7250933e-06  2.7377923e-06  0.00097291326
+        58   2.8193514e-06  2.8322687e-06  0.00097227561
+        59   2.9151e-06     2.9282333e-06  0.00097162883
+        60   3.0123317e-06  3.0256784e-06  0.00097097303
+        61   3.1110393e-06  3.1245967e-06  0.00097030828
+        62   3.2112153e-06  3.2249805e-06  0.0009696347 
+        63   3.3128522e-06  3.3268221e-06  0.00096895236
+        64   3.4159425e-06  3.4301136e-06  0.00096826138
+        65   3.5204783e-06  3.5348472e-06  0.00096756185
+        66   3.626452e-06   3.6410149e-06  0.00096685387
+        67   3.7338557e-06  3.7486086e-06  0.00096613754
+        68   3.8426814e-06  3.8576202e-06  0.00096541297
+        69   3.9529211e-06  3.9680413e-06  0.00096468025
+        70   4.0645668e-06  4.0798637e-06  0.0009639395 
+        71   4.1776102e-06  4.193079e-06   0.00096319082
+        72   4.2920431e-06  4.3076786e-06  0.0009624343 
+        73   4.4078572e-06  4.4236539e-06  0.00096167008
+        74   4.525044e-06   4.5409964e-06  0.00096089824
+        75   4.6435952e-06  4.6596973e-06  0.0009601189 
+        76   4.763502e-06   4.7797478e-06  0.00095933217
+        77   4.884756e-06   4.901139e-06   0.00095853816
+        78   5.0073483e-06  5.0238619e-06  0.00095773699
+        79   5.1312704e-06  5.1479075e-06  0.00095692876
+        80   5.2565133e-06  5.2732668e-06  0.00095611359
+        81   5.3830682e-06  5.3999305e-06  0.00095529161
+        82   5.5109262e-06  5.5278895e-06  0.00095446291
+        83   5.6400781e-06  5.6571344e-06  0.00095362762
+        84   5.770515e-06   5.7876559e-06  0.00095278586
+        85   5.9022277e-06  5.9194446e-06  0.00095193774
+        86   6.0352071e-06  6.0524909e-06  0.00095108338
+        87   6.1694438e-06  6.1867854e-06  0.00095022291
+        88   6.3049287e-06  6.3223183e-06  0.00094935644
+        89   6.4416522e-06  6.4590802e-06  0.0009484841 
+        90   6.5796052e-06  6.5970612e-06  0.000947606  
+        91   6.718778e-06   6.7362515e-06  0.00094672227
+        92   6.8591612e-06  6.8766414e-06  0.00094583304
+        93   7.0007452e-06  7.018221e-06   0.00094493842
+        94   7.1435205e-06  7.1609803e-06  0.00094403854
+        95   7.2874773e-06  7.3049094e-06  0.00094313352
+        96   7.432606e-06   7.4499982e-06  0.0009422235 
+        97   7.5788968e-06  7.5962367e-06  0.0009413086 
+        98   7.7263401e-06  7.7436147e-06  0.00094038894
+        99   7.8749258e-06  7.8921221e-06  0.00093946465
+       100   8.0246442e-06  8.0417487e-06  0.00093853586
+Loop time of 0.00135929 on 1 procs for 100 steps with 3 atoms
+
+Performance: 3178125082.764 fs/day, 0.000 hours/fs, 73567.710 timesteps/s, 220.703 katom-step/s
+78.0% CPU use with 1 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0          | 0          | 0          |   0.0 |  0.00
+Neigh   | 6.67e-07   | 6.67e-07   | 6.67e-07   |   0.0 |  0.05
+Comm    | 8.544e-06  | 8.544e-06  | 8.544e-06  |   0.0 |  0.63
+Output  | 0.00019363 | 0.00019363 | 0.00019363 |   0.0 | 14.24
+Modify  | 0.0011415  | 0.0011415  | 0.0011415  |   0.0 | 83.98
+Other   |            | 1.495e-05  |            |       |  1.10
+
+Nlocal:              3 ave           3 max           3 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:              0 ave           0 max           0 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:              0 ave           0 max           0 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 0
+Ave neighs/atom = 0
+Neighbor list builds = 25
+Dangerous builds = 0
+Total wall time: 0:00:00

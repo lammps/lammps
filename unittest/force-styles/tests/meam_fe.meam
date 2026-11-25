@@ -1,0 +1,13 @@
+# NIST IPR potential: 2018--Etesami-S-A--Fe--LAMMPS--ipr1 (original file: Fe.meam)
+# URL: https://www.ctcms.nist.gov/potentials/entry/2018--Etesami-S-A-Asadi-E--Fe/2018--Etesami-S-A--Fe--LAMMPS--ipr1.html
+# DOI: 10.1016/j.jpcs.2017.09.001
+rc = 4.000000
+delr = 0.25658351
+ialloy = 1
+nn2(1,1) = 1
+emb_lin_neg = 1
+bkgd_dyn = 0
+augt1 = 0
+repuls(1,1) = 0.000000
+Cmin(1,1,1) = 0.5330000
+Cmax(1,1,1) = 2.800000

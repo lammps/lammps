@@ -1,0 +1,34 @@
+# NIST IPR potential: 2014--Liyanage-L-S-I--Fe-C--LAMMPS--ipr2 (original file: Fe3C_Liyanage_2014.meam)
+# URL: https://www.ctcms.nist.gov/potentials/entry/2014--Liyanage-L-S-I-Kim-S-G-Houze-J-et-al--Fe-C/2014--Liyanage-L-S-I--Fe-C--LAMMPS--ipr2.html
+# DOI: 10.1103/physrevb.89.094102
+# Fe-C alloy MEAM potential parameters from Phys. Rev. B 89, 094102
+# Developed using April 2011 version of LAMMPS (lammps.sandia.gov)
+# Should work on recent release of LAMMPS
+# Contact information: lsiliyanage@gmail.com (Dr. Laalitha S. I. Liyanage)
+augt1=0
+ialloy=1
+nn2(1,1)=1
+nn2(2,2)=1
+nn2(1,2)=1
+rc=4.500000
+repuls(1,1)=0.300000
+Cmin(1,1,1)=0.680000
+Cmax(1,1,1)=1.900000
+Cmin(2,2,2)=2.000000
+Cmax(2,2,2)=2.800000
+lattce(1,2)='b1'
+repuls(1,2)=0.125301
+attrac(1,2)=0.125301
+delta(1,2)=0.002348
+alpha(1,2)=4.750000
+re(1,2)=1.920000
+rho0(1)=1.000000
+rho0(2)=5.491125
+Cmin(1,1,2)=0.059531
+Cmax(1,1,2)=2.800000
+Cmin(1,2,1)=2.000000
+Cmax(1,2,1)=2.800000
+Cmin(1,2,2)=2.000000
+Cmax(1,2,2)=2.800000
+Cmin(2,2,1)=0.507375
+Cmax(2,2,1)=2.800000

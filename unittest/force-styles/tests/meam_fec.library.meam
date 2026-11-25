@@ -1,0 +1,19 @@
+# NIST IPR potential: 2014--Liyanage-L-S-I--Fe-C--LAMMPS--ipr2 (original file: Fe3C_library_Liyanage_2014.meam)
+# URL: https://www.ctcms.nist.gov/potentials/entry/2014--Liyanage-L-S-I-Kim-S-G-Houze-J-et-al--Fe-C/2014--Liyanage-L-S-I--Fe-C--LAMMPS--ipr2.html
+# DOI: 10.1103/physrevb.89.094102
+# NOTE: ibar formatted as integer for LAMMPS ValueTokenizer::next_int()
+# Fe3C (Cementite) library MEAM file used in Phys. Rev. B 89, 094102 (2014)
+# Fe potential referenced from J. Phys.: Condens. Matter 24 225404
+# C potential referenced from Phys. Rev. B 81, 104103
+# Used together with "Fe3C.meam" for Fe-C alloy potential parameters
+# elt        lat     z       ielement     atwt
+# alpha      b0      b1      b2           b3    alat    esub    asub
+# t0         t1              t2           t3            rozero  ibar
+
+'Fe' 'bcc' 8 26 55.847000
+5.027000 3.800000 2.000000 0.900000 0.000000 2.851000 4.280000 0.585000
+1.000000 -0.800000 12.300000 2.000000 1.000000 0
+
+'C'         'dia'   4.      6            12.0111
+4.38        4.26    5.00    3.20         3.980 3.567   7.37    1.490
+1.0         7.5             1.04         -1.01         1.0     0

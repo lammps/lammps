@@ -388,6 +388,22 @@ TEST_F(VariableTest, AtomicSystem)
     TEST_FAILURE(".*ERROR: Index 2147483649 between variable brackets is too large.*",
                  variable->compute_equal("sum(f_pa[2147483649])"););
 #endif
+
+    // i2_name[I][J] and d2_name[I][J] are column J of the atom with ID I, counting from 1
+
+    BEGIN_HIDE_OUTPUT();
+    command("fix  props all property/atom i2_ia 2 d2_da 2");
+    command("set atom 1 i2_ia[1] 5");
+    command("set atom 1 i2_ia[2] 7");
+    command("set atom 2 i2_ia[1] 11");
+    command("set atom 1 d2_da[1] 0.5");
+    command("set atom 1 d2_da[2] 0.75");
+    END_HIDE_OUTPUT();
+    ASSERT_DOUBLE_EQ(variable->compute_equal("i2_ia[1][1]"), 5.0);
+    ASSERT_DOUBLE_EQ(variable->compute_equal("i2_ia[1][2]"), 7.0);
+    ASSERT_DOUBLE_EQ(variable->compute_equal("i2_ia[2][1]"), 11.0);
+    ASSERT_DOUBLE_EQ(variable->compute_equal("d2_da[1][1]"), 0.5);
+    ASSERT_DOUBLE_EQ(variable->compute_equal("d2_da[1][2]"), 0.75);
 }
 
 TEST_F(VariableTest, Expressions)

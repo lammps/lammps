@@ -54,16 +54,16 @@ Syntax
 
   .. parsed-literal::
 
-     *keywords* = *method* or *integrator* or *fmmode* or *fmass* or *sp* or *temp* or *thermostat* or *Tdamp* or *tchain* or *tloop* or *drag* or *tdof* or *removecom*
+     *keywords* = *method* or *integrator* or *fmmode* or *fmass* or *sp* or *temp* or *thermostat* or *Tdamp* or *tchain* or *nhc* or *tloop* or *drag* or *tdof* or *removecom*
      *method* value = *pimd* or *nmpimd* or *cmd*
      *integrator* value = *obabo* or *baoab*
      *fmmode* value = *physical* or *normal*
      *fmass* value = scaling factor on mass
      *sp* value = scaling factor on Planck constant
      *temp* value = temperature (temperature units)
-     *thermostat* value = *NHC*
+     *thermostat* value = *NHC* (optional, the only supported thermostat)
      *Tdamp* value = thermostat damping parameter (time units)
-     *tchain* value = number of thermostats in each Nose-Hoover chain
+     *tchain* or *nhc* value = number of thermostats in each Nose-Hoover chain
      *tloop* value = number of Nose-Hoover chain sub-cycles
      *drag* value = drag factor added to the thermostat
      *tdof* value = user-specified thermostat degrees of freedom
@@ -75,7 +75,7 @@ Syntax
 
      *keywords* = *method* or *integrator* or *fmmode* or *fmass* or *sp* or *temp* or *thermostat* or *Tdamp* or *tchain* or *tloop* or *drag* or *tdof* or *removecom* or *nhc*
      *method* value = *pimd*
-     *nhc* value = number of thermostats in each Nose-Hoover chain
+     *tchain* or *nhc* value = number of thermostats in each Nose-Hoover chain
 
 * keywords for style *pimd/langevin*
 
@@ -108,7 +108,7 @@ Syntax
   .. parsed-literal::
 
      *method* value = *nmpimd*
-     *thermostat* value = *NHC*
+     *thermostat* value = *NHC* (optional, the only supported thermostat)
      *temp* value = target temperature (temperature units)
      *Tdamp* value = nuclear thermostat damping parameter (time units)
      *mu* value = chemical potential
@@ -118,7 +118,7 @@ Syntax
      *ne_velocity* value = initial electron-number velocity (electron number per time)
 
   Optional keywords include *integrator*, *drag*, *fmass*, *fmmode*, *sp*,
-  *lj*, *removecom*, *tchain*, *tloop*, and *tdof*.  The *ne_velocity*
+  *lj*, *removecom*, *tchain* (or *nhc*), *tloop*, and *tdof*.  The *ne_velocity*
   keyword defaults to zero.
 
 Examples
@@ -128,7 +128,7 @@ Examples
 
    fix 1 all pimd/nvt method nmpimd thermostat NHC temp 300.0 Tdamp 100.0 tchain 4 fmass 1.0 sp 2.0
    fix 1 all pimd/nve method nmpimd temp 300.0 fmass 1.0 sp 2.0
-   fix 1 all pimd/nvt/bosonic method pimd temp 17.4 nhc 4
+   fix 1 all pimd/nvt/bosonic method pimd temp 17.4 Tdamp 100.0 nhc 4
    fix 1 all pimd/langevin ensemble npt integrator obabo temp 113.15 thermostat PILE_L 1234 tau 1.0 iso 1.0 barostat BZP taup 1.0
    fix 1 all pimd/langevin/bosonic integrator obabo temp 113.15 thermostat PILE_L 1234 tau 1.0
 
@@ -221,11 +221,19 @@ discussion of the validity of the approximation is available in
 
 To sample the canonical ensemble, any thermostat can be applied.
 
+.. versionadded:: TBD
+
 Fix *pimd/nve* performs path-integral time integration without a
-thermostat.  Fix *pimd/nvt* applies a Nose-Hoover chain thermostat
+thermostat.
+
+.. versionchanged:: TBD
+
+Fix *pimd/nvt* applies a Nose-Hoover chain thermostat
 :ref:`(Tuckerman3) <pimd-Tuckerman>`.  The keyword *temp* sets the
 target temperature, *Tdamp* sets the thermostat damping time, and
-*tchain* sets the number of thermostats in each chain.
+*tchain* (or its alternative name *nhc*) sets the number of thermostats
+in each chain.  Fix *pimd/nvt* uses the same Nose-Hoover chain
+implementation as :doc:`fix nvt <fix_nh>`, with one chain per bead.
 
 Fix *pimd/langevin* implements a Langevin thermostat for PIMD, and
 also provides a barostat to sample the NPH/NPT ensembles.
@@ -383,11 +391,15 @@ The keyword *temp* specifies the temperature parameter for fix styles
 *pimd/nve*, *pimd/nvt*, and *pimd/langevin*. It should read a positive
 floating-point number.
 
-For fix style *pimd/nvt*, the keyword *thermostat* must be set to *NHC*,
-*Tdamp* specifies the thermostat damping time parameter, *tchain*
-specifies the length of the Nose-Hoover thermostat chain, *tloop*
-specifies the number of Nose-Hoover chain sub-cycles, and *drag*
-specifies an optional thermostat drag factor.
+.. versionchanged:: TBD
+
+For fix style *pimd/nvt*, the optional keyword *thermostat* can only be
+set to *NHC*, since that is the only thermostat this style supports.
+*Tdamp* specifies the thermostat damping time parameter and must be
+given, also for fix *pimd/nvt/bosonic*.  *tchain* specifies the length
+of the Nose-Hoover thermostat chain; *nhc* is an alternative name for
+*tchain*.  *tloop* specifies the number of Nose-Hoover chain sub-cycles,
+and *drag* specifies an optional thermostat drag factor.
 
 .. note::
 
@@ -545,6 +557,8 @@ degree of freedom to :doc:`binary restart files <restart>`.
 None of the :doc:`fix_modify <fix_modify>` options are relevant to fix
 pimd/nvt or fix *pimd/uvt*.
 
+.. versionchanged:: TBD
+
 Fix *pimd/nve* and fix *pimd/nvt* compute a global vector, which can be accessed by
 various :doc:`output commands <Howto_output>`.  The first 10 quantities
 are the shared path-integral energy and estimator outputs:
@@ -566,7 +580,9 @@ thermostat potential contributions, and the thermostat kinetic contributions.
 
 Fix *pimd/nvt/bosonic* uses the shared *pimd/nvt* global-vector layout
 and replaces the distinguishable-particle spring energy and primitive
-kinetic-energy estimator with the bosonic exchange contributions.
+kinetic-energy estimator with the bosonic exchange contributions.  Its
+primitive kinetic energy estimator is the value for the whole ring
+polymer and is the same in all log files.
 
 Fix *pimd/uvt* computes a global vector.  The first 10 entries are the
 shared nuclear energy and estimator outputs.  They are followed by:
@@ -726,11 +742,12 @@ temp = 298.15, and removecom = yes.
 The keyword defaults for fix *pimd/nvt* are integrator = obabo,
 method = nmpimd, fmmode = physical, fmass = 1.0, sp = 1.0,
 temp = 298.15, tchain = 3, tloop = 1, drag = 0.0, and
-removecom = yes.  The *thermostat* keyword must be set to *NHC* and
-the *Tdamp* keyword must be specified.
+removecom = yes, and thermostat = NHC.  The *Tdamp* keyword must be
+specified.
 
 The keyword defaults for fix *pimd/nvt/bosonic* are method = pimd,
-fmmode = physical, temp = 298.15, nhc = 2, and Tdamp = 100.0.
+fmmode = physical, temp = 298.15, and nhc = 2.  The *Tdamp* keyword must
+be specified.
 
 The keyword defaults for fix *pimd/langevin* are integrator = obabo,
 method = nmpimd, ensemble = nvt, fmmode = physical, fmass = 1.0, scale =
@@ -740,7 +757,7 @@ barostat = BZP, fixcom = yes, and sp = 1.0 for all its arguments.
 The keyword defaults for fix *pimd/uvt* are method = nmpimd,
 integrator = obabo, fmmode = physical, fmass = 1.0, sp = 1.0,
 temp = 298.15, tchain = 3, tloop = 1, drag = 0.0, and removecom = yes.
-The *thermostat* keyword is set to *NHC*.  The *Tdamp*, *mu*, *Udamp*,
+The thermostat is always *NHC*.  The *Tdamp*, *mu*, *Udamp*,
 *ne*, and *dedn* keywords must be specified.
 
 .. _Feynman:

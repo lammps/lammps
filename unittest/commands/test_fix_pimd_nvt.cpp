@@ -9,6 +9,7 @@
 
 #define LAMMPS_LIB_MPI 1
 
+#include "fix.h"
 #include "lammps.h"
 #include "platform.h"
 #include "modify.h"
@@ -72,7 +73,7 @@ TEST_F(FixPIMDNVTSerialTest, SupportedMethods)
     command("clear");
   }
   setup_zero_pair_system();
-  command("fix cp all pimd/nvt/bosonic method pimd temp 1.0 nhc 2");
+  command("fix cp all pimd/nvt/bosonic method pimd temp 1.0 Tdamp 100.0 nhc 2");
   command("run 2 post no");
   for (int i = 0; i < pimd_test::nuclear_vector_size(2); ++i)
     EXPECT_TRUE(std::isfinite(fix_value("cp", i)));
@@ -97,12 +98,30 @@ TEST_F(FixPIMDNVTSerialTest, InternalThermostatIsNotRegisteredAsAnIntegrator)
 TEST_F(FixPIMDNVTSerialTest, InputValidation)
 {
   setup_zero_pair_system();
-  EXPECT_ANY_THROW(command("fix cp all pimd/nvt/bosonic method nmpimd temp 1.0 nhc 2"));
+  EXPECT_ANY_THROW(command("fix cp all pimd/nvt/bosonic method nmpimd temp 1.0 Tdamp 100.0 nhc 2"));
+  TEST_FAILURE(".*Fix pimd/nvt/bosonic requires the Tdamp keyword.*",
+               command("fix cp all pimd/nvt/bosonic method pimd temp 1.0 nhc 2"););
+  TEST_FAILURE(".*Fix pimd/nvt requires the Tdamp keyword.*",
+               command("fix cp all pimd/nvt temp 1.0 nhc 2"););
   EXPECT_ANY_THROW(command("fix cp all pimd/nvt method nmpimd ensemble nvt temp 1 Tdamp 0.5"));
   EXPECT_ANY_THROW(command("fix cp all pimd/nvt method invalid temp 1 Tdamp 0.5"));
   EXPECT_ANY_THROW(command("fix cp all pimd/nvt temp 1 Tdamp 0.5 tchain 0"));
   EXPECT_ANY_THROW(command("fix cp all pimd/nvt temp 1 Tdamp 0.5 tloop -1"));
   EXPECT_NO_THROW(command("fix cp all pimd/nvt temp 1 Tdamp 0.5 tchain 1 tloop 0"));
+}
+
+TEST_F(FixPIMDNVTSerialTest, NHCIsAlternativeToTchain)
+{
+  setup_zero_pair_system();
+  EXPECT_ANY_THROW(command("fix bad all pimd/nvt temp 1 Tdamp 0.5 nhc 0"));
+  command("fix a all pimd/nvt temp 1 Tdamp 0.5 tchain 2");
+  command("fix b all pimd/nvt temp 1 Tdamp 0.5 nhc 2");
+  command("fix c all pimd/nvt temp 1 Tdamp 0.5 nhc 5");
+  auto *a = lmp->modify->get_fix_by_id("a");
+  auto *b = lmp->modify->get_fix_by_id("b");
+  auto *c = lmp->modify->get_fix_by_id("c");
+  EXPECT_EQ(a->size_vector, b->size_vector);
+  EXPECT_EQ(c->size_vector, a->size_vector + 4 * 3);
 }
 
 TEST_F(FixPIMDNVTSerialTest, ThermostatAdvancesFullElapsedTime)

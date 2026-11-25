@@ -46,7 +46,6 @@ FixPIMDBNVT::FixPIMDBNVT(LAMMPS *lmp, int narg, char **arg) :
 {
   method = PIMD;
   mtchain = 2;
-  t_period = 100.0;
 
   // process keywords
 
@@ -77,19 +76,6 @@ FixPIMDBNVT::~FixPIMDBNVT()
 
 /* ---------------------------------------------------------------------- */
 
-bool FixPIMDBNVT::parse_keyword(int narg, char **arg, int &i)
-{
-  if (strcmp(arg[i], "nhc") == 0) {
-    if (i + 2 > narg) utils::missing_cmd_args(FLERR, "fix pimd/nvt/bosonic nhc", error);
-    mtchain = utils::inumeric(FLERR, arg[i + 1], false, lmp);
-    if (mtchain < 1) error->all(FLERR, "Nose-Hoover chain length for fix {} must be >= 1", style);
-    i += 2;
-    return true;
-  }
-  return FixPIMDNVT::parse_keyword(narg, arg, i);
-}
-
-/* ---------------------------------------------------------------------- */
 
 void FixPIMDBNVT::spring_force()
 {

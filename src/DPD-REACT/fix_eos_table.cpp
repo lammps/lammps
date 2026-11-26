@@ -353,6 +353,8 @@ void FixEOStable::energy_lookup(double t, double &u)
 
   if (tabstyle == LINEAR) {
     itable = static_cast<int> ((t - tb->lo) * tb->invdelta);
+    // t = hi is the end of the last interval: de has only tablength-1 entries
+    itable = MIN(itable, tablength - 2);
     fraction = (t - tb->r[itable]) * tb->invdelta;
     u = tb->e[itable] + fraction*tb->de[itable];
   } else
@@ -374,6 +376,8 @@ void FixEOStable::temperature_lookup(double u, double &t)
 
   if (tabstyle == LINEAR) {
     itable = static_cast<int> ((u - tb->lo) * tb->invdelta);
+    // u = hi is the end of the last interval: de has only tablength-1 entries
+    itable = MIN(itable, tablength - 2);
     fraction = (u - tb->r[itable]) * tb->invdelta;
     t = tb->e[itable] + fraction*tb->de[itable];
   } else

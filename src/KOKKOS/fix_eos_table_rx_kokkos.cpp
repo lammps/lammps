@@ -352,6 +352,8 @@ void FixEOStableRXKokkos<DeviceType>::energy_lookup(int id, KK_FLOAT thetai, KK_
     if (tabstyle == LINEAR) {
       //itable = static_cast<int> ((thetai - tb->lo) * tb->invdelta);
       itable = static_cast<int> ((thetai - d_table_const.lo(ispecies)) * d_table_const.invdelta(ispecies));
+      // thetai = hi is the end of the last interval: de has only tablength-1 entries
+      itable = MIN(itable, tablength - 2);
       //fraction = (thetai - tb->r[itable]) * tb->invdelta;
       fraction = (thetai - d_table_const.r(ispecies,itable)) * d_table_const.invdelta(ispecies);
       //uTmp = tb->e[itable] + fraction*tb->de[itable];

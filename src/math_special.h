@@ -167,10 +167,11 @@ namespace LAMMPS_NS::MathSpecial {
   /*! Version of pow(x,n) for an exponent that is only known at run time
    *
    * Dispatches to powint() when the exponent happens to have an integer
-   * value, and to std::pow() otherwise.  Useful where a force field
-   * parameter is a floating point number that is an integer for most
-   * parameter sets.  Follows the powint() convention of returning 0 for
-   * x == 0, which differs from std::pow() for a negative exponent.
+   * value within the range of an int, and to std::pow() otherwise.  Useful
+   * where a force field parameter is a floating point number that is an
+   * integer for most parameter sets.  Follows the powint() convention of
+   * returning 0 for x == 0, which differs from std::pow() for a negative
+   * exponent.
    *
    *  \param   x base
    *  \param   n exponent
@@ -181,7 +182,9 @@ namespace LAMMPS_NS::MathSpecial {
     if (n == 0.0) return 1.0;
     if (x == 0.0) return 0.0;
     const double rounded = std::round(n);
-    if (n == rounded) return powint(x, static_cast<int>(rounded));
+    // the conversion to int is only defined for |n| < 2^31, which excludes inf
+    if ((n == rounded) && (std::fabs(rounded) < 2147483648.0))
+      return powint(x, static_cast<int>(rounded));
     return std::pow(x, n);
   }
 

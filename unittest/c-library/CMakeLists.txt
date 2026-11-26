@@ -3,7 +3,8 @@
 add_executable(test_library_open test_library_open.cpp test_main.cpp)
 target_link_libraries(test_library_open PRIVATE lammps GTest::GMock)
 add_test(NAME LibraryOpen COMMAND test_library_open)
-set_tests_properties(LibraryOpen PROPERTIES ENVIRONMENT "OMP_NUM_THREADS=4;OMP_PROC_BIND=false")
+# the labels gpu and kokkos mark tests that also exercise these packages (ctest -L gpu, ctest -L kokkos)
+set_tests_properties(LibraryOpen PROPERTIES ENVIRONMENT "OMP_NUM_THREADS=4;OMP_PROC_BIND=false" LABELS "kokkos")
 
 add_executable(test_library_commands test_library_commands.cpp test_main.cpp)
 target_link_libraries(test_library_commands PRIVATE lammps GTest::GMock)
@@ -12,7 +13,7 @@ add_test(NAME LibraryCommands COMMAND test_library_commands)
 add_executable(test_library_external test_library_external.cpp test_main.cpp)
 target_link_libraries(test_library_external PRIVATE lammps GTest::GMock)
 add_test(NAME LibraryExternal COMMAND test_library_external)
-set_tests_properties(LibraryExternal PROPERTIES ENVIRONMENT "OMP_NUM_THREADS=4;OMP_PROC_BIND=false")
+set_tests_properties(LibraryExternal PROPERTIES ENVIRONMENT "OMP_NUM_THREADS=4;OMP_PROC_BIND=false" LABELS "kokkos")
 
 add_executable(test_library_properties test_library_properties.cpp test_main.cpp)
 target_link_libraries(test_library_properties PRIVATE lammps GTest::GMock)

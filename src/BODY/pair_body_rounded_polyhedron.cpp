@@ -1597,7 +1597,8 @@ void PairBodyRoundedPolyhedron::face_face_patches(int ibody, int jbody, int ityp
         }
       if (areaj < 0.0)
         for (int k = 0; k < nvj/2; k++) {
-          std::swap(poly[k], poly[nvj-1-k]);
+          std::swap(poly[k].u, poly[nvj-1-k].u);
+          std::swap(poly[k].v, poly[nvj-1-k].v);
           for (int m = 0; m < 3; m++) std::swap(vj[k][m], vj[nvj-1-k][m]);
         }
       for (int k = 0; k < nvj; k++) {

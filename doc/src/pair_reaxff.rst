@@ -201,7 +201,9 @@ Lennard-Jones and Coulomb interactions. Tabulation may also be set in the
 control file (see below). If tabulation is set in both the input script and the
 control file, the value in the control file will be ignored. A size of 10000 is
 typically used for the interpolation table. A value of 0 means no tabulation
-will be used.
+will be used.  The table is created at the start of every run, so a
+different setting from a later pair_style command takes effect with the
+next run.
 
 The keyword *list/blocking* is only supported by the Kokkos version of
 ReaxFF and ignored otherwise. Setting the value to *yes* enables the
@@ -312,13 +314,13 @@ brief description of their use and default values.
    tabulated (0 means no tabulation). Value of this variable denotes the
    size of the long range interaction table.  The range from 0 to long
    range cutoff (defined in the *ffield* file) is divided into
-   *tabulate_long_range* points.  Then at the start of simulation, we
-   fill in the entries of the long range interaction table by computing
+   *tabulate_long_range* points.  At the start of every run, LAMMPS
+   fills in the entries of the long range interaction table by computing
    the energies and forces resulting from van der Waals and Coulomb
-   interactions between every possible atom type pairs present in the
-   input system.  During the simulation we consult to the long range
-   interaction table to estimate the energy and forces between a pair of
-   atoms. Linear interpolation is used for estimation. (default value = 0)
+   interactions between all pairs of elements that are assigned to atom
+   types with the :doc:`pair_coeff <pair_coeff>` command.  During the
+   simulation, the energy and forces between a pair of atoms are
+   interpolated from this table with cubic splines. (default value = 0)
 
 *energy_update_freq*
    Denotes the frequency (in number of steps) of writes into the partial

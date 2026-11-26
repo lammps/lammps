@@ -869,7 +869,7 @@ double PairExTeP::ters_bij_d(double zeta, Param *param)
   if (tmp > param->c1) return param->beta * -0.5*pow(tmp,-1.5);
   if (tmp > param->c2)
     return param->beta * (-0.5*pow(tmp,-1.5) *
-                          (1.0 - 0.5*(1.0 +  1.0/(2.0*param->powern)) *
+                          (1.0 - (1.0 + 1.0/(2.0*param->powern)) *
                            pow(tmp,-param->powern)));
   if (tmp < param->c4) return 0.0;
   if (tmp < param->c3)

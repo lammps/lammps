@@ -1,6 +1,6 @@
 ---
 lammps_version: 2 Sep 2026
-tags:
+tags: kokkos
 date_generated: Fri Sep 25 20:39:36 2026
 epsilon: 7.5e-14
 skip_tests: gpu

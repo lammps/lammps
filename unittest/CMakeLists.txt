@@ -37,8 +37,8 @@ add_library(GTest::GMockMain ALIAS gmock_main)
 # download and build libyaml if not available globally
 find_package(YAML)
 if(NOT YAML_FOUND)
-  set(YAML_URL "https://pyyaml.org/download/libyaml/yaml-0.2.5.tar.gz" CACHE STRING "URL for libyaml tarball")
-  set(YAML_SHA256 "c642ae9b75fee120b2d96c712538bd2cf283228d2337df2cf2988e3c02678ef4" CACHE STRING "SHA256 checksum of libyaml tarball")
+  set(YAML_URL "https://github.com/yaml/libyaml/releases/download/0.2.7/yaml-0.2.7.tar.gz" CACHE STRING "URL for libyaml tarball")
+  set(YAML_SHA256 "0c39256b8be0fc689f5c7bfdea1bc9f3fb1fd648468fd3cc6fd375e09ffb6f13" CACHE STRING "SHA256 checksum of libyaml tarball")
   mark_as_advanced(YAML_URL)
   mark_as_advanced(YAML_SHA256)
 

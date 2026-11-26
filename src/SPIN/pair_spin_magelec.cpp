@@ -146,13 +146,17 @@ double PairSpinMagelec::init_one(int i, int j)
 }
 
 /* ----------------------------------------------------------------------
-   extract the larger cutoff
+   extract the larger cutoff, or the per-type cutoffs if "cut_spin"
 ------------------------------------------------------------------------- */
 
 void *PairSpinMagelec::extract(const char *str, int &dim)
 {
   dim = 0;
   if (strcmp(str,"cut") == 0) return (void *) &cut_spin_magelec_global;
+  if (strcmp(str,"cut_spin") == 0) {
+    dim = 2;
+    return (void *) cut_spin_magelec;
+  }
   return nullptr;
 }
 
@@ -286,8 +290,8 @@ void PairSpinMagelec::compute_single_pair(int ii, double fmi[3])
   double delx,dely,delz;
   double spj[3];
 
-  int j,jnum,itype,jtype,ntypes;
-  int k,locflag;
+  int j,jnum,itype,jtype;
+  int locflag;
   int *jlist,*numneigh,**firstneigh;
 
   double rsq, inorm;
@@ -298,24 +302,7 @@ void PairSpinMagelec::compute_single_pair(int ii, double fmi[3])
   // check if interaction applies to type of ii
 
   itype = type[ii];
-  ntypes = atom->ntypes;
-  locflag = 0;
-  k = 1;
-  while (k <= ntypes) {
-    if (k <= itype) {
-      if (setflag[k][itype] == 1) {
-        locflag =1;
-        break;
-      }
-      k++;
-    } else if (k > itype) {
-      if (setflag[itype][k] == 1) {
-        locflag =1;
-        break;
-      }
-      k++;
-    } else error->all(FLERR,"Wrong type number");
-  }
+  locflag = typeflag_spin[itype];
 
   // if interaction applies to type ii,
   // locflag = 1 and compute pair interaction

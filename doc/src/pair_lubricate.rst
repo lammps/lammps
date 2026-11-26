@@ -109,7 +109,7 @@ as long as *flagVF* is set to 1 (default).
 Style *lubricate* requires monodisperse spherical particles; style
 *lubricate/poly* allows for polydisperse spherical particles.
 
-.. versionchanged:: TBD
+.. versionchanged:: 30Sep2026-backport
 
 For *lubricate/poly* the logarithmic terms of the resistance functions
 use the gap between the particle surfaces divided by the mean radius of

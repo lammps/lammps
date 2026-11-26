@@ -123,7 +123,7 @@ the pairwise interactions have been computed.
 Style *lubricateU* requires monodisperse spherical particles; style
 *lubricateU/poly* allows for polydisperse spherical particles.
 
-.. versionchanged:: TBD
+.. versionchanged:: 30Sep2026-backport
 
 The squeeze and shear resistance functions of *lubricateU/poly* for
 particles of different size are the same as those of :doc:`pair_style

@@ -471,8 +471,6 @@ void PairEDIP::compute(int eflag, int vflag)
 
 void PairEDIP::allocateGrids()
 {
-  int numGridPointsOneCutoffFunction;
-  int numGridPointsNotOneCutoffFunction;
   int numGridPointsCutoffFunction;
   int numGridPointsR;
   int numGridPointsRTotal;
@@ -510,11 +508,9 @@ void PairEDIP::allocateGrids()
   memory->create(qFunctionGrid, numGridPointsQFunctionGrid, "edip:qFunctionGrid");
 
   // cutoffFunction
+  // looked up with the same index as pow2B, exp2B, and exp3B, so it needs as many grid points
 
-  numGridPointsOneCutoffFunction = (int) ((cutoffC - GRIDSTART) * GRIDDENSITY);
-  numGridPointsNotOneCutoffFunction = (int) ((cutoffA - cutoffC) * GRIDDENSITY);
-  numGridPointsCutoffFunction =
-      numGridPointsOneCutoffFunction + numGridPointsNotOneCutoffFunction + 2;
+  numGridPointsCutoffFunction = (int) ((cutoffA + leftLimitToZero - GRIDSTART) * GRIDDENSITY) + 2;
 
   memory->create(cutoffFunction, numGridPointsCutoffFunction, "edip:cutoffFunction");
   memory->create(cutoffFunctionDerived, numGridPointsCutoffFunction, "edip:cutoffFunctionDerived");
@@ -607,7 +603,6 @@ void PairEDIP::initGrids()
 {
   int l;
   int numGridPointsOneCutoffFunction;
-  int numGridPointsNotOneCutoffFunction;
   int numGridPointsCutoffFunction;
   int numGridPointsR;
   int numGridPointsQFunctionGrid;
@@ -671,11 +666,11 @@ void PairEDIP::initGrids()
   }
 
   // cutoffFunction
+  // looked up with the same index as pow2B, exp2B, and exp3B, so it needs as many grid points.
+  // it is 1 below cutoffC and 0 from cutoffA on, where the formula would diverge.
 
   numGridPointsOneCutoffFunction = (int) ((cutoffC - GRIDSTART) * GRIDDENSITY);
-  numGridPointsNotOneCutoffFunction = (int) ((cutoffA - cutoffC) * GRIDDENSITY);
-  numGridPointsCutoffFunction =
-      numGridPointsOneCutoffFunction + numGridPointsNotOneCutoffFunction + 2;
+  numGridPointsCutoffFunction = (int) ((cutoffA + leftLimitToZero - GRIDSTART) * GRIDDENSITY) + 2;
 
   r = GRIDSTART;
   deltaArgumentCutoffFunction = 1.0 / GRIDDENSITY;
@@ -687,12 +682,17 @@ void PairEDIP::initGrids()
   }
 
   for (l = numGridPointsOneCutoffFunction; l < numGridPointsCutoffFunction; l++) {
-    temp = (cutoffA - cutoffC) / (r - cutoffC);
-    temp3 = temp * temp * temp;
-    temp4 = temp3 * temp;
-    cutoffFunction[l] = exp(alpha / (1.0 - temp3));
-    cutoffFunctionDerived[l] = (-3 * alpha / (cutoffA - cutoffC)) *
-        (temp4 / ((1 - temp3) * (1 - temp3))) * exp(alpha / (1.0 - temp3));
+    if (r < cutoffA) {
+      temp = (cutoffA - cutoffC) / (r - cutoffC);
+      temp3 = temp * temp * temp;
+      temp4 = temp3 * temp;
+      cutoffFunction[l] = exp(alpha / (1.0 - temp3));
+      cutoffFunctionDerived[l] = (-3 * alpha / (cutoffA - cutoffC)) *
+          (temp4 / ((1 - temp3) * (1 - temp3))) * exp(alpha / (1.0 - temp3));
+    } else {
+      cutoffFunction[l] = 0.0;
+      cutoffFunctionDerived[l] = 0.0;
+    }
     r += deltaArgumentCutoffFunction;
   }
 

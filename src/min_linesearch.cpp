@@ -25,11 +25,13 @@
 #include "min_linesearch.h"
 
 #include "atom.h"
+#include "error.h"
 #include "fix_minimize.h"
 #include "modify.h"
 #include "output.h"
 #include "pair.h"
 #include "thermo.h"
+#include "update.h"
 
 #include <cmath>
 
@@ -76,9 +78,14 @@ void MinLineSearch::init()
 {
   Min::init();
 
+  // spin_cubic and spin_none are only supported by the minimizers in the SPIN package
+
   if (linestyle == BACKTRACK) linemin = &MinLineSearch::linemin_backtrack;
   else if (linestyle == QUADRATIC) linemin = &MinLineSearch::linemin_quadratic;
   else if (linestyle == FORCEZERO) linemin = &MinLineSearch::linemin_forcezero;
+  else
+    error->all(FLERR, "Min_style {} supports only the min_modify line styles backtrack, "
+               "quadratic, and forcezero", update->minimize_style);
 
   delete[] gextra;
   delete[] hextra;

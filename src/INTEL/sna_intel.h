@@ -153,8 +153,8 @@ class SNAIntel : protected Pointers {
                        const SNA_DVEC &, const SNA_DVEC &, const SNA_DVEC &,
                        const SNA_DVEC &, const SNA_DVEC &, int,
                        const SNA_IVEC &);
-  inline double choose_beta(const int, const int, const int,
-                            const int, const int, const int,  int &);
+  inline SNA_DVEC choose_beta(const SNA_DVEC *, const int, const int, const int, const int,
+                              const int, const int);
 
   // Sets the style for the switching function
   // 0 = none

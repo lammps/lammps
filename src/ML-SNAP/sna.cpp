@@ -533,18 +533,28 @@ void SNA::compute_yi(const double* beta)
         jju = idxz[jjz].jju;
         for (int elem3 = 0; elem3 < nelements; elem3++) {
         // pick out right beta value
+        // with chemflag, the derivative with respect to another density factor
+        // of the same angular momentum j belongs to the coefficient of the
+        // permuted element triplet, so sum those coefficients instead of
+        // multiplying by the multiplicity.  same result for one element.
           if (j >= j1) {
             const int jjb = idxb_block[j1][j2][j];
             itriple = ((elem1 * nelements + elem2) * nelements + elem3) * idxb_max + jjb;
+            betaj = beta[itriple];
             if (j1 == j) {
-              if (j2 == j) betaj = 3*beta[itriple];
-              else betaj = 2*beta[itriple];
-            } else betaj = beta[itriple];
+              // B[e1 e2 e3] = B[e3 e2 e1] when j1 = j
+              betaj += beta[((elem3 * nelements + elem2) * nelements + elem1) * idxb_max + jjb];
+              // B[e1 e2 e3] = B[e1 e3 e2] when j2 = j (then j1 = j2 = j)
+              if (j2 == j)
+                betaj += beta[((elem1 * nelements + elem3) * nelements + elem2) * idxb_max + jjb];
+            }
           } else if (j >= j2) {
             const int jjb = idxb_block[j][j2][j1];
             itriple = ((elem3 * nelements + elem2) * nelements + elem1) * idxb_max + jjb;
-            if (j2 == j) betaj = 2*beta[itriple];
-            else betaj = beta[itriple];
+            betaj = beta[itriple];
+            // B[e3 e2 e1] = B[e2 e3 e1] when j2 = j
+            if (j2 == j)
+              betaj += beta[((elem2 * nelements + elem3) * nelements + elem1) * idxb_max + jjb];
           } else {
             const int jjb = idxb_block[j2][j][j1];
             itriple = ((elem2 * nelements + elem3) * nelements + elem1) * idxb_max + jjb;

@@ -302,3 +302,10 @@ add_executable(test_input_validation test_input_validation.cpp)
 target_link_libraries(test_input_validation PRIVATE lammps GTest::GMock)
 add_test(NAME InputValidation COMMAND test_input_validation)
 add_kokkos_test(NAME InputValidation COMMAND test_input_validation)
+
+# Regression tests for fix atom/swap with changing boxes.
+if(PKG_MC)
+  add_executable(test_fix_atom_swap test_fix_atom_swap.cpp)
+  target_link_libraries(test_fix_atom_swap PRIVATE lammps GTest::GMock)
+  add_test(NAME FixAtomSwap COMMAND test_fix_atom_swap)
+endif()

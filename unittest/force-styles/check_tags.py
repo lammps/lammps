@@ -38,8 +38,10 @@ The tags in UNWANTED below must not stay in a file:
   - a tag that is no longer used can be added there, so that the check
     finds the files that still have it and -u removes it
 
-Without options it lists the files whose tags differ and exits with status 1
-if there are any; with -u it rewrites the tags: lines of those files.
+The order of the tags does not matter.  Without options it lists the files
+whose tags differ and exits with status 1 if there are any; with -u it
+rewrites the tags: lines of those files.  The tags that stay keep their order,
+and missing tags are appended.
 """
 
 import os
@@ -78,7 +80,7 @@ GROUPS = {'mol-pair-': PAIR, 'atomic-pair-': PAIR, 'manybody-pair-': PAIR,
           'fix-timestep-': ('test_fix_timestep', 'fix'),
           'min-': ('test_min_style', 'minimize'),
           'compute-': ('test_output_style', None), 'fix-output-': ('test_output_style', None)}
-# the tags this script manages, in the order it writes them
+# the tags this script manages, in the order it adds missing ones
 MANAGED = ('gpu', 'kokkos')
 # the tags that must not stay in a file (removed with -u), with the reason
 UNWANTED = {'generated': 'reference data written by a test program and not reviewed yet'}
@@ -170,9 +172,17 @@ def unwanted(tags):
 
 
 def new_tags(tags, want):
-    """The tags line with the managed tags replaced and the unwanted tags removed"""
-    keep = [t for t in tags if t not in MANAGED and t not in UNWANTED]
-    return keep + want
+    """The tags line with the managed tags replaced and the unwanted tags removed.
+
+    The order of the tags does not matter: the tags that stay keep their place,
+    missing managed tags are appended, and duplicates of managed tags are dropped.
+    """
+    result = []
+    for t in tags:
+        if t in UNWANTED or (t in MANAGED and (t not in want or t in result)):
+            continue
+        result.append(t)
+    return result + [t for t in want if t not in result]
 
 
 changed = unknown = 0

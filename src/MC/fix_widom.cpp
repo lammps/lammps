@@ -44,6 +44,7 @@
 #include "suffix.h"
 #include "update.h"
 
+#include <algorithm>
 #include <cmath>
 #include <cstring>
 #include <exception>
@@ -448,11 +449,16 @@ void FixWidom::pre_exchange()
 
   } else {
 
+    // owned and ghost coordinates [0, nlocal + nghost) remain stationary across
+    // all ninsertions trial insertions, so build spatial bins once beforehand
+
+    build_bins();
     if (exchmode == EXCHATOM) {
       attempt_atomic_insertion();
     } else {
       attempt_molecule_insertion();
     }
+    bin_flag = false;
 
   }
   next_reneighbor = update->ntimestep + nevery;
@@ -466,6 +472,7 @@ void FixWidom::attempt_atomic_insertion()
 
   double lamda[3];
   double coord[3];
+  energy_buf.assign(ninsertions,0.0);
 
   for (int imove = 0; imove < ninsertions; imove++) {
 
@@ -481,7 +488,10 @@ void FixWidom::attempt_atomic_insertion()
         coord[1] = region_ylo + random_equal->uniform() * (region_yhi-region_ylo);
         coord[2] = region_zlo + random_equal->uniform() * (region_zhi-region_zlo);
         region_attempt++;
-        if (region_attempt >= max_region_attempts) return;
+        if (region_attempt >= max_region_attempts) {
+          accumulate_insertions(imove);
+          return;
+        }
       }
       if (triclinic) domain->x2lamda(coord,lamda);
     } else {
@@ -531,13 +541,9 @@ void FixWidom::attempt_atomic_insertion()
       insertion_energy = energy(ii,nwidom_type,-1,coord);
     }
 
-    double insertion_energy_sum = 0.0;
-    MPI_Allreduce(&insertion_energy,&insertion_energy_sum,1,MPI_DOUBLE,MPI_SUM,world);
-
-    double inst_chem_pot = exp(-insertion_energy_sum*beta);
-    double incr_chem_pot = (inst_chem_pot - ave_widom_chemical_potential);
-    ave_widom_chemical_potential += incr_chem_pot / (imove + 1);
+    energy_buf[imove] = insertion_energy;
   }
+  accumulate_insertions(ninsertions);
 }
 
 /* ----------------------------------------------------------------------
@@ -549,6 +555,7 @@ void FixWidom::attempt_molecule_insertion()
   double lamda[3];
   double com_coord[3];
   double r[3],rotmat[3][3],quat[4];
+  energy_buf.assign(ninsertions,0.0);
 
   for (int imove = 0; imove < ninsertions; imove++) {
 
@@ -569,7 +576,10 @@ void FixWidom::attempt_molecule_insertion()
         com_coord[2] = region_zlo + random_equal->uniform() *
           (region_zhi-region_zlo);
         region_attempt++;
-        if (region_attempt >= max_region_attempts) return;
+        if (region_attempt >= max_region_attempts) {
+          accumulate_insertions(imove);
+          return;
+        }
       }
       if (triclinic) domain->x2lamda(com_coord,lamda);
     } else {
@@ -651,17 +661,10 @@ void FixWidom::attempt_molecule_insertion()
       }
     }
 
-    double insertion_energy_sum = 0.0;
-    MPI_Allreduce(&insertion_energy,&insertion_energy_sum,1,
-                  MPI_DOUBLE,MPI_SUM,world);
-
-    // the insertion_energy_sum is the variable with the energy of inserting one molecule
-    double inst_chem_pot = exp(-insertion_energy_sum*beta);
-    double incr_chem_pot = (inst_chem_pot - ave_widom_chemical_potential);
-    ave_widom_chemical_potential += incr_chem_pot / (imove + 1);
-
+    energy_buf[imove] = insertion_energy;
     delete[] procflag;
   }
+  accumulate_insertions(ninsertions);
 }
 
 /* ----------------------------------------------------------------------
@@ -932,6 +935,103 @@ void FixWidom::attempt_molecule_insertion_full()
 }
 
 /* ----------------------------------------------------------------------
+   batch MPI reduction across nvalid independent Widom trial insertions;
+   trials do not alter system or RNG state, and reducing once preserves
+   the exact 0..nvalid-1 running-average order (including early exit)
+------------------------------------------------------------------------- */
+
+void FixWidom::accumulate_insertions(int nvalid)
+{
+  if (nvalid <= 0) return;
+  if (comm->nprocs > 1)
+    MPI_Allreduce(MPI_IN_PLACE,energy_buf.data(),nvalid,MPI_DOUBLE,MPI_SUM,world);
+  for (int imove = 0; imove < nvalid; imove++) {
+    double inst_chem_pot = exp(-energy_buf[imove]*beta);
+    double incr_chem_pot = (inst_chem_pot - ave_widom_chemical_potential);
+    ave_widom_chemical_potential += incr_chem_pot / (imove + 1);
+  }
+}
+
+/* ----------------------------------------------------------------------
+   build static Cartesian CSR cell grid over [0, nlocal + nghost) for
+   short-range pair evaluation; periodic images are already present as
+   ghost atoms and triclinic coords are already in Cartesian space
+------------------------------------------------------------------------- */
+
+void FixWidom::build_bins()
+{
+  // minimum atoms/bins where 3x3x3 cell lookup beats a flat 0..nall-1 scan
+  constexpr int min_atoms_for_bins = 64;
+  constexpr int max_stencil_bins = 27;
+  // pad bin width slightly above max cutoff for floating-point boundary safety
+  constexpr double cutoff_pad = 1.0e-6;
+  // bound bin count per axis and overall (2^24 hard cap) in sparse/vacuum boxes
+  constexpr double max_axis_bins = 1024.0;
+  constexpr double min_bin_cap = 4096.0;
+  constexpr double bins_per_atom_cap = 8.0;
+  constexpr double hard_bin_cap = 16777216.0;
+
+  bin_flag = false;
+  int nall = atom->nlocal + atom->nghost;
+  if (ninsertions <= 0 || nall < min_atoms_for_bins) return;
+
+  cutsq = force->pair->cutsq;
+  double max_cutsq = 0.0;
+  for (int m = 0; m < natoms_per_molecule; m++) {
+    int itype = (exchmode == EXCHATOM) ? nwidom_type : onemol->type[m];
+    for (int jtype = 1; jtype <= atom->ntypes; jtype++)
+      max_cutsq = MAX(max_cutsq,cutsq[itype][jtype]);
+  }
+  if (max_cutsq <= 0.0) return;
+
+  double **x = atom->x;
+  for (int d = 0; d < 3; d++) binlo[d] = binhi[d] = x[0][d];
+  for (int j = 1; j < nall; j++) {
+    for (int d = 0; d < 3; d++) {
+      binlo[d] = MIN(binlo[d],x[j][d]);
+      binhi[d] = MAX(binhi[d],x[j][d]);
+    }
+  }
+  double lx = binhi[0] - binlo[0];
+  double ly = binhi[1] - binlo[1];
+  double lz = binhi[2] - binlo[2];
+  if (!std::isfinite(lx + ly + lz)) return;
+
+  binsize = sqrt(max_cutsq) * (1.0 + cutoff_pad);
+  binsize = MAX(binsize,MAX(lx,MAX(ly,lz)) / max_axis_bins);
+  const double maxbins = MIN(hard_bin_cap,MAX(min_bin_cap,bins_per_atom_cap * nall));
+  while ((std::floor(lx / binsize) + 1.0) * (std::floor(ly / binsize) + 1.0) *
+         (std::floor(lz / binsize) + 1.0) > maxbins)
+    binsize *= 2.0;
+
+  bininv = 1.0 / binsize;
+  nbinx = static_cast<int>(lx * bininv) + 1;
+  nbiny = static_cast<int>(ly * bininv) + 1;
+  nbinz = static_cast<int>(lz * bininv) + 1;
+  int nbins = nbinx * nbiny * nbinz;
+  if (nbins <= max_stencil_bins) return;
+
+  // CSR counting sort: binoffset[b]..binoffset[b+1] indexes binatoms[] for bin b
+
+  binoffset.assign(nbins + 1,0);
+  atom_bin.resize(nall);
+  for (int j = 0; j < nall; j++) {
+    int bx = MAX(0,MIN(static_cast<int>((x[j][0] - binlo[0]) * bininv),nbinx - 1));
+    int by = MAX(0,MIN(static_cast<int>((x[j][1] - binlo[1]) * bininv),nbiny - 1));
+    int bz = MAX(0,MIN(static_cast<int>((x[j][2] - binlo[2]) * bininv),nbinz - 1));
+    int b = (bz * nbiny + by) * nbinx + bx;
+    atom_bin[j] = b;
+    binoffset[b + 1]++;
+  }
+  for (int b = 1; b <= nbins; b++) binoffset[b] += binoffset[b - 1];
+
+  std::vector<int> bincursor = binoffset;
+  binatoms.resize(nall);
+  for (int j = 0; j < nall; j++) binatoms[bincursor[atom_bin[j]]++] = j;
+  bin_flag = true;
+}
+
+/* ----------------------------------------------------------------------
    compute particle's interaction energy with the rest of the system by
    looping over all atoms in the sub-domain including ghosts.
 ------------------------------------------------------------------------- */
@@ -952,6 +1052,54 @@ double FixWidom::energy(int i, int itype, tagint imolecule, double *coord)
   double factor_lj = 1.0;
 
   double total_energy = 0.0;
+
+  if (bin_flag) {
+    if (coord[0] + binsize < binlo[0] || coord[0] - binsize > binhi[0] ||
+        coord[1] + binsize < binlo[1] || coord[1] - binsize > binhi[1] ||
+        coord[2] + binsize < binlo[2] || coord[2] - binsize > binhi[2])
+      return 0.0;
+
+    int bx0 = MAX(0,static_cast<int>((coord[0] - binsize - binlo[0]) * bininv));
+    int bx1 = MIN(nbinx - 1,static_cast<int>((coord[0] + binsize - binlo[0]) * bininv));
+    int by0 = MAX(0,static_cast<int>((coord[1] - binsize - binlo[1]) * bininv));
+    int by1 = MIN(nbiny - 1,static_cast<int>((coord[1] + binsize - binlo[1]) * bininv));
+    int bz0 = MAX(0,static_cast<int>((coord[2] - binsize - binlo[2]) * bininv));
+    int bz1 = MIN(nbinz - 1,static_cast<int>((coord[2] + binsize - binlo[2]) * bininv));
+
+    const double *cutsqi = cutsq[itype];
+    neigh_cand.clear();
+    for (int bz = bz0; bz <= bz1; bz++) {
+      for (int by = by0; by <= by1; by++) {
+        int row = (bz * nbiny + by) * nbinx;
+        for (int bx = bx0; bx <= bx1; bx++) {
+          for (int k = binoffset[row + bx], end = binoffset[row + bx + 1]; k < end; k++) {
+            int j = binatoms[k];
+            if (i == j) continue;
+            if (exchmode == EXCHMOL && imolecule == molecule[j]) continue;
+            delx = coord[0] - x[j][0];
+            dely = coord[1] - x[j][1];
+            delz = coord[2] - x[j][2];
+            rsq = delx*delx + dely*dely + delz*delz;
+            if (rsq < cutsqi[type[j]]) neigh_cand.push_back(j);
+          }
+        }
+      }
+    }
+
+    // sort surviving neighbor indices ascending so pair->single() sums in the
+    // exact j = 0..nall-1 order of the unbinned loop (bitwise-identical energies)
+
+    std::sort(neigh_cand.begin(),neigh_cand.end());
+    for (int j : neigh_cand) {
+      delx = coord[0] - x[j][0];
+      dely = coord[1] - x[j][1];
+      delz = coord[2] - x[j][2];
+      rsq = delx*delx + dely*dely + delz*delz;
+      total_energy +=
+        pair->single(i,j,itype,type[j],rsq,factor_coul,factor_lj,fpair);
+    }
+    return total_energy;
+  }
 
   for (int j = 0; j < nall; j++) {
 
@@ -1063,6 +1211,9 @@ double FixWidom::compute_vector(int n)
 double FixWidom::memory_usage()
 {
   double bytes = (double)widom_nmax * sizeof(int);
+  bytes += (double)(binoffset.capacity() + binatoms.capacity() +
+                    atom_bin.capacity() + neigh_cand.capacity()) * sizeof(int);
+  bytes += (double)energy_buf.capacity() * sizeof(double);
   return bytes;
 }
 

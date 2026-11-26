@@ -148,11 +148,33 @@ void FixDrude::build_drudeid() {
   // Build the list of my Drudes' tags
   // The only bond partners of a Drude particle is its core,
   // so fill drudeid for my Drudes.
+  // Count Drude atoms, Drude atoms without bond partner, and core atoms:
+  // each core needs one Drude and each Drude one core, so the numbers must match.
+  bigint nmine[3] = {0, 0, 0};
   for (int i=0; i<nlocal; i++) {
     if (drudetype[type[i]] == DRUDE_TYPE) {
+      ++nmine[0];
+      if (partner_set[i].empty()) {
+        ++nmine[1];
+        continue;
+      }
       drude_vec.push_back(atom->tag[i]);
       drudeid[i] = *partner_set[i].begin(); // only one 1-2 neighbor, the core
-    }
+    } else if (drudetype[type[i]] == CORE_TYPE) ++nmine[2];
+  }
+  bigint nall[3];
+  MPI_Allreduce(nmine, nall, 3, MPI_LMP_BIGINT, MPI_SUM, world);
+  if (nall[1] > 0) {
+    delete[] partner_set;
+    partner_set = nullptr;
+    error->all(FLERR, Error::NOLASTLINE, "Found {} Drude atoms without a bond to a core atom",
+               nall[1]);
+  }
+  if (nall[0] != nall[2]) {
+    delete[] partner_set;
+    partner_set = nullptr;
+    error->all(FLERR, Error::NOLASTLINE, "Found {} Drude atoms but {} core atoms, each core atom "
+               "needs one Drude atom", nall[0], nall[2]);
   }
   // At this point each of my Drudes knows its core.
   // Send my list of Drudes to other procs and myself

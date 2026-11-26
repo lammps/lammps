@@ -842,7 +842,7 @@ void SNAIntel::zero_uarraytot(const SNA_IVEC &ielem)
             else {
               SIMD_mask m(ielem == jelem);
               SIMD_store(ulisttot_rp + jju,
-                         SIMD_zero_masked(~m, SIMD_set(wself)));
+                         SIMD_zero_masked(m, SIMD_set(wself)));
             }
           }
           jju += vector_width();

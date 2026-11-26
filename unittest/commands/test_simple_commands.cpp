@@ -739,6 +739,7 @@ TEST_F(SimpleCommandsTest, ShrinkWrapTriclinic)
         }
 
         // resetting the box again for the same atom positions must not change it
+        // KOKKOS in single or mixed precision converts the positions as floats
 
         double boxlo[3], boxhi[3];
         for (int dim = 0; dim < 3; ++dim) {
@@ -749,8 +750,10 @@ TEST_F(SimpleCommandsTest, ShrinkWrapTriclinic)
         command("run 0 post no");
         END_HIDE_OUTPUT();
         for (int dim = 0; dim < 3; ++dim) {
-            EXPECT_NEAR(domain->boxlo[dim], boxlo[dim], 1.0e-12) << "boundary " << bnd;
-            EXPECT_NEAR(domain->boxhi[dim], boxhi[dim], 1.0e-12) << "boundary " << bnd;
+            EXPECT_NEAR(domain->boxlo[dim], boxlo[dim], prec_tol(boxlo[dim], 1.0e-12))
+                << "boundary " << bnd;
+            EXPECT_NEAR(domain->boxhi[dim], boxhi[dim], prec_tol(boxhi[dim], 1.0e-12))
+                << "boundary " << bnd;
         }
     }
 }

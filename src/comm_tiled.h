@@ -44,6 +44,9 @@ class CommTiled : public Comm {
   void forward_comm(class Dump *, int size = 0) override;     // forward comm from a Dump
   void reverse_comm(class Dump *, int size = 0) override;     // reverse comm from a Dump
 
+  void forward_comm_dynamic(class Pair *, int) override;    // forward comm from a Pair, call-time size
+  void reverse_comm_dynamic(class Pair *, int) override;    // reverse comm from a Pair, call-time size
+
   void forward_comm_array(int, double **) override;    // forward comm of array
 
   void coord2proc_setup() override;

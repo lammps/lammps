@@ -465,9 +465,9 @@ TEST_F(VariableTest, Expressions)
     TEST_FAILURE(".*ERROR on proc 0: Variable err3: Invalid power expression in variable formula.*",
                  command("print \"${err3}\""););
     TEST_FAILURE(
-        ".*ERROR: Variable one: Mis-matched special function variable in variable formula.*",
+        ".*ERROR: Variable isrt: Mis-matched special function variable in variable formula.*",
         command("print \"${isrt}\""););
-    TEST_FAILURE(".*ERROR: Variable vec4: index 11 exceeds vector size of 10.*",
+    TEST_FAILURE(".*ERROR: Variable xxxl: index 11 exceeds vector size of 10.*",
                  command("print \"${xxxl}\""););
     TEST_FAILURE(".*ERROR on proc 0: Variable err4: Invalid power expression in variable formula.*",
                  command("print \"${err4}\""););

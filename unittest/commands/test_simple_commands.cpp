@@ -16,6 +16,7 @@
 #include "atom.h"
 #include "citeme.h"
 #include "comm.h"
+#include "domain.h"
 #include "force.h"
 #include "info.h"
 #include "input.h"
@@ -691,6 +692,67 @@ TEST_F(SimpleCommandsTest, MinimizeLineStyle)
     command("minimize 0.0 1.0e-6 100 1000");
     END_HIDE_OUTPUT();
     EXPECT_GT(lmp->update->ntimestep, 0);
+}
+
+TEST_F(SimpleCommandsTest, ShrinkWrapTriclinic)
+{
+    // the tilted faces of a shrink-wrapped triclinic box must enclose all atoms
+    // also when the bounds of the dimensions they depend on change in the same step:
+    // atom 2 moves in -y (xy tilt), atom 4 in -z and atom 5 in +z (xz and yz tilt)
+
+    for (const auto &bnd : {"s s s", "s s p", "s p s", "p s s"}) {
+        BEGIN_HIDE_OUTPUT();
+        command("clear");
+        command("atom_modify map array");
+        command(std::string("boundary ") + bnd);
+        command("region box prism -5 5 -5 5 -5 5 2.0 1.5 -1.0 units box");
+        command("create_box 1 box");
+        command("create_atoms 1 single -3 0 0 units box");
+        command("create_atoms 1 single 0 -3 0 units box");
+        command("create_atoms 1 single 3 3 0 units box");
+        command("create_atoms 1 single 0 0 -3 units box");
+        command("create_atoms 1 single 1 -1 3 units box");
+        command("mass * 1.0");
+        command("pair_style zero 2.5");
+        command("pair_coeff * *");
+        command("neighbor 0.3 nsq");
+        command("neigh_modify every 1 delay 0 check no");
+        command("velocity all set 0.0 0.0 0.0");
+        command("set atom 2 vy -10.0");
+        command("set atom 4 vz -10.0");
+        command("set atom 5 vz 5.0");
+        command("timestep 0.005");
+        command("fix integrate all nve");
+        command("run 10 post no");
+        END_HIDE_OUTPUT();
+        ASSERT_EQ(lmp->atom->natoms, 5) << "boundary " << bnd;
+
+        auto *domain = lmp->domain;
+        double **x   = lmp->atom->x;
+        double lamda[3];
+        for (int i = 0; i < lmp->atom->nlocal; ++i) {
+            domain->x2lamda(x[i], lamda);
+            for (int dim = 0; dim < 3; ++dim) {
+                EXPECT_GT(lamda[dim], 0.0) << "boundary " << bnd << " atom " << i;
+                EXPECT_LT(lamda[dim], 1.0) << "boundary " << bnd << " atom " << i;
+            }
+        }
+
+        // resetting the box again for the same atom positions must not change it
+
+        double boxlo[3], boxhi[3];
+        for (int dim = 0; dim < 3; ++dim) {
+            boxlo[dim] = domain->boxlo[dim];
+            boxhi[dim] = domain->boxhi[dim];
+        }
+        BEGIN_HIDE_OUTPUT();
+        command("run 0 post no");
+        END_HIDE_OUTPUT();
+        for (int dim = 0; dim < 3; ++dim) {
+            EXPECT_NEAR(domain->boxlo[dim], boxlo[dim], 1.0e-12) << "boundary " << bnd;
+            EXPECT_NEAR(domain->boxhi[dim], boxhi[dim], 1.0e-12) << "boundary " << bnd;
+        }
+    }
 }
 } // namespace LAMMPS_NS
 

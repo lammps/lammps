@@ -98,6 +98,57 @@ public:
     dst.value[2][1] = MAX(dst.value[2][1],static_cast<double>(x(i,2)));
   }
 };
+
+// extent of atoms along the tilted faces of one dim of a triclinic box
+// with lamda_y and lamda_z of the new box, see Domain::reset_box()
+// returns -min and max of the extent
+
+template<class DeviceType>
+struct DomainResetBoxTriFunctor{
+public:
+  typedef DeviceType device_type;
+  typedef ArrayTypes<DeviceType> AT;
+  typename AT::t_kkfloat_1d_3_lr x;
+  int dim;
+  double zlo,zprdinv,ylo,yprdinv,xy,xz,yz;
+
+  struct value_type {
+    double value[2] ;
+  };
+
+  DomainResetBoxTriFunctor(DAT::ttransform_kkfloat_1d_3_lr _x, int _dim,
+                           const double *boxlo, const double *boxhi,
+                           double _xy, double _xz, double _yz):
+    x(_x.view<DeviceType>()), dim(_dim), zlo(boxlo[2]), zprdinv(1.0/(boxhi[2]-boxlo[2])),
+    ylo(boxlo[1]), yprdinv(1.0/(boxhi[1]-boxlo[1])), xy(_xy), xz(_xz), yz(_yz) {}
+
+// NOLINTNEXTLINE
+  KOKKOS_INLINE_FUNCTION
+  void init(value_type &dst) const {
+    dst.value[0] = dst.value[1] = -BIG;
+  }
+
+// NOLINTNEXTLINE
+  KOKKOS_INLINE_FUNCTION
+  void join(value_type &dst,
+             const value_type &src) const {
+    dst.value[0] = MAX(dst.value[0],src.value[0]);
+    dst.value[1] = MAX(dst.value[1],src.value[1]);
+  }
+
+// NOLINTNEXTLINE
+  KOKKOS_INLINE_FUNCTION
+  void operator() (const int &i, value_type &dst) const {
+    double coord = static_cast<double>(x(i,dim));
+    if (dim < 2) {
+      const double lamdaz = (static_cast<double>(x(i,2)) - zlo) * zprdinv;
+      if (dim == 1) coord -= yz*lamdaz;
+      else coord -= xy*(static_cast<double>(x(i,1)) - ylo - yz*lamdaz)*yprdinv + xz*lamdaz;
+    }
+    dst.value[0] = MAX(dst.value[0],-coord);
+    dst.value[1] = MAX(dst.value[1],coord);
+  }
+};
 }    // namespace
 
 void DomainKokkos::reset_box()
@@ -108,107 +159,59 @@ void DomainKokkos::reset_box()
 
   if (atom->natoms == 0) return;
 
-  // compute extent of atoms on this proc
-  // for triclinic, this is done in lamda space
-
   atomKK->sync(Device,X_MASK);
 
   if (nonperiodic == 2) {
 
     int nlocal = atom->nlocal;
 
-    DomainResetBoxFunctor<LMPDeviceType>::value_type result;
-
-    DomainResetBoxFunctor<LMPDeviceType>
-      f(atomKK->k_x);
-    Kokkos::parallel_reduce(nlocal,f,result);
-
-    double (*extent)[2] = result.value;
-    double all[3][2];
-
-    // compute extent across all procs
-    // flip sign of MIN to do it in one Allreduce MAX
-
-    extent[0][0] = -extent[0][0];
-    extent[1][0] = -extent[1][0];
-    extent[2][0] = -extent[2][0];
-
-    MPI_Allreduce(extent,all,6,MPI_DOUBLE,MPI_MAX,world);
-
-    // for triclinic, convert back to box coords before changing box
-
-    if (triclinic) lamda2x(atom->nlocal);
-
-    // in shrink-wrapped dims, set box by atom extent
-    // if minimum set, enforce min box size settings
-    // for triclinic, convert lamda extent to box coords, then set box lo/hi
-    // decided NOT to do the next comment - don't want to sneakily change tilt
-    // for triclinic, adjust tilt factors if 2nd dim is shrink-wrapped,
-    //   so that displacement in 1st dim stays the same
-
     if (triclinic == 0) {
-      if (xperiodic == 0) {
-        if (boundary[0][0] == 2) boxlo[0] = -all[0][0] - small[0];
-        else if (boundary[0][0] == 3)
-          boxlo[0] = MIN(-all[0][0]-small[0],minxlo);
-        if (boundary[0][1] == 2) boxhi[0] = all[0][1] + small[0];
-        else if (boundary[0][1] == 3) boxhi[0] = MAX(all[0][1]+small[0],minxhi);
-        if (boxlo[0] > boxhi[0]) error->all(FLERR,"Illegal simulation box");
-      }
-      if (yperiodic == 0) {
-        if (boundary[1][0] == 2) boxlo[1] = -all[1][0] - small[1];
-        else if (boundary[1][0] == 3)
-          boxlo[1] = MIN(-all[1][0]-small[1],minylo);
-        if (boundary[1][1] == 2) boxhi[1] = all[1][1] + small[1];
-        else if (boundary[1][1] == 3) boxhi[1] = MAX(all[1][1]+small[1],minyhi);
-        if (boxlo[1] > boxhi[1]) error->all(FLERR,"Illegal simulation box");
-      }
-      if (zperiodic == 0) {
-        if (boundary[2][0] == 2) boxlo[2] = -all[2][0] - small[2];
-        else if (boundary[2][0] == 3)
-          boxlo[2] = MIN(-all[2][0]-small[2],minzlo);
-        if (boundary[2][1] == 2) boxhi[2] = all[2][1] + small[2];
-        else if (boundary[2][1] == 3) boxhi[2] = MAX(all[2][1]+small[2],minzhi);
-        if (boxlo[2] > boxhi[2]) error->all(FLERR,"Illegal simulation box");
-      }
+
+      // compute extent of atoms on this proc
+
+      DomainResetBoxFunctor<LMPDeviceType>::value_type result;
+
+      DomainResetBoxFunctor<LMPDeviceType>
+        f(atomKK->k_x);
+      Kokkos::parallel_reduce(nlocal,f,result);
+
+      double (*extent)[2] = result.value;
+      double all[3][2];
+
+      // compute extent across all procs
+      // flip sign of MIN to do it in one Allreduce MAX
+
+      extent[0][0] = -extent[0][0];
+      extent[1][0] = -extent[1][0];
+      extent[2][0] = -extent[2][0];
+
+      MPI_Allreduce(extent,all,6,MPI_DOUBLE,MPI_MAX,world);
+
+      // in shrink-wrapped dims, set box by atom extent
+
+      for (int dim = 0; dim < 3; dim++)
+        if (!periodicity[dim]) set_shrink_bounds(dim,-all[dim][0],all[dim][1]);
 
     } else {
-      double lo[3],hi[3];
-      if (xperiodic == 0) {
-        lo[0] = -all[0][0]; lo[1] = 0.0; lo[2] = 0.0;
-        Domain::lamda2x(lo,lo);
-        hi[0] = all[0][1]; hi[1] = 0.0; hi[2] = 0.0;
-        Domain::lamda2x(hi,hi);
-        if (boundary[0][0] == 2) boxlo[0] = lo[0] - small[0];
-        else if (boundary[0][0] == 3) boxlo[0] = MIN(lo[0]-small[0],minxlo);
-        if (boundary[0][1] == 2) boxhi[0] = hi[0] + small[0];
-        else if (boundary[0][1] == 3) boxhi[0] = MAX(hi[0]+small[0],minxhi);
-        if (boxlo[0] > boxhi[0]) error->all(FLERR,"Illegal simulation box");
-      }
-      if (yperiodic == 0) {
-        lo[0] = 0.0; lo[1] = -all[1][0]; lo[2] = 0.0;
-        Domain::lamda2x(lo,lo);
-        hi[0] = 0.0; hi[1] = all[1][1]; hi[2] = 0.0;
-        Domain::lamda2x(hi,hi);
-        if (boundary[1][0] == 2) boxlo[1] = lo[1] - small[1];
-        else if (boundary[1][0] == 3) boxlo[1] = MIN(lo[1]-small[1],minylo);
-        if (boundary[1][1] == 2) boxhi[1] = hi[1] + small[1];
-        else if (boundary[1][1] == 3) boxhi[1] = MAX(hi[1]+small[1],minyhi);
-        if (boxlo[1] > boxhi[1]) error->all(FLERR,"Illegal simulation box");
-        //xy *= (boxhi[1]-boxlo[1]) / yprd;
-      }
-      if (zperiodic == 0) {
-        lo[0] = 0.0; lo[1] = 0.0; lo[2] = -all[2][0];
-        Domain::lamda2x(lo,lo);
-        hi[0] = 0.0; hi[1] = 0.0; hi[2] = all[2][1];
-        Domain::lamda2x(hi,hi);
-        if (boundary[2][0] == 2) boxlo[2] = lo[2] - small[2];
-        else if (boundary[2][0] == 3) boxlo[2] = MIN(lo[2]-small[2],minzlo);
-        if (boundary[2][1] == 2) boxhi[2] = hi[2] + small[2];
-        else if (boundary[2][1] == 3) boxhi[2] = MAX(hi[2]+small[2],minzhi);
-        if (boxlo[2] > boxhi[2]) error->all(FLERR,"Illegal simulation box");
-        //xz *= (boxhi[2]-boxlo[2]) / xprd;
-        //yz *= (boxhi[2]-boxlo[2]) / yprd;
+
+      // for triclinic, convert from lamda to box coords
+      // set the bounds in the order z,y,x, see Domain::reset_box()
+
+      lamda2x(nlocal);
+      atomKK->sync(Device,X_MASK);
+
+      for (int dim = 2; dim >= 0; dim--) {
+        if (periodicity[dim]) continue;
+
+        DomainResetBoxTriFunctor<LMPDeviceType>::value_type result;
+
+        DomainResetBoxTriFunctor<LMPDeviceType>
+          f(atomKK->k_x,dim,boxlo,boxhi,xy,xz,yz);
+        Kokkos::parallel_reduce(nlocal,f,result);
+
+        double all[2];
+        MPI_Allreduce(result.value,all,2,MPI_DOUBLE,MPI_MAX,world);
+        set_shrink_bounds(dim,-all[0],all[1]);
       }
     }
   }

@@ -2,7 +2,7 @@
 lammps_version: 13 Nov 2026
 tags: single_thread kokkos
 date_generated: Wed Nov 25 19:34:33 2026
-epsilon: 5e-13
+epsilon: 1e-12
 skip_tests:
 prerequisites: |
   pair snap

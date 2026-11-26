@@ -42,6 +42,7 @@ FixBrownianSphere::FixBrownianSphere(LAMMPS *lmp, int narg, char **arg) :
   if (!gamma_t_flag || !gamma_r_flag)
     error->all(FLERR, "Keywords gamma_t and gamma_r are required for fix {}", style);
   if (!atom->mu_flag) error->all(FLERR, "Fix {} requires atom attribute mu", style);
+  if (!atom->torque_flag) error->all(FLERR, "Fix {} requires atom attribute torque", style);
 }
 
 /* ---------------------------------------------------------------------- */

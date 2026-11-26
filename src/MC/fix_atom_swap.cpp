@@ -457,6 +457,10 @@ void FixAtomSwap::pre_exchange()
 
   next_reneighbor = update->ntimestep + nevery;
 
+  // Owned and ghost atom coordinates are already Cartesian (lamda2x above).
+  // Restore the incoming shrink-wrap bounds so later PRE_EXCHANGE fixes and
+  // Verlet's subsequent reset_box() see the same box as without fix atom/swap.
+
   if (restore_shrink_box) {
     for (int d = 0; d < 3; d++) {
       domain->boxlo[d] = saved_boxlo[d];

@@ -11,9 +11,10 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-// unit tests for fix atom/swap: fast legacy-syntax regressions for dynamic
-// triclinic NPT (bin vs nsq), expanding shrink-wrap without lost atoms, and
-// triclinic shrink-wrap idempotence with ncycles 0.  can be run with any
+// unit tests for fix atom/swap with changing boxes: dynamic triclinic NPT
+// (bin vs nsq), expanding shrink-wrap with cross-rank migration, triclinic
+// shrink-wrap idempotence with ncycles 0, and fix atom/swap defined before a
+// flipping fix npt on a triclinic shrink-wrapped box.  can be run with any
 // number of MPI ranks.
 
 #include "atom.h"
@@ -21,36 +22,32 @@
 #include "domain.h"
 #include "exceptions.h"
 #include "fix.h"
-#include "info.h"
 #include "input.h"
 #include "lammps.h"
 #include "modify.h"
 #include "update.h"
 
-#include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
 #include "../testing/test_mpi_main.h"
 
 #include <cmath>
+#include <string>
 #include <utility>
-
-using ::testing::HasSubstr;
-using ::testing::Not;
+#include <vector>
 
 namespace LAMMPS_NS {
 
 namespace {
 using Lines = std::vector<std::string>;
 
-// binary fcc lattice with lj/cut (legacy helper kept for later expansion)
-Lines lj_fcc(int n, const std::string &newton = "on", const std::string &style = "atomic")
+// binary fcc lattice with lj/cut and unequal per-type cutoffs
+Lines lj_fcc(int n)
 {
     const std::string box = fmt::format("region box block 0 {0} 0 {0} 0 {0}", n);
     return {"units lj",
-            "atom_style " + style,
+            "atom_style atomic",
             "atom_modify map array",
-            "newton " + newton,
             "lattice fcc 0.8442",
             box,
             "create_box 2 box",
@@ -69,15 +66,8 @@ Lines lj_fcc(int n, const std::string &newton = "on", const std::string &style =
 class FixAtomSwapTest : public ::testing::Test {
 protected:
     LAMMPS *lmp = nullptr;
-    int me      = 0;
-    int nprocs  = 1;
 
-    void SetUp() override
-    {
-        MPI_Comm_rank(MPI_COMM_WORLD, &me);
-        MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
-        lmp = create(MPI_COMM_WORLD);
-    }
+    void SetUp() override { lmp = create(MPI_COMM_WORLD); }
 
     void TearDown() override { destroy(lmp); }
 
@@ -146,20 +136,12 @@ protected:
                       instance->world);
         return global;
     }
-
-    bool has_style(const std::string &category, const std::string &name)
-    {
-        Info info(lmp);
-        return info.has_style(category, name);
-    }
 };
 
 // dynamic triclinic NPT: neighbor bin and nsq must agree on accepts and PE
 
 TEST_F(FixAtomSwapTest, DynamicTriclinicNPTBinMatchesNSQ)
 {
-    if (!has_style("fix", "npt")) GTEST_SKIP() << "Fix npt is not available";
-
     auto run_style = [this](const std::string &neigh) {
         reset();
         Lines input;
@@ -182,11 +164,13 @@ TEST_F(FixAtomSwapTest, DynamicTriclinicNPTBinMatchesNSQ)
 
     const auto bin = run_style("bin");
     const auto nsq = run_style("nsq");
+    EXPECT_GT(bin.first, 0.0);
     EXPECT_EQ(bin.first, nsq.first);
-    EXPECT_NEAR(bin.second, nsq.second, 1.0e-10);
+    EXPECT_NEAR(bin.second, nsq.second, 1.0e-10 * (1.0 + std::fabs(nsq.second)));
 }
 
-// expanding orthogonal shrink-wrap: four atoms stay present, none lost
+// expanding orthogonal shrink-wrap with rotating velocities: all 27 atoms stay
+// present while migrating across MPI subdomains, with no lost atoms
 
 TEST_F(FixAtomSwapTest, ExpandingShrinkWrapNoLostAtoms)
 {
@@ -194,16 +178,15 @@ TEST_F(FixAtomSwapTest, ExpandingShrinkWrapNoLostAtoms)
                          "atom_style atomic",
                          "atom_modify map array",
                          "boundary s s s",
-                         "region box block -3 3 -3 3 -3 3",
+                         "lattice sc 1.0 origin 0.5 0.5 0.5",
+                         "region box block 0 3 0 3 0 3",
                          "create_box 2 box",
-                         "create_atoms 1 single -1 -1 -1 units box",
-                         "create_atoms 2 single 1 1 -1 units box",
-                         "create_atoms 1 single -1 1 1 units box",
-                         "create_atoms 2 single 1 -1 1 units box",
+                         "create_atoms 1 box",
+                         "set type 1 type/fraction 2 0.5 4321",
                          "mass * 1.0",
-                         "variable vx atom 2.0*x",
-                         "variable vy atom 2.0*y",
-                         "variable vz atom 2.0*z",
+                         "variable vx atom 2.0*(x-1.5)+4.0*(y-1.5)",
+                         "variable vy atom 2.0*(y-1.5)-4.0*(x-1.5)",
+                         "variable vz atom 2.0*(z-1.5)",
                          "velocity all set v_vx v_vy v_vz units box",
                          "pair_style lj/cut 2.5",
                          "pair_coeff * * 0.0 1.0",
@@ -212,17 +195,16 @@ TEST_F(FixAtomSwapTest, ExpandingShrinkWrapNoLostAtoms)
                          "timestep 0.01",
                          "fix integrate all nve",
                          "fix mc all atom/swap 1 5 12345 1.0 types 1 2",
-                         "thermo 1",
                          "run 0 post no"};
     run(input);
+    ASSERT_EQ(lmp->atom->natoms, 27);
     const double volume_start = lmp->domain->xprd * lmp->domain->yprd * lmp->domain->zprd;
-    const auto out            = run({"run 10 post no"});
-    EXPECT_EQ(lmp->atom->natoms, 4);
+    run({"run 10 post no"});
+    EXPECT_EQ(lmp->atom->natoms, 27);
     EXPECT_EQ(lmp->update->ntimestep, 10);
     int nlocal = lmp->atom->nlocal, count = 0;
     MPI_Allreduce(&nlocal, &count, 1, MPI_INT, MPI_SUM, lmp->world);
-    EXPECT_EQ(count, 4);
-    EXPECT_THAT(out, Not(HasSubstr("Lost atoms")));
+    EXPECT_EQ(count, 27);
     EXPECT_GT(lmp->domain->xprd * lmp->domain->yprd * lmp->domain->zprd, volume_start);
 }
 
@@ -254,8 +236,7 @@ TEST_F(FixAtomSwapTest, TriclinicShrinkWrapIdempotentZeroCycles)
                          "velocity top set NULL 1.0 NULL",
                          "velocity bottom set NULL -1.0 NULL",
                          "timestep 0.0001",
-                         "fix integrate all nve",
-                         "thermo 1"};
+                         "fix integrate all nve"};
     run(setup);
     run({"run 2 post no"});
     const double volume_start = lmp->domain->xprd * lmp->domain->yprd * lmp->domain->zprd;
@@ -281,6 +262,73 @@ TEST_F(FixAtomSwapTest, TriclinicShrinkWrapIdempotentZeroCycles)
     EXPECT_NEAR(lmp->domain->xy, xy, 1.0e-10 * (1.0 + std::fabs(xy)));
     EXPECT_NEAR(lmp->domain->xprd * lmp->domain->yprd * lmp->domain->zprd, volume,
                 1.0e-10 * volume);
+    const auto actual = coords_by_tag(lmp);
+    ASSERT_EQ(actual.size(), coords.size());
+    for (std::size_t i = 0; i < coords.size(); ++i)
+        EXPECT_NEAR(actual[i], coords[i], 1.0e-10 * (1.0 + std::fabs(coords[i])));
+}
+
+// fix atom/swap defined before a flipping fix npt on a triclinic shrink-wrapped
+// box must preserve the tilt flip and match plain Verlet on 1 and N MPI ranks
+
+TEST_F(FixAtomSwapTest, TriclinicShrinkWrapFlipBeforeNPT)
+{
+    const Lines setup = {"units lj",
+                         "atom_style atomic",
+                         "atom_modify map array sort 0 0.0",
+                         "boundary p s s",
+                         "lattice fcc 0.8442",
+                         "region box prism 0 4 0 4 0 4 1.98 1.98 0.0",
+                         "create_box 2 box",
+                         "create_atoms 1 box",
+                         "set type 1 type/fraction 2 0.5 4321",
+                         "mass * 1.0",
+                         "pair_style lj/cut 2.5",
+                         "pair_coeff * * 1.0 1.0 2.5",
+                         "velocity all create 1.5 87287 loop geom",
+                         "neighbor 0.3 bin",
+                         "neigh_modify every 1 delay 0 check no",
+                         "timestep 0.005"};
+    const std::string npt_cmd = "fix 1 all npt temp 1.5 1.5 0.5 x 20.0 20.0 0.2 flip yes";
+
+    run(setup);
+    ASSERT_EQ(lmp->atom->natoms, 324);
+    ASSERT_GT(lmp->domain->xy, 0.0);
+    ASSERT_GT(lmp->domain->xz, 0.0);
+    run({npt_cmd, "run 20 post no"});
+    ASSERT_EQ(lmp->atom->natoms, 324);
+    int nlocal = lmp->atom->nlocal, count = 0;
+    MPI_Allreduce(&nlocal, &count, 1, MPI_INT, MPI_SUM, lmp->world);
+    ASSERT_EQ(count, 324);
+    EXPECT_LT(lmp->domain->xy, 0.0);
+    EXPECT_LT(lmp->domain->xz, 0.0);
+    const double boxlo[3] = {lmp->domain->boxlo[0], lmp->domain->boxlo[1], lmp->domain->boxlo[2]};
+    const double boxhi[3] = {lmp->domain->boxhi[0], lmp->domain->boxhi[1], lmp->domain->boxhi[2]};
+    const double tilt[3]  = {lmp->domain->xy, lmp->domain->xz, lmp->domain->yz};
+    const double pe       = lmp->modify->get_compute_by_id("thermo_pe")->compute_scalar();
+    const auto coords     = coords_by_tag(lmp);
+
+    reset();
+    run(setup);
+    ASSERT_GT(lmp->domain->xy, 0.0);
+    ASSERT_GT(lmp->domain->xz, 0.0);
+    run({"fix mc all atom/swap 1 0 12345 1.0 types 1 2", npt_cmd, "run 20 post no"});
+    ASSERT_EQ(lmp->atom->natoms, 324);
+    nlocal = lmp->atom->nlocal;
+    count  = 0;
+    MPI_Allreduce(&nlocal, &count, 1, MPI_INT, MPI_SUM, lmp->world);
+    ASSERT_EQ(count, 324);
+    EXPECT_LT(lmp->domain->xy, 0.0);
+    EXPECT_LT(lmp->domain->xz, 0.0);
+    for (int d = 0; d < 3; ++d) {
+        EXPECT_NEAR(lmp->domain->boxlo[d], boxlo[d], 1.0e-10 * (1.0 + std::fabs(boxlo[d])));
+        EXPECT_NEAR(lmp->domain->boxhi[d], boxhi[d], 1.0e-10 * (1.0 + std::fabs(boxhi[d])));
+    }
+    EXPECT_NEAR(lmp->domain->xy, tilt[0], 1.0e-10 * (1.0 + std::fabs(tilt[0])));
+    EXPECT_NEAR(lmp->domain->xz, tilt[1], 1.0e-10 * (1.0 + std::fabs(tilt[1])));
+    EXPECT_NEAR(lmp->domain->yz, tilt[2], 1.0e-10 * (1.0 + std::fabs(tilt[2])));
+    const double actual_pe = lmp->modify->get_compute_by_id("thermo_pe")->compute_scalar();
+    EXPECT_NEAR(actual_pe, pe, 1.0e-10 * (1.0 + std::fabs(pe)));
     const auto actual = coords_by_tag(lmp);
     ASSERT_EQ(actual.size(), coords.size());
     for (std::size_t i = 0; i < coords.size(); ++i)

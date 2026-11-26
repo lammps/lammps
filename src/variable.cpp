@@ -2485,11 +2485,12 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
             if (index2 <= 0 || index2 > cols_custom)
               print_var_error(FLERR,fmt::format("Invalid custom atom property reference {} in variable formula",word),
                               ivar);
+            // index2 is the column, counting from 1
             if (type_custom == 0) {
-              custom2global(&atom->iarray[index_custom][0][index2],nullptr,cols_custom,index1,
+              custom2global(&atom->iarray[index_custom][0][index2-1],nullptr,cols_custom,index1,
                             tree,treestack,ntreestack,argstack,nargstack);
             } else {
-              custom2global(nullptr,&atom->darray[index_custom][0][index2],cols_custom,index1,
+              custom2global(nullptr,&atom->darray[index_custom][0][index2-1],cols_custom,index1,
                             tree,treestack,ntreestack,argstack,nargstack);
             }
           }

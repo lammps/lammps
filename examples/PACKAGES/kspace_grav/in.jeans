@@ -1,0 +1,97 @@
+# Jeans instability of a cold, uniform medium in a periodic box (G = 1).
+#
+# Particles on a lattice plus the uniform negative background of the Ewald sum
+# are an (unstable) equilibrium.  A plane-wave displacement s(q) along x grows
+# as s(t) = s(0) exp(Gamma t) with Gamma = sqrt(4 pi G rho), independent of the
+# wavelength, exactly for a continuous medium until the sheets cross and form
+# a "pancake" (Zel'dovich).  The thermo column 'mode' is the measured mode
+# amplitude k*A(t), 'exact' is k*A(0)*exp(Gamma t).
+
+# nx sheets along x, each with ny x ny particles; sheets are shifted
+# against each other in y and z so that particles do not meet head-on
+# after the sheets cross.
+
+# The defaults are a quick test.  A sheet of particles acts like a smooth
+# sheet up to corrections ~ exp(-2 pi ax/ay), so the measured growth rate is
+# low by ~1e-2 (8 sheets) or ~2e-3 (16 sheets) for ax = ay.  With ay = ax/2 it
+# agrees with Gamma to ~5e-5 (-var ny 16) or ~1e-5 (-var nx 16 -var ny 32
+# -var L 16, 16384 atoms, about 1 minute).
+
+variable        nx    index 8         # number of sheets along x
+variable        ny    index 8         # particles per side in each sheet
+variable        L     index 8.0       # box side
+variable        kA    index 0.01      # initial amplitude k*A of the mode
+variable        tend  index 1.0       # sheets cross at t = ln(1/kA)/Gamma = 1.3
+variable        rc    index 4.0       # real-space cutoff, reduce for dense systems
+
+variable        ax    equal ${L}/${nx}
+variable        ay    equal ${L}/${ny}
+variable        rho   equal 1.0
+variable        m     equal ${rho}*${L}^3/(${nx}*${ny}*${ny})
+variable        Gam   equal sqrt(4.0*PI*${rho})
+variable        k     equal 2.0*PI/${L}
+
+units           lj
+atom_style      atomic
+boundary        p p p
+atom_modify     map array
+
+region          box block 0 ${L} 0 ${L} 0 ${L}
+create_box      1 box
+# with units lj the lattice scale is a number density; using the density of
+# the unit cell itself keeps the spacings at ax, ay, ay
+variable        ncell equal 1.0/(${ax}*${ay}*${ay})
+lattice         custom ${ncell} a1 ${ax} 0.0 0.0 a2 0.0 ${ay} 0.0 a3 0.0 0.0 ${ay} &
+                basis 0.5 0.5 0.5
+create_atoms    1 box
+variable        natoms equal ${nx}*${ny}*${ny}
+if "$(atoms) != ${natoms}" then "print 'Expected ${natoms} atoms'" "quit 1"
+mass            1 ${m}
+
+# shift each sheet in y and z by a quasi-random fraction of the in-sheet spacing
+
+variable        isheet atom floor(x/${ax})
+variable        ynew atom y+${ay}*(v_isheet*0.6180339887-floor(v_isheet*0.6180339887))
+variable        znew atom z+${ay}*(v_isheet*0.4142135624-floor(v_isheet*0.4142135624))
+variable        ywrap atom v_ynew-${L}*floor(v_ynew/${L})
+variable        zwrap atom v_znew-${L}*floor(v_znew/${L})
+set             group all y v_ywrap z v_zwrap
+
+# remember the unperturbed positions, then apply the growing mode:
+# s = (kA/k) sin(k q), v = Gamma s
+
+fix             q all store/state 0 x
+variable        s0 atom (${kA}/${k})*sin(${k}*x)
+variable        vx0 atom ${Gam}*v_s0
+variable        x0 atom x+v_s0
+set             group all vx v_vx0
+set             group all x v_x0
+
+pair_style      grav/long ${rc}
+pair_coeff      * *
+kspace_style    ewald/grav 1.0e-6
+
+neighbor        0.5 bin
+# the density becomes very high in the pancake after the sheets cross
+neigh_modify    every 1 delay 0 check yes one 20000 page 400000
+
+# measured mode amplitude k*A = (2k/N) sum_i (xu_i - q_i) sin(k q_i)
+
+compute         xu all property/atom xu
+variable        proj atom (c_xu-f_q)*sin(${k}*f_q)
+compute         proj all reduce sum v_proj
+variable        mode equal 2.0*${k}*c_proj/atoms
+variable        exact equal ${kA}*exp(${Gam}*time)
+
+fix             1 all nve
+timestep        0.005
+
+thermo_style    custom step time pe ke etotal v_mode v_exact
+thermo_modify   norm no format float %14.8g
+thermo          20
+
+#dump            1 all custom 10 jeans.dump id x y z vx
+#dump_modify     1 sort id format float %.10g
+
+variable        nsteps equal round(${tend}/dt)
+run             ${nsteps}

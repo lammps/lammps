@@ -373,13 +373,15 @@ ComputePropertyAtom::ComputePropertyAtom(LAMMPS *lmp, int narg, char **arg) :
         if (argi.get_dim() != 0)
           error->all(FLERR,"Compute property/atom custom vector {} is incorrectly indexed",pname);
 
+        // flag from find_custom() is 0 for integer and 1 for floating-point properties
+
         if (arg[iarg][0] == 'i') {
-          if (argi.get_type() == ArgInfo::INAME)
+          if (flag == 0)
             val.pack_choice = &ComputePropertyAtom::pack_iname;
           else
             error->all(FLERR, iarg, "Compute property/atom integer vector {} does not exist",pname);
         } else if (arg[iarg][0] == 'd') {
-          if (argi.get_type() == ArgInfo::DNAME)
+          if (flag == 1)
             val.pack_choice = &ComputePropertyAtom::pack_dname;
           else
             error->all(FLERR, iarg, "Compute property/atom floating-point vector {} does not exist",pname);
@@ -392,14 +394,17 @@ ComputePropertyAtom::ComputePropertyAtom(LAMMPS *lmp, int narg, char **arg) :
         if (argi.get_dim() != 1)
           error->all(FLERR, iarg, "Compute property/atom custom array {} is not indexed",pname);
         val.colindex = argi.get_index1();
+        if ((val.colindex < 1) || (val.colindex > cols))
+          error->all(FLERR, iarg, "Compute property/atom custom array {} is accessed out-of-range{}",
+                     pname, utils::errorurl(20));
 
         if (arg[iarg][0] == 'i') {
-          if (argi.get_type() == ArgInfo::INAME)
+          if (flag == 0)
             val.pack_choice = &ComputePropertyAtom::pack_i2name;
           else
             error->all(FLERR, iarg, "Compute property/atom integer array {} does not exist",pname);
         } else if (arg[iarg][0] == 'd') {
-          if (argi.get_type() == ArgInfo::DNAME)
+          if (flag == 1)
             val.pack_choice = &ComputePropertyAtom::pack_d2name;
           else
             error->all(FLERR, iarg, "Compute property/atom floating-point array {} does not exist",pname);

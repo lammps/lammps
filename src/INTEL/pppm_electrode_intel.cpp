@@ -441,7 +441,7 @@ void PPPMElectrodeIntel::project_psi(IntelBuffers<flt_t, acc_t> *buffers, double
         dz = dz * half_rho_scale + half_rho_scale_plus;
         int idz = dz;
 #if defined(LMP_SIMD_COMPILER)
-#pragma simd
+#pragma omp simd
 #endif
         for (int k = 0; k < INTEL_P3M_ALIGNED_MAXORDER; k++) {
           rho[0][k] = rho_lookup[idx][k];
@@ -450,7 +450,7 @@ void PPPMElectrodeIntel::project_psi(IntelBuffers<flt_t, acc_t> *buffers, double
         }
       } else {
 #if defined(LMP_SIMD_COMPILER)
-#pragma simd
+#pragma omp simd
 #endif
         for (int k = nlower; k <= nupper; k++) {
           FFT_SCALAR r1, r2, r3;
@@ -480,8 +480,8 @@ void PPPMElectrodeIntel::project_psi(IntelBuffers<flt_t, acc_t> *buffers, double
           int miy = nlower + m + ny;
           FFT_SCALAR y0 = z0 * rho[1][m];
 #if defined(LMP_SIMD_COMPILER)
+#pragma omp simd reduction(+:v)
 #pragma loop_count min(2), max(INTEL_P3M_ALIGNED_MAXORDER), avg(7)
-#pragma simd
 #endif
           for (int l = 0; l < order; l++) {
             int mix = nlower + l + nx;
@@ -581,7 +581,7 @@ void PPPMElectrodeIntel::one_step_multiplication(bigint *imat, double *greens_re
       int idy = (int) (djy * half_rho_scale + half_rho_scale_plus);
       int idz = (int) (djz * half_rho_scale + half_rho_scale_plus);
 #if defined(LMP_SIMD_COMPILER)
-#pragma simd
+#pragma omp simd
 #endif
       for (int k = 0; k < INTEL_P3M_ALIGNED_MAXORDER; k++) {
         rho[0][k] = rho_lookup[idx][k];
@@ -590,7 +590,7 @@ void PPPMElectrodeIntel::one_step_multiplication(bigint *imat, double *greens_re
       }
     } else {
 #if defined(LMP_SIMD_COMPILER)
-#pragma simd
+#pragma omp simd
 #endif
       for (int k = nlower; k <= nupper; k++) {
         FFT_SCALAR r1, r2, r3;
@@ -633,7 +633,7 @@ void PPPMElectrodeIntel::one_step_multiplication(bigint *imat, double *greens_re
       int idy = (int) (diy * half_rho_scale + half_rho_scale_plus);
       int idz = (int) (diz * half_rho_scale + half_rho_scale_plus);
 #if defined(LMP_SIMD_COMPILER)
-#pragma simd
+#pragma omp simd
 #endif
       for (int k = 0; k < INTEL_P3M_ALIGNED_MAXORDER; k++) {
         rho[0][k] = rho_lookup[idx][k];
@@ -642,7 +642,7 @@ void PPPMElectrodeIntel::one_step_multiplication(bigint *imat, double *greens_re
       }
     } else {
 #if defined(LMP_SIMD_COMPILER)
-#pragma simd
+#pragma omp simd
 #endif
       for (int k = nlower; k <= nupper; k++) {
         FFT_SCALAR r1, r2, r3;
@@ -774,7 +774,7 @@ void PPPMElectrodeIntel::two_step_multiplication(bigint *imat, double *greens_re
       dz = dz * half_rho_scale + half_rho_scale_plus;
       int idz = dz;
 #if defined(LMP_SIMD_COMPILER)
-#pragma simd
+#pragma omp simd
 #endif
       for (int k = 0; k < INTEL_P3M_ALIGNED_MAXORDER; k++) {
         rho[0][k] = rho_lookup[idx][k];
@@ -783,7 +783,7 @@ void PPPMElectrodeIntel::two_step_multiplication(bigint *imat, double *greens_re
       }
     } else {
 #if defined(LMP_SIMD_COMPILER)
-#pragma simd
+#pragma omp simd
 #endif
       for (int k = nlower; k <= nupper; k++) {
         FFT_SCALAR r1, r2, r3;
@@ -848,7 +848,7 @@ void PPPMElectrodeIntel::two_step_multiplication(bigint *imat, double *greens_re
       diz = diz * half_rho_scale + half_rho_scale_plus;
       int idz = diz;
 #if defined(LMP_SIMD_COMPILER)
-#pragma simd
+#pragma omp simd
 #endif
       for (int k = 0; k < INTEL_P3M_ALIGNED_MAXORDER; k++) {
         rho[0][k] = (double) rho_lookup[idx][k];
@@ -857,7 +857,7 @@ void PPPMElectrodeIntel::two_step_multiplication(bigint *imat, double *greens_re
       }
     } else {
 #if defined(LMP_SIMD_COMPILER)
-#pragma simd
+#pragma omp simd
 #endif
       for (int k = nlower; k <= nupper; k++) {
         FFT_SCALAR r1, r2, r3;
@@ -965,7 +965,7 @@ void PPPMElectrodeIntel::make_rho_in_brick(IntelBuffers<flt_t, acc_t> *buffers, 
         dz = dz * half_rho_scale + half_rho_scale_plus;
         int idz = dz;
 #if defined(LMP_SIMD_COMPILER)
-#pragma simd
+#pragma omp simd
 #endif
         for (int k = 0; k < INTEL_P3M_ALIGNED_MAXORDER; k++) {
           rho[0][k] = rho_lookup[idx][k];
@@ -974,7 +974,7 @@ void PPPMElectrodeIntel::make_rho_in_brick(IntelBuffers<flt_t, acc_t> *buffers, 
         }
       } else {
 #if defined(LMP_SIMD_COMPILER)
-#pragma simd
+#pragma omp simd
 #endif
         for (int k = nlower; k <= nupper; k++) {
           FFT_SCALAR r1, r2, r3;
@@ -1006,7 +1006,7 @@ void PPPMElectrodeIntel::make_rho_in_brick(IntelBuffers<flt_t, acc_t> *buffers, 
           int mzy = m * nix + mz;
           FFT_SCALAR x0 = y0 * rho[1][m];
 #if defined(LMP_SIMD_COMPILER)
-#pragma simd
+#pragma omp simd
 #endif
           for (int l = 0; l < INTEL_P3M_ALIGNED_MAXORDER; l++) {
             int mzyx = l + mzy;
@@ -1027,7 +1027,7 @@ void PPPMElectrodeIntel::make_rho_in_brick(IntelBuffers<flt_t, acc_t> *buffers, 
       IP_PRE_omp_range_id(ifrom, ito, tid, ngrid, nthr);
 
 #if defined(LMP_SIMD_COMPILER)
-#pragma simd
+#pragma omp simd
 #endif
       for (int i = ifrom; i < ito; i++) {
         for (int j = 1; j < nthr; j++) { global_density[i] += perthread_density[j - 1][i]; }

@@ -42,6 +42,7 @@
 #include "domain.h"
 #include "error.h"
 #include "fix_respa.h"
+#include "fix_shake.h"
 #include "force.h"
 #include "group.h"
 #include "ilves.h"
@@ -54,6 +55,7 @@
 
 #include <cmath>
 #include <cstring>
+#include <unordered_map>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -61,6 +63,7 @@ using namespace FixConst;
 namespace {
 enum { LINEAR_ERROR, LINEAR_SKIP, LINEAR_RESTRAIN };
 constexpr double MASSDELTA = 0.1;
+constexpr int RVOUS = 1;    // 0 for irregular, 1 for all2all
 // Default harmonic-restraint force constant.  It is expressed as a multiple of
 // the Boltzmann constant so the default scales with the unit system's energy
 // scale instead of being tied to one unit choice.  KBOND_KB_MULT * boltz
@@ -107,8 +110,9 @@ FixIlves::FixIlves(LAMMPS *lmp, int narg, char **arg) :
     Fix(lmp, narg, arg), tolerance(1.0e-4), max_iter(25), output_every(0), next_output(0),
     fixed_iter_flag(false), linear_mode(LINEAR_ERROR), linear_threshold(175.0), kbond(-1.0),
     molecular(0), types_negated(0), store_flag(0), fstore(nullptr), maxstore(0), niter_max(0),
-    nconstraints(0), ilves_solver(nullptr), xpred(nullptr), xpred0(nullptr), dx(nullptr),
-    maxatom(0), commstage(0), dtv(0.0), dtfsq(0.0), inv_dtfsq(0.0), respa(0), nlevels_respa(0),
+    nconstraints(0), list_current(0), ilves_solver(nullptr), xpred(nullptr), xpred0(nullptr),
+    dx(nullptr), maxatom(0), commstage(0), dtv(0.0), dtfsq(0.0), inv_dtfsq(0.0), respa(0),
+    nlevels_respa(0),
     loop_respa(nullptr), step_respa(nullptr), fix_respa(nullptr), dtf_inner(0.0),
     dtf_innerhalf(0.0), x(nullptr), v(nullptr), f(nullptr), mass(nullptr), rmass(nullptr),
     type(nullptr), mask(nullptr), nlocal(0)
@@ -437,6 +441,7 @@ void FixIlves::setup_pre_neighbor()
   }
 
   build_constraint_list();
+  check_overlap();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -466,13 +471,27 @@ void FixIlves::setup(int vflag)
   }
   if (output_every) stats();
 
+  // move the atoms onto the constraint manifold, so a run starting from a
+  // geometry that does not satisfy the constraints (e.g. from a data file with
+  // a different water model) does not start with a large correction in its
+  // first step (as fix shake correct_coordinates does)
+  correct_coordinates();
+
   // remove the velocity component along each bond so the run starts with
-  // constraint-consistent velocities (as fix shake correct_velocities does)
+  // constraint-consistent velocities (as fix rattle correct_velocities does)
   project_velocities();
 
-  // precompute the constraint forces for the first integration step
+  // precompute the constraint forces for the first integration step.  as in
+  // fix shake, the velocities are full-step velocities here, not half-step
+  // ones as in post_force() during a run, so the unconstrained positions after
+  // the first step are predicted with half the force term (dt^2/2 instead of
+  // dt^2), and the constraint forces are converted with the same factor
   if (!respa) {
+    dtfsq = 0.5 * update->dt * update->dt * force->ftm2v;
+    inv_dtfsq = 1.0 / dtfsq;
     post_force(vflag);
+    dtfsq = update->dt * update->dt * force->ftm2v;
+    inv_dtfsq = 1.0 / dtfsq;
   } else {
     // find the FixRespa that stores the per-level forces, and set the SHAKE-form
     // (full-step) timestep factors used to predict the unconstrained positions
@@ -484,14 +503,13 @@ void FixIlves::setup(int vflag)
         error->all(FLERR, Error::NOLASTLINE, "Run style respa did not create fix RESPA");
     }
     dtf_innerhalf = 0.5 * step_respa[0] * force->ftm2v;
-    dtf_inner = step_respa[0] * force->ftm2v;
 
     // step-0 virial: one Verlet-style solve on the total force (atom->f still
     // holds the summed per-level forces at this point), so the reported initial
     // pressure equals the Verlet value.  the per-level precompute below would
     // instead count the initial constraint reaction once per level.
     dtv = update->dt;
-    dtfsq = update->dt * update->dt * force->ftm2v;
+    dtfsq = 0.5 * update->dt * update->dt * force->ftm2v;
     inv_dtfsq = 1.0 / dtfsq;
     post_force(vflag);
 
@@ -499,7 +517,9 @@ void FixIlves::setup(int vflag)
     // first r-RESPA half-kick is constrained), swapping each level's stored
     // force into atom->f around the call (as fix shake does).  the virial is
     // disabled here so it is not changed from the Verlet-style value above.
+    // the half-step factor is used for the full-step velocities, as above.
     dtv = step_respa[0];
+    dtf_inner = dtf_innerhalf;
     const int saved_vflag_global = vflag_global;
     vflag_global = 0;
     auto *respa_ptr = dynamic_cast<Respa *>(update->integrate);
@@ -509,6 +529,7 @@ void FixIlves::setup(int vflag)
       respa_ptr->copy_f_flevel(ilevel);
     }
     vflag_global = saved_vflag_global;
+    dtf_inner = step_respa[0] * force->ftm2v;
   }
 }
 
@@ -607,9 +628,11 @@ void FixIlves::post_force(int vflag)
 
   const int numit = solve_constraints();
 
-  // add this step's constraint contribution to the global pressure virial
+  // add this step's constraint contribution to the global pressure virial.
+  // numit is the same on all procs, but a proc may own no constraints
 
-  if (numit > 0 && vflag_global) ilves_solver->add_global_virial(virial, inv_dtfsq);
+  if (ilves_solver && (numit > 0) && vflag_global)
+    ilves_solver->add_global_virial(virial, inv_dtfsq);
 }
 
 /* ----------------------------------------------------------------------
@@ -787,7 +810,8 @@ void FixIlves::post_force_respa(int vflag, int ilevel, int iloop)
 
   const int numit = solve_constraints();
 
-  if (numit > 0 && last_iloop && vflag_global) ilves_solver->add_global_virial(virial, inv_dtfsq);
+  if (ilves_solver && (numit > 0) && last_iloop && vflag_global)
+    ilves_solver->add_global_virial(virial, inv_dtfsq);
 }
 
 /* ----------------------------------------------------------------------
@@ -1100,6 +1124,91 @@ void FixIlves::build_constraint_list()
   if (nconstraints > 0)
     ilves_solver = new ILVES::Ilves(lmp, clist_a, clist_b, clist_node_a, clist_node_b, clist_d,
                                     invmass);
+  list_current = 1;
+}
+
+/* ----------------------------------------------------------------------
+   stop with an error if an atom constrained by this fix is also part of a
+   fix shake or fix rattle cluster.  the two solvers would then fight over the
+   same atoms, and restoring the bond types when this fix is deleted would turn
+   on the bonded interactions of the shake clusters again.
+------------------------------------------------------------------------- */
+
+void FixIlves::check_overlap()
+{
+  std::vector<int *> shake_flags;
+  for (auto *ifix : modify->get_fix_list()) {
+    if (!dynamic_cast<FixShake *>(ifix)) continue;
+    int dim;
+    auto *sflag = (int *) ifix->extract("shake_flag", dim);
+    if (sflag && (dim == 1)) shake_flags.push_back(sflag);
+  }
+  if (shake_flags.empty()) return;
+
+  // flag the atoms of all constraints (owned or ghost) and sum the flags of
+  // the ghost atoms to their owners with the reverse communication of dx
+
+  nlocal = atom->nlocal;
+  const int nall = nlocal + atom->nghost;
+  grow_arrays_local();
+  for (int i = 0; i < nall; ++i) dx[i][0] = dx[i][1] = dx[i][2] = 0.0;
+  for (int k = 0; k < nconstraints; ++k) {
+    dx[clist_a[k]][0] = 1.0;
+    dx[clist_b[k]][0] = 1.0;
+  }
+  comm->reverse_comm(this);
+
+  bigint n = 0;
+  for (int i = 0; i < nlocal; ++i) {
+    if (dx[i][0] == 0.0) continue;
+    for (const auto *sflag : shake_flags)
+      if (sflag[i]) {
+        ++n;
+        break;
+      }
+  }
+  for (int i = 0; i < nall; ++i) dx[i][0] = 0.0;
+
+  bigint noverlap = 0;
+  MPI_Allreduce(&n, &noverlap, 1, MPI_LMP_BIGINT, MPI_SUM, world);
+  if (noverlap)
+    error->all(FLERR, Error::NOLASTLINE,
+               "Fix ilves and fix shake or fix rattle constrain the same {} atom(s); the sets "
+               "of constrained atoms must not overlap",
+               noverlap);
+}
+
+/* ----------------------------------------------------------------------
+   move the atoms onto the constraint manifold, as fix shake does during setup:
+   run the Newton iteration from the current positions with no unconstrained
+   update, and replace the positions of owned and ghost atoms with the result.
+   the displacements are along the constraints and weighted by the inverse
+   masses, so the center of mass of each constrained cluster does not change.
+------------------------------------------------------------------------- */
+
+void FixIlves::correct_coordinates()
+{
+  x = atom->x;
+  nlocal = atom->nlocal;
+  const int nall = nlocal + atom->nghost;
+
+  grow_arrays_local();
+  for (int i = 0; i < nlocal; ++i) {
+    xpred[i][0] = x[i][0];
+    xpred[i][1] = x[i][1];
+    xpred[i][2] = x[i][2];
+  }
+
+  // run_newton() leaves the ghost atoms of xpred updated from their owners,
+  // including the shift across periodic boundaries
+
+  if (run_newton() == 0) return;
+
+  for (int i = 0; i < nall; ++i) {
+    x[i][0] = xpred[i][0];
+    x[i][1] = xpred[i][1];
+    x[i][2] = xpred[i][2];
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -1392,13 +1501,27 @@ int FixIlves::masscheck(double massone)
 }
 
 /* ----------------------------------------------------------------------
+   the local constraint list may no longer match the atoms after a run, since
+   commands between runs can move, add, or delete atoms
+------------------------------------------------------------------------- */
+
+void FixIlves::post_run()
+{
+  list_current = 0;
+}
+
+/* ----------------------------------------------------------------------
    number of degrees of freedom removed by the constraints for atoms in igroup.
    each distance constraint removes one DOF; count each once (clist_a is local,
-   so a constraint is owned by exactly one rank).
+   so a constraint is owned by exactly one rank).  outside of a run, e.g. for
+   velocity create before the first run, the constraint list is not available
+   and the constraints are counted from the topology instead.
 ------------------------------------------------------------------------- */
 
 bigint FixIlves::dof(int igroup)
 {
+  if (!list_current) return count_constraints(igroup);
+
   const int igroupbit = group->bitmask[igroup];
   int *amask = atom->mask;
 
@@ -1409,6 +1532,201 @@ bigint FixIlves::dof(int igroup)
   bigint nall = 0;
   MPI_Allreduce(&n, &nall, 1, MPI_LMP_BIGINT, MPI_SUM, world);
   return nall;
+}
+
+/* ----------------------------------------------------------------------
+   count the constraints with both atoms in igroup from the bond and angle
+   topology, selected the same way as in build_constraint_list().  this works
+   without ghost atoms: the bonded partners of each atom are taken from the
+   1-2 special list, and the mask, type, mass flag, and bond type of partners
+   owned by other procs are obtained with rendezvous communication, as in
+   fix shake.  each bond is counted at its atom with the smaller atom ID and
+   each angle at its center atom.
+------------------------------------------------------------------------- */
+
+bigint FixIlves::count_constraints(int igroup)
+{
+  if ((atom->molecular != Atom::MOLECULAR) || (atom->nbonds == 0)) return 0;
+
+  const int igroupbit = group->bitmask[igroup];
+  const int nlocal_now = atom->nlocal;
+  int *atype = atom->type;
+  int *amask = atom->mask;
+  tagint *tag = atom->tag;
+  int **nspecial = atom->nspecial;
+  tagint **special = atom->special;
+  int *num_bond = atom->num_bond;
+  tagint **bond_atom = atom->bond_atom;
+  int **bond_type = atom->bond_type;
+  double *amass = atom->mass;
+  double *armass = atom->rmass;
+
+  auto massflag = [&](int i) {
+    if (mass_list.empty()) return 0;
+    return masscheck(armass ? armass[i] : amass[atype[i]]);
+  };
+
+  // type of the bond between owned atom i and the atom with ID jtag, if stored with atom i
+
+  auto stored_bondtype = [&](int i, tagint jtag) {
+    for (int m = 0; m < num_bond[i]; ++m)
+      if (bond_atom[i][m] == jtag) return abs(bond_type[i][m]);
+    return 0;
+  };
+
+  // bonded partners of each owned atom, with their properties.  set them
+  // directly for partners I own, and send the properties of my atom to the
+  // owner of each other partner: since partnership is mutual, this delivers
+  // all missing values.  every owned atom also announces its owning proc.
+
+  std::vector<int> first(nlocal_now + 1, 0);
+  for (int i = 0; i < nlocal_now; ++i) first[i + 1] = first[i] + nspecial[i][0];
+  const int npartner = first[nlocal_now];
+  std::vector<tagint> ptag(npartner);
+  std::vector<int> pmask(npartner, 0), ptype(npartner, 0), pmassflag(npartner, 0);
+  std::vector<int> pbondtype(npartner, 0);
+
+  std::vector<int> proclist;
+  std::vector<PartnerInfo> inbuf;
+  for (int i = 0; i < nlocal_now; ++i) {
+    proclist.push_back(tag[i] % comm->nprocs);
+    inbuf.push_back({tag[i], 0, comm->me, 0, 0, 0, 0});
+    for (int p = first[i]; p < first[i + 1]; ++p) {
+      ptag[p] = special[i][p - first[i]];
+      const int bt = stored_bondtype(i, ptag[p]);
+      pbondtype[p] = bt;
+      const int j = atom->map(ptag[p]);
+      if ((j >= 0) && (j < nlocal_now)) {
+        pmask[p] = amask[j];
+        ptype[p] = atype[j];
+        pmassflag[p] = massflag(j);
+        if (bt == 0) pbondtype[p] = stored_bondtype(j, tag[i]);
+      } else {
+        proclist.push_back(ptag[p] % comm->nprocs);
+        inbuf.push_back({ptag[p], tag[i], comm->me, amask[i], atype[i], massflag(i), bt});
+      }
+    }
+  }
+
+  char *buf;
+  const int nreturn = comm->rendezvous(RVOUS, (int) inbuf.size(), (char *) inbuf.data(),
+                                       sizeof(PartnerInfo), 0, proclist.data(),
+                                       rendezvous_partner_info, 0, buf, sizeof(PartnerInfo),
+                                       (void *) this);
+  auto *outbuf = (PartnerInfo *) buf;
+
+  // outbuf: atomID = my owned atom, partnerID = the partner the properties are for
+
+  for (int m = 0; m < nreturn; ++m) {
+    const int i = atom->map(outbuf[m].atomID);
+    if ((i < 0) || (i >= nlocal_now))
+      error->one(FLERR, Error::NOLASTLINE, "Inconsistent topology for atom {} in fix ilves",
+                 outbuf[m].atomID);
+    for (int p = first[i]; p < first[i + 1]; ++p) {
+      if (ptag[p] != outbuf[m].partnerID) continue;
+      pmask[p] = outbuf[m].mask;
+      ptype[p] = outbuf[m].type;
+      pmassflag[p] = outbuf[m].massflag;
+      if (pbondtype[p] == 0) pbondtype[p] = outbuf[m].bondtype;
+      break;
+    }
+  }
+  memory->sfree(outbuf);
+
+  // count with the same selection rules as build_constraint_list(): both atoms
+  // of a bond in the fix group and the bond selected by b, t, or m; an angle
+  // selected by a, not near-linear, and both of its legs constrained
+
+  int any_angle = 0;
+  if (force->angle && atom->num_angle)
+    for (int i = 1; i <= atom->nangletypes; ++i) any_angle += angle_flag[i];
+  const double thresh_rad = linear_threshold * MathConst::MY_PI / 180.0;
+  int *num_angle = atom->num_angle;
+  int **angle_type = atom->angle_type;
+  tagint **angle_atom1 = atom->angle_atom1;
+  tagint **angle_atom2 = atom->angle_atom2;
+  tagint **angle_atom3 = atom->angle_atom3;
+
+  bigint n = 0;
+  for (int i = 0; i < nlocal_now; ++i) {
+    if (!(amask[i] & groupbit)) continue;
+    const int imassflag = massflag(i);
+    auto selected = [&](int p) {
+      const int bt = pbondtype[p];
+      if ((bt <= 0) || !(pmask[p] & groupbit)) return false;
+      return (bond_flag[bt] || type_flag[atype[i]] || type_flag[ptype[p]] || imassflag ||
+              pmassflag[p]);
+    };
+
+    for (int p = first[i]; p < first[i + 1]; ++p)
+      if ((tag[i] < ptag[p]) && selected(p) && (amask[i] & igroupbit) && (pmask[p] & igroupbit))
+        ++n;
+
+    if (!any_angle) continue;
+    for (int m = 0; m < num_angle[i]; ++m) {
+      if (angle_atom2[i][m] != tag[i]) continue;
+      const int at = abs(angle_type[i][m]);
+      if ((at == 0) || !angle_flag[at]) continue;
+      if (force->angle->allocated && force->angle->setflag[at] &&
+          (force->angle->equilibrium_angle(at) >= thresh_rad))
+        continue;
+      int pa = -1, pc = -1;
+      for (int p = first[i]; p < first[i + 1]; ++p) {
+        if (ptag[p] == angle_atom1[i][m]) pa = p;
+        if (ptag[p] == angle_atom3[i][m]) pc = p;
+      }
+      if ((pa < 0) || (pc < 0) || !selected(pa) || !selected(pc)) continue;
+      if ((pmask[pa] & igroupbit) && (pmask[pc] & igroupbit)) ++n;
+    }
+  }
+
+  bigint nall = 0;
+  MPI_Allreduce(&n, &nall, 1, MPI_LMP_BIGINT, MPI_SUM, world);
+  return nall;
+}
+
+/* ----------------------------------------------------------------------
+   process the PartnerInfo datums assigned to me in the rendezvous decomposition:
+   learn the owning procs from the announcements and send the partner properties
+   to the owners of the atoms they are for
+------------------------------------------------------------------------- */
+
+int FixIlves::rendezvous_partner_info(int n, char *inbuf, int &flag, int *&proclist,
+                                      char *&outbuf, void *ptr)
+{
+  auto *fptr = (FixIlves *) ptr;
+  auto *in = (PartnerInfo *) inbuf;
+
+  // use an STL unordered_map instead of atom->map, so the atom map stays intact
+
+  std::unordered_map<tagint, int> owner;
+  int nout = 0;
+  for (int i = 0; i < n; ++i) {
+    if (in[i].partnerID == 0)
+      owner[in[i].atomID] = in[i].proc;
+    else
+      ++nout;
+  }
+
+  fptr->memory->create(proclist, nout, "ilves:proclist");
+  auto *out = (PartnerInfo *) fptr->memory->smalloc((bigint) nout * sizeof(PartnerInfo),
+                                                    "ilves:outbuf");
+  int m = 0;
+  for (int i = 0; i < n; ++i) {
+    if (in[i].partnerID == 0) continue;
+    auto it = owner.find(in[i].atomID);
+    if (it == owner.end())
+      fptr->error->one(FLERR, Error::NOLASTLINE, "Inconsistent topology for atom {} in fix ilves",
+                       in[i].atomID);
+    proclist[m] = it->second;
+    out[m++] = in[i];
+  }
+  outbuf = (char *) out;
+
+  // flag = 2: second comm with the new outbuf
+
+  flag = 2;
+  return nout;
 }
 
 /* ----------------------------------------------------------------------

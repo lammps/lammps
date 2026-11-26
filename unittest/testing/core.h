@@ -98,6 +98,27 @@ static inline double prec_tol(double expected, double tol)
     return std::max(tol, prec_reltol(expected));
 }
 
+// compare a value with a reference value (the second argument) like EXPECT_DOUBLE_EQ()
+// unless this is a reduced precision KOKKOS build, where the tolerance of prec_reltol()
+// applies instead.  EXPECT_FLOAT_EQ() is not sufficient there: a force that sums to an
+// exact value in double precision can differ from it by more than 10 units in the
+// last place of a float, and a reference value of zero gets no tolerance at all.
+// use this for every value derived from per-atom data that the KOKKOS package keeps
+// in reduced precision, even if it is currently exact, e.g. because the reference
+// value is exactly representable as a float.  this uses the comparison functions of
+// the EXPECT_DOUBLE_EQ() and EXPECT_NEAR() macros
+static inline ::testing::AssertionResult
+CmpHelperKKFloatEQ(const char *val_expr, const char *ref_expr, double val, double ref)
+{
+    if (kokkos_reduced_precision())
+        return ::testing::internal::DoubleNearPredFormat(val_expr, ref_expr, "prec_reltol()", val,
+                                                         ref, prec_reltol(ref));
+    return ::testing::internal::CmpHelperFloatingPointEQ<double>(val_expr, ref_expr, val, ref);
+}
+
+#define EXPECT_KKFLOAT_EQ(val, ref) EXPECT_PRED_FORMAT2(CmpHelperKKFloatEQ, val, ref)
+#define ASSERT_KKFLOAT_EQ(val, ref) ASSERT_PRED_FORMAT2(CmpHelperKKFloatEQ, val, ref)
+
 class LAMMPSTest : public ::testing::Test {
 public:
     void command(const std::string &line) { lmp->input->one(line); }

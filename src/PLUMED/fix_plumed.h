@@ -58,6 +58,7 @@ class FixPlumed : public Fix {
   class Compute *c_press;    // Compute for the pressure
   int plumedNeedsEnergy;     // Flag to trigger calculation of the
                              // energy and virial
+  int plumedStopCondition;   // early stop flag, PLUMED keeps a pointer to it
   char *id_pe, *id_press;    // ID for potential energy and pressure compute
 };
 

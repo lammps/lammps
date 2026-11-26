@@ -1,10 +1,11 @@
 .. index:: pair_style threebody/table
+.. index:: pair_style threebody/table/kk
 .. index:: pair_style threebody/table/omp
 
 pair_style threebody/table command
 ==================================
 
-Accelerator Variants: *threebody/table/omp*
+Accelerator Variants: *threebody/table/kk*, *threebody/table/omp*
 
 Syntax
 """"""

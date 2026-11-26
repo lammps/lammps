@@ -35,7 +35,8 @@ using namespace LAMMPS_GPU;
 
 /* ---------------------------------------------------------------------- */
 
-PairLJSmoothGPU::PairLJSmoothGPU(LAMMPS *lmp) : PairLJSmooth(lmp), gpu_mode(GPU_FORCE)
+PairLJSmoothGPU::PairLJSmoothGPU(LAMMPS *lmp) :
+    PairLJSmooth(lmp), gpu_mode(GPU_FORCE), update_coeffs(false)
 {
   respa_enable = 0;
   suffix_flag |= Suffix::GPU;
@@ -56,6 +57,12 @@ PairLJSmoothGPU::~PairLJSmoothGPU()
 void PairLJSmoothGPU::compute(int eflag, int vflag)
 {
   ev_init(eflag, vflag);
+
+  if (update_coeffs) {
+    ljsmt_gpu_reinit(atom->ntypes + 1, cutsq, lj1, lj2, lj3, lj4, offset, ljsw0, ljsw1, ljsw2,
+                     ljsw3, ljsw4, cut_inner, cut_inner_sq);
+    update_coeffs = false;
+  }
 
   int nall = atom->nlocal + atom->nghost;
   int inum;
@@ -133,12 +140,13 @@ void PairLJSmoothGPU::init_style()
 
 /* ---------------------------------------------------------------------- */
 
-void PairLJSmoothGPU::reinit()
+double PairLJSmoothGPU::init_one(int i, int j)
 {
-  Pair::reinit();
+  // the parameters may have been changed, e.g. by fix adapt,
+  // so copy them to the GPU again before the next compute()
 
-  ljsmt_gpu_reinit(atom->ntypes + 1, cutsq, lj1, lj2, lj3, lj4, offset, ljsw0, ljsw1, ljsw2, ljsw3,
-                   ljsw4, cut_inner, cut_inner_sq);
+  update_coeffs = true;
+  return PairLJSmooth::init_one(i, j);
 }
 
 /* ---------------------------------------------------------------------- */

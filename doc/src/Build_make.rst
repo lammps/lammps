@@ -100,10 +100,11 @@ additional tools to be available and functioning.
     require adding flags like ``-std=c++17`` to enable C++17 mode.
   * A Bourne shell compatible "Unix" shell program (frequently this is ``bash``)
   * A few shell utilities: ``ls``, ``mv``, ``ln``, ``rm``, ``grep``, ``sed``, ``tr``, ``cat``, ``touch``, ``diff``, ``dirname``
-  * Python (optional, required for ``make lib-<pkg>`` in the ``src``
-    folder).  Python scripts are currently tested with 3.6 to 3.11.
+  * Python (optional, required for the coding style checks like ``make
+    check-whitespace`` and for ``make install-python`` in the ``src``
+    folder).  Python scripts are currently tested with 3.9 to 3.14.
     The procedure for :doc:`building the documentation <Build_manual>`
-    *requires* Python 3.8 or later.
+    *requires* Python 3.9 or later.
 
 Getting started
 ^^^^^^^^^^^^^^^

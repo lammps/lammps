@@ -13,7 +13,6 @@
 #define SMD_MATH_H
 
 #include <Eigen/Eigen>
-#include <iostream>
 
 namespace SMD_Math {
 static inline void LimitDoubleMagnitude(double &x, const double limit)
@@ -179,11 +178,8 @@ static inline bool LimitMinMaxEigenvalues(Eigen::Matrix3d &S, double min, double
     const Eigen::Matrix3d &V = es.eigenvectors();
     for (int i = 0; i < 3; i++) {
       if (S_diag(i, i) < min) {
-        //printf("limiting eigenvalue %f --> %f\n", S_diag(i, i), min);
-        //printf("these are the eigenvalues of U: %f %f %f\n", es.eigenvalues()(0), es.eigenvalues()(1), es.eigenvalues()(2));
         S_diag(i, i) = min;
       } else if (S_diag(i, i) > max) {
-        //printf("limiting eigenvalue %f --> %f\n", S_diag(i, i), max);
         S_diag(i, i) = max;
       }
     }
@@ -204,21 +200,7 @@ static inline void reconstruct_rank_deficient_shape_matrix(Eigen::Matrix3d &K)
     if (singularValues(i) < 1.0e-8) { singularValues(i) = 1.0; }
   }
 
-  //              int imin;
-  //              double minev = singularValues.minCoeff(&imin);
-  //
-  //              printf("min eigenvalue=%f has index %d\n", minev, imin);
-  //              Vector3d singularVec = U.col(0).cross(U.col(1));
-  //              cout << "the eigenvalues are " << endl << singularValues << endl;
-  //              cout << "the singular vector is " << endl << singularVec << endl;
-  //
-  //              // reconstruct original K
-  //
-  //              singularValues(2) = 1.0;
-
   K = svd.matrixU() * singularValues.asDiagonal() * svd.matrixV().transpose();
-  //cout << "the reconstructed K is " << endl << K << endl;
-  //exit(1);
 }
 
 /* ----------------------------------------------------------------------

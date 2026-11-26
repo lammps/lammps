@@ -180,7 +180,7 @@ void AngleFourierSimpleKokkos<DeviceType>::operator()(TagAngleFourierSimpleCompu
   if (eflag) eangle = d_k[type] * (static_cast<KK_FLOAT>(1.0) + d_C[type] * cn);
 
   KK_FLOAT a;
-  if (Kokkos::fabs(c) - static_cast<KK_FLOAT>(1.0) > static_cast<KK_FLOAT>(SMALL)) {
+  if (static_cast<KK_FLOAT>(1.0) - Kokkos::fabs(c) > static_cast<KK_FLOAT>(SMALL)) {
     a = d_k[type] * d_C[type] * d_N[type] * Kokkos::sin(nth) / Kokkos::sin(th);
   } else {
     KK_FLOAT term, sgn;

@@ -164,13 +164,11 @@ namespace ReaxFF {
 
   void Initialize(reax_system *system, control_params *control,
                   simulation_data *data, storage *workspace,
-                  reax_list **lists, MPI_Comm world)
+                  reax_list **lists)
   {
     Init_System(system,control);
     Init_Simulation_Data(data);
     Init_Workspace(system,control,workspace);
     Init_Lists(system,control,lists);
-    if (control->tabulate)
-      Init_Lookup_Tables(system,control,workspace,world);
   }
 }

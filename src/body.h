@@ -28,6 +28,7 @@ class Body : protected Pointers {
   int size_forward;    // max extra values packed for comm
   int size_border;     // max extra values packed for border comm
   int maxexchange;     // max size of exchanged atom
+  int nmin, nmax;      // min and max number of sub-particles or vertices per body
 
   AtomVecBody *avec;    // ptr to class that stores body bonus info
 

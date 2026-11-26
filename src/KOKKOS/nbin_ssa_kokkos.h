@@ -38,6 +38,8 @@ class NBinSSAKokkos : public NBinStandard {
   typedef ArrayTypes<DeviceType> AT;
 
   NBinSSAKokkos(class LAMMPS *);
+  // checked conversion from a base class pointer, see the .cpp file
+  static NBinSSAKokkos<DeviceType> *cast(class NBin *);
 
   void bin_atoms_setup(int) override;
   void bin_atoms() override;

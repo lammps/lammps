@@ -35,7 +35,7 @@ using namespace LAMMPS_GPU;
 
 /* ---------------------------------------------------------------------- */
 
-PairBornGPU::PairBornGPU(LAMMPS *lmp) : PairBorn(lmp), gpu_mode(GPU_FORCE)
+PairBornGPU::PairBornGPU(LAMMPS *lmp) : PairBorn(lmp), gpu_mode(GPU_FORCE), update_coeffs(false)
 {
   respa_enable = 0;
   suffix_flag |= Suffix::GPU;
@@ -56,6 +56,11 @@ PairBornGPU::~PairBornGPU()
 void PairBornGPU::compute(int eflag, int vflag)
 {
   ev_init(eflag, vflag);
+
+  if (update_coeffs) {
+    born_gpu_reinit(atom->ntypes + 1, rhoinv, born1, born2, born3, a, c, d, offset);
+    update_coeffs = false;
+  }
 
   int nall = atom->nlocal + atom->nghost;
   int inum;
@@ -131,11 +136,13 @@ void PairBornGPU::init_style()
 
 /* ---------------------------------------------------------------------- */
 
-void PairBornGPU::reinit()
+double PairBornGPU::init_one(int i, int j)
 {
-  Pair::reinit();
+  // the parameters may have been changed, e.g. by fix adapt,
+  // so copy them to the GPU again before the next compute()
 
-  born_gpu_reinit(atom->ntypes + 1, rhoinv, born1, born2, born3, a, c, d, offset);
+  update_coeffs = true;
+  return PairBorn::init_one(i, j);
 }
 
 /* ---------------------------------------------------------------------- */

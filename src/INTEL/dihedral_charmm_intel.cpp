@@ -33,9 +33,7 @@
 #include "omp_compat.h"
 
 #ifdef LMP_USE_AVXCD
-#if (__INTEL_COMPILER_BUILD_DATE > 20160414)
 #define LMP_USE_AVXCD_DHC
-#endif
 #endif
 
 #ifdef LMP_USE_AVXCD_DHC
@@ -180,10 +178,6 @@ void DihedralCharmmIntel::eval(const int vflag,
     #pragma omp simd reduction(+:sedihedral, sevdwl, secoul, sv0, sv1, sv2, \
                                sv3, sv4, sv5, spv0, spv1, spv2, spv3, spv4, \
                                spv5)
-#else
-    #pragma simd reduction(+:sedihedral, sevdwl, secoul, sv0, sv1, sv2, \
-                           sv3, sv4, sv5, spv0, spv1, spv2, spv3, spv4, \
-                           spv5)
 #endif
     #pragma vector aligned
     for (int n = nfrom; n < nto; n++) {
@@ -333,8 +327,6 @@ void DihedralCharmmIntel::eval(const int vflag,
       #if defined(LMP_SIMD_COMPILER_TEST)
 #if defined(USE_OMP_SIMD)
       #pragma omp ordered simd
-#else
-      #pragma simdoff
 #endif
       #endif
       {
@@ -416,8 +408,6 @@ void DihedralCharmmIntel::eval(const int vflag,
       #if defined(LMP_SIMD_COMPILER_TEST)
 #if defined(USE_OMP_SIMD)
       #pragma omp ordered simd
-#else
-      #pragma simdoff
 #endif
       #endif
       {

@@ -168,6 +168,7 @@
 /tools/valgrind/        @akohlmey
 /tools/vim/             @hammondkd
 /tools/regression-tests/ @ndtrung81
+/tools/json/            @jrgissing @akohlmey
 
 # tests
 /unittest/              @akohlmey

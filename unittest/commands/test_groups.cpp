@@ -464,67 +464,67 @@ TEST_F(GroupTest, VariableFunctions)
 
     double bounds[6];
     group->bounds(0, bounds);
-    EXPECT_DOUBLE_EQ(bounds[0], -1.875);
-    EXPECT_DOUBLE_EQ(bounds[1], 1.125);
-    EXPECT_DOUBLE_EQ(bounds[2], -1.875);
-    EXPECT_DOUBLE_EQ(bounds[3], 1.125);
-    EXPECT_DOUBLE_EQ(bounds[4], -1.875);
-    EXPECT_DOUBLE_EQ(bounds[5], 1.125);
+    EXPECT_KKFLOAT_EQ(bounds[0], -1.875);
+    EXPECT_KKFLOAT_EQ(bounds[1], 1.125);
+    EXPECT_KKFLOAT_EQ(bounds[2], -1.875);
+    EXPECT_KKFLOAT_EQ(bounds[3], 1.125);
+    EXPECT_KKFLOAT_EQ(bounds[4], -1.875);
+    EXPECT_KKFLOAT_EQ(bounds[5], 1.125);
 
     group->bounds(one, bounds);
-    EXPECT_DOUBLE_EQ(bounds[0], -1.875);
-    EXPECT_DOUBLE_EQ(bounds[1], -1.875);
-    EXPECT_DOUBLE_EQ(bounds[2], -1.875);
-    EXPECT_DOUBLE_EQ(bounds[3], 1.125);
-    EXPECT_DOUBLE_EQ(bounds[4], -1.875);
-    EXPECT_DOUBLE_EQ(bounds[5], 1.125);
+    EXPECT_KKFLOAT_EQ(bounds[0], -1.875);
+    EXPECT_KKFLOAT_EQ(bounds[1], -1.875);
+    EXPECT_KKFLOAT_EQ(bounds[2], -1.875);
+    EXPECT_KKFLOAT_EQ(bounds[3], 1.125);
+    EXPECT_KKFLOAT_EQ(bounds[4], -1.875);
+    EXPECT_KKFLOAT_EQ(bounds[5], 1.125);
 
     group->bounds(0, bounds, right);
-    EXPECT_DOUBLE_EQ(bounds[0], 1.125);
-    EXPECT_DOUBLE_EQ(bounds[1], 1.125);
-    EXPECT_DOUBLE_EQ(bounds[2], -1.875);
-    EXPECT_DOUBLE_EQ(bounds[3], 1.125);
-    EXPECT_DOUBLE_EQ(bounds[4], -1.875);
-    EXPECT_DOUBLE_EQ(bounds[5], 1.125);
+    EXPECT_KKFLOAT_EQ(bounds[0], 1.125);
+    EXPECT_KKFLOAT_EQ(bounds[1], 1.125);
+    EXPECT_KKFLOAT_EQ(bounds[2], -1.875);
+    EXPECT_KKFLOAT_EQ(bounds[3], 1.125);
+    EXPECT_KKFLOAT_EQ(bounds[4], -1.875);
+    EXPECT_KKFLOAT_EQ(bounds[5], 1.125);
 
     group->bounds(one, bounds, top);
-    EXPECT_DOUBLE_EQ(bounds[0], -1.875);
-    EXPECT_DOUBLE_EQ(bounds[1], -1.875);
-    EXPECT_DOUBLE_EQ(bounds[2], -1.875);
-    EXPECT_DOUBLE_EQ(bounds[3], -1.875);
-    EXPECT_DOUBLE_EQ(bounds[4], -1.875);
-    EXPECT_DOUBLE_EQ(bounds[5], 1.125);
+    EXPECT_KKFLOAT_EQ(bounds[0], -1.875);
+    EXPECT_KKFLOAT_EQ(bounds[1], -1.875);
+    EXPECT_KKFLOAT_EQ(bounds[2], -1.875);
+    EXPECT_KKFLOAT_EQ(bounds[3], -1.875);
+    EXPECT_KKFLOAT_EQ(bounds[4], -1.875);
+    EXPECT_KKFLOAT_EQ(bounds[5], 1.125);
 
     double center[3];
     group->xcm(0, 80.0, center);
-    EXPECT_DOUBLE_EQ(center[0], -0.375);
-    EXPECT_DOUBLE_EQ(center[1], -0.375);
-    EXPECT_DOUBLE_EQ(center[2], -0.375);
+    EXPECT_KKFLOAT_EQ(center[0], -0.375);
+    EXPECT_KKFLOAT_EQ(center[1], -0.375);
+    EXPECT_KKFLOAT_EQ(center[2], -0.375);
 
     group->xcm(two, 32.0, center);
-    EXPECT_DOUBLE_EQ(center[0], 1.125);
-    EXPECT_DOUBLE_EQ(center[1], -0.375);
-    EXPECT_DOUBLE_EQ(center[2], -0.375);
+    EXPECT_KKFLOAT_EQ(center[0], 1.125);
+    EXPECT_KKFLOAT_EQ(center[1], -0.375);
+    EXPECT_KKFLOAT_EQ(center[2], -0.375);
 
     group->xcm(three, 0.0, center);
-    EXPECT_DOUBLE_EQ(center[0], 0);
-    EXPECT_DOUBLE_EQ(center[1], 0);
-    EXPECT_DOUBLE_EQ(center[2], 0);
+    EXPECT_KKFLOAT_EQ(center[0], 0);
+    EXPECT_KKFLOAT_EQ(center[1], 0);
+    EXPECT_KKFLOAT_EQ(center[2], 0);
 
     group->xcm(one, 8.0, center, top);
-    EXPECT_DOUBLE_EQ(center[0], -1.875);
-    EXPECT_DOUBLE_EQ(center[1], -1.875);
-    EXPECT_DOUBLE_EQ(center[2], -0.375);
+    EXPECT_KKFLOAT_EQ(center[0], -1.875);
+    EXPECT_KKFLOAT_EQ(center[1], -1.875);
+    EXPECT_KKFLOAT_EQ(center[2], -0.375);
 
     group->vcm(one, 80.0, center);
-    EXPECT_DOUBLE_EQ(center[0], 0);
-    EXPECT_DOUBLE_EQ(center[1], 0);
-    EXPECT_DOUBLE_EQ(center[2], 0);
+    EXPECT_KKFLOAT_EQ(center[0], 0);
+    EXPECT_KKFLOAT_EQ(center[1], 0);
+    EXPECT_KKFLOAT_EQ(center[2], 0);
 
     group->vcm(one, 8.0, center, top);
-    EXPECT_DOUBLE_EQ(center[0], 0);
-    EXPECT_DOUBLE_EQ(center[1], 0);
-    EXPECT_DOUBLE_EQ(center[2], 0);
+    EXPECT_KKFLOAT_EQ(center[0], 0);
+    EXPECT_KKFLOAT_EQ(center[1], 0);
+    EXPECT_KKFLOAT_EQ(center[2], 0);
 
     // the total force on a group of this symmetric system is zero up to the
     // roundoff of the sum over its atoms.  the individual values depend on the
@@ -554,8 +554,8 @@ TEST_F(GroupTest, VariableFunctions)
     EXPECT_NEAR(center[1], 0, FORCE_EPSILON);
     EXPECT_NEAR(center[2], 0, FORCE_EPSILON);
 
-    EXPECT_DOUBLE_EQ(group->ke(one), 0);
-    EXPECT_DOUBLE_EQ(group->ke(one, top), 0);
+    EXPECT_KKFLOAT_EQ(group->ke(one), 0);
+    EXPECT_KKFLOAT_EQ(group->ke(one, top), 0);
 }
 
 // Group::inertia must include the moment of inertia of finite-size particles

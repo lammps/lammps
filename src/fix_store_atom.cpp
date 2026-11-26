@@ -75,9 +75,9 @@ FixStoreAtom::FixStoreAtom(LAMMPS *lmp, int narg, char **arg) :
   tstore = nullptr;
 
   FixStoreAtom::grow_arrays(atom->nmax);
-  atom->add_callback(Atom::GROW);
-  if (restartflag) atom->add_callback(Atom::RESTART);
-  if (ghostflag) atom->add_callback(Atom::BORDER);
+  atom->add_callback(this, Atom::GROW);
+  if (restartflag) atom->add_callback(this, Atom::RESTART);
+  if (ghostflag) atom->add_callback(this, Atom::BORDER);
 
   // zero the storage
 
@@ -100,9 +100,9 @@ FixStoreAtom::~FixStoreAtom()
 {
   // unregister callbacks to this fix from Atom class
 
-  atom->delete_callback(id, Atom::GROW);
-  if (restartflag) atom->delete_callback(id, Atom::RESTART);
-  if (ghostflag) atom->delete_callback(id, Atom::BORDER);
+  atom->delete_callback(this, Atom::GROW);
+  if (restartflag) atom->delete_callback(this, Atom::RESTART);
+  if (ghostflag) atom->delete_callback(this, Atom::BORDER);
 
   memory->destroy(vstore);
   memory->destroy(astore);

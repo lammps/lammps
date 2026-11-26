@@ -232,6 +232,7 @@ void PairThole::coeff(int narg, char **arg)
   utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
   double polar_one = utils::numeric(FLERR,arg[2],false,lmp);
+  if (polar_one < 0.0) error->all(FLERR,"Invalid polarizability {} for pair style thole",polar_one);
   double thole_one = thole_global;
   double cut_one = cut_global;
   if (narg >=4) thole_one = utils::numeric(FLERR,arg[3],false,lmp);
@@ -276,7 +277,15 @@ void PairThole::init_style()
 double PairThole::init_one(int i, int j)
 {
   if (setflag[i][j] == 0)
-    cut[i][j] = mix_distance(cut[i][i],cut[j][j]);
+    error->all(FLERR, Error::NOLASTLINE,
+               "Pair style thole requires coefficients for all type pairs");
+
+  // damping between polarizable atoms would be infinite with a polarizability of zero
+
+  if ((fix_drude->drudetype[i] != NOPOL_TYPE) && (fix_drude->drudetype[j] != NOPOL_TYPE) &&
+      (polar[i][j] == 0.0))
+    error->all(FLERR, Error::NOLASTLINE,
+               "Polarizability for polarizable atom types {} and {} must not be zero", i, j);
 
   polar[j][i] = polar[i][j];
   thole[j][i] = thole[i][j];

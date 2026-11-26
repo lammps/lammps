@@ -1,5 +1,8 @@
 # -*- CMake -*- file for tests of classes computing or modifying forces
 
+# the entries of the tags: line of a YAML file become the CTest labels of its test.  The tags gpu
+# and kokkos (the test runs variants with these packages, ctest -L gpu or -L kokkos) are set by
+# check_accelerator_tags.py in this folder.
 function(extract_tags out yaml_file)
   file(STRINGS ${yaml_file} TAGS_LINE REGEX "^tags:")
   string(REPLACE "tags:" "" TAGS_LINE "${TAGS_LINE}")
@@ -62,6 +65,8 @@ if(PKG_PERI)
   target_include_directories(test_pair_peri PRIVATE ${LAMMPS_SOURCE_DIR})
   target_link_libraries(test_pair_peri PRIVATE lammps GTest::GMock)
   add_test(NAME PairPeri COMMAND test_pair_peri)
+  # it also compares the KOKKOS variants (ctest -L kokkos)
+  set_tests_properties(PairPeri PROPERTIES LABELS "kokkos")
 endif()
 
 if(PKG_QMMM-XTB)
@@ -368,12 +373,18 @@ if(MLIAP_ENABLE_PYTHON AND (NOT WIN32))
   add_executable(test_mliappy_unified test_mliappy_unified.cpp)
   target_link_libraries(test_mliappy_unified PRIVATE lammps GTest::GMockMain)
   add_test(NAME TestMliapPyUnified COMMAND test_mliappy_unified)
-  set_tests_properties(TestMliapPyUnified PROPERTIES ENVIRONMENT "${FORCE_TEST_ENVIRONMENT}")
+  set_tests_properties(TestMliapPyUnified PROPERTIES ENVIRONMENT "${FORCE_TEST_ENVIRONMENT}" LABELS "kokkos")
 endif()
 
 add_executable(test_pair_list test_pair_list.cpp)
 target_link_libraries(test_pair_list PRIVATE lammps GTest::GMockMain)
 add_test(NAME TestPairList COMMAND test_pair_list)
+
+if(PKG_EXTRA-FIX)
+  add_executable(test_fix_symmetry test_fix_symmetry.cpp)
+  target_link_libraries(test_fix_symmetry PRIVATE lammps GTest::GMock GTest::GMockMain)
+  add_test(NAME FixSymmetry COMMAND test_fix_symmetry)
+endif()
 
 ########################################################################
 # "package kokkos" profiles

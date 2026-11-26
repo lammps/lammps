@@ -1,6 +1,6 @@
 ---
 lammps_version: 4 Jul 2026
-tags: unstable
+tags: unstable kokkos
 date_generated: Thu Jul  9 01:53:40 2026
 epsilon: 2.0e-11
 skip_tests: gpu intel kokkos_gpu single
@@ -26,7 +26,7 @@ pre_commands: |
   set type 2 charge  0.4
   velocity all create 100 4534624 loop geom
 post_commands: |
-  fix qeq all qeq/point/xlmd 1 6.0 1.0e-20 20 ${input_dir}/param.qeq2 warn no xldamp 0 xlcg 1
+  fix qeq all qeq/point/xlmd 1 6.0 1.0e-20 20 ${input_dir}/param.qeq2 warn no xldamp 0 xlcg 1 xlguard 0
 input_file: in.empty
 pair_style: buck/coul/cut 6.0
 pair_coeff: |

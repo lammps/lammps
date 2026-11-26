@@ -233,8 +233,6 @@ command:
 
    neighbor->add_request(this, "delete_atoms", NeighConst::REQ_FULL);
 
-.. _error-messages:
-
 Errors, warnings, and informational messages
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 

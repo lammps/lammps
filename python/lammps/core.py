@@ -179,8 +179,8 @@ class lammps:
 
     try:
       if ptr is not None:
-        self.lib = CDLL("",RTLD_GLOBAL)
-    except OSError:
+        self.lib = CDLL(None,RTLD_GLOBAL)
+    except (OSError, TypeError):
       self.lib = None
 
     # load liblammps.so unless name is given
@@ -2826,6 +2826,9 @@ class lammps:
 
   def get_neighlist_element_neighbors(self, idx, element):
     """Return data of neighbor list entry
+
+    The neighbor indices may have bits set for special neighbors that need
+    to be removed before using them as local atom indices; see :doc:`Python_neighbor`.
 
     :param element: neighbor list index
     :type  element: int

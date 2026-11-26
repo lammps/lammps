@@ -16,8 +16,8 @@
 
 #include <Python.h>
 
-#if PY_VERSION_HEX < 0x030600f0
-#error Python version 3.6 or later is required by LAMMPS
+#if PY_VERSION_HEX < 0x030900f0
+#error Python version 3.9 or later is required by LAMMPS
 #endif
 
 // Wrap API differences between platforms using macros

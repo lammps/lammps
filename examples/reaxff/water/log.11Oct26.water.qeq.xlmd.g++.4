@@ -1,0 +1,120 @@
+LAMMPS (30 Sep 2026 - Development - patch_30Sep2026-404-ge4f218269a-modified)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread.
+  using 1 OpenMP thread(s) per MPI task
+Reading data file ...
+  orthogonal box = (0 0 0) to (31.043046 31.043046 31.043046)
+  1 by 2 by 2 MPI processor grid
+  reading atoms ...
+  3000 atoms
+  read_data CPU = 0.014 seconds
+Replication is creating a 1x1x1 = 1 times larger system...
+  orthogonal box = (0 0 0) to (31.043046 31.043046 31.043046)
+  1 by 2 by 2 MPI processor grid
+  3000 atoms
+  replicate CPU = 0.002 seconds
+WARNING: Changed valency_val to valency_boc for X (src/REAXFF/reaxff_ffield.cpp:302)
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+
+- pair reaxff command: https://doi.org/10.1016/j.parco.2011.08.005
+
+@Article{Aktulga12,
+ author = {H. M. Aktulga and J. C. Fogarty and S. A. Pandit and A. Y. Grama},
+ title = {Parallel Reactive Molecular Dynamics: {N}umerical Methods and Algorithmic Techniques},
+ journal = {Parallel Computing},
+ year =    2012,
+ volume =  38,
+ number =  {4--5},
+ pages =   {245--259}
+}
+
+- extended-Lagrangian charge equilibration: doi:10.1016/j.cpc.2015.02.023
+
+@Article{Nomura2015,
+ author =  {K. Nomura and P. E. Small and R. K. Kalia and A. Nakano and P. Vashishta},
+ title =   {An Extended-Lagrangian Scheme for Charge Equilibration in Reactive Molecular
+    Dynamics Simulations},
+ journal = {Computer Physics Communications},
+ year =    2015,
+ volume =  192,
+ pages =   {91--96}
+}
+
+- extended-Lagrangian charge equilibration with dissipation: doi:10.1063/1.3148075
+
+@Article{Niklasson2009,
+ author =  {A. M. N. Niklasson and P. Steneteg and A. Odell and N. Bock and
+    M. Challacombe and C. J. Tymczak and E. Holmstr{\"o}m and G. Zheng and V. Weber},
+ title =   {Extended {Lagrangian} {Born--Oppenheimer} Molecular Dynamics with Dissipation},
+ journal = {Journal of Chemical Physics},
+ year =    2009,
+ volume =  130,
+ pages =   {214109}
+}
+
+- fix qeq/reaxff command: https://doi.org/10.1016/j.parco.2011.08.005
+
+@Article{Aktulga12,
+ author = {H. M. Aktulga and J. C. Fogarty and S. A. Pandit and A. Y. Grama},
+ title = {Parallel Reactive Molecular Dynamics: {N}umerical Methods and Algorithmic Techniques},
+ journal = {Parallel Computing},
+ year =    2012,
+ volume =  38,
+ pages =   {245--259}
+}
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 10.5
+  ghost atom cutoff = 10.5
+  binsize = 5.25, bins = 6 6 6
+  2 neighbor lists, perpetual/occasional/extra = 2 0 0
+  (1) pair reaxff, perpetual
+      attributes: half, newton off, ghost
+      pair build: half/bin/ghost/newtoff
+      stencil: full/ghost/bin/3d
+      bin: standard
+  (2) fix qeq/reaxff, perpetual, copy from (1)
+      attributes: half, newton off
+      pair build: copy
+      stencil: none
+      bin: none
+Per MPI rank memory allocation (min/avg/max) = 262 | 263.7 | 265.1 Mbytes
+   Step          Temp          Press         Density         Volume          f_1      
+         0   300            780.34006      1              29915.273      35           
+         5   303.20912      3759.814       1              29915.273      12.5         
+        10   300.57213      5396.7401      1              29915.273      3            
+        15   304.28825      3213.1479      1              29915.273      3            
+        20   296.96029      1698.0648      1              29915.273      3            
+Loop time of 1.61604 on 4 procs for 20 steps with 3000 atoms
+
+Performance: 0.535 ns/day, 44.890 hours/ns, 12.376 timesteps/s, 37.128 katom-step/s
+98.7% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 1.0225     | 1.1671     | 1.2409     |   7.9 | 72.22
+Neigh   | 0.052374   | 0.058312   | 0.062639   |   1.7 |  3.61
+Comm    | 0.0027011  | 0.076655   | 0.22109    |  30.9 |  4.74
+Output  | 0.00010198 | 0.00012596 | 0.00019738 |   0.0 |  0.01
+Modify  | 0.30904    | 0.31354    | 0.31956    |   0.7 | 19.40
+Other   |            | 0.0003349  |            |       |  0.02
+
+Nlocal:            750 ave         759 max         735 min
+Histogram: 1 0 0 0 0 1 0 0 0 2
+Nghost:         6230.5 ave        6256 max        6190 min
+Histogram: 1 0 0 0 0 1 0 0 1 1
+Neighs:         277008 ave      280943 max      271400 min
+Histogram: 1 0 0 0 0 1 0 0 1 1
+
+Total # of neighbors = 1108033
+Ave neighs/atom = 369.34433
+Neighbor list builds = 2
+Dangerous builds = 0
+Total wall time: 0:00:01

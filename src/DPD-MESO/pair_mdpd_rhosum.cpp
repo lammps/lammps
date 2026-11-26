@@ -43,7 +43,6 @@ PairMDPDRhoSum::PairMDPDRhoSum(LAMMPS *lmp) : Pair(lmp), cut(nullptr)
   // set comm size needed by this Pair
 
   comm_forward = 1;
-  first = 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -87,19 +86,6 @@ void PairMDPDRhoSum::compute(int eflag, int vflag) {
   double *rho = atom->rho;
   int *type = atom->type;
   double *mass = atom->mass;
-
-  // check consistency of pair coefficients
-  if (first) {
-    for (i = 1; i <= atom->ntypes; i++)
-    for (j = 1; i <= atom->ntypes; i++)
-    if (cutsq[i][j] > 0.0)
-    if (!setflag[i][i] || !setflag[j][j])
-    if (comm->me == 0)
-      printf("mDPD particle types %d and %d interact, but not all of their single particle properties are set.\n", i, j);
-
-    first = 0;
-  }
-
 
   inum = list->inum;
   ilist = list->ilist;

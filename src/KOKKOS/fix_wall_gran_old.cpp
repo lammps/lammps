@@ -448,8 +448,8 @@ FixWallGranOld::FixWallGranOld(LAMMPS *lmp, int narg, char **arg) :
 
   history_one = nullptr;
   FixWallGranOld::grow_arrays(atom->nmax);
-  atom->add_callback(Atom::GROW);
-  atom->add_callback(Atom::RESTART);
+  atom->add_callback(this, Atom::GROW);
+  atom->add_callback(this, Atom::RESTART);
 
   nmax = 0;
   mass_rigid = nullptr;
@@ -479,8 +479,8 @@ FixWallGranOld::~FixWallGranOld()
 
   // unregister callbacks to this fix from Atom class
 
-  atom->delete_callback(id,Atom::GROW);
-  atom->delete_callback(id,Atom::RESTART);
+  atom->delete_callback(this, Atom::GROW);
+  atom->delete_callback(this, Atom::RESTART);
 
   // delete local storage
 

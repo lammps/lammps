@@ -125,7 +125,7 @@ void PairCoulEsp::compute(int eflag, int vflag)
             force_poly_r *= r_scal;
             force_poly_appx += force_poly_coeff[index] * force_poly_r;
           }
-          prefactor = qqrd2e * qtmp * q[j] / r;
+          prefactor = qqrd2e * scale[itype][jtype] * qtmp * q[j] / r;
           forcecoul = prefactor * force_poly_appx;
           if (factor_coul < 1.0) forcecoul -= (1.0 - factor_coul) * prefactor;
         } else {
@@ -135,10 +135,10 @@ void PairCoulEsp::compute(int eflag, int vflag)
           itable >>= ncoulshiftbits;
           fraction = (rsq_lookup.f - rtable[itable]) * drtable[itable];
           table = ftable[itable] + fraction * dftable[itable];
-          forcecoul = qtmp * q[j] * table;
+          forcecoul = scale[itype][jtype] * qtmp * q[j] * table;
           if (factor_coul < 1.0) {
             table = ctable[itable] + fraction * dctable[itable];
-            prefactor = qtmp * q[j] * table;
+            prefactor = scale[itype][jtype] * qtmp * q[j] * table;
             forcecoul -= (1.0 - factor_coul) * prefactor;
           }
         }
@@ -343,7 +343,7 @@ void PairCoulEsp::read_restart_settings(FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-double PairCoulEsp::single(int i, int j, int /*itype*/, int /*jtype*/, double rsq,
+double PairCoulEsp::single(int i, int j, int itype, int jtype, double rsq,
                            double factor_coul, double /*factor_lj*/, double &fforce)
 {
   double r2inv, r, prefactor;
@@ -362,7 +362,7 @@ double PairCoulEsp::single(int i, int j, int /*itype*/, int /*jtype*/, double rs
       force_poly_r *= r_scal;
       force_poly_appx += force_poly_coeff[index] * force_poly_r;
     }
-    prefactor = force->qqrd2e * atom->q[i] * atom->q[j] / r;
+    prefactor = force->qqrd2e * scale[itype][jtype] * atom->q[i] * atom->q[j] / r;
     forcecoul = prefactor * force_poly_appx;
     if (factor_coul < 1.0) forcecoul -= (1.0 - factor_coul) * prefactor;
   } else {
@@ -372,10 +372,10 @@ double PairCoulEsp::single(int i, int j, int /*itype*/, int /*jtype*/, double rs
     itable >>= ncoulshiftbits;
     fraction = ((double) rsq_lookup.f - rtable[itable]) * drtable[itable];
     table = ftable[itable] + fraction * dftable[itable];
-    forcecoul = atom->q[i] * atom->q[j] * table;
+    forcecoul = scale[itype][jtype] * atom->q[i] * atom->q[j] * table;
     if (factor_coul < 1.0) {
       table = ctable[itable] + fraction * dctable[itable];
-      prefactor = atom->q[i] * atom->q[j] * table;
+      prefactor = scale[itype][jtype] * atom->q[i] * atom->q[j] * table;
       forcecoul -= (1.0 - factor_coul) * prefactor;
     }
   }
@@ -392,7 +392,7 @@ double PairCoulEsp::single(int i, int j, int /*itype*/, int /*jtype*/, double rs
     phicoul = prefactor * energy_poly_appx;
   } else {
     table = etable[itable] + fraction * detable[itable];
-    phicoul = atom->q[i] * atom->q[j] * table;
+    phicoul = scale[itype][jtype] * atom->q[i] * atom->q[j] * table;
   }
   if (factor_coul < 1.0) phicoul -= (1.0 - factor_coul) * prefactor;
 

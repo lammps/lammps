@@ -26,8 +26,8 @@ Description
 Define a computation which outputs the per-particle enthalpy, i.e.,
 the sum of potential energy and heat.
 
-See `this PDF guide <PDF/MACHDYN_LAMMPS_userguide.pdf>`_ to use Smooth
-Mach Dynamics in LAMMPS.
+See the :doc:`Howto machdyn <Howto_machdyn>` page for an introduction
+to using Smooth Mach Dynamics in LAMMPS.
 
 Output Info
 """""""""""

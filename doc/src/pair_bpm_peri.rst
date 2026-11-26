@@ -1,7 +1,10 @@
 .. index:: pair_style bpm/peri
+.. index:: pair_style bpm/peri/omp
 
 pair_style bpm/peri command
 ===========================
+
+Accelerator Variants: *bpm/peri/omp*
 
 Syntax
 """"""
@@ -57,6 +60,10 @@ command:
 
 Typically *k* and the horizon are set equal to the corresponding
 :doc:`bond_coeff <bond_bpm_peri>` values.
+
+----------
+
+.. include:: accel_styles.rst
 
 ----------
 

@@ -196,15 +196,31 @@ void ComputeFEP::init()
     if (pert->which == PAIR) {
       pairflag = 1;
       Pair *pair = nullptr;
+      std::string pname;
       if (lmp->suffix_enable) {
-        if (lmp->suffix)
-          pair = force->pair_match(fmt::format("{}/{}", pert->pstyle, lmp->suffix), 1);
-        if ((pair == nullptr) && lmp->suffix2)
-          pair = force->pair_match(fmt::format("{}/{}", pert->pstyle, lmp->suffix2), 1);
+        if (lmp->suffix) {
+          pname = fmt::format("{}/{}", pert->pstyle, lmp->suffix);
+          pair = force->pair_match(pname, 1);
+        }
+        if ((pair == nullptr) && lmp->suffix2) {
+          pname = fmt::format("{}/{}", pert->pstyle, lmp->suffix2);
+          pair = force->pair_match(pname, 1);
+        }
       }
 
-      if (pair == nullptr) pair = force->pair_match(pert->pstyle, 1);
+      if (pair == nullptr) {
+        pname = pert->pstyle;
+        pair = force->pair_match(pert->pstyle, 1);
+      }
       if (pair == nullptr) error->all(FLERR, "Compute fep pair style {} not found", pert->pstyle);
+
+      // Pair::reinit() checks reinitflag only for the top-level pair style,
+      // so the check for sub-styles of hybrid pair styles must be done here.
+      // hybrid pair styles store the names of their sub-styles without suffix.
+
+      if (!pair->reinitflag)
+        error->all(FLERR, "Compute fep interface to {}pair style {} is not supported",
+                   pair->suffix_flag ? "the accelerated variant of " : "", pname);
 
       void *ptr = pair->extract(pert->pparam, pert->pdim);
       if (ptr == nullptr)

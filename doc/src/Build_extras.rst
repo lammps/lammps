@@ -207,7 +207,7 @@ requires the following settings:
       default system locations.  You must specify ``JPG_LIB`` with a
       list of graphics libraries to include in the link.
 
-.. versionchanged:: TBD
+.. versionchanged:: 13Nov2026
 
 The :doc:`dump movie <dump_image>` command outputs movie files in a
 variety of movie formats by sending images through a pipe to the
@@ -309,7 +309,7 @@ back ends.  The back end specific ``HIP_ARCH`` (for ``GPU_API=hip``)
 variable is still accepted for backward compatibility, but its use is
 deprecated and prints a warning.
 
-.. versionchanged:: TBD
+.. versionchanged:: 13Nov2026
 
 For ``GPU_API=cuda`` or ``GPU_API=hip`` with ``HIP_PLATFORM=nvidia``, the
 supported ``GPU_ARCH`` setting for different GPU hardware are as follows:
@@ -317,6 +317,10 @@ supported ``GPU_ARCH`` setting for different GPU hardware are as follows:
 * ``all-major`` for including support for all major architectures supported by the CUDA toolkit (default)
 * ``all`` for including support all GPU architectures supported by the CUDA toolkit
 * a single number or a list of numbers of individual GPU architectures, e.g. ``60;70;75;80;90``.
+
+Settings in the format of earlier LAMMPS versions, e.g. ``sm_75``, are
+still accepted (also in the CMake cache of an existing build folder),
+but they are deprecated and converted to the new format with a warning.
 
 When compiling for CUDA or HIP with CUDA, version 12.0 or later of the
 CUDA toolkit is required and a GPU architecture of Pascal (60) or later,
@@ -331,7 +335,7 @@ When compiling for OpenCL, OpenCL version 1.2 or later is required and
 the GPU must be supported by the GPU driver and OpenCL runtime bundled
 with the driver.
 
-.. versionchanged:: TBD
+.. versionchanged:: 13Nov2026
 
 Building with ``GPU_API=cuda`` uses the native CUDA support in CMake
 (available since version 3.27) and the host compiler used by ``nvcc`` is
@@ -376,7 +380,7 @@ devices for OpenCL (and LAMMPS would require two MPI processes to use both
 sockets with the GPU library - each with its own device ID as output by
 ocl_get_devices).  OpenCL version 1.2 or later is required.
 
-.. versionchanged:: TBD
+.. versionchanged:: 13Nov2026
 
 Building with ``GPU_API=hip`` requires ROCm version 6.0 or later
 (tested with versions 6.4 and 7.1).  For AMD GPUs (``HIP_PLATFORM=amd``)
@@ -477,15 +481,16 @@ If you would like to use the :doc:`kim query <kim_commands>`
 command, you also need to have libcurl installed with the matching
 development headers and the curl-config tool.
 
-If you would like to use the :doc:`kim property <kim_commands>`
-command, you need to build LAMMPS with the PYTHON package installed
-and linked to Python 3.6 or later. See the :ref:`PYTHON package build info <python>`
-for more details on this. After successfully building LAMMPS with Python, you
-also need to install the ``kim-property`` Python package, which can be easily
-done using *pip* as ``pip install kim-property``, or from the *conda-forge*
-channel as ``conda install kim-property`` if LAMMPS is built in Conda. More
-detailed information is available at:
-`kim-property installation <https://github.com/openkim/kim-property#installing-kim-property>`_.
+If you would like to use the :doc:`kim property <kim_commands>` command,
+you need to build LAMMPS with the PYTHON package installed and linked to
+Python 3.9 or later. See the :ref:`PYTHON package build info <python>`
+for more details on this. After successfully building LAMMPS with
+Python, you also need to install the ``kim-property`` Python package,
+which can be easily done using *pip* as ``pip install kim-property``, or
+from the *conda-forge* channel as ``conda install kim-property`` if
+LAMMPS is built in Conda. More detailed information is available at:
+`kim-property installation
+<https://github.com/openkim/kim-property#installing-kim-property>`_.
 
 .. tabs::
 
@@ -563,7 +568,7 @@ Enabling the extra unit tests have some requirements,
 * It requires to have libcurl installed with the matching development headers
   and the curl-config tool.
 * It requires to build LAMMPS with the PYTHON package installed and linked to
-  Python 3.6 or later. See the :ref:`PYTHON package build info <python>` for
+  Python 3.9 or later. See the :ref:`PYTHON package build info <python>` for
   more details on this.
 * It requires to have ``kim-property`` Python package installed, which can be
   easily done using *pip* as ``pip install kim-property``, or from the
@@ -850,7 +855,7 @@ This list was last updated for version 5.2.1 of the Kokkos library.
          -D BUILD_OMP=on
 
       Please note that enabling OpenMP for KOKKOS requires that OpenMP is
-      also :ref:`enabled for the rest of LAMMPS <serial>`.
+      also :ref:`enabled for the rest of LAMMPS <build_serial>`.
 
       For Intel KNLs using OpenMP, set these variables:
 
@@ -1097,13 +1102,13 @@ ML-IAP package
 ---------------------------
 
 Building the ML-IAP package requires including the :ref:`ML-SNAP
-<PKG-ML-SNAP>` package.  There will be an error message if this requirement
-is not satisfied.  Using the *mliappy* model also requires enabling
-Python support, which in turn requires to include the :ref:`PYTHON
-<PKG-PYTHON>` package **and** requires to have the `cython
+<PKG-ML-SNAP>` package.  There will be an error message if this
+requirement is not satisfied.  Using the *mliappy* model also requires
+enabling Python support, which in turn requires to include the
+:ref:`PYTHON <PKG-PYTHON>` package **and** requires to have the `cython
 <https://cython.org>`_ software installed and with it a working
 ``cythonize`` command.  This feature requires compiling LAMMPS with
-Python version 3.6 or later.
+Python version 3.9 or later.
 
 .. tabs::
 
@@ -1123,21 +1128,12 @@ Python version 3.6 or later.
 
    .. tab:: Traditional make
 
-      The build uses the ``lib/python/Makefile.mliap_python`` file in the
-      compile/link process to add a rule to update the files generated by
-      the ``cythonize`` command in case the corresponding .pyx file(s) were
-      modified.  You may need to modify ``lib/python/Makefile.lammps``
-      if the LAMMPS build fails.
+      .. versionchanged:: 10Sep2025
 
-      To enable building the ML-IAP package with Python support enabled,
-      you need to add ``-DMLIAP_PYTHON`` to the ``LMP_INC`` variable in
-      your machine makefile.  You may have to manually run the
-      ``cythonize`` command on .pyx file(s) in the ``src`` folder, if
-      this is not automatically done during installing the ML-IAP
-      package.  Please do **not** run ``cythonize`` in the ``src/ML-IAP``
-      folder, as that can lead to compilation errors if Python support
-      is not enabled.  If you did this by accident, please remove the
-      generated .cpp and .h files.
+      With the traditional make build, the ML-IAP package can only be
+      built without Python support, because the :ref:`PYTHON
+      <PKG-PYTHON>` package no longer supports that build system.  To
+      use the *mliappy* model, you need to build LAMMPS with CMake.
 
 ----------
 
@@ -1166,10 +1162,9 @@ OPT package
 PYTHON package
 ---------------------------
 
-Building with the PYTHON package requires you have a the Python
-development headers and library available on your system, which
-needs to be Python version 3.6 or later.  See ``lib/python/README``
-for additional details.
+Building with the PYTHON package requires that the Python development
+headers and library are available on your system.  They need to be from
+Python version 3.9 or later.
 
 .. tabs::
 
@@ -1411,6 +1406,18 @@ then load this plugin at runtime with the :doc:`plugin command
       Both settings are cached and thus retained in the build folder
       (see :ref:`this explanation <err0039>` for details).
 
+      .. versionchanged:: TBD
+
+      Compiling some of the MBX source files with optimization can take
+      a long time.  So when cross-compiling for Windows with the MinGW
+      compilers and without MPI, CMake downloads an already compiled MBX
+      library instead, if one is available for the MBX version and the
+      major version of the cross-compiler.  This way we can test
+      building the Windows installer packages efficiently since we want to
+      test the LAMMPS side of things.  Setting ``-D MBX_MINGW_FROM_SOURCE=on``
+      compiles the library anyway.  The variables ``MBXMINGW_URL`` and
+      ``MBXMINGW_SHA256`` work like ``MBXLIB_URL`` and ``MBXLIB_SHA256``
+      for the compiled library.
 
    .. tab:: Traditional make
 
@@ -1424,10 +1431,10 @@ then load this plugin at runtime with the :doc:`plugin command
 ML-PACE package
 -----------------------------
 
-This package requires a library that can be downloaded and built
-in lib/pace or somewhere else, which must be done before building
-LAMMPS with this package. The code for the library can be found
-at: `https://github.com/ICAMS/lammps-user-pace/ <https://github.com/ICAMS/lammps-user-pace/>`_
+This package requires an external library, which is downloaded and
+compiled together with LAMMPS when the package is enabled. The code for
+the library can be found at: `https://github.com/ICAMS/lammps-user-pace/
+<https://github.com/ICAMS/lammps-user-pace/>`_
 
 Instead of including the ML-PACE package directly into LAMMPS, it
 is also possible to skip this step and build the ML-PACE package as
@@ -1673,7 +1680,7 @@ system for detailed information.
 In case of a manual installation of *n2p2* you only need to build the *n2p2* core
 library ``libnnp`` and interface library ``libnnpif``. When using GCC it should
 suffice to execute ``make libnnpif`` in the *n2p2* ``src`` directory. For more
-details please see ``lib/hdnnp/README`` and the `n2p2 build documentation
+details please see the `n2p2 build documentation
 <https://compphysvienna.github.io/n2p2/topics/build.html>`_.
 
 .. tabs::
@@ -1827,10 +1834,10 @@ also typically :ref:`install the OPENMP package <openmp>`, as it can be
 used in tandem with the INTEL package to good effect, as explained
 on the :doc:`Speed_intel` page.
 
-When using Intel compilers version 16.0 or later is required.  You can
-also use the GNU or Clang compilers and they will provide performance
-improvements over regular styles and OPENMP styles, but less so than
-with the Intel compilers.  Please also note, that some compilers have
+You can also use the GNU or Clang compilers instead of the Intel
+compilers and they will provide performance improvements over regular
+styles and OPENMP styles, but less so than with the Intel compilers.
+Please also note, that some compilers have
 been found to apply memory alignment constraints incompletely or
 incorrectly and thus can cause segmentation faults in otherwise correct
 code when using features from the INTEL package.
@@ -1849,8 +1856,18 @@ code when using features from the INTEL package.
       With the LLVM based Intel compilers (``icx`` and ``icpx``), CMake
       adds the flags ``-xHost`` and ``-qopt-zmm-usage=high`` and compiles
       the INTEL package sources with ``-fp-model=fast=2``.  The ``-xHost``
-      flag is omitted when a target architecture is already selected in
-      ``CMAKE_CXX_FLAGS``, e.g. when compiling for a different CPU.
+      flag is omitted when a target architecture is already selected with
+      ``-x``, ``-ax``, or ``-march=`` in ``CMAKE_CXX_FLAGS`` or in the flags
+      for the build type (e.g. ``CMAKE_CXX_FLAGS_RELWITHDEBINFO``), for
+      example when compiling for a different CPU.  The
+      main program of the LAMMPS executable is compiled with ``-ftz``, so
+      that very small floating-point numbers (subnormals) are flushed to
+      zero, which avoids a large slowdown of some INTEL package styles in
+      mixed precision.  In addition, the INTEL package itself sets the CPU
+      to flush subnormal numbers to zero while it is in use, with any
+      compiler, so that this also applies when LAMMPS is used as a
+      library (see the *ftz* keyword of the :doc:`package <package>`
+      command).
 
    .. tab:: Traditional make
 

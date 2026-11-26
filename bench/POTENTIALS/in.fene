@@ -7,7 +7,7 @@ special_bonds   fene
 read_data	data.fene
 
 neighbor	0.4 bin
-neigh_modify    delay 5 every 1
+neigh_modify    delay 0 every 1
 
 bond_style      fene
 bond_coeff	1 30.0 1.5 1.0 1.0

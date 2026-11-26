@@ -34,9 +34,15 @@ class FixReaxFFSpeciesKokkos : public FixReaxFFSpecies {
   FixReaxFFSpeciesKokkos(class LAMMPS *, int, char **);
 
   void init() override;
+  void setup(int) override;
+  void post_integrate() override;
 
  protected:
   void FindMolecule() override;
+  void DeleteSpecies(int, int) override;
+
+  bool sample_step() const;
+  void sync_host_data();
 };
 }
 

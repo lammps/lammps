@@ -350,6 +350,9 @@ mathematical functions for a variety of applications.
 .. doxygenfunction:: powint
    :project: progguide
 
+.. doxygenfunction:: powauto
+   :project: progguide
+
 .. doxygenfunction:: powsinxx
    :project: progguide
 
@@ -514,8 +517,6 @@ A typical code segment would look like this:
 
 ----------
 
-.. _safe-pointer-classes:
-
 Safe pointer classes
 --------------------
 
@@ -631,8 +632,6 @@ entire file is read and its triangles are returned in one call.
    :members:
 
 ----------
-
-.. _file-writer-classes:
 
 File writer classes
 -------------------

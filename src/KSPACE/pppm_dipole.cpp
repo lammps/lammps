@@ -35,6 +35,7 @@
 
 #include <cmath>
 #include <cstring>
+#include <vector>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -879,15 +880,46 @@ void PPPMDipole::set_grid_global()
 
   // set optimal nx_pppm,ny_pppm,nz_pppm based on order and accuracy
   // nz_pppm uses extended zprd_slab instead of zprd
-  // reduce it until accuracy target is met
+  // use the coarsest grid with spacing h_k = 4/g_ewald * 0.95^k, k = 0,1,2,...
+  //   that meets the accuracy target
 
   if (!gridflag) {
 
-    h = h_x = h_y = h_z = 4.0/g_ewald;
-    int count = 0;
-    while (true) {
+    // each error estimate is a sum over the entire FFT grid, so the cost of
+    //   testing every k in turn grows with the final grid size times the number
+    //   of steps.  instead, predict the k that meets the accuracy from the errors
+    //   of the grids tested so far (log(error) is close to linear in k) and then
+    //   narrow it down to the first k that meets it.  this selects the same grid
+    //   as testing every k as long as the error does not grow for finer grids.
 
-      // set grid dimension
+    const int maxcount = 500;
+    const int maxjump = 14;    // 0.95^14 < 0.5: up to 2x finer grid per dimension per step
+    const double slope0 = order * log(0.95);    // log(error) vs. k when error ~ h^order
+
+    std::vector<double> hk(1, 4.0 / g_ewald);
+    struct GridError {
+      int nx, ny, nz;
+      double error;
+    };
+    std::vector<GridError> known;
+
+    // grid spacing for index k, computed in the same order as h *= 0.95 per step
+
+    auto spacing = [&](int k) {
+      while ((int) hk.size() <= k) hk.push_back(hk.back() * 0.95);
+      return hk[k];
+    };
+    auto too_large = [&](int k) {
+      const double hh = spacing(k);
+      return (xprd / hh >= OFFSET) || (yprd / hh >= OFFSET) || (zprd_slab / hh >= OFFSET);
+    };
+
+    // set global and local FFT grid dimensions for spacing index k
+    // and return the kspace error estimate; reuse it for repeated grids
+
+    auto grid_error = [&](int k) {
+      if (too_large(k)) error->all(FLERR, "PPPMDipole grid is too large");
+      h = h_x = h_y = h_z = spacing(k);
 
       nx_pppm = static_cast<int> (xprd/h_x);
       ny_pppm = static_cast<int> (yprd/h_y);
@@ -912,18 +944,70 @@ void PPPMDipole::set_grid_global()
       nzlo_fft = me_z*nz_pppm/npez_fft;
       nzhi_fft = (me_z+1)*nz_pppm/npez_fft - 1;
 
+      for (const auto &grid : known)
+        if ((grid.nx == nx_pppm) && (grid.ny == ny_pppm) && (grid.nz == nz_pppm))
+          return grid.error;
+
       double df_kspace = compute_df_kspace_dipole();
+      known.push_back({nx_pppm, ny_pppm, nz_pppm, df_kspace});
+      return df_kspace;
+    };
 
-      count++;
+    // kfail = largest k known to miss the accuracy target,
+    // kpass = smallest k known to meet it, with their errors
 
-      // break loop if the accuracy has been reached or
-      // too many loops have been performed
+    int kfail = -1, kfail_prev = -1, kpass = -1;
+    double efail = 0.0, efail_prev = 0.0, epass = 0.0;
+    int k = 0;
 
-      if (df_kspace <= accuracy) break;
-      if (count > 500) error->all(FLERR, "Could not compute grid size");
-      h *= 0.95;
-      h_x = h_y = h_z = h;
+    while (true) {
+      double df_kspace = grid_error(k);
+      if (df_kspace <= accuracy) {
+        kpass = k;
+        epass = df_kspace;
+      } else {
+        kfail_prev = kfail;
+        efail_prev = efail;
+        kfail = k;
+        efail = df_kspace;
+      }
+
+      if (kpass == kfail + 1) break;
+
+      double slope = slope0;
+      if (kpass < 0) {
+
+        // no grid meets the accuracy yet: extrapolate from the two finest grids
+
+        if (kfail >= maxcount) error->all(FLERR, "Could not compute grid size");
+        if ((kfail_prev >= 0) && (efail_prev > 0.0) && (efail > 0.0))
+          slope = log(efail / efail_prev) / (kfail - kfail_prev);
+        if (!(slope < 0.0)) slope = slope0;
+        double dk = ceil(log(accuracy / efail) / slope);
+        if (!(dk >= 1.0)) dk = 1.0;
+        if (dk > maxjump) dk = maxjump;
+        k = MIN(kfail + static_cast<int>(dk), maxcount);
+
+        // do not skip over grids below the size limit
+
+        while ((k > kfail + 1) && too_large(k)) k--;
+
+      } else {
+
+        // interpolate between the finest failing and the coarsest passing grid
+
+        if ((epass > 0.0) && (efail > 0.0)) slope = log(epass / efail) / (kpass - kfail);
+        if (!(slope < 0.0)) slope = slope0;
+        double dk = ceil(log(accuracy / efail) / slope);
+        if (!(dk >= 1.0)) dk = 1.0;
+        if (dk > kpass - kfail - 1) dk = kpass - kfail - 1;
+        k = kfail + static_cast<int>(dk);
+      }
     }
+
+    // restore the grid of the selected spacing
+
+    grid_error(kpass);
   }
 
   // boost grid size until it is factorable
@@ -984,12 +1068,11 @@ double PPPMDipole::compute_qopt_dipole()
   const double unitkz = (MY_2PI/zprd_slab);
 
   double snx,sny,snz;
-  double argx,argy,argz,wx,wy,wz,sx,sy,sz,qx,qy,qz;
-  double sum1,sum2,dot1,dot2;
+  double sum1,sum2;
   double denominator;
-  double u1,sqk;
+  double sqk;
 
-  int k,l,m,nx,ny,nz,kper,lper,mper;
+  int k,l,m,kper,lper,mper;
 
   const int nbx = 2;
   const int nby = 2;
@@ -997,17 +1080,50 @@ double PPPMDipole::compute_qopt_dipole()
 
   const int twoorder = 2*order;
 
+  // the aliasing factors of each dimension depend only on the grid index in that
+  // dimension and on the alias image: compute them once per index and image
+  // instead of in the innermost loop.  same expressions and evaluation order as
+  // the direct computation, so the result does not change.
+
+  struct Alias {
+    double a, q2, s, w;    // unitk*kper*q, q*q, Gaussian factor, charge assignment factor
+  };
+
+  auto alias_factors = [&](int lo, int hi, int n, int nb, double unitk, double len) {
+    std::vector<Alias> vals;
+    for (int i = lo; i <= hi; i++) {
+      const int iper = i - n*(2*i/n);
+      for (int ni = -nb; ni <= nb; ni++) {
+        const double q = unitk*(iper+n*ni);
+        const double s = exp(-0.25*square(q/g_ewald));
+        const double arg = 0.5*q*len/n;
+        vals.push_back({unitk*iper*q, q*q, s, powsinxx(arg,twoorder)});
+      }
+    }
+    return vals;
+  };
+
+  const std::vector<Alias> fx = alias_factors(nxlo_fft,nxhi_fft,nx_pppm,nbx,unitkx,xprd);
+  const std::vector<Alias> fy = alias_factors(nylo_fft,nyhi_fft,ny_pppm,nby,unitky,yprd);
+  const std::vector<Alias> fz = alias_factors(nzlo_fft,nzhi_fft,nz_pppm,nbz,unitkz,zprd_slab);
+  const int nimgx = 2*nbx + 1;
+  const int nimgy = 2*nby + 1;
+  const int nimgz = 2*nbz + 1;
+
   for (m = nzlo_fft; m <= nzhi_fft; m++) {
     mper = m - nz_pppm*(2*m/nz_pppm);
     snz = square(sin(0.5*unitkz*mper*zprd_slab/nz_pppm));
+    const Alias *az = &fz[(m-nzlo_fft)*nimgz];
 
     for (l = nylo_fft; l <= nyhi_fft; l++) {
       lper = l - ny_pppm*(2*l/ny_pppm);
       sny = square(sin(0.5*unitky*lper*yprd/ny_pppm));
+      const Alias *ay = &fy[(l-nylo_fft)*nimgy];
 
       for (k = nxlo_fft; k <= nxhi_fft; k++) {
         kper = k - nx_pppm*(2*k/nx_pppm);
         snx = square(sin(0.5*unitkx*kper*xprd/nx_pppm));
+        const Alias *ax = &fx[(k-nxlo_fft)*nimgx];
 
         sqk = square(unitkx*kper) + square(unitky*lper) + square(unitkz*mper);
 
@@ -1016,30 +1132,18 @@ double PPPMDipole::compute_qopt_dipole()
           sum1 = 0.0;
           sum2 = 0.0;
 
-          for (nx = -nbx; nx <= nbx; nx++) {
-            qx = unitkx*(kper+nx_pppm*nx);
-            sx = exp(-0.25*square(qx/g_ewald));
-            argx = 0.5*qx*xprd/nx_pppm;
-            wx = powsinxx(argx,twoorder);
+          for (int ix = 0; ix < nimgx; ix++) {
+            for (int iy = 0; iy < nimgy; iy++) {
+              const double dot1xy = ax[ix].a + ay[iy].a;
+              const double dot2xy = ax[ix].q2 + ay[iy].q2;
+              const double sxy = ax[ix].s*ay[iy].s;
+              const double wxy = ax[ix].w*ay[iy].w;
 
-            for (ny = -nby; ny <= nby; ny++) {
-              qy = unitky*(lper+ny_pppm*ny);
-              sy = exp(-0.25*square(qy/g_ewald));
-              argy = 0.5*qy*yprd/ny_pppm;
-              wy = powsinxx(argy,twoorder);
-
-              for (nz = -nbz; nz <= nbz; nz++) {
-                qz = unitkz*(mper+nz_pppm*nz);
-                sz = exp(-0.25*square(qz/g_ewald));
-                argz = 0.5*qz*zprd_slab/nz_pppm;
-                wz = powsinxx(argz,twoorder);
-
-                dot1 = unitkx*kper*qx + unitky*lper*qy + unitkz*mper*qz;
-                dot2 = qx*qx + qy*qy + qz*qz;
-                //dot1 = dot1*dot1*dot1; // power of 3 for dipole forces
-                //dot2 = dot2*dot2*dot2;
-                u1 = sx*sy*sz;
-                const double w2 = wx*wy*wz;
+              for (int iz = 0; iz < nimgz; iz++) {
+                const double dot1 = dot1xy + az[iz].a;
+                const double dot2 = dot2xy + az[iz].q2;
+                const double u1 = sxy*az[iz].s;
+                const double w2 = wxy*az[iz].w;
                 const double phi = u1*MY_4PI/dot2;
                 const double top = dot1*dot1*dot1*w2*phi;
                 sum1 += phi*phi*dot2*dot2*dot2;

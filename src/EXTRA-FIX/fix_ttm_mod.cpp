@@ -27,6 +27,7 @@
 #include "error.h"
 #include "force.h"
 #include "math_const.h"
+#include "math_special.h"
 #include "memory.h"
 #include "potential_file_reader.h"
 #include "random_mars.h"
@@ -41,6 +42,8 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace MathConst;
+using MathSpecial::cube;
+using MathSpecial::powint;
 
 // OFFSET avoids outside-of-box atoms being rounded to grid pts incorrectly
 // SHIFT = 0.0 assigns atoms to lower-left grid pt
@@ -204,8 +207,8 @@ FixTTMMod::FixTTMMod(LAMMPS *lmp, int narg, char **arg) :
     flangevin[i][2] = 0.0;
   }
 
-  atom->add_callback(Atom::GROW);
-  atom->add_callback(Atom::RESTART);
+  atom->add_callback(this, Atom::GROW);
+  atom->add_callback(this, Atom::RESTART);
 
   // initialize electron temperatures on grid
 
@@ -681,12 +684,12 @@ double FixTTMMod::el_sp_heat_integral(double T_e)
 {
   double T_temp = T_e/1000.0, T_reduced = T_damp*T_temp;
   if (T_damp != 0)
-    return electronic_density*(MY_PIS*(3*esheat_4/pow(T_damp,5)+2*esheat_2/pow(T_damp,3)+4*esheat_0/T_damp)*erf(T_reduced)+
-                               4*esheat_3/pow(T_damp,4)+4*esheat_1/T_damp/T_damp-
-                               ((6*esheat_4*T_temp+4*esheat_3)/pow(T_damp,4)+
-                                (4*esheat_1+4*esheat_4*pow(T_temp,3)+4*esheat_3*T_temp*T_temp+4*esheat_2*T_temp)/T_damp/T_damp)*exp(-T_reduced*T_reduced))*125.0+electronic_density*C_limit*T_e;
+    return electronic_density*(MY_PIS*(3*esheat_4/powint(T_damp,5)+2*esheat_2/cube(T_damp)+4*esheat_0/T_damp)*erf(T_reduced)+
+                               4*esheat_3/powint(T_damp,4)+4*esheat_1/T_damp/T_damp-
+                               ((6*esheat_4*T_temp+4*esheat_3)/powint(T_damp,4)+
+                                (4*esheat_1+4*esheat_4*cube(T_temp)+4*esheat_3*T_temp*T_temp+4*esheat_2*T_temp)/T_damp/T_damp)*exp(-T_reduced*T_reduced))*125.0+electronic_density*C_limit*T_e;
   else
-    return electronic_density*((esheat_0 + C_limit)*T_e + esheat_1*T_temp*T_e/2.0 + esheat_2*T_temp*T_temp*T_e/3.0 + esheat_3*pow(T_temp,3)*T_e/4.0 + esheat_4*pow(T_temp,4)*T_e/5.0);
+    return electronic_density*((esheat_0 + C_limit)*T_e + esheat_1*T_temp*T_e/2.0 + esheat_2*T_temp*T_temp*T_e/3.0 + esheat_3*cube(T_temp)*T_e/4.0 + esheat_4*powint(T_temp,4)*T_e/5.0);
 }
 
 /* ---------------------------------------------------------------------- */

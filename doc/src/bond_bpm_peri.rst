@@ -140,7 +140,8 @@ each step.  The canonical references are :ref:`(Silling 2000)
 <Mitchell2011a-bpm>`; the underlying state-based viscoplasticity theory is
 :ref:`(Foster 2010) <Foster2010-bpm>`, and the original PDLAMMPS
 implementations of these two models by Rahman and Foster are described in
-:ref:`(Rahman) <Rahman-bpm>`.
+:ref:`(Rahman) <Rahman-bpm>` and summarized in the :doc:`Peridynamics
+Howto <Howto_peri>`.
 
 .. note::
 
@@ -293,7 +294,4 @@ peridynamics, Int J Numer Methods Eng, 81(10), 1242-1258 (2010).
 
 **(Rahman)** Rahman, Foster, Implementation of linear viscoelasticity model
 in PDLAMMPS (2013) and Implementation of elastic-plastic model in PDLAMMPS,
-technical reports, University of Texas at San Antonio (included in the LAMMPS
-distribution as `PDLammps_VES.pdf <PDF/PDLammps_VES.pdf>`_ and
-`PDLammps_EPS.pdf <PDF/PDLammps_EPS.pdf>`_; see also the PDLAMMPS overview
-`PDLammps_overview.pdf <PDF/PDLammps_overview.pdf>`_).
+technical reports, University of Texas at San Antonio.

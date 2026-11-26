@@ -760,11 +760,15 @@ forward_comm_kspace_tiled(KSpace *kspace, int which, int nper,
   // any of them is still in flight: it would read the stretches that have not
   // arrived and copy them over the device side.  Collect them all first, copy
   // once, then unpack.  The brick path already waits before it copies.
-  MPI_Waitall(nrecv,requests,MPI_STATUSES_IGNORE);
+  // With no receives (e.g. a single MPI rank) there is nothing to wait for
+  // or to copy.
+  if (nrecv) {
+    MPI_Waitall(nrecv,requests,MPI_STATUSES_IGNORE);
 
-  if (!lmp->kokkos->gpu_aware_flag) {
-    k_buf2.modify_host();
-    k_buf2.sync<DeviceType>();
+    if (!lmp->kokkos->gpu_aware_flag) {
+      k_buf2.modify_host();
+      k_buf2.sync<DeviceType>();
+    }
   }
 
   for (m = 0; m < nrecv; m++) {
@@ -902,12 +906,14 @@ reverse_comm_kspace_tiled(KSpace *kspace, int which, int nper,
 
   // unpack all received data
   // as in the forward direction: one buffer, one copy, and only once every
-  // receive into it has landed
-  MPI_Waitall(nsend,requests,MPI_STATUSES_IGNORE);
+  // receive into it has landed, and nothing to do without receives
+  if (nsend) {
+    MPI_Waitall(nsend,requests,MPI_STATUSES_IGNORE);
 
-  if (!lmp->kokkos->gpu_aware_flag) {
-    k_buf2.modify_host();
-    k_buf2.sync<DeviceType>();
+    if (!lmp->kokkos->gpu_aware_flag) {
+      k_buf2.modify_host();
+      k_buf2.sync<DeviceType>();
+    }
   }
 
   for (m = 0; m < nsend; m++) {

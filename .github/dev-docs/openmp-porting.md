@@ -5,7 +5,8 @@ existing ones honest.  The OPENMP package (~330 files) threads force styles,
 neighbor builds, and a growing set of computes; a full-package audit (PR #5163,
 2026-08) produced the bug-class catalog at the end of this guide.  There are TWO
 distinct porting models: force styles use the ThrOMP machinery, computes
-deliberately do not.
+deliberately do not.  What remains to port, ranked by effort, is in
+`accelerator-porting-backlog.md`.
 
 ## Architecture: FixOMP, ThrData, ThrOMP
 
@@ -160,6 +161,19 @@ history) should request it with `trysuffix=1` only if its own `/omp` children
 actually work with the threaded fix variant; serial-only pair styles pass
 `trysuffix=0` so `-sf omp` does not attach a threaded internal fix behind a
 serial pair style.
+
+OpenMP versions: LAMMPS builds natively on Windows with MSVC, which implements
+only OpenMP 2.0 (`_OPENMP` is 200203 there).  Constructs added later do not
+compile: `#pragma omp atomic read`, `write`, `update`, `capture`, `simd`, tasks.
+Use a plain `#pragma omp atomic` with `x binop= expr` (`+=`, `|=`, ...), a named
+`critical` section, `flush`, or `std::atomic` for atomic loads and stores, and
+search new code for `omp atomic` followed by one of those keywords before
+committing.  At the other end, GCC 16 warns (`-Wdeprecated-openmp`) about
+`omp master` (deprecated in OpenMP 5.1) and `reduction(-:x)` (deprecated in 5.2).
+Write `reduction(+:x)`, which combines the values the same way, and select the
+directive by version as `pair_adp_omp.cpp` does: `#if _OPENMP >= 202011` ->
+`#pragma omp masked`, else `#pragma omp master`.  `_OPENMP` is 201511 for GCC 15,
+202111 for GCC 16, and 202011 for clang 21.
 
 Runtime race detection (beyond code review): a ThreadSanitizer build of the
 OPENMP unit tests needs the OpenMP-aware tooling (libarcher / `OMP_TOOL`)

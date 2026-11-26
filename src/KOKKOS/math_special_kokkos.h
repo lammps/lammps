@@ -223,6 +223,32 @@ namespace LAMMPS_NS::MathSpecialKokkos {
     return (n > 0) ? yy : static_cast<T>(1) / yy;
   }
 
+  /* Version of pow(x,n) for an exponent that is only known at run time
+   *
+   * Device capable equivalent of MathSpecial::powauto().  Dispatches to
+   * powint() when the exponent happens to have an integer value within the
+   * range of an int, and to Kokkos::pow() otherwise.  Follows the powint()
+   * convention of returning 0 for x == 0, which differs from pow() for a
+   * negative exponent.
+   *
+   *  \param   x base
+   *  \param   n exponent
+   *  \return  value of x^n */
+
+  template<typename T>
+// NOLINTNEXTLINE
+  KOKKOS_INLINE_FUNCTION
+  static T powauto(const T &x, const T &n)
+  {
+    if (n == static_cast<T>(0)) return static_cast<T>(1);
+    if (x == static_cast<T>(0)) return static_cast<T>(0);
+    const T rounded = Kokkos::round(n);
+    // the conversion to int is only defined for |n| < 2^31, which excludes inf
+    if ((n == rounded) && (Kokkos::fabs(rounded) < static_cast<T>(2147483648.0)))
+      return powint(x, static_cast<int>(rounded));
+    return Kokkos::pow(x, n);
+  }
+
   /* Fast inline version of (sin(x)/x)^n as used by PPPM kspace styles
    *
    * This is an optimized function to compute (sin(x)/x)^n as frequently used by PPPM.

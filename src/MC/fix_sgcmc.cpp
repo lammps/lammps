@@ -207,7 +207,8 @@ FixSemiGrandCanonicalMC::FixSemiGrandCanonicalMC(LAMMPS *_lmp, int narg, char **
 
   // Initialize random number generators.
   random = new RanPark(lmp, seed);
-  localRandom = new RanPark(lmp, seed + universe->me);
+  localRandom = new RanPark(lmp, seed);
+  localRandom->reset_rank(seed, universe->me);
 }
 
 /*********************************************************************

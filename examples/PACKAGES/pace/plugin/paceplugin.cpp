@@ -18,9 +18,14 @@ static Pair *pair_pace_extrapolation_creator(LAMMPS *lmp)
   return new PairPACEExtrapolation(lmp);
 }
 
-static Compute *compute_pace_creator(LAMMPS *lmp, int argc, char **argv)
+static Compute *compute_pace0_creator(LAMMPS *lmp, int argc, char **argv)
 {
-    return new ComputePACE(lmp, argc, argv);
+    return new ComputePACE<0>(lmp, argc, argv);
+}
+
+static Compute *compute_pace1_creator(LAMMPS *lmp, int argc, char **argv)
+{
+    return new ComputePACE<1>(lmp, argc, argv);
 }
 
 extern "C" void lammpsplugin_init(void *lmp, void *handle, void *regfunc)
@@ -52,9 +57,19 @@ extern "C" void lammpsplugin_init(void *lmp, void *handle, void *regfunc)
   plugin.version = LAMMPS_VERSION;
   plugin.style = "compute";
   plugin.name = "pace";
+  plugin.info = "PACE plugin compute style v1.1";
+  plugin.author = "Axel Kohlmeyer (akohlmey@gmail.com)";
+  plugin.creator.v2 = (lammpsplugin_factory2 *) &compute_pace0_creator;
+  plugin.handle = handle;
+  (*register_plugin)(&plugin, lmp);
+
+  // register pace/atom compute style
+  plugin.version = LAMMPS_VERSION;
+  plugin.style = "compute";
+  plugin.name = "pace/atom";
   plugin.info = "PACE plugin compute style v1.0";
   plugin.author = "Axel Kohlmeyer (akohlmey@gmail.com)";
-  plugin.creator.v2 = (lammpsplugin_factory2 *) &compute_pace_creator;
+  plugin.creator.v2 = (lammpsplugin_factory2 *) &compute_pace1_creator;
   plugin.handle = handle;
   (*register_plugin)(&plugin, lmp);
 }

@@ -1,0 +1,168 @@
+LAMMPS (30 Sep 2026 - Development - patch_30Sep2026-579-gd154c51e13)
+  using 1 OpenMP thread(s) per MPI task
+########################################################################
+#### 3D droplet oscilation using many-body DPD simulation            ###
+####                                                                 ###
+#### Created  : Zhen Li (zhen_li@brown.edu)                          ###
+####            Division of Applied Mathematics, Brown University.   ###
+####                                                                 ###
+#### mDPD parameters follow the choice of the publication:           ###
+#### Z. Li et al. "Three dimensional flow structures in a moving     ###
+#### droplet on substrate: a dissipative particle dynamics study"    ###
+#### Physics of Fluids, 2013, 25: 072103. DOI: 10.1063/1.4812366     ###
+########################################################################
+units 		        lj
+dimension	        3
+boundary	        p p p
+neighbor	        0.3 bin
+neigh_modify        every 1 delay 0 check yes
+
+atom_style	        mdpd
+comm_modify vel yes
+
+region     mdpd     block -25 25 -10 10 -10 10 units box
+create_box          1 mdpd
+Created orthogonal box = (-25 -10 -10) to (25 10 10)
+  4 by 1 by 1 MPI processor grid
+
+lattice             fcc 6
+Lattice spacing in x,y,z = 0.87358046 0.87358046 0.87358046
+region     film     block -20 20 -7.5 7.5 -2.0 2.0 units box
+create_atoms        1 region film
+Created 14333 atoms
+  using lattice units in orthogonal box = (-25 -10 -10) to (25 10 10)
+  create_atoms CPU = 0.001 seconds
+
+pair_style          hybrid/overlay mdpd/rhosum mdpd 1.0 1.0 9872598
+pair_coeff          1 1 mdpd/rhosum  0.75
+pair_coeff          1 1 mdpd         -40 25 18.0 1.0 0.75
+mass                1 1.0
+
+compute             mythermo all temp
+thermo              100
+thermo_modify       temp mythermo
+thermo_modify       flush yes
+
+velocity            all create 1.0 38497 loop local dist gaussian
+
+fix         mvv     all mvv/dpd
+
+#dump        mydump  all atom 100 atom.lammpstrj
+
+#dump       jpg      all image 200 image.*.jpg type type zoom 5 adiam 0.5 #                    view 90 90 box no 0 size 600 200
+#dump_modify         jpg pad 4
+
+#dump       avi      all movie 200 movie.avi type type zoom 5 adiam 0.5 #                    view 90 90 box no 0 size 600 200
+#dump_modify         avi pad 4
+
+timestep            0.01
+run                 4000
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+
+- pair mdpd command: https://doi.org/10.1063/1.4812366
+
+@Article{ZLi2013_POF,
+ author = {Li, Z. and Hu, G. H. and Wang, Z. L. and Ma Y. B. and Zhou, Z. W.},
+ title = {Three Dimensional Flow Structures in a Moving Droplet on Substrate: a Dissipative Particle Dynamics Study},
+ journal = {Physics of Fluids},
+ year = {2013},
+ volume = {25},
+ number = {7},
+ pages = {072103}
+}
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 1.3
+  ghost atom cutoff = 1.3
+  binsize = 0.65, bins = 77 31 31
+  2 neighbor lists, perpetual/occasional/extra = 2 0 0
+  (1) pair mdpd/rhosum, perpetual
+      attributes: full, newton on, cut 1.05
+      pair build: full/bin/atomonly
+      stencil: full/bin/3d
+      bin: standard
+  (2) pair mdpd, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 5.039 | 5.242 | 5.446 Mbytes
+   Step          Temp          E_pair         E_mol          TotEng         Press     
+         0   1             -13.346542      0             -11.846647     -6.9808575    
+       100   1.0412457     -7.2343701      0             -5.6726104     -0.87831138   
+       200   1.0349376     -6.953333       0             -5.4010349     -0.45504845   
+       300   1.047569      -6.9350788      0             -5.3638349     -0.25590718   
+       400   1.0694164     -6.8378023      0             -5.2337897     -0.20664879   
+       500   1.0678398     -6.8156572      0             -5.2140093      0.027575605  
+       600   1.0674922     -6.8100818      0             -5.2089553      0.044427555  
+       700   1.0654134     -6.8447893      0             -5.2467808     -0.018392879  
+       800   1.0564727     -6.9098991      0             -5.3253006     -0.076442671  
+       900   1.0518597     -6.9359188      0             -5.3582393     -0.11005801   
+      1000   1.0480461     -6.8814685      0             -5.309509       0.077393874  
+      1100   1.0505722     -6.8780331      0             -5.3022848      0.062235296  
+      1200   1.0364879     -6.888205       0             -5.3335815     -0.044281484  
+      1300   1.0498826     -6.8898436      0             -5.3151295      0.066332518  
+      1400   1.0359002     -6.8912771      0             -5.3375352      0.0027929539 
+      1500   1.0628453     -6.8356858      0             -5.241529       0.14514651   
+      1600   1.0523279     -6.9565273      0             -5.3781455     -0.11921249   
+      1700   1.0494294     -6.8901445      0             -5.3161101      0.0059089871 
+      1800   1.0646236     -6.911649       0             -5.314825       0.05930967   
+      1900   1.0637529     -6.9074038      0             -5.3118858     -0.0076674067 
+      2000   1.0683919     -6.9208373      0             -5.3183613      0.025224844  
+      2100   1.0641777     -6.8444335      0             -5.2482783     -0.045951011  
+      2200   1.0627759     -6.8496905      0             -5.2556379      0.08615694   
+      2300   1.0563043     -6.9232958      0             -5.3389499     -0.10693088   
+      2400   1.0630142     -6.9090833      0             -5.3146733      0.047152805  
+      2500   1.0530774     -6.9164553      0             -5.3369494     -0.031352304  
+      2600   1.0587607     -6.9441857      0             -5.3561555     -0.10163649   
+      2700   1.0452889     -6.9392045      0             -5.3713806     -0.099858174  
+      2800   1.0334488     -6.908043       0             -5.3579779      0.031646324  
+      2900   1.0380436     -6.91666        0             -5.3597033     -0.035297697  
+      3000   1.0206913     -6.9609265      0             -5.4299964     -0.067045256  
+      3100   1.0320778     -6.941349       0             -5.3933403     -0.094681191  
+      3200   1.0198468     -6.9902139      0             -5.4605504     -0.13517641   
+      3300   1.0258907     -6.9238628      0             -5.3851342     -0.020011262  
+      3400   1.0098866     -7.0125459      0             -5.4978217     -0.16702058   
+      3500   1.0179301     -6.9096262      0             -5.3828377     -0.1357093    
+      3600   1.0187831     -6.951309       0             -5.423241      -0.055948004  
+      3700   1.0106988     -6.9669066      0             -5.4509642     -0.069867178  
+      3800   1.0093684     -6.9799818      0             -5.4660349     -0.077448013  
+      3900   1.0043177     -6.9652176      0             -5.4588461     -0.029331294  
+      4000   1.0191003     -6.9487064      0             -5.4201626     -0.055884972  
+Loop time of 34.7036 on 4 procs for 4000 steps with 14333 atoms
+
+Performance: 99586.345 tau/day, 115.262 timesteps/s, 1.652 Matom-step/s
+97.6% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 9.2743     | 15.621     | 22.024     | 159.3 | 45.01
+Neigh   | 1.3145     | 6.4427     | 11.659     | 201.8 | 18.57
+Comm    | 0.63207    | 2.9194     | 5.092      | 121.7 |  8.41
+Output  | 0.0016838  | 0.097626   | 0.19456    |  30.7 |  0.28
+Modify  | 0.035469   | 0.13428    | 0.23499    |  26.9 |  0.39
+Other   |            | 9.489      |            |       | 27.34
+
+Nlocal:        3583.25 ave        7183 max           0 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Nghost:         1025.5 ave        2064 max           0 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Neighs:         100509 ave      202248 max           0 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+FullNghs:       101123 ave      202795 max           0 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+
+Total # of neighbors = 405043
+Ave neighs/atom = 28.259471
+Neighbor list builds = 1042
+Dangerous builds = 0
+Total wall time: 0:00:34

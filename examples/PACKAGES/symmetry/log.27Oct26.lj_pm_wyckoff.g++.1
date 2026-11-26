@@ -1,0 +1,139 @@
+LAMMPS (30 Sep 2026 - Development - patch_30Sep2026-557-g6b420a463c-modified)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread.
+  using 1 OpenMP thread(s) per MPI task
+# fix symmetry example: 3 LJ atoms with a mirror plane (space group Pm)
+#
+# Atoms 1 and 2 are mirror images of each other across the plane y = 0.
+# Atom 3 is on the mirror plane at y = L/2 (which is equivalent to y = 0
+# because of the periodic boundaries) and thus its own image.  Such an
+# atom is on a special position: it can only move within the mirror
+# plane.  The fix finds this from the positions and keeps y = 4 for
+# atom 3 and y1 + y2 = 8 for atoms 1 and 2 exactly.
+
+units           lj
+atom_style      atomic
+boundary        p p p
+atom_modify     map array
+
+region          box block 0 8 0 8 0 8
+create_box      1 box
+Created orthogonal box = (0 0 0) to (8 8 8)
+  1 by 1 by 1 MPI processor grid
+
+create_atoms    1 single 1.2 2.5 3.0
+Created 1 atoms
+  using lattice units in orthogonal box = (0 0 0) to (8 8 8)
+  create_atoms CPU = 0.000 seconds
+create_atoms    1 single 1.2 5.5 3.0
+Created 1 atoms
+  using lattice units in orthogonal box = (0 0 0) to (8 8 8)
+  create_atoms CPU = 0.000 seconds
+create_atoms    1 single 1.5 4.0 2.0
+Created 1 atoms
+  using lattice units in orthogonal box = (0 0 0) to (8 8 8)
+  create_atoms CPU = 0.000 seconds
+
+mass            1 1.0
+pair_style      lj/cut 2.5
+pair_coeff      * * 1.0 1.0
+pair_modify     shift yes
+
+fix             1 all nve
+fix             sym all symmetry pm.json
+
+# make random velocities symmetric, then rescale.  Of the 9 coordinates,
+# 5 are free (3 of atom 1, 2 of atom 3) and 2 belong to the motion of the
+# whole system parallel to the mirror plane, so the temperature uses 3.
+velocity        all create 0.7 12345 mom yes rot yes
+run             0 post no
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+
+- fix symmetry: https://doi.org/10.1021/acs.jctc.2c00401
+
+@Article{WhiteCoxSymmetricMD,
+author = {Cox, Sam and White, Andrew D.},
+title = {Symmetric Molecular Dynamics},
+journal = {Journal of Chemical Theory and Computation},
+volume = {18},
+number = {7},
+pages = {4077-4081},
+year = {2022},
+doi = {10.1021/acs.jctc.2c00401},
+note ={PMID: 35699649},
+url = {https://doi.org/10.1021/acs.jctc.2c00401},
+}
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+Fix symmetry sym: group Pm with 2 operators, 3 atoms in 2 orbits (1 on special positions) with 5 independent coordinates
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 2.8
+  ghost atom cutoff = 2.8
+  binsize = 1.4, bins = 6 6 6
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cut, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 3.065 | 3.065 | 3.065 Mbytes
+   Step          Temp          E_pair         E_mol          TotEng         Press     
+         0   1.0554326     -0.05877096     0              0.46894535     0.0012677037 
+Loop time of 1.072e-06 on 1 procs for 0 steps with 3 atoms
+
+velocity        all scale 0.7
+
+variable        y3   equal y[3]
+variable        sumy equal y[1]+y[2]
+
+thermo_style    custom step temp pe etotal press v_y3 v_sumy
+thermo_modify   format float %14.8g
+thermo          100
+run             1000
+Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+Per MPI rank memory allocation (min/avg/max) = 3.065 | 3.065 | 3.065 Mbytes
+   Step          Temp          PotEng         TotEng         Press           v_y3          v_sumy    
+         0             0.7    -0.05877096     0.29122904  0.00057349937              4              8
+       100       1.9468182    -0.68259097     0.29081811     0.00411116              4              8
+       200      0.79994129    -0.10876684     0.29120381  0.00014619555              4              8
+       300      0.64966078    -0.03360187     0.29122852  0.00082560221              4              8
+       400      0.75511847   -0.086328361     0.29123088  0.00048582555              4              8
+       500       1.2375073    -0.32765478     0.29109889   0.0022131705              4              8
+       600      0.68993809   -0.053739934     0.29122911   0.0006878922              4              8
+       700      0.64138493   -0.029464016     0.29122845  0.00085499281              4              8
+       800      0.64553442   -0.031538727     0.29122848  0.00084021154              4              8
+       900      0.72535421   -0.071470198     0.29120691  0.00044496305              4              8
+      1000      0.76813842   -0.092827769     0.29124144    0.013510045              4              8
+Loop time of 0.000701452 on 1 procs for 1000 steps with 3 atoms
+
+Performance: 615865376.391 tau/day, 1425614.297 timesteps/s, 4.277 Matom-step/s
+0.0% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 6.6943e-05 | 6.6943e-05 | 6.6943e-05 |   0.0 |  9.54
+Neigh   | 3.816e-05  | 3.816e-05  | 3.816e-05  |   0.0 |  5.44
+Comm    | 0.00011413 | 0.00011413 | 0.00011413 |   0.0 | 16.27
+Output  | 4.0638e-05 | 4.0638e-05 | 4.0638e-05 |   0.0 |  5.79
+Modify  | 0.00024939 | 0.00024939 | 0.00024939 |   0.0 | 35.55
+Other   |            | 0.0001922  |            |       | 27.40
+
+Nlocal:              3 ave           3 max           3 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:              7 ave           7 max           7 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:              3 ave           3 max           3 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 3
+Ave neighs/atom = 1
+Neighbor list builds = 37
+Dangerous builds = 0
+Total wall time: 0:00:00

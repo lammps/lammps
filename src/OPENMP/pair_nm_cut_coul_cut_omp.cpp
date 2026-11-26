@@ -18,6 +18,7 @@
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
+#include "math_special.h"
 #include "neigh_list.h"
 #include "suffix.h"
 
@@ -25,6 +26,7 @@
 
 #include "omp_compat.h"
 using namespace LAMMPS_NS;
+using MathSpecial::powauto;
 
 /* ---------------------------------------------------------------------- */
 
@@ -152,11 +154,11 @@ void PairNMCutCoulCutOMP::eval(int iifrom, int iito, ThrData * const thr)
 
         if (rsq < cut_ljsqi[jtype]) {
           r = sqrt(rsq);
-          rminv = pow(r2inv,mmi[jtype]/2.0);
-          rninv = pow(r2inv,nni[jtype]/2.0);
+          rminv = powauto(r,-mmi[jtype]);
+          rninv = powauto(r,-nni[jtype]);
           forcenm = e0nmi[jtype]*nmi[jtype] *
-            (r0ni[jtype]/pow(r,nni[jtype]) -
-             r0mi[jtype]/pow(r,mmi[jtype]));
+            (r0ni[jtype]*rninv -
+             r0mi[jtype]*rminv);
           forcenm *= factor_lj;
           if (EFLAG)
             evdwl = (e0nmi[jtype]*(mmi[jtype] *

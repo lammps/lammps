@@ -204,7 +204,7 @@ void PairTersoffZBLOMP::force_zeta(Param *param, double rsq, double zeta_ij,
                                    double &fforce, double &prefactor,
                                    int eflag, double &eng)
 {
-  double r,fa,fa_d,bij;
+  double r,fa,fa_d,bij,bij_d;
 
   r = sqrt(rsq);
 
@@ -219,9 +219,9 @@ void PairTersoffZBLOMP::force_zeta(Param *param, double rsq, double zeta_ij,
      ters_fc_d(r,param) * F_fermi(r,param->ZBLexpscale,param->ZBLcut)
      - ters_fc(r,param) * F_fermi_d(r,param->ZBLexpscale,param->ZBLcut));
 
-  bij = ters_bij(zeta_ij,param);
+  ters_bij_and_d(zeta_ij,param,bij,bij_d);
   fforce = 0.5*bij*fa_d;
-  prefactor = -0.5*fa * ters_bij_d(zeta_ij,param);
+  prefactor = -0.5*fa * bij_d;
   if (eflag) eng = 0.5*bij*fa;
 }
 

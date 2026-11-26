@@ -112,7 +112,7 @@ FixPair::FixPair(LAMMPS *lmp, int narg, char **arg) :
   vector = nullptr;
   array = nullptr;
   FixPair::grow_arrays(atom->nmax);
-  atom->add_callback(Atom::GROW);
+  atom->add_callback(this, Atom::GROW);
 
   // zero the vector/array since dump may access it on timestep 0
   // zero the vector/array since a variable may access it before first ru
@@ -162,7 +162,7 @@ FixPair::~FixPair()
 {
   // unregister callbacks to this fix from Atom class
 
-  atom->delete_callback(id,Atom::GROW);
+  atom->delete_callback(this, Atom::GROW);
 
   delete[] pairname;
   for (int ifield = 0; ifield < nfield; ifield++) {

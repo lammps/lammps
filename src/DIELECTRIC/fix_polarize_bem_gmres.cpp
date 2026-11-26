@@ -108,7 +108,7 @@ FixPolarizeBEMGMRES::FixPolarizeBEMGMRES(LAMMPS *_lmp, int narg, char **arg) :
   if (atom->avec->forceclearflag) extraflag = 1;
 
   FixPolarizeBEMGMRES::grow_arrays(atom->nmax);
-  atom->add_callback(0);    // to ensure to work with atom->sort()
+  atom->add_callback(this, Atom::GROW);    // to ensure to work with atom->sort()
 
   // output the residual and actual number of iterations
 
@@ -131,7 +131,7 @@ FixPolarizeBEMGMRES::~FixPolarizeBEMGMRES()
   memory->destroy(tag2mat);
 
   if (allocated) FixPolarizeBEMGMRES::deallocate();
-  atom->delete_callback(id, 0);
+  atom->delete_callback(this, Atom::GROW);
 }
 
 /* ---------------------------------------------------------------------- */

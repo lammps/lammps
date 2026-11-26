@@ -48,18 +48,7 @@ Copyright 2021 Yury Lysogorskiy^1, Cas van der Oord^2, Anton Bochkarev^1,
 #include "ace-evaluator/ace_version.h"
 #include "ace/ace_b_basis.h"
 
-namespace LAMMPS_NS {
-struct ACEImpl {
-  ACEImpl() : basis_set(nullptr), ace(nullptr) {}
-  ~ACEImpl()
-  {
-    delete basis_set;
-    delete ace;
-  }
-  ACECTildeBasisSet *basis_set;
-  ACERecursiveEvaluator *ace;
-};
-}    // namespace LAMMPS_NS
+#include "ace_impl.h"
 
 using namespace LAMMPS_NS;
 using namespace MathConst;

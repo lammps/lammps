@@ -1,5 +1,8 @@
 # Plumed2 support for PLUMED package
 
+if(POLICY CMP0009)
+  cmake_policy(SET CMP0009 NEW)
+endif()
 # set policy to use the time of extraction as timestamps of files unpacked from downloaded
 # archives, so that updating an archive version triggers rebuilding all dependent objects
 if(POLICY CMP0135)
@@ -144,7 +147,7 @@ else()
     elseif(PLUMED_MODE STREQUAL "SHARED")
       set(PLUMED_BUILD_BYPRODUCTS "<INSTALL_DIR>/lib/${CMAKE_SHARED_LIBRARY_PREFIX}plumed${CMAKE_SHARED_LIBRARY_SUFFIX};<INSTALL_DIR>/lib/${CMAKE_SHARED_LIBRARY_PREFIX}plumedKernel${CMAKE_SHARED_LIBRARY_SUFFIX}")
     elseif(PLUMED_MODE STREQUAL "RUNTIME")
-      set(PLUMED_BUILD_BYPRODUCTS "<INSTALL_DIR>/lib/${CMAKE_STATIC_LIBRARY_PREFIX}plumedWrapper${CMAKE_STATIC_LIBRARY_PREFIX}")
+      set(PLUMED_BUILD_BYPRODUCTS "<INSTALL_DIR>/lib/${CMAKE_STATIC_LIBRARY_PREFIX}plumedWrapper${CMAKE_STATIC_LIBRARY_SUFFIX}")
     endif()
 
     include(ExternalProject)

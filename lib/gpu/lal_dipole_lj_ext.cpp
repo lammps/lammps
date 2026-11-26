@@ -45,7 +45,7 @@ int dpl_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
   int gpu_rank=DPLMF.device->gpu_rank();
   int procs_per_gpu=DPLMF.device->procs_per_gpu();
 
-  DPLMF.device->init_message(screen,"dipole/cut",first_gpu,last_gpu);
+  DPLMF.device->init_message(screen,"lj/cut/dipole/cut",first_gpu,last_gpu);
 
   bool message=false;
   if (DPLMF.device->replica_me()==0 && screen)

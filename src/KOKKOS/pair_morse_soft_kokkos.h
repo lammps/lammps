@@ -51,11 +51,11 @@ class PairMorseSoftKokkos : public PairMorseSoft {
   struct params_lj{
 // NOLINTNEXTLINE
     KOKKOS_INLINE_FUNCTION
-    params_lj() {cutsq=0;d0=0;alpha=0;r0=0;morse1=0;bs=0;vs=0;};
+    params_lj() {cutsq=0;d0=0;alpha=0;r0=0;morse1=0;bs=0;vs=0;offset=0;};
 // NOLINTNEXTLINE
     KOKKOS_INLINE_FUNCTION
-    params_lj(int /*i*/) {cutsq=0;d0=0;alpha=0;r0=0;morse1=0;bs=0;vs=0;};
-    KK_FLOAT cutsq,d0,alpha,r0,morse1,bs,vs;
+    params_lj(int /*i*/) {cutsq=0;d0=0;alpha=0;r0=0;morse1=0;bs=0;vs=0;offset=0;};
+    KK_FLOAT cutsq,d0,alpha,r0,morse1,bs,vs,offset;
   };
 
  protected:

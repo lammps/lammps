@@ -1,5 +1,6 @@
 ---
 lammps_version: 30 Jul 2021
+tags: kokkos
 date_generated: Sun Aug 22 11:45:20 2021
 epsilon: 5e-14
 skip_tests: single

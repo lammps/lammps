@@ -24,7 +24,6 @@
 #include "math_const.h"
 #include "memory.h"
 #include "memory_kokkos.h"
-#include "modify.h"
 
 #include <cstring>
 
@@ -114,9 +113,7 @@ void AtomVecEllipsoidKokkos::grow(int n)
   memoryKK->grow_kokkos(atomKK->k_torque,atomKK->torque,nmax,"atom:torque");
   memoryKK->grow_kokkos(atomKK->k_ellipsoid,atomKK->ellipsoid,nmax,"atom:ellipsoid");
 
-  if (atom->nextra_grow)
-    for (int iextra = 0; iextra < atom->nextra_grow; iextra++)
-      modify->fix[atom->extra_grow[iextra]]->grow_arrays(nmax);
+  for (auto *ifix : atom->extra_grow) ifix->grow_arrays(nmax);
 
   grow_pointers();
   atomKK->sync(Host,ALL_MASK);

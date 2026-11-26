@@ -1,10 +1,13 @@
 ####################################################################################################
 #
-# TLSPH example:  elongate a 2d strip of aluminum py pulling its ends apart
+# TLSPH example:  elongate a 2d strip of aluminum by pulling its ends apart
 #
 # unit system: GPa / mm / ms
 #
+# the default number of steps is short for testing, use "-var nsteps 30000" to reach failure
+#
 ####################################################################################################
+variable        nsteps index 2000
 
 ####################################################################################################
 # MATERIAL PARAMETERS
@@ -83,7 +86,7 @@ fix             velbot_fix bot smd/setvel 0 v_vel_down 0
 ####################################################################################################
 # INTERACTION PHYSICS / MATERIAL MODEL
 # We use polynomial EOS for the pressure and the Johnson Cook strength model
-# An integration point fails (cannot support tension anymore) if the plastic strain exceeds 0.5.
+# An integration point fails (cannot support tension anymore) if the plastic strain exceeds 1.2.
 ####################################################################################################
 pair_style      smd/tlsph
 pair_coeff      1 1 *COMMON ${rho} ${E} ${nu} ${q1} ${q2} ${hg} ${cp} &
@@ -128,10 +131,10 @@ variable        time equal f_dtfix
 fix             stress_curve all print 10 "${time} ${strain} ${stress}" file stress_strain.dat screen no
 
 thermo          100
-thermo_style    custom step dt f_dtfix time v_strain
+thermo_style    custom step dt f_dtfix time v_strain press
 
 ####################################################################################################
 # RUN SIMULATION
 ####################################################################################################
 #fix            2 all enforce2d
-run             2000
+run             ${nsteps}

@@ -167,14 +167,13 @@ compute_evdwl(const KK_FLOAT &rsq, const int &, const int &, const int &itype, c
   const KK_FLOAT r0     = (STACKPARAMS?m_params[itype][jtype].r0:params(itype,jtype).r0);
   const KK_FLOAT bs     = (STACKPARAMS?m_params[itype][jtype].bs:params(itype,jtype).bs);
   const KK_FLOAT vs     = (STACKPARAMS?m_params[itype][jtype].vs:params(itype,jtype).vs);
+  const KK_FLOAT offset = (STACKPARAMS?m_params[itype][jtype].offset:params(itype,jtype).offset);
 
   const KK_FLOAT dexp  = Kokkos::exp(-alpha*(Kokkos::sqrt(rsq) - r0));
   const KK_FLOAT dexp2 = dexp*dexp;
   const KK_FLOAT dexp3 = dexp2*dexp;
 
-  // as in PairMorseSoft::compute(), which does not subtract offset[][]
-
-  return vs*d0*dexp*(dexp - static_cast<KK_FLOAT>(2.0)) + bs*dexp3;
+  return vs*d0*dexp*(dexp - static_cast<KK_FLOAT>(2.0)) + bs*dexp3 - offset;
 }
 
 /* ----------------------------------------------------------------------
@@ -258,6 +257,7 @@ double PairMorseSoftKokkos<DeviceType>::init_one(int i, int j)
   k_params.view_host()(i,j).morse1 = static_cast<KK_FLOAT>(morse1[i][j]);
   k_params.view_host()(i,j).bs = static_cast<KK_FLOAT>(bs);
   k_params.view_host()(i,j).vs = static_cast<KK_FLOAT>(vs);
+  k_params.view_host()(i,j).offset = static_cast<KK_FLOAT>(offset[i][j]);
   k_params.view_host()(i,j).cutsq = static_cast<KK_FLOAT>(cutone*cutone);
   k_params.view_host()(j,i) = k_params.view_host()(i,j);
   if (i<MAX_TYPES_STACKPARAMS+1 && j<MAX_TYPES_STACKPARAMS+1) {

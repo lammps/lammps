@@ -321,7 +321,7 @@ FixElectrodeConp::FixElectrodeConp(LAMMPS *lmp, int narg, char **arg) :
     memory->create(potential_iele, ngroup, "FixElectrode:potential_iele");
   }
 
-  atom->add_callback(Atom::GROW);    // atomvec track local electrode atoms
+  atom->add_callback(this, Atom::GROW);    // atomvec track local electrode atoms
   comm_reverse = 1;
   comm_forward = 1;
 
@@ -1335,7 +1335,7 @@ FixElectrodeConp::~FixElectrodeConp()
     }
   }
 
-  if (modify->get_fix_by_id(id)) atom->delete_callback(id, Atom::GROW);
+  if (modify->get_fix_by_id(id)) atom->delete_callback(this, Atom::GROW);
 
   delete[] recvcounts;
   delete[] displs;

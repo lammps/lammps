@@ -80,8 +80,7 @@ extern void Hydrogen_Bonds(reax_system *, simulation_data *, storage *, reax_lis
 extern void Init_System(reax_system *, control_params *);
 extern void Init_Simulation_Data(simulation_data *);
 extern void Init_Workspace(reax_system *, control_params *, storage *);
-extern void Initialize(reax_system *, control_params *, simulation_data *, storage *, reax_list **,
-                       MPI_Comm);
+extern void Initialize(reax_system *, control_params *, simulation_data *, storage *, reax_list **);
 
 // lists
 
@@ -111,7 +110,7 @@ inline int Num_Entries(int i, reax_list *l)
 
 // lookup
 
-extern void Init_Lookup_Tables(reax_system *, control_params *, storage *, MPI_Comm);
+extern void Init_Lookup_Tables(reax_system *, control_params *, storage *, const int *, int);
 extern void Deallocate_Lookup_Tables(reax_system *);
 extern void Natural_Cubic_Spline(LAMMPS_NS::Error *, const double *, const double *,
                                  cubic_spline_coef *, unsigned int);
@@ -126,6 +125,8 @@ extern void Atom_Energy(reax_system *, control_params *, simulation_data *, stor
 // nonbonded
 
 extern void Compute_Polarization_Energy(reax_system *, simulation_data *, storage *);
+extern bool ACKS2_Kinetic_Pair(reax_system *, storage *, int, far_neighbor_data *, double &,
+                               double &);
 extern void vdW_Coulomb_Energy(reax_system *, control_params *, simulation_data *, storage *,
                                reax_list **);
 extern void Tabulated_vdW_Coulomb_Energy(reax_system *, control_params *, simulation_data *,

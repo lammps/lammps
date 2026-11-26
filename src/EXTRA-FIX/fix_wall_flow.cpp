@@ -149,8 +149,8 @@ FixWallFlow::FixWallFlow(LAMMPS *lmp, int narg, char **arg) :
   }
 
   memory->grow(current_segment, atom->nmax, "WallFlow::current_segment");
-  atom->add_callback(Atom::GROW);
-  if (restart_peratom) atom->add_callback(Atom::RESTART);
+  atom->add_callback(this, Atom::GROW);
+  if (restart_peratom) atom->add_callback(this, Atom::RESTART);
 
   maxexchange = 1;
 
@@ -162,8 +162,8 @@ FixWallFlow::FixWallFlow(LAMMPS *lmp, int narg, char **arg) :
 FixWallFlow::~FixWallFlow()
 {
   if (copymode) return;
-  atom->delete_callback(id, Atom::GROW);
-  if (restart_peratom) atom->delete_callback(id, Atom::RESTART);
+  atom->delete_callback(this, Atom::GROW);
+  if (restart_peratom) atom->delete_callback(this, Atom::RESTART);
   memory->destroy(current_segment);
 
   delete random;

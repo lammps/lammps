@@ -8,7 +8,7 @@ int zscal_(integer *n, doublecomplex *za, doublecomplex *zx, integer *incx)
     doublecomplex z__1;
     integer i__, nincx;
     --zx;
-    if (*n <= 0 || *incx <= 0 || za->r == 1. && za->i == 0.) {
+    if (*n <= 0 || *incx <= 0 || (za->r == 1. && za->i == 0.)) {
         return 0;
     }
     if (*incx == 1) {

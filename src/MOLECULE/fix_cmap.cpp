@@ -114,8 +114,8 @@ FixCMAP::FixCMAP(LAMMPS *lmp, int narg, char **arg) :
 
   nmax_previous = 0;
   FixCMAP::grow_arrays(atom->nmax);
-  atom->add_callback(Atom::GROW);
-  atom->add_callback(Atom::RESTART);
+  atom->add_callback(this, Atom::GROW);
+  atom->add_callback(this, Atom::RESTART);
 
   // local list of crossterms
 
@@ -133,8 +133,8 @@ FixCMAP::~FixCMAP()
 
   // unregister callbacks to this fix from Atom class
 
-  atom->delete_callback(id,Atom::GROW);
-  atom->delete_callback(id,Atom::RESTART);
+  atom->delete_callback(this, Atom::GROW);
+  atom->delete_callback(this, Atom::RESTART);
 
   memory->destroy(g_axis);
   memory->destroy(cmapgrid);

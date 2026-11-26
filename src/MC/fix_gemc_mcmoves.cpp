@@ -22,6 +22,7 @@
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
+#include "fix.h"
 #include "force.h"
 #include "group.h"
 #include "kspace.h"
@@ -552,7 +553,7 @@ void FixGEMC::attempt_atomic_translation_full()
     atom->nghost = 0;
     comm->borders();
     if (triclinic_flag) domain->lamda2x(atom->nlocal + atom->nghost);
-    if (modify->n_pre_neighbor) modify->pre_neighbor();
+    if (modify->has_fixes(FixConst::PRE_NEIGHBOR)) modify->pre_neighbor();
     neighbor->build(1);
   }
   update_gas_atoms_list();

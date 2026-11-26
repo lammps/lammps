@@ -28,7 +28,7 @@ you need GNU make (other make variants are not going to work since the
 build system uses features unique to GNU make) and a Unix-like build
 environment with a Bourne shell, and shell tools like "sed", "grep",
 "touch", "test", "tr", "cp", "mv", "rm", "ln", "diff" and so on. Parts
-of LAMMPS interface with or use Python version 3.6 or later.
+of LAMMPS interface with or use Python version 3.9 or later.
 
 Compiler and OS compatibility
 =============================
@@ -43,8 +43,9 @@ running MD simulations.  Please see the :doc:`section on portability
 
    In recent years, Intel switched their compilers from a proprietary
    code base to compilers based on LLVM (which is also the foundation of
-   the Clang compilers).  It has since stopped updating their legacy
-   compilers.  Some versions of those LLVM compilers creates incorrect
+   the Clang compilers).  It has since discontinued their legacy
+   compilers, which are no longer supported by LAMMPS.  Some versions of
+   those LLVM compilers creates incorrect
    binary code that results in incorrect behavior of LAMMPS; this is
    particularly common when using high optimization levels and
    vectorization.  There have been several cases where people reported

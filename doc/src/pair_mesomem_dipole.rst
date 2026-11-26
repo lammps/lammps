@@ -1,10 +1,11 @@
 .. index:: pair_style mesomem/dipole
+.. index:: pair_style mesomem/dipole/kk
 .. index:: pair_style mesomem/dipole/omp
 
 pair_style mesomem/dipole command
 =================================
 
-Accelerator Variants: *mesomem/dipole/omp*
+Accelerator Variants: *mesomem/dipole/kk*, *mesomem/dipole/omp*
 
 Syntax
 """"""
@@ -30,7 +31,7 @@ Example input scripts available: examples/PACKAGES/mesomem, https://gitlab.tudel
 Description
 """""""""""
 
-.. versionadded:: TBD
+.. versionadded:: 13Nov2026
 
 The *mesomem/dipole* style computes the MesoMem interaction
 :ref:`(Sillano) <Sillano>` for a solvent-free, one-particle-thick,

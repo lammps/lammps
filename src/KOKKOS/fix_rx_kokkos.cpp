@@ -139,7 +139,7 @@ void FixRxKokkos<DeviceType>::init()
   if (pairDPDE == nullptr)
     error->all(FLERR, Error::NOLASTLINE, "Must use pair_style dpd/fdt/energy with fix rx");
 
-  pairDPDEKK = dynamic_cast<decltype(pairDPDEKK)>(pairDPDE);
+  pairDPDEKK = PairDPDfdtEnergyKokkos<DeviceType>::cast(pairDPDE);
   if (pairDPDEKK == nullptr)
     error->all(FLERR, Error::NOLASTLINE, "Must use pair_style dpd/fdt/energy/kk with fix rx/kk");
 
@@ -2020,6 +2020,20 @@ void FixRxKokkos<DeviceType>::unpack_reverse_comm(int n, int *list, double *buf)
   // Signal that the host view has been modified.
   k_dpdThetaLocal.modify_host();
   k_sumWeights.   modify_host();
+}
+
+/* ----------------------------------------------------------------------
+   convert a pointer to the base class into one to this class, nullptr if
+   it points to an instance of another class.  this must be done here,
+   where the class is explicitly instantiated: elsewhere the dynamic_cast
+   uses a hidden local copy of the type information with the C++ ABI of
+   macOS on arm64, so the linker warns about different visibility settings
+------------------------------------------------------------------------- */
+
+template <typename DeviceType>
+FixRxKokkos<DeviceType> *FixRxKokkos<DeviceType>::cast(Fix *ptr)
+{
+  return dynamic_cast<FixRxKokkos<DeviceType> *>(ptr);
 }
 
 namespace LAMMPS_NS {

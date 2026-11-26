@@ -3,14 +3,15 @@ LAMMPS.  Currently, the package has the following features:
 
 * Tait, ideal gas, Lennard-Jones equation of states, full support for
   complete (i.e. internal-energy dependent) equations of state
-* plain or Monaghans XSPH integration of the equations of motion
 * density continuity or density summation to propagate the density field
 * commands to set internal energy and density of particles from the
   input script
 * output commands to access internal energy and density for dumping and
   thermo output
 
-See the file doc/USER/sph/SPH_LAMMPS_userguide.pdf to get started.
+Please see the relevant how to page in the LAMMPS documentation,
+https://docs.lammps.org/Howto_sph.html
+for more background and details on what's included in the package.
 
 There are example scripts for using this package in examples/PACKAGES/sph.
 

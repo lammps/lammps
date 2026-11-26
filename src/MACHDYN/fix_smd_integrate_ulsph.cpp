@@ -58,10 +58,9 @@ FixSMDIntegrateUlsph::FixSMDIntegrateUlsph(LAMMPS *lmp, int narg, char **arg) :
         vlimit = -1.0;
         int iarg = 3;
 
-        if (comm->me == 0) {
-                printf("\n>>========>>========>>========>>========>>========>>========>>========>>========\n");
-                printf("fix smd/integrate_ulsph is active for group: %s \n", arg[1]);
-        }
+        if (comm->me == 0)
+                utils::logmesg(lmp, "\n>>========>>========>>========>>========>>========>>========>>========>>========\n"
+                               "fix smd/integrate_ulsph is active for group: {}\n", arg[1]);
         while (true) {
 
                 if (iarg >= narg) {
@@ -70,10 +69,7 @@ FixSMDIntegrateUlsph::FixSMDIntegrateUlsph(LAMMPS *lmp, int narg, char **arg) :
 
                 if (strcmp(arg[iarg], "xsph") == 0) {
                         xsphFlag = true;
-                        if (comm->me == 0) {
-                                error->one(FLERR, "XSPH is currently not available");
-                                printf("... will use XSPH time integration\n");
-                        }
+                        error->all(FLERR, "XSPH is currently not available");
                 } else if (strcmp(arg[iarg], "adjust_radius") == 0) {
                         adjust_radius_flag = true;
 
@@ -98,10 +94,10 @@ FixSMDIntegrateUlsph::FixSMDIntegrateUlsph(LAMMPS *lmp, int narg, char **arg) :
 
                         max_nn = utils::inumeric(FLERR, arg[iarg],false,lmp);
 
-                        if (comm->me == 0) {
-                                printf("... will adjust smoothing length dynamically with factor %g to achieve %d to %d neighbors per particle.\n ",
-                                                adjust_radius_factor, min_nn, max_nn);
-                        }
+                        if (comm->me == 0)
+                                utils::logmesg(lmp, "... will adjust smoothing length dynamically with factor {:g} "
+                                               "to achieve {} to {} neighbors per particle.\n",
+                                               adjust_radius_factor, min_nn, max_nn);
 
                 } else if (strcmp(arg[iarg], "limit_velocity") == 0) {
                         iarg++;
@@ -110,9 +106,8 @@ FixSMDIntegrateUlsph::FixSMDIntegrateUlsph(LAMMPS *lmp, int narg, char **arg) :
                         }
                         vlimit = utils::numeric(FLERR, arg[iarg],false,lmp);
 
-                        if (comm->me == 0) {
-                                printf("... will limit velocities to <= %g\n", vlimit);
-                        }
+                        if (comm->me == 0)
+                                utils::logmesg(lmp, "... will limit velocities to <= {:g}\n", vlimit);
                 } else {
                         error->all(FLERR, iarg, "Unknown fix smd/integrate_ulsph keyword: {}", arg[iarg]);
                 }
@@ -121,12 +116,10 @@ FixSMDIntegrateUlsph::FixSMDIntegrateUlsph(LAMMPS *lmp, int narg, char **arg) :
 
         }
 
-        if (comm->me == 0) {
-                printf(">>========>>========>>========>>========>>========>>========>>========>>========\n\n");
-        }
+        if (comm->me == 0) utils::logmesg(lmp, ">>========>>========>>========>>========>>========>>========>>========>>========\n\n");
 
         // set comm sizes needed by this fix
-        atom->add_callback(Atom::GROW);
+        atom->add_callback(this, Atom::GROW);
 
         time_integrate = 1;
 }
@@ -169,8 +162,6 @@ void FixSMDIntegrateUlsph::initial_integrate(int /*vflag*/) {
         int i, itmp;
         double dtfm, vsq, scale;
         double vxsph_x, vxsph_y, vxsph_z;
-
-        //printf("initial_integrate at timestep %d\n", update->ntimestep);
 
         /*
          * get smoothed velocities from ULSPH pair style

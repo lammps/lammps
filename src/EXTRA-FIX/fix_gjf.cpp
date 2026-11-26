@@ -199,8 +199,8 @@ FixGJF::FixGJF(LAMMPS *lmp, int narg, char **arg) :
   // no need to set peratom_flag, b/c data is for internal use only
 
   FixGJF::grow_arrays(atom->nmax);
-  atom->add_callback(Atom::GROW);
-  atom->add_callback(Atom::RESTART);
+  atom->add_callback(this, Atom::GROW);
+  atom->add_callback(this, Atom::RESTART);
 
   // initialize lv to onsite velocity
   int nlocal = atom->nlocal;
@@ -223,7 +223,7 @@ FixGJF::~FixGJF()
   memory->destroy(tforce);
 
   memory->destroy(lv);
-  if (modify->get_fix_by_id(id)) atom->delete_callback(id, Atom::GROW);
+  if (modify->get_fix_by_id(id)) atom->delete_callback(this, Atom::GROW);
 }
 
 /* ---------------------------------------------------------------------- */

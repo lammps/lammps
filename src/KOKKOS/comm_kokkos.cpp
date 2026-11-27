@@ -2025,5 +2025,8 @@ template void CommKokkos::forward_comm_device<LMPDeviceType>(Fix *, int);
 template void CommKokkos::reverse_comm_device<LMPDeviceType>(Fix *, int);
 template void CommKokkos::forward_comm_device<LMPHostType>(Fix *, int);
 template void CommKokkos::reverse_comm_device<LMPHostType>(Fix *, int);
+// used directly by PairMLIAPKokkos<LMPDeviceType>
+template void CommKokkos::forward_comm_device<LMPDeviceType>(Pair *, int);
+template void CommKokkos::reverse_comm_device<LMPDeviceType>(Pair *, int);
 }
 #endif

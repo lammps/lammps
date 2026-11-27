@@ -612,7 +612,7 @@ references, fix references, and references to other variables.
 +------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | Atom vectors           | id, mass, type, mol, x, y, z, vx, vy, vz, fx, fy, fz, q                                                                                                                                                                                                                                                                                                    |
 +------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
-| Custom atom properties | i_name, d_name, i_name[i], d_name[i], i2_name[i], d2_name[i], i2_name[i][j], d_name[i][j]                                                                                                                                                                                                                                                                  |
+| Custom atom properties | i_name, d_name, i_name[i], d_name[i], i2_name[i], d2_name[i], i2_name[i][j], d2_name[i][j]                                                                                                                                                                                                                                                                 |
 +------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | Compute references     | c_ID, c_ID[i], c_ID[i][j], C_ID, C_ID[i]                                                                                                                                                                                                                                                                                                                   |
 +------------------------+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
@@ -1046,7 +1046,12 @@ has a single point or is vertical, it returns 1.0e20.
 
 The sort(x) and rsort(x) functions sort the data of the input vector by
 their numeric value: sort(x) sorts in ascending order, rsort(x) sorts
-in descending order.
+in descending order.  In a vector-style variable, the result is the
+sorted vector.  In an equal-style variable, the function must be
+followed by an index in brackets that selects one element of the sorted
+vector, e.g. "sort(c_ID)[1]" for the smallest value or "rsort(c_ID)[2]"
+for the second largest value.  These two functions cannot be used in
+atom-style variables.
 
 The gmask(x) function takes 1 argument which is a group ID.  It
 can only be used in atom-style variables.  It returns a 1 for

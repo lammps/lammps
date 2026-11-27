@@ -102,7 +102,7 @@ void FixUpdateSpecialBonds::pre_exchange()
     // remove i from special bond list for atom j and vice versa
     // ignore n2, n3 since 1-3, 1-4 special factors required to be 1.0
     // assume ghosts don't need special information
-    if (i < nlocal) {
+    if ((i >= 0) && (i < nlocal)) {
       slist = special[i];
       n1 = nspecial[i][0];
       for (m = 0; m < n1; m++)
@@ -113,7 +113,7 @@ void FixUpdateSpecialBonds::pre_exchange()
       nspecial[i][1] = nspecial[i][2] = nspecial[i][0];
     }
 
-    if (j < nlocal) {
+    if ((j >= 0) && (j < nlocal)) {
       slist = special[j];
       n1 = nspecial[j][0];
       for (m = 0; m < n1; m++)
@@ -134,7 +134,7 @@ void FixUpdateSpecialBonds::pre_exchange()
     // add i to special bond list for atom j and vice versa
     // ignore n2, n3 since 1-3, 1-4 special factors required to be 1.0
     // assume ghosts don't need special information
-    if (i < nlocal) {
+    if ((i >= 0) && (i < nlocal)) {
       n1 = nspecial[i][0];
       if (n1 >= atom->maxspecial)
         error->one(FLERR, "Special list size exceeded for atom {}", tagi);
@@ -143,7 +143,7 @@ void FixUpdateSpecialBonds::pre_exchange()
       nspecial[i][1] = nspecial[i][2] = nspecial[i][0];
     }
 
-    if (j < nlocal) {
+    if ((j >= 0) && (j < nlocal)) {
       n1 = nspecial[j][0];
       if (n1 >= atom->maxspecial)
         error->one(FLERR, "Special list size exceeded for atom {}", tagj);
@@ -195,7 +195,7 @@ void FixUpdateSpecialBonds::pre_force(int /*vflag*/)
       i2 = atom->map(tag2);
 
       // Loop through atoms of owned atoms i j
-      if (i1 < nlocal) {
+      if ((i1 >= 0) && (i1 < nlocal)) {
         jlist = firstneigh[i1];
         jnum = numneigh[i1];
         for (jj = 0; jj < jnum; jj++) {
@@ -205,7 +205,7 @@ void FixUpdateSpecialBonds::pre_force(int /*vflag*/)
         }
       }
 
-      if (i2 < nlocal) {
+      if ((i2 >= 0) && (i2 < nlocal)) {
         jlist = firstneigh[i2];
         jnum = numneigh[i2];
         for (jj = 0; jj < jnum; jj++) {
@@ -233,7 +233,7 @@ void FixUpdateSpecialBonds::pre_force(int /*vflag*/)
       i2 = atom->map(tag2);
 
       // Loop through atoms of owned atoms i j and update SB bits
-      if (i1 < nlocal) {
+      if ((i1 >= 0) && (i1 < nlocal)) {
         jlist = firstneigh[i1];
         jnum = numneigh[i1];
         for (jj = 0; jj < jnum; jj++) {
@@ -243,7 +243,7 @@ void FixUpdateSpecialBonds::pre_force(int /*vflag*/)
         }
       }
 
-      if (i2 < nlocal) {
+      if ((i2 >= 0) && (i2 < nlocal)) {
         jlist = firstneigh[i2];
         jnum = numneigh[i2];
         for (jj = 0; jj < jnum; jj++) {

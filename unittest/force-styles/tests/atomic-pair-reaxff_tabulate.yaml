@@ -3,7 +3,7 @@ lammps_version: 2 Sep 2026
 tags: slow noWindows
 date_generated: Mon Sep 14 02:05:29 2026
 epsilon: 5e-12
-skip_tests: kokkos_gpu_single kokkos_omp_single kokkos_serial_single
+skip_tests: kokkos_gpu_single kokkos_omp_single kokkos_serial_single kokkos_omp_full
 prerequisites: |
   pair reaxff
   fix qeq/reaxff

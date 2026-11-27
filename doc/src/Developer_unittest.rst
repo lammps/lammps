@@ -1575,14 +1575,8 @@ test with a label).  Support for unit tests using KOKKOS with GPU
 acceleration is currently not supported.
 
 When you see a failed build on GitHub, click on ``Details`` to be taken
-to the corresponding LAMMPS Jenkins CI web page.  Click on the "Exit"
-symbol near the ``Logout`` button on the top right of that page to go to
-the "classic view".  In the classic view, there is a list of the
-individual runs that make up this test run (they are shown but cannot be
-inspected in the default view).  You can click on any of those.
-Clicking on ``Test Result`` will display the list of failed tests. Click
-on the "Status" column to sort the tests based on their Failed or Passed
-status.  Then click on the failed test to expand its output.
+to either the corresponding GitHub Action page or the matching entry
+on the LAMMPS CI web page.
 
 For example, the following output snippet shows the failed unit test
 
@@ -1651,7 +1645,7 @@ catch exceptions with the test command, for example,
 
 It is recommended to configure the build with ``-D
 BUILD_SHARED_LIBS=on`` and use a custom linker to shorten the build time
-during recompilation.  Installing `ccache` in your development
-environment helps speed up recompilation by caching previous
+during recompilation.  Using the ``ccache`` compiler cache in your
+development environment helps speed up recompilation by caching previous
 compilations and detecting when the same compilation is being done
 again.  Please see :doc:`Build_development` for further details.

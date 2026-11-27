@@ -382,41 +382,47 @@ void SNAIntel::compute_ui(const SNA_IVEC &jnum, const SNA_IVEC &ielem,
    pick out right beta value
 ------------------------------------------------------------------------- */
 
-double SNAIntel::choose_beta(const int j, const int j1, const int j2,
-                             const int elem1, const int elem2, const int elem3,
-                             int &itriple)
+SNA_DVEC SNAIntel::choose_beta(const SNA_DVEC *beta, const int j, const int j1,
+                               const int j2, const int elem1, const int elem2,
+                               const int elem3)
 {
-  double bfactor;
+  // with chemflag, the derivative with respect to another density factor
+  // of the same angular momentum j belongs to the coefficient of the
+  // permuted element triplet, so sum those coefficients instead of
+  // multiplying by the multiplicity.  same result for one element.
+
+  SNA_DVEC betaj;
   if (j >= j1) {
     const int jjb = idxb_block[j1][j2][j];
-    itriple = ((elem1 * nelements + elem2) * nelements + elem3) *
-      idxb_max + jjb;
+    betaj = beta[((elem1 * nelements + elem2) * nelements + elem3) *
+                 idxb_max + jjb];
     if (j1 == j) {
+      // B[e1 e2 e3] = B[e3 e2 e1] when j1 = j
+      betaj = betaj + beta[((elem3 * nelements + elem2) * nelements + elem1) *
+                           idxb_max + jjb];
+      // B[e1 e2 e3] = B[e1 e3 e2] when j2 = j (then j1 = j2 = j)
       if (j2 == j)
-        bfactor = 3.0;
-      else
-        bfactor = 2.0;
-    } else
-      bfactor = 1.0;
+        betaj = betaj + beta[((elem1 * nelements + elem3) * nelements + elem2) *
+                             idxb_max + jjb];
+    }
   } else if (j >= j2) {
     const int jjb = idxb_block[j][j2][j1];
-    itriple = ((elem3 * nelements + elem2) * nelements + elem1) *
-      idxb_max + jjb;
+    betaj = beta[((elem3 * nelements + elem2) * nelements + elem1) *
+                 idxb_max + jjb];
+    // B[e3 e2 e1] = B[e2 e3 e1] when j2 = j
     if (j2 == j)
-      bfactor = 2.0;
-    else
-      bfactor = 1.0;
+      betaj = betaj + beta[((elem2 * nelements + elem3) * nelements + elem1) *
+                           idxb_max + jjb];
   } else {
     const int jjb = idxb_block[j2][j][j1];
-    itriple = ((elem2 * nelements + elem3) * nelements + elem1) *
-      idxb_max + jjb;
-    bfactor = 1.0;
+    betaj = beta[((elem2 * nelements + elem3) * nelements + elem1) *
+                 idxb_max + jjb];
   }
 
   if (!bnorm_flag && j1 > j)
-    bfactor *= (1.0 + j1) / (1.0 + j);
+    betaj = betaj * ((1.0 + j1) / (1.0 + j));
 
-  return bfactor;
+  return betaj;
 }
 
 /* ----------------------------------------------------------------------
@@ -504,10 +510,8 @@ void SNAIntel::compute_zi_or_yi(const SNA_DVEC* beta)
         if (COMPUTE_YI) {
           int jju = idxz[jjz].jju;
           for (int elem3 = 0; elem3 < nelements; elem3++) {
-            int itriple;
-            double bfactor = choose_beta(j, j1, j2, elem1, elem2, elem3,
-                                         itriple);
-            const SNA_DVEC betaj = beta[itriple] * bfactor;
+            const SNA_DVEC betaj = choose_beta(beta, j, j1, j2, elem1, elem2,
+                                               elem3);
             const int i = elem3 * idxu_max + jju;
             SIMD_store(&(ylist_r[i]), SIMD_load(ylist_r + i) + betaj * ztmp_r);
             SIMD_store(&(ylist_i[i]), SIMD_load(ylist_i + i) + betaj * ztmp_i);
@@ -548,10 +552,8 @@ void SNAIntel::compute_yi_from_zi(const SNA_DVEC* beta)
 
         int jju = idxz[jjz].jju;
         for (int elem3 = 0; elem3 < nelements; elem3++) {
-          int itriple;
-          double bfactor = choose_beta(j, j1, j2, elem1, elem2, elem3,
-                                       itriple);
-          const SNA_DVEC betaj = beta[itriple] * bfactor;
+          const SNA_DVEC betaj = choose_beta(beta, j, j1, j2, elem1, elem2,
+                                             elem3);
           const int i = elem3 * idxu_max + jju;
           SIMD_store(&(ylist_r[i]), SIMD_load(ylist_r + i) + betaj * ztmp_r);
           SIMD_store(&(ylist_i[i]), SIMD_load(ylist_i + i) + betaj * ztmp_i);
@@ -840,7 +842,7 @@ void SNAIntel::zero_uarraytot(const SNA_IVEC &ielem)
             else {
               SIMD_mask m(ielem == jelem);
               SIMD_store(ulisttot_rp + jju,
-                         SIMD_zero_masked(~m, SIMD_set(wself)));
+                         SIMD_zero_masked(m, SIMD_set(wself)));
             }
           }
           jju += vector_width();

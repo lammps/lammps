@@ -352,6 +352,15 @@ int DeviceT::init_device(MPI_Comm /*world*/, MPI_Comm replica, const int ngpu,
   if (set_ocl_params(ocl_vstring, extra_args)!=0)
     return -11;
 
+  // without a neighbor list setting from the user, build the neighbor lists
+  // on the device, unless the selected device cannot do it
+  if (_gpu_mode==Device<numtyp,acctyp>::GPU_DEFAULT) {
+    if (requires_host_neighbor())
+      _gpu_mode=Device<numtyp,acctyp>::GPU_FORCE;
+    else
+      _gpu_mode=Device<numtyp,acctyp>::GPU_NEIGH;
+  }
+
   int flag=0;
   for (int i=0; i<_procs_per_gpu; i++) {
     if (_gpu_rank==i)
@@ -629,7 +638,7 @@ int DeviceT::init_nbor(Neighbor *nbor, const int nlocal,
   #endif
 
   #ifdef USE_OPENCL
-  if (_ocl_config_name == "AMD_GPU" && gpu->shared_memory(_first_device) && gpu_nbor > 0)
+  if (gpu_nbor > 0 && requires_host_neighbor())
     return -17;
   #endif
 
@@ -1198,27 +1207,11 @@ bool lmp_has_compatible_gpu_device()
   return compatible_gpu;
 }
 
-// check if a GPU requires neighbor lists on the host.
-bool lmp_gpu_requires_host_neighbor()
+// neighbor list mode of the initialized device. GPU_DEFAULT is replaced
+// during initialization, after the platform and the device are selected.
+int lmp_gpu_mode()
 {
-  UCL_Device gpu;
-
-#if defined(USE_OPENCL)
-  // AMD GPUs with shared (unified) host/device memory cannot reliably build
-  // neighbor lists on the device with the OpenCL API.
-  if (gpu.num_platforms() > 0) {
-    auto name = gpu.platform_name();
-    if ((name.find("AMD") != std::string::npos) && gpu.shared_memory(0)) return true;
-  }
-#elif defined(USE_HIP)
-  // Integrated AMD GPUs (APUs sharing host memory) cannot reliably build neighbor
-  // lists on the device with the HIP API either: device neighbor builds trigger a
-  // memory access fault (e.g. lj/cut/dipole/cut) or hit the ellipsoid/sphere-mix
-  // restriction (e.g. gayberne). Force host-side neighbor lists, matching OpenCL.
-  if (gpu.num_devices() > 0 && gpu.integrated(0)) return true;
-#endif
-
-  return false;
+  return global_device.gpu_mode();
 }
 
 std::string lmp_gpu_device_info()

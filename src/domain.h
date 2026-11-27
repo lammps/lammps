@@ -206,6 +206,8 @@ class Domain : protected Pointers {
  protected:
   double small[3];    // fractions of box lengths
   std::unordered_set<Region *> regions;
+
+  void set_shrink_bounds(int, double, double);
 };
 
 }    // namespace LAMMPS_NS

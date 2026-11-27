@@ -815,7 +815,11 @@ void PairEffCut::settings(int narg, char **arg)
     else if (strcmp(arg[iarg],"ecp") == 0) {
       iarg += 1;
       while (iarg < narg) {
+        if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "pair_style eff/cut ecp", error);
         atype = utils::inumeric(FLERR,arg[iarg],false,lmp);
+        if ((atype < 1) || (atype >= 100))
+          error->all(FLERR,iarg+1,"Invalid atom type {} for ecp keyword of pair style eff/cut",
+                     atype);
         if (strcmp(arg[iarg+1],"C") == 0) ecp_type[atype] = 6;
         else if (strcmp(arg[iarg+1],"N") == 0) ecp_type[atype] = 7;
         else if (strcmp(arg[iarg+1],"O") == 0) ecp_type[atype] = 8;
@@ -887,6 +891,9 @@ void PairEffCut::init_style()
 
   if (flagall && !ecp_found)
     error->all(FLERR,"Need to specify ECP type on pair_style command");
+  if (ecp_found && (atom->ntypes >= 100))
+    error->all(FLERR,Error::NOLASTLINE,
+               "Pair style eff/cut with ECP types supports only up to 99 atom types");
 
   // need a half neigh list
 
@@ -921,13 +928,18 @@ void PairEffCut::coeff(int narg, char **arg)
   } else {
     int ecp;
     ecp = utils::inumeric(FLERR,arg[0],false,lmp);
+    if ((ecp < 1) || (ecp > atom->ntypes) || (ecp >= 100))
+      error->all(FLERR,Error::ARGZERO,
+                 "Invalid atom type {} in pair_coeff command for pair style eff/cut",ecp);
     if (strcmp(arg[1],"s") == 0) {
+      if (narg < 5) utils::missing_cmd_args(FLERR, "pair_coeff s", error);
       PAULI_CORE_A[ecp_type[ecp]] = utils::numeric(FLERR,arg[2],false,lmp);
       PAULI_CORE_B[ecp_type[ecp]] = utils::numeric(FLERR,arg[3],false,lmp);
       PAULI_CORE_C[ecp_type[ecp]] = utils::numeric(FLERR,arg[4],false,lmp);
       PAULI_CORE_D[ecp_type[ecp]] = 0.0;
       PAULI_CORE_E[ecp_type[ecp]] = 0.0;
     } else if (strcmp(arg[1],"p") == 0) {
+      if (narg < 7) utils::missing_cmd_args(FLERR, "pair_coeff p", error);
       PAULI_CORE_A[ecp_type[ecp]] = utils::numeric(FLERR,arg[2],false,lmp);
       PAULI_CORE_B[ecp_type[ecp]] = utils::numeric(FLERR,arg[3],false,lmp);
       PAULI_CORE_C[ecp_type[ecp]] = utils::numeric(FLERR,arg[4],false,lmp);

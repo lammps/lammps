@@ -206,17 +206,6 @@ FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
   }
 #endif
 
-  // change default setting for neighbor lists if GPU requires host neighbor lists
-  if (_gpu_mode == GPU_DEFAULT) {
-    if (lmp_gpu_requires_host_neighbor()) {
-      if (comm->me == 0)
-        error->warning(FLERR, "GPU does not support neighbor lists on device, switching to host");
-      _gpu_mode = GPU_FORCE;
-    } else {
-      _gpu_mode = GPU_NEIGH;
-    }
-  }
-
   // set newton pair flag
 
   force->newton_pair = newtonflag;
@@ -233,6 +222,15 @@ FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
                                  binsize, opencl_args, ocl_platform,
                                  device_type_flags, block_pair);
   GPU_EXTRA::check_flag(gpu_flag,error,world);
+
+  // without the neigh keyword, the GPU library builds the neighbor lists on the
+  // device, unless the device it selected requires neighbor lists from the host
+
+  if (_gpu_mode == GPU_DEFAULT) {
+    _gpu_mode = lmp_gpu_mode();
+    if ((_gpu_mode == GPU_FORCE) && (comm->me == 0))
+      error->warning(FLERR, "GPU does not support neighbor lists on device, switching to host");
+  }
 }
 
 /* ---------------------------------------------------------------------- */

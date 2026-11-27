@@ -46,7 +46,7 @@ int dlahr2_(integer *n, integer *k, integer *nb, doublereal *a, integer *lda, do
         if (i__ > 1) {
             i__2 = *n - *k;
             i__3 = i__ - 1;
-            dgemv_((char *)"T", &i__2, &i__3, &c_b4, &y[*k + 1 + y_dim1], ldy, &a[*k + i__ - 1 + a_dim1],
+            dgemv_((char *)"N", &i__2, &i__3, &c_b4, &y[*k + 1 + y_dim1], ldy, &a[*k + i__ - 1 + a_dim1],
                    lda, &c_b5, &a[*k + 1 + i__ * a_dim1], &c__1, (ftnlen)1);
             i__2 = i__ - 1;
             dcopy_(&i__2, &a[*k + 1 + i__ * a_dim1], &c__1, &t[*nb * t_dim1 + 1], &c__1);
@@ -63,10 +63,10 @@ int dlahr2_(integer *n, integer *k, integer *nb, doublereal *a, integer *lda, do
                    (ftnlen)1, (ftnlen)1);
             i__2 = *n - *k - i__ + 1;
             i__3 = i__ - 1;
-            dgemv_((char *)"T", &i__2, &i__3, &c_b4, &a[*k + i__ + a_dim1], lda, &t[*nb * t_dim1 + 1],
+            dgemv_((char *)"N", &i__2, &i__3, &c_b4, &a[*k + i__ + a_dim1], lda, &t[*nb * t_dim1 + 1],
                    &c__1, &c_b5, &a[*k + i__ + i__ * a_dim1], &c__1, (ftnlen)1);
             i__2 = i__ - 1;
-            dtrmv_((char *)"L", (char *)"T", (char *)"U", &i__2, &a[*k + 1 + a_dim1], lda, &t[*nb * t_dim1 + 1], &c__1,
+            dtrmv_((char *)"L", (char *)"N", (char *)"U", &i__2, &a[*k + 1 + a_dim1], lda, &t[*nb * t_dim1 + 1], &c__1,
                    (ftnlen)1, (ftnlen)1, (ftnlen)1);
             i__2 = i__ - 1;
             daxpy_(&i__2, &c_b4, &t[*nb * t_dim1 + 1], &c__1, &a[*k + 1 + i__ * a_dim1], &c__1);
@@ -80,7 +80,7 @@ int dlahr2_(integer *n, integer *k, integer *nb, doublereal *a, integer *lda, do
         a[*k + i__ + i__ * a_dim1] = 1.;
         i__2 = *n - *k;
         i__3 = *n - *k - i__ + 1;
-        dgemv_((char *)"T", &i__2, &i__3, &c_b5, &a[*k + 1 + (i__ + 1) * a_dim1], lda,
+        dgemv_((char *)"N", &i__2, &i__3, &c_b5, &a[*k + 1 + (i__ + 1) * a_dim1], lda,
                &a[*k + i__ + i__ * a_dim1], &c__1, &c_b38, &y[*k + 1 + i__ * y_dim1], &c__1,
                (ftnlen)1);
         i__2 = *n - *k - i__ + 1;
@@ -89,7 +89,7 @@ int dlahr2_(integer *n, integer *k, integer *nb, doublereal *a, integer *lda, do
                &c__1, &c_b38, &t[i__ * t_dim1 + 1], &c__1, (ftnlen)1);
         i__2 = *n - *k;
         i__3 = i__ - 1;
-        dgemv_((char *)"T", &i__2, &i__3, &c_b4, &y[*k + 1 + y_dim1], ldy, &t[i__ * t_dim1 + 1], &c__1,
+        dgemv_((char *)"N", &i__2, &i__3, &c_b4, &y[*k + 1 + y_dim1], ldy, &t[i__ * t_dim1 + 1], &c__1,
                &c_b5, &y[*k + 1 + i__ * y_dim1], &c__1, (ftnlen)1);
         i__2 = *n - *k;
         dscal_(&i__2, &tau[i__], &y[*k + 1 + i__ * y_dim1], &c__1);
@@ -103,14 +103,14 @@ int dlahr2_(integer *n, integer *k, integer *nb, doublereal *a, integer *lda, do
     }
     a[*k + *nb + *nb * a_dim1] = ei;
     dlacpy_((char *)"A", k, nb, &a[(a_dim1 << 1) + 1], lda, &y[y_offset], ldy, (ftnlen)1);
-    dtrmm_((char *)"R", (char *)"L", (char *)"T", (char *)"U", k, nb, &c_b5, &a[*k + 1 + a_dim1], lda, &y[y_offset], ldy, (ftnlen)1,
+    dtrmm_((char *)"R", (char *)"L", (char *)"N", (char *)"U", k, nb, &c_b5, &a[*k + 1 + a_dim1], lda, &y[y_offset], ldy, (ftnlen)1,
            (ftnlen)1, (ftnlen)1, (ftnlen)1);
     if (*n > *k + *nb) {
         i__1 = *n - *k - *nb;
-        dgemm_((char *)"T", (char *)"T", k, nb, &i__1, &c_b5, &a[(*nb + 2) * a_dim1 + 1], lda,
+        dgemm_((char *)"N", (char *)"N", k, nb, &i__1, &c_b5, &a[(*nb + 2) * a_dim1 + 1], lda,
                &a[*k + 1 + *nb + a_dim1], lda, &c_b5, &y[y_offset], ldy, (ftnlen)1, (ftnlen)1);
     }
-    dtrmm_((char *)"R", (char *)"U", (char *)"T", (char *)"N", k, nb, &c_b5, &t[t_offset], ldt, &y[y_offset], ldy, (ftnlen)1,
+    dtrmm_((char *)"R", (char *)"U", (char *)"N", (char *)"N", k, nb, &c_b5, &t[t_offset], ldt, &y[y_offset], ldy, (ftnlen)1,
            (ftnlen)1, (ftnlen)1, (ftnlen)1);
     return 0;
 }

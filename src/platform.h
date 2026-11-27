@@ -389,8 +389,10 @@ bool file_is_writable(const std::string &path);
  * is a text file with just one line: the symbolic link target path.
  * This function opens the path parameter and reads a line.  If that
  * line is a readable file, it returns that path, otherwise the
- * original path.  The check is only performed when compiled for
- * Windows.  Otherwise the original path is always returned.
+ * original path.  A relative path is first tried relative to the
+ * folder of the redirect file, as for a symbolic link, then relative
+ * to the current working directory.  The check is only performed when
+ * compiled for Windows.  Otherwise the original path is always returned.
  *
  * \param path  file path to check
  * \return      the redirected path or the original path */

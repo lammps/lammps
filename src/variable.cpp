@@ -232,6 +232,7 @@ Variable::Variable(LAMMPS *lmp) : Pointers(lmp)
 {
   randomequal = nullptr;
   randomatom = nullptr;
+  treetype = ATOM;
 
   // override initializer since LAMMPS class needs to be instantiated
 
@@ -1316,9 +1317,14 @@ void Variable::compute_atom(int ivar, int igroup, double *result, int stride, in
 
   var.eval_in_progress = 1;
 
+  // this evaluation can be nested in that of a vector-style formula,
+  // e.g. via compute reduce, so restore treetype for the outer formula
+
   if (var.style == ATOM) {
+    int treetype_outer = treetype;
     treetype = ATOM;
     evaluate(var.data[0],&tree,ivar);
+    treetype = treetype_outer;
     collapse_tree(tree);
   } else vstore = var.reader->fixstore->vstore;
 
@@ -1411,8 +1417,13 @@ int Variable::compute_vector(int ivar, double **result)
 
   var.eval_in_progress = 1;
 
+  // this evaluation can be nested in that of an atom-style formula,
+  // e.g. via sum(v_name), so restore treetype for the outer formula
+
+  int treetype_outer = treetype;
   treetype = VECTOR;
   evaluate(var.data[0],&tree,ivar);
+  treetype = treetype_outer;
   collapse_tree(tree);
   int nlen = size_tree_vector(tree);
   if (nlen == 0) print_var_error(FLERR,"Vector-style variable has zero length",ivar);
@@ -2474,11 +2485,12 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
             if (index2 <= 0 || index2 > cols_custom)
               print_var_error(FLERR,fmt::format("Invalid custom atom property reference {} in variable formula",word),
                               ivar);
+            // index2 is the column, counting from 1
             if (type_custom == 0) {
-              custom2global(&atom->iarray[index_custom][0][index2],nullptr,cols_custom,index1,
+              custom2global(&atom->iarray[index_custom][0][index2-1],nullptr,cols_custom,index1,
                             tree,treestack,ntreestack,argstack,nargstack);
             } else {
-              custom2global(nullptr,&atom->darray[index_custom][0][index2],cols_custom,index1,
+              custom2global(nullptr,&atom->darray[index_custom][0][index2-1],cols_custom,index1,
                             tree,treestack,ntreestack,argstack,nargstack);
             }
           }
@@ -3837,8 +3849,12 @@ tagint Variable::int_between_brackets(char *&ptr, int varallow)
 
   *ptr = '\0';
 
-  // evaluate index as floating point variable or as tagint via stoll()
+  // evaluate index as floating point variable or as integer via stoll().
+  // check the range before the conversion to tagint, so that a value too
+  // large for tagint cannot wrap around to a different index.
 
+  double dvalue = 0.0;
+  long long lvalue = 0;
   try {
     if (varflag) {
       char *id = start+2;
@@ -3849,15 +3865,27 @@ tagint Variable::int_between_brackets(char *&ptr, int varallow)
       char *var = retrieve(id);
       if (var == nullptr)
         error->all(FLERR,"Invalid variable evaluation for variable {} in variable formula", id);
-      index = static_cast<tagint>(std::stod(var));
-    } else index = static_cast<tagint>(std::stoll(start));
+      dvalue = std::stod(var);
+    } else lvalue = std::stoll(start);
   } catch (std::exception &e) {
     error->all(FLERR,"Illegal value in brackets: {}({})", e.what(), start);
   }
   *ptr = ']';
 
-  if (index <= 0)
-    error->all(FLERR,"Index between variable brackets must be positive");
+  if (varflag) {
+    // also true for NaN
+    if (!(dvalue >= 1.0))
+      error->all(FLERR,"Index between variable brackets must be positive");
+    if (dvalue >= (double) MAXTAGINT)
+      error->all(FLERR,"Index {} between variable brackets is too large", dvalue);
+    index = static_cast<tagint>(dvalue);
+  } else {
+    if (lvalue <= 0)
+      error->all(FLERR,"Index between variable brackets must be positive");
+    if (lvalue >= MAXTAGINT)
+      error->all(FLERR,"Index {} between variable brackets is too large", lvalue);
+    index = static_cast<tagint>(lvalue);
+  }
   return index;
 }
 
@@ -4722,11 +4750,27 @@ int Variable::special_function(const std::string &word, char *contents, Tree **t
     if (narg != 1)
       print_var_error(FLERR,fmt::format("Invalid special function {}() in variable formula", word),ivar);
 
+    // sort() and rsort() return a global vector: an atom-style formula cannot use it
+    // and an equal-style formula must select one element with a trailing index
+
+    if ((method == SORT) || (method == RSORT)) {
+      if (tree && (treetype == ATOM))
+        print_var_error(FLERR, fmt::format("Cannot use {}() in atom-style variable formula", word),
+                        ivar);
+      if (!tree && (str[istr] != '['))
+        print_var_error(FLERR, fmt::format("{}() in equal-style variable formula requires an "
+                                           "index in brackets", word), ivar);
+    }
+
     Compute *compute = nullptr;
     Fix *fix = nullptr;
-    int index,nvec,nstride;
+    // index is a column of a global array.  keep it as tagint like int_between_brackets()
+    // returns it, so that it is compared to the number of columns before any conversion.
+
+    tagint index;
+    int nvec,nstride;
     char *ptr1,*ptr2;
-    int ivar = -1;
+    int jvar = -1;
 
     // argument is compute
 
@@ -4734,7 +4778,7 @@ int Variable::special_function(const std::string &word, char *contents, Tree **t
       ptr1 = strchr(args[0],'[');
       if (ptr1) {
         ptr2 = ptr1;
-        index = (int) int_between_brackets(ptr2,0);
+        index = int_between_brackets(ptr2,0);
         *ptr1 = '\0';
       } else index = 0;
 
@@ -4778,7 +4822,7 @@ int Variable::special_function(const std::string &word, char *contents, Tree **t
       ptr1 = strchr(args[0],'[');
       if (ptr1) {
         ptr2 = ptr1;
-        index = (int) int_between_brackets(ptr2,0);
+        index = int_between_brackets(ptr2,0);
         *ptr1 = '\0';
       } else index = 0;
 
@@ -4818,28 +4862,29 @@ int Variable::special_function(const std::string &word, char *contents, Tree **t
       ptr1 = strchr(args[0],'[');
       if (ptr1) {
         ptr2 = ptr1;
-        index = (int) int_between_brackets(ptr2,0);
+        index = int_between_brackets(ptr2,0);
         *ptr1 = '\0';
       } else index = 0;
 
       if (index)
         print_var_error(FLERR,"Invalid special function in variable formula",ivar);
-      ivar = find(&args[0][2]);
-      if (ivar < 0)
+      jvar = find(&args[0][2]);
+      if (jvar < 0)
         print_var_error(FLERR,"Invalid special function in variable formula",ivar);
-      if (variables[ivar].style != VECTOR)
+      if (variables[jvar].style != VECTOR)
         print_var_error(FLERR,"Mis-matched special function variable in variable formula",ivar);
-      if (variables[ivar].eval_in_progress) print_var_error(FLERR,"has a circular dependency",ivar);
+      if (variables[jvar].eval_in_progress) print_var_error(FLERR,"has a circular dependency",jvar);
 
       double *vec;
-      nvec = compute_vector(ivar,&vec);
+      nvec = compute_vector(jvar,&vec);
       nstride = 1;
 
-      if ((method == AVE) && (nvec == 0))
-        print_var_error(FLERR,"Cannot compute average of empty vector",ivar);
-
-
     } else print_var_error(FLERR,"Invalid special function in variable formula",ivar);
+
+    // ave() divides by the number of elements, trap() reads the first and the last element
+
+    if (((method == AVE) || (method == TRAP)) && (nvec == 0))
+      print_var_error(FLERR, fmt::format("Cannot compute {}() of an empty vector", word), ivar);
 
     value = 0.0;
     if (method == SLOPE) sx = sxx = sy = sxy = 0.0;
@@ -4877,7 +4922,7 @@ int Variable::special_function(const std::string &word, char *contents, Tree **t
     if (fix) {
       double one;
       for (int i = 0; i < nvec; i++) {
-        if (index) one = fix->compute_array(i,index-1);
+        if (index) one = fix->compute_array(i,(int) index-1);
         else one = fix->compute_vector(i);
         if (method == SUM) value += one;
         else if (method == XMIN) value = MIN(value,one);
@@ -4893,16 +4938,16 @@ int Variable::special_function(const std::string &word, char *contents, Tree **t
         }
       }
       if (method == TRAP) {
-        if (index) value -= 0.5*fix->compute_array(0,index-1) +
-                     0.5*fix->compute_array(nvec-1,index-1);
+        if (index) value -= 0.5*fix->compute_array(0,(int) index-1) +
+                     0.5*fix->compute_array(nvec-1,(int) index-1);
         else value -= 0.5*fix->compute_vector(0) +
                0.5*fix->compute_vector(nvec-1);
       }
     }
 
-    if (ivar >= 0) {
+    if (jvar >= 0) {
       double one;
-      double *vec = variables[ivar].vec.values;
+      double *vec = variables[jvar].vec.values;
       for (int i = 0; i < nvec; i++) {
         one = vec[i];
         if (method == SUM) value += one;
@@ -4950,19 +4995,17 @@ int Variable::special_function(const std::string &word, char *contents, Tree **t
 
       } else {
 
-        // process one pair of trailing brackets
-        // point istr beyond last bracket
-        // nbracket = # of bracket pairs
-        // index    = int inside each bracket pair, vector index
+        // process the pair of trailing brackets, its presence was checked above
+        // point istr beyond the closing bracket
+        // element = int inside the bracket pair, vector index
 
-        if (str[istr] == '[') {
-          ptr = &str[istr];
-          int index = int_between_brackets(ptr,1);
-          if (index > nvec)
-            print_var_error(FLERR, fmt::format("index {} exceeds vector size of {}\n", index, nvec),ivar);
-          istr = ptr-str+1;
-          argstack[nargstack++] = unsorted[index-1];
-        }
+        ptr = &str[istr];
+        tagint element = int_between_brackets(ptr,1);
+        if (element > nvec)
+          print_var_error(FLERR, fmt::format("index {} exceeds vector size of {}", element, nvec),
+                          ivar);
+        istr = ptr-str+1;
+        argstack[nargstack++] = unsorted[element-1];
       }
     } else {
 

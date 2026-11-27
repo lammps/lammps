@@ -63,6 +63,7 @@ class ArgInfo {
      * by the "allowed" argument of the constructor) or NONE, if it
      * if not a recognized or allowed reference, or UNKNOWN, in case
      * some error happened identifying or parsing the values of the indices
+     * or an index is not a positive number
      *
      * \return  integer with a constant from ArgTypes enumerator */
 

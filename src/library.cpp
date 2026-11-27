@@ -135,6 +135,18 @@ static void ptr_argument_warning()
     lammps_last_global_errormessage = std::move(message);   \
   }
 
+/* ----------------------------------------------------------------------
+   local index of the atom with an atom ID provided by the caller, or -1.
+   Atom::map() does not check its argument, so atom IDs outside the range
+   of the atom map (1 to map_tag_max) are rejected here.
+------------------------------------------------------------------------- */
+
+static int map_atom_id(Atom *atom, tagint id)
+{
+  if ((id <= 0) || (id > atom->map_tag_max)) return -1;
+  return atom->map(id);
+}
+
 // ----------------------------------------------------------------------
 // Library functions to create/destroy an instance of LAMMPS
 // ----------------------------------------------------------------------
@@ -2496,7 +2508,7 @@ int lammps_map_atom(void *handle, const void *id)
 
   const auto *tag = (const tagint *) id;
   if (lmp->atom->map_style > Atom::MAP_NONE)
-    return lmp->atom->map(*tag);
+    return map_atom_id(lmp->atom, *tag);
   else
     return -1;
 }
@@ -3926,6 +3938,9 @@ x[100][2], x[57][0], x[57][1], x[57][2], x[210][0], :math:`\dots`);
 *data* must be pre-allocated by the caller to length
 (*count* :math:`\times` *ndata*).
 
+Entries for atom IDs that do not exist (e.g. zero, negative, or larger
+than the largest atom ID) are set to zero.
+
 .. admonition:: Restrictions
     :class: warning
 
@@ -4010,14 +4025,14 @@ void lammps_gather_atoms_subset(void *handle, const char *name, int dtype,
       if (count == 1) {
         for (i = 0; i < ndata; i++) {
           id = ids[i];
-          if ((m = lmp->atom->map(id)) >= 0 && m < nlocal)
+          if ((m = map_atom_id(lmp->atom, id)) >= 0 && m < nlocal)
             copy[i] = vector[m];
         }
 
       } else if (imgunpack) {
         for (i = 0; i < ndata; i++) {
           id = ids[i];
-          if ((m = lmp->atom->map(id)) >= 0 && m < nlocal) {
+          if ((m = map_atom_id(lmp->atom, id)) >= 0 && m < nlocal) {
             offset = count*i;
             const int image = vector[m];
             copy[offset++] = (image & IMGMASK) - IMGMAX;
@@ -4029,7 +4044,7 @@ void lammps_gather_atoms_subset(void *handle, const char *name, int dtype,
       } else {
         for (i = 0; i < ndata; i++) {
           id = ids[i];
-          if ((m = lmp->atom->map(id)) >= 0 && m < nlocal) {
+          if ((m = map_atom_id(lmp->atom, id)) >= 0 && m < nlocal) {
             offset = count*i;
             for (j = 0; j < count; j++)
               copy[offset++] = array[m][j];
@@ -4055,14 +4070,14 @@ void lammps_gather_atoms_subset(void *handle, const char *name, int dtype,
       if (count == 1) {
         for (i = 0; i < ndata; i++) {
           id = ids[i];
-          if ((m = lmp->atom->map(id)) >= 0 && m < nlocal)
+          if ((m = map_atom_id(lmp->atom, id)) >= 0 && m < nlocal)
             copy[i] = vector[m];
         }
 
       } else {
         for (i = 0; i < ndata; i++) {
           id = ids[i];
-          if ((m = lmp->atom->map(id)) >= 0 && m < nlocal) {
+          if ((m = map_atom_id(lmp->atom, id)) >= 0 && m < nlocal) {
             offset = count*i;
             for (j = 0; j < count; j++)
               copy[offset++] = array[m][j];
@@ -4092,6 +4107,9 @@ The *data* array needs to be ordered in groups of *count* values, sorted by
 atom ID (e.g., if *name* is *x* and *count* = 3, then
 *data* = {x[0][0], x[0][1], x[0][2], x[1][0], x[1][1], x[1][2], x[2][0],
 :math:`\dots`}); *data* must be of length (*count* :math:`\times` *natoms*).
+
+The atom IDs (*name* = "id") cannot be changed with this function; the
+:doc:`reset_atoms id <reset_atoms>` command renumbers atoms.
 
 .. admonition:: Restrictions
     :class: warning
@@ -4151,6 +4169,12 @@ void lammps_scatter_atoms(void *handle, const char *name, int dtype, int count, 
                       "{}(): Atom-IDs must exist, be consecutive, and be mapped", FNERR);
 
     int natoms = static_cast<int> (lmp->atom->natoms);
+
+    // changing atom IDs here would leave the atom map and bond partners inconsistent
+
+    if (strcmp(name, "id") == 0)
+      lmp->error->all(FLERR, Error::NOLASTLINE,
+                      "{}(): Cannot change atom IDs, use the reset_atoms id command", FNERR);
 
     void *vptr = lmp->atom->extract(name);
     if (!vptr) lmp->error->all(FLERR, Error::NOLASTLINE, "{}(): unknown property {}", FNERR, name);
@@ -4232,6 +4256,12 @@ to be the array {x[1][0], x[1][1], x[1][2], x[100][0], x[100][1], x[100][2],
 x[57][0], x[57][1], x[57][2]}, then *count* = 3, *ndata* = 3, and *ids* would
 be {1, 100, 57}.
 
+Atom IDs that do not exist (e.g. zero, negative, or larger than the
+largest atom ID) are skipped.
+
+The atom IDs (*name* = "id") cannot be changed with this function; the
+:doc:`reset_atoms id <reset_atoms>` command renumbers atoms.
+
 .. admonition:: Restrictions
     :class: warning
 
@@ -4303,6 +4333,12 @@ void lammps_scatter_atoms_subset(void *handle, const char *name, int dtype,
     if (flag)
       lmp->error->all(FLERR, Error::NOLASTLINE, "{}(): Atom-IDs must exist and be mapped", FNERR);
 
+    // changing atom IDs here would leave the atom map and bond partners inconsistent
+
+    if (strcmp(name, "id") == 0)
+      lmp->error->all(FLERR, Error::NOLASTLINE,
+                      "{}(): Cannot change atom IDs, use the reset_atoms id command", FNERR);
+
     void *vptr = lmp->atom->extract(name);
     if (!vptr) lmp->error->all(FLERR, Error::NOLASTLINE, "{}(): Unknown property {}", FNERR, name);
 
@@ -4318,14 +4354,14 @@ void lammps_scatter_atoms_subset(void *handle, const char *name, int dtype,
       if (count == 1) {
         for (i = 0; i < ndata; i++) {
           id = ids[i];
-          if ((m = lmp->atom->map(id)) >= 0)
+          if ((m = map_atom_id(lmp->atom, id)) >= 0)
             vector[m] = dptr[i];
         }
 
       } else if (imgpack) {
         for (i = 0; i < ndata; i++) {
           id = ids[i];
-          if ((m = lmp->atom->map(id)) >= 0) {
+          if ((m = map_atom_id(lmp->atom, id)) >= 0) {
             offset = count*i;
             int image = dptr[offset++] + IMGMAX;
             image += (dptr[offset++] + IMGMAX) << IMGBITS;
@@ -4337,7 +4373,7 @@ void lammps_scatter_atoms_subset(void *handle, const char *name, int dtype,
       } else {
         for (i = 0; i < ndata; i++) {
           id = ids[i];
-          if ((m = lmp->atom->map(id)) >= 0) {
+          if ((m = map_atom_id(lmp->atom, id)) >= 0) {
             offset = count*i;
             for (j = 0; j < count; j++)
               array[m][j] = dptr[offset++];
@@ -4355,14 +4391,14 @@ void lammps_scatter_atoms_subset(void *handle, const char *name, int dtype,
       if (count == 1) {
         for (i = 0; i < ndata; i++) {
           id = ids[i];
-          if ((m = lmp->atom->map(id)) >= 0)
+          if ((m = map_atom_id(lmp->atom, id)) >= 0)
             vector[m] = dptr[i];
         }
 
       } else {
         for (i = 0; i < ndata; i++) {
           id = ids[i];
-          if ((m = lmp->atom->map(id)) >= 0) {
+          if ((m = map_atom_id(lmp->atom, id)) >= 0) {
             offset = count*i;
             for (j = 0; j < count; j++)
               array[m][j] = dptr[offset++];
@@ -5397,6 +5433,9 @@ look like {x[100][0], x[100][1], x[100][2], x[57][0], x[57][1], x[57][2], x[210]
 :math:`\dots`}); *ids* must be provided by the user with length *ndata*, and *data* must be
 pre-allocated by the caller to length (*count*\ :math:`{}\times{}`\ *ndata*).
 
+Entries for atom IDs that do not exist (e.g. zero, negative, or larger
+than the largest atom ID) are set to zero.
+
 .. admonition:: Restrictions
     :class: warning
 
@@ -5585,14 +5624,14 @@ void lammps_gather_subset(void *handle, const char *name, int dtype, int count, 
       if (count == 1) {
         for (i = 0; i < ndata; i++) {
           id = ids[i];
-          if ((m = lmp->atom->map(id)) >= 0 && m < nlocal)
+          if ((m = map_atom_id(lmp->atom, id)) >= 0 && m < nlocal)
             copy[i] = vector[m];
         }
 
       } else if (imgunpack) {
         for (i = 0; i < ndata; i++) {
           id = ids[i];
-          if ((m = lmp->atom->map(id)) >= 0 && m < nlocal) {
+          if ((m = map_atom_id(lmp->atom, id)) >= 0 && m < nlocal) {
             offset = count*i;
             const int image = vector[m];
             copy[offset++] = (image & IMGMASK) - IMGMAX;
@@ -5604,7 +5643,7 @@ void lammps_gather_subset(void *handle, const char *name, int dtype, int count, 
       } else {
         for (i = 0; i < ndata; i++) {
           id = ids[i];
-          if ((m = lmp->atom->map(id)) >= 0 && m < nlocal) {
+          if ((m = map_atom_id(lmp->atom, id)) >= 0 && m < nlocal) {
             offset = count*i;
             for (j = 0; j < count; j++)
               copy[offset++] = array[m][j];
@@ -5631,14 +5670,14 @@ void lammps_gather_subset(void *handle, const char *name, int dtype, int count, 
       if (count == 1) {
         for (i = 0; i < ndata; i++) {
           id = ids[i];
-          if ((m = lmp->atom->map(id)) >= 0 && m < nlocal)
+          if ((m = map_atom_id(lmp->atom, id)) >= 0 && m < nlocal)
             copy[i] = vector[m];
         }
 
       } else {
         for (i = 0; i < ndata; i++) {
           id = ids[i];
-          if ((m = lmp->atom->map(id)) >= 0 && m < nlocal) {
+          if ((m = map_atom_id(lmp->atom, id)) >= 0 && m < nlocal) {
             offset = count*i;
             for (j = 0; j < count; j++)
               copy[offset++] = array[m][j];
@@ -5667,6 +5706,9 @@ atoms, unordered.
 The *data* array needs to be ordered in groups of *count* values, sorted by atom ID (e.g., if
 *name* is *x* and *count* = 3, then *data* = {x[0][0], x[0][1], x[0][2], x[1][0], x[1][1],
 x[1][2], x[2][0], :math:`\dots`}); *data* must be of length (*count* :math:`\times` *natoms*).
+
+The atom IDs (*name* = "id") cannot be changed with this function; the
+:doc:`reset_atoms id <reset_atoms>` command renumbers atoms.
 
 .. admonition:: Restrictions
     :class: warning
@@ -5747,6 +5789,12 @@ void lammps_scatter(void *handle, const char *name, int dtype, int count, void *
                       "{}(): Atom-IDs must exist, be consecutive, and be mapped", FNERR);
 
     int natoms = static_cast<int> (lmp->atom->natoms);
+    // changing atom IDs here would leave the atom map and bond partners inconsistent
+
+    if (strcmp(name, "id") == 0)
+      lmp->error->all(FLERR, Error::NOLASTLINE,
+                      "{}(): Cannot change atom IDs, use the reset_atoms id command", FNERR);
+
     void *vptr = lmp->atom->extract(name);
 
     // fix
@@ -5911,6 +5959,12 @@ to be the array {x[1][0], x[1][1], x[1][2], x[100][0], x[100][1], x[100][2],
 x[57][0], x[57][1], x[57][2]}, then *count* = 3, *ndata* = 3, and *ids* would
 be {1, 100, 57}.
 
+Atom IDs that do not exist (e.g. zero, negative, or larger than the
+largest atom ID) are skipped.
+
+The atom IDs (*name* = "id") cannot be changed with this function; the
+:doc:`reset_atoms id <reset_atoms>` command renumbers atoms.
+
 .. admonition:: Restrictions
     :class: warning
 
@@ -5987,6 +6041,12 @@ void lammps_scatter_subset(void *handle, const char *name, int dtype, int count,
     if (lmp->atom->map_style == Atom::MAP_NONE) flag = 1;
     if (flag)
       lmp->error->all(FLERR, Error::NOLASTLINE, "{}(): Atom-IDs must exist and be mapped", FNERR);
+
+    // changing atom IDs here would leave the atom map and bond partners inconsistent
+
+    if (strcmp(name, "id") == 0)
+      lmp->error->all(FLERR, Error::NOLASTLINE,
+                      "{}(): Cannot change atom IDs, use the reset_atoms id command", FNERR);
 
     void *vptr = lmp->atom->extract(name);
 
@@ -6085,14 +6145,14 @@ void lammps_scatter_subset(void *handle, const char *name, int dtype, int count,
       if (count == 1) {
         for (i = 0; i < ndata; i++) {
           id = ids[i];
-          if ((m = lmp->atom->map(id)) >= 0)
+          if ((m = map_atom_id(lmp->atom, id)) >= 0)
             vector[m] = dptr[i];
         }
 
       } else if (imgpack) {
         for (i = 0; i < ndata; i++) {
           id = ids[i];
-          if ((m = lmp->atom->map(id)) >= 0) {
+          if ((m = map_atom_id(lmp->atom, id)) >= 0) {
             offset = count*i;
             int image = dptr[offset++] + IMGMAX;
             image += (dptr[offset++] + IMGMAX) << IMGBITS;
@@ -6104,7 +6164,7 @@ void lammps_scatter_subset(void *handle, const char *name, int dtype, int count,
       } else {
         for (i = 0; i < ndata; i++) {
           id = ids[i];
-          if ((m = lmp->atom->map(id)) >= 0) {
+          if ((m = map_atom_id(lmp->atom, id)) >= 0) {
             offset = count*i;
             for (j = 0; j < count; j++)
               array[m][j] = dptr[offset++];
@@ -6122,14 +6182,14 @@ void lammps_scatter_subset(void *handle, const char *name, int dtype, int count,
       if (count == 1) {
         for (i = 0; i < ndata; i++) {
           id = ids[i];
-          if ((m = lmp->atom->map(id)) >= 0)
+          if ((m = map_atom_id(lmp->atom, id)) >= 0)
             vector[m] = dptr[i];
         }
 
       } else {
         for (i = 0; i < ndata; i++) {
           id = ids[i];
-          if ((m = lmp->atom->map(id)) >= 0) {
+          if ((m = map_atom_id(lmp->atom, id)) >= 0) {
             offset = count*i;
             for (j = 0; j < count; j++)
               array[m][j] = dptr[offset++];
@@ -6177,8 +6237,17 @@ provided.
 The function returns the number of atoms created or -1 on failure (e.g.,
 when called before as box has been created).
 
+The function stops with an error and creates no atoms when an atom type
+is outside the range 1 to the number of atom types or when an atom ID
+is zero or negative.  Like the :doc:`create_atoms command <create_atoms>`,
+it checks the atom IDs after creating the atoms, e.g. for duplicate IDs.
+The function now returns -1 in all cases where it stops with an error.
+
 Coordinates and velocities have to be given in a 1d-array in the order
 X(1), Y(1), Z(1), X(2), Y(2), Z(2), ..., X(N), Y(N), Z(N).
+
+All MPI processes must be called with the same data: each of them
+creates the atoms that fall into its subdomain.
 
 \endverbatim
  *
@@ -6208,6 +6277,7 @@ int lammps_create_atoms(void *handle, int n, const tagint *id, const int *type,
   }
   if (!type || !x) return -1;
   bigint natoms_prev = lmp->atom->natoms;
+  int ncreated = -1;
 
   BEGIN_CAPTURE
   {
@@ -6219,12 +6289,33 @@ int lammps_create_atoms(void *handle, int n, const tagint *id, const int *type,
       lmp->error->all(FLERR, Error::NOLASTLINE, "{}(): Must have atom IDs to create atoms", FNERR);
     }
 
+    // check atom types and atom IDs of all N atoms before creating any of them.
+    // all MPI ranks get the same data, so they all stop with the same error.
+
+    for (int i = 0; i < n; i++) {
+      if ((type[i] <= 0) || (type[i] > lmp->atom->ntypes))
+        lmp->error->all(FLERR, Error::NOLASTLINE, "{}(): Invalid atom type {} for atom {} of {}",
+                        FNERR, type[i], i + 1, n);
+      if (id && ((id[i] <= 0) || (id[i] >= MAXTAGINT)))
+        lmp->error->all(FLERR, Error::NOLASTLINE, "{}(): Invalid atom ID {} for atom {} of {}",
+                        FNERR, id[i], i + 1, n);
+    }
+
     // loop over all N atoms on all MPI ranks
     // if this proc would own it based on its coordinates, invoke create_atom()
     // optionally set atom tags and velocities
 
     Atom *atom = lmp->atom;
     Domain *domain = lmp->domain;
+
+    // clear global->local map for owned and ghost atoms
+    // clear ghost count and any ghost bonus data internal to AtomVec
+    // same logic as in CreateAtoms::command() and at the beginning of Comm::exchange()
+    // do it now b/c creating atoms will overwrite ghost atoms
+
+    if (atom->map_style != Atom::MAP_NONE) atom->map_clear();
+    atom->nghost = 0;
+    atom->avec->clear_bonus();
 
     // the loop below creates atoms and writes their per-atom data through the
     // plain pointers, so bring the host side up to date first and hand the
@@ -6280,6 +6371,10 @@ int lammps_create_atoms(void *handle, int n, const tagint *id, const int *type,
     MPI_Allreduce(&ncurrent,&lmp->atom->natoms,1,MPI_LMP_BIGINT,
                   MPI_SUM,lmp->world);
 
+    // check that atom IDs are valid, same as the create_atoms command
+
+    atom->tag_check();
+
     // init per-atom fix/compute/variable values for created atoms
 
     atom->data_fix_compute_variable(nlocal_prev,nlocal);
@@ -6293,9 +6388,10 @@ int lammps_create_atoms(void *handle, int n, const tagint *id, const int *type,
       lmp->atom->map_init();
       lmp->atom->map_set();
     }
+    ncreated = (int) (lmp->atom->natoms - natoms_prev);
   }
   END_CAPTURE;
-  return (int) lmp->atom->natoms - natoms_prev;
+  return ncreated;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -6608,6 +6704,30 @@ int lammps_neighlist_num_elements(void *handle, int idx) {
 
 /** Return atom local index, number of neighbors, and array of neighbor local
  * atom indices of neighbor list entry
+ *
+\verbatim embed:rst
+
+.. note::
+
+   The array of neighbors is part of the neighbor list itself, so the
+   neighbor indices are stored the same way LAMMPS uses them internally.
+   For systems with :doc:`special neighbors <special_bonds>` (pairs of
+   atoms connected by bonds, angles, or dihedrals), the two highest bits
+   of a neighbor index may be set to record whether that pair is a 1-2,
+   1-3, or 1-4 neighbor.  Such indices are very large or negative numbers
+   and must have those bits removed before they can be used as local atom
+   indices, e.g. with ``j = neighbors[jj] & 0x1FFFFFFF;``.  The value of
+   ``(neighbors[jj] >> 30) & 3`` is 1, 2, or 3 for 1-2, 1-3, or 1-4
+   neighbors, respectively, and 0 for all other neighbors.
+
+   No bits are set for special neighbors with weighting factors of 1.0
+   for both Lennard-Jones and Coulomb interactions.  Special neighbors
+   with weighting factors of 0.0 for both are removed from the neighbor
+   list instead, except for the cases listed in the :doc:`special_bonds
+   <special_bonds>` command documentation (e.g. when a KSpace style is
+   used), where the bits are set for all special neighbors.
+
+\endverbatim
  *
  * \param handle          pointer to a previously created LAMMPS instance cast to ``void *``.
  * \param idx             index of this neighbor list in the list of all neighbor lists

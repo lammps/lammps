@@ -979,6 +979,9 @@ void PairTlsph::coeff(int narg, char **arg) {
     error->all(FLERR, "TLSPH coefficients can only be specified between particles of same type!");
 
   itype = utils::inumeric(FLERR, arg[0],false,lmp);
+  if ((itype < 1) || (itype > atom->ntypes))
+    error->all(FLERR, Error::ARGZERO,
+               "Invalid atom type {} in pair_coeff command for pair style smd/tlsph", itype);
 
 // set all eos, strength and failure models to inactive by default
   eos[itype] = EOS_NONE;

@@ -104,7 +104,6 @@ void PairMEAMSpline::compute(int eflag, int vflag)
 {
   const double* const * const x = atom->x;
   double* const * const forces = atom->f;
-  const int ntypes = atom->ntypes;
 
   ev_init(eflag, vflag);
 
@@ -143,7 +142,6 @@ void PairMEAMSpline::compute(int eflag, int vflag)
     // compute charge density and numBonds
     MEAM2Body* nextTwoBodyInfo = twoBodyInfo;
     double rho_value = 0;
-    const int ntypes = atom->ntypes;
     const int itype = atom->type[i];
 
     for (int jj = 0; jj < listfull->numneigh[i]; jj++) {
@@ -172,7 +170,7 @@ void PairMEAMSpline::compute(int eflag, int vflag)
           double cos_theta = (nextTwoBodyInfo->del[0]*bondk.del[0] +
                               nextTwoBodyInfo->del[1]*bondk.del[1] +
                               nextTwoBodyInfo->del[2]*bondk.del[2]);
-          partial_sum += bondk.f * gs[ij_to_potl(jtype,atom->type[bondk.tag],ntypes)].eval(cos_theta);
+          partial_sum += bondk.f * gs[ij_to_potl(jtype,atom->type[bondk.tag])].eval(cos_theta);
         }
 
         rho_value += nextTwoBodyInfo->f * partial_sum;
@@ -217,7 +215,7 @@ void PairMEAMSpline::compute(int eflag, int vflag)
                             bondj.del[1]*bondk->del[1] +
                             bondj.del[2]*bondk->del[2]);
         double g_prime;
-        double g_value = gs[ij_to_potl(jtype,atom->type[bondk->tag],ntypes)].eval(cos_theta, g_prime);
+        double g_value = gs[ij_to_potl(jtype,atom->type[bondk->tag])].eval(cos_theta, g_prime);
         double f_rik_prime = bondk->fprime;
         double f_rik = bondk->f;
 
@@ -305,7 +303,7 @@ void PairMEAMSpline::compute(int eflag, int vflag)
         rhos[i_to_potl(jtype)].eval(rij,rho_prime_j);
         double fpair = rho_prime_j * Uprime_values[i] + rho_prime_i*Uprime_values[j];
         double pair_pot_deriv;
-        double pair_pot = phis[ij_to_potl(itype,jtype,ntypes)].eval(rij, pair_pot_deriv);
+        double pair_pot = phis[ij_to_potl(itype,jtype)].eval(rij, pair_pot_deriv);
 
         fpair += pair_pot_deriv;
 
@@ -334,13 +332,18 @@ void PairMEAMSpline::compute(int eflag, int vflag)
 void PairMEAMSpline::allocate()
 {
   allocated = 1;
-  int n = nelements;
+  const int ntypes = atom->ntypes;
 
   memory->destroy(setflag);
   memory->destroy(cutsq);
-  memory->create(setflag,n+1,n+1,"pair:setflag");
-  memory->create(cutsq,n+1,n+1,"pair:cutsq");
+  memory->create(setflag,ntypes+1,ntypes+1,"pair:setflag");
+  memory->create(cutsq,ntypes+1,ntypes+1,"pair:cutsq");
 
+  delete[] map;
+  map = new int[ntypes+1];
+  for (int i=0; i <= ntypes; ++i) map[i] = -1;
+
+  const int n = nelements;
   int nmultichoose2 = n*(n+1)/2;
   //Change the functional form
   //f_ij->f_i
@@ -358,10 +361,6 @@ void PairMEAMSpline::allocate()
 
   delete[] zero_atom_energies;
   zero_atom_energies = new double[n];
-
-  delete[] map;
-  map = new int[n+1];
-  for (int i=0; i <= n; ++i) map[i] = -1;
 }
 
 /* ----------------------------------------------------------------------
@@ -393,12 +392,20 @@ void PairMEAMSpline::coeff(int narg, char **arg)
   // elements = list of element names
 
   if ((nelements == 1) && (strlen(elements[0]) == 0)) {
-    // old style: we only have one species, so we're either "NULL" or we match.
-    for (i = 3; i < narg; i++)
-      if (strcmp(arg[i],"NULL") == 0)
+    // old style: the file has parameters for one element without a name,
+    // so all atom types not mapped to NULL must use the same element name
+    const char *name = nullptr;
+    for (i = 3; i < narg; i++) {
+      if (strcmp(arg[i],"NULL") == 0) {
         map[i-2] = -1;
-      else
+      } else {
+        if (name && (strcmp(arg[i],name) != 0))
+          error->all(FLERR, "Pair style meam/spline potential file {} has parameters for only "
+                     "one element, but pair_coeff uses {} and {}", arg[2], name, arg[i]);
+        name = arg[i];
         map[i-2] = 0;
+      }
+    }
   } else {
     for (i = 3; i < narg; i++) {
       if (strcmp(arg[i],"NULL") == 0) {
@@ -429,16 +436,6 @@ void PairMEAMSpline::coeff(int narg, char **arg)
         count++;
       }
   if (count == 0) error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
-
-  // check that each element is mapped to exactly one atom type
-
-  for (int i = 0; i < nelements; i++) {
-    count = 0;
-    for (int j = 1; j <= n; j++)
-      if (map[j] == i) count++;
-    if (count != 1)
-      error->all(FLERR,"Pair style meam/spline requires one atom type per element");
-  }
 }
 
 void PairMEAMSpline::read_file(const char* filename)
@@ -446,14 +443,15 @@ void PairMEAMSpline::read_file(const char* filename)
   int nmultichoose2; // = (n+1)*n/2;
   bool isNewFormat = false;
 
+  if (elements)
+    for (int i = 0; i < nelements; i++) delete[] elements[i];
+  delete[] elements;
+  elements = nullptr;
+
   if (comm->me == 0) {
     PotentialFileReader reader(lmp, filename, "meam/spline");
 
     try {
-      if (elements)
-        for (int i = 0; i < nelements; i++) delete[] elements[i];
-      delete[] elements;
-
       // Skip first line of file. It's a comment.
       reader.skip_line();
 
@@ -485,9 +483,6 @@ void PairMEAMSpline::read_file(const char* filename)
       }
 
       nmultichoose2 = ((nelements+1)*nelements)/2;
-      if (nelements != atom->ntypes)
-        throw TokenizerException("Pair style meam/spline requires one atom type per element","");
-
       allocate();
 
       // Parse spline functions.

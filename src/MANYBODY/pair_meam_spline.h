@@ -53,11 +53,17 @@ class PairMEAMSpline : public Pair {
 
   // helper functions for compute()
 
-  [[nodiscard]] int ij_to_potl(const int itype, const int jtype, const int ntypes) const
+  // index of the spline function for the elements mapped to atom types itype and jtype.
+  // functions of element pairs are stored in the order of the potential file:
+  // (1,1), (1,2), ..., (1,N), (2,2), (2,3), ..., (N,N)
+
+  [[nodiscard]] int ij_to_potl(const int itype, const int jtype) const
   {
-    return jtype - 1 + (itype - 1) * ntypes - (itype - 1) * itype / 2;
+    const int ielem = (map[itype] < map[jtype]) ? map[itype] : map[jtype];
+    const int jelem = (map[itype] < map[jtype]) ? map[jtype] : map[itype];
+    return jelem + ielem * nelements - ielem * (ielem + 1) / 2;
   }
-  [[nodiscard]] int i_to_potl(const int itype) const { return itype - 1; }
+  [[nodiscard]] int i_to_potl(const int itype) const { return map[itype]; }
 
   int pack_forward_comm(int, int *, double *, int, int *) override;
   void unpack_forward_comm(int, int, double *) override;

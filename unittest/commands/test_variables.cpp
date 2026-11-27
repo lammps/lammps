@@ -300,7 +300,9 @@ TEST_F(VariableTest, AtomicSystem)
     command("fix  press all ave/time 1 1 1 c_press mode vector");
     command("fix  rg    all ave/time 1 1 1 c_rg mode vector");
     command("fix  vacf  all ave/time 1 1 1 c_vacf mode vector");
+    command("fix  pa    all ave/time 1 1 1 c_press c_rg mode vector");
 
+    command("variable  big    equal   1.0e30");
     command("variable  press  vector  f_press");
     command("variable  rg     vector  f_rg");
     command("variable  vacf   vector  f_vacf");
@@ -314,8 +316,16 @@ TEST_F(VariableTest, AtomicSystem)
     command("variable  rgmax  equal   max(v_rg)");
     command("variable  rgsum  equal   sum(v_rg)");
     command("variable  loop   equal   v_loop+1");
+    command("compute  idsum all reduce sum v_id");
+    command("variable  idsum  equal   c_idsum");
+    command("variable  nest   vector  v_idsum+v_press");
     command("run 0 post no");
     END_HIDE_OUTPUT();
+
+    // c_idsum evaluates the atom-style variable id while the vector-style
+    // formula of nest is parsed.  this must not turn v_press into an error.
+
+    ASSERT_KKFLOAT_EQ(variable->compute_equal("v_nest[1]"), 2080.0);
 
     ASSERT_EQ(variable->atomstyle(variable->find("one")), 0);
     ASSERT_EQ(variable->atomstyle(variable->find("id")), 1);
@@ -362,6 +372,38 @@ TEST_F(VariableTest, AtomicSystem)
                  variable->compute_equal("c_press[-2]"););
     TEST_FAILURE(".*ERROR: Index between variable brackets must be positive.*",
                  variable->compute_equal("c_press[0]"););
+
+    // an index too large for tagint must not wrap around to a different index,
+    // neither in a formula nor in the argument of sum() and the like
+
+    TEST_FAILURE(".*ERROR: Index 9223372036854775807 between variable brackets is too large.*",
+                 variable->compute_equal("c_press[9223372036854775807]"););
+    TEST_FAILURE(".*ERROR: Index 1e.30 between variable brackets is too large.*",
+                 variable->compute_equal("c_press[v_big]"););
+    ASSERT_KKFLOAT_EQ(variable->compute_equal("sum(f_pa[2])"), 3.75);
+#if defined(LAMMPS_BIGBIG)
+    TEST_FAILURE(".*ERROR: Variable formula fix array is accessed out-of-range.*",
+                 variable->compute_equal("sum(f_pa[2147483649])"););
+#else
+    TEST_FAILURE(".*ERROR: Index 2147483649 between variable brackets is too large.*",
+                 variable->compute_equal("sum(f_pa[2147483649])"););
+#endif
+
+    // i2_name[I][J] and d2_name[I][J] are column J of the atom with ID I, counting from 1
+
+    BEGIN_HIDE_OUTPUT();
+    command("fix  props all property/atom i2_ia 2 d2_da 2");
+    command("set atom 1 i2_ia[1] 5");
+    command("set atom 1 i2_ia[2] 7");
+    command("set atom 2 i2_ia[1] 11");
+    command("set atom 1 d2_da[1] 0.5");
+    command("set atom 1 d2_da[2] 0.75");
+    END_HIDE_OUTPUT();
+    ASSERT_DOUBLE_EQ(variable->compute_equal("i2_ia[1][1]"), 5.0);
+    ASSERT_DOUBLE_EQ(variable->compute_equal("i2_ia[1][2]"), 7.0);
+    ASSERT_DOUBLE_EQ(variable->compute_equal("i2_ia[2][1]"), 11.0);
+    ASSERT_DOUBLE_EQ(variable->compute_equal("d2_da[1][1]"), 0.5);
+    ASSERT_DOUBLE_EQ(variable->compute_equal("d2_da[1][2]"), 0.75);
 }
 
 TEST_F(VariableTest, Expressions)
@@ -404,6 +446,16 @@ TEST_F(VariableTest, Expressions)
     command("variable rmax   equal     rsort(v_vec4)[1]");
     command("variable xxxl   equal     rsort(v_vec4)[11]");
     command("variable isrt   vector    sort(v_one)");
+    command("variable srt2   equal     2*sort(v_vec4)");
+    command("variable srt3   equal     rsort(v_vec4)+1");
+    command("variable srt4   equal     sort(v_vec4)");
+    command("variable srt5   atom      sort(v_vec4)");
+    command("variable dvec4  vector    v_vec4*2");
+    command("variable nest   atom      sum(v_dvec4)*v_vec4");
+    command("variable empty  vector    '[]'");
+    command("variable esum   equal     sum(v_empty)");
+    command("variable etrp   equal     trap(v_empty)");
+    command("variable eave   equal     ave(v_empty)");
     command("variable pow30  equal     v_three^0");
     command("variable pow31  equal     v_three^1");
     command("variable pow32  equal     v_three^2");
@@ -465,10 +517,40 @@ TEST_F(VariableTest, Expressions)
     TEST_FAILURE(".*ERROR on proc 0: Variable err3: Invalid power expression in variable formula.*",
                  command("print \"${err3}\""););
     TEST_FAILURE(
-        ".*ERROR: Variable one: Mis-matched special function variable in variable formula.*",
+        ".*ERROR: Variable isrt: Mis-matched special function variable in variable formula.*",
         command("print \"${isrt}\""););
-    TEST_FAILURE(".*ERROR: Variable vec4: index 11 exceeds vector size of 10.*",
+    TEST_FAILURE(".*ERROR: Variable xxxl: index 11 exceeds vector size of 10.*",
                  command("print \"${xxxl}\""););
+
+    // evaluating the vector-style variable dvec4 must not hide that
+    // the vector-style variable vec4 cannot be used in an atom-style formula
+
+    std::vector<double> peratom(lmp->atom->nlocal);
+    TEST_FAILURE(".*ERROR: Variable vec4: Vector-style variable in atom-style variable formula.*",
+                 variable->compute_atom(variable->find("nest"), 0, peratom.data(), 1, 0););
+
+    // sort() and rsort() return a vector: equal-style formulas must select
+    // one element and atom-style formulas cannot use them
+
+    TEST_FAILURE(".*ERROR: Variable srt2: sort\\(\\) in equal-style variable formula requires "
+                 "an index in brackets.*",
+                 command("print \"${srt2}\""););
+    TEST_FAILURE(".*ERROR: Variable srt3: rsort\\(\\) in equal-style variable formula requires "
+                 "an index in brackets.*",
+                 command("print \"${srt3}\""););
+    TEST_FAILURE(".*ERROR: Variable srt4: sort\\(\\) in equal-style variable formula requires "
+                 "an index in brackets.*",
+                 command("print \"${srt4}\""););
+    TEST_FAILURE(".*ERROR: Variable srt5: Cannot use sort\\(\\) in atom-style variable formula.*",
+                 variable->compute_atom(variable->find("srt5"), 0, peratom.data(), 1, 0););
+
+    // ave() and trap() of an empty vector are undefined, sum() is zero
+
+    ASSERT_DOUBLE_EQ(variable->compute_equal("v_esum"), 0.0);
+    TEST_FAILURE(".*ERROR: Variable etrp: Cannot compute trap\\(\\) of an empty vector.*",
+                 command("print \"${etrp}\""););
+    TEST_FAILURE(".*ERROR: Variable eave: Cannot compute ave\\(\\) of an empty vector.*",
+                 command("print \"${eave}\""););
     TEST_FAILURE(".*ERROR on proc 0: Variable err4: Invalid power expression in variable formula.*",
                  command("print \"${err4}\""););
     TEST_FAILURE(".*ERROR on proc 0: Invalid power expression in variable formula.*",

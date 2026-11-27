@@ -788,6 +788,130 @@ TEST_F(LibraryProperties, neighlist)
     }
 };
 
+// simple cubic lattice with 125 atoms and atom IDs 1 to 125 in a periodic box
+static std::string sc_setup(const char *mapstyle)
+{
+    return std::string("clear\n"
+                       "units           lj\n"
+                       "atom_modify     map ") +
+           mapstyle +
+           "\n"
+           "lattice         sc 1.0\n"
+           "region          box block 0 5 0 5 0 5\n"
+           "create_box      2 box\n"
+           "create_atoms    1 box\n"
+           "mass            * 1.0\n"
+           "pair_style      lj/cut 2.5\n"
+           "pair_coeff      * * 1.0 1.0\n";
+}
+
+TEST_F(LibraryProperties, create_atoms_after_run)
+{
+    // after a run, lammps_create_atoms() must discard the ghost atoms of that run
+    // before it adds atoms and rebuilds the atom map
+    for (const char *mapstyle : {"array", "hash"}) {
+        if (!verbose) ::testing::internal::CaptureStdout();
+        lammps_commands_string(lmp, sc_setup(mapstyle).c_str());
+        lammps_command(lmp, "run 0 post no");
+        if (!verbose) ::testing::internal::GetCapturedStdout();
+        EXPECT_EQ(lammps_extract_setting(lmp, "nlocal"), 125);
+        EXPECT_GT(lammps_extract_setting(lmp, "nghost"), 0);
+
+        for (int k = 0; k < 4; ++k) {
+            const tagint newid  = 126 + k;
+            const int newtype   = 1;
+            const double pos[3] = {0.5 + k, 0.5, 0.5};
+            EXPECT_EQ(lammps_create_atoms(lmp, 1, &newid, &newtype, pos, nullptr, nullptr, 0), 1);
+            const int nlocal = lammps_extract_setting(lmp, "nlocal");
+            EXPECT_EQ(nlocal, 126 + k);
+            EXPECT_EQ(lammps_extract_setting(lmp, "nghost"), 0);
+
+            // all atoms, old and new, must map to their own local index
+            auto *tags = (tagint *)lammps_extract_atom(lmp, "id");
+            for (tagint id = 1; id <= newid; ++id) {
+                const int idx = lammps_map_atom(lmp, &id);
+                ASSERT_GE(idx, 0);
+                ASSERT_LT(idx, nlocal);
+                EXPECT_EQ(tags[idx], id);
+            }
+
+            if (!verbose) ::testing::internal::CaptureStdout();
+            lammps_command(lmp, "run 0 post no");
+            if (!verbose) ::testing::internal::GetCapturedStdout();
+            EXPECT_GT(lammps_extract_setting(lmp, "nghost"), 0);
+        }
+        EXPECT_EQ(lammps_get_natoms(lmp), 129.0);
+        EXPECT_EQ(lammps_has_error(lmp), 0);
+    }
+};
+
+TEST_F(LibraryProperties, create_atoms_invalid)
+{
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lammps_commands_string(lmp, sc_setup("array").c_str());
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    lammps_set_show_error(lmp, 0);
+    EXPECT_EQ(lammps_get_natoms(lmp), 125.0);
+
+    const double pos[] = {0.5, 0.5, 0.5, 1.5, 0.5, 0.5};
+    const tagint ids[] = {126, 127};
+    char errmsg[256];
+
+    // atom types outside 1 to ntypes: no atoms are created
+    const int badtypes[][2] = {{1, 3}, {0, 1}, {-1, 2}};
+    for (const auto &types : badtypes) {
+        EXPECT_EQ(lammps_create_atoms(lmp, 2, ids, types, pos, nullptr, nullptr, 0), -1);
+        EXPECT_EQ(lammps_get_last_error_message(lmp, errmsg, 256), 1);
+        EXPECT_THAT(errmsg, HasSubstr("Invalid atom type"));
+        EXPECT_EQ(lammps_get_natoms(lmp), 125.0);
+    }
+
+    // atom IDs that are zero or negative: no atoms are created
+    const int types[]        = {1, 2};
+    const tagint badids[][2] = {{126, 0}, {-5, 126}};
+    const char *badidtexts[] = {"Invalid atom ID 0", "Invalid atom ID -5"};
+    for (int i = 0; i < 2; ++i) {
+        EXPECT_EQ(lammps_create_atoms(lmp, 2, badids[i], types, pos, nullptr, nullptr, 0), -1);
+        EXPECT_EQ(lammps_get_last_error_message(lmp, errmsg, 256), 1);
+        EXPECT_THAT(errmsg, HasSubstr(badidtexts[i]));
+        EXPECT_EQ(lammps_get_natoms(lmp), 125.0);
+    }
+
+    // valid atom types and IDs
+    EXPECT_EQ(lammps_create_atoms(lmp, 2, ids, types, pos, nullptr, nullptr, 0), 2);
+    EXPECT_EQ(lammps_has_error(lmp), 0);
+    EXPECT_EQ(lammps_get_natoms(lmp), 127.0);
+
+    // an atom ID that already exists is reported after the atom is created
+    const tagint dupid = 7;
+    EXPECT_EQ(lammps_create_atoms(lmp, 1, &dupid, types, pos, nullptr, nullptr, 0), -1);
+    EXPECT_EQ(lammps_get_last_error_message(lmp, errmsg, 256), 1);
+    EXPECT_THAT(errmsg, HasSubstr("Duplicate atom IDs exist"));
+};
+
+TEST_F(LibraryProperties, map_atom_invalid)
+{
+    for (const char *mapstyle : {"array", "hash"}) {
+        if (!verbose) ::testing::internal::CaptureStdout();
+        lammps_commands_string(lmp, sc_setup(mapstyle).c_str());
+        if (!verbose) ::testing::internal::GetCapturedStdout();
+
+        // atom IDs that do not exist: zero, negative, or larger than the largest atom ID
+        const tagint badids[] = {0, -1, -1000, 126, 1000000};
+        for (const auto &badid : badids)
+            EXPECT_EQ(lammps_map_atom(lmp, &badid), -1);
+
+        auto *tags             = (tagint *)lammps_extract_atom(lmp, "id");
+        const tagint goodids[] = {1, 125};
+        for (const auto &goodid : goodids) {
+            const int idx = lammps_map_atom(lmp, &goodid);
+            ASSERT_GE(idx, 0);
+            EXPECT_EQ(tags[idx], goodid);
+        }
+        EXPECT_EQ(lammps_has_error(lmp), 0);
+    }
+};
+
 static constexpr char lj_setup[] = "lattice         fcc 0.8442\n"
                                    "region          box block 0 10 0 10 0 10\n"
                                    "create_box      1 box\n"

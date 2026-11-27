@@ -1357,17 +1357,29 @@ auto SNAKokkos<DeviceType, real_type, accum_type, vector_length>::evaluate_beta_
   int itriple_jjb = 0;
   real_type factor = 0;
 
+  // with chemsnap, the derivative with respect to another density factor of the
+  // same angular momentum j belongs to the coefficient of the permuted element
+  // triplet, so add those coefficients instead of multiplying by the multiplicity
+  int itriple_perm1 = -1;
+  int itriple_perm2 = -1;
+
   if constexpr (chemsnap) {
     if (j >= j1) {
-      itriple_jjb = ((elem1 * nelements + elem2) * nelements + elem3) * idxb_max + idxb_block(j1, j2, j);
+      const int jjb = idxb_block(j1, j2, j);
+      itriple_jjb = ((elem1 * nelements + elem2) * nelements + elem3) * idxb_max + jjb;
+      factor = 1;
       if (j1 == j) {
-        if (j2 == j) factor = 3;
-        else factor = 2;
-      } else factor = 1;
+        // B[e1 e2 e3] = B[e3 e2 e1] when j1 = j
+        itriple_perm1 = ((elem3 * nelements + elem2) * nelements + elem1) * idxb_max + jjb;
+        // B[e1 e2 e3] = B[e1 e3 e2] when j2 = j (then j1 = j2 = j)
+        if (j2 == j) itriple_perm2 = ((elem1 * nelements + elem3) * nelements + elem2) * idxb_max + jjb;
+      }
     } else if (j >= j2) {
-      itriple_jjb = ((elem3 * nelements + elem2) * nelements + elem1) * idxb_max + idxb_block(j, j2, j1);
-      if (j2 == j) factor = 2;
-      else factor = 1;
+      const int jjb = idxb_block(j, j2, j1);
+      itriple_jjb = ((elem3 * nelements + elem2) * nelements + elem1) * idxb_max + jjb;
+      factor = 1;
+      // B[e3 e2 e1] = B[e2 e3 e1] when j2 = j
+      if (j2 == j) itriple_perm1 = ((elem2 * nelements + elem3) * nelements + elem1) * idxb_max + jjb;
     } else {
       itriple_jjb = ((elem2 * nelements + elem3) * nelements + elem1) * idxb_max + idxb_block(j2, j, j1);
       factor = 1;
@@ -1394,6 +1406,19 @@ auto SNAKokkos<DeviceType, real_type, accum_type, vector_length>::evaluate_beta_
   register_loop<yi_batch>([&] (int n) -> void {
     betaj[n] = factor * d_beta(iatom + n * vector_length, itriple_jjb);
   });
+
+  if constexpr (chemsnap) {
+    if (itriple_perm1 >= 0) {
+      register_loop<yi_batch>([&] (int n) -> void {
+        betaj[n] += d_beta(iatom + n * vector_length, itriple_perm1);
+      });
+    }
+    if (itriple_perm2 >= 0) {
+      register_loop<yi_batch>([&] (int n) -> void {
+        betaj[n] += d_beta(iatom + n * vector_length, itriple_perm2);
+      });
+    }
+  }
 
   if (!bnorm_flag && j1 > j) {
     const real_type scale = static_cast<real_type>(j1 + 1) / static_cast<real_type>(j + 1);

@@ -1,0 +1,216 @@
+LAMMPS (13 Nov 2026)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread.
+  using 1 OpenMP thread(s) per MPI task
+# oxygen interstitials in hcp titanium
+#
+# the potential in TiO.meam.spline was made for oxygen in the dilute limit,
+# so the oxygen atoms are placed on octahedral sites far apart from each other
+
+variable a equal 2.9305
+variable ca equal 1.5964
+
+units           metal
+atom_style      atomic
+boundary        p p p
+
+# hcp titanium lattice with the c/a ratio of the potential
+lattice         custom ${a} a1 1.0 0.0 0.0 a2 0.0 $(sqrt(3.0)) 0.0 a3 0.0 0.0 ${ca}                 basis 0.0 0.0 0.0 basis 0.5 0.5 0.0                 basis 0.5 $(5.0/6.0) 0.5 basis 0.0 $(1.0/3.0) 0.5
+lattice         custom 2.9305 a1 1.0 0.0 0.0 a2 0.0 $(sqrt(3.0)) 0.0 a3 0.0 0.0 ${ca}                 basis 0.0 0.0 0.0 basis 0.5 0.5 0.0                 basis 0.5 $(5.0/6.0) 0.5 basis 0.0 $(1.0/3.0) 0.5
+lattice         custom 2.9305 a1 1.0 0.0 0.0 a2 0.0 1.7320508075688771932 0.0 a3 0.0 0.0 ${ca}                 basis 0.0 0.0 0.0 basis 0.5 0.5 0.0                 basis 0.5 $(5.0/6.0) 0.5 basis 0.0 $(1.0/3.0) 0.5
+lattice         custom 2.9305 a1 1.0 0.0 0.0 a2 0.0 1.7320508075688771932 0.0 a3 0.0 0.0 1.5964                 basis 0.0 0.0 0.0 basis 0.5 0.5 0.0                 basis 0.5 $(5.0/6.0) 0.5 basis 0.0 $(1.0/3.0) 0.5
+lattice         custom 2.9305 a1 1.0 0.0 0.0 a2 0.0 1.7320508075688771932 0.0 a3 0.0 0.0 1.5964                 basis 0.0 0.0 0.0 basis 0.5 0.5 0.0                 basis 0.5 0.83333333333333337034 0.5 basis 0.0 $(1.0/3.0) 0.5
+lattice         custom 2.9305 a1 1.0 0.0 0.0 a2 0.0 1.7320508075688771932 0.0 a3 0.0 0.0 1.5964                 basis 0.0 0.0 0.0 basis 0.5 0.5 0.0                 basis 0.5 0.83333333333333337034 0.5 basis 0.0 0.33333333333333331483 0.5
+Lattice spacing in x,y,z = 2.9305 5.0757749 4.6782502
+region          box block 0 6 0 4 0 4
+create_box      2 box
+Created orthogonal box = (0 0 0) to (17.583 20.3031 18.713001)
+  1 by 2 by 2 MPI processor grid
+create_atoms    2 box
+Created 384 atoms
+  using lattice units in orthogonal box = (0 0 0) to (17.583 20.3031 18.713001)
+  create_atoms CPU = 0.001 seconds
+
+# one oxygen atom on an octahedral site in every block of 3x2x2 hcp unit cells
+lattice         custom ${a} a1 3.0 0.0 0.0 a2 0.0 $(2.0*sqrt(3.0)) 0.0 a3 0.0 0.0 $(2.0*v_ca)                 basis 0.0 $(1.0/3.0) 0.125
+lattice         custom 2.9305 a1 3.0 0.0 0.0 a2 0.0 $(2.0*sqrt(3.0)) 0.0 a3 0.0 0.0 $(2.0*v_ca)                 basis 0.0 $(1.0/3.0) 0.125
+lattice         custom 2.9305 a1 3.0 0.0 0.0 a2 0.0 3.4641016151377543864 0.0 a3 0.0 0.0 $(2.0*v_ca)                 basis 0.0 $(1.0/3.0) 0.125
+lattice         custom 2.9305 a1 3.0 0.0 0.0 a2 0.0 3.4641016151377543864 0.0 a3 0.0 0.0 3.1928000000000000824                 basis 0.0 $(1.0/3.0) 0.125
+lattice         custom 2.9305 a1 3.0 0.0 0.0 a2 0.0 3.4641016151377543864 0.0 a3 0.0 0.0 3.1928000000000000824                 basis 0.0 0.33333333333333331483 0.125
+Lattice spacing in x,y,z = 8.7915 10.15155 9.3565004
+create_atoms    1 region box
+Created 8 atoms
+  using lattice units in orthogonal box = (0 0 0) to (17.583 20.3031 18.713001)
+  create_atoms CPU = 0.000 seconds
+
+mass            1 15.999
+group           oxygen type 1
+8 atoms in group oxygen
+mass            2 47.867
+group           titanium type 2
+384 atoms in group titanium
+
+# the element names are assigned to the atom types in the order of the pair_coeff
+# command: atom type 1 is O and atom type 2 is Ti, while the file lists Ti first
+pair_style      meam/spline
+pair_coeff      * * TiO.meam.spline O Ti
+Reading meam/spline potential file TiO.meam.spline with DATE: 2016-06-05
+
+neighbor        1.0 bin
+neigh_modify    every 2 delay 0 check yes
+
+thermo_style    custom step temp press pe ke etotal lx ly lz
+thermo          25
+
+# initial velocities for twice the target temperature.  they are assigned
+# before the minimization, which does not change them, since "loop geom"
+# derives them from the atom positions, and the relaxed positions can differ
+# in the last digits with the number of MPI processes
+velocity        all create 600.0 277387 loop geom
+
+# relax the atom positions around the oxygen atoms
+minimize        0.0 1.0e-4 1000 10000
+Switching to 'neigh_modify every 1 delay 0 check yes' setting during minimization
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 6.5
+  ghost atom cutoff = 6.5
+  binsize = 3.25, bins = 6 7 6
+  2 neighbor lists, perpetual/occasional/extra = 2 0 0
+  (1) pair meam/spline, perpetual
+      attributes: full, newton on
+      pair build: full/bin/atomonly
+      stencil: full/bin/3d
+      bin: standard
+  (2) pair meam/spline, perpetual, half/full from (1)
+      attributes: half, newton on
+      pair build: halffull/newton
+      stencil: none
+      bin: none
+Per MPI rank memory allocation (min/avg/max) = 4.975 | 4.975 | 4.975 Mbytes
+   Step          Temp          Press          PotEng         KinEng         TotEng           Lx             Ly             Lz      
+         0   600            12549.769     -1921.4003      30.32443      -1891.0758      17.583         20.3031        18.713001    
+        25   600            14648.224     -1924.1822      30.32443      -1893.8578      17.583         20.3031        18.713001    
+        26   600            14648.22      -1924.1822      30.32443      -1893.8578      17.583         20.3031        18.713001    
+Loop time of 0.101177 on 4 procs for 26 steps with 392 atoms
+
+99.6% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+Minimization stats:
+  Stopping criterion = force tolerance
+  Energy initial, next-to-last, final = 
+     -1921.40026215863  -1924.18221768347  -1924.18221768466
+  Force two-norm initial, final = 4.4851179 8.8862394e-05
+  Force max component initial, final = 0.38079076 6.4343438e-06
+  Final line search alpha, max atom move = 1 6.4343438e-06
+  Iterations, force evaluations = 26 52
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.099888   | 0.10005    | 0.10024    |   0.0 | 98.89
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0.00067877 | 0.00086435 | 0.0010276  |   0.0 |  0.85
+Output  | 1.2925e-05 | 1.299e-05  | 1.3115e-05 |   0.0 |  0.01
+Modify  | 0          | 0          | 0          |   0.0 |  0.00
+Other   |            | 0.0002452  |            |       |  0.24
+
+Nlocal:             98 ave          98 max          98 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:            765 ave         765 max         765 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Neighs:           2820 ave        2820 max        2820 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+FullNghs:         5640 ave        5640 max        5640 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 22560
+Ave neighs/atom = 57.55102
+Neighbor list builds = 0
+Dangerous builds = 0
+
+# energy conserving MD
+reset_timestep  0
+timestep        0.001
+fix             1 all nve
+run             100
+Per MPI rank memory allocation (min/avg/max) = 3.85 | 3.85 | 3.85 Mbytes
+   Step          Temp          Press          PotEng         KinEng         TotEng           Lx             Ly             Lz      
+         0   600            14648.22      -1924.1822      30.32443      -1893.8578      17.583         20.3031        18.713001    
+        25   300.49597      20467.926     -1909.0383      15.187282     -1893.851       17.583         20.3031        18.713001    
+        50   141.43781      21141.825     -1900.9981      7.1483683     -1893.8497      17.583         20.3031        18.713001    
+        75   314.05377      16729.581     -1909.725       15.872502     -1893.8525      17.583         20.3031        18.713001    
+       100   291.91506      19750.747     -1908.6043      14.753596     -1893.8507      17.583         20.3031        18.713001    
+Loop time of 0.169624 on 4 procs for 100 steps with 392 atoms
+
+Performance: 50.936 ns/day, 0.471 hours/ns, 589.538 timesteps/s, 231.099 katom-step/s
+99.6% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.16749    | 0.1677     | 0.16807    |   0.1 | 98.86
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0.0012141  | 0.0015877  | 0.0018143  |   0.6 |  0.94
+Output  | 9.9811e-05 | 0.00010267 | 0.00010617 |   0.0 |  0.06
+Modify  | 5.1522e-05 | 6.2215e-05 | 6.8804e-05 |   0.0 |  0.04
+Other   |            | 0.0001763  |            |       |  0.10
+
+Nlocal:             98 ave          98 max          98 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:            765 ave         765 max         765 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Neighs:           2984 ave        2984 max        2984 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+FullNghs:         5968 ave        5968 max        5968 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 23872
+Ave neighs/atom = 60.897959
+Neighbor list builds = 0
+Dangerous builds = 0
+unfix           1
+
+# MD at 300 K and zero pressure
+fix             2 all npt temp 300.0 300.0 0.1 aniso 0.0 0.0 1.0
+run             200
+Per MPI rank memory allocation (min/avg/max) = 3.85 | 3.85 | 3.85 Mbytes
+   Step          Temp          Press          PotEng         KinEng         TotEng           Lx             Ly             Lz      
+       100   291.91506      19750.747     -1908.6043      14.753596     -1893.8507      17.583         20.3031        18.713001    
+       125   260.50495      12959.669     -1907.5162      13.166107     -1894.3501      17.619192      20.345836      18.775661    
+       150   321.39088     -8870.3763     -1910.5622      16.243325     -1894.3189      17.692681      20.431979      18.924585    
+       175   301.88169     -18673.456     -1908.8556      15.257317     -1893.5982      17.721091      20.46005       19.050183    
+       200   273.52362     -11019.874     -1907.5232      13.82408      -1893.6991      17.670137      20.389422      19.089688    
+       225   298.12841      2309.7428     -1908.6238      15.067624     -1893.5562      17.583429      20.273444      19.06323     
+       250   324.18645      11188.838     -1909.2733      16.384615     -1892.8887      17.524688      20.196424      19.019145    
+       275   304.28296      11642.51      -1908.0747      15.378679     -1892.696       17.529751      20.208597      18.988532    
+       300   313.66166      2298.08       -1908.6812      15.852685     -1892.8285      17.589483      20.298613      18.97676     
+Loop time of 0.329225 on 4 procs for 200 steps with 392 atoms
+
+Performance: 52.487 ns/day, 0.457 hours/ns, 607.487 timesteps/s, 238.135 katom-step/s
+99.1% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.32298    | 0.32343    | 0.32374    |   0.1 | 98.24
+Neigh   | 0.00051007 | 0.00053652 | 0.00055669 |   0.0 |  0.16
+Comm    | 0.0029377  | 0.0032762  | 0.003746   |   0.6 |  1.00
+Output  | 0.00011213 | 0.00012041 | 0.00012922 |   0.0 |  0.04
+Modify  | 0.0015956  | 0.0016353  | 0.0016997  |   0.1 |  0.50
+Other   |            | 0.000226   |            |       |  0.07
+
+Nlocal:             98 ave         102 max          94 min
+Histogram: 1 0 1 0 0 0 0 1 0 1
+Nghost:            766 ave         771 max         761 min
+Histogram: 1 0 0 0 1 0 1 0 0 1
+Neighs:           3058 ave        3207 max        2902 min
+Histogram: 1 0 0 1 0 0 0 1 0 1
+FullNghs:         6116 ave        6358 max        5858 min
+Histogram: 1 0 1 0 0 0 0 1 0 1
+
+Total # of neighbors = 24464
+Ave neighs/atom = 62.408163
+Neighbor list builds = 3
+Dangerous builds = 0
+Total wall time: 0:00:00

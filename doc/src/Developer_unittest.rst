@@ -762,12 +762,12 @@ are:
      - Purpose
    * - gpu
      - The test runs the variant with the GPU package (``-sf gpu``) when
-       the GPU package is included.  Set by ``check_accelerator_tags.py``
-       (see below), do not edit by hand.
+       the GPU package is included.  Set by ``check_tags.py`` (see
+       below), do not edit by hand.
    * - kokkos
      - The test runs one or more variants with the KOKKOS package
        (``-sf kk``) when the KOKKOS package is included.  Set by
-       ``check_accelerator_tags.py`` (see below), do not edit by hand.
+       ``check_tags.py`` (see below), do not edit by hand.
    * - gpu_no_mixed
      - The GPU package variant of the style does not support mixed
        precision GPU mode; the ``gpu`` fixture skips the test when the
@@ -832,7 +832,8 @@ are:
      - Automatically added whenever reference data is generated or
        regenerated; it marks data that has not been reviewed and
        validated yet.  *Remove* after confirming the correctness of the
-       updated YAML file.
+       updated YAML file.  ``check_tags.py`` (see below) reports the
+       files that still have it, and with ``-u`` it removes the tag.
 
 The tags become labels of the tests in CTest.  So ``ctest -L gpu`` runs
 only the tests with GPU package variants, and ``ctest -L kokkos`` only
@@ -845,12 +846,14 @@ packages.  The ``gpu`` and ``kokkos`` tags of the YAML files follow from
 the styles in the source code and the rules of the test programs (e.g.
 the test of a pair style runs its GPU package variant only when all pair
 styles among its prerequisites have a ``/gpu`` variant), so they are set
-by the script ``unittest/force-styles/check_accelerator_tags.py``.  It
-lists the files whose tags differ, and with ``-u`` it updates them.  The
-same is available as ``make check-test-tags`` and ``make fix-test-tags``
-in the ``src`` folder.  Run it after adding a YAML file or an
-accelerated variant of a style; the automated style checks for pull
-requests also check the tags.
+by the script ``unittest/force-styles/check_tags.py``.  The same script
+also finds the tags that must not stay in a YAML file: ``generated``,
+and tags that are no longer used.  It lists the files whose tags differ
+or that have such tags, and with ``-u`` it updates them.  The same is
+available as ``make check-test-tags`` and ``make fix-test-tags`` in the
+``src`` folder.  Run it after adding a YAML file or an accelerated
+variant of a style, and after reviewing regenerated reference data; the
+automated style checks for pull requests also check the tags.
 
 Additional tests will check whether all listed extract keywords are
 supported and have the correct dimensionality and the final set of tests

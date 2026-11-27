@@ -107,6 +107,25 @@ TEST_F(SetTest, NoBoxNoAtoms)
                  command("compute 1 all property/atom"););
     TEST_FAILURE(".*ERROR: Compute property/atom mol is not available.*",
                  command("compute 1 all property/atom mol"););
+
+    // a custom property must be referenced with the prefix of its type, and
+    // the columns of a custom array count from 1 to the number of columns
+
+    BEGIN_HIDE_OUTPUT();
+    command("fix props all property/atom i_one d_two i2_three 2 d2_four 2");
+    END_HIDE_OUTPUT();
+    TEST_FAILURE(".*ERROR: Compute property/atom integer vector two does not exist.*",
+                 command("compute 1 all property/atom i_two"););
+    TEST_FAILURE(".*ERROR: Compute property/atom floating-point vector one does not exist.*",
+                 command("compute 1 all property/atom d_one"););
+    TEST_FAILURE(".*ERROR: Compute property/atom integer array four does not exist.*",
+                 command("compute 1 all property/atom i2_four[1]"););
+    TEST_FAILURE(".*ERROR: Compute property/atom floating-point array three does not exist.*",
+                 command("compute 1 all property/atom d2_three[1]"););
+    TEST_FAILURE(".*ERROR: Compute property/atom custom array three is accessed out-of-range.*",
+                 command("compute 1 all property/atom i2_three[3]"););
+    TEST_FAILURE(".*ERROR: Compute property/atom custom array four is accessed out-of-range.*",
+                 command("compute 1 all property/atom d2_four[0]"););
 }
 
 TEST_F(SetTest, velocity)

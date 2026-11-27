@@ -557,9 +557,8 @@ void PairEDIPKokkos<DeviceType>::coeff(int narg, char **arg)
 
   double const leftLimitToZero = -std::numeric_limits<double>::min() * 1000.0;
   const int numGridPointsZ = (int) (leadDimInteractionList * GRIDDENSITY) + 2;
-  const int numGridPointsCutoffFunction = (int) ((cutoffC - GRIDSTART) * GRIDDENSITY) +
-    (int) ((cutoffA - cutoffC) * GRIDDENSITY) + 2;
   const int numGridPointsRTotal = (int) ((cutoffA + leftLimitToZero - GRIDSTART) * GRIDDENSITY) + 2;
+  const int numGridPointsCutoffFunction = numGridPointsRTotal;
 
   struct {
     DAT::tdual_kkfloat_1d &kview;

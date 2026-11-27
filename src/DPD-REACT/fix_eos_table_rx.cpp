@@ -655,6 +655,8 @@ void FixEOStableRX::energy_lookup(int id, double thetai, double &ui)
 
     if (tabstyle == LINEAR) {
       itable = static_cast<int> ((thetai - tb->lo) * tb->invdelta);
+      // thetai = hi is the end of the last interval: de has only tablength-1 entries
+      itable = MIN(itable, tablength - 2);
       fraction = (thetai - tb->r[itable]) * tb->invdelta;
       uTmp = tb->e[itable] + fraction*tb->de[itable];
 

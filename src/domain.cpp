@@ -404,110 +404,79 @@ void Domain::reset_box()
 
   if (atom->natoms == 0) return;
 
-  // compute extent of atoms on this proc
-  // for triclinic, this is done in lamda space
-
   if (nonperiodic == 2) {
-    double extent[3][2],all[3][2];
-
-    extent[2][0] = extent[1][0] = extent[0][0] = BIG;
-    extent[2][1] = extent[1][1] = extent[0][1] = -BIG;
-
     double **x = atom->x;
     int nlocal = atom->nlocal;
 
-    for (int i = 0; i < nlocal; i++) {
-      extent[0][0] = MIN(extent[0][0],x[i][0]);
-      extent[0][1] = MAX(extent[0][1],x[i][0]);
-      extent[1][0] = MIN(extent[1][0],x[i][1]);
-      extent[1][1] = MAX(extent[1][1],x[i][1]);
-      extent[2][0] = MIN(extent[2][0],x[i][2]);
-      extent[2][1] = MAX(extent[2][1],x[i][2]);
-    }
-
-    // compute extent across all procs
-    // flip sign of MIN to do it in one Allreduce MAX
-
-    extent[0][0] = -extent[0][0];
-    extent[1][0] = -extent[1][0];
-    extent[2][0] = -extent[2][0];
-
-    MPI_Allreduce(extent,all,6,MPI_DOUBLE,MPI_MAX,world);
-
-    // for triclinic, convert back to box coords before changing box
-
-    if (triclinic) lamda2x(atom->nlocal);
-
-    // in shrink-wrapped dims, set box by atom extent
-    // if minimum set, enforce min box size settings
-    // for triclinic, convert lamda extent to box coords, then set box lo/hi
-    // decided NOT to do the next comment - don't want to sneakily change tilt
-    // for triclinic, adjust tilt factors if 2nd dim is shrink-wrapped,
-    //   so that displacement in 1st dim stays the same
-
     if (triclinic == 0) {
-      if (xperiodic == 0) {
-        if (boundary[0][0] == 2) boxlo[0] = -all[0][0] - small[0];
-        else if (boundary[0][0] == 3)
-          boxlo[0] = MIN(-all[0][0]-small[0],minxlo);
-        if (boundary[0][1] == 2) boxhi[0] = all[0][1] + small[0];
-        else if (boundary[0][1] == 3) boxhi[0] = MAX(all[0][1]+small[0],minxhi);
-        if (boxlo[0] > boxhi[0]) error->all(FLERR,"Illegal simulation box");
+
+      // compute extent of atoms on this proc
+
+      double extent[3][2],all[3][2];
+
+      extent[2][0] = extent[1][0] = extent[0][0] = BIG;
+      extent[2][1] = extent[1][1] = extent[0][1] = -BIG;
+
+      for (int i = 0; i < nlocal; i++) {
+        extent[0][0] = MIN(extent[0][0],x[i][0]);
+        extent[0][1] = MAX(extent[0][1],x[i][0]);
+        extent[1][0] = MIN(extent[1][0],x[i][1]);
+        extent[1][1] = MAX(extent[1][1],x[i][1]);
+        extent[2][0] = MIN(extent[2][0],x[i][2]);
+        extent[2][1] = MAX(extent[2][1],x[i][2]);
       }
-      if (yperiodic == 0) {
-        if (boundary[1][0] == 2) boxlo[1] = -all[1][0] - small[1];
-        else if (boundary[1][0] == 3)
-          boxlo[1] = MIN(-all[1][0]-small[1],minylo);
-        if (boundary[1][1] == 2) boxhi[1] = all[1][1] + small[1];
-        else if (boundary[1][1] == 3) boxhi[1] = MAX(all[1][1]+small[1],minyhi);
-        if (boxlo[1] > boxhi[1]) error->all(FLERR,"Illegal simulation box");
-      }
-      if (zperiodic == 0) {
-        if (boundary[2][0] == 2) boxlo[2] = -all[2][0] - small[2];
-        else if (boundary[2][0] == 3)
-          boxlo[2] = MIN(-all[2][0]-small[2],minzlo);
-        if (boundary[2][1] == 2) boxhi[2] = all[2][1] + small[2];
-        else if (boundary[2][1] == 3) boxhi[2] = MAX(all[2][1]+small[2],minzhi);
-        if (boxlo[2] > boxhi[2]) error->all(FLERR,"Illegal simulation box");
-      }
+
+      // compute extent across all procs
+      // flip sign of MIN to do it in one Allreduce MAX
+
+      extent[0][0] = -extent[0][0];
+      extent[1][0] = -extent[1][0];
+      extent[2][0] = -extent[2][0];
+
+      MPI_Allreduce(extent,all,6,MPI_DOUBLE,MPI_MAX,world);
+
+      // in shrink-wrapped dims, set box by atom extent
+
+      for (int dim = 0; dim < 3; dim++)
+        if (!periodicity[dim]) set_shrink_bounds(dim,-all[dim][0],all[dim][1]);
 
     } else {
-      double lo[3],hi[3];
-      if (xperiodic == 0) {
-        lo[0] = -all[0][0]; lo[1] = 0.0; lo[2] = 0.0;
-        lamda2x(lo,lo);
-        hi[0] = all[0][1]; hi[1] = 0.0; hi[2] = 0.0;
-        lamda2x(hi,hi);
-        if (boundary[0][0] == 2) boxlo[0] = lo[0] - small[0];
-        else if (boundary[0][0] == 3) boxlo[0] = MIN(lo[0]-small[0],minxlo);
-        if (boundary[0][1] == 2) boxhi[0] = hi[0] + small[0];
-        else if (boundary[0][1] == 3) boxhi[0] = MAX(hi[0]+small[0],minxhi);
-        if (boxlo[0] > boxhi[0]) error->all(FLERR,"Illegal simulation box");
-      }
-      if (yperiodic == 0) {
-        lo[0] = 0.0; lo[1] = -all[1][0]; lo[2] = 0.0;
-        lamda2x(lo,lo);
-        hi[0] = 0.0; hi[1] = all[1][1]; hi[2] = 0.0;
-        lamda2x(hi,hi);
-        if (boundary[1][0] == 2) boxlo[1] = lo[1] - small[1];
-        else if (boundary[1][0] == 3) boxlo[1] = MIN(lo[1]-small[1],minylo);
-        if (boundary[1][1] == 2) boxhi[1] = hi[1] + small[1];
-        else if (boundary[1][1] == 3) boxhi[1] = MAX(hi[1]+small[1],minyhi);
-        if (boxlo[1] > boxhi[1]) error->all(FLERR,"Illegal simulation box");
-        //xy *= (boxhi[1]-boxlo[1]) / yprd;
-      }
-      if (zperiodic == 0) {
-        lo[0] = 0.0; lo[1] = 0.0; lo[2] = -all[2][0];
-        lamda2x(lo,lo);
-        hi[0] = 0.0; hi[1] = 0.0; hi[2] = all[2][1];
-        lamda2x(hi,hi);
-        if (boundary[2][0] == 2) boxlo[2] = lo[2] - small[2];
-        else if (boundary[2][0] == 3) boxlo[2] = MIN(lo[2]-small[2],minzlo);
-        if (boundary[2][1] == 2) boxhi[2] = hi[2] + small[2];
-        else if (boundary[2][1] == 3) boxhi[2] = MAX(hi[2]+small[2],minzhi);
-        if (boxlo[2] > boxhi[2]) error->all(FLERR,"Illegal simulation box");
-        //xz *= (boxhi[2]-boxlo[2]) / xprd;
-        //yz *= (boxhi[2]-boxlo[2]) / yprd;
+
+      // for triclinic, convert from lamda to box coords
+      // the position of the tilted faces of a dim depends on the bounds of the dims after it:
+      //   x = xlo + xprd*lamda_x + xy*lamda_y + xz*lamda_z
+      //   y = ylo + yprd*lamda_y + yz*lamda_z
+      //   z = zlo + zprd*lamda_z
+      // so set the bounds in the order z,y,x, each from the extent of the atoms
+      //   along the tilted faces with lamda_y and lamda_z of the new box
+      // the tilt factors are not changed
+
+      lamda2x(nlocal);
+
+      for (int dim = 2; dim >= 0; dim--) {
+        if (periodicity[dim]) continue;
+
+        const double zlo = boxlo[2];
+        const double zprdinv = 1.0 / (boxhi[2] - boxlo[2]);
+        const double ylo = boxlo[1];
+        const double yprdinv = 1.0 / (boxhi[1] - boxlo[1]);
+        double extent[2],all[2];
+
+        extent[0] = extent[1] = -BIG;
+
+        for (int i = 0; i < nlocal; i++) {
+          double coord = x[i][dim];
+          if (dim < 2) {
+            const double lamdaz = (x[i][2] - zlo) * zprdinv;
+            if (dim == 1) coord -= yz*lamdaz;
+            else coord -= xy*(x[i][1] - ylo - yz*lamdaz)*yprdinv + xz*lamdaz;
+          }
+          extent[0] = MAX(extent[0],-coord);
+          extent[1] = MAX(extent[1],coord);
+        }
+
+        MPI_Allreduce(extent,all,2,MPI_DOUBLE,MPI_MAX,world);
+        set_shrink_bounds(dim,-all[0],all[1]);
       }
     }
   }
@@ -532,6 +501,23 @@ void Domain::reset_box()
     x2lamda(atom->nlocal);
     pbc();
   }
+}
+
+/* ----------------------------------------------------------------------
+   set box lo/hi of a non-periodic dim from the extent lo/hi of the atoms
+   only for the shrink-wrapped boundaries, enforce min box size settings
+------------------------------------------------------------------------- */
+
+void Domain::set_shrink_bounds(int dim, double lo, double hi)
+{
+  const double minlo[3] = {minxlo, minylo, minzlo};
+  const double minhi[3] = {minxhi, minyhi, minzhi};
+
+  if (boundary[dim][0] == 2) boxlo[dim] = lo - small[dim];
+  else if (boundary[dim][0] == 3) boxlo[dim] = MIN(lo - small[dim], minlo[dim]);
+  if (boundary[dim][1] == 2) boxhi[dim] = hi + small[dim];
+  else if (boundary[dim][1] == 3) boxhi[dim] = MAX(hi + small[dim], minhi[dim]);
+  if (boxlo[dim] > boxhi[dim]) error->all(FLERR, "Illegal simulation box");
 }
 
 /* ----------------------------------------------------------------------

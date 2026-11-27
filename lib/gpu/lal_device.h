@@ -209,7 +209,8 @@ class Device {
     #endif
   }
   /// Return the 'mode' for acceleration: GPU_FORCE or GPU_HYB_NEIGH
-  /// (GPU_NEIGH is always replaced by GPU_HYB_NEIGH during initialization)
+  /// (GPU_NEIGH is always replaced by GPU_HYB_NEIGH during initialization,
+  /// GPU_DEFAULT by one of the two, depending on the selected device)
   inline int gpu_mode() const { return _gpu_mode; }
   /// Index of first device used by a node
   inline int first_device() const { return _first_device; }
@@ -264,14 +265,29 @@ class Device {
   inline double ptx_arch() const { return _ptx_arch; }
   inline void set_simd_size(int simd_sz) { _simd_size = simd_sz; }
 
-  /// Return true if host neighbor list is required (e.g. AMD shared memory GPUs with OpenCL builds)
+  /// Return true if the selected device requires neighbor lists from the host
+  /** AMD GPUs sharing memory with the host cannot reliably build neighbor
+    * lists on the device with the OpenCL API, and integrated AMD GPUs (APUs)
+    * not with the HIP API either: device neighbor builds trigger a memory
+    * access fault (e.g. lj/cut/dipole/cut) or hit the ellipsoid/sphere-mix
+    * restriction (e.g. gayberne). **/
+  inline bool requires_host_neighbor() {
+    #if defined(USE_OPENCL)
+    return (_ocl_config_name == "AMD_GPU") && gpu->shared_memory(_first_device);
+    #elif defined(USE_HIP)
+    return gpu->integrated(_first_device);
+    #else
+    return false;
+    #endif
+  }
+
   // -------------------------- DEVICE DATA -------------------------
 
   /// Geryon Device
   UCL_Device *gpu;
 
   // must match definition in src/GPU/fix_gpu.cpp
-  enum{GPU_FORCE, GPU_NEIGH, GPU_HYB_NEIGH};
+  enum{GPU_FORCE, GPU_NEIGH, GPU_HYB_NEIGH, GPU_DEFAULT};
 
   // --------------------------- ATOM DATA --------------------------
 

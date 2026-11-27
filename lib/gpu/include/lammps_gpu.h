@@ -43,7 +43,7 @@ using LAMMPS_NS::tagint;
 
 // Device-level functions (lal_device.cpp)
 extern bool lmp_has_compatible_gpu_device();
-extern bool lmp_gpu_requires_host_neighbor();
+extern int lmp_gpu_mode();
 extern std::string lmp_gpu_device_info();
 extern void lmp_gpu_defer_device_clear(int flag);
 extern int lmp_init_device(MPI_Comm world, MPI_Comm replica, const int ngpu, const int first_gpu_id,

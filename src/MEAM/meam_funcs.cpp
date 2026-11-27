@@ -51,9 +51,9 @@ double MEAM::G_gam(const double gamma, const int ibar, int &errorflag) const
         return sqrt(1.0 + gamma);
       }
     case 1:
-      return MathSpecial::fm_exp(gamma / 2.0);
+      return exp(gamma / 2.0);
     case 3:
-      return 2.0 / (1.0 + MathSpecial::fm_exp(-gamma));
+      return 2.0 / (1.0 + exp(-gamma));
     case -5:
       if ((1.0 + gamma) >= 0) {
         return sqrt(1.0 + gamma);
@@ -97,11 +97,11 @@ double MEAM::dG_gam(const double gamma, const int ibar, double &dG) const
         return G;
       }
     case 1:
-      G = MathSpecial::fm_exp(gamma / 2.0);
+      G = exp(gamma / 2.0);
       dG = G / 2.0;
       return G;
     case 3:
-      G = 2.0 / (1.0 + MathSpecial::fm_exp(-gamma));
+      G = 2.0 / (1.0 + exp(-gamma));
       dG = G * (2.0 - G) / 2;
       return G;
     case -5:
@@ -134,7 +134,7 @@ double MEAM::zbl(const double r, const int z1, const int z2)
   a = azero / (pow(z1, 0.23) + pow(z2, 0.23));
   double result = 0.0;
   x = r / a;
-  for (i = 0; i <= 3; i++) { result = result + c[i] * MathSpecial::fm_exp(-d[i] * x); }
+  for (i = 0; i <= 3; i++) { result = result + c[i] * exp(-d[i] * x); }
   if (r > 0.0) result = result * z1 * z2 / r * cc;
   return result;
 }
@@ -180,12 +180,12 @@ double MEAM::erose(const double r, const double re, const double alpha, const do
 
     if (form == 1)
       result = -Ec * (1 + astar + (-attrac + repuls / r) * MathSpecial::cube(astar)) *
-          MathSpecial::fm_exp(-astar);
+          exp(-astar);
     else if (form == 2)
-      result = -Ec * (1 + astar + a3 * MathSpecial::cube(astar)) * MathSpecial::fm_exp(-astar);
+      result = -Ec * (1 + astar + a3 * MathSpecial::cube(astar)) * exp(-astar);
     else
       result = -Ec * (1 + astar + a3 * MathSpecial::cube(astar) / (r / re)) *
-          MathSpecial::fm_exp(-astar);
+          exp(-astar);
   }
   return result;
 }

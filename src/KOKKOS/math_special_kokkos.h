@@ -22,110 +22,6 @@
 
 namespace LAMMPS_NS::MathSpecialKokkos {
 
-  /* optimizer friendly implementation of exp2(x).
-   *
-   * strategy:
-   *
-   * split argument into an integer part and a fraction:
-   * ipart = floor(x+0.5);
-   * fpart = x - ipart;
-   *
-   * compute exp2(ipart) from setting the ieee754 exponent
-   * compute exp2(fpart) using a pade' approximation for x in [-0.5;0.5[
-   *
-   * the result becomes: exp2(x) = exp2(ipart) * exp2(fpart)
-   */
-
-  /* IEEE 754 double precision floating point data manipulation */
-  typedef union
-  {
-    double   f;
-    uint64_t u;
-    struct {int32_t  i0,i1;} s;
-  }  udi_t;
-
-  /* double precision constants */
-  #define FM_DOUBLE_LOG2OFE  1.4426950408889634074
-
-  /*! Fast implementation of 2^x without argument checks for little endian CPUs
-   *
-   *  This function implements an optimized version of pow(2.0, x) that does not
-   *  check for valid arguments and thus may only be used where arguments are well
-   *  behaved.  The implementation makes assumptions about the layout of double
-   *  precision floating point numbers in memory and thus will only work on little
-   *  endian CPUs.  If little endian cannot be safely detected, the result of
-   *  calling pow(2.0, x) will be returned.  This function also is the basis for
-   *  the fast exponential fm_exp(x).
-   *
-   *  \param   x argument
-   *  \return  value of 2^x as double precision number */
-
-// NOLINTNEXTLINE
-  KOKKOS_INLINE_FUNCTION
-  static double exp2_x86(double x)
-  {
-  #if defined(__BYTE_ORDER__) && (__BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__)
-      double   ipart, fpart, px, qx;
-      udi_t    epart;
-
-  const double fm_exp2_q[2] = {
-  /*  1.00000000000000000000e0, */
-      2.33184211722314911771e2,
-      4.36821166879210612817e3
-  };
-  const double fm_exp2_p[3] = {
-      2.30933477057345225087e-2,
-      2.02020656693165307700e1,
-      1.51390680115615096133e3
-  };
-
-      ipart = floor(x+0.5);
-      fpart = x - ipart;
-      epart.s.i0 = 0;
-      epart.s.i1 = (((int) ipart) + 1023) << 20;
-
-      x = fpart*fpart;
-
-      px =        fm_exp2_p[0];
-      px = px*x + fm_exp2_p[1];
-      qx =    x + fm_exp2_q[0];
-      px = px*x + fm_exp2_p[2];
-      qx = qx*x + fm_exp2_q[1];
-
-      px = px * fpart;
-
-      x = 1.0 + 2.0*(px/(qx-px));
-      return epart.f*x;
-  #else
-      return pow(2.0, x);
-  #endif
-  }
-
-  /*! Fast implementation of exp(x) for little endian CPUs
-   *
-   *  This function implements an optimized version of exp(x) for little endian CPUs.
-   *  It calls the exp2_x86(x) function with a suitable prefactor to x to return exp(x).
-   *  The implementation makes assumptions about the layout of double
-   *  precision floating point numbers in memory and thus will only work on little
-   *  endian CPUs.  If little endian cannot be safely detected, the result of
-   *  calling the exp(x) implementation in the standard math library will be returned.
-   *
-   *  \param   x argument
-   *  \return  value of e^x as double precision number */
-
-// NOLINTNEXTLINE
-  KOKKOS_INLINE_FUNCTION
-  static double fm_exp(double x)
-  {
-  #if defined(__BYTE_ORDER__) && (__BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__)
-      if (x < -1022.0/FM_DOUBLE_LOG2OFE) return 0;
-      if (x > 1023.0/FM_DOUBLE_LOG2OFE) return static_cast<double>(INFINITY);
-      return exp2_x86(FM_DOUBLE_LOG2OFE * x);
-  #else
-      return ::exp(x);
-  #endif
-  }
-
   // support function for scaled error function complement
 
   extern double erfcx_y100(const double y100);
@@ -150,12 +46,9 @@ namespace LAMMPS_NS::MathSpecialKokkos {
       return 2.0 * exp(x * x) - erfcx_y100(400.0 / (4.0 - x));
   }
 
-  /*! Fast implementation of exp(-x*x) for little endian CPUs for coul/long styles
+  /*! Fast implementation of exp(-x*x) for coul/long styles
    *
-   *  This function implements an optimized version of exp(-x*x) based on exp2_x86()
-   *  for use with little endian CPUs. If little endian cannot be safely detected,
-   *  the result of calling the exp(-x*x) implementation in the standard math
-   *  library will be returned.
+   *  This function implements an optimized version of exp(-x*x)
    *
    *  \param   x argument
    *  \return  value of e^(-x*x) as double precision number */
@@ -163,12 +56,7 @@ namespace LAMMPS_NS::MathSpecialKokkos {
   static inline double expmsq(double x)
   {
     x *= x;
-    x *= 1.4426950408889634074; // log_2(e)
-#if defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
-    return (x < 1023.0) ? exp2_x86(-x) : 0.0;
-#else
-    return (x < 1023.0) ? exp2(-x) : 0.0;
-#endif
+    return (x < 1023.0) ? Kokkos::exp(-x) : 0.0;
   }
 
   /*! Fast inline version of pow(x, 2.0)

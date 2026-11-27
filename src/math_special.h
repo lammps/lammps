@@ -31,35 +31,6 @@ namespace LAMMPS_NS::MathSpecial {
 
   extern double factorial(const int n);
 
-  /*! Fast implementation of 2^x without argument checks for little endian CPUs
-   *
-   *  This function implements an optimized version of pow(2.0, x) that does not
-   *  check for valid arguments and thus may only be used where arguments are well
-   *  behaved.  The implementation makes assumptions about the layout of double
-   *  precision floating point numbers in memory and thus will only work on little
-   *  endian CPUs.  If little endian cannot be safely detected, the result of
-   *  calling pow(2.0, x) will be returned.  This function also is the basis for
-   *  the fast exponential fm_exp(x).
-   *
-   *  \param   x argument
-   *  \return  value of 2^x as double precision number */
-
-  extern double exp2_x86(double x);
-
-  /*! Fast implementation of exp(x) for little endian CPUs
-   *
-   *  This function implements an optimized version of exp(x) for little endian CPUs.
-   *  It calls the exp2_x86(x) function with a suitable prefactor to x to return exp(x).
-   *  The implementation makes assumptions about the layout of double
-   *  precision floating point numbers in memory and thus will only work on little
-   *  endian CPUs.  If little endian cannot be safely detected, the result of
-   *  calling the exp(x) implementation in the standard math library will be returned.
-   *
-   *  \param   x argument
-   *  \return  value of e^x as double precision number */
-
-  extern double fm_exp(double x);
-
   /*  MDF taper function defined in Mei et al. (Phys. Rev. B 43:4653, 1991). It is used
    *  to smoothly terminate functions between rmin and rmax. */
 
@@ -90,12 +61,7 @@ namespace LAMMPS_NS::MathSpecial {
       return 2.0 * exp(x * x) - erfcx_y100(400.0 / (4.0 - x));
   }
 
-  /*! Fast implementation of exp(-x*x) for little endian CPUs for coul/long styles
-   *
-   *  This function implements an optimized version of exp(-x*x) based on exp2_x86()
-   *  for use with little endian CPUs. If little endian cannot be safely detected,
-   *  the result of calling the exp(-x*x) implementation in the standard math
-   *  library will be returned.
+  /*! Fast implementation of exp(-x*x) for coul/long styles
    *
    *  \param   x argument
    *  \return  value of e^(-x*x) as double precision number */
@@ -103,12 +69,7 @@ namespace LAMMPS_NS::MathSpecial {
   static inline double expmsq(double x)
   {
     x *= x;
-    x *= 1.4426950408889634074;    // log_2(e)
-#if defined(__BYTE_ORDER__) && __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
-    return (x < 1023.0) ? exp2_x86(-x) : 0.0;
-#else
-    return (x < 1023.0) ? exp2(-x) : 0.0;
-#endif
+    return (x < 1023.0) ? exp(-x) : 0.0;
   }
 
   /*! Fast inline version of pow(x, 2.0)

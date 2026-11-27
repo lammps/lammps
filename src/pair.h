@@ -154,6 +154,10 @@ class Pair : protected Pointers {
   void v_tally3(int, int, int, double *, double *, double *, double *);
   void v_tally4(int, int, int, int, double *, double *, double *, double *, double *, double *);
 
+  // Centroid tally functions (they perform only the virial tallying, not the energy)
+  void cv_tally3(int, int, int, double *, double *, double *, double, double, double, double);
+  void cv_tally4(int, int, int, int, double *, double *, double *, double *, double, double, double, double, double);
+
   // general child-class methods
 
   virtual void compute(int, int) = 0;
@@ -232,6 +236,7 @@ class Pair : protected Pointers {
   virtual void transfer_history(double *, double *, int, int) {}
 
   // management of callbacks to be run from ev_tally()
+  // and cv_tally3/4()
 
  protected:
   int num_tally_compute, did_tally_flag;

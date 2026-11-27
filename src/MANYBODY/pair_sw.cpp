@@ -29,11 +29,13 @@
 #include "neigh_list.h"
 #include "neighbor.h"
 #include "potential_file_reader.h"
+#include "math_const.h"
 
 #include <cmath>
 #include <cstring>
 
 using namespace LAMMPS_NS;
+using MathConst::THIRD;
 using MathSpecial::powauto;
 
 static constexpr int DELTA = 4;
@@ -46,7 +48,7 @@ PairSW::PairSW(LAMMPS *lmp) : Pair(lmp)
   restartinfo = 0;
   one_coeff = 1;
   manybody_flag = 1;
-  centroidstressflag = CENTROID_NOTAVAIL;
+  centroidstressflag = CENTROID_AVAIL;
   unit_convert_flag = utils::get_supported_conversions(utils::ENERGY);
   skip_threebody_flag = false;
   sw_mod_flag = 0;
@@ -197,9 +199,10 @@ void PairSW::compute(int eflag, int vflag)
         else
           threebody_cached<0>(&params[ijkparam],s1,s2,fj,fk,eflag,evdwl);
 
-        fxtmp -= fj[0] + fk[0];
-        fytmp -= fj[1] + fk[1];
-        fztmp -= fj[2] + fk[2];
+        double  fi[3]={-fj[0] - fk[0], -fj[1] - fk[1], -fj[2] - fk[2]};
+        fxtmp += fi[0];
+        fytmp += fi[1];
+        fztmp += fi[2];
         fjxtmp += fj[0];
         fjytmp += fj[1];
         fjztmp += fj[2];
@@ -208,6 +211,7 @@ void PairSW::compute(int eflag, int vflag)
         f[k][2] += fk[2];
 
         if (evflag) ev_tally3(i,j,k,evdwl,0.0,fj,fk,s1.del,s2.del);
+        if (evflag) cv_tally3(i,j,k,fi,fj,fk,evdwl,THIRD,THIRD,THIRD);
       }
       f[j][0] += fjxtmp;
       f[j][1] += fjytmp;

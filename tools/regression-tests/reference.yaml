@@ -282,7 +282,6 @@ in.alpha_quartz_qbmsst: { folder: examples/PACKAGES/qtb/alpha_quartz_qbmsst, sta
 in.methane_qbmsst: { folder: examples/PACKAGES/qtb/methane_qbmsst, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 97.0, walltime_norm: 16.166666666666668 }
 in.tmd: { folder: examples/PACKAGES/tmd, status: "completed, error parsing log.lammps into YAML", walltime: 4.0, walltime_norm: 0.6666666666666666 }
 in.meam-spline.Si: { folder: examples/PACKAGES/meam_spline, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 2.0, walltime_norm: 0.3333333333333333 }
-in.meam-spline.TiO2: { folder: examples/PACKAGES/meam_spline, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 79.0, walltime_norm: 13.166666666666666 }
 in.silicon: { folder: examples/PACKAGES/phonon/dynamical_matrix_command/Silicon, status: "completed, but no Step nor Loop in the output.", walltime: 0.0, walltime_norm: 0.0 }
 in.EAM3D: { folder: examples/PACKAGES/phonon/3-3D-FCC-Cu-EAM, status: "failed, no Total wall time in the output, timeout (180s expired)", walltime: -1 }
 in.disp: { folder: examples/PACKAGES/phonon/3-3D-FCC-Cu-EAM, status: "skipped", walltime: -2 }

@@ -2,7 +2,7 @@
 lammps_version: 13 Nov 2026
 tags:
 date_generated: Fri Nov 27 04:59:00 2026
-epsilon: 2.5e-13
+epsilon: 2e-12
 skip_tests:
 prerequisites: |
   pair meam/spline

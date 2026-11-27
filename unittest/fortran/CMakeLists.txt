@@ -86,6 +86,8 @@ if(CMAKE_Fortran_COMPILER)
   add_executable(test_fortran_configuration wrap_configuration.cpp test_fortran_configuration.f90 test_fortran_commands.f90 test_main.cpp)
   target_link_libraries(test_fortran_configuration PRIVATE flammps lammps GTest::GMock)
   add_test(NAME FortranConfiguration COMMAND test_fortran_configuration)
+  # it checks the settings of the GPU and KOKKOS packages and the GPU device information
+  set_tests_properties(FortranConfiguration PROPERTIES LABELS "gpu;kokkos")
 
   add_executable(test_fortran_neighlist wrap_neighlist.cpp test_fortran_neighlist.f90 test_main.cpp)
   target_link_libraries(test_fortran_neighlist PRIVATE flammps lammps GTest::GMock)

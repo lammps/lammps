@@ -65,10 +65,11 @@ Build folders: | Used for:
 ## Collecting release assets
 
 Release assets are collected in $HOME/release before uploading them to
-GitHub with `gh release upload`. Release versions are also copied with
-`scp` to `publish@www.lammps.org:/var/www/lammps/download/testing` so
-they can be downloaded from https://download.lammps.org/testing/ and
-tested before finalizing the release and locking the version.
+GitHub with `gh -R lammps/lammps release upload`. Release versions are
+also copied with `scp` to
+`publish@www.lammps.org:/var/www/lammps/download/testing` so they can be
+downloaded from https://download.lammps.org/testing/ and tested before
+finalizing the release and locking the version.
 
 ## Scripts for building and uploading release assets
 

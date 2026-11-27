@@ -594,7 +594,6 @@ This package has :ref:`specific installation instructions <compress>` on the :do
 
 * ``src/COMPRESS``: filenames -> commands
 * ``src/COMPRESS/README``
-* ``lib/compress/README``
 * :doc:`dump atom/gz <dump>`
 * :doc:`dump cfg/gz <dump>`
 * :doc:`dump custom/gz <dump>`
@@ -1416,7 +1415,6 @@ This package has :ref:`specific installation instructions <kim>` on the
 * :doc:`pair_style kim <pair_kim>`
 * ``src/KIM``: filenames -> commands
 * ``src/KIM/README``
-* ``lib/kim/README``
 * ``examples/kim``
 
 ----------
@@ -1443,9 +1441,9 @@ optimized for CPUs, KNLs, and GPUs.
 You must have a C++20 compatible compiler to use this package.  KOKKOS
 makes extensive use of advanced C++ features, which can expose compiler
 bugs, especially when compiling for maximum performance at high
-optimization levels.  Please see the file ``lib/kokkos/README`` for a
-list of compilers and their respective platforms, that are known to
-work.
+optimization levels.  Please see the `Kokkos requirements page
+<https://kokkos.org/kokkos-core-wiki/get-started/requirements.html>`_
+for the minimum and the tested compiler versions.
 
 **Authors:** The KOKKOS package was created primarily by Christian Trott
 and Stan Moore (Sandia), with contributions from other folks as well.
@@ -1462,7 +1460,7 @@ This package has :ref:`specific installation instructions <kokkos>` on the :doc:
 
 * ``src/KOKKOS``: filenames -> commands
 * ``src/KOKKOS/README``
-* ``lib/kokkos/README``
+* ``lib/kokkos/README.md``
 * :doc:`Accelerator packages <Speed_packages>`
 * :doc:`KOKKOS package <Speed_kokkos>`
 * :doc:`Section 4.2 -k on ... <Run_options>`
@@ -1572,7 +1570,7 @@ the :doc:`Build extras <Build_extras>` page.
 **Supporting info:**
 
 * ``src/LEPTON``: filenames -> commands
-* ``lib/lepton/README``.md
+* ``lib/lepton/README.md``
 * :doc:`pair_style lepton <pair_lepton>`
 * :doc:`bond_style lepton <bond_lepton>`
 * :doc:`angle_style lepton <angle_lepton>`
@@ -1767,7 +1765,6 @@ the :doc:`Build extras <Build_extras>` page.
 **Supporting info:**
 
 * ``src/MDI/README``
-* ``lib/mdi/README``
 * :doc:`Howto MDI <Howto_mdi>`
 * :doc:`mdi <mdi>`
 * :doc:`fix mdi/qm <fix_mdi_qm>`
@@ -1938,7 +1935,6 @@ This package has :ref:`specific installation instructions <ml-hdnnp>` on the
 
 * ``src/ML-HDNNP``: filenames -> commands
 * ``src/ML-HDNNP/README``
-* ``lib/hdnnp/README``
 * :doc:`pair_style hdnnp <pair_hdnnp>`
 * ``examples/PACKAGES/hdnnp``
 
@@ -1957,9 +1953,9 @@ A general interface for machine-learning interatomic potentials, including PyTor
 
 To use this package, also the :ref:`ML-SNAP <PKG-ML-SNAP>` package needs
 to be installed.  To make the *mliappy* model available, also the
-:ref:`PYTHON <PKG-PYTHON>` package needs to be installed, the version
-of Python must be 3.6 or later, and the `cython <https://cython.org/>`_ software
-must be installed.
+:ref:`PYTHON <PKG-PYTHON>` package needs to be installed, the version of
+Python must be 3.9 or later, and the `cython <https://cython.org/>`_
+software must be installed.
 
 **Author:** Aidan Thompson (Sandia), Nicholas Lubbers (LANL).
 
@@ -2319,7 +2315,6 @@ This package has :ref:`specific installation instructions <netcdf>` on the :doc:
 
 * ``src/NETCDF``: filenames -> commands
 * ``src/NETCDF/README``
-* ``lib/netcdf/README``
 * :doc:`dump netcdf <dump_netcdf>`
 
 ----------
@@ -2546,7 +2541,6 @@ as a plugin to avoid licensing conflicts when distributing binaries.
 **Supporting info:**
 
 * ``src/PLUMED/README``
-* ``lib/plumed/README``
 * :doc:`fix plumed <fix_plumed>`
 * ``examples/PACKAGES/plumed``
 
@@ -2593,7 +2587,7 @@ ways to use LAMMPS and Python together.
 
    Building with the PYTHON package assumes you have a Python development
    environment (headers and libraries) available on your system, which needs
-   to be Python version 3.6 or later.
+   to be Python version 3.9 or later.
 
 **Install:**
 
@@ -2603,7 +2597,6 @@ This package has :ref:`specific installation instructions <python>` on the :doc:
 
 * ``src/PYTHON``: filenames -> commands
 * :doc:`Python call <Python_head>`
-* ``lib/python/README``
 * ``examples/python``
 
 ----------
@@ -3159,7 +3152,6 @@ This package has :ref:`specific installation instructions <voronoi>` on the :doc
 
 * ``src/VORONOI``: filenames -> commands
 * ``src/VORONOI/README``
-* ``lib/voronoi/README``
 * :doc:`compute voronoi/atom <compute_voronoi_atom>`
 * ``examples/voronoi``
 

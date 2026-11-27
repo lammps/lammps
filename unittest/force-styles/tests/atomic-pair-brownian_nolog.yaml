@@ -1,6 +1,6 @@
 ---
 lammps_version: 2 Sep 2026
-tags: single_thread
+tags: single_thread kokkos
 date_generated: Fri Sep  4 16:12:44 2026
 epsilon: 5e-13
 skip_tests: kokkos_gpu_devicerng kokkos_omp_devicerng kokkos_serial_devicerng kokkos_omp_full kokkos_serial_full

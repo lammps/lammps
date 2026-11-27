@@ -304,6 +304,35 @@ if not pythonflag and not guiflag:
     shutil.move(exe,os.path.join('..',os.path.basename(exe)))
   print("Done")
 
+  print("Configuring mbx plugin build with CMake")
+  cmd = "mingw64-cmake -D CMAKE_BUILD_TYPE=Release"
+  cmd += " -S %s/examples/PACKAGES/mbx/plugin -B mbxplugin" % gitdir
+  cmd += " -DBUILD_SHARED_LIBS=on -DBUILD_MPI=%s -DBUILD_OMP=ON" % mpiflag
+  cmd += " -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DLAMMPS_SOURCE_DIR=%s/src" % gitdir
+  cmd += " -DLAMMPS_VERSION=%s" % version
+  if plugincache: cmd += " -C %s" % plugincache
+  if parflag == 'ms': cmd += " -DUSE_MSMPI=on"
+  cmd += " -DCMAKE_CXX_STANDARD=20"
+
+  print("Running: ",cmd)
+  txt = system(cmd)
+  if verbose: print(txt)
+  print("Done")
+
+  # compiling some MBX sources takes hours: build the installer only with a precompiled MBX
+  # (see cmake/Modules/Packages/MBX.cmake) or with the libraries of the -c cache file
+  with open('mbxplugin/CMakeCache.txt') as cache:
+    precompiled = 'MBX_MINGW_PRECOMPILED:INTERNAL=ON\n' in cache.readlines()
+  if precompiled or plugincache:
+    print("Compiling and building installer (%s)" % ("precompiled MBX" if precompiled else "MBX from " + plugincache))
+    txt = system("cmake --build mbxplugin --target package --parallel %d" % numcpus)
+    if verbose: print(txt)
+    for exe in glob.glob('mbxplugin/LAMMPS*plugin*.exe'):
+      shutil.move(exe,os.path.join('..',os.path.basename(exe)))
+    print("Done")
+  else:
+    print("No precompiled MBX for this MBX version and compiler: skipping the mbx plugin installer")
+
 os.chdir(os.path.join(gitdir,"doc"))
 if manualfile:
     print("Using %s as PDF manual" % manualfile)

@@ -23,6 +23,12 @@ Unit tests are CTest-based; build with `-D ENABLE_TESTING=on -D BUILD_SHARED_LIB
   (`-g <file>` generate, `-u` update in place, `-s` print per-quantity error
   statistics for tuning `epsilon`).  Prefer `-u` so the file history stays clean.
   Regeneration can reset the `tags:` line -- re-check it after every `-u`.
+- The `gpu` and `kokkos` entries of the `tags:` line (CTest labels for `ctest -L gpu`
+  and `-L kokkos`) mark the files whose GPU or KOKKOS package variants run.  They are
+  set by `unittest/force-styles/check_accelerator_tags.py`, not by hand: after adding a
+  YAML file or an accelerated variant of a style, run `make fix-test-tags` in `src/`
+  (the style-check workflow runs `make check-test-tags`).  Non-YAML tests with test
+  cases of their own for these packages get the label in their `CMakeLists.txt`.
 - A YAML with a missing prerequisite or `input_coeffs` entry SKIPS silently while
   ctest still reports "Passed".  After adding or editing a YAML, confirm from the
   gtest output that its cases actually executed.
@@ -74,6 +80,26 @@ Unit tests are CTest-based; build with `-D ENABLE_TESTING=on -D BUILD_SHARED_LIB
 - Respa-related stress mismatches of order unity against the reference YAML, with
   matching forces and energies, almost always mean `ev_init()` was called in
   `post_force_respa()` (it must not be; see the respa guide).
+
+## Portable test code
+
+- No `ContainsRegex`/`MatchesRegex` patterns with character classes (`[...]`), groups,
+  alternation (`|`), or `{n}`: on Windows gtest uses its own simple regex engine, so
+  such a test fails only in the Windows jobs.  Use `HasSubstr` for plain text or the
+  `ASSERT_MATCH` idiom (`utils::strmatch()`).
+- **Per-atom scatter/gather functions of the library interface fail with `bigbig`:**
+  `lammps_gather_atoms()`, `lammps_scatter_atoms()`, `lammps_gather()`, and
+  `lammps_scatter()`, including their `_concat` and `_subset` variants and the Python
+  and Fortran methods of the same names, stop with an error when LAMMPS is compiled
+  with `-DLAMMPS_BIGBIG` (`LAMMPS_SIZES=bigbig`, builder `gcc-bigbig`).  Skip such a
+  test in C++ with `#if defined(LAMMPS_BIGBIG)` and `GTEST_SKIP()`, or at run time
+  when `lammps_extract_setting(nullptr, "tagint") == 8` (Python and Fortran:
+  `extract_setting("tagint")`).  Alternatives that work with `bigbig`:
+  `lammps_gather_bonds()`, `_angles()`, `_dihedrals()`, and `_impropers()` (their
+  data is `tagint`), and in a serial test `extract_atom()` with the atom IDs.
+- More pitfalls (tests that skip silently, multi-rank tests, hidden exceptions,
+  reference data that is not portable) and the table of CI jobs are in
+  `.github/dev-docs/testing-and-verification.md`.
 
 ## Adding tests for new styles
 

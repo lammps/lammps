@@ -1,5 +1,6 @@
 ---
 lammps_version: 12 Jun 2025
+tags: kokkos
 date_generated: Fri Jun 27 21:28:47 2025
 epsilon: 5e-12
 skip_tests: gpu

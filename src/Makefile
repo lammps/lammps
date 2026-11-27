@@ -1,7 +1,7 @@
 # LAMMPS multiple-machine -*- Makefile -*-
 
 SHELL = /bin/bash
-PYTHON = $(word 3,$(shell type python3))
+PYTHON = env PYTHONWARNINGS= PYTHONDONTWRITEBYTECODE=1 $(word 3,$(shell type python3))
 DYN_LIB = -ldl
 
 #.IGNORE:
@@ -414,7 +414,6 @@ mpi-stubs:
 # the python interpreter. must purge build folder to not install
 # unwanted outdated files.
 
-sinclude ../lib/python/Makefile.lammps
 install-python:
 	@rm -rf ../python/build
 	@$(PYTHON) ../python/install.py -p ../python/lammps -l ../src/liblammps.so -w $(PWD) -v $(PWD)/version.h
@@ -431,7 +430,7 @@ tar:
 	@cd STUBS; $(MAKE)
 	@echo "Created $(ROOT)_src.tar.gz"
 
-check: check-whitespace check-permissions check-homepage check-errordocs check-fmtlib check-docs
+check: check-whitespace check-permissions check-homepage check-errordocs check-fmtlib check-test-tags check-docs
 
 check-whitespace:
 	$(PYTHON) ../tools/coding_standard/whitespace.py ..
@@ -462,6 +461,12 @@ check-fmtlib:
 
 fix-fmtlib:
 	$(PYTHON) ../tools/coding_standard/fmtlib.py .. -f
+
+check-test-tags:
+	$(PYTHON) ../unittest/force-styles/check_accelerator_tags.py
+
+fix-test-tags:
+	$(PYTHON) ../unittest/force-styles/check_accelerator_tags.py -u
 
 check-docs:
 	$(MAKE) $(MFLAGS) -C ../doc anchor_check style_check package_check role_check
@@ -587,12 +592,12 @@ no-%:
 
 lib-%:
 	@$(MAKE) $(MFLAGS) warning
-	@if [ -e ../lib/$(LIBDIR)/Install.py ]; then \
-	  echo "Installing lib $(@:lib-%=%)"; \
-	  ( cd ../lib/$(LIBDIR); $(PYTHON) Install.py $(args) ); \
-	else \
-	  echo "Install script for lib $(@:lib-%=%) does not exist. Please use CMake."; \
-	fi; touch main.cpp
+	@echo 'WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING'
+	@echo ' '
+	@echo "  Package library targets like lib-$(@:lib-%=%) are no longer supported. Please use CMake."
+	@echo ' '
+	@echo 'WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING-WARNING'
+	@exit 1
 
 # status = list src files that differ from package files
 # installed = list of installed packages

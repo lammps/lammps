@@ -291,8 +291,8 @@ The *gpuID* keyword is used to specify the first ID for the GPU or
 other accelerator that LAMMPS will use. For example, if the ID is
 1 and *Ngpu* is 3, GPUs 1-3 will be used. Device IDs should be
 determined from the output of nvc\_get\_devices, ocl\_get\_devices,
-or hip\_get\_devices
-as provided in the lib/gpu directory. When using OpenCL with
+or hip\_get\_devices, which are compiled together with LAMMPS and
+can be found in the build folder. When using OpenCL with
 accelerators that have main memory NUMA, the accelerators can be
 split into smaller virtual accelerators for more efficient use
 with MPI.
@@ -324,8 +324,8 @@ The meaning of *Nthreads* is exactly the same for the GPU, INTEL,
 and GPU packages.
 
 The *platform* keyword is only used with OpenCL to specify the ID for
-an OpenCL platform. See the output from ocl\_get\_devices in the lib/gpu
-directory. In LAMMPS only one platform can be active at a time and by
+an OpenCL platform. See the output from ocl\_get\_devices in the build
+folder. In LAMMPS only one platform can be active at a time and by
 default (id=-1) the platform is auto-selected to find the GPU with the
 most compute cores. When *Ngpu* or other keywords are specified, the
 auto-selection is appropriately restricted. For example, if *Ngpu* is
@@ -566,6 +566,23 @@ keywords above. If a value of *host* is used it will be automatically be
 changed to *no* since the *sort* keyword does not support *host* mode. Not
 all fix styles with extra atom data support *device* mode and in that case
 a warning will be given and atom sorting will run in *no* mode instead.
+
+.. note::
+
+   With *device* mode, the order of the atoms that are sorted into the
+   same bin is not defined: it can differ from that of the sorting
+   without the KOKKOS package, and between GPUs (e.g. of AMD and
+   NVIDIA).  This
+   order determines with which of its two atoms a pair is stored in a
+   half neighbor list, and the order in which forces are added up.  The
+   latter changes results only within floating-point precision, as a
+   different number of MPI processes does, but output that depends on
+   how a pair is stored can differ more: e.g. the sign of the
+   force components of :doc:`compute pair/local <compute_pair_local>`,
+   which atom of a pair is first in :doc:`compute property/local
+   <compute_property_local>`, and the results of :doc:`compute
+   stress/spherical <compute_stress_curvilinear>`.  Use *sort no* when
+   such output has to match that of a run without the KOKKOS package.
 
 .. versionadded:: 17Apr2024
 

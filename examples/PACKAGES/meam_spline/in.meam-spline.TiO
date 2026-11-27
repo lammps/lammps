@@ -1,0 +1,60 @@
+# oxygen interstitials in hcp titanium
+#
+# the potential in TiO.meam.spline was made for oxygen in the dilute limit,
+# so the oxygen atoms are placed on octahedral sites far apart from each other
+
+variable a equal 2.9305
+variable ca equal 1.5964
+
+units           metal
+atom_style      atomic
+boundary        p p p
+
+# hcp titanium lattice with the c/a ratio of the potential
+lattice         custom ${a} a1 1.0 0.0 0.0 a2 0.0 $(sqrt(3.0)) 0.0 a3 0.0 0.0 ${ca} &
+                basis 0.0 0.0 0.0 basis 0.5 0.5 0.0 &
+                basis 0.5 $(5.0/6.0) 0.5 basis 0.0 $(1.0/3.0) 0.5
+region          box block 0 6 0 4 0 4
+create_box      2 box
+create_atoms    2 box
+
+# one oxygen atom on an octahedral site in every block of 3x2x2 hcp unit cells
+lattice         custom ${a} a1 3.0 0.0 0.0 a2 0.0 $(2.0*sqrt(3.0)) 0.0 a3 0.0 0.0 $(2.0*v_ca) &
+                basis 0.0 $(1.0/3.0) 0.125
+create_atoms    1 region box
+
+mass            1 15.999
+group           oxygen type 1
+mass            2 47.867
+group           titanium type 2
+
+# the element names are assigned to the atom types in the order of the pair_coeff
+# command: atom type 1 is O and atom type 2 is Ti, while the file lists Ti first
+pair_style      meam/spline
+pair_coeff      * * TiO.meam.spline O Ti
+
+neighbor        1.0 bin
+neigh_modify    every 2 delay 0 check yes
+
+thermo_style    custom step temp press pe ke etotal lx ly lz
+thermo          25
+
+# initial velocities for twice the target temperature.  they are assigned
+# before the minimization, which does not change them, since "loop geom"
+# derives them from the atom positions, and the relaxed positions can differ
+# in the last digits with the number of MPI processes
+velocity        all create 600.0 277387 loop geom
+
+# relax the atom positions around the oxygen atoms
+minimize        0.0 1.0e-4 1000 10000
+
+# energy conserving MD
+reset_timestep  0
+timestep        0.001
+fix             1 all nve
+run             100
+unfix           1
+
+# MD at 300 K and zero pressure
+fix             2 all npt temp 300.0 300.0 0.1 aniso 0.0 0.0 1.0
+run             200

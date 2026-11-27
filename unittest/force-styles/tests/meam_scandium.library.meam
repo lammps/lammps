@@ -1,0 +1,9 @@
+# NIST IPR potential: 2026--Mahata-A--Sc--LAMMPS--ipr1 (original file: library.Sc.meam)
+# URL: https://www.ctcms.nist.gov/potentials/entry/2026--Mahata-A--Sc/2026--Mahata-A--Sc--LAMMPS--ipr1.html
+# DOI: 10.1016/j.commatsci.2025.114443
+# elt        lat     z       ielement     atwt
+# alpha      b0      b1      b2           b3    alat    esub    asub
+# t0         t1              t2           t3            rozero  ibar
+'Sc'  'hcp'  12  21  44.955908
+    4.49  1.00  0  0.25  6.00  3.31  3.89  1.00
+    1.00  7.4     6.3  -5  1.000  3

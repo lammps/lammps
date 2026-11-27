@@ -1,0 +1,21 @@
+# NIST IPR potential: 2026--Mahata-A--Sc--LAMMPS--ipr1 (original file: Sc.meam)
+# URL: https://www.ctcms.nist.gov/potentials/entry/2026--Mahata-A--Sc/2026--Mahata-A--Sc--LAMMPS--ipr1.html
+# DOI: 10.1016/j.commatsci.2025.114443
+rc = 6.0
+delr = 0.1
+Ec(1,1) = 3.89
+re(1,1) = 3.31
+Cmax(1,1,1) = 2.8
+Cmin(1,1,1) = 0.49
+nn2(1,1) = 1
+attrac(1,1) = 0
+repuls(1,1) = 0
+zbl(1,1) = 0
+theta(1,1) = 180
+gsmooth_factor = 99
+augt1 = 1
+ialloy = 0
+mixture_ref_t = 0
+erose_form = 2
+emb_lin_neg = 0
+bkgd_dyn = 0

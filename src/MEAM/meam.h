@@ -141,6 +141,15 @@ class MEAM {
   int maxneigh;
   double *scrfcn, *dscrfcn, *fcpair;
 
+  // short list of the neighbors k of atom i that can screen a pair i-j
+
+  struct ShortNeigh {
+    double rsq;     // squared distance between atoms i and k
+    int k, eltk;    // index and element of atom k
+  };
+  int maxshort;
+  ShortNeigh *shortneigh;
+
   //angle for trimer, zigzag, line reference structures
   double stheta_meam[MAXELT][MAXELT];
   double ctheta_meam[MAXELT][MAXELT];
@@ -248,6 +257,8 @@ class MEAM {
                  int *fmap);
   void calc_rho1(int i, int ntype, int *type, int *fmap, double **x, int numneigh, int *firstneigh,
                  double *scrfcn, double *fcpair);
+  int build_short_list(int i, int elti, double **x, int numneigh_full, int *firstneigh_full,
+                       int *type, int *fmap);
 
   void alloyparams();
   void compute_pair_meam();

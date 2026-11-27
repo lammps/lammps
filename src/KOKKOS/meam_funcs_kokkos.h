@@ -60,9 +60,9 @@ KK_FLOAT MEAMKokkos<DeviceType>::G_gam(const KK_FLOAT gamma, const int ibar, int
         return Kokkos::sqrt(static_cast<KK_FLOAT>(1.0) + gamma);
       }
     case 1:
-      return static_cast<KK_FLOAT>(MathSpecialKokkos::fm_exp(static_cast<double>(gamma) / 2.0));
+      return Kokkos::exp(gamma / static_cast<KK_FLOAT>(2.0));
     case 3:
-      return static_cast<KK_FLOAT>(2.0 / (1.0 + MathSpecialKokkos::fm_exp(static_cast<double>(-gamma))));
+      return static_cast<KK_FLOAT>(2.0) / (static_cast<KK_FLOAT>(1.0) + Kokkos::exp(-gamma));
     case -5:
       if ((static_cast<KK_FLOAT>(1.0) + gamma) >= 0) {
         return Kokkos::sqrt(static_cast<KK_FLOAT>(1.0) + gamma);
@@ -110,11 +110,11 @@ KK_FLOAT MEAMKokkos<DeviceType>::dG_gam(const KK_FLOAT gamma, const int ibar, KK
         return G;
       }
     case 1:
-      G = static_cast<KK_FLOAT>(MathSpecialKokkos::fm_exp(static_cast<double>(gamma) / 2.0));
+      G = Kokkos::exp(gamma / static_cast<KK_FLOAT>(2.0));
       dG = G / static_cast<KK_FLOAT>(2.0);
       return G;
     case 3:
-      G = static_cast<KK_FLOAT>(2.0 / (1.0 + MathSpecialKokkos::fm_exp(static_cast<double>(-gamma))));
+      G = static_cast<KK_FLOAT>(2.0) / (static_cast<KK_FLOAT>(1.0) + Kokkos::exp(-gamma));
       dG = G * (static_cast<KK_FLOAT>(2.0) - G) / 2;
       return G;
     case -5:
@@ -151,7 +151,7 @@ KK_FLOAT MEAMKokkos<DeviceType>::zbl(const KK_FLOAT r, const int z1, const int z
   KK_FLOAT result = 0.0;
   x = r / a;
   for (i = 0; i <= 3; i++) {
-    result = result + c[i] * static_cast<KK_FLOAT>(MathSpecialKokkos::fm_exp(static_cast<double>(-d[i] * x)));
+    result = result + c[i] * Kokkos::exp(-d[i] * x);
   }
   if (r > static_cast<KK_FLOAT>(0.0))
     result = result * z1 * z2 / r * cc;
@@ -204,11 +204,11 @@ KK_FLOAT MEAMKokkos<DeviceType>::erose(const KK_FLOAT r, const KK_FLOAT re, cons
       a3 = repuls;
 
     if (form == 1)
-      result = -Ec * (1 + astar + (-attrac + repuls / r) * MathSpecialKokkos::cube(astar)) * static_cast<KK_FLOAT>(MathSpecialKokkos::fm_exp(static_cast<double>(-astar)));
+      result = -Ec * (1 + astar + (-attrac + repuls / r) * MathSpecialKokkos::cube(astar)) * Kokkos::exp(-astar);
     else if (form == 2)
-      result = -Ec * (1 + astar + a3 * MathSpecialKokkos::cube(astar)) * static_cast<KK_FLOAT>(MathSpecialKokkos::fm_exp(static_cast<double>(-astar)));
+      result = -Ec * (1 + astar + a3 * MathSpecialKokkos::cube(astar)) * Kokkos::exp(-astar);
     else
-      result = -Ec * (1 + astar + a3 * MathSpecialKokkos::cube(astar) / (r / re)) * static_cast<KK_FLOAT>(MathSpecialKokkos::fm_exp(static_cast<double>(-astar)));
+      result = -Ec * (1 + astar + a3 * MathSpecialKokkos::cube(astar) / (r / re)) * Kokkos::exp(-astar);
   }
   return result;
 }

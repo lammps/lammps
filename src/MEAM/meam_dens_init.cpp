@@ -12,9 +12,9 @@
 ------------------------------------------------------------------------- */
 #include "meam.h"
 
-#include "math_special.h"
 #include "memory.h"
 
+#include <algorithm>
 #include <cmath>
 
 using namespace LAMMPS_NS;
@@ -129,6 +129,50 @@ void MEAM::meam_dens_init(int i, int ntype, int *type, int *fmap, double **x, in
 
 // ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
+// collect the neighbors k of atom i that can screen any pair i-j: atom k is
+// outside the screening ellipse of the pair i-j if rik2 > ebound*rij2, and rij2 is
+// at most cutforcesq.  return the number of atoms in the short list.
+
+int MEAM::build_short_list(int i, int elti, double **x, int numneigh_full, int *firstneigh_full,
+                           int *type, int *fmap)
+{
+  if (numneigh_full > maxshort) {
+    maxshort = numneigh_full;
+    memory->sfree(shortneigh);
+    shortneigh = (ShortNeigh *) memory->smalloc(maxshort * sizeof(ShortNeigh), "pair:shortneigh");
+  }
+
+  double eboundmax = 0.0;
+  for (int eltj = 0; eltj < neltypes; eltj++)
+    eboundmax = std::max(eboundmax, ebound_meam[elti][eltj]);
+  const double rshortsq = eboundmax * cutforcesq;
+
+  const double xitmp = x[i][0];
+  const double yitmp = x[i][1];
+  const double zitmp = x[i][2];
+  int numshort = 0;
+
+  for (int kn = 0; kn < numneigh_full; kn++) {
+    const int k = firstneigh_full[kn];
+    const int eltk = fmap[type[k]];
+    if (eltk < 0) continue;
+
+    const double delxik = x[k][0] - xitmp;
+    const double delyik = x[k][1] - yitmp;
+    const double delzik = x[k][2] - zitmp;
+    const double rik2 = delxik * delxik + delyik * delyik + delzik * delzik;
+    if (rik2 > rshortsq) continue;
+
+    shortneigh[numshort].rsq = rik2;
+    shortneigh[numshort].k = k;
+    shortneigh[numshort].eltk = eltk;
+    ++numshort;
+  }
+  return numshort;
+}
+
+// ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+
 void MEAM::getscreen(int i, double *scrfcn, double *dscrfcn, double *fcpair, double **x,
                      int numneigh, int *firstneigh, int numneigh_full, int *firstneigh_full,
                      int /*ntype*/, int *type, int *fmap)
@@ -136,8 +180,8 @@ void MEAM::getscreen(int i, double *scrfcn, double *dscrfcn, double *fcpair, dou
   int jn, j, kn, k;
   int elti, eltj, eltk;
   double xitmp, yitmp, zitmp, delxij, delyij, delzij, rij2, rij;
-  double xjtmp, yjtmp, zjtmp, delxik, delyik, delzik, rik2 /*,rik*/;
-  double xktmp, yktmp, zktmp, delxjk, delyjk, delzjk, rjk2 /*,rjk*/;
+  double xjtmp, yjtmp, zjtmp, rik2 /*,rik*/;
+  double delxjk, delyjk, delzjk, rjk2 /*,rjk*/;
   double xik, xjk, sij, fcij, sfcij, dfcij, sikj, dfikj, cikj;
   double Cmin, Cmax, delc, /*ebound,*/ a, coef1, coef2;
   double dCikj;
@@ -150,6 +194,8 @@ void MEAM::getscreen(int i, double *scrfcn, double *dscrfcn, double *fcpair, dou
   xitmp = x[i][0];
   yitmp = x[i][1];
   zitmp = x[i][2];
+
+  const int numshort = build_short_list(i, elti, x, numneigh_full, firstneigh_full, type, fmap);
 
   for (jn = 0; jn < numneigh; jn++) {
     j = firstneigh[jn];
@@ -175,34 +221,26 @@ void MEAM::getscreen(int i, double *scrfcn, double *dscrfcn, double *fcpair, dou
 
     const double rbound = ebound_meam[elti][eltj] * rij2;
     rij = sqrt(rij2);
+    const double rij2inv = 1.0 / rij2;
     rnorm = (cutforce - rij) * drinv;
     sij = 1.0;
 
-    //     if rjk2 > ebound*rijsq, atom k is definitely outside the ellipse
-    for (kn = 0; kn < numneigh_full; kn++) {
-      k = firstneigh_full[kn];
+    //     if rik2 or rjk2 > ebound*rijsq, atom k is definitely outside the ellipse
+    for (kn = 0; kn < numshort; kn++) {
+      rik2 = shortneigh[kn].rsq;
+      if (rik2 > rbound) continue;
+      k = shortneigh[kn].k;
       if (k == j) continue;
-      eltk = fmap[type[k]];
-      if (eltk < 0) continue;
+      eltk = shortneigh[kn].eltk;
 
-      xktmp = x[k][0];
-      yktmp = x[k][1];
-      zktmp = x[k][2];
-
-      delxjk = xktmp - xjtmp;
-      delyjk = yktmp - yjtmp;
-      delzjk = zktmp - zjtmp;
+      delxjk = x[k][0] - xjtmp;
+      delyjk = x[k][1] - yjtmp;
+      delzjk = x[k][2] - zjtmp;
       rjk2 = delxjk * delxjk + delyjk * delyjk + delzjk * delzjk;
       if (rjk2 > rbound) continue;
 
-      delxik = xktmp - xitmp;
-      delyik = yktmp - yitmp;
-      delzik = zktmp - zitmp;
-      rik2 = delxik * delxik + delyik * delyik + delzik * delzik;
-      if (rik2 > rbound) continue;
-
-      xik = rik2 / rij2;
-      xjk = rjk2 / rij2;
+      xik = rik2 * rij2inv;
+      xjk = rjk2 * rij2inv;
       a = 1 - (xik - xjk) * (xik - xjk);
       //     if a < 0, then ellipse equation doesn't describe this case and
       //     atom k can't possibly screen i-j
@@ -234,11 +272,12 @@ void MEAM::getscreen(int i, double *scrfcn, double *dscrfcn, double *fcpair, dou
     dscrfcn[jn] = 0.0;
     sfcij = sij * fcij;
     if (!iszero(sfcij) && !isone(sfcij)) {
-      for (kn = 0; kn < numneigh_full; kn++) {
-        k = firstneigh_full[kn];
+      for (kn = 0; kn < numshort; kn++) {
+        rik2 = shortneigh[kn].rsq;
+        if (rik2 > rbound) continue;
+        k = shortneigh[kn].k;
         if (k == j) continue;
-        eltk = fmap[type[k]];
-        if (eltk < 0) continue;
+        eltk = shortneigh[kn].eltk;
 
         delxjk = x[k][0] - xjtmp;
         delyjk = x[k][1] - yjtmp;
@@ -246,14 +285,8 @@ void MEAM::getscreen(int i, double *scrfcn, double *dscrfcn, double *fcpair, dou
         rjk2 = delxjk * delxjk + delyjk * delyjk + delzjk * delzjk;
         if (rjk2 > rbound) continue;
 
-        delxik = x[k][0] - xitmp;
-        delyik = x[k][1] - yitmp;
-        delzik = x[k][2] - zitmp;
-        rik2 = delxik * delxik + delyik * delyik + delzik * delzik;
-        if (rik2 > rbound) continue;
-
-        xik = rik2 / rij2;
-        xjk = rjk2 / rij2;
+        xik = rik2 * rij2inv;
+        xjk = rjk2 * rij2inv;
         a = 1 - (xik - xjk) * (xik - xjk);
         //     if a < 0, then ellipse equation doesn't describe this case and
         //     atom k can't possibly screen i-j
@@ -324,27 +357,40 @@ void MEAM::calc_rho1(int i, int /*ntype*/, int *type, int *fmap, double **x, int
       if (rij2 < cutforcesq) {
         eltj = fmap[type[j]];
         rij = sqrt(rij2);
+        const double rijinv = 1.0 / rij;
         ai = rij / re_meam[elti][elti] - 1.0;
         aj = rij / re_meam[eltj][eltj] - 1.0;
         ro0i = rho0_meam[elti];
         ro0j = rho0_meam[eltj];
-        rhoa0j = ro0j * MathSpecial::fm_exp(-beta0_meam[eltj] * aj) * sij;
-        rhoa1j = ro0j * MathSpecial::fm_exp(-beta1_meam[eltj] * aj) * sij;
-        rhoa2j = ro0j * MathSpecial::fm_exp(-beta2_meam[eltj] * aj) * sij;
-        rhoa3j = ro0j * MathSpecial::fm_exp(-beta3_meam[eltj] * aj) * sij;
+        rhoa0j = ro0j * exp(-beta0_meam[eltj] * aj) * sij;
+        rhoa1j = ro0j * exp(-beta1_meam[eltj] * aj) * sij;
+        rhoa2j = ro0j * exp(-beta2_meam[eltj] * aj) * sij;
+        rhoa3j = ro0j * exp(-beta3_meam[eltj] * aj) * sij;
         if (msmeamflag) {
-          rhoa1mj = ro0j * t1m_meam[eltj] * MathSpecial::fm_exp(-beta1m_meam[eltj] * aj) * sij;
-          rhoa2mj = ro0j * t2m_meam[eltj] * MathSpecial::fm_exp(-beta2m_meam[eltj] * aj) * sij;
-          rhoa3mj = ro0j * t3m_meam[eltj] * MathSpecial::fm_exp(-beta3m_meam[eltj] * aj) * sij;
+          rhoa1mj = ro0j * t1m_meam[eltj] * exp(-beta1m_meam[eltj] * aj) * sij;
+          rhoa2mj = ro0j * t2m_meam[eltj] * exp(-beta2m_meam[eltj] * aj) * sij;
+          rhoa3mj = ro0j * t3m_meam[eltj] * exp(-beta3m_meam[eltj] * aj) * sij;
         }
-        rhoa0i = ro0i * MathSpecial::fm_exp(-beta0_meam[elti] * ai) * sij;
-        rhoa1i = ro0i * MathSpecial::fm_exp(-beta1_meam[elti] * ai) * sij;
-        rhoa2i = ro0i * MathSpecial::fm_exp(-beta2_meam[elti] * ai) * sij;
-        rhoa3i = ro0i * MathSpecial::fm_exp(-beta3_meam[elti] * ai) * sij;
-        if (msmeamflag) {
-          rhoa1mi = ro0i * t1m_meam[elti] * MathSpecial::fm_exp(-beta1m_meam[elti] * ai) * sij;
-          rhoa2mi = ro0i * t2m_meam[elti] * MathSpecial::fm_exp(-beta2m_meam[elti] * ai) * sij;
-          rhoa3mi = ro0i * t3m_meam[elti] * MathSpecial::fm_exp(-beta3m_meam[elti] * ai) * sij;
+        if (elti != eltj) {
+          rhoa0i = ro0i * exp(-beta0_meam[elti] * ai) * sij;
+          rhoa1i = ro0i * exp(-beta1_meam[elti] * ai) * sij;
+          rhoa2i = ro0i * exp(-beta2_meam[elti] * ai) * sij;
+          rhoa3i = ro0i * exp(-beta3_meam[elti] * ai) * sij;
+          if (msmeamflag) {
+            rhoa1mi = ro0i * t1m_meam[elti] * exp(-beta1m_meam[elti] * ai) * sij;
+            rhoa2mi = ro0i * t2m_meam[elti] * exp(-beta2m_meam[elti] * ai) * sij;
+            rhoa3mi = ro0i * t3m_meam[elti] * exp(-beta3m_meam[elti] * ai) * sij;
+          }
+        } else {
+          rhoa0i = rhoa0j;
+          rhoa1i = rhoa1j;
+          rhoa2i = rhoa2j;
+          rhoa3i = rhoa3j;
+          if (msmeamflag) {
+            rhoa1mi = rhoa1mj;
+            rhoa2mi = rhoa2mj;
+            rhoa3mi = rhoa3mj;
+          }
         }
         if (ialloy == 1) {
           rhoa1j = rhoa1j * t1_meam[eltj];
@@ -377,34 +423,34 @@ void MEAM::calc_rho1(int i, int /*ntype*/, int *type, int *fmap, double **x, int
         arho2b[i] = arho2b[i] + rhoa2j;
         arho2b[j] = arho2b[j] + rhoa2i;
 
-        A1j = rhoa1j / rij;
-        A2j = rhoa2j / rij2;
-        A3j = rhoa3j / (rij2 * rij);
-        A1i = rhoa1i / rij;
-        A2i = rhoa2i / rij2;
-        A3i = rhoa3i / (rij2 * rij);
+        A1j = rhoa1j * rijinv;
+        A2j = rhoa2j * (rijinv * rijinv);
+        A3j = rhoa3j * (rijinv * rijinv * rijinv);
+        A1i = rhoa1i * rijinv;
+        A2i = rhoa2i * (rijinv * rijinv);
+        A3i = rhoa3i * (rijinv * rijinv * rijinv);
         nv2 = 0;
         nv3 = 0;
         if (msmeamflag) {
           arho2mb[i] = arho2mb[i] + rhoa2mj;
           arho2mb[j] = arho2mb[j] + rhoa2mi;
-          A1mj = rhoa1mj / rij;
-          A2mj = rhoa2mj / rij2;
-          A3mj = rhoa3mj / (rij2 * rij);
-          A1mi = rhoa1mi / rij;
-          A2mi = rhoa2mi / rij2;
-          A3mi = rhoa3mi / (rij2 * rij);
+          A1mj = rhoa1mj * rijinv;
+          A2mj = rhoa2mj * (rijinv * rijinv);
+          A3mj = rhoa3mj * (rijinv * rijinv * rijinv);
+          A1mi = rhoa1mi * rijinv;
+          A2mi = rhoa2mi * (rijinv * rijinv);
+          A3mi = rhoa3mi * (rijinv * rijinv * rijinv);
         }
         for (m = 0; m < 3; m++) {
           arho1[i][m] = arho1[i][m] + A1j * delij[m];
           arho1[j][m] = arho1[j][m] - A1i * delij[m];
-          arho3b[i][m] = arho3b[i][m] + rhoa3j * delij[m] / rij;
-          arho3b[j][m] = arho3b[j][m] - rhoa3i * delij[m] / rij;
+          arho3b[i][m] = arho3b[i][m] + rhoa3j * delij[m] * rijinv;
+          arho3b[j][m] = arho3b[j][m] - rhoa3i * delij[m] * rijinv;
           if (msmeamflag) {
             arho1m[i][m] = arho1m[i][m] + A1mj * delij[m];
             arho1m[j][m] = arho1m[j][m] - A1mi * delij[m];
-            arho3mb[i][m] = arho3mb[i][m] + rhoa3mj * delij[m] / rij;
-            arho3mb[j][m] = arho3mb[j][m] - rhoa3mi * delij[m] / rij;
+            arho3mb[i][m] = arho3mb[i][m] + rhoa3mj * delij[m] * rijinv;
+            arho3mb[j][m] = arho3mb[j][m] - rhoa3mi * delij[m] * rijinv;
           }
           for (n = m; n < 3; n++) {
             arho2[i][nv2] = arho2[i][nv2] + A2j * delij[m] * delij[n];

@@ -326,12 +326,6 @@ mathematical functions for a variety of applications.
 .. doxygenfunction:: factorial
    :project: progguide
 
-.. doxygenfunction:: exp2_x86
-   :project: progguide
-
-.. doxygenfunction:: fm_exp
-   :project: progguide
-
 .. doxygenfunction:: my_erfcx
    :project: progguide
 

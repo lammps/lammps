@@ -228,44 +228,6 @@ TEST(MathSpecial, powsinxx_known_values)
 }
 
 // -------------------------------------------------------------------------
-// fm_exp() and exp2_x86()
-// -------------------------------------------------------------------------
-
-TEST(MathSpecial, fm_exp_known_values)
-{
-    // Compare against standard exp() within reasonable tolerance
-    EXPECT_NEAR(MathSpecial::fm_exp(0.0), 1.0, 1e-14);
-    EXPECT_NEAR(MathSpecial::fm_exp(1.0), std::exp(1.0), std::exp(1.0) * 1e-12);
-    EXPECT_NEAR(MathSpecial::fm_exp(-1.0), std::exp(-1.0), 1e-12);
-    EXPECT_NEAR(MathSpecial::fm_exp(2.0), std::exp(2.0), std::exp(2.0) * 1e-12);
-}
-
-TEST(MathSpecial, fm_exp_range_of_values)
-{
-    // Test a range of values match std::exp closely
-    for (double x = -10.0; x <= 10.0; x += 0.5) {
-        double expected = std::exp(x);
-        EXPECT_NEAR(MathSpecial::fm_exp(x), expected, expected * 1e-10) << "fm_exp(" << x << ")";
-    }
-}
-
-TEST(MathSpecial, fm_exp_large_negative)
-{
-    // Very large negative => ~0
-    double val = MathSpecial::fm_exp(-800.0);
-    EXPECT_GE(val, 0.0);
-    EXPECT_LT(val, 1e-300);
-}
-
-TEST(MathSpecial, exp2_x86_known_values)
-{
-    EXPECT_NEAR(MathSpecial::exp2_x86(0.0), 1.0, 1e-14);
-    EXPECT_NEAR(MathSpecial::exp2_x86(1.0), 2.0, 2.0 * 1e-12);
-    EXPECT_NEAR(MathSpecial::exp2_x86(10.0), 1024.0, 1024.0 * 1e-12);
-    EXPECT_NEAR(MathSpecial::exp2_x86(-1.0), 0.5, 0.5 * 1e-12);
-}
-
-// -------------------------------------------------------------------------
 // expmsq() - exp(-x*x)
 // -------------------------------------------------------------------------
 

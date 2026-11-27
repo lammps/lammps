@@ -1,0 +1,12 @@
+# NIST IPR potential: 2020--Miraz-A-S-M--Cu-N-Ti--LAMMPS--ipr1 (original file: library.meam.0)
+# URL: https://www.ctcms.nist.gov/potentials/entry/2020--Miraz-A-S-M-Dhariwal-N-Meng-W-J-et-al--Cu-N-Ti/2020--Miraz-A-S-M--Cu-N-Ti--LAMMPS--ipr1.html
+# DOI: 10.1016/j.matdes.2020.109123
+'Cu'    'fcc'    12    29    63.546
+4.8245    3.6844    4.2977    5.7533    0.117    3.6133156519    3.54    0.9097
+1    2.3247    6.935    6.0024    1.00    3
+'N'    'dim'    1    7    14.007
+5.9600000000    2.75    4.00    4.00    4.00    1.1000000000    4.88    1.80
+1    0.05    1.00    0.00    18.00    3
+'Ti'    'hcp'    12    22    47.880
+4.4097    1.5804    0.0824    2.8851    0.0016    2.9200000000    4.87    1.1859
+1    5.5512    6.7949    -2.0512    1.00    3

@@ -39,6 +39,8 @@ MEAM::MEAM(Memory *mem) : memory(mem)
 
   maxneigh = 0;
   scrfcn = dscrfcn = fcpair = nullptr;
+  maxshort = 0;
+  shortneigh = nullptr;
   copymode = 0;
 
   // clang-format on
@@ -93,6 +95,7 @@ MEAM::~MEAM()
   memory->destroy(scrfcn);
   memory->destroy(dscrfcn);
   memory->destroy(fcpair);
+  memory->sfree(shortneigh);
 
   // msmeam
   if (msmeamflag) {

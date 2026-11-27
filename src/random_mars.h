@@ -26,7 +26,27 @@ class RanMars : protected Pointers {
 
   RanMars(class LAMMPS *, int);
   ~RanMars() override;
-  double uniform();
+
+  // uniform random number in (0,1), defined here so that it can be inlined.
+  // the two wrap-arounds are written without branches: they are taken at random
+  // and would be mispredicted about half the time.  adding 0.0 when they are
+  // not taken leaves the values unchanged, so the sequence is the same.
+  double uniform()
+  {
+    double uni = u[i97] - u[j97];
+    uni += static_cast<double>(uni < 0.0);
+    u[i97] = uni;
+    i97--;
+    if (i97 == 0) i97 = 97;
+    j97--;
+    if (j97 == 0) j97 = 97;
+    c -= cd;
+    c += cm * static_cast<double>(c < 0.0);
+    uni -= c;
+    uni += static_cast<double>(uni < 0.0);
+    return uni;
+  }
+
   double gaussian();
   double gaussian(double mu, double sigma);
   double rayleigh(double sigma);

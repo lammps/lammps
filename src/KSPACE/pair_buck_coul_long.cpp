@@ -80,7 +80,7 @@ PairBuckCoulLong::~PairBuckCoulLong()
 void PairBuckCoulLong::compute(int eflag, int vflag)
 {
   int i,j,ii,jj,inum,jnum,itable,itype,jtype;
-  double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,evdwl,ecoul,fpair;
+  double qtmp,xtmp,ytmp,ztmp,fxtmp,fytmp,fztmp,delx,dely,delz,evdwl,ecoul,fpair;
   double fraction,table;
   double rsq,r2inv,r6inv,forcecoul,forcebuck,factor_coul,factor_lj;
   double grij,expm2,prefactor,t,erfc;
@@ -90,8 +90,8 @@ void PairBuckCoulLong::compute(int eflag, int vflag)
   evdwl = ecoul = 0.0;
   ev_init(eflag,vflag);
 
-  double **x = atom->x;
-  double **f = atom->f;
+  const double (*const x)[3] = (const double (*)[3]) atom->x[0];
+  double (*const f)[3] = (double (*)[3]) atom->f[0];
   double *q = atom->q;
   int *type = atom->type;
   int nlocal = atom->nlocal;
@@ -116,6 +116,7 @@ void PairBuckCoulLong::compute(int eflag, int vflag)
     itype = type[i];
     jlist = firstneigh[i];
     jnum = numneigh[i];
+    fxtmp = fytmp = fztmp = 0.0;
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
@@ -166,9 +167,9 @@ void PairBuckCoulLong::compute(int eflag, int vflag)
 
         fpair = (forcecoul + factor_lj*forcebuck) * r2inv;
 
-        f[i][0] += delx*fpair;
-        f[i][1] += dely*fpair;
-        f[i][2] += delz*fpair;
+        fxtmp += delx*fpair;
+        fytmp += dely*fpair;
+        fztmp += delz*fpair;
         if (newton_pair || j < nlocal) {
           f[j][0] -= delx*fpair;
           f[j][1] -= dely*fpair;
@@ -196,6 +197,9 @@ void PairBuckCoulLong::compute(int eflag, int vflag)
                              evdwl,ecoul,fpair,delx,dely,delz);
       }
     }
+    f[i][0] += fxtmp;
+    f[i][1] += fytmp;
+    f[i][2] += fztmp;
   }
 
   if (vflag_fdotr) virial_fdotr_compute();

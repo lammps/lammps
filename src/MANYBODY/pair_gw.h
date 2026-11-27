@@ -50,9 +50,18 @@ class PairGW : public Pair {
     double ZBLcut, ZBLexpscale;
   };
 
+  // a neighbor within the largest cutoff with its distance vector, for the three-body terms
+  struct ShortNeigh {
+    double del[3];    // x[j] - x[i]
+    double rsq;
+    int j, jtype;
+  };
+
  protected:
   Param *params;    // parameter set for an I-J-K interaction
   double cutmax;    // max cutoff for all elements
+  int maxshort;             // size of short neighbor list array
+  ShortNeigh *neighshort;   // short neighbor list of the current atom
 
   int **pages;     // neighbor list pages
   int maxlocal;    // size of numneigh, firstneigh arrays

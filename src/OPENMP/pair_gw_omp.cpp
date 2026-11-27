@@ -17,6 +17,7 @@
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
+#include "memory.h"
 #include "neigh_list.h"
 #include "suffix.h"
 
@@ -85,6 +86,12 @@ void PairGWOMP::eval(int iifrom, int iito, ThrData *const thr)
   const int *const ilist = list->ilist;
   const int *const numneigh = list->numneigh;
   const int *const *const firstneigh = list->firstneigh;
+  const double cutshortsq = cutmax * cutmax;
+
+  // each thread has its own short neighbor list
+  int maxshort_thr = maxshort;
+  ShortNeigh *neighshort_thr;
+  memory->create(neighshort_thr, maxshort_thr, "pair_thr:neighshort_thr");
 
   double fxtmp, fytmp, fztmp;
 
@@ -98,12 +105,35 @@ void PairGWOMP::eval(int iifrom, int iito, ThrData *const thr)
     const int *jlist = firstneigh[i];
     const int jnum = numneigh[i];
     fxtmp = fytmp = fztmp = 0.0;
+    int numshort = 0;
 
     // two-body interactions, skip half of them (using FULL list + tag filter)
 
     for (int jj = 0; jj < jnum; jj++) {
       int j = jlist[jj];
       j &= NEIGHMASK;
+
+      const double delx = xtmp - x[j].x;
+      const double dely = ytmp - x[j].y;
+      const double delz = ztmp - x[j].z;
+      const double rsq = delx * delx + dely * dely + delz * delz;
+
+      // collect the neighbors within the largest cutoff for the three-body terms
+
+      if (rsq <= cutshortsq) {
+        ShortNeigh &s = neighshort_thr[numshort++];
+        s.del[0] = -delx;
+        s.del[1] = -dely;
+        s.del[2] = -delz;
+        s.rsq = rsq;
+        s.j = j;
+        s.jtype = map[type[j]];
+        if (numshort >= maxshort_thr) {
+          maxshort_thr += maxshort_thr / 2;
+          memory->grow(neighshort_thr, maxshort_thr, "pair_thr:neighshort_thr");
+        }
+      }
+
       const tagint jtag = tag[j];
 
       if (itag > jtag) {
@@ -117,10 +147,6 @@ void PairGWOMP::eval(int iifrom, int iito, ThrData *const thr)
       }
 
       const int jtype = map[type[j]];
-      const double delx = xtmp - x[j].x;
-      const double dely = ytmp - x[j].y;
-      const double delz = ztmp - x[j].z;
-      const double rsq = delx * delx + dely * dely + delz * delz;
       const int iparam_ij = elem3param[itype][jtype][jtype];
       if (rsq > params[iparam_ij].cutsq) continue;
 
@@ -143,17 +169,14 @@ void PairGWOMP::eval(int iifrom, int iito, ThrData *const thr)
 
     double fjxtmp, fjytmp, fjztmp;
 
-    for (int jj = 0; jj < jnum; jj++) {
-      int j = jlist[jj];
-      j &= NEIGHMASK;
-      const int jtype = map[type[j]];
+    for (int jj = 0; jj < numshort; jj++) {
+      ShortNeigh &s1 = neighshort_thr[jj];
+      const int j = s1.j;
+      const int jtype = s1.jtype;
       const int iparam_ij = elem3param[itype][jtype][jtype];
 
-      double delr1[3];
-      delr1[0] = x[j].x - xtmp;
-      delr1[1] = x[j].y - ytmp;
-      delr1[2] = x[j].z - ztmp;
-      const double rsq1 = delr1[0] * delr1[0] + delr1[1] * delr1[1] + delr1[2] * delr1[2];
+      double *const delr1 = s1.del;
+      const double rsq1 = s1.rsq;
       if (rsq1 > params[iparam_ij].cutsq) continue;
 
       // accumulate bondorder zeta for each i-j interaction via loop over k
@@ -161,18 +184,14 @@ void PairGWOMP::eval(int iifrom, int iito, ThrData *const thr)
 
       double zeta_ij = 1.0;
 
-      for (int kk = 0; kk < jnum; kk++) {
+      for (int kk = 0; kk < numshort; kk++) {
         if (jj == kk) continue;
-        int k = jlist[kk];
-        k &= NEIGHMASK;
-        const int ktype = map[type[k]];
+        ShortNeigh &s2 = neighshort_thr[kk];
+        const int ktype = s2.jtype;
         const int iparam_ijk = elem3param[itype][jtype][ktype];
 
-        double delr2[3];
-        delr2[0] = x[k].x - xtmp;
-        delr2[1] = x[k].y - ytmp;
-        delr2[2] = x[k].z - ztmp;
-        const double rsq2 = delr2[0] * delr2[0] + delr2[1] * delr2[1] + delr2[2] * delr2[2];
+        double *const delr2 = s2.del;
+        const double rsq2 = s2.rsq;
         if (rsq2 > params[iparam_ijk].cutsq) continue;
 
         zeta_ij += zeta(&params[iparam_ijk], rsq1, rsq2, delr1, delr2);
@@ -197,18 +216,15 @@ void PairGWOMP::eval(int iifrom, int iito, ThrData *const thr)
 
       // attractive term via loop over k
 
-      for (int kk = 0; kk < jnum; kk++) {
+      for (int kk = 0; kk < numshort; kk++) {
         if (jj == kk) continue;
-        int k = jlist[kk];
-        k &= NEIGHMASK;
-        const int ktype = map[type[k]];
+        ShortNeigh &s2 = neighshort_thr[kk];
+        const int k = s2.j;
+        const int ktype = s2.jtype;
         const int iparam_ijk = elem3param[itype][jtype][ktype];
 
-        double delr2[3];
-        delr2[0] = x[k].x - xtmp;
-        delr2[1] = x[k].y - ytmp;
-        delr2[2] = x[k].z - ztmp;
-        const double rsq2 = delr2[0] * delr2[0] + delr2[1] * delr2[1] + delr2[2] * delr2[2];
+        double *const delr2 = s2.del;
+        const double rsq2 = s2.rsq;
         if (rsq2 > params[iparam_ijk].cutsq) continue;
 
         double fi[3], fj[3], fk[3];
@@ -234,6 +250,7 @@ void PairGWOMP::eval(int iifrom, int iito, ThrData *const thr)
     f[i].y += fytmp;
     f[i].z += fztmp;
   }
+  memory->destroy(neighshort_thr);
 }
 
 /* ---------------------------------------------------------------------- */

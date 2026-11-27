@@ -89,6 +89,7 @@ void NPairMulti<HALF, NEWTON, TRI, SIZE, ATOMONLY>::build(NeighList *list)
 
   int history = list->history;
   int mask_history = 1 << HISTBITS;
+  const int oneatom = list->oneatom;
 
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;
@@ -222,13 +223,15 @@ void NPairMulti<HALF, NEWTON, TRI, SIZE, ATOMONLY>::build(NeighList *list)
           }
 
           if (ATOMONLY) {
-            if (rsq <= cutsq) {
-              jh = j;
-              if (SIZE)
-                if (history && rsq < (radsum * radsum))
-                  jh = jh ^ mask_history;
-              neighptr[n++] = jh;
-            }
+            jh = j;
+            if (SIZE)
+              if (history && rsq < (radsum * radsum))
+                jh = jh ^ mask_history;
+            if (n < oneatom) {
+              neighptr[n] = jh;
+              n += (rsq <= cutsq);
+            } else if (rsq <= cutsq)
+              n++;
           } else {
             if (rsq <= cutsq) {
               jh = j;

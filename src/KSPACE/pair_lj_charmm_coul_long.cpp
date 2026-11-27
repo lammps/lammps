@@ -95,13 +95,13 @@ void PairLJCharmmCoulLong::compute(int eflag, int vflag)
   evdwl = ecoul = 0.0;
   ev_init(eflag,vflag);
 
-  double **x = atom->x;
-  double **f = atom->f;
-  double *q = atom->q;
-  int *type = atom->type;
+  const double (*const x)[3] = (const double (*)[3]) atom->x[0];
+  double (*const f)[3] = (double (*)[3]) atom->f[0];
+  const double *const q = atom->q;
+  const int *const type = atom->type;
   int nlocal = atom->nlocal;
-  double *special_coul = force->special_coul;
-  double *special_lj = force->special_lj;
+  const double *const special_coul = force->special_coul;
+  const double *const special_lj = force->special_lj;
   int newton_pair = force->newton_pair;
   double qqrd2e = force->qqrd2e;
 
@@ -109,6 +109,27 @@ void PairLJCharmmCoulLong::compute(int eflag, int vflag)
   ilist = list->ilist;
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
+
+  const double cut_bothsq = this->cut_bothsq;
+  const double cut_coulsq = this->cut_coulsq;
+  const double cut_ljsq = this->cut_ljsq;
+  const double cut_lj_innersq = this->cut_lj_innersq;
+  const double denom_lj_inv = this->denom_lj_inv;
+  const double tabinnersq = this->tabinnersq;
+  const int ncoultablebits = this->ncoultablebits;
+  const int ncoulmask = this->ncoulmask;
+  const int ncoulshiftbits = this->ncoulshiftbits;
+  const double *const rtable = this->rtable;
+  const double *const drtable = this->drtable;
+  const double *const ftable = this->ftable;
+  const double *const dftable = this->dftable;
+  const double *const ctable = this->ctable;
+  const double *const dctable = this->dctable;
+  const double *const etable = this->etable;
+  const double *const detable = this->detable;
+  int jpack_stk[512];
+  int *jpack_heap = nullptr;
+  int max_jpack = 512;
 
   // loop over neighbors of my atoms
 
@@ -122,8 +143,33 @@ void PairLJCharmmCoulLong::compute(int eflag, int vflag)
     jlist = firstneigh[i];
     jnum = numneigh[i];
 
+    const double *const lj1i = lj1[itype];
+    const double *const lj2i = lj2[itype];
+    const double *const lj3i = lj3[itype];
+    const double *const lj4i = lj4[itype];
+    double fxtmp = f[i][0];
+    double fytmp = f[i][1];
+    double fztmp = f[i][2];
+
+    if (jnum > max_jpack) {
+      max_jpack = jnum + 64;
+      memory->grow(jpack_heap,max_jpack,"pair:jpack");
+    }
+    int *const jpack_ptr = (jnum > 512) ? jpack_heap : jpack_stk;
+    int ninter = 0;
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
+      const int jraw = j & NEIGHMASK;
+      delx = xtmp - x[jraw][0];
+      dely = ytmp - x[jraw][1];
+      delz = ztmp - x[jraw][2];
+      rsq = delx*delx + dely*dely + delz*delz;
+      jpack_ptr[ninter] = j;
+      ninter += (rsq < cut_bothsq);
+    }
+
+    for (jj = 0; jj < ninter; jj++) {
+      j = jpack_ptr[jj];
       factor_lj = special_lj[sbmask(j)];
       factor_coul = special_coul[sbmask(j)];
       j &= NEIGHMASK;
@@ -133,6 +179,7 @@ void PairLJCharmmCoulLong::compute(int eflag, int vflag)
       delz = ztmp - x[j][2];
       rsq = delx*delx + dely*dely + delz*delz;
 
+      // always true for packed pairs; kept to avoid re-indenting loop body
       if (rsq < cut_bothsq) {
         r2inv = 1.0/rsq;
 
@@ -165,22 +212,22 @@ void PairLJCharmmCoulLong::compute(int eflag, int vflag)
         if (rsq < cut_ljsq) {
           r6inv = r2inv*r2inv*r2inv;
           jtype = type[j];
-          forcelj = r6inv * (lj1[itype][jtype]*r6inv - lj2[itype][jtype]);
+          forcelj = r6inv * (lj1i[jtype]*r6inv - lj2i[jtype]);
           if (rsq > cut_lj_innersq) {
             switch1 = (cut_ljsq-rsq) * (cut_ljsq-rsq) *
               (cut_ljsq + 2.0*rsq - 3.0*cut_lj_innersq) * denom_lj_inv;
             switch2 = 12.0*rsq * (cut_ljsq-rsq) *
               (rsq-cut_lj_innersq) * denom_lj_inv;
-            philj = r6inv * (lj3[itype][jtype]*r6inv - lj4[itype][jtype]);
+            philj = r6inv * (lj3i[jtype]*r6inv - lj4i[jtype]);
             forcelj = forcelj*switch1 + philj*switch2;
           }
         } else forcelj = 0.0;
 
         fpair = (forcecoul + factor_lj*forcelj) * r2inv;
 
-        f[i][0] += delx*fpair;
-        f[i][1] += dely*fpair;
-        f[i][2] += delz*fpair;
+        fxtmp += delx*fpair;
+        fytmp += dely*fpair;
+        fztmp += delz*fpair;
         if (newton_pair || j < nlocal) {
           f[j][0] -= delx*fpair;
           f[j][1] -= dely*fpair;
@@ -199,7 +246,7 @@ void PairLJCharmmCoulLong::compute(int eflag, int vflag)
           } else ecoul = 0.0;
 
           if (rsq < cut_ljsq) {
-            evdwl = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype]);
+            evdwl = r6inv*(lj3i[jtype]*r6inv-lj4i[jtype]);
             if (rsq > cut_lj_innersq) {
               switch1 = (cut_ljsq-rsq) * (cut_ljsq-rsq) *
                 (cut_ljsq + 2.0*rsq - 3.0*cut_lj_innersq) * denom_lj_inv;
@@ -213,8 +260,13 @@ void PairLJCharmmCoulLong::compute(int eflag, int vflag)
                              evdwl,ecoul,fpair,delx,dely,delz);
       }
     }
+
+    f[i][0] = fxtmp;
+    f[i][1] = fytmp;
+    f[i][2] = fztmp;
   }
 
+  if (jpack_heap) memory->destroy(jpack_heap);
   if (vflag_fdotr) virial_fdotr_compute();
 }
 

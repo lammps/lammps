@@ -31,16 +31,21 @@ struct RandWrap {
     rng = nullptr;
   }
 
+// RanMars is host-only code: RandPoolWrap::get_state() stops with an error
+// in GPU builds, so the device branches below are never taken
+
 // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   double drand() {
-    return rng->uniform();
+    KOKKOS_IF_ON_HOST((return rng->uniform();))
+    KOKKOS_IF_ON_DEVICE((Kokkos::abort("RandWrap::drand() is host-only"); return 0.0;))
   }
 
 // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   double normal() {
-    return rng->gaussian();
+    KOKKOS_IF_ON_HOST((return rng->gaussian();))
+    KOKKOS_IF_ON_DEVICE((Kokkos::abort("RandWrap::normal() is host-only"); return 0.0;))
   }
 };
 

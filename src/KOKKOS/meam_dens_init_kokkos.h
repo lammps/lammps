@@ -389,7 +389,7 @@ const {
     const KK_FLOAT dfcij = dfc * drinv;
 
     // Now compute derivatives
-    d_dscrfcn[offset+jn] = 0.0;
+    KK_FLOAT dscrfcn = 0.0;
     const KK_FLOAT sfcij = sij * fcij;
     if (!iszero_kk(sfcij) && !isone_kk(sfcij)) {
       for (int kn = 0; kn < d_numneigh_full[i]; kn++) {
@@ -439,15 +439,16 @@ const {
           if (sikj > static_cast<KK_FLOAT>(0.0)) {
             const KK_FLOAT coef1 = dfikj / (delc * sikj);
             const KK_FLOAT dCikj = dCfunc(rij2, rik2, rjk2);
-            d_dscrfcn[offset+jn] += coef1 * dCikj;
+            dscrfcn += coef1 * dCikj;
           }
         }
       }
       const KK_FLOAT coef1 = sfcij;
       const KK_FLOAT coef2 = sij * dfcij / rij;
-      d_dscrfcn[offset+jn] = d_dscrfcn[offset+jn] * coef1 - coef2;
+      dscrfcn = dscrfcn * coef1 - coef2;
     }
 
+    d_dscrfcn[offset+jn] = dscrfcn;
     d_scrfcn[offset+jn] = sij;
     d_fcpair[offset+jn] = fcij;
   }
@@ -512,23 +513,39 @@ MEAMKokkos<DeviceType>::calc_rho1(int i, int /*ntype*/, typename AT::t_int_1d ty
         const KK_FLOAT aj = rij / static_cast<KK_FLOAT>(re_meam[eltj][eltj]) - static_cast<KK_FLOAT>(1.0);
         const KK_FLOAT ro0i = static_cast<KK_FLOAT>(rho0_meam[elti]);
         const KK_FLOAT ro0j = static_cast<KK_FLOAT>(rho0_meam[eltj]);
-        const KK_FLOAT rhoa0j = ro0j * static_cast<KK_FLOAT>(MathSpecialKokkos::fm_exp(static_cast<double>(-static_cast<KK_FLOAT>(beta0_meam[eltj]) * aj))) * sij;
-        KK_FLOAT rhoa1j = ro0j * static_cast<KK_FLOAT>(MathSpecialKokkos::fm_exp(static_cast<double>(-static_cast<KK_FLOAT>(beta1_meam[eltj]) * aj))) * sij;
-        KK_FLOAT rhoa2j = ro0j * static_cast<KK_FLOAT>(MathSpecialKokkos::fm_exp(static_cast<double>(-static_cast<KK_FLOAT>(beta2_meam[eltj]) * aj))) * sij;
-        KK_FLOAT rhoa3j = ro0j * static_cast<KK_FLOAT>(MathSpecialKokkos::fm_exp(static_cast<double>(-static_cast<KK_FLOAT>(beta3_meam[eltj]) * aj))) * sij;
-        const KK_FLOAT rhoa0i = ro0i * static_cast<KK_FLOAT>(MathSpecialKokkos::fm_exp(static_cast<double>(-static_cast<KK_FLOAT>(beta0_meam[elti]) * ai))) * sij;
-        KK_FLOAT rhoa1i = ro0i * static_cast<KK_FLOAT>(MathSpecialKokkos::fm_exp(static_cast<double>(-static_cast<KK_FLOAT>(beta1_meam[elti]) * ai))) * sij;
-        KK_FLOAT rhoa2i = ro0i * static_cast<KK_FLOAT>(MathSpecialKokkos::fm_exp(static_cast<double>(-static_cast<KK_FLOAT>(beta2_meam[elti]) * ai))) * sij;
-        KK_FLOAT rhoa3i = ro0i * static_cast<KK_FLOAT>(MathSpecialKokkos::fm_exp(static_cast<double>(-static_cast<KK_FLOAT>(beta3_meam[elti]) * ai))) * sij;
+        const KK_FLOAT rhoa0j = ro0j * Kokkos::exp(-static_cast<KK_FLOAT>(beta0_meam[eltj]) * aj) * sij;
+        KK_FLOAT rhoa1j = ro0j * Kokkos::exp(-static_cast<KK_FLOAT>(beta1_meam[eltj]) * aj) * sij;
+        KK_FLOAT rhoa2j = ro0j * Kokkos::exp(-static_cast<KK_FLOAT>(beta2_meam[eltj]) * aj) * sij;
+        KK_FLOAT rhoa3j = ro0j * Kokkos::exp(-static_cast<KK_FLOAT>(beta3_meam[eltj]) * aj) * sij;
         // msmeam
         KK_FLOAT rhoa1mj, rhoa2mj, rhoa3mj, rhoa1mi, rhoa2mi, rhoa3mi;
         if (msmeamflag) {
-          rhoa1mj = ro0j * static_cast<KK_FLOAT>(t1m_meam[eltj]) * static_cast<KK_FLOAT>(MathSpecialKokkos::fm_exp(static_cast<double>(-static_cast<KK_FLOAT>(beta1m_meam[eltj]) * aj))) * sij;
-          rhoa2mj = ro0j * static_cast<KK_FLOAT>(t2m_meam[eltj]) * static_cast<KK_FLOAT>(MathSpecialKokkos::fm_exp(static_cast<double>(-static_cast<KK_FLOAT>(beta2m_meam[eltj]) * aj))) * sij;
-          rhoa3mj = ro0j * static_cast<KK_FLOAT>(t3m_meam[eltj]) * static_cast<KK_FLOAT>(MathSpecialKokkos::fm_exp(static_cast<double>(-static_cast<KK_FLOAT>(beta3m_meam[eltj]) * aj))) * sij;
-          rhoa1mi = ro0i * static_cast<KK_FLOAT>(t1m_meam[elti]) * static_cast<KK_FLOAT>(MathSpecialKokkos::fm_exp(static_cast<double>(-static_cast<KK_FLOAT>(beta1m_meam[elti]) * ai))) * sij;
-          rhoa2mi = ro0i * static_cast<KK_FLOAT>(t2m_meam[elti]) * static_cast<KK_FLOAT>(MathSpecialKokkos::fm_exp(static_cast<double>(-static_cast<KK_FLOAT>(beta2m_meam[elti]) * ai))) * sij;
-          rhoa3mi = ro0i * static_cast<KK_FLOAT>(t3m_meam[elti]) * static_cast<KK_FLOAT>(MathSpecialKokkos::fm_exp(static_cast<double>(-static_cast<KK_FLOAT>(beta3m_meam[elti]) * ai))) * sij;
+          rhoa1mj = ro0j * static_cast<KK_FLOAT>(t1m_meam[eltj]) * Kokkos::exp(-static_cast<KK_FLOAT>(beta1m_meam[eltj]) * aj) * sij;
+          rhoa2mj = ro0j * static_cast<KK_FLOAT>(t2m_meam[eltj]) * Kokkos::exp(-static_cast<KK_FLOAT>(beta2m_meam[eltj]) * aj) * sij;
+          rhoa3mj = ro0j * static_cast<KK_FLOAT>(t3m_meam[eltj]) * Kokkos::exp(-static_cast<KK_FLOAT>(beta3m_meam[eltj]) * aj) * sij;
+        }
+        // for the same element, the densities from atom i are those from atom j
+        KK_FLOAT rhoa0i, rhoa1i, rhoa2i, rhoa3i;
+        if (elti != eltj) {
+          rhoa0i = ro0i * Kokkos::exp(-static_cast<KK_FLOAT>(beta0_meam[elti]) * ai) * sij;
+          rhoa1i = ro0i * Kokkos::exp(-static_cast<KK_FLOAT>(beta1_meam[elti]) * ai) * sij;
+          rhoa2i = ro0i * Kokkos::exp(-static_cast<KK_FLOAT>(beta2_meam[elti]) * ai) * sij;
+          rhoa3i = ro0i * Kokkos::exp(-static_cast<KK_FLOAT>(beta3_meam[elti]) * ai) * sij;
+          if (msmeamflag) {
+            rhoa1mi = ro0i * static_cast<KK_FLOAT>(t1m_meam[elti]) * Kokkos::exp(-static_cast<KK_FLOAT>(beta1m_meam[elti]) * ai) * sij;
+            rhoa2mi = ro0i * static_cast<KK_FLOAT>(t2m_meam[elti]) * Kokkos::exp(-static_cast<KK_FLOAT>(beta2m_meam[elti]) * ai) * sij;
+            rhoa3mi = ro0i * static_cast<KK_FLOAT>(t3m_meam[elti]) * Kokkos::exp(-static_cast<KK_FLOAT>(beta3m_meam[elti]) * ai) * sij;
+          }
+        } else {
+          rhoa0i = rhoa0j;
+          rhoa1i = rhoa1j;
+          rhoa2i = rhoa2j;
+          rhoa3i = rhoa3j;
+          if (msmeamflag) {
+            rhoa1mi = rhoa1mj;
+            rhoa2mi = rhoa2mj;
+            rhoa3mi = rhoa3mj;
+          }
         }
         if (ialloy == 1) {
           rhoa1j *= static_cast<KK_FLOAT>(t1_meam[eltj]);

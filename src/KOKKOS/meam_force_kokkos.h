@@ -764,49 +764,47 @@ KOKKOS_INLINE_FUNCTION void MEAMKokkos<DeviceType>::operator()(TagMEAMForce<NEIG
         KK_FLOAT dxik(0), dyik(0), dzik(0);
         KK_FLOAT dxjk(0), dyjk(0), dzjk(0);
 
-        for (kn = 0; kn < d_numneigh_full[i]; kn++) {
-          k = d_neighbors_full(i, kn);
+        const KK_FLOAT rbound = rij2 * static_cast<KK_FLOAT>(ebound_meam[elti][eltj]);
+
+        for (kn = 0; kn < d_numneigh_short[ii]; kn++) {
+          k = d_neighbors_short(ii, kn);
           eltk = d_map[type[k]];
-          if (k != j && eltk >= 0) {
+          if (k != j) {
             KK_FLOAT xik, xjk, cikj, sikj, dfc, a;
             KK_FLOAT dCikj1, dCikj2;
             KK_FLOAT delc, rik2, rjk2;
 
-            sij = d_scrfcn[jn + fnoffset] * d_fcpair[jn + fnoffset];
             const KK_FLOAT Cmax = static_cast<KK_FLOAT>(Cmax_meam[elti][eltj][eltk]);
             const KK_FLOAT Cmin = static_cast<KK_FLOAT>(Cmin_meam[elti][eltj][eltk]);
 
             dsij1 = 0.0;
             dsij2 = 0.0;
-            if (!iszero_kk(sij) && !isone_kk(sij)) {
-              const KK_FLOAT rbound = rij2 * static_cast<KK_FLOAT>(ebound_meam[elti][eltj]);
-              delc = Cmax - Cmin;
-              dxjk = x(k, 0) - x(j, 0);
-              dyjk = x(k, 1) - x(j, 1);
-              dzjk = x(k, 2) - x(j, 2);
-              rjk2 = dxjk * dxjk + dyjk * dyjk + dzjk * dzjk;
-              if (rjk2 <= rbound) {
-                dxik = x(k, 0) - x(i, 0);
-                dyik = x(k, 1) - x(i, 1);
-                dzik = x(k, 2) - x(i, 2);
-                rik2 = dxik * dxik + dyik * dyik + dzik * dzik;
-                if (rik2 <= rbound) {
-                  xik = rik2 / rij2;
-                  xjk = rjk2 / rij2;
-                  a = 1 - (xik - xjk) * (xik - xjk);
-                  if (!iszero_kk(a)) {
-                    cikj = (static_cast<KK_FLOAT>(2.0) * (xik + xjk) + a - static_cast<KK_FLOAT>(2.0)) / a;
-                    if (cikj >= Cmin && cikj <= Cmax) {
-                      cikj = (cikj - Cmin) / delc;
-                      sikj = dfcut(cikj, dfc);
-                      // sikj = dfc = 0 for cikj within rounding of Cmin while sij > 0,
-                      // see getscreen().  the contribution vanishes in this limit.
-                      if (sikj > static_cast<KK_FLOAT>(0.0)) {
-                        dCfunc2(rij2, rik2, rjk2, dCikj1, dCikj2);
-                        a = sij / delc * dfc / sikj;
-                        dsij1 = a * dCikj1;
-                        dsij2 = a * dCikj2;
-                      }
+            delc = Cmax - Cmin;
+            dxjk = x(k, 0) - x(j, 0);
+            dyjk = x(k, 1) - x(j, 1);
+            dzjk = x(k, 2) - x(j, 2);
+            rjk2 = dxjk * dxjk + dyjk * dyjk + dzjk * dzjk;
+            if (rjk2 <= rbound) {
+              dxik = x(k, 0) - x(i, 0);
+              dyik = x(k, 1) - x(i, 1);
+              dzik = x(k, 2) - x(i, 2);
+              rik2 = dxik * dxik + dyik * dyik + dzik * dzik;
+              if (rik2 <= rbound) {
+                xik = rik2 / rij2;
+                xjk = rjk2 / rij2;
+                a = 1 - (xik - xjk) * (xik - xjk);
+                if (!iszero_kk(a)) {
+                  cikj = (static_cast<KK_FLOAT>(2.0) * (xik + xjk) + a - static_cast<KK_FLOAT>(2.0)) / a;
+                  if (cikj >= Cmin && cikj <= Cmax) {
+                    cikj = (cikj - Cmin) / delc;
+                    sikj = dfcut(cikj, dfc);
+                    // sikj = dfc = 0 for cikj within rounding of Cmin while sij > 0,
+                    // see getscreen().  the contribution vanishes in this limit.
+                    if (sikj > static_cast<KK_FLOAT>(0.0)) {
+                      dCfunc2(rij2, rik2, rjk2, dCikj1, dCikj2);
+                      a = sij / delc * dfc / sikj;
+                      dsij1 = a * dCikj1;
+                      dsij2 = a * dCikj2;
                     }
                   }
                 }

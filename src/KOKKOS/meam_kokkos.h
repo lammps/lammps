@@ -28,6 +28,7 @@ struct TagMEAMDensFinal {};
 template <int NEIGHFLAG> struct TagMEAMDensInit {
 };
 struct TagMEAMZero {};
+struct TagMEAMShortNeigh {};
 template <int NEIGHFLAG> struct TagMEAMForce {
 };
 
@@ -51,6 +52,10 @@ template <class DeviceType> class MEAMKokkos : public MEAM {
   KOKKOS_INLINE_FUNCTION
   void operator()(TagMEAMZero, const int &) const;
 
+// NOLINTNEXTLINE
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagMEAMShortNeigh, const int &) const;
+
   template <int NEIGHFLAG>
 // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION void operator()(TagMEAMForce<NEIGHFLAG>, const int &, EV_FLOAT &) const;
@@ -68,6 +73,12 @@ template <class DeviceType> class MEAMKokkos : public MEAM {
   typename AT::t_int_1d d_numneigh_full;
   typename AT::t_neighbors_2d d_neighbors_half;
   typename AT::t_neighbors_2d d_neighbors_full;
+
+  // short list of the neighbors k of atom i that can screen a pair i-j
+
+  typename AT::t_int_2d_dl d_neighbors_short;
+  typename AT::t_int_1d d_numneigh_short;
+
   typename AT::t_int_1d d_ilist_half;
   typename AT::t_kkacc_1d_3 f;
   typename AT::t_kkacc_1d_6 d_vatom;
@@ -96,7 +107,7 @@ template <class DeviceType> class MEAMKokkos : public MEAM {
                   int, int, EV_FLOAT &);
   template <int NEIGHFLAG>
 // NOLINTNEXTLINE
-  KOKKOS_INLINE_FUNCTION void getscreen(int, int, typename AT::t_kkfloat_1d_3_lr, typename AT::t_int_1d,
+  KOKKOS_INLINE_FUNCTION void getscreen(int, int, int, typename AT::t_kkfloat_1d_3_lr,
                                         typename AT::t_int_1d, int, typename AT::t_int_1d,
                                         typename AT::t_int_1d) const;
   template <int NEIGHFLAG>

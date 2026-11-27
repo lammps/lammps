@@ -29,15 +29,55 @@ template<class DeviceType>
 template<int NEIGHFLAG>
 // NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
-void MEAMKokkos<DeviceType>::operator()(TagMEAMDensInit<NEIGHFLAG>, const int &i) const {
-  int offsetval = d_offset[i];
-  int ii = d_ilist_half[i];
+void MEAMKokkos<DeviceType>::operator()(TagMEAMDensInit<NEIGHFLAG>, const int &ii) const {
+  int offsetval = d_offset[ii];
+  int i = d_ilist_half[ii];
   // compute screening function and derivatives
-  this->template getscreen<NEIGHFLAG>(ii, offsetval, x, d_numneigh_half,
-            d_numneigh_full, ntype, type, d_map);
+  this->template getscreen<NEIGHFLAG>(i, ii, offsetval, x, d_numneigh_half, ntype, type, d_map);
 
   // calculate intermediate density terms to be communicated
-  this->template calc_rho1<NEIGHFLAG>(ii, ntype, type, d_map, x, d_numneigh_half, offsetval);
+  this->template calc_rho1<NEIGHFLAG>(i, ntype, type, d_map, x, d_numneigh_half, offsetval);
+}
+
+/* ----------------------------------------------------------------------
+   collect the neighbors k of atom i that can screen any pair i-j: atom k is
+   outside the screening ellipse of the pair i-j if rik2 > ebound*rij2, and
+   rij2 is at most cutforcesq
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+// NOLINTNEXTLINE
+KOKKOS_INLINE_FUNCTION
+void MEAMKokkos<DeviceType>::operator()(TagMEAMShortNeigh, const int &ii) const {
+  const int i = d_ilist_half[ii];
+  const int elti = d_map[type[i]];
+  int numshort = 0;
+
+  if (elti >= 0) {
+    double eboundmax = 0.0;
+    for (int eltj = 0; eltj < neltypes; eltj++)
+      eboundmax = (ebound_meam[elti][eltj] > eboundmax) ? ebound_meam[elti][eltj] : eboundmax;
+    const KK_FLOAT rshortsq = static_cast<KK_FLOAT>(eboundmax) * static_cast<KK_FLOAT>(cutforcesq);
+
+    const KK_FLOAT xitmp = x(i,0);
+    const KK_FLOAT yitmp = x(i,1);
+    const KK_FLOAT zitmp = x(i,2);
+
+    for (int kn = 0; kn < d_numneigh_full[i]; kn++) {
+      const int k = d_neighbors_full(i,kn);
+      if (d_map[type[k]] < 0) continue;
+
+      const KK_FLOAT delxik = x(k,0) - xitmp;
+      const KK_FLOAT delyik = x(k,1) - yitmp;
+      const KK_FLOAT delzik = x(k,2) - zitmp;
+      const KK_FLOAT rik2 = delxik * delxik + delyik * delyik + delzik * delzik;
+      if (rik2 > rshortsq) continue;
+
+      d_neighbors_short(ii,numshort) = k;
+      ++numshort;
+    }
+  }
+  d_numneigh_short[ii] = numshort;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -246,7 +286,18 @@ MEAMKokkos<DeviceType>::meam_dens_init(int inum_half, int ntype, typename AT::t_
     ndup_arho3mb = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterNonDuplicated>(d_arho3mb);
   }
 
+  // build the short neighbor list for screening, which meam_force() uses as well
+
+  const int maxneigh_full = d_neighbors_full.extent(1);
+  if (((int) d_neighbors_short.extent(0) < inum_half) ||
+      ((int) d_neighbors_short.extent(1) < maxneigh_full))
+    d_neighbors_short = typename AT::t_int_2d_dl("meam:neighbors_short", inum_half * 1.2, maxneigh_full);
+  if ((int) d_numneigh_short.extent(0) < inum_half)
+    d_numneigh_short = typename AT::t_int_1d("meam:numneigh_short", inum_half * 1.2);
+
   copymode = 1;
+  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagMEAMShortNeigh>(0,inum_half),*this);
+
   if (neighflag == HALF)
     Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagMEAMDensInit<HALF> >(0,inum_half),*this);
   else if (neighflag == HALFTHREAD)
@@ -294,8 +345,9 @@ template<int NEIGHFLAG>
 // NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void
-MEAMKokkos<DeviceType>::getscreen(int i, int offset, typename AT::t_kkfloat_1d_3_lr x, typename AT::t_int_1d d_numneigh_half,
-                typename AT::t_int_1d d_numneigh_full, int /*ntype*/, typename AT::t_int_1d type, typename AT::t_int_1d d_map)
+MEAMKokkos<DeviceType>::getscreen(int i, int ii, int offset, typename AT::t_kkfloat_1d_3_lr x,
+                typename AT::t_int_1d d_numneigh_half, int /*ntype*/, typename AT::t_int_1d type,
+                typename AT::t_int_1d d_map)
 const {
   const KK_FLOAT drinv = static_cast<KK_FLOAT>(1.0 / delr_meam);
   const int elti = d_map[type[i]];
@@ -334,28 +386,27 @@ const {
     const KK_FLOAT rnorm = (static_cast<KK_FLOAT>(cutforce) - rij) * drinv;
     KK_FLOAT sij = 1.0;
 
-    // if rjk2 > ebound*rijsq, atom k is definitely outside the ellipse
-    for (int kn = 0; kn < d_numneigh_full[i]; kn++) {
-      int k = d_neighbors_full(i,kn);
+    // if rik2 or rjk2 > ebound*rijsq, atom k is definitely outside the ellipse
+    for (int kn = 0; kn < d_numneigh_short[ii]; kn++) {
+      const int k = d_neighbors_short(ii,kn);
       if (k == j) continue;
-      int eltk = d_map[type[k]];
-      if (eltk < 0) continue;
+      const int eltk = d_map[type[k]];
 
       const KK_FLOAT xktmp = x(k,0);
       const KK_FLOAT yktmp = x(k,1);
       const KK_FLOAT zktmp = x(k,2);
-
-      const KK_FLOAT delxjk = xktmp - xjtmp;
-      const KK_FLOAT delyjk = yktmp - yjtmp;
-      const KK_FLOAT delzjk = zktmp - zjtmp;
-      const KK_FLOAT rjk2 = delxjk * delxjk + delyjk * delyjk + delzjk * delzjk;
-      if (rjk2 > rbound) continue;
 
       const KK_FLOAT delxik = xktmp - xitmp;
       const KK_FLOAT delyik = yktmp - yitmp;
       const KK_FLOAT delzik = zktmp - zitmp;
       const KK_FLOAT rik2 = delxik * delxik + delyik * delyik + delzik * delzik;
       if (rik2 > rbound) continue;
+
+      const KK_FLOAT delxjk = xktmp - xjtmp;
+      const KK_FLOAT delyjk = yktmp - yjtmp;
+      const KK_FLOAT delzjk = zktmp - zjtmp;
+      const KK_FLOAT rjk2 = delxjk * delxjk + delyjk * delyjk + delzjk * delzjk;
+      if (rjk2 > rbound) continue;
 
       const KK_FLOAT xik = rik2 / rij2;
       const KK_FLOAT xjk = rjk2 / rij2;
@@ -392,23 +443,22 @@ const {
     KK_FLOAT dscrfcn = 0.0;
     const KK_FLOAT sfcij = sij * fcij;
     if (!iszero_kk(sfcij) && !isone_kk(sfcij)) {
-      for (int kn = 0; kn < d_numneigh_full[i]; kn++) {
-        const int k = d_neighbors_full(i,kn);
+      for (int kn = 0; kn < d_numneigh_short[ii]; kn++) {
+        const int k = d_neighbors_short(ii,kn);
         if (k == j) continue;
         const int eltk = d_map[type[k]];
-        if (eltk < 0) continue;
-
-        const KK_FLOAT delxjk = x(k,0) - xjtmp;
-        const KK_FLOAT delyjk = x(k,1) - yjtmp;
-        const KK_FLOAT delzjk = x(k,2) - zjtmp;
-        const KK_FLOAT rjk2 = delxjk * delxjk + delyjk * delyjk + delzjk * delzjk;
-        if (rjk2 > rbound) continue;
 
         const KK_FLOAT delxik = x(k,0) - xitmp;
         const KK_FLOAT delyik = x(k,1) - yitmp;
         const KK_FLOAT delzik = x(k,2) - zitmp;
         const KK_FLOAT rik2 = delxik * delxik + delyik * delyik + delzik * delzik;
         if (rik2 > rbound) continue;
+
+        const KK_FLOAT delxjk = x(k,0) - xjtmp;
+        const KK_FLOAT delyjk = x(k,1) - yjtmp;
+        const KK_FLOAT delzjk = x(k,2) - zjtmp;
+        const KK_FLOAT rjk2 = delxjk * delxjk + delyjk * delyjk + delzjk * delzjk;
+        if (rjk2 > rbound) continue;
 
         const KK_FLOAT xik = rik2 / rij2;
         const KK_FLOAT xjk = rjk2 / rij2;

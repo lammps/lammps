@@ -20,7 +20,12 @@ Examples
 
    pair_style meam/spline
    pair_coeff * * Ti.meam.spline Ti
-   pair_coeff * * Ti.meam.spline Ti O
+   pair_coeff * * Ti.meam.spline Ti Ti
+   pair_coeff * * TiO.meam.spline O Ti Ti
+
+   pair_style hybrid meam/spline lj/cut 10.0
+   pair_coeff * * meam/spline TiO.meam.spline Ti O NULL
+   pair_coeff * 3 lj/cut 0.01 3.0
 
 Description
 """""""""""
@@ -84,35 +89,45 @@ where N is the number of LAMMPS atom types:
 See the :doc:`pair_coeff <pair_coeff>` page for alternate ways
 to specify the path for the potential file.
 
-As an example, imagine the Ti.meam.spline file has values for Ti (old style).
-In that case your LAMMPS simulation may only have one atom type which has
-to be mapped to the Ti element as follows:
+As an example, the TiO.meam.spline file (new style) has parameters for
+Ti and O.  If your LAMMPS simulation has 3 atom types and you want the
+first to be O and the second and third to be Ti, you would use the
+following pair_coeff command:
 
 .. code-block:: LAMMPS
 
-   pair_coeff * * Ti.meam.spline Ti
+   pair_coeff * * TiO.meam.spline O Ti Ti
 
-The first 2 arguments must be \* \* and there may be only one element
-following or NULL. Systems where there would be multiple atom types
-assigned to the same element are **not** supported by this pair style
-due to limitations in its implementation.  If a mapping value is
-specified as NULL, the mapping is not performed.  This can be used when
-a *meam/spline* potential is used as part of the *hybrid* pair style.
-The NULL values are placeholders for atom types that will be used with
-other potentials.
+The first 2 arguments must be \* \* so as to span all LAMMPS atom types.
+The O argument maps LAMMPS atom type 1 to the O element in the potential
+file.  The two Ti arguments map LAMMPS atom types 2 and 3 to the Ti
+element in the potential file.  The element names need to match the
+names of the elements in the potential file exactly; otherwise an error
+is raised.  Elements of the potential file that are not mapped to any
+atom type are not used.
 
-An example with a two component spline (new style) is TiO.meam.spline, where
-the command
+If a mapping value is specified as NULL, the mapping is not performed.
+This can be used when a *meam/spline* potential is used as part of the
+*hybrid* pair style.  The NULL values are placeholders for atom types
+that will be used with other potentials.
+
+Old style potential files, e.g. Ti.meam.spline, have parameters for a
+single element and do not list its name.  Any element name can be used
+for them in the pair_coeff command, but all atom types that are not
+mapped to NULL must use the same name:
 
 .. code-block:: LAMMPS
 
-   pair_coeff * * TiO.meam.spline Ti O
+   pair_coeff * * Ti.meam.spline Ti Ti
 
-will map the first atom type to Ti and the second atom type to O. Note
-in this case that the species names need to match exactly with the
-names of the elements in the TiO.meam.spline file; otherwise an
-error will be raised. This behavior is different than the old style
-MEAM files.
+.. versionchanged:: 30Sep2026-backport
+
+Previous versions of LAMMPS required each element of the potential file
+to be mapped to exactly one atom type, did not support NULL, and
+assigned the elements to the atom types in the order of the potential
+file, regardless of the order of the element names in the pair_coeff
+command.  Also, they used the wrong pair functions for some pairs of
+elements with potential files for more than two elements.
 
 ----------
 
@@ -141,8 +156,6 @@ Restrictions
 
 This pair style requires the :doc:`newton <newton>` setting to be "on"
 for pair interactions.
-
-This pair style does not support mapping multiple atom types to the same element.
 
 This pair style is only enabled if LAMMPS was built with the MANYBODY
 package.  See the :doc:`Build package <Build_package>` page for more

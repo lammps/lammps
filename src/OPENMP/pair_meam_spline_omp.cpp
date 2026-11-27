@@ -109,7 +109,6 @@ void PairMEAMSplineOMP::eval(int iifrom, int iito, ThrData * const thr)
   const int nthreads = comm->nthreads;
   const int nlocal = atom->nlocal;
   const int nall = nlocal + atom->nghost;
-  const int ntypes = atom->ntypes;
 
   const double cutforcesq = cutoff*cutoff;
 
@@ -151,7 +150,7 @@ void PairMEAMSplineOMP::eval(int iifrom, int iito, ThrData * const thr)
           double cos_theta = (nextTwoBodyInfo->del[0]*bondk.del[0] +
                               nextTwoBodyInfo->del[1]*bondk.del[1] +
                               nextTwoBodyInfo->del[2]*bondk.del[2]);
-          partial_sum += bondk.f * gs[ij_to_potl(jtype,atom->type[bondk.tag],ntypes)].eval(cos_theta);
+          partial_sum += bondk.f * gs[ij_to_potl(jtype,atom->type[bondk.tag])].eval(cos_theta);
         }
 
         rho_value += nextTwoBodyInfo->f * partial_sum;
@@ -193,7 +192,7 @@ void PairMEAMSplineOMP::eval(int iifrom, int iito, ThrData * const thr)
                                   + bondj.del[1]*bondk->del[1]
                                   + bondj.del[2]*bondk->del[2]);
         double g_prime;
-        double g_value = gs[ij_to_potl(jtype,atom->type[bondk->tag],ntypes)].eval(cos_theta, g_prime);
+        double g_value = gs[ij_to_potl(jtype,atom->type[bondk->tag])].eval(cos_theta, g_prime);
         const double f_rik_prime = bondk->fprime;
         const double f_rik = bondk->f;
 
@@ -310,7 +309,7 @@ void PairMEAMSplineOMP::eval(int iifrom, int iito, ThrData * const thr)
         double fpair = rho_prime_j * Uprime_values[i] + rho_prime_i*Uprime_values[j];
 
         double pair_pot_deriv;
-        double pair_pot = phis[ij_to_potl(itype,jtype,ntypes)].eval(rij, pair_pot_deriv);
+        double pair_pot = phis[ij_to_potl(itype,jtype)].eval(rij, pair_pot_deriv);
 
         fpair += pair_pot_deriv;
 

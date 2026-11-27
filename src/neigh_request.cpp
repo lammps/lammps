@@ -287,6 +287,13 @@ void NeighRequest::apply_flags(int flags)
 
 /* ---------------------------------------------------------------------- */
 
+void NeighRequest::set_occasional(int flag)
+{
+  occasional = flag;
+}
+
+/* ---------------------------------------------------------------------- */
+
 // a requestor with a non-standard cutoff must state how to interpret it,
 //   by calling exactly one of the two methods below
 //   there is deliberately no plain set_cutoff(): the interpretation cannot be

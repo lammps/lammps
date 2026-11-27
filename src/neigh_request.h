@@ -149,6 +149,7 @@ class NeighRequest : protected Pointers {
   //   fixed - cutoff applies uniformly to all types (typical of analysis)
   void set_cutoff_max(double);
   void set_cutoff_fixed(double);
+  void set_occasional(int);
   void set_id(int);
   void set_kokkos_device(int);
   void set_kokkos_host(int);
@@ -158,6 +159,7 @@ class NeighRequest : protected Pointers {
   void enable_ghost();
   void enable_intel();
 
+  [[nodiscard]] int get_full() const { return full; }
   [[nodiscard]] int get_size() const { return size; }
   [[nodiscard]] void *get_requestor() const { return requestor; }
 };

@@ -51,6 +51,11 @@ class KokkosBase {
   virtual void
     sort_kokkos(Kokkos::BinSort<KeyViewType, BinOp> & /*Sorter*/) {}
 
+  // Pair: complete a force computation that compute() left running on a
+  // separate device stream; called by VerletKokkos after the kspace compute
+  virtual void finish_async_compute() {}
+  virtual bool async_compute_pending() const { return false; }
+
   // The legacy sort permutes a fix's per-atom arrays through copy_arrays() on
   // the host, where sort_kokkos() would have permuted them on the device.  A fix
   // holding those arrays in dual views has to bring them to the host before the

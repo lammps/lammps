@@ -243,6 +243,7 @@ class NeighborKokkosExecute
   int moltemplate;
 
   int special_flag[4];
+  int special_window;   // prefilter find_special() with the [min,max] special tag of i
 
   const int nbinx,nbiny,nbinz;
   const int mbinx,mbiny,mbinz;
@@ -414,6 +415,24 @@ class NeighborKokkosExecute
 // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   int find_special(const int &i, const int &j) const;
+
+  // [lo,hi] = range of the special-neighbor tags of owned atom i; a j whose tag
+  // lies outside cannot be special, so find_special() (a scan over all of i's
+  // special tags for every accepted pair) is skipped.  For molecules the
+  // window is narrow, so this rejects nearly all neighbors in two compares.
+  // An empty special list gives an empty window (lo > hi).
+// NOLINTNEXTLINE
+  KOKKOS_INLINE_FUNCTION
+  void special_tag_window(const int &i, tagint &lo, tagint &hi) const {
+    if (!special_window) { lo = 0; hi = MAXTAGINT; return; }
+    lo = MAXTAGINT; hi = 0;
+    const int n3 = nspecial(i,2);
+    for (int k = 0; k < n3; k++) {
+      const tagint t = special(i,k);
+      lo = (t < lo) ? t : lo;
+      hi = (t > hi) ? t : hi;
+    }
+  }
 
 // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION

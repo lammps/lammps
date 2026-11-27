@@ -24,6 +24,8 @@
 #include "kokkos.h"
 #include "transpose_helper_kokkos.h"
 
+#include <cstdlib>
+
 namespace LAMMPS_NS {
 
 /* ---------------------------------------------------------------------- */
@@ -251,6 +253,10 @@ void NPairKokkos<DeviceType,HALF,NEWTON,GHOST,TRI,SIZE>::build(NeighList *list_)
   data.special_flag[1] = special_flag[1];
   data.special_flag[2] = special_flag[2];
   data.special_flag[3] = special_flag[3];
+  {
+    static const int specwin = std::getenv("LMP_NEIGH_SPECWIN") ? std::atoi(std::getenv("LMP_NEIGH_SPECWIN")) : 1;
+    data.special_window = specwin;
+  }
 
   data.h_resize()=1;
   while (data.h_resize()) {
@@ -454,6 +460,8 @@ void NeighborKokkosExecute<DeviceType>::
   const int itype = type(i);
   tagint itag;
   if (HalfNeigh && Newton && Tri) itag = tag(i);
+  tagint slo = 0, shi = MAXTAGINT;
+  if (molecular != Atom::ATOMIC) special_tag_window(i,slo,shi);
 
   const int ibin = c_atom2bin(i);
 
@@ -488,7 +496,7 @@ void NeighborKokkosExecute<DeviceType>::
     if (rsq <= static_cast<double>(cutneighsq(itype,jtype))) {
       if (molecular != Atom::ATOMIC) {
         if (!moltemplate)
-          which = find_special(i,j);
+          { const tagint jt = tag(j); which = (jt >= slo && jt <= shi) ? find_special(i,j) : 0; }
             /* else if (imol >= 0) */
             /*   which = find_special(onemols[imol]->special[iatom], */
             /*                        onemols[imol]->nspecial[iatom], */
@@ -562,7 +570,7 @@ void NeighborKokkosExecute<DeviceType>::
         if (rsq <= static_cast<double>(cutneighsq(itype,jtype))) {
           if (molecular != Atom::ATOMIC) {
             if (!moltemplate)
-              which = NeighborKokkosExecute<DeviceType>::find_special(i,j);
+              { const tagint jt = tag(j); which = (jt >= slo && jt <= shi) ? find_special(i,j) : 0; }
             /* else if (imol >= 0) */
             /*   which = find_special(onemols[imol]->special[iatom], */
             /*                        onemols[imol]->nspecial[iatom], */
@@ -671,6 +679,8 @@ void NeighborKokkosExecute<DeviceType>::build_ItemGPU(typename Kokkos::TeamPolic
       }
     }
     other_id[MY_II] = i;
+    tagint slo = 0, shi = MAXTAGINT;
+    if ((molecular != Atom::ATOMIC) && (i >= 0) && (i < nlocal)) special_tag_window(i,slo,shi);
 
 #if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP)
     int test = (__syncthreads_count(i >= 0 && i < nlocal) == 0);
@@ -714,7 +724,7 @@ void NeighborKokkosExecute<DeviceType>::build_ItemGPU(typename Kokkos::TeamPolic
           if (molecular != Atom::ATOMIC) {
             int which = 0;
             if (!moltemplate)
-              which = NeighborKokkosExecute<DeviceType>::find_special(i,j);
+              { const tagint jt = tag(j); if (jt >= slo && jt <= shi) which = NeighborKokkosExecute<DeviceType>::find_special(i,j); }
             /* else if (imol >= 0) */
             /*   which = find_special(onemols[imol]->special[iatom], */
             /*                        onemols[imol]->nspecial[iatom], */
@@ -810,7 +820,7 @@ void NeighborKokkosExecute<DeviceType>::build_ItemGPU(typename Kokkos::TeamPolic
             if (molecular != Atom::ATOMIC) {
               int which = 0;
               if (!moltemplate)
-                which = NeighborKokkosExecute<DeviceType>::find_special(i,j);
+                { const tagint jt = (HalfNeigh && Newton && Tri) ? static_cast<tagint>(other_x[m + 4 * atoms_per_bin]) : tag(j); if (jt >= slo && jt <= shi) which = NeighborKokkosExecute<DeviceType>::find_special(i,j); }
               /* else if (imol >= 0) */
               /*   which = find_special(onemols[imol]->special[iatom], */
               /*                        onemols[imol]->nspecial[iatom], */

@@ -108,7 +108,9 @@ void DihedralOPLSKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   h_warning_flag() = 0;
   k_warning_flag.modify_host();
-  k_warning_flag.template sync<DeviceType>();
+  // sync on the default instance only (not a device-wide fence), so kernels
+  // running on other streams, e.g. an asynchronous pair style, keep running
+  k_warning_flag.template sync<DeviceType>(DeviceType());
 
   copymode = 1;
 
@@ -133,7 +135,8 @@ void DihedralOPLSKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   // error check
 
   k_warning_flag.template modify<DeviceType>();
-  k_warning_flag.sync_host();
+  k_warning_flag.sync_host(DeviceType());
+  DeviceType().fence();
   if (h_warning_flag())
     error->warning(FLERR,"Dihedral problem");
 

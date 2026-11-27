@@ -440,6 +440,12 @@ void PairLJCutCoulLongKokkos<DeviceType>::init_style()
                            !std::is_same_v<DeviceType,LMPDeviceType>);
   request->set_kokkos_device(std::is_same_v<DeviceType,LMPDeviceType>);
   if (neighflag == FULL) request->enable_full();
+  // cluster-level Newton (package kokkos neigh/cluster yes + newton on)
+  // consumes a FULL-style flat list: the cluster builder keeps each unordered
+  // pair exactly once, while pair_compute still dispatches with HALF/HALFTHREAD
+  // semantics (one force compute + Newton scatter per pair)
+  else if (lmp->kokkos->neigh_cluster && lmp->kokkos->ngpus && force->newton_pair)
+    request->enable_full();
 
   if (lmp->kokkos->autotuning > 0 && !tuner) {
     if (!force->newton_pair)

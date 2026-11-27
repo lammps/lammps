@@ -84,6 +84,9 @@ void MEAM::meam_force(int i, int eflag_global, int eflag_atom, int vflag_global,
   yitmp = x[i][1];
   zitmp = x[i][2];
 
+  // the short list of neighbors for screening is built when it is first needed
+  int numshort = -1;
+
   //     Treat each pair
 
   for (jn = 0; jn < numneigh; jn++) {
@@ -669,50 +672,48 @@ void MEAM::meam_force(int i, int eflag_global, int eflag_atom, int vflag_global,
         double dxik(0), dyik(0), dzik(0);
         double dxjk(0), dyjk(0), dzjk(0);
 
-        for (kn = 0; kn < numneigh_full; kn++) {
-          k = firstneigh_full[kn];
-          eltk = fmap[type[k]];
-          if (k != j && eltk >= 0) {
+        if (numshort < 0)
+          numshort = build_short_list(i, elti, x, numneigh_full, firstneigh_full, type, fmap);
+        const double rbound = rij2 * ebound_meam[elti][eltj];
+
+        for (kn = 0; kn < numshort; kn++) {
+          const double rik2 = shortneigh[kn].rsq;
+          k = shortneigh[kn].k;
+          eltk = shortneigh[kn].eltk;
+          if (k != j && rik2 <= rbound) {
             double xik, xjk, cikj, sikj, dfc, a;
             double dCikj1, dCikj2;
-            double delc, rik2, rjk2;
+            double delc, rjk2;
 
-            sij = scrfcn[jn+fnoffset] * fcpair[jn+fnoffset];
             const double Cmax = Cmax_meam[elti][eltj][eltk];
             const double Cmin = Cmin_meam[elti][eltj][eltk];
 
             dsij1 = 0.0;
             dsij2 = 0.0;
-            if (!iszero(sij) && !isone(sij)) {
-              const double rbound = rij2 * ebound_meam[elti][eltj];
-              delc = Cmax - Cmin;
-              dxjk = x[k][0] - x[j][0];
-              dyjk = x[k][1] - x[j][1];
-              dzjk = x[k][2] - x[j][2];
-              rjk2 = dxjk * dxjk + dyjk * dyjk + dzjk * dzjk;
-              if (rjk2 <= rbound) {
-                dxik = x[k][0] - x[i][0];
-                dyik = x[k][1] - x[i][1];
-                dzik = x[k][2] - x[i][2];
-                rik2 = dxik * dxik + dyik * dyik + dzik * dzik;
-                if (rik2 <= rbound) {
-                  xik = rik2 / rij2;
-                  xjk = rjk2 / rij2;
-                  a = 1 - (xik - xjk) * (xik - xjk);
-                  if (!iszero(a)) {
-                    cikj = (2.0 * (xik + xjk) + a - 2.0) / a;
-                    if (cikj >= Cmin && cikj <= Cmax) {
-                      cikj = (cikj - Cmin) / delc;
-                      sikj = dfcut(cikj, dfc);
-                      // sikj = dfc = 0 for cikj within rounding of Cmin while sij > 0,
-                      // see getscreen().  the contribution vanishes in this limit.
-                      if (sikj > 0.0) {
-                        dCfunc2(rij2, rik2, rjk2, dCikj1, dCikj2);
-                        a = sij / delc * dfc / sikj;
-                        dsij1 = a * dCikj1;
-                        dsij2 = a * dCikj2;
-                      }
-                    }
+            delc = Cmax - Cmin;
+            dxjk = x[k][0] - x[j][0];
+            dyjk = x[k][1] - x[j][1];
+            dzjk = x[k][2] - x[j][2];
+            rjk2 = dxjk * dxjk + dyjk * dyjk + dzjk * dzjk;
+            if (rjk2 <= rbound) {
+              dxik = x[k][0] - xitmp;
+              dyik = x[k][1] - yitmp;
+              dzik = x[k][2] - zitmp;
+              xik = rik2 / rij2;
+              xjk = rjk2 / rij2;
+              a = 1 - (xik - xjk) * (xik - xjk);
+              if (!iszero(a)) {
+                cikj = (2.0 * (xik + xjk) + a - 2.0) / a;
+                if (cikj >= Cmin && cikj <= Cmax) {
+                  cikj = (cikj - Cmin) / delc;
+                  sikj = dfcut(cikj, dfc);
+                  // sikj = dfc = 0 for cikj within rounding of Cmin while sij > 0,
+                  // see getscreen().  the contribution vanishes in this limit.
+                  if (sikj > 0.0) {
+                    dCfunc2(rij2, rik2, rjk2, dCikj1, dCikj2);
+                    a = sij / delc * dfc / sikj;
+                    dsij1 = a * dCikj1;
+                    dsij2 = a * dCikj2;
                   }
                 }
               }

@@ -15,6 +15,7 @@
 #include "math_special.h"
 #include "memory.h"
 
+#include <algorithm>
 #include <cmath>
 
 using namespace LAMMPS_NS;
@@ -129,6 +130,50 @@ void MEAM::meam_dens_init(int i, int ntype, int *type, int *fmap, double **x, in
 
 // ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 
+// collect the neighbors k of atom i that can screen any pair i-j: atom k is
+// outside the screening ellipse of the pair i-j if rik2 > ebound*rij2, and rij2 is
+// at most cutforcesq.  return the number of atoms in the short list.
+
+int MEAM::build_short_list(int i, int elti, double **x, int numneigh_full, int *firstneigh_full,
+                           int *type, int *fmap)
+{
+  if (numneigh_full > maxshort) {
+    maxshort = numneigh_full;
+    memory->sfree(shortneigh);
+    shortneigh = (ShortNeigh *) memory->smalloc(maxshort * sizeof(ShortNeigh), "pair:shortneigh");
+  }
+
+  double eboundmax = 0.0;
+  for (int eltj = 0; eltj < neltypes; eltj++)
+    eboundmax = std::max(eboundmax, ebound_meam[elti][eltj]);
+  const double rshortsq = eboundmax * cutforcesq;
+
+  const double xitmp = x[i][0];
+  const double yitmp = x[i][1];
+  const double zitmp = x[i][2];
+  int numshort = 0;
+
+  for (int kn = 0; kn < numneigh_full; kn++) {
+    const int k = firstneigh_full[kn];
+    const int eltk = fmap[type[k]];
+    if (eltk < 0) continue;
+
+    const double delxik = x[k][0] - xitmp;
+    const double delyik = x[k][1] - yitmp;
+    const double delzik = x[k][2] - zitmp;
+    const double rik2 = delxik * delxik + delyik * delyik + delzik * delzik;
+    if (rik2 > rshortsq) continue;
+
+    shortneigh[numshort].rsq = rik2;
+    shortneigh[numshort].k = k;
+    shortneigh[numshort].eltk = eltk;
+    ++numshort;
+  }
+  return numshort;
+}
+
+// ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+
 void MEAM::getscreen(int i, double *scrfcn, double *dscrfcn, double *fcpair, double **x,
                      int numneigh, int *firstneigh, int numneigh_full, int *firstneigh_full,
                      int /*ntype*/, int *type, int *fmap)
@@ -136,8 +181,8 @@ void MEAM::getscreen(int i, double *scrfcn, double *dscrfcn, double *fcpair, dou
   int jn, j, kn, k;
   int elti, eltj, eltk;
   double xitmp, yitmp, zitmp, delxij, delyij, delzij, rij2, rij;
-  double xjtmp, yjtmp, zjtmp, delxik, delyik, delzik, rik2 /*,rik*/;
-  double xktmp, yktmp, zktmp, delxjk, delyjk, delzjk, rjk2 /*,rjk*/;
+  double xjtmp, yjtmp, zjtmp, rik2 /*,rik*/;
+  double delxjk, delyjk, delzjk, rjk2 /*,rjk*/;
   double xik, xjk, sij, fcij, sfcij, dfcij, sikj, dfikj, cikj;
   double Cmin, Cmax, delc, /*ebound,*/ a, coef1, coef2;
   double dCikj;
@@ -150,6 +195,8 @@ void MEAM::getscreen(int i, double *scrfcn, double *dscrfcn, double *fcpair, dou
   xitmp = x[i][0];
   yitmp = x[i][1];
   zitmp = x[i][2];
+
+  const int numshort = build_short_list(i, elti, x, numneigh_full, firstneigh_full, type, fmap);
 
   for (jn = 0; jn < numneigh; jn++) {
     j = firstneigh[jn];
@@ -178,28 +225,19 @@ void MEAM::getscreen(int i, double *scrfcn, double *dscrfcn, double *fcpair, dou
     rnorm = (cutforce - rij) * drinv;
     sij = 1.0;
 
-    //     if rjk2 > ebound*rijsq, atom k is definitely outside the ellipse
-    for (kn = 0; kn < numneigh_full; kn++) {
-      k = firstneigh_full[kn];
+    //     if rik2 or rjk2 > ebound*rijsq, atom k is definitely outside the ellipse
+    for (kn = 0; kn < numshort; kn++) {
+      rik2 = shortneigh[kn].rsq;
+      if (rik2 > rbound) continue;
+      k = shortneigh[kn].k;
       if (k == j) continue;
-      eltk = fmap[type[k]];
-      if (eltk < 0) continue;
+      eltk = shortneigh[kn].eltk;
 
-      xktmp = x[k][0];
-      yktmp = x[k][1];
-      zktmp = x[k][2];
-
-      delxjk = xktmp - xjtmp;
-      delyjk = yktmp - yjtmp;
-      delzjk = zktmp - zjtmp;
+      delxjk = x[k][0] - xjtmp;
+      delyjk = x[k][1] - yjtmp;
+      delzjk = x[k][2] - zjtmp;
       rjk2 = delxjk * delxjk + delyjk * delyjk + delzjk * delzjk;
       if (rjk2 > rbound) continue;
-
-      delxik = xktmp - xitmp;
-      delyik = yktmp - yitmp;
-      delzik = zktmp - zitmp;
-      rik2 = delxik * delxik + delyik * delyik + delzik * delzik;
-      if (rik2 > rbound) continue;
 
       xik = rik2 / rij2;
       xjk = rjk2 / rij2;
@@ -234,23 +272,18 @@ void MEAM::getscreen(int i, double *scrfcn, double *dscrfcn, double *fcpair, dou
     dscrfcn[jn] = 0.0;
     sfcij = sij * fcij;
     if (!iszero(sfcij) && !isone(sfcij)) {
-      for (kn = 0; kn < numneigh_full; kn++) {
-        k = firstneigh_full[kn];
+      for (kn = 0; kn < numshort; kn++) {
+        rik2 = shortneigh[kn].rsq;
+        if (rik2 > rbound) continue;
+        k = shortneigh[kn].k;
         if (k == j) continue;
-        eltk = fmap[type[k]];
-        if (eltk < 0) continue;
+        eltk = shortneigh[kn].eltk;
 
         delxjk = x[k][0] - xjtmp;
         delyjk = x[k][1] - yjtmp;
         delzjk = x[k][2] - zjtmp;
         rjk2 = delxjk * delxjk + delyjk * delyjk + delzjk * delzjk;
         if (rjk2 > rbound) continue;
-
-        delxik = x[k][0] - xitmp;
-        delyik = x[k][1] - yitmp;
-        delzik = x[k][2] - zitmp;
-        rik2 = delxik * delxik + delyik * delyik + delzik * delzik;
-        if (rik2 > rbound) continue;
 
         xik = rik2 / rij2;
         xjk = rjk2 / rij2;
@@ -337,14 +370,26 @@ void MEAM::calc_rho1(int i, int /*ntype*/, int *type, int *fmap, double **x, int
           rhoa2mj = ro0j * t2m_meam[eltj] * MathSpecial::fm_exp(-beta2m_meam[eltj] * aj) * sij;
           rhoa3mj = ro0j * t3m_meam[eltj] * MathSpecial::fm_exp(-beta3m_meam[eltj] * aj) * sij;
         }
-        rhoa0i = ro0i * MathSpecial::fm_exp(-beta0_meam[elti] * ai) * sij;
-        rhoa1i = ro0i * MathSpecial::fm_exp(-beta1_meam[elti] * ai) * sij;
-        rhoa2i = ro0i * MathSpecial::fm_exp(-beta2_meam[elti] * ai) * sij;
-        rhoa3i = ro0i * MathSpecial::fm_exp(-beta3_meam[elti] * ai) * sij;
-        if (msmeamflag) {
-          rhoa1mi = ro0i * t1m_meam[elti] * MathSpecial::fm_exp(-beta1m_meam[elti] * ai) * sij;
-          rhoa2mi = ro0i * t2m_meam[elti] * MathSpecial::fm_exp(-beta2m_meam[elti] * ai) * sij;
-          rhoa3mi = ro0i * t3m_meam[elti] * MathSpecial::fm_exp(-beta3m_meam[elti] * ai) * sij;
+        if (elti != eltj) {
+          rhoa0i = ro0i * MathSpecial::fm_exp(-beta0_meam[elti] * ai) * sij;
+          rhoa1i = ro0i * MathSpecial::fm_exp(-beta1_meam[elti] * ai) * sij;
+          rhoa2i = ro0i * MathSpecial::fm_exp(-beta2_meam[elti] * ai) * sij;
+          rhoa3i = ro0i * MathSpecial::fm_exp(-beta3_meam[elti] * ai) * sij;
+          if (msmeamflag) {
+            rhoa1mi = ro0i * t1m_meam[elti] * MathSpecial::fm_exp(-beta1m_meam[elti] * ai) * sij;
+            rhoa2mi = ro0i * t2m_meam[elti] * MathSpecial::fm_exp(-beta2m_meam[elti] * ai) * sij;
+            rhoa3mi = ro0i * t3m_meam[elti] * MathSpecial::fm_exp(-beta3m_meam[elti] * ai) * sij;
+          }
+        } else {
+          rhoa0i = rhoa0j;
+          rhoa1i = rhoa1j;
+          rhoa2i = rhoa2j;
+          rhoa3i = rhoa3j;
+          if (msmeamflag) {
+            rhoa1mi = rhoa1mj;
+            rhoa2mi = rhoa2mj;
+            rhoa3mi = rhoa3mj;
+          }
         }
         if (ialloy == 1) {
           rhoa1j = rhoa1j * t1_meam[eltj];

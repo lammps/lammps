@@ -447,6 +447,11 @@ void FixNeighborSwap::pre_exchange()
 
   if (domain->triclinic) domain->x2lamda(atom->nlocal);
   domain->pbc();
+  if (domain->box_change) {
+    domain->reset_box();
+    comm->setup();
+    if (neighbor->style) neighbor->setup_bins();
+  }
   comm->exchange();
   comm->borders();
   if (domain->triclinic) domain->lamda2x(atom->nlocal + atom->nghost);

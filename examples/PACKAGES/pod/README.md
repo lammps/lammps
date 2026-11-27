@@ -3,14 +3,14 @@
 Go to `lammps` directory and build with the POD package:
 
     cd path/to/lammps
-    mkdir build
-    cd build
-    cmake -C ../cmake/presets/basic.cmake -D PKG_ML-POD=on ../cmake
-    cmake --build .
+    cmake -S cmake -B build -C cmake/presets/basic.cmake -D PKG_ML-POD=on
+    cmake --build build
 
 ### Compile LAMMPS/POD with Kokkos 
 
-    cmake -C ../cmake/presets/basic.cmake -C ../cmake/presets/kokkos-cuda.cmake -D PKG_ML-POD=on ../cmake
+    cmake -S cmake -B build-kokkos -C cmake/presets/basic.cmake \
+          -C cmake/presets/kokkos-cuda.cmake -D PKG_ML-POD=on
+    cmake --build build-kokkos
 
 ### Fit a POD potential for Tantalum
 

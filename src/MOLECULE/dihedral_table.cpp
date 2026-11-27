@@ -412,7 +412,7 @@ static double Phi(double const *x1, //array holding x,y,z coords atom 1
 
 /* ---------------------------------------------------------------------- */
 
-DihedralTable::DihedralTable(LAMMPS *lmp) : Dihedral(lmp)
+DihedralTable::DihedralTable(LAMMPS *lmp) : Dihedral(lmp), tabindex(nullptr)
 {
   ntables = 0;
   tables = nullptr;
@@ -422,6 +422,8 @@ DihedralTable::DihedralTable(LAMMPS *lmp) : Dihedral(lmp)
 
 DihedralTable::~DihedralTable()
 {
+  if (copymode) return;
+
   for (int m = 0; m < ntables; m++) free_table(&tables[m]);
   memory->sfree(tables);
 

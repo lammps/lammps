@@ -33,9 +33,7 @@
 #include "omp_compat.h"
 
 #ifdef LMP_USE_AVXCD
-#if (__INTEL_COMPILER_BUILD_DATE > 20160414)
 #define LMP_USE_AVXCD_DHC
-#endif
 #endif
 
 #ifdef LMP_USE_AVXCD_DHC
@@ -62,12 +60,6 @@ DihedralCharmmIntel::DihedralCharmmIntel(class LAMMPS *lmp)
 
 void DihedralCharmmIntel::compute(int eflag, int vflag)
 {
-  #ifdef _LMP_INTEL_OFFLOAD
-  if (_use_base) {
-    DihedralCharmm::compute(eflag, vflag);
-    return;
-  }
-  #endif
 
   if (fix->precision() == FixIntel::PREC_MODE_MIXED)
     compute<float,double>(eflag, vflag, fix->get_mixed_buffers(),
@@ -127,8 +119,8 @@ void DihedralCharmmIntel::eval(const int vflag,
   const int inum = neighbor->ndihedrallist;
   if (inum == 0) return;
 
-  ATOM_T * _noalias const x = buffers->get_x(0);
-  flt_t * _noalias const q = buffers->get_q(0);
+  ATOM_T * _noalias const x = buffers->get_x();
+  flt_t * _noalias const q = buffers->get_q();
   const int nlocal = atom->nlocal;
   const int nall = nlocal + atom->nghost;
 
@@ -139,7 +131,7 @@ void DihedralCharmmIntel::eval(const int vflag,
   int tc;
   FORCE_T * _noalias f_start;
   acc_t * _noalias ev_global;
-  IP_PRE_get_buffers(0, buffers, fix, tc, f_start, ev_global);
+  IP_PRE_get_buffers(buffers, fix, tc, f_start, ev_global);
   const int nthreads = tc;
 
   acc_t oedihedral, ov0, ov1, ov2, ov3, ov4, ov5;
@@ -186,10 +178,6 @@ void DihedralCharmmIntel::eval(const int vflag,
     #pragma omp simd reduction(+:sedihedral, sevdwl, secoul, sv0, sv1, sv2, \
                                sv3, sv4, sv5, spv0, spv1, spv2, spv3, spv4, \
                                spv5)
-#else
-    #pragma simd reduction(+:sedihedral, sevdwl, secoul, sv0, sv1, sv2, \
-                           sv3, sv4, sv5, spv0, spv1, spv2, spv3, spv4, \
-                           spv5)
 #endif
     #pragma vector aligned
     for (int n = nfrom; n < nto; n++) {
@@ -339,8 +327,6 @@ void DihedralCharmmIntel::eval(const int vflag,
       #if defined(LMP_SIMD_COMPILER_TEST)
 #if defined(USE_OMP_SIMD)
       #pragma omp ordered simd
-#else
-      #pragma simdoff
 #endif
       #endif
       {
@@ -422,8 +408,6 @@ void DihedralCharmmIntel::eval(const int vflag,
       #if defined(LMP_SIMD_COMPILER_TEST)
 #if defined(USE_OMP_SIMD)
       #pragma omp ordered simd
-#else
-      #pragma simdoff
 #endif
       #endif
       {
@@ -497,8 +481,8 @@ void DihedralCharmmIntel::eval(const int vflag,
   const int inum = neighbor->ndihedrallist;
   if (inum == 0) return;
 
-  ATOM_T * _noalias const x = buffers->get_x(0);
-  flt_t * _noalias const q = buffers->get_q(0);
+  ATOM_T * _noalias const x = buffers->get_x();
+  flt_t * _noalias const q = buffers->get_q();
   const int nlocal = atom->nlocal;
   const int nall = nlocal + atom->nghost;
 
@@ -509,7 +493,7 @@ void DihedralCharmmIntel::eval(const int vflag,
   int tc;
   FORCE_T * _noalias f_start;
   acc_t * _noalias ev_global;
-  IP_PRE_get_buffers(0, buffers, fix, tc, f_start, ev_global);
+  IP_PRE_get_buffers(buffers, fix, tc, f_start, ev_global);
   const int nthreads = tc;
 
   acc_t oedihedral, ov0, ov1, ov2, ov3, ov4, ov5;
@@ -908,13 +892,6 @@ void DihedralCharmmIntel::init_style()
   fix = static_cast<FixIntel *>(modify->get_fix_by_id("package_intel"));
   if (!fix) error->all(FLERR, "The 'package intel' command is required for /intel styles");
 
-  #ifdef _LMP_INTEL_OFFLOAD
-  _use_base = 0;
-  if (fix->offload_balance() != 0.0) {
-    _use_base = 1;
-    return;
-  }
-  #endif
 
   fix->bond_init_check();
 

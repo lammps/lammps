@@ -51,11 +51,11 @@ static constexpr int OFFSET = 16384;
 ------------------------------------------------------------------------- */
 
 Grid3d::Grid3d(LAMMPS *lmp, MPI_Comm gcomm, int gnx, int gny, int gnz) :
-  Pointers(lmp), swap(nullptr), requests(nullptr), srequest(nullptr), rrequest(nullptr),
+    Pointers(lmp), swap(nullptr), requests(nullptr), srequest(nullptr), rrequest(nullptr),
     sresponse(nullptr), rresponse(nullptr), send(nullptr), recv(nullptr), copy(nullptr),
-    send_remap(nullptr), recv_remap(nullptr), overlap_procs(nullptr), xsplit(nullptr),
-    ysplit(nullptr), zsplit(nullptr), grid2proc(nullptr), rcbinfo(nullptr), overlap_list(nullptr)
-
+    requests_remap(nullptr), send_remap(nullptr), recv_remap(nullptr), overlap_procs(nullptr),
+    xsplit(nullptr), ysplit(nullptr), zsplit(nullptr), grid2proc(nullptr), rcbinfo(nullptr),
+    overlap_list(nullptr)
 {
   gridcomm = gcomm;
   MPI_Comm_rank(gridcomm,&me);
@@ -64,6 +64,17 @@ Grid3d::Grid3d(LAMMPS *lmp, MPI_Comm gcomm, int gnx, int gny, int gnz) :
   nx = gnx;
   ny = gny;
   nz = gnz;
+
+  noverlap_list = maxoverlap_list = 0;
+
+  // owned/ghost cell bounds are assigned in setup_grid() and ghost_grid();
+  // zero them so the instance never carries indeterminate values
+
+  inxlo = inxhi = inylo = inyhi = inzlo = inzhi = 0;
+  outxlo = outxhi = outylo = outyhi = outzlo = outzhi = 0;
+  fullxlo = fullxhi = fullylo = fullyhi = fullzlo = fullzhi = 0;
+  procxlo = procxhi = procylo = procyhi = proczlo = proczhi = 0;
+  ghostxlo = ghostxhi = ghostylo = ghostyhi = ghostzlo = ghostzhi = 0;
 
   // default settings, can be overridden by set() methods
   // these affect assignment of owned and ghost cells
@@ -79,6 +90,16 @@ Grid3d::Grid3d(LAMMPS *lmp, MPI_Comm gcomm, int gnx, int gny, int gnz) :
   // layout_grid = how this grid instance is distributed across procs
   // depends on comm->layout at time this Grid3d instance is created
 
+  // the destructor may run before setup_grid() calls initialize();
+  // null all counts it iterates over
+
+  nswap = maxswap = 0;
+  nsend = nrecv = ncopy = 0;
+  nsend_remap = nrecv_remap = self_remap = 0;
+  copy_remap.npack = copy_remap.nunpack = 0;
+  copy_remap.packlist = copy_remap.unpacklist = nullptr;
+
+  adjacent = 1;
   layout_grid = comm->layout;
 }
 
@@ -112,6 +133,8 @@ Grid3d::Grid3d(LAMMPS *lmp, MPI_Comm gcomm, int gnx, int gny, int gnz,
   ny = gny;
   nz = gnz;
 
+  noverlap_list = maxoverlap_list = 0;
+
   // store owned/ghost indices provided by caller
 
   inxlo = ixlo;
@@ -128,9 +151,31 @@ Grid3d::Grid3d(LAMMPS *lmp, MPI_Comm gcomm, int gnx, int gny, int gnz,
   outzlo = ozlo;
   outzhi = ozhi;
 
+  // these settings are only used by setup_grid(), which must not be
+  // called with this constructor; assign the same defaults as above
+
+  maxdist = 0.0;
+  stencil_grid_lo = stencil_grid_hi = 0;
+  stencil_atom_lo = stencil_atom_hi = 0;
+  shift_grid = 0.5;
+  shift_atom_lo = shift_atom_hi = 0.0;
+  zextra = 0;
+  zfactor = 1.0;
+
+  // ghost plane counts are only assigned in ghost_grid(), which this
+  // constructor does not invoke
+
+  ghostxlo = ghostxhi = ghostylo = ghostyhi = ghostzlo = ghostzhi = 0;
+
+  // neighbor procs are only assigned in extract_comm_info(), which may not
+  // be invoked; zero them so the instance never carries indeterminate values
+
+  procxlo = procxhi = procylo = procyhi = proczlo = proczhi = 0;
+
   // layout_grid = how this grid instance is distributed across procs
   // depends on comm->layout at time this Grid3d instance is created
 
+  adjacent = 1;
   layout_grid = comm->layout;
 
   // additional intialization
@@ -477,6 +522,8 @@ void Grid3d::initialize()
   nsend_remap = nrecv_remap = self_remap = 0;
   send_remap = nullptr;
   recv_remap = nullptr;
+  copy_remap.npack = copy_remap.nunpack = 0;
+  copy_remap.packlist = copy_remap.unpacklist = nullptr;
 
   // store info about Comm decomposition needed for remap operation
   // two Grid instances will exist for duration of remap

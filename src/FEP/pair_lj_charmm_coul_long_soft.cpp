@@ -39,7 +39,10 @@ using namespace EwaldConst;
 
 /* ---------------------------------------------------------------------- */
 
-PairLJCharmmCoulLongSoft::PairLJCharmmCoulLongSoft(LAMMPS *lmp) : Pair(lmp)
+PairLJCharmmCoulLongSoft::PairLJCharmmCoulLongSoft(LAMMPS *lmp) :
+    Pair(lmp), epsilon(nullptr), sigma(nullptr), eps14(nullptr), sigma14(nullptr), lambda(nullptr),
+    lj1(nullptr), lj2(nullptr), lj3(nullptr), lj4(nullptr), offset(nullptr), lj14_1(nullptr),
+    lj14_2(nullptr), lj14_3(nullptr), lj14_4(nullptr), cut_respa(nullptr)
 {
   respa_enable = 1;
   ewaldflag = pppmflag = 1;
@@ -52,6 +55,8 @@ PairLJCharmmCoulLongSoft::PairLJCharmmCoulLongSoft(LAMMPS *lmp) : Pair(lmp)
 
 PairLJCharmmCoulLongSoft::~PairLJCharmmCoulLongSoft()
 {
+  if (copymode) return;
+
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);
@@ -138,7 +143,14 @@ void PairLJCharmmCoulLongSoft::compute(int eflag, int vflag)
           denc = sqrt(lj4[itype][jtype] + rsq);
           prefactor = qqrd2e * lj1[itype][jtype] * qtmp*q[j] / (denc*denc*denc);
 
-          forcecoul = prefactor * (erfc + EWALD_F*grij*expm2);
+          // the soft core replaces only the 1/r factor, while the Ewald damping
+
+          // keeps the true distance, so differentiating erfc(g*r)/denc leaves the
+
+          // exponential term scaled by denc^2/r^2 against a plain 1/r kernel
+
+
+          forcecoul = prefactor * (erfc + EWALD_F*grij*expm2*denc*denc/rsq);
           if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor;
         } else forcecoul = 0.0;
 
@@ -468,7 +480,7 @@ void PairLJCharmmCoulLongSoft::compute_outer(int eflag, int vflag)
           fprefactor = qqrd2e * lj1[itype][jtype] * qtmp*q[j] /
             (denc*denc*denc);
 
-          forcecoul = fprefactor * (erfc + EWALD_F*grij*expm2 - 1.0);
+          forcecoul = fprefactor * (erfc + EWALD_F*grij*expm2*denc*denc/rsq - 1.0);
 
           if (rsq > cut_in_off_sq) {
             if (rsq < cut_in_on_sq) {
@@ -539,7 +551,7 @@ void PairLJCharmmCoulLongSoft::compute_outer(int eflag, int vflag)
 
         if (vflag) {
           if (rsq < cut_coulsq) {
-            forcecoul = fprefactor * (erfc + EWALD_F*grij*expm2);
+            forcecoul = fprefactor * (erfc + EWALD_F*grij*expm2*denc*denc/rsq);
             if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*fprefactor;
           } else forcecoul = 0.0;
 
@@ -620,11 +632,24 @@ void PairLJCharmmCoulLongSoft::allocate()
 
 void PairLJCharmmCoulLongSoft::settings(int narg, char **arg)
 {
-  if (narg != 5 && narg != 6) error->all(FLERR,"Illegal pair_style command");
+  if (narg < 5)
+    utils::missing_cmd_args(FLERR, "pair_style lj/charmm/coul/long/soft", error);
+  if (narg > 6)
+    error->all(FLERR, 7, "Too many arguments in pair_style lj/charmm/coul/long/soft command");
 
   nlambda = utils::numeric(FLERR,arg[0],false,lmp);
+  if (nlambda <= 0.0)
+    error->all(FLERR, 1, "Pair style lj/charmm/coul/long/soft requires n > 0, but n = {}", nlambda);
   alphalj = utils::numeric(FLERR,arg[1],false,lmp);
+  if (alphalj < 0.0)
+    error->all(FLERR, 2,
+               "Pair style lj/charmm/coul/long/soft requires alpha_LJ >= 0, but alpha_LJ = {}",
+               alphalj);
   alphac  = utils::numeric(FLERR,arg[2],false,lmp);
+  if (alphac < 0.0)
+    error->all(FLERR, 3,
+               "Pair style lj/charmm/coul/long/soft requires alpha_C >= 0, but alpha_C = {}",
+               alphac);
 
   cut_lj_inner = utils::numeric(FLERR,arg[3],false,lmp);
   cut_lj = utils::numeric(FLERR,arg[4],false,lmp);
@@ -916,7 +941,7 @@ double PairLJCharmmCoulLongSoft::single(int i, int j, int itype, int jtype,
     prefactor = force->qqrd2e * lj1[itype][jtype] * atom->q[i]*atom->q[j] /
       (denc*denc*denc);
 
-    forcecoul = prefactor * (erfc + EWALD_F*grij*expm2);
+    forcecoul = prefactor * (erfc + EWALD_F*grij*expm2*denc*denc/rsq);
     if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor;
   } else forcecoul = 0.0;
 

@@ -307,10 +307,8 @@ FixAdapt::~FixAdapt()
   }
   delete[] adapt;
 
-  // check nfix in case all fixes have already been deleted
-
-  if (id_fix_diam && modify->nfix) modify->delete_fix(id_fix_diam);
-  if (id_fix_chg && modify->nfix) modify->delete_fix(id_fix_chg);
+  if (id_fix_diam) modify->delete_fix(id_fix_diam);
+  if (id_fix_chg) modify->delete_fix(id_fix_chg);
   delete[] id_fix_diam;
   delete[] id_fix_chg;
 }
@@ -427,15 +425,31 @@ void FixAdapt::init()
         nsub = utils::inumeric(FLERR,cptr+1,false,lmp);
       }
 
+      std::string pname;
       if (lmp->suffix_enable) {
-        if (lmp->suffix)
-          ad->pair = force->pair_match(fmt::format("{}/{}",pstyle,lmp->suffix),1,nsub);
-        if ((ad->pair == nullptr) && lmp->suffix2)
-          ad->pair = force->pair_match(fmt::format("{}/{}",pstyle,lmp->suffix2),1,nsub);
+        if (lmp->suffix) {
+          pname = fmt::format("{}/{}",pstyle,lmp->suffix);
+          ad->pair = force->pair_match(pname,1,nsub);
+        }
+        if ((ad->pair == nullptr) && lmp->suffix2) {
+          pname = fmt::format("{}/{}",pstyle,lmp->suffix2);
+          ad->pair = force->pair_match(pname,1,nsub);
+        }
       }
-      if (ad->pair == nullptr) ad->pair = force->pair_match(pstyle,1,nsub);
+      if (ad->pair == nullptr) {
+        pname = pstyle;
+        ad->pair = force->pair_match(pstyle,1,nsub);
+      }
       if (ad->pair == nullptr)
         error->all(FLERR, Error::NOLASTLINE, "Fix adapt pair style {} not found", pstyle);
+
+      // Pair::reinit() checks reinitflag only for the top-level pair style,
+      // so the check for sub-styles of hybrid pair styles must be done here.
+      // hybrid pair styles store the names of their sub-styles without suffix.
+
+      if (!ad->pair->reinitflag)
+        error->all(FLERR, Error::NOLASTLINE, "Fix adapt interface to {}pair style {} is not supported",
+                   ad->pair->suffix_flag ? "the accelerated variant of " : "", pname);
 
       void *ptr = ad->pair->extract(ad->pparam,ad->pdim);
       if (ptr == nullptr)
@@ -823,7 +837,15 @@ void FixAdapt::change_settings()
         int nlocal = atom->nlocal;
         int nall = nlocal + atom->nghost;
 
-        if (scaleflag) scale = value / previous_diam_scale;
+        // a scale factor of 0.0 would zero all diameters permanently and cannot
+        // be undone on later steps, so it must be rejected before the division
+
+        if (scaleflag) {
+          if ((value == 0.0) || (previous_diam_scale == 0.0))
+            error->all(FLERR, Error::NOLASTLINE,
+                       "Fix adapt diameter scale factor of 0.0 is not supported");
+          scale = value / previous_diam_scale;
+        }
 
         // mass must not become zero and radius must not be negative
         if (massflag && ((scale == 0.0) || (value == 0.0)))
@@ -855,7 +877,15 @@ void FixAdapt::change_settings()
         int nlocal = atom->nlocal;
         int nall = nlocal + atom->nghost;
 
-        if (scaleflag) scale = value / previous_chg_scale;
+        // a scale factor of 0.0 would zero all charges permanently and cannot
+        // be undone on later steps, so it must be rejected before the division
+
+        if (scaleflag) {
+          if ((value == 0.0) || (previous_chg_scale == 0.0))
+            error->all(FLERR, Error::NOLASTLINE,
+                       "Fix adapt charge scale factor of 0.0 is not supported");
+          scale = value / previous_chg_scale;
+        }
 
         for (i = 0; i < nall; i++) {
           if (mask[i] & groupbit) {

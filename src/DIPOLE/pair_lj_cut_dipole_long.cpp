@@ -35,7 +35,9 @@ using namespace EwaldConst;
 
 /* ---------------------------------------------------------------------- */
 
-PairLJCutDipoleLong::PairLJCutDipoleLong(LAMMPS *lmp) : Pair(lmp)
+PairLJCutDipoleLong::PairLJCutDipoleLong(LAMMPS *lmp) :
+    Pair(lmp), sigma(nullptr), cut_lj(nullptr), cut_ljsq(nullptr), epsilon(nullptr), lj1(nullptr),
+    lj2(nullptr), lj3(nullptr), lj4(nullptr), offset(nullptr)
 {
   single_enable = 0;
   ewaldflag = pppmflag = dipoleflag = 1;

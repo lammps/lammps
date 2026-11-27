@@ -82,9 +82,9 @@ int dlaqr5_(logical *wantt, logical *wantz, integer *kacc22, integer *n, integer
         }
     }
     ns = *nshfts - *nshfts % 2;
-    safmin = dlamch_((char *)"SAFE MINIMUM", (ftnlen)12);
+    safmin = dlamch_((char *)"S", (ftnlen)1);
     safmax = 1. / safmin;
-    ulp = dlamch_((char *)"PRECISION", (ftnlen)9);
+    ulp = dlamch_((char *)"P", (ftnlen)1);
     smlnum = safmin * ((doublereal)(*n) / ulp);
     accum = *kacc22 == 1 || *kacc22 == 2;
     if (*ktop + 2 <= *kbot) {
@@ -115,9 +115,9 @@ int dlaqr5_(logical *wantt, logical *wantz, integer *kacc22, integer *n, integer
             i__4 = nbmps, i__5 = (*kbot - krcol - 1) / 2;
             mbot = min(i__4, i__5);
             m22 = mbot + 1;
-            bmp22 = mbot < nbmps && krcol + (m22 - 1 << 1) == *kbot - 2;
+            bmp22 = mbot < nbmps && krcol + ((m22 - 1) << 1) == *kbot - 2;
             if (bmp22) {
-                k = krcol + (m22 - 1 << 1);
+                k = krcol + ((m22 - 1) << 1);
                 if (k == *ktop - 1) {
                     dlaqr1_(&c__2, &h__[k + 1 + (k + 1) * h_dim1], ldh, &sr[(m22 << 1) - 1],
                             &si[(m22 << 1) - 1], &sr[m22 * 2], &si[m22 * 2], &v[m22 * v_dim1 + 1]);
@@ -231,7 +231,7 @@ int dlaqr5_(logical *wantt, logical *wantz, integer *kacc22, integer *n, integer
             }
             i__6 = mtop;
             for (m = mbot; m >= i__6; --m) {
-                k = krcol + (m - 1 << 1);
+                k = krcol + ((m - 1) << 1);
                 if (k == *ktop - 1) {
                     dlaqr1_(&c__3, &h__[*ktop + *ktop * h_dim1], ldh, &sr[(m << 1) - 1],
                             &si[(m << 1) - 1], &sr[m * 2], &si[m * 2], &v[m * v_dim1 + 1]);
@@ -301,7 +301,7 @@ int dlaqr5_(logical *wantt, logical *wantz, integer *kacc22, integer *n, integer
                 h__[k + 2 + (k + 1) * h_dim1] -= refsum * t2;
                 h__[k + 3 + (k + 1) * h_dim1] -= refsum * t3;
                 if (k < *ktop) {
-                    goto L85;
+                    goto L90001;
                 }
                 if (h__[k + 1 + k * h_dim1] != 0.) {
                     tst1 = (d__1 = h__[k + k * h_dim1], abs(d__1)) +
@@ -350,7 +350,7 @@ int dlaqr5_(logical *wantt, logical *wantz, integer *kacc22, integer *n, integer
                         }
                     }
                 }
-            L85:;
+            L90001:;
             }
             if (accum) {
                 jbot = min(ndcol, *kbot);
@@ -361,7 +361,7 @@ int dlaqr5_(logical *wantt, logical *wantz, integer *kacc22, integer *n, integer
             }
             i__6 = mtop;
             for (m = mbot; m >= i__6; --m) {
-                k = krcol + (m - 1 << 1);
+                k = krcol + ((m - 1) << 1);
                 t1 = v[m * v_dim1 + 1];
                 t2 = t1 * v[m * v_dim1 + 2];
                 t3 = t1 * v[m * v_dim1 + 3];
@@ -378,13 +378,13 @@ int dlaqr5_(logical *wantt, logical *wantz, integer *kacc22, integer *n, integer
             if (accum) {
                 i__6 = mtop;
                 for (m = mbot; m >= i__6; --m) {
-                    k = krcol + (m - 1 << 1);
+                    k = krcol + ((m - 1) << 1);
                     kms = k - incol;
                     i__7 = 1, i__4 = *ktop - incol;
                     i2 = max(i__7, i__4);
                     i__7 = i2, i__4 = kms - (krcol - incol) + 1;
                     i2 = max(i__7, i__4);
-                    i__7 = kdu, i__4 = krcol + (mbot - 1 << 1) - incol + 5;
+                    i__7 = kdu, i__4 = krcol + ((mbot - 1) << 1) - incol + 5;
                     i4 = min(i__7, i__4);
                     t1 = v[m * v_dim1 + 1];
                     t2 = t1 * v[m * v_dim1 + 2];
@@ -402,7 +402,7 @@ int dlaqr5_(logical *wantt, logical *wantz, integer *kacc22, integer *n, integer
             } else if (*wantz) {
                 i__6 = mtop;
                 for (m = mbot; m >= i__6; --m) {
-                    k = krcol + (m - 1 << 1);
+                    k = krcol + ((m - 1) << 1);
                     t1 = v[m * v_dim1 + 1];
                     t2 = t1 * v[m * v_dim1 + 2];
                     t3 = t1 * v[m * v_dim1 + 3];

@@ -20,34 +20,13 @@ PairStyle(eam/alloy/gpu,PairEAMAlloyGPU);
 #ifndef LMP_PAIR_EAM_ALLOY_GPU_H
 #define LMP_PAIR_EAM_ALLOY_GPU_H
 
-#include "pair_eam.h"
+#include "pair_eam_gpu.h"
 
 namespace LAMMPS_NS {
 
-class PairEAMAlloyGPU : public PairEAM {
+class PairEAMAlloyGPU : public PairEAMGPU {
  public:
   PairEAMAlloyGPU(class LAMMPS *);
-  ~PairEAMAlloyGPU() override;
-  void coeff(int, char **) override;
-  void compute(int, int) override;
-  void init_style() override;
-  double single(int, int, int, int, double, double, double, double &) override;
-  double memory_usage() override;
-  void *extract(const char *, int &) override { return nullptr; }
-
-  int pack_forward_comm(int, int *, double *, int, int *) override;
-  void unpack_forward_comm(int, int, double *) override;
-
-  enum { GPU_FORCE, GPU_NEIGH, GPU_HYB_NEIGH };
-
- protected:
-  void read_file(char *) override;
-  void file2array() override;
-
-  int gpu_mode;
-  double cpu_time;
-  void *fp_pinned;
-  bool fp_single;
 };
 
 }    // namespace LAMMPS_NS

@@ -1,5 +1,6 @@
 ---
 lammps_version: 17 Feb 2022
+tags: kokkos
 date_generated: Fri Mar 18 22:18:01 2022
 epsilon: 5.0e-14
 skip_tests:
@@ -13,6 +14,7 @@ post_commands: ! |
   fix test solute wall/harmonic ylo EDGE 100.0 0.0 5.0 yhi EDGE 100.0 0.0 5.0
   fix_modify test virial yes
 input_file: in.fourmol
+input_coeffs: coeffs.fourmol
 natoms: 29
 run_stress: ! |2-
    0.0000000000000000e+00  7.2422093200265749e+02  0.0000000000000000e+00  0.0000000000000000e+00  0.0000000000000000e+00  0.0000000000000000e+00

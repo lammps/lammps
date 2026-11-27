@@ -1,0 +1,10 @@
+variable  input_dir       index .
+variable  data_file       index ${input_dir}/data.ilves-water
+atom_style       full
+atom_modify      map array
+units            real
+special_bonds    lj/coul 0.0 0.0 0.5
+pair_style       zero 8.0
+bond_style       zero
+angle_style      zero
+read_data        ${data_file}

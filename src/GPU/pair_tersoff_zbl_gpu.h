@@ -38,7 +38,6 @@ class PairTersoffZBLGPU : public PairTersoffZBL {
   void allocate() override;
 
   int gpu_mode;
-  double cpu_time;
   int *gpulist;
 };
 

@@ -69,7 +69,6 @@ class IntelBuffers {
   }
 
   void free_buffers();
-  void free_nmax();
   inline void set_bininfo(int *atombin, int *binpacked) {
     _atombin = atombin;
     _binpacked = binpacked;
@@ -78,37 +77,29 @@ class IntelBuffers {
 
   inline void set_torque_flag(const int in) { _torque_flag = in; }
 
-  inline void grow(const int nall, const int nlocal, const int nthreads,
-                   const int offload_end) {
+  inline void grow(const int nall, const int nlocal, const int nthreads) {
     if (nall >= _buf_size || nlocal >= _buf_local_size)
-      _grow(nall, nlocal, nthreads, offload_end);
-    #ifdef _LMP_INTEL_OFFLOAD
-    if (lmp->atom->nmax > _host_nmax)
-      _grow_nmax(offload_end);
-    #endif
+      _grow(nall, nlocal, nthreads);
   }
 
   inline void free_all_nbor_buffers() {
     free_nbor_list();
-    free_nmax();
     free_list_local();
     free_ncache();
     free_list_ptrs();
   }
 
   inline void grow_list(NeighList *list, const int nlocal, const int nthreads,
-                        const int three_body, const int offload_end,
-                        const int pack_width=1) {
-    grow_list_local(list, three_body, offload_end);
-    grow_nbor_list(list, nlocal, nthreads, offload_end, pack_width);
+                        const int three_body, const int pack_width=1) {
+    grow_list_local(list, three_body);
+    grow_nbor_list(list, nlocal, nthreads, pack_width);
   }
 
   void free_list_local();
-  inline void grow_list_local(NeighList *list, const int three_body,
-                              const int offload_end) {
+  inline void grow_list_local(NeighList *list, const int three_body) {
     _neigh_list_ptrs[0].list_ptr = (void *)list;
-    if (list->get_maxlocal() > _off_map_listlocal)
-      _grow_list_local(list, three_body, offload_end);
+    if (list->get_maxlocal() > _list_local_size)
+      _grow_list_local(list, three_body);
   }
 
   void free_ccache();
@@ -145,10 +136,9 @@ class IntelBuffers {
   void free_nbor_list();
 
   inline void grow_nbor_list(NeighList *list, const int nlocal,
-                             const int nthreads, const int offload_end,
-                             const int pack_width) {
+                             const int nthreads, const int pack_width) {
     if (nlocal > _list_alloc_atoms)
-      _grow_nbor_list(list, nlocal, nthreads, offload_end, pack_width);
+      _grow_nbor_list(list, nlocal, nthreads, pack_width);
   }
 
   void set_ntypes(const int ntypes, const int use_ghost_cut = 1);
@@ -168,22 +158,13 @@ class IntelBuffers {
   void grow_data3(NeighList *list, int *&numneighhalf, int *&cnumneigh);
   void free_list_ptrs();
 
-  inline atom_t * get_x(const int offload = 1) {
-    #ifdef _LMP_INTEL_OFFLOAD
-    if (_separate_buffers && offload == 0) return _host_x;
-    #endif
+  inline atom_t * get_x() {
     return _x;
   }
-  inline flt_t * get_q(const int offload = 1) {
-    #ifdef _LMP_INTEL_OFFLOAD
-    if (_separate_buffers && offload == 0) return _host_q;
-    #endif
+  inline flt_t * get_q() {
     return _q;
   }
-  inline quat_t * get_quat(const int offload = 1) {
-    #ifdef _LMP_INTEL_OFFLOAD
-    if (_separate_buffers && offload == 0) return _host_quat;
-    #endif
+  inline quat_t * get_quat() {
     return _quat;
   }
   inline vec3_acc_t * get_f() { return _f; }
@@ -193,13 +174,6 @@ class IntelBuffers {
     { for (int i = 0; i < 8; i++) _ev_global[i] = _ev_global_host[i] = 0.0; }
   inline flt_t ** get_cutneighsq() { return _cutneighsq; }
   inline flt_t ** get_cutneighghostsq() { return _cutneighghostsq; }
-  inline int get_off_threads() { return _off_threads; }
-  #ifdef _LMP_INTEL_OFFLOAD
-  inline void set_off_params(const int n, const int cop,
-                             const int separate_buffers)
-    { _off_threads = n; _cop = cop; _separate_buffers = separate_buffers; }
-  inline vec3_acc_t * get_off_f() { return _off_f; }
-  #endif
 
   inline void thr_pack(const int ifrom, const int ito, const int ago) {
     if (ago == 0) {
@@ -243,79 +217,12 @@ class IntelBuffers {
         _q[i] = lmp->atom->q[i];
   }
 
-  #ifndef _LMP_INTEL_OFFLOAD
   void fdotr_reduce_l5(const int lf, const int lt, const int nthreads,
                        const int f_stride, acc_t &ov0, acc_t &ov1,
                        acc_t &ov2, acc_t &ov3, acc_t &ov4, acc_t &ov5);
   void fdotr_reduce(const int nall, const int nthreads, const int f_stride,
                     acc_t &ov0, acc_t &ov1, acc_t &ov2, acc_t &ov3,
                     acc_t &ov4, acc_t &ov5);
-  #endif
-
-  #ifdef _LMP_INTEL_OFFLOAD
-  inline void thr_pack_cop(const int ifrom, const int ito,
-                           const int offset, const bool dotype = false) {
-    double ** x = lmp->atom->x + offset;
-    if (dotype == false) {
-      #if defined(LMP_SIMD_COMPILER)
-      #pragma vector aligned
-      #pragma ivdep
-      #endif
-      for (int i = ifrom; i < ito; i++) {
-        _x[i].x = x[i][0];
-        _x[i].y = x[i][1];
-        _x[i].z = x[i][2];
-      }
-    } else {
-      int *type = lmp->atom->type + offset;
-      #if defined(LMP_SIMD_COMPILER)
-      #pragma vector aligned
-      #pragma ivdep
-      #endif
-      for (int i = ifrom; i < ito; i++) {
-        _x[i].x = x[i][0];
-        _x[i].y = x[i][1];
-        _x[i].z = x[i][2];
-        _x[i].w = type[i];
-      }
-    }
-  }
-
-  inline void thr_pack_host(const int ifrom, const int ito,
-                            const int offset) {
-    double ** x = lmp->atom->x + offset;
-    #if defined(LMP_SIMD_COMPILER)
-    #pragma vector aligned
-    #pragma ivdep
-    #endif
-    for (int i = ifrom; i < ito; i++) {
-      _host_x[i].x = x[i][0];
-      _host_x[i].y = x[i][1];
-      _host_x[i].z = x[i][2];
-    }
-  }
-
-  inline void pack_sep_from_single(const int host_min_local,
-                                   const int used_local,
-                                   const int host_min_ghost,
-                                   const int used_ghost) {
-    memcpy(_host_x + host_min_local, _x + host_min_local,
-           used_local * sizeof(atom_t));
-    memcpy(_host_x + host_min_local + used_local, _x + host_min_ghost,
-           used_ghost * sizeof(atom_t));
-    int nall = used_local + used_ghost + host_min_local;
-    _host_x[nall].x = INTEL_BIGP;
-    _host_x[nall].y = INTEL_BIGP;
-    _host_x[nall].z = INTEL_BIGP;
-    _host_x[nall].w = 1;
-    if (lmp->atom->q != nullptr) {
-      memcpy(_host_q + host_min_local, _q + host_min_local,
-             used_local * sizeof(flt_t));
-      memcpy(_host_q + host_min_local + used_local, _q + host_min_ghost,
-             used_ghost * sizeof(flt_t));
-    }
-  }
-  #endif
 
   inline int need_tag() { return _need_tag; }
   inline void need_tag(const int nt) { _need_tag = nt; }
@@ -331,7 +238,7 @@ class IntelBuffers {
   flt_t *_q;
   quat_t *_quat;
   vec3_acc_t * _f;
-  int _torque_flag, _off_threads, _off_map_listlocal;
+  int _torque_flag, _list_local_size;
 
   int _list_alloc_atoms;
   int *_list_alloc, *_cnumneigh, *_atombin, *_binpacked;
@@ -351,37 +258,21 @@ class IntelBuffers {
   int *_ncachej, *_ncachejtype;
   tagint *_ncachetag;
 
-  int _need_tag, _host_nmax;
+  int _need_tag;
 
   #ifdef LMP_USE_AVXCD
   int _ccache_stride3;
   acc_t * _ccachef;
   #endif
 
-  #ifdef _LMP_INTEL_OFFLOAD
-  int _separate_buffers;
-  atom_t *_host_x;
-  flt_t *_host_q;
-  quat_t *_host_quat;
-  vec3_acc_t *_off_f;
-  int _off_map_nmax, _cop, _off_ccache, _off_ncache;
-  int *_off_map_ilist, *_off_map_nspecial;
-  tagint *_off_map_tag, *_off_map_special;
-  int **_off_map_firstneigh, *_off_map_numneigh;
-  bool _off_list_alloc;
-  #endif
-
   int _buf_size, _buf_local_size;
   _alignvar(acc_t _ev_global[8],64);
   _alignvar(acc_t _ev_global_host[8],64);
 
-  void _grow(const int nall, const int nlocal, const int nthreads,
-             const int offload_end);
-  void _grow_nmax(const int offload_end);
-  void _grow_list_local(NeighList *list, const int three_body,
-                        const int offload_end);
+  void _grow(const int nall, const int nlocal, const int nthreads);
+  void _grow_list_local(NeighList *list, const int three_body);
   void _grow_nbor_list(NeighList *list, const int nlocal, const int nthreads,
-                       const int offload_end, const int pack_width);
+                       const int pack_width);
 };
 
 }

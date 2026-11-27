@@ -18,9 +18,9 @@ Syntax
 
      style = *constant* or *type*
        *constant* = cp
-         cp = value of specifc heat (energy/(mass * temperature) units)
+         cp = value of specific heat (energy/(mass * temperature) units)
        *type* = cp1 ... cpN
-         cpN = value of specifc heat for type N (energy/(mass * temperature) units)
+         cpN = value of specific heat for type N (energy/(mass * temperature) units)
 
 Examples
 """"""""

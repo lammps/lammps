@@ -55,11 +55,11 @@ int TableT::init(const int ntypes,
                 double *host_special_lj, const int nlocal,
                 const int nall, const int max_nbors,
                 const int maxspecial, const double cell_size,
-                const double gpu_split, FILE *_screen,
+                FILE *_screen,
                 int tabstyle, int ntables, int tablength) {
   int success;
   success=this->init_atomic(nlocal,nall,max_nbors,maxspecial,cell_size,
-                            gpu_split,_screen,table,"k_table");
+                            _screen,table,"k_table");
   if (success!=0)
     return success;
 

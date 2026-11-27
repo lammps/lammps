@@ -43,7 +43,7 @@ static constexpr double TINY = 1.E-10;
 
 /* ---------------------------------------------------------------------- */
 
-AngleTable::AngleTable(LAMMPS *_lmp) : Angle(_lmp)
+AngleTable::AngleTable(LAMMPS *_lmp) : Angle(_lmp), theta0(nullptr), tabindex(nullptr)
 {
   writedata = 0;
   ntables = 0;
@@ -54,6 +54,8 @@ AngleTable::AngleTable(LAMMPS *_lmp) : Angle(_lmp)
 
 AngleTable::~AngleTable()
 {
+  if (copymode) return;
+
   for (int m = 0; m < ntables; m++) free_table(&tables[m]);
   memory->sfree(tables);
 
@@ -464,13 +466,17 @@ void AngleTable::compute_table(Table *tb)
   // de,df values = delta values of e,f
   // ang,e,f are N in length so de,df arrays can compute difference
 
+  // the spline interpolation also reads entry itable+1 in the last bin, where its
+  // weight is zero up to rounding, so e, f, e2, f2 carry one extra zero entry
+
   memory->create(tb->ang, tablength, "angle:ang");
-  memory->create(tb->e, tablength, "angle:e");
+  memory->create(tb->e, tablength + 1, "angle:e");
   memory->create(tb->de, tablength, "angle:de");
-  memory->create(tb->f, tablength, "angle:f");
+  memory->create(tb->f, tablength + 1, "angle:f");
   memory->create(tb->df, tablength, "angle:df");
-  memory->create(tb->e2, tablength, "angle:e2");
-  memory->create(tb->f2, tablength, "angle:f2");
+  memory->create(tb->e2, tablength + 1, "angle:e2");
+  memory->create(tb->f2, tablength + 1, "angle:f2");
+  tb->e[tablength] = tb->f[tablength] = tb->e2[tablength] = tb->f2[tablength] = 0.0;
 
   double a;
   for (int i = 0; i < tablength; i++) {

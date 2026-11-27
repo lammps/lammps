@@ -26,8 +26,8 @@ Description
 Define a computation that returns the coordinates of the vertices
 corresponding to the triangle-elements of a mesh created by the :doc:`fix smd/wall_surface <fix_smd_wall_surface>`.
 
-See `this PDF guide <PDF/MACHDYN_LAMMPS_userguide.pdf>`_ to using Smooth
-Mach Dynamics in LAMMPS.
+See the :doc:`Howto machdyn <Howto_machdyn>` page for an introduction
+to using Smooth Mach Dynamics in LAMMPS.
 
 Output info
 """""""""""

@@ -64,6 +64,17 @@ PairHDNNP::PairHDNNP(LAMMPS *lmp) : Pair(lmp)
       0;    // TODO: Check possible values. value != 0 indicates support for unit conversion.
   reinitflag = 0;    // 1 if compatible with fix adapt and alike
 
+  showew = false;
+  resetew = false;
+  showewsum = 0;
+  maxew = 0;
+  numExtrapolationWarningsTotal = 0;
+  numExtrapolationWarningsSummary = 0;
+  cflength = 0.0;
+  cfenergy = 0.0;
+  maxCutoffRadius = 0.0;
+  directory = nullptr;
+
   interface = new nnp::InterfaceLammps();
 }
 

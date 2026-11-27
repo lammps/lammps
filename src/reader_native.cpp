@@ -129,6 +129,7 @@ void ReaderNative::skip()
     int n;
     for (int i = 0; i < nchunk; i++) {
       read_buf(&n, sizeof(int), 1);
+      if (n < 0) error->one(FLERR,"Dump file is invalid or corrupted");
       skip_buf(n*sizeof(double));
     }
 
@@ -237,6 +238,7 @@ bigint ReaderNative::read_header(double box[3][3], int &boxinfo, int &triclinic,
       }
 
       read_buf(&len, sizeof(int), 1);
+      if (len < 0) error->one(FLERR,"Dump file is invalid or corrupted");
       labelline = read_binary_str(len);
     } else {
       error->one(FLERR, "Unsupported old binary dump format");
@@ -461,6 +463,7 @@ void ReaderNative::read_atoms(int n, int nfield, double **fields)
       // if the last chunk has finished
       if (iatom_chunk == 0) {
           read_buf(&natom_chunk, sizeof(int), 1);
+          if (natom_chunk < 0) error->one(FLERR,"Dump file is invalid or corrupted");
           read_double_chunk(natom_chunk);
           natom_chunk /= size_one;
           m = 0;

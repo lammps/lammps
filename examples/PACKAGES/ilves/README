@@ -1,0 +1,60 @@
+Examples for the fix ilves bond and angle constraint solver.
+
+fix ilves enforces rigid bond lengths (and, via an A-C "virtual bond", rigid
+angles) using the ILVES algorithm.  These inputs mirror the standard LAMMPS
+peptide and rhodopsin benchmarks so the results can be compared directly with
+the equivalent fix shake / fix rattle runs.
+
+Each fix ilves run gives the same dynamics on any number of MPI ranks (to the
+solver tolerance) and prints per-type constraint statistics every N steps.
+
+Basic example
+-------------
+  mol.dimer   -- molecule template for a rigid diatomic (dumbbell)
+  in.dimer    -- a Lennard-Jones fluid of rigid dimers whose bonds are held
+                 rigid by fix ilves; demonstrates the basic usage and the
+                 per-bond-type constraint statistics output
+
+Peptide (solvated protein, CHARMM force field, data.peptide)
+------------------------------------------------------------
+  in.peptide-ilves    -- constrain the bonds involving hydrogen atoms of the protein
+                         and the O-H bonds + H-O-H angle of every water using ILVES
+  in.peptide-fixed    -- same constraints but fixed number of 3 Newton iterations
+  in.peptide-allbonds -- constrain all protein bonds plus the rigid waters
+  in.peptide-mix      -- fix ilves on the protein, fix shake on the water,
+                         showing the two can be combined on disjoint atoms
+  in.peptide-shake    -- reference run using fix shake (for comparison)
+  in.peptide-rattle   -- reference run using fix rattle (for comparison)
+
+Rhodopsin (membrane protein benchmark, bench/data.rhodo)
+--------------------------------------------------------
+  in.rhodo-ilves      -- constrain all bond with hydrogen atoms + water using ILVES
+  in.rhodo-shake      -- reference run using fix shake (for comparison)
+  in.rhodo-allbonds   -- constrain hydrogen bonds and selected heavy-atom bond
+                         types as well with ILVES
+
+COVID (COVID main protease in water, adapted from ILVES paper)
+--------------------------------------------------------------
+
+  in.covid            -- constrain waters with fix shake and protein with fix ilves
+
+Polymelt (long chains of constrained LJ beads)
+----------------------------------------------
+  in.polymelt        -- constrain all bonds of the chains using ILVES
+
+Near-linear angles (coarse-grain polymer chains, data.cg-polymers)
+-----------------------------------------------------------------
+  in.cg-polymers      -- chains whose backbone angles have a 180 degree
+                         equilibrium.  The A-C "virtual bond" of an angle is
+                         rank-deficient near 180 degrees, so this uses
+                         "linearangle skip 165": the backbone bonds are held
+                         rigid by fix ilves while the (intentionally soft)
+                         backbone angle is left to the cosine/squared
+                         angle_style.
+
+The data.peptide and data.rhodo files are symbolic links to the data files of
+the standard examples/peptide and bench benchmarks.
+
+Run with, e.g.:
+  lmp -in in.peptide-ilves              # serial
+  mpirun -np 4 lmp -in in.peptide-ilves # 4 MPI ranks (same dynamics)

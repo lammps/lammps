@@ -57,8 +57,11 @@ ComputeGaussianGridLocal::ComputeGaussianGridLocal(LAMMPS *lmp, int narg, char *
   rcutfac = utils::numeric(FLERR, arg[3], false, lmp);
 
   for (int i = 0; i < ntypes; i++) radelem[i + 1] = utils::numeric(FLERR, arg[4 + i], false, lmp);
-  for (int i = 0; i < ntypes; i++)
+  for (int i = 0; i < ntypes; i++) {
     sigmaelem[i + 1] = utils::numeric(FLERR, arg[ntypes + 4 + i], false, lmp);
+    if (sigmaelem[i + 1] <= 0.0)
+      error->all(FLERR, ntypes + 4 + i, "Gaussian width for type {} must be > 0", i + 1);
+  }
 
   // construct cutsq
   double cut;

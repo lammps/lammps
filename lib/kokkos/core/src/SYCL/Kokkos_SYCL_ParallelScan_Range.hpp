@@ -358,11 +358,6 @@ class ParallelScanSYCLBase {
 
     auto& instance = *m_policy.space().impl_internal_space_instance();
 
-    // Only let one instance at a time resize the instance's scratch memory
-    // allocations.
-    std::scoped_lock<std::mutex> scratch_buffers_lock(
-        instance.m_mutexScratchSpace);
-
     Kokkos::Impl::SYCLInternal::IndirectKernelMem& indirectKernelMem =
         instance.get_indirect_kernel_mem();
 
@@ -394,6 +389,13 @@ class Kokkos::Impl::ParallelScan<FunctorType, Kokkos::RangePolicy<Traits...>,
   using Base = ParallelScanSYCLBase<FunctorType, void, Traits...>;
 
   inline void execute() {
+    // Only let one instance at a time resize the instance's scratch memory
+    // allocations.
+    std::scoped_lock<std::mutex> scratch_buffers_lock(
+        Base::m_policy.space()
+            .impl_internal_space_instance()
+            ->m_mutexScratchSpace);
+
     Base::impl_execute([]() {});
   }
 
@@ -414,6 +416,13 @@ class Kokkos::Impl::ParallelScanWithTotal<
   const Kokkos::SYCL& m_exec;
 
   inline void execute() {
+    // Only let one instance at a time resize the instance's scratch memory
+    // allocations.
+    std::scoped_lock<std::mutex> scratch_buffers_lock(
+        Base::m_policy.space()
+            .impl_internal_space_instance()
+            ->m_mutexScratchSpace);
+
     Base::impl_execute([&]() {
       const long long nwork = Base::m_policy.end() - Base::m_policy.begin();
       if (nwork > 0 && !Base::m_result_ptr_device_accessible) {

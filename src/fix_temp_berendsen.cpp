@@ -37,8 +37,7 @@ enum{CONSTANT,EQUAL};
 /* ---------------------------------------------------------------------- */
 
 FixTempBerendsen::FixTempBerendsen(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg),
-  tstr(nullptr), id_temp(nullptr), tflag(0)
+    Fix(lmp, narg, arg), tstr(nullptr), id_temp(nullptr), temperature(nullptr), tflag(0)
 {
   if (narg != 6)
     error->all(FLERR,"Illegal fix {} command: expected 6 arguments but found {}", style, narg);
@@ -156,8 +155,7 @@ void FixTempBerendsen::end_of_step()
     modify->clearstep_compute();
     t_target = input->variable->compute_equal(tvar);
     if (t_target < 0.0)
-      error->one(FLERR, "Fix temp/berendsen variable {} returned negative temperature",
-                 input->variable->names[tvar]);
+      error->one(FLERR, "Fix temp/berendsen variable {} returned negative temperature", tstr);
     modify->addstep_compute(update->ntimestep + nevery);
   }
 

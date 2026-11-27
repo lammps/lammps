@@ -1,7 +1,10 @@
 .. index:: compute ke
+.. index:: compute ke/kk
 
 compute ke command
 ==================
+
+Accelerator Variants: *ke/kk*
 
 Syntax
 """"""
@@ -54,6 +57,8 @@ for an overview of LAMMPS output options.
 
 The scalar value calculated by this compute is "extensive".  The
 scalar value will be in energy :doc:`units <units>`.
+
+.. include:: accel_styles.rst
 
 Restrictions
 """"""""""""

@@ -9,6 +9,7 @@ including the following:
 * :doc:`fix bond/break <fix_bond_break>`
 * :doc:`fix bond/react <fix_bond_react>`
 * :doc:`BPM package <Howto_bpm>` bond styles
+* :doc:`bond_style rheo/shell <bond_rheo_shell>` of the RHEO package
 
 A bond can break if it is stretched beyond a user-defined threshold or
 more generally if other criteria are met.
@@ -25,7 +26,9 @@ However, in the BPM package one can either turn off all pair interactions
 between bonded particles or leave them on, overlaying pair forces on
 top of bond forces. To remove pair forces, the special bond list is
 dynamically updated.  More details can be found on the :doc:`Howto BPM
-<Howto_bpm>` page.
+<Howto_bpm>` page.  The :doc:`bond_style rheo/shell <bond_rheo_shell>`
+of the RHEO package also breaks bonds that are stretched too far and
+sets their type to zero.
 
 The :doc:`fix bond/break <fix_bond_break>` and :doc:`fix bond/react
 <fix_bond_react>` commands allow breaking of bonds within a molecular

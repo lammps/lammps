@@ -47,18 +47,20 @@ static constexpr double B4      = -5.80844129e-3;
 static constexpr double B5      =  1.14652755e-1;
 
 static constexpr double EPSILON = 1.0e-20;
-static constexpr double EPS_EWALD = 1.0e-6;
-static constexpr double EPS_EWALD_SQR = 1.0e-12;
 
 /* ---------------------------------------------------------------------- */
 
-PairLJCutTholeLong::PairLJCutTholeLong(LAMMPS *lmp) : Pair(lmp)
+PairLJCutTholeLong::PairLJCutTholeLong(LAMMPS *lmp) :
+    Pair(lmp), cut_lj(nullptr), cut_ljsq(nullptr), epsilon(nullptr), sigma(nullptr), lj1(nullptr),
+    lj2(nullptr), lj3(nullptr), lj4(nullptr), offset(nullptr), cut_respa(nullptr), cut(nullptr),
+    scale(nullptr), polar(nullptr), thole(nullptr), ascreen(nullptr)
 {
   ewaldflag = pppmflag = 1;
   single_enable = 0;
   writedata = 1;
   ftable = nullptr;
   qdist = 0.0;
+  cut_global = 0.0;
   fix_drude = nullptr;
 }
 
@@ -134,7 +136,7 @@ void PairLJCutTholeLong::compute(int eflag, int vflag)
 
     if (drudetype[type[i]] != NOPOL_TYPE) {
       di = atom->map(drudeid[i]);
-      if (di < 0) error->all(FLERR, "Drude partner not found");
+      if (di < 0) error->one(FLERR, "Drude partner not found");
       di_closest = domain->closest_image(i, di);
       if (drudetype[type[i]] == CORE_TYPE)
         dqi = -q[di];
@@ -163,15 +165,20 @@ void PairLJCutTholeLong::compute(int eflag, int vflag)
           r = sqrt(rsq);
 
           if (!ncoultablebits || rsq <= tabinnersq) {
-            grij = g_ewald * (r + EPS_EWALD);
+            grij = g_ewald * r;
             expm2 = exp(-grij*grij);
-            t = 1.0 / (1.0 + EWALD_P*grij);
-            u = 1. - t;
-            erfc = t * (1.+u*(B0+u*(B1+u*(B2+u*(B3+u*(B4+u*B5)))))) * expm2;
-            prefactor = qqrd2e * qi*qj/(r + EPS_EWALD);
-            forcecoul = prefactor * (erfc + EWALD_F*grij*expm2);
-            if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor;
-            r2inv = 1.0/(rsq + EPS_EWALD_SQR);
+            prefactor = qqrd2e * qi*qj/r;
+            if (factor_coul < 1.0) {
+              // for excluded pairs the correction nearly cancels the Ewald term: use erf()
+              // erfc holds erfc - (1 - factor_coul)
+              erfc = factor_coul - erf(grij);
+              forcecoul = prefactor * (erfc + MY_ISPI4*grij*expm2);
+            } else {
+              t = 1.0 / (1.0 + EWALD_P*grij);
+              u = 1. - t;
+              erfc = t * (1.+u*(B0+u*(B1+u*(B2+u*(B3+u*(B4+u*B5)))))) * expm2;
+              forcecoul = prefactor * (erfc + EWALD_F*grij*expm2);
+            }
           } else {
             union_int_float_t rsq_lookup;
             rsq_lookup.f = rsq;
@@ -192,6 +199,7 @@ void PairLJCutTholeLong::compute(int eflag, int vflag)
             if (j != di_closest) {
               if (drudetype[type[j]] == CORE_TYPE) {
                 dj = atom->map(drudeid[j]);
+                if (dj < 0) error->one(FLERR, "Drude partner not found");
                 dqj = -q[dj];
               } else dqj = qj;
               asr = ascreen[type[i]][type[j]] * r;
@@ -229,8 +237,8 @@ void PairLJCutTholeLong::compute(int eflag, int vflag)
             else {
               table = etable[itable] + fraction*detable[itable];
               ecoul = qi*qj * table;
+              if (factor_coul < 1.0) ecoul -= (1.0-factor_coul)*prefactor;
             }
-            if (factor_coul < 1.0) ecoul -= (1.0-factor_coul)*prefactor;
             if (drudetype[type[i]] != NOPOL_TYPE &&
                 drudetype[type[j]] != NOPOL_TYPE && j != di_closest) {
               ecoul += factor_e * dcoul;
@@ -327,6 +335,7 @@ void PairLJCutTholeLong::coeff(int narg, char **arg)
   double epsilon_one = utils::numeric(FLERR,arg[2],false,lmp);
   double sigma_one = utils::numeric(FLERR,arg[3],false,lmp);
   double polar_one = utils::numeric(FLERR,arg[4],false,lmp);
+  if (polar_one < 0.0) error->all(FLERR,"Invalid polarizability {} for pair style thole",polar_one);
   double thole_one = thole_global;
   if (narg >=6) thole_one = utils::numeric(FLERR,arg[5],false,lmp);
 
@@ -359,12 +368,10 @@ void PairLJCutTholeLong::init_style()
 {
   if (!atom->q_flag)
     error->all(FLERR,"Pair style lj/cut/thole/long requires atom attribute q");
-  int ifix;
-  for (ifix = 0; ifix < modify->nfix; ifix++)
-    if (strcmp(modify->fix[ifix]->style,"drude") == 0) break;
-  if (ifix == modify->nfix)
-      error->all(FLERR, "Pair style lj/cut/thole/long requires fix drude");
-  fix_drude = dynamic_cast<FixDrude *>(modify->fix[ifix]);
+  auto drude_fixes = modify->get_fix_by_style("^drude$");
+  if (drude_fixes.empty())
+    error->all(FLERR, "Pair style lj/cut/thole/long requires fix drude");
+  fix_drude = dynamic_cast<FixDrude *>(drude_fixes.front());
 
   neighbor->add_request(this);
 
@@ -400,6 +407,13 @@ double PairLJCutTholeLong::init_one(int i, int j)
     thole[i][j] = 0.5 * (thole[i][i] + thole[j][j]);
     ascreen[i][j] = thole[i][j] / pow(polar[i][j], 1./3.);
   }
+
+  // damping between polarizable atoms would be infinite with a polarizability of zero
+
+  if ((fix_drude->drudetype[i] != NOPOL_TYPE) && (fix_drude->drudetype[j] != NOPOL_TYPE) &&
+      (polar[i][j] == 0.0))
+    error->all(FLERR, Error::NOLASTLINE,
+               "Polarizability for polarizable atom types {} and {} must not be zero", i, j);
 
   // include TIP4P qdist in full cutoff, qdist = 0.0 if not TIP4P
 

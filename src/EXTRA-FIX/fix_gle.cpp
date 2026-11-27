@@ -163,7 +163,7 @@ static void MatrixExp(int n, const double* M, double* EM, int j=8, int k=8)
 /* ---------------------------------------------------------------------- */
 
 FixGLE::FixGLE(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg)
+    Fix(lmp, narg, arg), step_respa(nullptr), vaux(nullptr)
 {
   if (narg < 8)
     error->all(FLERR,"Illegal fix gle command. Expecting: fix <fix-ID>"
@@ -267,8 +267,8 @@ FixGLE::FixGLE(LAMMPS *lmp, int narg, char **arg) :
   init_gles();
 
   // add callbacks to enable restarts
-  atom->add_callback(Atom::GROW);
-  atom->add_callback(Atom::RESTART);
+  atom->add_callback(this, Atom::GROW);
+  atom->add_callback(this, Atom::RESTART);
 
   energy = 0.0;
 }

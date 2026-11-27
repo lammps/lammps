@@ -17,7 +17,7 @@ pair_coeff       * * SiC.tersoff.zbl Si
 
 mass             1 28.0855
 
-velocity         all create 300 42534 mom yes rot yes
+velocity         all create 300 42534 mom yes rot yes loop geom
 
 group            pka id 1
 velocity         pka set 1120 1620 400

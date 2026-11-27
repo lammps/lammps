@@ -128,7 +128,17 @@ inline int _host_view(mat_type &mat, copy_type &cm, const size_t o,
     mat.cbegin()=clCreateSubBuffer(cm.cbegin(), 0,
                                    CL_BUFFER_CREATE_TYPE_REGION, &subbuffer,
                                    &error_flag);
-    CL_CHECK_ERR(error_flag);
+    // OpenCL requires a sub-buffer origin to be a multiple of the device's
+    // CL_DEVICE_MEM_BASE_ADDR_ALIGN. A data-dependent, unaligned origin (e.g. an
+    // atom/neighbor count offset used by the manybody and ellipsoid styles) is
+    // rejected with CL_MISALIGNED_SUB_BUFFER_OFFSET. In that case fall back to the
+    // same code path used for discrete device memory below (no aliasing sub-buffer):
+    // host<->device copies then route through the mapped host pointer instead of a
+    // device-side buffer alias, which is correct, just not zero-copy.
+    if (error_flag==CL_MISALIGNED_SUB_BUFFER_OFFSET)
+      mat.cbegin()=(cl_mem)0;
+    else
+      CL_CHECK_ERR(error_flag);
   } else
     mat.cbegin()=(cl_mem)0;
   CL_SAFE_CALL(clRetainCommandQueue(mat.cq()));
@@ -438,14 +448,18 @@ inline void _ocl_kernel_from_source(cl_context &context, cl_device_id &device,
   _ocl_build(program,device,options);
   kernel=clCreateKernel(program,function,&error_flag);
   CL_CHECK_ERR(error_flag);
+  // the kernel keeps its program
+  CL_SAFE_CALL(clReleaseProgram(program));
 }
 
 template <class mat_type>
 inline void _device_zero(mat_type &mat, const size_t n, command_queue &cq) {
-  #ifdef CL_VERSION_1_2
-  #ifndef __APPLE__
+  // clEnqueueFillBuffer() does not zero buffers reliably with Apple's OpenCL,
+  // also when clFinish() follows it (macOS 12 with AMD GPUs: wrong forces and
+  // crashes with pppm/gpu, gayberne/gpu, and lj/cut/tip4p/long/gpu in pair
+  // style hybrid), so a kernel zeroes the buffer there
+  #if defined(CL_VERSION_1_2) && !defined(__APPLE__)
   #define UCL_CL_ZERO
-  #endif
   #endif
 
   #ifdef UCL_CL_ZERO
@@ -461,21 +475,23 @@ inline void _device_zero(mat_type &mat, const size_t n, command_queue &cq) {
   CL_SAFE_CALL(clGetContextInfo(context,CL_CONTEXT_DEVICES,
                sizeof(cl_device_id),&device,nullptr));
 
-  const char * szero[3]={
-    "#pragma OPENCL EXTENSION cl_khr_fp64 : enable\n",
-    "__kernel void _device_zero(__global NUMTYP *a, const int offset)",
-    "  { int gid=get_global_id(0)+offset; a[gid]=(NUMTYP)0; }"
+  // 32-bit words as with clEnqueueFillBuffer() above, so that the kernel
+  // does not depend on the data type of the buffer
+  const char * szero[2]={
+    "__kernel void _device_zero(__global int *a, const int offset)",
+    "  { int gid=get_global_id(0)+offset; a[gid]=0; }"
   };
 
   cl_kernel kzero;
-  _ocl_kernel_from_source(context,device,szero,3,kzero,"_device_zero",
-                   _UCL_DATA_ID<typename mat_type::data_type>::numtyp_flag());
+  _ocl_kernel_from_source(context,device,szero,2,kzero,"_device_zero");
 
-  cl_int offset=mat.offset();
+  cl_int offset=mat.byteoff()/sizeof(cl_int);
   CL_SAFE_CALL(clSetKernelArg(kzero,0,sizeof(cl_mem),(void *)&mat.begin()));
   CL_SAFE_CALL(clSetKernelArg(kzero,1,sizeof(cl_int),(void *)&offset));
-  size_t kn=n/sizeof(typename mat_type::data_type);
+  size_t kn=n/sizeof(cl_int);
   CL_SAFE_CALL(clEnqueueNDRangeKernel(cq,kzero,1,0,&kn,0,0,0,0));
+  // the queue keeps the kernel until it has run
+  CL_SAFE_CALL(clReleaseKernel(kzero));
   #endif
   #ifdef GERYON_OCL_FLUSH
   ucl_flush(cq);

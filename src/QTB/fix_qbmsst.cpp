@@ -246,7 +246,7 @@ FixQBMSST::FixQBMSST(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 
   // allocate random-arrays and fran
   FixQBMSST::grow_arrays(atom->nmax);
-  atom->add_callback(Atom::GROW);
+  atom->add_callback(this, Atom::GROW);
 
   // allocate omega_H and time_H
   memory->create(omega_H,2*N_f,"qbmsst:omega_H");
@@ -281,7 +281,7 @@ FixQBMSST::~FixQBMSST()
   memory->destroy(random_array_2);
   memory->destroy(omega_H);
   memory->destroy(time_H);
-  atom->delete_callback(id,Atom::GROW);
+  atom->delete_callback(this, Atom::GROW);
 }
 
 /* ----------------------------------------------------------------------
@@ -1095,6 +1095,7 @@ double FixQBMSST::memory_usage()
   // fran memory usage
   bytes += (double)(atom->nmax* 3 * sizeof(double));
   bytes += (double)(4*N_f * sizeof(double));
+  bytes += (double) atoms_allocated * 3 * sizeof(double);    // old_velocity[atoms_allocated][3]
   return bytes;
 }
 

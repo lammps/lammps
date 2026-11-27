@@ -49,7 +49,7 @@ static constexpr int MAXNEIGH = 24;
 
 /* ---------------------------------------------------------------------- */
 
-PairComb::PairComb(LAMMPS *lmp) : Pair(lmp)
+PairComb::PairComb(LAMMPS *lmp) : Pair(lmp), qf(nullptr), charge(nullptr), typeno(nullptr)
 {
   single_enable = 0;
   restartinfo = 0;
@@ -399,12 +399,28 @@ void PairComb::compute(int eflag, int vflag)
       }
     }
 
-    if (cuo_flag) params[iparam_i].cutsq *= 0.65;
+    if (cuo_flag) params[iparam_i].cuo_pending = 1;
   }
 
   cuo_flag = 0;
+  reduce_cuo_cutoff();
 
   if (vflag_fdotr) virial_fdotr_compute();
+}
+
+/* ----------------------------------------------------------------------
+   reduce the cutoff for Cu-O interactions, but only once per parameter set
+------------------------------------------------------------------------- */
+
+void PairComb::reduce_cuo_cutoff()
+{
+  for (int m = 0; m < nparams; m++) {
+    if (params[m].cuo_pending && !params[m].cuo_reduced) {
+      params[m].cutsq *= 0.65;
+      params[m].cuo_reduced = 1;
+    }
+    params[m].cuo_pending = 0;
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -472,13 +488,6 @@ void PairComb::init_style()
     error->all(FLERR, Error::NOLASTLINE, "Pair style COMB requires newton pair on");
   if (!atom->q_flag)
     error->all(FLERR, Error::NOLASTLINE, "Pair style COMB requires atom attribute q");
-
-  // ptr to QEQ fix
-
-  //for (i = 0; i < modify->nfix; i++)
-  //  if (strcmp(modify->fix[i]->style,"qeq") == 0) break;
-  //if (i < modify->nfix) fixqeq = (FixQEQ *) modify->fix[i];
-  //else fixqeq = nullptr;
 
   // need a full neighbor list
 
@@ -704,6 +713,7 @@ void PairComb::setup_params()
   for (m = 0; m < nparams; m++) {
     params[m].cut = params[m].bigr + params[m].bigd;
     params[m].cutsq = params[m].cut*params[m].cut;
+    params[m].cuo_pending = params[m].cuo_reduced = 0;
     params[m].c1 = pow(2.0*params[m].powern*1.0e-16,-1.0/params[m].powern);
     params[m].c2 = pow(2.0*params[m].powern*1.0e-8,-1.0/params[m].powern);
     params[m].c3 = 1.0/params[m].c2;

@@ -34,7 +34,7 @@ int zher2_(char *uplo, integer *n, doublecomplex *alpha, doublecomplex *x, integ
         xerbla_((char *)"ZHER2 ", &info, (ftnlen)6);
         return 0;
     }
-    if (*n == 0 || alpha->r == 0. && alpha->i == 0.) {
+    if (*n == 0 || (alpha->r == 0. && alpha->i == 0.)) {
         return 0;
     }
     if (*incx != 1 || *incy != 1) {

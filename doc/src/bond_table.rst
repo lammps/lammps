@@ -1,10 +1,11 @@
 .. index:: bond_style table
+.. index:: bond_style table/kk
 .. index:: bond_style table/omp
 
 bond_style table command
 ========================
 
-Accelerator Variants: *table/omp*
+Accelerator Variants: *table/kk*, *table/omp*
 
 Syntax
 """"""

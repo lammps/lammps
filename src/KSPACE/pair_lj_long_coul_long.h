@@ -60,7 +60,7 @@ class PairLJLongCoulLong : public Pair {
   double g_ewald_6;
   int ewald_order, ewald_off;
 
-  void options(char **arg, int order);
+  void options(char **arg, int mask);
   void allocate();
 };
 

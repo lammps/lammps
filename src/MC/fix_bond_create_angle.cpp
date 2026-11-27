@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -19,6 +18,8 @@
 #include "fix_bond_create_angle.h"
 
 #include "atom.h"
+#include "domain.h"
+#include "error.h"
 
 #include <cmath>
 
@@ -28,110 +29,55 @@ using namespace LAMMPS_NS;
 
 int FixBondCreateAngle::constrain(int i, int j, double amin, double amax)
 {
-  double **x = atom->x;
   int **nspecial = atom->nspecial;
-  tagint **special = atom->special;
 
-  double v1x = 0.0;
-  double v1y = 0.0;
-  double v1z = 0.0;
-  double v2x = 0.0;
-  double v2y = 0.0;
-  double v2z = 0.0;
+  // an atom without 1-2 neighbors imposes no constraint
+  // the angle at each atom with 1-2 neighbors must be within amin and amax
+  // the comparison also rejects a NaN angle
 
-  double angle1,angle2;
-
-  int flag = 0;
-
-  // pass if both atoms have no neighbors: bond is always formed
-
-  if (nspecial[i][0] == 0 && nspecial[j][0] == 0) flag = 1;
-
-  // pass if i has at least one neighbor and angle constraint is met
-
-  if (nspecial[i][0] != 0 && nspecial[j][0] == 0) {
-
-    // calculate first vector between i and j
-    // calculate second vector between i and its first neighbor
-
-    v1x = x[i][0] - x[j][0];
-    v1y = x[i][1] - x[j][1];
-    v1z = x[i][2] - x[j][2];
-    v2x = x[i][0] - x[atom->map(special[i][0])][0];
-    v2y = x[i][1] - x[atom->map(special[i][0])][1];
-    v2z = x[i][2] - x[atom->map(special[i][0])][2];
-
-    // calculate angle between both vectors
-    // set flag if the angle constraint is met
-
-    angle1 = acos((v1x*v2x + v1y*v2y + v1z*v2z)/
-        (sqrt(v1x*v1x + v1y*v1y + v1z*v1z)*sqrt(v2x*v2x + v2y*v2y + v2z*v2z)));
-    if (amin <= angle1 && angle1 <= amax) flag = 1;
+  if (nspecial[i][0] != 0) {
+    double theta = bond_angle(i, j);
+    if (!((amin <= theta) && (theta <= amax))) return 0;
   }
 
-  // pass if j has at least one neighbor and angle constraint is met
-
-  if (nspecial[j][0] != 0 && nspecial[i][0] == 0) {
-
-    // calculate first vector between j and i
-    // calculate second vector between j and its first neighbor
-
-    v1x = x[j][0] - x[i][0];
-    v1y = x[j][1] - x[i][1];
-    v1z = x[j][2] - x[i][2];
-    v2x = x[j][0] - x[atom->map(special[j][0])][0];
-    v2y = x[j][1] - x[atom->map(special[j][0])][1];
-    v2z = x[j][2] - x[atom->map(special[j][0])][2];
-
-    // calculate angle between both vectors
-    // set flag if angle constraint is met
-
-    angle1 = acos((v1x*v2x + v1y*v2y + v1z*v2z) /
-        (sqrt(v1x*v1x + v1y*v1y + v1z*v1z)*sqrt(v2x*v2x + v2y*v2y + v2z*v2z)));
-    if (amin <= angle1 && angle1 <= amax) flag = 1;
+  if (nspecial[j][0] != 0) {
+    double theta = bond_angle(j, i);
+    if (!((amin <= theta) && (theta <= amax))) return 0;
   }
 
-  // pass if both i and j have at least one neighbor and angle constraint is met
+  return 1;
+}
 
-  if (nspecial[i][0] != 0 && nspecial[j][0] != 0) {
+/* ----------------------------------------------------------------------
+   angle at atom i between atom j and the first 1-2 neighbor of atom i
+   j is a neighbor list entry of i or vice versa, so it is the closest image
+   atom->map() may return any image of the 1-2 neighbor, use the closest one
+------------------------------------------------------------------------- */
 
-    // Calculate 1st angle
-    // calculate first vector between i and j
-    // calculate second vector between i and its first neighbor
+double FixBondCreateAngle::bond_angle(int i, int j)
+{
+  double **x = atom->x;
 
-    v1x = x[i][0] - x[j][0];
-    v1y = x[i][1] - x[j][1];
-    v1z = x[i][2] - x[j][2];
-    v2x = x[i][0] - x[atom->map(special[i][0])][0];
-    v2y = x[i][1] - x[atom->map(special[i][0])][1];
-    v2z = x[i][2] - x[atom->map(special[i][0])][2];
+  int k = atom->map(atom->special[i][0]);
+  if (k < 0)
+    error->one(FLERR, Error::NOLASTLINE,
+               "Fix {} needs ghost atoms from further away; use "
+               "comm_modify cutoff to extend the communication range",
+               style);
+  k = domain->closest_image(i, k);
 
-    // calculate angle between both vectors
+  double delx1 = x[i][0] - x[j][0];
+  double dely1 = x[i][1] - x[j][1];
+  double delz1 = x[i][2] - x[j][2];
+  double delx2 = x[i][0] - x[k][0];
+  double dely2 = x[i][1] - x[k][1];
+  double delz2 = x[i][2] - x[k][2];
 
-    angle1 = acos((v1x*v2x + v1y*v2y + v1z*v2z) /
-        (sqrt(v1x*v1x + v1y*v1y + v1z*v1z)*sqrt(v2x*v2x + v2y*v2y + v2z*v2z)));
+  double c = (delx1 * delx2 + dely1 * dely2 + delz1 * delz2) /
+      sqrt((delx1 * delx1 + dely1 * dely1 + delz1 * delz1) *
+           (delx2 * delx2 + dely2 * dely2 + delz2 * delz2));
+  if (c > 1.0) c = 1.0;
+  if (c < -1.0) c = -1.0;
 
-    // Calculate 2nd angle
-    // calculate first vector between i and j
-    // calculate second vector between i and its first neighbor
-
-    v1x = x[j][0] - x[i][0];
-    v1y = x[j][1] - x[i][1];
-    v1z = x[j][2] - x[i][2];
-    v2x = x[j][0] - x[atom->map(special[j][0])][0];
-    v2y = x[j][1] - x[atom->map(special[j][0])][1];
-    v2z = x[j][2] - x[atom->map(special[j][0])][2];
-
-    // calculate angle between both vectors
-
-    angle2 = acos((v1x*v2x + v1y*v2y + v1z*v2z) /
-        (sqrt(v1x*v1x + v1y*v1y + v1z*v1z)*sqrt(v2x*v2x + v2y*v2y + v2z*v2z)));
-
-    // set flag if the angle constraint is met
-
-    if ((amin <= angle1 && angle1 <= amax) && (amin <= angle2 && angle2 <= amax))
-      flag = 1;
-  }
-
-  return flag;
+  return acos(c);
 }

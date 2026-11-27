@@ -27,8 +27,6 @@ namespace LAMMPS_NS {
 class PairEAMHE : public PairEAMFS {
  public:
   PairEAMHE(class LAMMPS *);
-
-  void compute(int, int) override;
 };
 
 }    // namespace LAMMPS_NS

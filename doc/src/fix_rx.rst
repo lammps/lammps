@@ -199,6 +199,17 @@ should be specified, where the fix-ID will be the "fix rx`ID with a <SPECIES">`_
 fix          foo all rx reaction.file ...
 read_data    data.dpd fix foo_SPECIES NULL Species
 
+The chemistry simulation in this fix can be turned off with a
+:doc:`fix_modify <fix_modify>` command, e.g.,
+
+.. code-block:: LAMMPS
+
+   fix foo all rx reaction.file ...
+   fix_modify foo rx_chemistry off
+
+Chemistry can be turned back on by using a similar :doc:`fix_modify
+<fix_modify>` command, but with "on" instead of "off", of course.
+
 ----------
 
 .. include:: accel_styles.rst

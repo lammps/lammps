@@ -47,7 +47,7 @@ ParsedExpression::ParsedExpression(const ExpressionTreeNode& rootNode) : rootNod
 }
 
 const ExpressionTreeNode& ParsedExpression::getRootNode() const {
-    if (&rootNode.getOperation() == NULL)
+    if (rootNode.operation == NULL)
         throw Exception("Illegal call to an initialized ParsedExpression");
     return rootNode;
 }
@@ -154,7 +154,7 @@ ExpressionTreeNode ParsedExpression::substituteSimplerExpression(const Expressio
     }
 
     // Collect some info on constant expressions in children
-    bool first_const = children.size() > 0 && isConstant(children[0]); // is first child constant?
+    bool first_const = !children.empty() && isConstant(children[0]); // is first child constant?
     bool second_const = children.size() > 1 && isConstant(children[1]); // is second child constant?
     double first, second; // if yes, value of first and second child
     first = second = 0.0;
@@ -412,7 +412,7 @@ ostream& Lepton::operator<<(ostream& out, const ExpressionTreeNode& node) {
     }
     else {
         out << node.getOperation().getName();
-        if (node.getChildren().size() > 0) {
+        if (!node.getChildren().empty()) {
             out << "(";
             for (int i = 0; i < (int) node.getChildren().size(); i++) {
                 if (i > 0)

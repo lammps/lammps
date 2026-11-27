@@ -27,6 +27,7 @@
 #include "force.h"
 #include "info.h"
 #include "interlayer_taper.h"
+#include "math_special.h"
 #include "memory.h"
 #include "my_page.h"
 #include "neigh_list.h"
@@ -39,6 +40,7 @@
 
 using namespace LAMMPS_NS;
 using namespace InterLayer;
+using MathSpecial::powint;
 
 namespace {
 constexpr int DELTA = 4;
@@ -67,7 +69,7 @@ std::map<int, const std::string> variant_map = {
 }    // namespace
 /* ---------------------------------------------------------------------- */
 
-PairILPGrapheneHBN::PairILPGrapheneHBN(LAMMPS *lmp) : Pair(lmp), variant(ILP_GrhBN)
+PairILPGrapheneHBN::PairILPGrapheneHBN(LAMMPS *lmp) : Pair(lmp), variant(ILP_GrhBN), offset(nullptr)
 {
   restartinfo = 0;
   one_coeff = 1;
@@ -465,7 +467,7 @@ void PairILPGrapheneHBN::calc_FvdW(int eflag, int /* vflag */)
         }
 
         TSvdw = 1.0 + exp(-p.d * (r / p.seff - 1.0));
-        TSvdw2inv = pow(TSvdw, -2.0);
+        TSvdw2inv = powint(TSvdw, -2);
         Vilp = -p.C6 * r6inv / TSvdw;
 
         // derivatives
@@ -1048,7 +1050,7 @@ double PairILPGrapheneHBN::single(int /*i*/, int /*j*/, int itype, int jtype, do
   r8inv = r2inv * r6inv;
 
   TSvdw = 1.0 + exp(-p.d * (r / p.seff - 1.0));
-  TSvdw2inv = pow(TSvdw, -2.0);
+  TSvdw2inv = powint(TSvdw, -2);
   Vilp = -p.C6 * r6inv / TSvdw;
   // derivatives
   fpair = -6.0 * p.C6 * r8inv / TSvdw + p.d / p.seff * p.C6 * (TSvdw - 1.0) * r6inv * TSvdw2inv / r;
@@ -1057,4 +1059,16 @@ double PairILPGrapheneHBN::single(int /*i*/, int /*j*/, int itype, int jtype, do
 
   philj = Vilp * Tap;
   return factor_lj * philj;
+}
+
+/* ---------------------------------------------------------------------- */
+
+double PairILPGrapheneHBN::memory_usage()
+{
+  double bytes = Pair::memory_usage();
+  bytes += (double) maxlocal * (sizeof(int) + sizeof(int *));    // ILP_numneigh + ILP_firstneigh
+  bytes += (double) nmax * 3 * sizeof(double);                   // normal[nmax][3]
+  bytes += (double) nmax * 9 * sizeof(double);                   // dnormdri[3][3][nmax]
+  bytes += (double) nmax * 27 * sizeof(double);                  // dnormal[3][3][3][nmax]
+  return bytes;
 }

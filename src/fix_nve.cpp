@@ -25,8 +25,7 @@ using namespace FixConst;
 
 /* ---------------------------------------------------------------------- */
 
-FixNVE::FixNVE(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg)
+FixNVE::FixNVE(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg), step_respa(nullptr)
 {
   if (!utils::strmatch(style,"^nve/sphere") && narg < 3)
     utils::missing_cmd_args(FLERR, fmt::format("fix {}", style), error);

@@ -146,7 +146,7 @@ void PairLJExpandSphereOMP::eval(int iifrom, int iito, ThrData *const thr)
           r6inv = r2inv * r2inv * r2inv;
 
           forcelj = r6inv * (lj1i[jtype] * r6inv - lj2i[jtype]);
-          fpair = factor_lj * forcelj * rshift / r;
+          fpair = factor_lj * forcelj / rshift / r;
 
           fxtmp += delx * fpair;
           fytmp += dely * fpair;

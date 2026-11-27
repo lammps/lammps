@@ -1,7 +1,11 @@
 .. index:: pair_style sw/angle/table
+.. index:: pair_style sw/angle/table/kk
+.. index:: pair_style sw/angle/table/omp
 
 pair_style sw/angle/table command
 =================================
+
+Accelerator Variants: *sw/angle/table/kk*, *sw/angle/table/omp*
 
 Syntax
 """"""
@@ -75,7 +79,7 @@ See the :doc:`pair_coeff <pair_coeff>` page for alternate ways to
 specify the path for the potential file.
 
 As an example, imagine a file SiC.sw has Stillinger-Weber values for Si
-and C.  If your LAMMPS simulation has 4 atoms types and you want the
+and C.  If your LAMMPS simulation has 4 atom types and you want the
 first 3 to be Si, and the fourth to be C, you would use the following
 pair_coeff command:
 
@@ -260,6 +264,10 @@ ik pairs (:math:`\sigma`, *a*, :math:`\gamma`)
 
 Additional input files and reference data can be found at:
 https://gitlab.mpcdf.mpg.de/votca/votca/-/tree/master/csg-tutorials/spce/3body_sw
+
+----------
+
+.. include:: accel_styles.rst
 
 ----------
 

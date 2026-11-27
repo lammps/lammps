@@ -31,6 +31,10 @@ finite-difference thermodynamic integration (FDTI):
 * `fdti10` -- Calculation using TI/FDTI, deletion a methane
   molecule. Results in `fdti10.fep`
 
+* `mbar` -- Multistate calculation using MBAR (`compute mbar`), creation
+  of a methane molecule in two legs (Lennard-Jones then charges). See the
+  `README.md` in that directory.
+
 The Python scripts `fep.py`, `fdti.py` and `fti.py` found in the
 `tools` directory can be used to calculate the free-energy differences
 corresponding to the transformations above:

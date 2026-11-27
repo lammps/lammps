@@ -1,9 +1,12 @@
 .gitattributes export-ignore
 .gitignore export-ignore
 .github export-ignore
-.lgtm.yml export-ignore
+.claude export-ignore
+AGENTS.md export-ignore
 SECURITY.md export-ignore
 CITATION.cff export-ignore
+codemeta.json export-ignore
+update_codemeta.sh export-ignore
 *       text=auto
 *.jpg   -text
 *.pdf   -text

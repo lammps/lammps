@@ -60,13 +60,8 @@ namespace Kokkos {
 #ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
 using MemoryManaged KOKKOS_DEPRECATED = Kokkos::MemoryTraits<>;
 #endif
-using MemoryUnmanaged = Kokkos::MemoryTraits<Kokkos::Unmanaged>;
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
-using MemoryRandomAccess =
-    Kokkos::MemoryTraits<Kokkos::Unmanaged | Kokkos::RandomAccess>;
-#else
+using MemoryUnmanaged    = Kokkos::MemoryTraits<Kokkos::Unmanaged>;
 using MemoryRandomAccess = Kokkos::MemoryTraits<Kokkos::RandomAccess>;
-#endif
 
 }  // namespace Kokkos
 
@@ -81,14 +76,8 @@ namespace Impl {
  *  Enable compatibility of views from different devices with static stride.
  *  Use compiler flag to enable overwrites.
  */
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
-inline constexpr unsigned MEMORY_ALIGNMENT = KOKKOS_IMPL_MEMORY_ALIGNMENT;
-inline constexpr unsigned MEMORY_ALIGNMENT_THRESHOLD =
-    KOKKOS_IMPL_MEMORY_ALIGNMENT_THRESHOLD;
-#else
 inline constexpr unsigned MEMORY_ALIGNMENT           = 64;
 inline constexpr unsigned MEMORY_ALIGNMENT_THRESHOLD = 1;
-#endif
 static_assert(has_single_bit(MEMORY_ALIGNMENT),
               "MEMORY_ALIGNMENT must be a power of 2");
 

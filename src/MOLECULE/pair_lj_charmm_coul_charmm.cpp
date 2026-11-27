@@ -33,7 +33,10 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairLJCharmmCoulCharmm::PairLJCharmmCoulCharmm(LAMMPS *lmp) : Pair(lmp)
+PairLJCharmmCoulCharmm::PairLJCharmmCoulCharmm(LAMMPS *lmp) :
+    Pair(lmp), epsilon(nullptr), sigma(nullptr), eps14(nullptr), sigma14(nullptr), lj1(nullptr),
+    lj2(nullptr), lj3(nullptr), lj4(nullptr), lj14_1(nullptr), lj14_2(nullptr), lj14_3(nullptr),
+    lj14_4(nullptr)
 {
   implicit = 0;
   mix_flag = ARITHMETIC;

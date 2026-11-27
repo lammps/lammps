@@ -34,6 +34,7 @@ class ComputeFEP : public Compute {
   ~ComputeFEP() override;
   void init() override;
   void compute_vector() override;
+  double memory_usage() override;
 
  private:
   int npert;

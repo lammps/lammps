@@ -19,6 +19,7 @@
 #include "atom.h"
 #include "error.h"
 #include "fix.h"
+#include "math_special.h"
 #include "memory.h"
 #include "modify.h"
 #include "neigh_list.h"
@@ -28,6 +29,8 @@
 #include <cstring>
 
 using namespace LAMMPS_NS;
+using MathSpecial::cube;
+using MathSpecial::powint;
 
 /* ---------------------------------------------------------------------- */
 
@@ -142,15 +145,10 @@ void PairLambdaZoneAPIP::init_style()
     error->all(FLERR, "pair_lambda_zone requires an atom style with lambda_input_ta");
 
   // find fix lambda/apip
-  class Fix *fix_lambda = nullptr;
-  int count = 0;
-  for (int i = 0; i < modify->nfix; i++) {
-    if (strcmp(modify->fix[i]->style, "lambda/apip") == 0) {
-      fix_lambda = modify->fix[i];
-      count++;
-    }
-  }
-  if (count != 1) error->all(FLERR, "Exact one fix lambda required");
+  auto lambda_fixes = modify->get_fix_by_style("^lambda/apip");
+  if (lambda_fixes.size() != 1)
+    error->all(FLERR, Error::NOLASTLINE, "Exact one fix lambda required");
+  class Fix *fix_lambda = lambda_fixes.front();
 
   int dim = 0;
   cut_lo = *((double *) fix_lambda->extract("fix_lambda:cut_lo", dim));
@@ -279,7 +277,7 @@ double PairLambdaZoneAPIP::switching_function_poly_distance(double input)
     return 0;
   } else {
     double deltatmp = 1 - 2 * (1 + (input - cut_hi) / (cut_width));
-    return 0.5 + 7.5 / 2. * (deltatmp / 4. - pow(deltatmp, 3) / 6. + pow(deltatmp, 5) / 20.);
+    return 0.5 + 7.5 / 2. * (deltatmp / 4. - cube(deltatmp) / 6. + powint(deltatmp, 5) / 20.);
   }
 }
 

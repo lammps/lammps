@@ -13,6 +13,7 @@
 #include "colvarvalue.h"
 #include "colvar.h"
 #include "colvarcomp.h"
+#include "colvarcomp_coordnums.h"
 
 
 colvar::alpha_angles::alpha_angles()
@@ -20,7 +21,7 @@ colvar::alpha_angles::alpha_angles()
   set_function_type("alpha");
   enable(f_cvc_explicit_gradient);
   x.type(colvarvalue::type_scalar);
-  colvarproxy *proxy = cvm::main()->proxy;
+  colvarproxy *proxy = cvmodule->proxy;
   r0 = proxy->angstrom_to_internal(3.3);
 }
 
@@ -53,11 +54,11 @@ int colvar::alpha_angles::init(std::string const &conf)
         }
       }
     } else {
-      return cvm::error("Error: no residues defined in \"residueRange\".\n", COLVARS_INPUT_ERROR);
+      return cvmodule->error("Error: no residues defined in \"residueRange\".\n", COLVARS_INPUT_ERROR);
     }
 
     if (residues.size() < 5) {
-      return cvm::error("Error: not enough residues defined in \"residueRange\".\n", COLVARS_INPUT_ERROR);
+      return cvmodule->error("Error: not enough residues defined in \"residueRange\".\n", COLVARS_INPUT_ERROR);
     }
     get_keyval(conf, "psfSegID", segment_id, std::string("MAIN"));
 
@@ -80,11 +81,11 @@ int colvar::alpha_angles::init(std::string const &conf)
     int nn = group_N.size();
     int no = group_O.size();
     if ((nn != 0 || no != 0) && (nn != no)) {
-      return cvm::error("Error: If either is provided, atom groups " + prefix + "N and " + prefix + "O must have the same number of atoms.",
+      return cvmodule->error("Error: If either is provided, atom groups " + prefix + "N and " + prefix + "O must have the same number of atoms.",
                         COLVARS_INPUT_ERROR);
     }
     if (nn != 0 && na != 0 && nn != na) {
-      return cvm::error("Error: If both are provided, atom groups " + prefix + "N and " + prefix + "CA must have the same number of atoms.",
+      return cvmodule->error("Error: If both are provided, atom groups " + prefix + "N and " + prefix + "CA must have the same number of atoms.",
                         COLVARS_INPUT_ERROR);
     }
   }
@@ -95,7 +96,7 @@ int colvar::alpha_angles::init(std::string const &conf)
 
   get_keyval(conf, "hBondCoeff", hb_coeff, hb_coeff);
   if ((hb_coeff < 0.0) || (hb_coeff > 1.0)) {
-    return cvm::error("Error: hBondCoeff must be defined between 0 and 1.\n", COLVARS_INPUT_ERROR);
+    return cvmodule->error("Error: hBondCoeff must be defined between 0 and 1.\n", COLVARS_INPUT_ERROR);
   }
 
 
@@ -105,7 +106,7 @@ int colvar::alpha_angles::init(std::string const &conf)
   if (hb_coeff < 1.0) {
     if (b_use_index_groups) {
       if (group_CA.size() < 5) {
-        return cvm::error("Not enough atoms (" + cvm::to_str(group_CA.size()) + ") in index group \"" + prefix + "CA\"",
+        return cvmodule->error("Not enough atoms (" + cvm::to_str(group_CA.size()) + ") in index group \"" + prefix + "CA\"",
                           COLVARS_INPUT_ERROR);
       }
       for (size_t i = 0; i < group_CA.size()-2; i++) {
@@ -118,7 +119,7 @@ int colvar::alpha_angles::init(std::string const &conf)
         register_atom_group(theta.back()->atom_groups[2]);
       }
     } else {
-      colvarproxy* const p = cvm::main()->proxy;
+      colvarproxy* const p = cvmodule->proxy;
       for (size_t i = 0; i < residues.size()-2; i++) {
         theta.push_back(
           new colvar::angle(
@@ -132,7 +133,7 @@ int colvar::alpha_angles::init(std::string const &conf)
     }
 
   } else {
-    cvm::log("The hBondCoeff specified will disable the Calpha-Calpha-Calpha angle terms.\n");
+    cvmodule->log("The hBondCoeff specified will disable the Calpha-Calpha-Calpha angle terms.\n");
   }
 
   {
@@ -141,10 +142,10 @@ int colvar::alpha_angles::init(std::string const &conf)
     get_keyval(conf, "hBondExpDenom", ed, ed);
 
     if (hb_coeff > 0.0) {
-      colvarproxy* const p = cvm::main()->proxy;
+      colvarproxy* const p = cvmodule->proxy;
       if (b_use_index_groups) {
         if (group_N.size() < 5) {
-          return cvm::error("Not enough atoms (" + cvm::to_str(group_N.size()) + ") in index group \"" + prefix + "N\"",
+          return cvmodule->error("Not enough atoms (" + cvm::to_str(group_N.size()) + ") in index group \"" + prefix + "N\"",
                             COLVARS_INPUT_ERROR);
         }
         for (size_t i = 0; i < group_N.size()-4; i++) {
@@ -166,7 +167,7 @@ int colvar::alpha_angles::init(std::string const &conf)
         }
       }
     } else {
-      cvm::log("The hBondCoeff specified will disable the hydrogen bond terms.\n");
+      cvmodule->log("The hBondCoeff specified will disable the hydrogen bond terms.\n");
     }
   }
 
@@ -209,7 +210,7 @@ void colvar::alpha_angles::calc_value()
       x.real_value += theta_norm * f;
 
       if (cvm::debug())
-        cvm::log("Calpha-Calpha angle no. "+cvm::to_str(i+1)+" in \""+
+        cvmodule->log("Calpha-Calpha angle no. "+cvm::to_str(i+1)+" in \""+
                   this->name+"\" has a value of "+
                   (cvm::to_str((theta[i])->value().real_value))+
                   " degrees, f = "+cvm::to_str(f)+".\n");
@@ -225,7 +226,7 @@ void colvar::alpha_angles::calc_value()
       (hb[i])->calc_value();
       x.real_value += hb_norm * (hb[i])->value().real_value;
       if (cvm::debug())
-        cvm::log("Hydrogen bond no. "+cvm::to_str(i+1)+" in \""+
+        cvmodule->log("Hydrogen bond no. "+cvm::to_str(i+1)+" in \""+
                   this->name+"\" has a value of "+
                   (cvm::to_str((hb[i])->value().real_value))+".\n");
     }
@@ -352,7 +353,7 @@ int colvar::dihedPC::init(std::string const &conf)
   int error_code = cvc::init(conf);
 
   if (cvm::debug())
-    cvm::log("Initializing dihedral PC object.\n");
+    cvmodule->log("Initializing dihedral PC object.\n");
 
   bool b_use_index_groups = false;
   std::string segment_id;
@@ -376,7 +377,7 @@ int colvar::dihedPC::init(std::string const &conf)
         }
       }
     } else {
-      return cvm::error("Error: no residues defined in \"residueRange\".\n", COLVARS_INPUT_ERROR);
+      return cvmodule->error("Error: no residues defined in \"residueRange\".\n", COLVARS_INPUT_ERROR);
     }
     n_residues = residues.size();
     get_keyval(conf, "psfSegID", segment_id, std::string("MAIN"));
@@ -399,14 +400,14 @@ int colvar::dihedPC::init(std::string const &conf)
     int nn = group_N.size();
     int nc = group_C.size();
     if ((nn != na || na != nc)) {
-      return cvm::error("Error: atom groups " + prefix + "N, " + prefix + "CA, and " + prefix +
+      return cvmodule->error("Error: atom groups " + prefix + "N, " + prefix + "CA, and " + prefix +
                         "C must have the same number of atoms.", COLVARS_INPUT_ERROR);
     }
     n_residues = nn;
   }
   if (n_residues < 2) {
     error_code |=
-      cvm::error("Error: dihedralPC requires at least two residues.\n", COLVARS_INPUT_ERROR);
+      cvmodule->error("Error: dihedralPC requires at least two residues.\n", COLVARS_INPUT_ERROR);
   }
 
   std::string const &sid    = segment_id;
@@ -418,11 +419,11 @@ int colvar::dihedPC::init(std::string const &conf)
     get_keyval(conf, "vectorNumber", vecNumber, 0);
     if (vecNumber < 1) {
       error_code |=
-          cvm::error("A positive value of vectorNumber is required.", COLVARS_INPUT_ERROR);
+          cvmodule->error("A positive value of vectorNumber is required.", COLVARS_INPUT_ERROR);
     }
 
     std::istream &vecFile =
-      cvm::main()->proxy->input_stream(vecFileName,
+      cvmodule->proxy->input_stream(vecFileName,
                                        "dihedral PCA vector file");
     if (!vecFile) {
       return COLVARS_INPUT_ERROR;
@@ -448,7 +449,7 @@ int colvar::dihedPC::init(std::string const &conf)
         vecFile.ignore(999999, '\n');
 
       if (!vecFile.good()) {
-        cvm::error("Error reading dihedral PCA vector file " + vecFileName);
+        cvmodule->error("Error reading dihedral PCA vector file " + vecFileName);
       }
 
       std::string line;
@@ -461,19 +462,19 @@ int colvar::dihedPC::init(std::string const &conf)
       }
     }
  */
-    cvm::main()->proxy->close_input_stream(vecFileName);
+    cvmodule->proxy->close_input_stream(vecFileName);
 
   } else {
     get_keyval(conf, "vector", coeffs, coeffs);
   }
 
   if ( coeffs.size() != 4 * (n_residues - 1)) {
-    error_code |= cvm::error("Error: wrong number of coefficients: " + cvm::to_str(coeffs.size()) +
+    error_code |= cvmodule->error("Error: wrong number of coefficients: " + cvm::to_str(coeffs.size()) +
                              ". Expected " + cvm::to_str(4 * (n_residues - 1)) +
                              " (4 coeffs per residue, minus one residue).\n",
                              COLVARS_INPUT_ERROR);
   }
-  colvarproxy* const p = cvm::main()->proxy;
+  colvarproxy* const p = cvmodule->proxy;
   for (size_t i = 0; i < n_residues-1; i++) {
     // Psi
     if (b_use_index_groups) {
@@ -489,8 +490,8 @@ int colvar::dihedPC::init(std::string const &conf)
           cvm::atom_group::init_atom_from_proxy(p,r[i  ], "C", sid),
           cvm::atom_group::init_atom_from_proxy(p,r[i+1], "N", sid)));
     }
-    if (cvm::get_error()) {
-      return cvm::get_error();
+    if (cvmodule->get_error()) {
+      return cvmodule->get_error();
     }
     register_atom_group(theta.back()->atom_groups[0]);
     register_atom_group(theta.back()->atom_groups[1]);
@@ -509,8 +510,8 @@ int colvar::dihedPC::init(std::string const &conf)
                              cvm::atom_group::init_atom_from_proxy(p,r[i+1], "CA", sid),
                              cvm::atom_group::init_atom_from_proxy(p,r[i+1], "C", sid)));
     }
-    if (cvm::get_error()) {
-      return cvm::get_error();
+    if (cvmodule->get_error()) {
+      return cvmodule->get_error();
     }
     register_atom_group(theta.back()->atom_groups[0]);
     register_atom_group(theta.back()->atom_groups[1]);
@@ -519,7 +520,7 @@ int colvar::dihedPC::init(std::string const &conf)
   }
 
   if (cvm::debug())
-    cvm::log("Done initializing dihedPC object.\n");
+    cvmodule->log("Done initializing dihedPC object.\n");
 
   return error_code;
 }

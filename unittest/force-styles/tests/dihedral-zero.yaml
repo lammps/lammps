@@ -9,7 +9,7 @@ pre_commands: ! ""
 post_commands: ! ""
 input_file: in.fourmol
 dihedral_style: zero
-dihedral_coeff: ! |
+dihedral_coeff: |
   *
 extract: ! ""
 natoms: 29

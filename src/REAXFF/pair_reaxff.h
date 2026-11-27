@@ -69,10 +69,12 @@ class PairReaxFF : public Pair {
   double *chi, *eta, *gamma, *bcut_acks2;
   int qeqflag;
   int setup_flag;
+  int reinit_flag;
   int firstwarn;
   int list_blocking_flag;
 
   void allocate();
+  void deallocate_storage();
   void create_compute();
   void create_fix();
   void write_reax_atoms();

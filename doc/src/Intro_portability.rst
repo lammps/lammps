@@ -20,9 +20,9 @@ LAMMPS version 22 July 2025, which requires only C++11 as the minimum
 C++ standard.
 
 Most of the Python code in LAMMPS is written to be compatible with Python
-3.6 and later.
+3.9 and later.
 
-.. deprecated:: 2Apr2025
+.. versionremoved:: 2Apr2025
 
 Python 2.x is no longer supported and trying to use it, e.g. for the
 LAMMPS Python module should result in an error.  If you come across
@@ -33,7 +33,7 @@ Build systems
 ^^^^^^^^^^^^^
 
 LAMMPS can be compiled from source code using the cross-platform CMake
-system.  CMake must be at least version 3.20.  Alternatively, using a
+system.  CMake must be at least version 3.27.  Alternatively, using a
 (traditional) build system based on shell scripts, a few shell utilities
 (grep, sed, cat, tr) and the GNU make program.  This requires running
 within a Bourne shell (``/bin/sh`` or ``/bin/bash``).
@@ -76,6 +76,16 @@ The most commonly used compilers are the GNU compilers, but also Clang
 and the Intel compilers have been successfully used on Linux, macOS, and
 Windows.  Also, the Nvidia HPC SDK (formerly PGI compilers) will compile
 LAMMPS (tested on Linux).
+
+.. versionchanged:: 13Nov2026
+
+The legacy Intel compilers (``icc`` and ``icpc`` on Linux, ``icl`` on
+Windows), also known as "Intel Classic" compilers, have been
+discontinued by Intel and are **no longer** supported.  Please use the
+LLVM based Intel oneAPI compilers (``icx`` and ``icpx``) or a different
+compiler instead.  If you cannot switch compilers, please use the LAMMPS
+30Sep2026 stable version (or one of its updates), which is the last
+LAMMPS version with support for the Intel Classic compilers.
 
 .. versionchanged:: 10Sep2025
 

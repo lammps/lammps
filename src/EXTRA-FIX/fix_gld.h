@@ -46,6 +46,8 @@ class FixGLD : public Fix {
   void unpack_restart(int, int) override;
   int size_restart(int) override;
   int maxsize_restart() override;
+  void write_restart(FILE *) override;
+  void restart(char *) override;
   void init_s_gld();
 
  protected:

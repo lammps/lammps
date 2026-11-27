@@ -14,7 +14,6 @@ import kokkos.core;
 #include "Kokkos_HelperPredicates.hpp"
 #include "Kokkos_ValueWrapperForNoNeutralElement.hpp"
 #include "Kokkos_IdentityReferenceUnaryFunctor.hpp"
-#include <std_algorithms/Kokkos_Distance.hpp>
 #include <string>
 
 namespace Kokkos {

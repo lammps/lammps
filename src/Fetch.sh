@@ -29,12 +29,23 @@ fetch_potentials() {
         then \
             url="https://download.lammps.org/potentials/${file}.${sum}"
             echo "Fetching external potential file ${file} from ${url}"
-            if [ ${have_curl} ]
+            # download to a temporary file and only keep it if its checksum is correct
+            tmpfile="${pdir}/${file}.download"
+            if [ ${have_curl} -eq 1 ]
             then \
-                curl -L -o ${pdir}/${file} ${url}
-            elif [ ${have_wget} ]
+                curl -L -o ${tmpfile} ${url}
+            elif [ ${have_wget} -eq 1 ]
             then \
-                wget -O ${pdir}/${file} ${url}
+                wget -O ${tmpfile} ${url}
+            fi
+            echo ${sum} ${tmpfile} | sha256sum -c - > /dev/null 2>&1 \
+                && fetch_ok=1 || fetch_ok=0
+            if [ ${fetch_ok} -eq 1 ]
+            then \
+                mv -f ${tmpfile} ${pdir}/${file}
+            else \
+                echo "Download of ${file} failed or its checksum does not match. Skipping."
+                rm -f ${tmpfile}
             fi
         fi
    done

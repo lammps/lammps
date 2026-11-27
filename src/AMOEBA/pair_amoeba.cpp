@@ -53,7 +53,20 @@ static constexpr int DELTASTACK = 16;
 
 /* ---------------------------------------------------------------------- */
 
-PairAmoeba::PairAmoeba(LAMMPS *lmp) : Pair(lmp)
+PairAmoeba::PairAmoeba(LAMMPS *lmp) :
+    Pair(lmp), amtype_defined(nullptr), amclass_defined(nullptr), amtype2class(nullptr),
+    amtype(nullptr), amgroup(nullptr), fixpole(nullptr), fixudalt(nullptr), fixupalt(nullptr),
+    atomic_num(nullptr), valence(nullptr), am_mass(nullptr), am_q(nullptr), am_mu(nullptr),
+    polarity(nullptr), pdamp(nullptr), thole(nullptr), dirdamp(nullptr), npolgroup(nullptr),
+    polgroup(nullptr), sizpr(nullptr), dmppr(nullptr), elepr(nullptr), nmultiframe(nullptr),
+    mpaxis(nullptr), xpole(nullptr), ypole(nullptr), zpole(nullptr), fpole(nullptr),
+    vdwl_eps(nullptr), vdwl_sigma(nullptr), kred(nullptr), csix(nullptr), adisp(nullptr),
+    chgct(nullptr), dmpct(nullptr), pcore(nullptr), palpha(nullptr), vdwl_class_pair(nullptr),
+    vdwl_eps_pair(nullptr), vdwl_sigma_pair(nullptr), copt(nullptr), copm(nullptr), gear(nullptr),
+    aspc(nullptr), a_ualt(nullptr), ap_ualt(nullptr), b_ualt(nullptr), bp_ualt(nullptr),
+    c_ualt(nullptr), cp_ualt(nullptr), bpred(nullptr), bpredp(nullptr), bpreds(nullptr),
+    bpredps(nullptr), radmin(nullptr), epsilon(nullptr), radmin4(nullptr), epsilon4(nullptr),
+    uad(nullptr), uap(nullptr), ubd(nullptr), ubp(nullptr), fp_uind(nullptr)
 {
   amoeba = true;
   mystyle = "amoeba";
@@ -87,6 +100,7 @@ PairAmoeba::PairAmoeba(LAMMPS *lmp) : Pair(lmp)
 
   cmp = fmp = nullptr;
   cphi = fphi = nullptr;
+  cphidir = fphidir = nullptr;
 
   _moduli_array = nullptr;
   _moduli_bsarray = nullptr;
@@ -169,13 +183,9 @@ PairAmoeba::~PairAmoeba()
 {
   delete[] pvector;
 
-  // check nfix in case all fixes have already been deleted
-
-  if (modify->nfix) {
-    if (id_pole) modify->delete_fix(id_pole);
-    if (id_udalt) modify->delete_fix(id_udalt);
-    if (id_upalt) modify->delete_fix(id_upalt);
-  }
+  if (id_pole) modify->delete_fix(id_pole);
+  if (id_udalt) modify->delete_fix(id_udalt);
+  if (id_upalt) modify->delete_fix(id_upalt);
 
   delete[] id_pole;
   delete[] id_udalt;
@@ -211,6 +221,8 @@ PairAmoeba::~PairAmoeba()
   memory->destroy(fmp);
   memory->destroy(cphi);
   memory->destroy(fphi);
+  memory->destroy(cphidir);
+  memory->destroy(fphidir);
 
   memory->destroy(poli);
   memory->destroy(conj);
@@ -848,7 +860,7 @@ void PairAmoeba::init_style()
     else if (flag_check[i] != flag) err = "has the wrong type";
     else if (cols_check[i] != cols) err = "has the wrong number of columns";
     else if (ghost_check[i] && !ghost) err = "must be set by fix property/atom with ghost yes";
-    if (err != "")
+    if (!err.empty())
       error->all(FLERR,"Pair {} per-atom variable {} {}", mystyle, names[i], err);
   }
 
@@ -2007,8 +2019,25 @@ void PairAmoeba::allocate_smallsize()
   bpreds = new double[maxualt];
   bpredps = new double[maxualt];
   if (use_pred) {
-    if (polpred == GEAR) gear = new double[maxualt];
-    if (polpred == ASPC) aspc = new double[maxualt];
+
+    // predictor coefficients, as set in Tinker's predict.f:
+    // 6th-order Gear binomial coefficients and the always stable
+    // predictor-corrector (ASPC) coefficients of Kolafa
+
+    if (polpred == GEAR) {
+      static constexpr double gear_coeff[7] = {6.0, -15.0, 20.0, -15.0, 6.0, -1.0, 0.0};
+      gear = new double[maxualt];
+      for (int i = 0; i < maxualt; i++) gear[i] = gear_coeff[i];
+    }
+    if (polpred == ASPC) {
+      static constexpr double aspc_coeff[17] = {
+          62.0 / 17.0,     -310.0 / 51.0,   2170.0 / 323.0, -2329.0 / 400.0, 1701.0 / 409.0,
+          -806.0 / 323.0,  1024.0 / 809.0,  -479.0 / 883.0, 257.0 / 1316.0,  -434.0 / 7429.0,
+          191.0 / 13375.0, -62.0 / 22287.0, 3.0 / 7217.0,   -3.0 / 67015.0,  2.0 / 646323.0,
+          -1.0 / 9694845.0, 0.0};
+      aspc = new double[maxualt];
+      for (int i = 0; i < maxualt; i++) aspc[i] = aspc_coeff[i];
+    }
   }
 }
 
@@ -2278,6 +2307,8 @@ void PairAmoeba::grow_local()
   memory->destroy(fmp);
   memory->destroy(cphi);
   memory->destroy(fphi);
+  memory->destroy(cphidir);
+  memory->destroy(fphidir);
 
   // induce
 
@@ -2368,6 +2399,8 @@ void PairAmoeba::grow_local()
   memory->create(fmp,nmax,10,"ameoba/mpole:fmp");
   memory->create(cphi,nmax,10,"ameoba/mpole:cphi");
   memory->create(fphi,nmax,20,"ameoba/mpole:fphi");
+  memory->create(cphidir,nmax,10,"ameoba/induce:cphidir");
+  memory->create(fphidir,nmax,20,"ameoba/induce:fphidir");
 
   // induce
 
@@ -2445,7 +2478,7 @@ double PairAmoeba::memory_usage()
   bytes += (double) 15 * nmax * sizeof(double);   // field/fieldp/ufld/dufld
   bytes += (double) 12 * nmax * sizeof(double);   // rsd/rsdp/zrsd/zrsdp
 
-  bytes += (double) 50 * nmax * sizeof(double);   // cmp/fmp/cphi/fphi
+  bytes += (double) 80 * nmax * sizeof(double);   // cmp/fmp/cphi/fphi/cphidir/fphidir
 
   bytes += (double) nmax * sizeof(double);        // poli
   bytes += (double) 12 * nmax * sizeof(double);   // conj/conjp/vec/vecp

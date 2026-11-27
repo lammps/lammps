@@ -58,6 +58,8 @@ PairTIP4PLong::PairTIP4PLong(LAMMPS *lmp) : PairCoulLong(lmp)
 
 PairTIP4PLong::~PairTIP4PLong()
 {
+  if (copymode) return;
+
   memory->destroy(hneigh);
   memory->destroy(newsite);
 }
@@ -410,7 +412,7 @@ void PairTIP4PLong::coeff(int narg, char **arg)
   // set atom types from pair_style command unless we were restarted
   // and the types are already set and the strings are empty.
 
-  if (typeO_str.size() > 0) {
+  if (!typeO_str.empty()) {
     typeO = utils::expand_type_int(FLERR, typeO_str, Atom::ATOM, lmp, true);
     typeH = utils::expand_type_int(FLERR, typeH_str, Atom::ATOM, lmp, true);
     typeB = utils::expand_type_int(FLERR, typeB_str, Atom::BOND, lmp, true);

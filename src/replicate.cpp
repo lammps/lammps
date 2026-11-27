@@ -22,6 +22,7 @@
 
 #include "accelerator_kokkos.h"
 #include "atom.h"
+#include "atom_masks.h"
 #include "atom_vec.h"
 #include "comm.h"
 #include "domain.h"
@@ -108,7 +109,7 @@ void Replicate::command(int narg, char **arg)
       error->warning(FLERR,"Replicating in a non-periodic dimension");
   }
 
-  if (atom->nextra_grow || atom->nextra_restart || atom->nextra_store)
+  if (!atom->extra_grow.empty() || !atom->extra_restart.empty() || atom->nextra_store)
     error->all(FLERR,"Cannot replicate with fixes that store per-atom quantities");
 
   // record wall time for atom replication
@@ -325,6 +326,10 @@ void Replicate::command(int narg, char **arg)
       atom->mass_setflag[itype] = old->mass_setflag[itype];
       if (atom->mass_setflag[itype]) atom->mass[itype] = old->mass[itype];
     }
+
+    // written through the host pointer, so flag it for the device copy
+
+    atom->modified_host_arrays(MASS_MASK);
   }
 
   // set bounds for my proc
@@ -532,6 +537,10 @@ void Replicate::replicate_by_proc(int nx, int ny, int nz,
 
               atom->tag[i] += atom_offset;
               atom->image[i] = image;
+
+              // CG-DNA package: the per-atom 3'/5' partner IDs of oxDNA must be offset too
+              if (atom->id3p && atom->id3p[i] >= 0) atom->id3p[i] += atom_offset;
+              if (atom->id5p && atom->id5p[i] >= 0) atom->id5p[i] += atom_offset;
 
               if (atom->molecular != Atom::ATOMIC) {
                 if (atom->molecule[i] > 0)
@@ -878,6 +887,16 @@ void Replicate::replicate_by_bbox(int nx, int ny, int nz,
               atom->tag[i] += atom_offset;
               atom->image[i] = image;
 
+              // CG-DNA package: the per-atom 3'/5' partner IDs of oxDNA must be offset too
+              if (atom->id3p && atom->id3p[i] >= 0) {
+                if (bond_flag) newtag(atom0tag,atom->id3p[i]);
+                else atom->id3p[i] += atom_offset;
+              }
+              if (atom->id5p && atom->id5p[i] >= 0) {
+                if (bond_flag) newtag(atom0tag,atom->id5p[i]);
+                else atom->id5p[i] += atom_offset;
+              }
+
               if (atom->molecular != Atom::ATOMIC) {
                 if (atom->molecule[i] > 0)
                   atom->molecule[i] += mol_offset;
@@ -963,8 +982,12 @@ void Replicate::replicate_by_bbox(int nx, int ny, int nz,
 void Replicate::newtag(tagint atom0tag, tagint &tag2bond) {
   double del;
   int repshift,rep2bond[3];
-  int atom0 = old_map.find(atom0tag)->second;
-  int atom2bond = old_map.find(tag2bond)->second;
+  auto it0 = old_map.find(atom0tag);
+  auto it2 = old_map.find(tag2bond);
+  if ((it0 == old_map.end()) || (it2 == old_map.end()))
+    error->one(FLERR,"Replicate: bond/angle/dihedral/improper references a non-existent atom");
+  int atom0 = it0->second;
+  int atom2bond = it2->second;
   for (int i = 0; i < 3; i++) {
     del = fabs(old_x[atom0][i] - old_x[atom2bond][i]);
     if (del > old_prd_half[i]) {

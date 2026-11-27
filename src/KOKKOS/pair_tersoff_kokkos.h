@@ -111,6 +111,8 @@ class PairTersoffKokkos : public PairTersoff {
   void coeff(int, char **) override;
   void init_style() override;
 
+  class TuneKokkos* tuner;
+
   // RangePolicy versions
   template<int NEIGHFLAG, int EVFLAG>
 // NOLINTNEXTLINE
@@ -295,6 +297,7 @@ class PairTersoffKokkos : public PairTersoff {
   t_param_1d d_params;
 
   KK_FLOAT cutmax_sq;
+  KK_FLOAT shift_kk;    // KK_FLOAT copy of PairTersoff::shift for device kernels
 
   int inum;
   typename AT::t_kkfloat_1d_3_lr_randomread x;

@@ -12,7 +12,7 @@ if(NOT BUILD_SHARED_LIBS)
   return()
 endif()
 
-find_package(Python 3.6 COMPONENTS Interpreter Development)
+find_package(Python 3.9 COMPONENTS Interpreter Development)
 
 if(PKG_PYTHON)
   add_executable(test_python_package test_python_package.cpp)
@@ -74,6 +74,7 @@ if(Python_EXECUTABLE)
   else()
     set(PYTHON_TEST_RUNNER ${Python_EXECUTABLE} -u)
   endif()
+  list(PREPEND PYTHON_TEST_RUNNER ${LAMMPS_TEST_LAUNCHER})
 
   add_test(NAME PythonOpen
            COMMAND ${PYTHON_TEST_RUNNER} ${CMAKE_CURRENT_SOURCE_DIR}/python-open.py -v
@@ -96,7 +97,8 @@ if(Python_EXECUTABLE)
   add_test(NAME PythonCapabilities
            COMMAND ${PYTHON_TEST_RUNNER} ${CMAKE_CURRENT_SOURCE_DIR}/python-capabilities.py -v
            WORKING_DIRECTORY ${EXECUTABLE_OUTPUT_PATH})
-  set_tests_properties(PythonCapabilities PROPERTIES ENVIRONMENT "${PYTHON_TEST_ENVIRONMENT}")
+  # it checks the settings of the GPU and KOKKOS packages and the GPU device information
+  set_tests_properties(PythonCapabilities PROPERTIES ENVIRONMENT "${PYTHON_TEST_ENVIRONMENT}" LABELS "gpu;kokkos")
 
   add_test(NAME PythonCmdWrapper
            COMMAND ${PYTHON_TEST_RUNNER} ${CMAKE_CURRENT_SOURCE_DIR}/python-cmdwrapper.py -v
@@ -122,6 +124,11 @@ if(Python_EXECUTABLE)
            COMMAND ${PYTHON_TEST_RUNNER} ${CMAKE_CURRENT_SOURCE_DIR}/python-scatter-gather.py -v
            WORKING_DIRECTORY ${EXECUTABLE_OUTPUT_PATH})
   set_tests_properties(PythonScatterGather PROPERTIES ENVIRONMENT "${PYTHON_TEST_ENVIRONMENT}")
+
+  add_test(NAME PythonFixSymmetry
+           COMMAND ${PYTHON_TEST_RUNNER} ${CMAKE_CURRENT_SOURCE_DIR}/python-fix-symmetry.py -v
+           WORKING_DIRECTORY ${EXECUTABLE_OUTPUT_PATH})
+  set_tests_properties(PythonFixSymmetry PROPERTIES ENVIRONMENT "${PYTHON_TEST_ENVIRONMENT}")
 
 else()
   message(STATUS "Skipping Tests for the LAMMPS Python Module: no suitable Python interpreter")

@@ -91,7 +91,6 @@ instead.
    run 20000 upto
    write_data spce.data nocoeff
 
-.. _spce_molecule:
 .. code-block::
 
    # Water molecule. SPC/E geometry

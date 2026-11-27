@@ -23,7 +23,7 @@ distributed under the terms of the GNU Public License Version 2 (GPLv2).
 
 The `LAMMPS website <lws_>`_ has a variety of information about the
 code.  It includes links to an online version of this manual, an
-`online forum <https://www.lammps.org/forum.html>`_ where users can post
+`online forum <https://matsci.org/lammps>`_ where users can post
 questions and discuss LAMMPS, and a `GitHub site
 <https://github.com/lammps/lammps>`_ where all LAMMPS development is
 coordinated.
@@ -158,22 +158,27 @@ Indices and tables
   .. admonition:: Web Browser Compatibility
      :class: note
 
-     The HTML version of the manual makes use of advanced features present
-     in "modern" web browsers.  This leads to incompatibilities with older
-     web browsers and specific vendor browsers (e.g. Internet Explorer on Windows)
-     where parts of the pages are not rendered as expected (e.g. the layout is
-     broken or mathematical expressions not typeset).  In that case we
-     recommend to install/use a different/newer web browser or use
-     the `PDF version of the manual <https://docs.lammps.org/Manual.pdf>`_.
+     The HTML version of the manual makes use of advanced features
+     present in "modern" web browsers.  This leads to incompatibilities
+     with older web browsers and specific vendor browsers (e.g. Internet
+     Explorer on Windows) where parts of the pages are not rendered as
+     expected (e.g. the layout is broken or mathematical expressions not
+     typeset).  In that case we recommend to install/use a
+     different/newer web browser or use the `PDF version of the manual
+     <https://docs.lammps.org/Manual.pdf>`_.
 
-     The following web browser versions have been verified to work as
+     The following web browser versions have been verified on
+     `BrowserStack <https://www.browserstack.com/>`_ to work as
      expected on Linux, macOS, and Windows where available:
 
-     - Safari version 11.1 and later
-     - Firefox version 54 and later
-     - Chrome version 54 and later
-     - Opera version 41 and later
-     - Edge version 80 and later
+     - Safari version 15.4 and later
+     - Firefox version 92 and later
+     - Chrome version 93 and later
+     - Opera version 79 and later
+     - Edge version 93 and later
 
-     Also Android version 7.1 and later and iOS version 11 and later have
-     been verified to render this website as expected.
+     Also Android version 11 and later with Chrome and iOS version 15.4
+     and later with Safari have been verified to render this website as
+     expected.
+
+     Web browser compatibility was last checked on 2026-10-14.

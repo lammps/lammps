@@ -78,16 +78,6 @@ void PairLJCutTIP4PLongOMP::compute(int eflag, int vflag)
     memory->create(newsite_thr,nmax,"pair:newsite_thr");
   }
 
-  int i;
-  // tag entire list as completely invalid after a neighbor
-  // list update, since that can change the order of atoms.
-  if (neighbor->ago == 0)
-    for (i = 0; i < nall; i++) hneigh_thr[i].a = -1;
-
-  // indicate that the coordinates for the M point need to
-  // be updated. this needs to be done in every step.
-  for (i = 0; i < nall; i++) hneigh_thr[i].t = 0;
-
   const int nthreads = comm->nthreads;
   const int inum = list->inum;
 
@@ -101,6 +91,18 @@ void PairLJCutTIP4PLongOMP::compute(int eflag, int vflag)
     ThrData *thr = fix->get_thr(tid);
     thr->timer(Timer::START);
     ev_setup_thr(eflag, vflag, nall, eatom, vatom, nullptr, thr);
+
+    // cache the hydrogen indices (after reneighboring) and the M-site positions
+    // (every step) of all water oxygens before the force loop.  the cache is
+    // shared by all threads: each entry is written by exactly one thread here
+    // and the barrier at the end of the loop publishes it to all threads.
+    // filling the cache on demand from the force loop is a data race, which
+    // produces wrong forces on CPUs with a weak memory model like ARM64.
+
+#if defined(_OPENMP)
+#pragma omp for schedule(static)
+#endif
+    for (int i = 0; i < nall; ++i) cache_msite_thr(i);
 
   if (ncoultablebits) {
     if (evflag) {
@@ -127,6 +129,8 @@ void PairLJCutTIP4PLongOMP::compute(int eflag, int vflag)
     thr->timer(Timer::PAIR);
     reduce_thr(this, eflag, vflag, thr);
   } // end of omp parallel region
+
+  error_thr();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -134,6 +138,7 @@ void PairLJCutTIP4PLongOMP::compute(int eflag, int vflag)
 template <int CTABLE, int EVFLAG, int EFLAG, int VFLAG>
 void PairLJCutTIP4PLongOMP::eval(int iifrom, int iito, ThrData * const thr)
 {
+  const int tid = thr->get_tid();
   double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,evdwl,ecoul;
   double fraction,table;
   double r,rsq,r2inv,r6inv,forcecoul,forcelj,cforce;
@@ -154,7 +159,6 @@ void PairLJCutTIP4PLongOMP::eval(int iifrom, int iito, ThrData * const thr)
   auto * _noalias const f = (dbl3_t *) thr->get_f()[0];
   const double * _noalias const q = atom->q;
   const int * _noalias const type = atom->type;
-  const tagint * _noalias const tag = atom->tag;
   const int nlocal = atom->nlocal;
   const double * _noalias const special_coul = force->special_coul;
   const double * _noalias const special_lj = force->special_lj;
@@ -179,34 +183,12 @@ void PairLJCutTIP4PLongOMP::eval(int iifrom, int iito, ThrData * const thr)
 
     // if atom I = water O, set x1 = offset charge site
     // else x1 = x of atom I
-    // NOTE: to make this part thread safe, we need to
-    // make sure that the hneigh_thr[][] entries only get
-    // updated, when all data is in place. worst case,
-    // some calculation is repeated, but since the results
-    // will be the same, there is no race condition.
     if (itype == typeO) {
-      if (hneigh_thr[i].a < 0) {
-        iH1 = atom->map(tag[i] + 1);
-        iH2 = atom->map(tag[i] + 2);
-        if (iH1 == -1 || iH2 == -1)
-          error->one(FLERR,"TIP4P hydrogen is missing");
-        if (atom->type[iH1] != typeH || atom->type[iH2] != typeH)
-          error->one(FLERR,"TIP4P hydrogen has incorrect atom type");
-        // set iH1,iH2 to index of closest image to O
-        iH1 = domain->closest_image(i,iH1);
-        iH2 = domain->closest_image(i,iH2);
-        compute_newsite_thr(x[i],x[iH1],x[iH2],newsite_thr[i]);
-        hneigh_thr[i].t = 1;
-        hneigh_thr[i].b = iH2;
-        hneigh_thr[i].a = iH1;
-      } else {
-        iH1 = hneigh_thr[i].a;
-        iH2 = hneigh_thr[i].b;
-        if (hneigh_thr[i].t == 0) {
-          compute_newsite_thr(x[i],x[iH1],x[iH2],newsite_thr[i]);
-          hneigh_thr[i].t = 1;
-        }
-      }
+      iH1 = hneigh_thr[i].a;
+      iH2 = hneigh_thr[i].b;
+      if (check_error_thr((iH1 < 0), tid, FLERR, (iH1 == -1) ? "TIP4P hydrogen is missing"
+                          : "TIP4P hydrogen has incorrect atom type"))
+        return;
       x1 = newsite_thr[i];
     } else x1 = x[i];
 
@@ -253,11 +235,6 @@ void PairLJCutTIP4PLongOMP::eval(int iifrom, int iito, ThrData * const thr)
 
       // adjust rsq and delxyz for off-site O charge(s) if necessary
       // but only if they are within reach
-      // NOTE: to make this part thread safe, we need to
-      // make sure that the hneigh_thr[][] entries only get
-      // updated, when all data is in place. worst case,
-      // some calculation is repeated, but since the results
-      // will be the same, there is no race condition.
       if (rsq < cut_coulsqplus) {
         if (itype == typeO || jtype == typeO) {
 
@@ -265,28 +242,11 @@ void PairLJCutTIP4PLongOMP::eval(int iifrom, int iito, ThrData * const thr)
           // else x2 = x of atom J
 
           if (jtype == typeO) {
-            if (hneigh_thr[j].a < 0) {
-              jH1 = atom->map(tag[j] + 1);
-              jH2 = atom->map(tag[j] + 2);
-              if (jH1 == -1 || jH2 == -1)
-                error->one(FLERR,"TIP4P hydrogen is missing");
-              if (atom->type[jH1] != typeH || atom->type[jH2] != typeH)
-                error->one(FLERR,"TIP4P hydrogen has incorrect atom type");
-              // set jH1,jH2 to closest image to O
-              jH1 = domain->closest_image(j,jH1);
-              jH2 = domain->closest_image(j,jH2);
-              compute_newsite_thr(x[j],x[jH1],x[jH2],newsite_thr[j]);
-              hneigh_thr[j].t = 1;
-              hneigh_thr[j].b = jH2;
-              hneigh_thr[j].a = jH1;
-            } else {
-              jH1 = hneigh_thr[j].a;
-              jH2 = hneigh_thr[j].b;
-              if (hneigh_thr[j].t == 0) {
-                compute_newsite_thr(x[j],x[jH1],x[jH2],newsite_thr[j]);
-                hneigh_thr[j].t = 1;
-              }
-            }
+            jH1 = hneigh_thr[j].a;
+            jH2 = hneigh_thr[j].b;
+            if (check_error_thr((jH1 < 0), tid, FLERR, (jH1 == -1) ? "TIP4P hydrogen is missing"
+                                : "TIP4P hydrogen has incorrect atom type"))
+              return;
             x2 = newsite_thr[j];
           } else x2 = x[j];
 
@@ -336,10 +296,8 @@ void PairLJCutTIP4PLongOMP::eval(int iifrom, int iito, ThrData * const thr)
           // virial = sum(r x F) where each water's atoms are near xi and xj
           // vlist stores 2,4,6 atoms whose forces contribute to virial
 
-          if (VFLAG) {
-            n = 0;
-            key = 0;
-          }
+          n = 0;
+          key = 0;
 
           if (itype != typeO) {
             fxtmp += delx * cforce;
@@ -353,11 +311,11 @@ void PairLJCutTIP4PLongOMP::eval(int iifrom, int iito, ThrData * const thr)
               v[3] = x[i].x * dely * cforce;
               v[4] = x[i].x * delz * cforce;
               v[5] = x[i].y * delz * cforce;
-              vlist[n++] = i;
             }
+            vlist[n++] = i;
 
           } else {
-            if (VFLAG) key++;
+            key++;
 
             fdx = delx*cforce;
             fdy = dely*cforce;
@@ -392,10 +350,10 @@ void PairLJCutTIP4PLongOMP::eval(int iifrom, int iito, ThrData * const thr)
               v[3] = x[i].x*fOy + xH1.x*fHy + xH2.x*fHy;
               v[4] = x[i].x*fOz + xH1.x*fHz + xH2.x*fHz;
               v[5] = x[i].y*fOz + xH1.y*fHz + xH2.y*fHz;
-              vlist[n++] = i;
-              vlist[n++] = iH1;
-              vlist[n++] = iH2;
             }
+            vlist[n++] = i;
+            vlist[n++] = iH1;
+            vlist[n++] = iH2;
           }
 
           if (jtype != typeO) {
@@ -410,11 +368,11 @@ void PairLJCutTIP4PLongOMP::eval(int iifrom, int iito, ThrData * const thr)
               v[3] -= x[j].x * dely * cforce;
               v[4] -= x[j].x * delz * cforce;
               v[5] -= x[j].y * delz * cforce;
-              vlist[n++] = j;
             }
+            vlist[n++] = j;
 
           } else {
-            if (VFLAG) key += 2;
+            key += 2;
 
             fdx = -delx*cforce;
             fdy = -dely*cforce;
@@ -449,10 +407,10 @@ void PairLJCutTIP4PLongOMP::eval(int iifrom, int iito, ThrData * const thr)
               v[3] += x[j].x*fOy + xH1.x*fHy + xH2.x*fHy;
               v[4] += x[j].x*fOz + xH1.x*fHz + xH2.x*fHz;
               v[5] += x[j].y*fOz + xH1.y*fHz + xH2.y*fHz;
-              vlist[n++] = j;
-              vlist[n++] = jH1;
-              vlist[n++] = jH2;
             }
+            vlist[n++] = j;
+            vlist[n++] = jH1;
+            vlist[n++] = jH2;
           }
 
           if (EFLAG) {
@@ -473,6 +431,38 @@ void PairLJCutTIP4PLongOMP::eval(int iifrom, int iito, ThrData * const thr)
     f[i].y += fytmp;
     f[i].z += fztmp;
   }
+}
+
+/* ----------------------------------------------------------------------
+   cache the indices of the two hydrogen atoms (only needed after
+   reneighboring) and the position of the M-site (every step) of water
+   oxygen i.  hydrogens that are missing (-1) or have the wrong type (-2)
+   are recorded and reported by the force loop: only oxygens within the
+   cutoff of a local atom must have their hydrogens available as ghosts
+------------------------------------------------------------------------- */
+
+void PairLJCutTIP4PLongOMP::cache_msite_thr(int i)
+{
+  if (atom->type[i] != typeO) return;
+
+  int3_t &h = hneigh_thr[i];
+  if (neighbor->ago == 0) {
+    const tagint * _noalias const tag = atom->tag;
+    const int iH1 = atom->map(tag[i] + 1);
+    const int iH2 = atom->map(tag[i] + 2);
+    if ((iH1 == -1) || (iH2 == -1)) {
+      h.a = h.b = -1;
+    } else if ((atom->type[iH1] != typeH) || (atom->type[iH2] != typeH)) {
+      h.a = h.b = -2;
+    } else {
+      h.a = domain->closest_image(i, iH1);
+      h.b = domain->closest_image(i, iH2);
+    }
+  }
+  if (h.a < 0) return;
+
+  const auto * _noalias const x = (dbl3_t *) atom->x[0];
+  compute_newsite_thr(x[i], x[h.a], x[h.b], newsite_thr[i]);
 }
 
 /* ----------------------------------------------------------------------

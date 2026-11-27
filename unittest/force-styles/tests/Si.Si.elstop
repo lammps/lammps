@@ -1,0 +1,14 @@
+# Electronic stopping for Si in Si UNITS: metal DATE: 2019-02-19  CONTRIBUTOR: Risto Toijala risto.toijala@helsinki.fi
+# Kinetic energy in eV, stopping power in eV/A
+# For other atom types, add columns.
+
+#           atom type 1
+# energy    Si in Si
+  3918.2      6.541
+ 15672.9     13.091
+ 35263.9     19.660
+ 62691.5     26.257
+ 97955.4     32.889
+141055.9     39.566
+191992.0     46.292
+250766.1     53.074

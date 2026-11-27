@@ -139,9 +139,6 @@ neigh_modify    every 1 delay 1 check yes
 velocity       	all create ${temp} 54654
 timestep        1.0
 
-minimize 0.0 0.0 100 1000
-reset_timestep 0
-
 # rigid constraints with thermostat 
 
 fix             mynvt h2o nvt temp ${temp} ${temp} 100

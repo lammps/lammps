@@ -209,6 +209,7 @@ Related commands
 """"""""""""""""
 
 :doc:`fix gcmc <fix_gcmc>`
+:doc:`fix gemc <fix_gemc>`,
 :doc:`fix atom/swap <fix_atom_swap>`,
 :doc:`neighbor <neighbor>`,
 :doc:`fix deposit <fix_deposit>`, :doc:`fix evaporate <fix_evaporate>`,

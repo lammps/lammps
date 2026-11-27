@@ -5,12 +5,6 @@ endif()
 
 target_compile_definitions(lammps PRIVATE -DLMP_INTEL)
 
-set(INTEL_ARCH "cpu" CACHE STRING "Architectures used by INTEL (cpu or knl)")
-set(INTEL_ARCH_VALUES cpu knl)
-set_property(CACHE INTEL_ARCH PROPERTY STRINGS ${INTEL_ARCH_VALUES})
-validate_option(INTEL_ARCH INTEL_ARCH_VALUES)
-string(TOUPPER ${INTEL_ARCH} INTEL_ARCH)
-
 find_package(Threads QUIET)
 if(Threads_FOUND)
   set(INTEL_LRT_MODE "threads" CACHE STRING "Long-range threads mode (none, threads, or c++17)")
@@ -38,11 +32,7 @@ if(INTEL_LRT_MODE STREQUAL "C++17")
   endif()
 endif()
 
-if((CMAKE_CXX_COMPILER_ID STREQUAL "Intel") OR (CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM"))
-  if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 16)
-    message(FATAL_ERROR "INTEL needs at least a 2016 Intel compiler, found ${CMAKE_CXX_COMPILER_VERSION}")
-  endif()
-else()
+if(NOT CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM")
   message(WARNING "INTEL gives best performance with Intel compilers")
 endif()
 
@@ -51,7 +41,7 @@ if(TBB_MALLOC_FOUND)
   target_link_libraries(lammps PRIVATE TBB::TBB_MALLOC)
 else()
   target_compile_definitions(lammps PRIVATE -DLMP_INTEL_NO_TBB)
-  if((CMAKE_CXX_COMPILER_ID STREQUAL "Intel") OR (CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM"))
+  if(CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM")
     message(WARNING "INTEL with Intel compilers should use TBB malloc libraries")
   endif()
 endif()
@@ -68,29 +58,30 @@ if((NOT ${CMAKE_SYSTEM_NAME} STREQUAL "Windows") AND (NOT ${LAMMPS_MEMALIGN} STR
   message(FATAL_ERROR "INTEL only supports memory alignment of 64, 128 or 256 on this platform")
 endif()
 
-if(INTEL_ARCH STREQUAL "KNL")
-  if(NOT CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
-    message(FATAL_ERROR "Must use Intel compiler with INTEL for KNL architecture")
+if(CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM")
+  include(CheckCXXCompilerFlag)
+  # the INTEL package requires vector instructions, so compile for the CPU of
+  # the build host unless a target architecture was selected already
+  set(_INTEL_LLVM_FLAGS -qopt-zmm-usage=high)
+  if(NOT "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_${BTYPE}}" MATCHES "(^| )(-x|-ax|-march=|/Qx|/Qax|/arch:)")
+    list(PREPEND _INTEL_LLVM_FLAGS -xHost)
   endif()
-  message(WARNING, "Support for Intel Xeon Phi accelerators and Knight's Landing CPUs "
-          "will be removed from LAMMPS in Summer 2025 due to lack of available machines "
-          "in labs and HPC centers and removed support in recent compilers "
-          "Please contact developers@lammps.org if you have any concerns about this step.")
-  set(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -xHost -qopenmp -qoffload")
-  set(MIC_OPTIONS "-qoffload-option,mic,compiler,\"-fp-model fast=2 -mGLOB_default_function_attrs=\\\"gather_scatter_loop_unroll=4\\\"\"")
-  target_compile_options(lammps PRIVATE -xMIC-AVX512 -qoffload -fno-alias -ansi-alias -restrict -qoverride-limits ${MIC_OPTIONS})
-  target_compile_definitions(lammps PRIVATE -DLMP_INTEL_OFFLOAD)
-else()
-  if(CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
-    include(CheckCXXCompilerFlag)
-    foreach(_FLAG -O2 "-fp-model fast=2" -no-prec-div -qoverride-limits -qopt-zmm-usage=high -qno-offload -fno-alias -ansi-alias -restrict)
-      string(REGEX REPLACE "[ =\"]" "" _FLAGX ${_FLAG})
-      check_cxx_compiler_flag("${_FLAG}" COMPILER_SUPPORTS${_FLAGX})
-      if(COMPILER_SUPPORTS${_FLAGX})
-          separate_arguments(_FLAG UNIX_COMMAND "${_FLAG}")
-          target_compile_options(lammps PRIVATE ${_FLAG})
-      endif()
-    endforeach()
+  foreach(_FLAG ${_INTEL_LLVM_FLAGS})
+    string(REGEX REPLACE "[ =\"]" "" _FLAGX ${_FLAG})
+    check_cxx_compiler_flag("${_FLAG}" COMPILER_SUPPORTS${_FLAGX})
+    if(COMPILER_SUPPORTS${_FLAGX})
+      target_compile_options(lammps PRIVATE ${_FLAG})
+    endif()
+  endforeach()
+  # the "-fp-model precise" flag (set in cmake/CMakeLists.txt) also keeps icpx from
+  # setting the CPU to flush subnormal numbers to zero when LAMMPS starts.  this is
+  # done by code that the compiler adds to main(), and without it some INTEL package
+  # styles become much slower when they produce subnormal numbers (e.g. sw in mixed
+  # precision), so it is requested explicitly for the LAMMPS executable.  -ftz must
+  # come after -fp-model precise, which is the case for target specific options
+  check_cxx_compiler_flag(-ftz COMPILER_SUPPORTS-ftz)
+  if(COMPILER_SUPPORTS-ftz)
+    target_compile_options(lmp PRIVATE -ftz)
   endif()
 endif()
 
@@ -117,6 +108,18 @@ if(PKG_KSPACE)
 endif()
 if(PKG_ML-SNAP)
   list(APPEND INTEL_SOURCES ${INTEL_SOURCES_DIR}/sna_intel.cpp)
+endif()
+
+# the "-fp-model precise" flag for the Intel LLVM compilers (set in cmake/CMakeLists.txt)
+# makes the INTEL package styles much slower, so it is overridden for the INTEL sources
+if(CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM")
+  foreach(_FLAG -fp-model=fast=2 -Wno-overriding-option -Wno-nan-infinity-disabled)
+    string(REGEX REPLACE "[ =\"]" "" _FLAGX ${_FLAG})
+    check_cxx_compiler_flag("${_FLAG}" COMPILER_SUPPORTS${_FLAGX})
+    if(COMPILER_SUPPORTS${_FLAGX})
+      set_property(SOURCE ${INTEL_SOURCES} APPEND PROPERTY COMPILE_OPTIONS ${_FLAG})
+    endif()
+  endforeach()
 endif()
 
 target_sources(lammps PRIVATE ${INTEL_SOURCES})

@@ -34,7 +34,8 @@ static constexpr double SMALL = 0.001;
 
 /* ---------------------------------------------------------------------- */
 
-DihedralMultiHarmonic::DihedralMultiHarmonic(LAMMPS *_lmp) : Dihedral(_lmp)
+DihedralMultiHarmonic::DihedralMultiHarmonic(LAMMPS *_lmp) :
+    Dihedral(_lmp), a1(nullptr), a2(nullptr), a3(nullptr), a4(nullptr), a5(nullptr)
 {
   writedata = 1;
   born_matrix_enable = 1;

@@ -71,7 +71,6 @@ double GranSubModHeatRadius::calculate_heat()
   return heat;
 }
 
-
 /* ----------------------------------------------------------------------
    Area-based heat conduction
 ------------------------------------------------------------------------- */
@@ -97,7 +96,8 @@ void GranSubModHeatArea::coeffs_to_local()
 
 double GranSubModHeatArea::calculate_heat()
 {
-  double heat = heat_transfer_coeff * MY_PI * gm->contact_radius * gm->contact_radius * (gm->Tj - gm->Ti);
+  double heat =
+      heat_transfer_coeff * MY_PI * gm->contact_radius * gm->contact_radius * (gm->Tj - gm->Ti);
   if (gm->calculate_svector) gm->svector[index_svector] = heat;
   return heat;
 }

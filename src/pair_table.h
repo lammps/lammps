@@ -39,6 +39,7 @@ class PairTable : public Pair {
   void read_restart_settings(FILE *) override;
   double single(int, int, int, int, double, double, double, double &) override;
   void *extract(const char *, int &) override;
+  double memory_usage() override;
 
   enum { LOOKUP, LINEAR, SPLINE, BITMAP };
 

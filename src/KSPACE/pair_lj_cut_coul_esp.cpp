@@ -40,7 +40,10 @@ using namespace EwaldConst;
 
 /* ---------------------------------------------------------------------- */
 
-PairLJCutCoulEsp::PairLJCutCoulEsp(LAMMPS *lmp) : Pair(lmp)
+PairLJCutCoulEsp::PairLJCutCoulEsp(LAMMPS *lmp) :
+    Pair(lmp), cut_lj(nullptr), cut_ljsq(nullptr), epsilon(nullptr), sigma(nullptr), lj1(nullptr),
+    lj2(nullptr), lj3(nullptr), lj4(nullptr), offset(nullptr), cut_respa(nullptr),
+    force_poly_coeff(nullptr), energy_poly_coeff(nullptr)
 {
   ewaldflag = pppmflag = 1;
   espflag = 1;
@@ -48,7 +51,6 @@ PairLJCutCoulEsp::PairLJCutCoulEsp(LAMMPS *lmp) : Pair(lmp)
   writedata = 1;
   ftable = nullptr;
   qdist = 0.0;
-  cut_respa = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */

@@ -11,6 +11,7 @@ SPDX-License-Identifier: (BSD-3-Clause)
 #include <desul/atomics/Common.hpp>
 #include <desul/atomics/Compare_Exchange.hpp>
 #include <desul/atomics/Fetch_Op.hpp>
+#include <desul/atomics/Load_And_Store.hpp>
 #include <desul/atomics/Lock_Array.hpp>
 #include <desul/atomics/Macros.hpp>
 #include <desul/atomics/Thread_Fence.hpp>

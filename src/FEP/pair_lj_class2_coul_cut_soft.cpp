@@ -31,7 +31,10 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-PairLJClass2CoulCutSoft::PairLJClass2CoulCutSoft(LAMMPS *lmp) : Pair(lmp)
+PairLJClass2CoulCutSoft::PairLJClass2CoulCutSoft(LAMMPS *lmp) :
+    Pair(lmp), cut_lj(nullptr), cut_ljsq(nullptr), cut_coul(nullptr), cut_coulsq(nullptr),
+    epsilon(nullptr), sigma(nullptr), lambda(nullptr), lj1(nullptr), lj2(nullptr), lj3(nullptr),
+    lj4(nullptr), offset(nullptr)
 {
   writedata = 1;
   centroidstressflag = CENTROID_SAME;
@@ -123,10 +126,10 @@ void PairLJClass2CoulCutSoft::compute(int eflag, int vflag)
         } else forcecoul = 0.0;
 
         if (rsq < cut_ljsq[itype][jtype]) {
-          denlj = lj3[itype][jtype] + pow(rsq, 3) * pow(sigma[itype][jtype], -6.0);
           r4sig6 = rsq*rsq / lj2[itype][jtype];
+          denlj = lj3[itype][jtype] + rsq*r4sig6;
           forcelj = lj1[itype][jtype] * epsilon[itype][jtype] *
-           (18.0*r4sig6*pow(denlj, -2.5) - 18.0*r4sig6*pow(denlj, -2));
+            18.0*r4sig6*(1.0/sqrt(denlj) - 1.0)/(denlj*denlj);
         } else forcelj = 0.0;
 
         fpair = factor_coul*forcecoul + factor_lj*forcelj;
@@ -140,16 +143,16 @@ void PairLJClass2CoulCutSoft::compute(int eflag, int vflag)
           f[j][2] -= delz*fpair;
         }
 
+        ecoul = evdwl = 0.0;
         if (eflag) {
           if (rsq < cut_coulsq[itype][jtype])
             ecoul = factor_coul * qqrd2e * lj1[itype][jtype] * qtmp*q[j] / denc;
-          else ecoul = 0.0;
+
           if (rsq < cut_ljsq[itype][jtype]) {
-            denlj = lj3[itype][jtype] + pow(rsq, 3) * pow(sigma[itype][jtype], -6.0);
-            evdwl = lj1[itype][jtype] * epsilon[itype][jtype] * (2.0/(denlj*sqrt(denlj)) - 3.0/denlj) -
+            evdwl = lj1[itype][jtype] * epsilon[itype][jtype] * (2.0/sqrt(denlj) - 3.0)/denlj -
               offset[itype][jtype];
             evdwl *= factor_lj;
-          } else evdwl = 0.0;
+          }
         }
 
         if (evflag) ev_tally(i,j,nlocal,newton_pair,
@@ -197,11 +200,24 @@ void PairLJClass2CoulCutSoft::allocate()
 
 void PairLJClass2CoulCutSoft::settings(int narg, char **arg)
 {
-  if (narg < 4 || narg > 5) error->all(FLERR,"Illegal pair_style command");
+  if (narg < 4)
+    utils::missing_cmd_args(FLERR, "pair_style lj/class2/coul/cut/soft", error);
+  if (narg > 5)
+    error->all(FLERR, 6, "Too many arguments in pair_style lj/class2/coul/cut/soft command");
 
   nlambda = utils::numeric(FLERR,arg[0],false,lmp);
+  if (nlambda <= 0.0)
+    error->all(FLERR, 1, "Pair style lj/class2/coul/cut/soft requires n > 0, but n = {}", nlambda);
   alphalj = utils::numeric(FLERR,arg[1],false,lmp);
+  if (alphalj < 0.0)
+    error->all(FLERR, 2,
+               "Pair style lj/class2/coul/cut/soft requires alpha_LJ >= 0, but alpha_LJ = {}",
+               alphalj);
   alphac  = utils::numeric(FLERR,arg[2],false,lmp);
+  if (alphac < 0.0)
+    error->all(FLERR, 3,
+               "Pair style lj/class2/coul/cut/soft requires alpha_C >= 0, but alpha_C = {}",
+               alphac);
 
   cut_lj_global = utils::numeric(FLERR,arg[3],false,lmp);
   if (narg == 4) cut_coul_global = cut_lj_global;
@@ -488,7 +504,7 @@ double PairLJClass2CoulCutSoft::single(int i, int j, int itype, int jtype,
     r4sig6 = rsq*rsq / lj2[itype][jtype];
     denlj = lj3[itype][jtype] + rsq*r4sig6;
     forcelj = lj1[itype][jtype] * epsilon[itype][jtype] *
-      (18.0*r4sig6/(denlj*denlj*sqrt(denlj)) - 18.0*r4sig6/(denlj*denlj));
+      18.0*r4sig6*(1.0/sqrt(denlj) - 1.0)/(denlj*denlj);
   } else forcelj = 0.0;
   fforce = factor_coul*forcecoul + factor_lj*forcelj;
 
@@ -499,7 +515,7 @@ double PairLJClass2CoulCutSoft::single(int i, int j, int itype, int jtype,
   }
   if (rsq < cut_ljsq[itype][jtype]) {
     philj = lj1[itype][jtype] * epsilon[itype][jtype] *
-      (2.0/(denlj*sqrt(denlj)) - 3.0/denlj) - offset[itype][jtype];
+      (2.0/sqrt(denlj) - 3.0)/denlj - offset[itype][jtype];
     eng += factor_lj*philj;
   }
 

@@ -17,7 +17,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-Body::Body(LAMMPS *lmp, int /*narg*/, char **arg) : Pointers(lmp)
+Body::Body(LAMMPS *lmp, int /*narg*/, char **arg) : Pointers(lmp), avec(nullptr)
 {
   style = utils::strdup(arg[0]);
   icp = nullptr;

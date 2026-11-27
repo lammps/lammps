@@ -724,6 +724,7 @@ double PairBOP::SigmaBo(int itmp, int jtmp)
   memory_sg(nb_t);
   initial_sg(nb_t);
 
+  n_ji = -1;
   for (loop = 0; loop < nlistj; loop++) {
     temp_loop = BOP_index[j] + loop;
     nei_loop = neigh_index[temp_loop];
@@ -733,6 +734,7 @@ double PairBOP::SigmaBo(int itmp, int jtmp)
       break;
     }
   }
+  if (n_ji < 0) error->one(FLERR,"BOP neighbor list is inconsistent");
 
   dis_ij[0] = pl_ij.dis[0];
   dis_ij[1] = pl_ij.dis[1];
@@ -793,6 +795,7 @@ double PairBOP::SigmaBo(int itmp, int jtmp)
 
     nfound = 0;
     pass_jk = 0;
+    n_ki = -1;
     for (loop = 0; loop < nlistk; loop++) {
       temp_loop = BOP_index[k] + loop;
       nei_loop = neigh_index[temp_loop];
@@ -809,6 +812,7 @@ double PairBOP::SigmaBo(int itmp, int jtmp)
         if (nfound == 2) break;
       }
     }
+    if (n_ki < 0) error->one(FLERR,"BOP neighbor list is inconsistent");
 
     nb_ik = nb_t;
     bt_sg[nb_ik].i = i;
@@ -818,6 +822,7 @@ double PairBOP::SigmaBo(int itmp, int jtmp)
     memory_sg(nb_t);
     initial_sg(nb_t);
     if (pass_jk) {
+      temp_jk = n_jk = -1;
       for (loop = 0; loop < nlistj; loop++) {
         temp_loop = BOP_index[j] + loop;
         nei_loop = neigh_index[temp_loop];
@@ -828,6 +833,7 @@ double PairBOP::SigmaBo(int itmp, int jtmp)
           break;
         }
       }
+      if ((temp_jk < 0) || (n_jk < 0)) error->one(FLERR,"BOP neighbor list is inconsistent");
       nb_jk = nb_t;
       bt_sg[nb_jk].i = j;
       bt_sg[nb_jk].j = k;
@@ -1246,6 +1252,7 @@ double PairBOP::PiBo(int itmp, int jtmp)
   memory_pi(nb_t);
   initial_pi(nb_t);
 
+  n_ji = -1;
   for (loop = 0; loop < nlistj; loop++) {
     temp_loop = BOP_index[j] + loop;
     nei_loop = neigh_index[temp_loop];
@@ -1255,6 +1262,7 @@ double PairBOP::PiBo(int itmp, int jtmp)
       break;
     }
   }
+  if (n_ji < 0) error->one(FLERR,"BOP neighbor list is inconsistent");
 
   dis_ij[0] = pl_ij.dis[0];
   dis_ij[1] = pl_ij.dis[1];
@@ -1813,11 +1821,11 @@ double PairBOP::PiBo(int itmp, int jtmp)
   // dPiB2 is derivative of piB w.r.t. BB
   // dPiB3 is derivative of piB w.r.t. r_ij
 
-  dPiB1 = -0.5*(pow(ABrtR1,3)+pow(ABrtR2,3))*pi_c[param_ij]*pi_a[param_ij]*
+  dPiB1 = -0.5*(cube(ABrtR1)+cube(ABrtR2))*pi_c[param_ij]*pi_a[param_ij]*
     betaP_ij;
-  dPiB2 = 0.25*BBrtR*(pow(ABrtR2,3)-pow(ABrtR1,3))*pi_c[param_ij]*
+  dPiB2 = 0.25*BBrtR*(cube(ABrtR2)-cube(ABrtR1))*pi_c[param_ij]*
     pi_a[param_ij]*betaP_ij;
-  dPiB3 = ((ABrtR1+ABrtR2)*pi_a[param_ij]-(pow(ABrtR1,3)+pow(ABrtR2,3))*
+  dPiB3 = ((ABrtR1+ABrtR2)*pi_a[param_ij]-(cube(ABrtR1)+cube(ABrtR2))*
            pi_a[param_ij]*betaP_ij*betaP_ij)*dBetaP_ij / r_ij;
   for (loop = 0; loop < nb_t; loop++) {
     temp_kk = bt_pi[loop].temp;

@@ -36,7 +36,8 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-ComputeBasalAtom::ComputeBasalAtom(LAMMPS *lmp, int narg, char **arg) : Compute(lmp, narg, arg)
+ComputeBasalAtom::ComputeBasalAtom(LAMMPS *lmp, int narg, char **arg) :
+    Compute(lmp, narg, arg), list(nullptr)
 {
   if (narg != 3) error->all(FLERR, "Illegal compute basal/atom command");
 
@@ -167,15 +168,17 @@ void ComputeBasalAtom::compute_peratom()
         }
       }
 
-      // Select 6 nearest neighbors
+      // Select up to 6 nearest neighbors
+      // undercoordinated atoms (n < 6) use all their neighbors
 
-      select2(6, n, distsq, nearest);
+      const int nsel = MIN(6, n);
+      select2(nsel, n, distsq, nearest);
 
       // Mean squared separation
 
       double r0_sq = 0.0;
-      for (j = 0; j < 6; j++) r0_sq += distsq[j];
-      r0_sq /= 6.0;
+      for (j = 0; j < nsel; j++) r0_sq += distsq[j];
+      if (nsel > 0) r0_sq /= nsel;
 
       // n0 near neighbors with: distsq<1.45*r0_sq
       // n1 near neighbors with: distsq<1.55*r0_sq
@@ -195,9 +198,9 @@ void ComputeBasalAtom::compute_peratom()
       chi[0] = chi[1] = chi[2] = chi[3] = chi[4] = chi[5] = chi[6] = chi[7] = 0;
       double x_ij, y_ij, z_ij, x_ik, y_ik, z_ik, xmean5, ymean5, zmean5, xmean6, ymean6, zmean6,
           xmean7, ymean7, zmean7;
-      auto *x3 = new double[n0];
-      auto *y3 = new double[n0];
-      auto *z3 = new double[n0];
+      auto *x3 = new double[n0*(n0-1)/2+1];
+      auto *y3 = new double[n0*(n0-1)/2+1];
+      auto *z3 = new double[n0*(n0-1)/2+1];
       for (j = 0; j < n0; j++) {
         x_ij = x[i][0] - x[nearest_n0[j]][0];
         y_ij = x[i][1] - x[nearest_n0[j]][1];
@@ -212,7 +215,7 @@ void ComputeBasalAtom::compute_peratom()
           if (norm_k <= 0.) { continue; }
           bond_angle = (x_ij * x_ik + y_ij * y_ik + z_ij * z_ik) / (norm_j * norm_k);
           //find all bond angles that are about 180 degrees
-          if (-1. <= bond_angle && bond_angle < -0.945) {
+          if (bond_angle < -0.945) {
             x3[chi[0]] = x_ik - x_ij;
             y3[chi[0]] = y_ik - y_ij;
             z3[chi[0]] = z_ik - z_ij;
@@ -260,7 +263,7 @@ void ComputeBasalAtom::compute_peratom()
             zmean6 += z6[count];
             xmean7 += x7[count];
             ymean7 += y7[count];
-            zmean6 += z7[count];
+            zmean7 += z7[count];
             count++;
           }
         }
@@ -369,7 +372,7 @@ void ComputeBasalAtom::compute_peratom()
                 zmean6 = zmean6 + z6[m];
                 xmean7 = xmean7 + x7[m];
                 ymean7 = ymean7 + y7[m];
-                zmean6 = zmean6 + z7[m];
+                zmean7 = zmean7 + z7[m];
               }
               xmean5 = xmean5 / 3;
               xmean6 = xmean6 / 3;
@@ -397,19 +400,19 @@ void ComputeBasalAtom::compute_peratom()
               if (var5 < S0) {
                 S0 = var5;
                 BPV[i][0] = (x5[0] + x5[1] + x5[2]) / 3;
-                BPV[i][1] = (y5[0] + y5[1] + x5[2]) / 3;
+                BPV[i][1] = (y5[0] + y5[1] + y5[2]) / 3;
                 BPV[i][2] = (z5[0] + z5[1] + z5[2]) / 3;
               }
               if (var6 < S0) {
                 S0 = var6;
                 BPV[i][0] = (x6[0] + x6[1] + x6[2]) / 3;
-                BPV[i][1] = (y6[0] + y6[1] + x6[2]) / 3;
+                BPV[i][1] = (y6[0] + y6[1] + y6[2]) / 3;
                 BPV[i][2] = (z6[0] + z6[1] + z6[2]) / 3;
               }
               if (var7 < S0) {
                 S0 = var7;
                 BPV[i][0] = (x7[0] + x7[1] + x7[2]) / 3;
-                BPV[i][1] = (y7[0] + y7[1] + x7[2]) / 3;
+                BPV[i][1] = (y7[0] + y7[1] + y7[2]) / 3;
                 BPV[i][2] = (z7[0] + z7[1] + z7[2]) / 3;
               }
             }

@@ -31,6 +31,10 @@ class PairBrownianPoly : public PairBrownian {
   void compute(int, int) override;
   double init_one(int, int) override;
   void init_style() override;
+
+ protected:
+  static uint64_t pair_key(tagint, tagint, bigint, int);
+  static double pair_uniform(uint64_t, int);
 };
 
 }    // namespace LAMMPS_NS

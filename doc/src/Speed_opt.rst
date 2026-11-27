@@ -22,8 +22,8 @@ Run with the OPT package from the command-line
 
 .. code-block:: bash
 
-   lmp_mpi -sf opt -in in.script                # run in serial
-   mpirun -np 4 lmp_mpi -sf opt -in in.script   # run in parallel
+   lmp -sf opt -in in.script                # run in serial
+   mpirun -np 4 lmp -sf opt -in in.script   # run in parallel
 
 Use the "-sf opt" :doc:`command-line switch <Run_options>`, which will
 automatically append "opt" to styles that support it.

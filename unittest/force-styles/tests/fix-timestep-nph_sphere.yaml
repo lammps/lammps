@@ -1,5 +1,6 @@
 ---
 lammps_version: 27 Jun 2024
+tags: kokkos
 date_generated: Sun Aug  4 23:15:54 2024
 epsilon: 1e-12
 skip_tests:
@@ -15,6 +16,7 @@ post_commands: ! |
   pair_coeff * * 0.0 3.0
   fix test solute nph/sphere aniso 1.0 1.0 100.0 ptemp ${t_target} fixedpoint 0.0 0.0 0.0 couple xy
 input_file: in.dipole
+input_coeffs: coeffs.fourmol
 natoms: 29
 global_scalar: 2.6530736625996396
 global_vector: ! |-

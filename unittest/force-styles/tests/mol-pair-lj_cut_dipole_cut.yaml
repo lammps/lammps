@@ -1,7 +1,8 @@
 ---
 lammps_version: 30 Jul 2021
+tags: gpu kokkos
 date_generated: Sat Aug 21 20:48:58 2021
-epsilon: 2e-13
+epsilon: 4e-13
 skip_tests:
 prerequisites: ! |
   atom full

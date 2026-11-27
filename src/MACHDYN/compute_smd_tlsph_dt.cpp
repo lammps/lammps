@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
  *
  *                    *** Smooth Mach Dynamics ***
@@ -23,94 +22,91 @@
  See the README file in the top-level LAMMPS directory.
  ------------------------------------------------------------------------- */
 
-#include <cstring>
 #include "compute_smd_tlsph_dt.h"
+
 #include "atom.h"
-#include "update.h"
-#include "modify.h"
 #include "comm.h"
+#include "error.h"
 #include "force.h"
 #include "memory.h"
-#include "error.h"
+#include "modify.h"
 #include "pair.h"
+#include "update.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-ComputeSMDTlsphDt::ComputeSMDTlsphDt(LAMMPS *lmp, int narg, char **arg) :
-                Compute(lmp, narg, arg) {
-        if (narg != 3)
-                error->all(FLERR, "Illegal compute smd/tlsph_dt command");
-        if (atom->contact_radius_flag != 1)
-                error->all(FLERR,
-                                "compute smd/tlsph_dt command requires atom_style with contact_radius (e.g. smd)");
+ComputeSMDTlsphDt::ComputeSMDTlsphDt(LAMMPS *lmp, int narg, char **arg) : Compute(lmp, narg, arg)
+{
+  if (narg != 3) error->all(FLERR, 2, "Illegal compute smd/tlsph/dt command");
+  if (atom->contact_radius_flag != 1)
+    error->all(FLERR, 2, "compute smd/tlsph/dt command requires atom style with contact_radius");
 
-        peratom_flag = 1;
-        size_peratom_cols = 0;
+  peratom_flag = 1;
+  size_peratom_cols = 0;
 
-        nmax = 0;
-        dt_vector = nullptr;
+  nmax = 0;
+  dt_vector = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
 
-ComputeSMDTlsphDt::~ComputeSMDTlsphDt() {
-        memory->sfree(dt_vector);
+ComputeSMDTlsphDt::~ComputeSMDTlsphDt()
+{
+  memory->sfree(dt_vector);
 }
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeSMDTlsphDt::init() {
+void ComputeSMDTlsphDt::init()
+{
 
-        int count = 0;
-        for (int i = 0; i < modify->ncompute; i++)
-                if (strcmp(modify->compute[i]->style, "smd/tlsph_dt") == 0)
-                        count++;
-        if (count > 1 && comm->me == 0)
-                error->warning(FLERR, "More than one compute smd/tlsph_dt");
+  if ((comm->me == 0) && (modify->get_compute_by_style("^smd/tlsph/dt").size() > 1))
+    error->warning(FLERR, "More than one compute {}", style);
 }
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeSMDTlsphDt::compute_peratom() {
-        invoked_peratom = update->ntimestep;
+void ComputeSMDTlsphDt::compute_peratom()
+{
+  invoked_peratom = update->ntimestep;
 
-        // grow rhoVector array if necessary
+  // grow rhoVector array if necessary
 
-        if (atom->nmax > nmax) {
-                memory->sfree(dt_vector);
-                nmax = atom->nmax;
-                dt_vector = (double *) memory->smalloc(nmax * sizeof(double),
-                                "atom:tlsph_dt_vector");
-                vector_atom = dt_vector;
-        }
+  if (atom->nmax > nmax) {
+    memory->sfree(dt_vector);
+    nmax = atom->nmax;
+    dt_vector = (double *) memory->smalloc(nmax * sizeof(double), "atom:tlsph_dt_vector");
+    vector_atom = dt_vector;
+  }
 
-        int itmp = 0;
-        auto *particle_dt = (double *) force->pair->extract("smd/tlsph/particle_dt_ptr",
-                        itmp);
-        if (particle_dt == nullptr) {
-                error->all(FLERR,
-                                "compute smd/tlsph_dt failed to access particle_dt array");
-        }
+  int itmp = 0;
+  auto *particle_dt = (double *) force->pair->extract("smd/tlsph/particle_dt_ptr", itmp);
+  if (particle_dt == nullptr) {
+    error->all(FLERR, "compute smd/tlsph/dt failed to access particle_dt array");
+  }
 
-        int *mask = atom->mask;
-        int nlocal = atom->nlocal;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
 
-        for (int i = 0; i < nlocal; i++) {
-                if (mask[i] & groupbit) {
-                        dt_vector[i] = particle_dt[i];
-                } else {
-                        dt_vector[i] = 0.0;
-                }
-        }
+  for (int i = 0; i < nlocal; i++) {
+    if (mask[i] & groupbit) {
+      dt_vector[i] = particle_dt[i];
+    } else {
+      dt_vector[i] = 0.0;
+    }
+  }
 }
 
 /* ----------------------------------------------------------------------
  memory usage of local atom-based array
  ------------------------------------------------------------------------- */
 
-double ComputeSMDTlsphDt::memory_usage() {
-        double bytes = (double)nmax * sizeof(double);
-        return bytes;
+double ComputeSMDTlsphDt::memory_usage()
+{
+  double bytes = (double) nmax * sizeof(double);
+  return bytes;
 }

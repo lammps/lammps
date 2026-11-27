@@ -36,6 +36,8 @@ using namespace MathSpecial;
 
 PairMorseSoft::~PairMorseSoft()
 {
+  if (copymode) return;
+
   if (allocated) memory->destroy(lambda);
 }
 
@@ -140,7 +142,7 @@ void PairMorseSoft::compute(int eflag, int vflag)
           f[j][2] -= delz * fpair;
         }
 
-        if (eflag) { evdwl = phi * factor_lj; }
+        if (eflag) { evdwl = (phi - offset[itype][jtype]) * factor_lj; }
 
         if (evflag) ev_tally(i, j, nlocal, newton_pair, evdwl, 0.0, fpair, delx, dely, delz);
       }
@@ -204,9 +206,15 @@ void PairMorseSoft::coeff(int narg, char **arg)
 
 void PairMorseSoft::settings(int narg, char **arg)
 {
-  if (narg != 3) error->all(FLERR, "Illegal pair_style command");
+  if (narg < 3)
+    utils::missing_cmd_args(FLERR, "pair_style morse/soft", error);
+  if (narg > 3)
+    error->all(FLERR, 4, "Too many arguments in pair_style morse/soft command");
 
   nlambda = utils::inumeric(FLERR, arg[0], false, lmp);
+  if (nlambda <= 0)
+    error->all(FLERR, 1, "Pair style morse/soft requires n > 0, but n = {}", nlambda);
+
   shift_range = utils::numeric(FLERR, arg[1], false, lmp);
   cut_global = utils::numeric(FLERR, arg[2], false, lmp);
 
@@ -334,7 +342,7 @@ void PairMorseSoft::read_restart(FILE *fp)
 
 void PairMorseSoft::write_restart_settings(FILE *fp)
 {
-  fwrite(&nlambda, sizeof(double), 1, fp);
+  fwrite(&nlambda, sizeof(int), 1, fp);
   fwrite(&shift_range, sizeof(double), 1, fp);
   fwrite(&cut_global, sizeof(double), 1, fp);
   fwrite(&offset_flag, sizeof(int), 1, fp);
@@ -349,7 +357,7 @@ void PairMorseSoft::read_restart_settings(FILE *fp)
 {
   int me = comm->me;
   if (me == 0) {
-    utils::sfread(FLERR, &nlambda, sizeof(double), 1, fp, nullptr, error);
+    utils::sfread(FLERR, &nlambda, sizeof(int), 1, fp, nullptr, error);
     utils::sfread(FLERR, &shift_range, sizeof(double), 1, fp, nullptr, error);
     utils::sfread(FLERR, &cut_global, sizeof(double), 1, fp, nullptr, error);
     utils::sfread(FLERR, &offset_flag, sizeof(int), 1, fp, nullptr, error);

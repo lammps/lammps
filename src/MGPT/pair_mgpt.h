@@ -349,10 +349,6 @@ public:
 #elif defined(__bgq__)
   #define PREALIGN __align(32) struct
   #define POSTALIGN
-#elif defined(__INTEL_COMPILER)
-  /* This will probably not be used, since the Intel compiler also defines __GNUC__ */
-  #define PREALIGN struct __declspec(align(32))
-  #define POSTALIGN
 #else
   /* Try GNU syntax anyway... */
   #define PREALIGN struct

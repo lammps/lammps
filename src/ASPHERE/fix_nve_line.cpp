@@ -27,8 +27,7 @@ static constexpr double INERTIA = (1.0/12.0);     // moment of inertia prefactor
 
 /* ---------------------------------------------------------------------- */
 
-FixNVELine::FixNVELine(LAMMPS *lmp, int narg, char **arg) :
-  FixNVE(lmp, narg, arg)
+FixNVELine::FixNVELine(LAMMPS *lmp, int narg, char **arg) : FixNVE(lmp, narg, arg), avec(nullptr)
 {
   if (narg != 3) error->all(FLERR,"Illegal fix nve/line command");
 

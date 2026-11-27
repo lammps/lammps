@@ -66,10 +66,14 @@ class KokkosLMP : protected Pointers {
   int pair_team_size_set;
   int nbin_atoms_per_bin;
   int nbin_atoms_per_bin_set;
-  int nbor_block_size;
-  int nbor_block_size_set;
-  int bond_block_size;
-  int bond_block_size_set;
+  int nbor_chunk_size;
+  int nbor_chunk_size_set;
+  int bond_chunk_size;
+  int bond_chunk_size_set;
+  int autotuning;
+  int perf_nsamples;
+  int perf_mode;
+  double perf_rel_tol;
 
   static int is_finalized;
   static int init_ngpus;
@@ -80,7 +84,15 @@ class KokkosLMP : protected Pointers {
   static void finalize();
   void accelerator(int, char **);
   void newton_check();
+  void respa_check();
   bigint neigh_count(int);
+
+  // warn (on rank 0) when a KOKKOS-enabled style relies on an internal helper
+  // compute that is not itself a KOKKOS style, which forces a host/device sync
+  // every step.  Detected via the compute's kokkosable member.  No-op when the
+  // compute is null or already kokkosable.
+  static void warn_nonkokkos_compute(class LAMMPS *, const std::string &parentstyle,
+                                     class Compute *, const std::string &role);
 
   template<class DeviceType>
   int need_dup(int qeq_flag = 0)

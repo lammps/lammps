@@ -1,0 +1,84 @@
+# 3d Lennard-Jones fluid with shockwave in x
+
+include         shockparams.mod
+include         shocksetup.mod
+
+# fix set command to check for threshold crossings every step
+# when crossing occurs set d_xshock first, then set i_tshock
+
+variable        vxthresh equal ${upneg}*0.5 # threshold velocity = (u0+u1)/2
+fix             vxave all ave/atom 1 ${nevery} ${nevery} vx
+variable        istart atom "f_vxave > v_vxthresh && i_tshock == -1"
+variable        tshock equal step-${nevery}
+variable        inew atom ternary(v_istart,v_tshock,i_tshock)
+variable        dnew atom ternary(v_istart,x,d_xshock)
+fix             setshock all set ${nevery} 0 group all d_xshock v_dnew i_tshock v_inew
+
+# set up vx history
+
+variable nhistory equal ${leftwindow}+${rightwindow}
+
+compute dyn all property/atom vx vy vz fx fy fz
+
+fix vxhist all store/state 0 c_dyn[*] history ${nevery} ${nhistory} 0
+
+compute vxhist all property/atom history[*][1] history vxhist
+
+# store vxhist at end of window
+
+variable        step_rightwindow atom i_tshock + ${rightwindow}*${nevery}
+variable        irightwindow atom step == v_step_rightwindow
+
+variable        increment equal 10
+variable        i equal ${increment}
+variable        fix_args string ""
+label           setup_loop
+  variable        idx string $(v_i:%03.0f)
+  variable        dnewvxhist${idx} atom ternary(v_irightwindow,c_vxhist[$(v_nhistory-v_i+1)],d_vxhist${idx})
+  variable        tmp_str string "${fix_args} d_vxhist${idx} v_dnewvxhist${idx}"
+  variable        fix_args string "${tmp_str}"
+  variable        i equal $i+${increment}
+if              "$i <= ${nhistory}" then "jump SELF setup_loop"
+
+fix             sethist all set ${nevery} 0 group all ${fix_args}
+
+# run
+
+run		${nsteps}
+
+# average vxhist to get CVCF
+
+# 1. Initialize the loop counter
+variable        i equal ${increment}
+label           analysis_loop
+  variable        idx string $(v_i:%03.0f)
+  variable        vxhist${idx} atom d_vxhist${idx}
+  compute         vxhistav${idx} bulk reduce ave v_vxhist${idx}
+  variable        cvcfhist${idx} equal c_vxhistav${idx}/${up}+1.0
+  variable        i equal $i+${increment}
+if              "$i <= ${nhistory}" then "jump SELF analysis_loop"
+
+run 0
+
+print """# t CVCF(t)
+$((010-v_leftwindow)*v_nevery*v_dt) ${cvcfhist010}
+$((020-v_leftwindow)*v_nevery*v_dt) ${cvcfhist020}
+$((030-v_leftwindow)*v_nevery*v_dt) ${cvcfhist030}
+$((040-v_leftwindow)*v_nevery*v_dt) ${cvcfhist040}
+$((050-v_leftwindow)*v_nevery*v_dt) ${cvcfhist050}
+$((060-v_leftwindow)*v_nevery*v_dt) ${cvcfhist060}
+$((070-v_leftwindow)*v_nevery*v_dt) ${cvcfhist070}
+$((080-v_leftwindow)*v_nevery*v_dt) ${cvcfhist080}
+$((090-v_leftwindow)*v_nevery*v_dt) ${cvcfhist090}
+$((100-v_leftwindow)*v_nevery*v_dt) ${cvcfhist100}
+$((110-v_leftwindow)*v_nevery*v_dt) ${cvcfhist110}
+$((120-v_leftwindow)*v_nevery*v_dt) ${cvcfhist120}
+$((130-v_leftwindow)*v_nevery*v_dt) ${cvcfhist130}
+$((140-v_leftwindow)*v_nevery*v_dt) ${cvcfhist140}
+$((150-v_leftwindow)*v_nevery*v_dt) ${cvcfhist150}
+$((160-v_leftwindow)*v_nevery*v_dt) ${cvcfhist160}
+$((170-v_leftwindow)*v_nevery*v_dt) ${cvcfhist170}
+$((180-v_leftwindow)*v_nevery*v_dt) ${cvcfhist180}
+$((190-v_leftwindow)*v_nevery*v_dt) ${cvcfhist190}
+$((200-v_leftwindow)*v_nevery*v_dt) ${cvcfhist200}""" &
+file cvcf.dat screen no

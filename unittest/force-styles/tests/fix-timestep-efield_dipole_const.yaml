@@ -1,5 +1,6 @@
 ---
 lammps_version: 27 Jun 2024
+tags: kokkos
 date_generated: Sun Aug  4 21:46:33 2024
 epsilon: 2e-13
 skip_tests:
@@ -12,6 +13,7 @@ post_commands: ! |
   fix move all nve
   fix test solute efield 0.0 -0.1 0.1
 input_file: in.dipole
+input_coeffs: coeffs.fourmol
 natoms: 29
 global_scalar: 5.323551487649474
 global_vector: ! |-

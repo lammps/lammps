@@ -121,6 +121,12 @@ describing packages must also be updated as well as a package specific
 description added.  Likewise, if necessary, some package specific
 build instructions should be included.
 
+A detailed, step-by-step guide for what a documentation page must
+contain, how to register a new style in the command tables and overview
+lists, how to document accelerated variants, and which consistency
+checks to run is given on the :doc:`Writing or updating documentation
+<Developer_write_docs>` page.
+
 As appropriate, the text files with the documentation can include
 inline mathematical expressions or figures (see ``doc/JPG`` for
 examples).  Additional PDF files with further details may also be
@@ -187,12 +193,12 @@ code confined to the package so that it is optional.
 Included Fortran code has to be compatible with the Fortran 2003
 standard.  Since not all platforms supported by LAMMPS provide good
 support for compiling Fortran files, it should be considered to rewrite
-these parts as C++ code, if possible, and thus allow for a wider adoption
-of the contribution.  As of January 2023, all previously included
-Fortran code for the LAMMPS executable has been replaced by equivalent
-C++ code.
+these parts as C++ code, if possible, and thus allow for a wider
+adoption of the contribution.  As of January 2023, all previously
+included Fortran code for the LAMMPS executable has been replaced by
+equivalent C++ code.
 
-Python code currently must be compatible with Python 3.6.  If a later
+Python code currently must be compatible with Python 3.9.  If a later
 version or Python is required, it needs to be documented.
 
 Compatibility with older programming language standards is very
@@ -290,7 +296,7 @@ input scripts include:
 - the total file size of all the inputs and outputs should be small
 
 - where possible, potential files from the "potentials" folder or data
-  file from other folders should be re-used through symbolic links
+  file from other folders should be reused through symbolic links
 
 .. _ReqErrorMessages:
 
@@ -315,11 +321,11 @@ The new policy encourages more specific error messages that ideally
 indicate the cause directly, and requiring no further lookup. This is
 aided by either the `{fmt} library <https://fmt.dev>`_ or the `C++
 format library
-<https://cppreference.com/w/cpp/utility/format.html>`_ (for C++20
-and later) enabling :cpp:class:`LAMMPS_NS::Error` class methods that
+<https://cppreference.com/cpp/utility/format>`_ (for C++20
+and later) enabling :cpp:class:`!LAMMPS_NS::Error` class methods that
 take a variable number of arguments and an error text that will be
 treated like a `C++ format string
-<https://cppreference.com/w/cpp/utility/format/spec.html>`_. Error
+<https://cppreference.com/cpp/utility/format/spec>`_. Error
 messages should still preferably be kept to a single line or two lines
 at most.
 

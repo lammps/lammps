@@ -30,6 +30,7 @@ class FixBondCreateAngle : public FixBondCreate {
 
  protected:
   int constrain(int, int, double, double) override;
+  double bond_angle(int, int);
 };
 
 }    // namespace LAMMPS_NS

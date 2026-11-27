@@ -5,7 +5,7 @@
 #define KOKKOS_STD_ALGORITHMS_UNIQUE_HPP
 
 #include "impl/Kokkos_Unique.hpp"
-#include "Kokkos_BeginEnd.hpp"
+#include <Kokkos_Iterator.hpp>
 
 namespace Kokkos {
 namespace Experimental {

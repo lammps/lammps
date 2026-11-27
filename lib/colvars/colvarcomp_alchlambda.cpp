@@ -30,7 +30,7 @@ colvar::alch_lambda::alch_lambda()
   x.type(colvarvalue::type_scalar);
 
   // Query initial value from back-end; will be overwritten if restarting from a state file
-  cvm::proxy->get_alch_lambda(&x.real_value);
+  cvmodule->proxy->get_alch_lambda(&x.real_value);
 }
 
 
@@ -43,9 +43,9 @@ int colvar::alch_lambda::init_alchemy(int factor)
 
   // Forbid MTS until fully implemented
   if (factor != 1) {
-    return cvm::error("Error: timeStepFactor > 1 is not yet supported for alchemical variables.");
+    return cvmodule->error("Error: timeStepFactor > 1 is not yet supported for alchemical variables.");
   }
-  cvm::proxy->request_alch_energy_freq(factor);
+  cvmodule->proxy->request_alch_energy_freq(factor);
 
   return COLVARS_OK;
 }
@@ -56,14 +56,14 @@ void colvar::alch_lambda::calc_value()
   // By default, follow external parameter
   // This might get overwritten by driving extended dynamics
   // (in apply_force() below)
-  cvm::proxy->get_alch_lambda(&x.real_value);
+  cvmodule->proxy->get_alch_lambda(&x.real_value);
 
-  cvm::proxy->get_dE_dlambda(&ft.real_value);
+  cvmodule->proxy->get_dE_dlambda(&ft.real_value);
   ft.real_value *= -1.0; // Convert energy derivative to force
 
   // Include any force due to bias on Flambda
-  ft.real_value += cvm::proxy->indirect_lambda_biasing_force;
-  cvm::proxy->indirect_lambda_biasing_force = 0.0;
+  ft.real_value += cvmodule->proxy->indirect_lambda_biasing_force;
+  cvmodule->proxy->indirect_lambda_biasing_force = 0.0;
 }
 
 
@@ -102,7 +102,7 @@ void colvar::alch_Flambda::calc_value()
   // at the beginning of the timestep we get a force instead of calculating the value
 
   // Query initial value from back-end
-  cvm::proxy->get_dE_dlambda(&x.real_value);
+  cvmodule->proxy->get_dE_dlambda(&x.real_value);
   x.real_value *= -1.0; // Energy derivative to force
 }
 
@@ -117,13 +117,13 @@ void colvar::alch_Flambda::apply_force(colvarvalue const &force)
   // Convert force on Flambda to force on dE/dlambda
   cvm::real f = -1.0 * force.real_value;
   // Send scalar force to back-end, which will distribute it onto atoms
-  cvm::proxy->apply_force_dE_dlambda(&f);
+  cvmodule->proxy->apply_force_dE_dlambda(&f);
 
   // Propagate force on Flambda to lambda internally
   cvm::real d2E_dlambda2;
-  cvm::proxy->get_d2E_dlambda2(&d2E_dlambda2);
+  cvmodule->proxy->get_d2E_dlambda2(&d2E_dlambda2);
 
   // This accumulates a force, it needs to be zeroed when taken into account by lambda
-  cvm::proxy->indirect_lambda_biasing_force += d2E_dlambda2 * f;
+  cvmodule->proxy->indirect_lambda_biasing_force += d2E_dlambda2 * f;
 }
 

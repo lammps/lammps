@@ -170,8 +170,6 @@ class Answer {
   double _time_cast, _time_cpu_idle;
 
   double _gpu_bytes;
-
-  bool _newton;
 };
 
 }

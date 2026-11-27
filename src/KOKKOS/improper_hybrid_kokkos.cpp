@@ -34,6 +34,11 @@ ImproperHybridKokkos::ImproperHybridKokkos(LAMMPS *lmp) : ImproperHybrid(lmp)
 {
   kokkosable = 1;
 
+  // every KOKKOS sub-style sets CENTROID_NOTAVAIL, so the hybrid style cannot
+  // offer a centroid virial either - otherwise cvatom is never allocated and the
+  // per-substyle accumulation dereferences a null pointer
+  centroidstressflag = CENTROID_NOTAVAIL;
+
   atomKK = (AtomKokkos *) atom;
   neighborKK = (NeighborKokkos *) neighbor;
 

@@ -22,7 +22,7 @@ typed something like:
 
 .. code-block:: bash
 
-   lmp_serial -in in.lj
+   lmp -in in.lj
 
 Running LAMMPS and Python in parallel with MPI
 ----------------------------------------------
@@ -52,7 +52,7 @@ and you should see the same output as if you had typed
 
 .. code-block:: bash
 
-   mpirun -np 4 lmp_mpi -in in.lj
+   mpirun -np 4 lmp -in in.lj
 
 Note that without the mpi4py specific lines from ``test.py``
 

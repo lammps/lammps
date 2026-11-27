@@ -19,6 +19,7 @@ import kokkos.unordered_map;
 
 #include <TestDynRankView.hpp>
 #include <TestScatterView.hpp>
+#include <TestDualView.hpp>
 
 #include <iomanip>
 #include <sstream>
@@ -31,6 +32,12 @@ TEST(hpx, dynrankview_perf) {
   std::cout << "HPX" << std::endl;
   std::cout << " DynRankView vs View: Initialization Only " << std::endl;
   test_dynrankview_op_perf<Kokkos::Experimental::HPX>(8192);
+}
+
+TEST(hpx, dualview_perf) {
+  std::cout << "HPX" << std::endl;
+  std::cout << " DualView Access Performance " << std::endl;
+  test_dualview<size_t, Kokkos::Experimental::HPX>();
 }
 
 TEST(hpx, global_2_local) {

@@ -295,7 +295,7 @@ __kernel void k_dipole_lj_sf(const __global numtyp4 *restrict x_,
 
         if (rsq < lj1[mtype].z) {
           r6inv = r2inv*r2inv*r2inv;
-          numtyp forceljcut = factor_lj*r6inv*(lj1[mtype].x*r6inv-lj1[mtype].y)*r2inv;
+          numtyp forceljcut = r6inv*(lj1[mtype].x*r6inv-lj1[mtype].y)*r2inv;
 
           rcutlj2inv = ucl_recip(lj1[mtype].z);
           rcutlj6inv = rcutlj2inv * rcutlj2inv * rcutlj2inv;
@@ -540,7 +540,7 @@ __kernel void k_dipole_lj_sf_fast(const __global numtyp4 *restrict x_,
 
         if (rsq < lj1[mtype].z) {
           r6inv = r2inv*r2inv*r2inv;
-          numtyp forceljcut = factor_lj*r6inv*(lj1[mtype].x*r6inv-lj1[mtype].y)*r2inv;
+          numtyp forceljcut = r6inv*(lj1[mtype].x*r6inv-lj1[mtype].y)*r2inv;
 
           rcutlj2inv = ucl_recip(lj1[mtype].z);
           rcutlj6inv = rcutlj2inv * rcutlj2inv * rcutlj2inv;

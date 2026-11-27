@@ -14,7 +14,9 @@
 
 #include "atom.h"
 #include "atom_vec.h"
-#include "style_atom.h"  // IWYU pragma: keep
+#include "atom_vec_body.h"
+#include "atom_vec_ellipsoid.h"
+#include "atom_vec_hybrid.h"
 
 #include "comm.h"
 #include "compute.h"
@@ -48,17 +50,19 @@
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
-static constexpr int DELTA = 1;
 static constexpr double EPSILON = 1.0e-6;
 static constexpr double EPS_ZCOORD = 1.0e-12;
 
 /* ----------------------------------------------------------------------
-   one instance per AtomVec style in style_atom.h
+   process-global registry of atom (AtomVec) style factory functions.  Shared by
+   all LAMMPS instances and persistent across the "clear" command.  Built-in
+   styles are registered once by the generated register_atom_styles().
 ------------------------------------------------------------------------- */
 
-template <typename T> static AtomVec *avec_creator(LAMMPS *_lmp)
+CreatorRegistry<Atom::AtomVecCreator> &Atom::avec_styles()
 {
-  return new T(_lmp);
+  static CreatorRegistry<Atom::AtomVecCreator> registry;
+  return registry;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -90,7 +94,7 @@ are updated by the AtomVec class as needed.
  *
  * \param  _lmp  pointer to the base LAMMPS class */
 
-Atom::Atom(LAMMPS *_lmp) : Pointers(_lmp), atom_style(nullptr), avec(nullptr), avec_map(nullptr)
+Atom::Atom(LAMMPS *_lmp) : Pointers(_lmp), atom_style(nullptr), avec(nullptr)
 {
   natoms = 0;
   nlocal = nghost = nmax = 0;
@@ -160,7 +164,7 @@ Atom::Atom(LAMMPS *_lmp) : Pointers(_lmp), atom_style(nullptr), avec(nullptr), a
 
   // PERI package
 
-  vfrac = s0 = nullptr;
+  vfrac = s0 = smin = nullptr;
   x0 = nullptr;
 
   // SPIN package
@@ -264,9 +268,6 @@ Atom::Atom(LAMMPS *_lmp) : Pointers(_lmp), atom_style(nullptr), avec(nullptr), a
 
   // callback lists & extra restart info
 
-  nextra_grow = nextra_restart = nextra_border = 0;
-  extra_grow = extra_restart = extra_border = nullptr;
-  nextra_grow_max = nextra_restart_max = nextra_border_max = 0;
   nextra_store = 0;
   extra = nullptr;
 
@@ -286,14 +287,6 @@ Atom::Atom(LAMMPS *_lmp) : Pointers(_lmp), atom_style(nullptr), avec(nullptr), a
   unique_tags = nullptr;
   reset_image_flag[0] = reset_image_flag[1] = reset_image_flag[2] = false;
 
-  avec_map = new AtomVecCreatorMap();
-
-#define ATOM_CLASS
-#define AtomStyle(key,Class) \
-  (*avec_map)[#key] = &avec_creator<Class>;
-#include "style_atom.h"  // IWYU pragma: keep
-#undef AtomStyle
-#undef ATOM_CLASS
 }
 
 /* ---------------------------------------------------------------------- */
@@ -302,7 +295,6 @@ Atom::~Atom()
 {
   delete[] atom_style;
   delete avec;
-  delete avec_map;
 
   delete[] firstgroupname;
   memory->destroy(binhead);
@@ -325,8 +317,7 @@ Atom::~Atom()
   }
   for (int i = 0; i < ndvector; i++) {
     delete[] dvname[i];
-    if (dvector) // (needed for Kokkos)
-      memory->destroy(dvector[i]);
+    memory->destroy(dvector[i]);
   }
   for (int i = 0; i < niarray; i++) {
     delete[] ianame[i];
@@ -368,9 +359,6 @@ Atom::~Atom()
 
   // delete extra arrays
 
-  memory->destroy(extra_grow);
-  memory->destroy(extra_restart);
-  memory->destroy(extra_border);
   memory->destroy(extra);
 
   // delete mapping data structures
@@ -495,6 +483,7 @@ void Atom::peratom_create()
 
   add_peratom("vfrac",&vfrac,DOUBLE,0);
   add_peratom("s0",&s0,DOUBLE,0);
+  add_peratom("smin",&smin,DOUBLE,0);
   add_peratom("x0",&x0,DOUBLE,3);
 
   // SPIN package
@@ -680,7 +669,7 @@ void Atom::set_atomflag_defaults()
 void Atom::create_avec(const std::string &style, int narg, char **arg, int trysuffix)
 {
   delete[] atom_style;
-  if (avec) delete avec;
+  delete avec;
   atom_style = nullptr;
   avec = nullptr;
 
@@ -730,27 +719,20 @@ AtomVec *Atom::new_avec(const std::string &style, int trysuffix, int &sflag)
     if (lmp->non_pair_suffix()) {
       sflag = 1 + 2*lmp->pair_only_flag;
       std::string estyle = style + "/" + lmp->non_pair_suffix();
-      if (avec_map->find(estyle) != avec_map->end()) {
-        AtomVecCreator &avec_creator = (*avec_map)[estyle];
-        return avec_creator(lmp);
-      }
+      AtomVecCreator avec_creator = avec_styles().find(estyle);
+      if (avec_creator) return avec_creator(lmp);
     }
 
     if (lmp->suffix2) {
       sflag = 2;
       std::string estyle = style + "/" + lmp->suffix2;
-      if (avec_map->find(estyle) != avec_map->end()) {
-        AtomVecCreator &avec_creator = (*avec_map)[estyle];
-        return avec_creator(lmp);
-      }
+      AtomVecCreator avec_creator = avec_styles().find(estyle);
+      if (avec_creator) return avec_creator(lmp);
     }
   }
 
   sflag = 0;
-  if (avec_map->find(style) != avec_map->end()) {
-    AtomVecCreator &avec_creator = (*avec_map)[style];
-    return avec_creator(lmp);
-  }
+  if (AtomVecCreator avec_creator = avec_styles().find(style)) return avec_creator(lmp);
 
   error->all(FLERR,utils::check_packages_for_style("atom",style,lmp));
   return nullptr;
@@ -1316,7 +1298,7 @@ void Atom::data_vels(int n, char *buf, tagint id_offset)
     if (!next) error->all(FLERR, "Missing data in Velocities section of data file");
     *next = '\0';
     auto values = Tokenizer(utils::trim_comment(buf)).as_vector();
-    if (values.size() == 0) {
+    if (values.empty()) {
       // skip over empty or comment lines
     } else if ((int)values.size() != avec->size_data_vel) {
       error->all(FLERR, "Incorrect format in Velocities section of data file: {}{}",
@@ -1418,6 +1400,12 @@ void Atom::data_bonds(int n, char *buf, int *count, tagint id_offset,
             avec->data_bonds_post(m, num_bond[m], atom1, atom2, id_offset);
           }
         }
+      } else if (!count && (map(atom1) < 0) && ((m = map(atom2)) >= 0)) {
+
+        // with newton_bond on the bond is only stored with atom1, but the
+        // atom style may also need to process it for atom2 on its own processor
+
+        avec->data_bonds_post(m, num_bond[m], atom1, atom2, id_offset);
       }
     }
     buf = next + 1;
@@ -1809,7 +1797,7 @@ void Atom::data_bonus(int n, char *buf, AtomVec *avec_bonus, tagint id_offset)
     if (!next) error->all(FLERR, "Missing data in Bonus section of data file");
     *next = '\0';
     auto values = Tokenizer(utils::trim_comment(buf)).as_vector();
-    if (values.size() == 0) {
+    if (values.empty()) {
       // skip over empty or comment lines
     } else if ((int)values.size() != avec_bonus->size_data_bonus) {
       error->all(FLERR, "Incorrect format in Bonus section of data file: {}{}",
@@ -1852,7 +1840,7 @@ void Atom::data_bodies(int n, char *buf, AtomVec *avec_body, tagint id_offset)
     *next = '\0';
 
     auto values = Tokenizer(utils::trim_comment(buf)).as_vector();
-    if (values.size()) {
+    if (!values.empty()) {
       tagint tagdata = utils::tnumeric(FLERR,values[0],false,lmp) + id_offset;
       int ninteger = utils::inumeric(FLERR,values[1],false,lmp);
       int ndouble = utils::inumeric(FLERR,values[2],false,lmp);
@@ -2332,8 +2320,6 @@ void Atom::add_molecule_atom(Molecule *onemol, int iatom, int ilocal, tagint off
 
 void Atom::add_label_map()
 {
-  if (lmp->kokkos)
-    error->all(FLERR, "Label maps are currently not supported with Kokkos");
   labelmapflag = 1;
   lmap = new LabelMap(lmp,ntypes,nbondtypes,nangletypes,ndihedraltypes,nimpropertypes);
 }
@@ -2622,115 +2608,67 @@ void Atom::setup_sort_bins()
 }
 
 /* ----------------------------------------------------------------------
-   register a callback to a fix so it can manage atom-based arrays
-   happens when fix is created
+   list of fixes with callbacks of one type
    flag = Atom::GROW for grow, Atom::RESTART for restart, Atom::BORDER for border comm
 ------------------------------------------------------------------------- */
 
-void Atom::add_callback(int flag)
+std::vector<Fix *> &Atom::callback_list(int flag)
 {
-  int ifix;
-
-  // find the fix
-  // if find null pointer:
-  //   it's this one, since it is being replaced and has just been deleted
-  //   at this point in re-creation
-  // if don't find null pointer:
-  //   i is set to nfix = new one currently being added at end of list
-
-  for (ifix = 0; ifix < modify->nfix; ifix++)
-    if (modify->fix[ifix] == nullptr) break;
-
-  // add callback to lists and sort, reallocating if necessary
-  // sorting is required in cases where fixes were replaced as it ensures atom
-  // data is read/written/transfered in the same order that fixes are called
-
-  if (flag == GROW) {
-    if (nextra_grow == nextra_grow_max) {
-      nextra_grow_max += DELTA;
-      memory->grow(extra_grow,nextra_grow_max,"atom:extra_grow");
-    }
-    extra_grow[nextra_grow] = ifix;
-    nextra_grow++;
-    std::sort(extra_grow, extra_grow + nextra_grow);
-  } else if (flag == RESTART) {
-    if (nextra_restart == nextra_restart_max) {
-      nextra_restart_max += DELTA;
-      memory->grow(extra_restart,nextra_restart_max,"atom:extra_restart");
-    }
-    extra_restart[nextra_restart] = ifix;
-    nextra_restart++;
-    std::sort(extra_restart, extra_restart + nextra_restart);
-  } else if (flag == BORDER) {
-    if (nextra_border == nextra_border_max) {
-      nextra_border_max += DELTA;
-      memory->grow(extra_border,nextra_border_max,"atom:extra_border");
-    }
-    extra_border[nextra_border] = ifix;
-    nextra_border++;
-    std::sort(extra_border, extra_border + nextra_border);
-  }
+  if (flag == GROW) return extra_grow;
+  if (flag == RESTART) return extra_restart;
+  if (flag == BORDER) return extra_border;
+  error->all(FLERR, Error::NOLASTLINE, "Unknown type {} of fix callback", flag);
 }
 
 /* ----------------------------------------------------------------------
-   unregister a callback to a fix
-   happens when fix is deleted, called by its destructor
-   flag = 0 for grow, 1 for restart
+   register a fix for callbacks so it can manage its atom-based arrays
+   called from the fix constructor, i.e. usually before the Modify class
+   has stored the fix in its list; the lists are brought into the order
+   of that list by sort_callbacks(), which Modify::add_fix() calls
+   flag = Atom::GROW for grow, Atom::RESTART for restart, Atom::BORDER for border comm
 ------------------------------------------------------------------------- */
 
-void Atom::delete_callback(const char *id, int flag)
+void Atom::add_callback(Fix *fix, int flag)
 {
-  if (id == nullptr) return;
-
-  int ifix = modify->find_fix(id);
-
-  // compact the list of callbacks
-
-  if (flag == GROW) {
-    int match;
-    for (match = 0; match < nextra_grow; match++)
-      if (extra_grow[match] == ifix) break;
-    if ((nextra_grow == 0) || (match == nextra_grow))
-      error->all(FLERR,"Trying to delete non-existent Atom::grow() callback");
-    for (int i = match; i < nextra_grow-1; i++)
-      extra_grow[i] = extra_grow[i+1];
-    nextra_grow--;
-
-  } else if (flag == RESTART) {
-    int match;
-    for (match = 0; match < nextra_restart; match++)
-      if (extra_restart[match] == ifix) break;
-    if ((nextra_restart == 0) || (match == nextra_restart))
-      error->all(FLERR,"Trying to delete non-existent Atom::restart() callback");
-    for (int i = match; i < nextra_restart-1; i++)
-      extra_restart[i] = extra_restart[i+1];
-    nextra_restart--;
-
-  } else if (flag == BORDER) {
-    int match;
-    for (match = 0; match < nextra_border; match++)
-      if (extra_border[match] == ifix) break;
-    if ((nextra_border == 0) || (match == nextra_border))
-      error->all(FLERR,"Trying to delete non-existent Atom::border() callback");
-    for (int i = match; i < nextra_border-1; i++)
-      extra_border[i] = extra_border[i+1];
-    nextra_border--;
-  }
+  if (!fix) return;
+  auto &list = callback_list(flag);
+  if (std::find(list.begin(), list.end(), fix) == list.end()) list.push_back(fix);
+  sort_callbacks();
 }
 
 /* ----------------------------------------------------------------------
-   decrement ptrs in callback lists to fixes beyond the deleted ifix
-   happens after fix is deleted
+   unregister a fix from callbacks, called from the fix destructor
+   also called from the Fix base class destructor for all three types
+   as a safety net, so a fix that is not registered is silently ignored
 ------------------------------------------------------------------------- */
 
-void Atom::update_callback(int ifix)
+void Atom::delete_callback(Fix *fix, int flag)
 {
-  for (int i = 0; i < nextra_grow; i++)
-    if (extra_grow[i] > ifix) extra_grow[i]--;
-  for (int i = 0; i < nextra_restart; i++)
-    if (extra_restart[i] > ifix) extra_restart[i]--;
-  for (int i = 0; i < nextra_border; i++)
-    if (extra_border[i] > ifix) extra_border[i]--;
+  auto &list = callback_list(flag);
+  auto found = std::find(list.begin(), list.end(), fix);
+  if (found != list.end()) list.erase(found);
+}
+
+/* ----------------------------------------------------------------------
+   order the callback lists by the position of the fixes in the Modify
+   class, so that per-atom data is read/written/transferred in the same
+   order in which the fixes are invoked. a fix that is not (yet) in the
+   list of fixes keeps its place at the end
+------------------------------------------------------------------------- */
+
+void Atom::sort_callbacks()
+{
+  const auto &fixes = modify->get_fix_list();
+  auto position = [&fixes](Fix *fix) {
+    std::size_t i = 0;
+    while ((i < fixes.size()) && (fixes[i] != fix)) ++i;
+    return i;
+  };
+  auto by_position = [&position](Fix *a, Fix *b) { return position(a) < position(b); };
+
+  std::stable_sort(extra_grow.begin(), extra_grow.end(), by_position);
+  std::stable_sort(extra_restart.begin(), extra_restart.end(), by_position);
+  std::stable_sort(extra_border.begin(), extra_border.end(), by_position);
 }
 
 /** \brief Find a custom per-atom property with given name
@@ -3148,6 +3086,12 @@ void *Atom::extract(const char *name)
   if (strcmp(name,"ervel") == 0) return (void *) ervel;
   if (strcmp(name,"erforce") == 0) return (void *) erforce;
 
+  // CG-DNA package
+
+  if (strcmp(name,"id3p") == 0) return (void *) id3p;
+  if (strcmp(name,"id5p") == 0) return (void *) id5p;
+  if (strcmp(name,"qeff") == 0) return (void *) qeff;
+
   // RHEO package
 
   if (strcmp(name,"rheo_status") == 0) return (void *) rheo_status;
@@ -3313,6 +3257,12 @@ int Atom::extract_datatype(const char *name)
   if (strcmp(name,"eradius") == 0) return LAMMPS_DOUBLE;
   if (strcmp(name,"ervel") == 0) return LAMMPS_DOUBLE;
   if (strcmp(name,"erforce") == 0) return LAMMPS_DOUBLE;
+
+  // CG-DNA package
+
+  if (strcmp(name,"id3p") == 0) return LAMMPS_TAGINT;
+  if (strcmp(name,"id5p") == 0) return LAMMPS_TAGINT;
+  if (strcmp(name,"qeff") == 0) return LAMMPS_DOUBLE;
 
   // RHEO package
 

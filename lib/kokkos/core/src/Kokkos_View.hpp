@@ -19,6 +19,7 @@ static_assert(false,
 #else
 
 #include <View/Kokkos_ViewTraits.hpp>
+#include <Kokkos_Pair.hpp>
 #include <Kokkos_MemoryTraits.hpp>
 
 // FIXME: This will eventually be removed
@@ -29,94 +30,7 @@ class ViewMapping;
 #include <View/Kokkos_ViewMapping.hpp>
 #include <Kokkos_MinMax.hpp>
 
-// Class to provide a uniform type
 namespace Kokkos {
-namespace Impl {
-template <class ViewType, int Traits>
-struct ViewUniformType;
-
-template <class ParentView>
-struct ViewTracker;
-} /* namespace Impl */
-
-template <class T1, class T2>
-struct is_always_assignable_impl;
-
-template <class... ViewTDst, class... ViewTSrc>
-struct is_always_assignable_impl<Kokkos::View<ViewTDst...>,
-                                 Kokkos::View<ViewTSrc...> > {
-  using dst_mdspan = typename Kokkos::View<ViewTDst...>::mdspan_type;
-  using src_mdspan = typename Kokkos::View<ViewTSrc...>::mdspan_type;
-
-  constexpr static bool value =
-      std::is_constructible_v<dst_mdspan, src_mdspan> &&
-      static_cast<int>(Kokkos::View<ViewTDst...>::rank_dynamic) >=
-          static_cast<int>(Kokkos::View<ViewTSrc...>::rank_dynamic);
-};
-
-template <class View1, class View2>
-using is_always_assignable = is_always_assignable_impl<
-    std::remove_reference_t<View1>,
-    std::remove_const_t<std::remove_reference_t<View2> > >;
-
-template <class T1, class T2>
-inline constexpr bool is_always_assignable_v =
-    is_always_assignable<T1, T2>::value;
-
-template <class... ViewTDst, class... ViewTSrc>
-constexpr bool is_assignable(const Kokkos::View<ViewTDst...>& dst,
-                             const Kokkos::View<ViewTSrc...>& src) {
-  using dst_mdspan = typename Kokkos::View<ViewTDst...>::mdspan_type;
-  using src_mdspan = typename Kokkos::View<ViewTSrc...>::mdspan_type;
-
-  return is_always_assignable_v<Kokkos::View<ViewTDst...>,
-                                Kokkos::View<ViewTSrc...> > ||
-         (std::is_constructible_v<dst_mdspan, src_mdspan> &&
-          ((dst_mdspan::rank_dynamic() >= 1) ||
-           (dst.static_extent(0) == src.extent(0))) &&
-          ((dst_mdspan::rank_dynamic() >= 2) ||
-           (dst.static_extent(1) == src.extent(1))) &&
-          ((dst_mdspan::rank_dynamic() >= 3) ||
-           (dst.static_extent(2) == src.extent(2))) &&
-          ((dst_mdspan::rank_dynamic() >= 4) ||
-           (dst.static_extent(3) == src.extent(3))) &&
-          ((dst_mdspan::rank_dynamic() >= 5) ||
-           (dst.static_extent(4) == src.extent(4))) &&
-          ((dst_mdspan::rank_dynamic() >= 6) ||
-           (dst.static_extent(5) == src.extent(5))) &&
-          ((dst_mdspan::rank_dynamic() >= 7) ||
-           (dst.static_extent(6) == src.extent(6))) &&
-          ((dst_mdspan::rank_dynamic() == 8) ||
-           (dst.static_extent(7) == src.extent(7))));
-}
-
-namespace Impl {
-template <class... Properties>
-struct BasicViewFromTraits {
-  using view_traits        = ViewTraits<Properties...>;
-  using mdspan_view_traits = MDSpanViewTraits<view_traits>;
-  using element_type       = typename view_traits::value_type;
-  using extents_type       = typename mdspan_view_traits::extents_type;
-  using layout_type        = typename mdspan_view_traits::mdspan_layout_type;
-  using accessor_type      = typename mdspan_view_traits::accessor_type;
-
-  using type =
-      BV::BasicView<element_type, extents_type, layout_type, accessor_type>;
-};
-
-// Helper function to deal with cases where the data handle is
-// not convertible to element_type* such as in Sacado.
-// An overload for our reference counted data handle is next to its
-// implementation. This one covers Unmanaged views with raw pointers.
-template <class HandleType>
-KOKKOS_INLINE_FUNCTION constexpr auto ptr_from_data_handle(
-    const HandleType& handle) {
-  // This should only be internally invoked in Kokkos with raw pointers.
-  static_assert(std::is_pointer_v<HandleType>);
-  return handle;
-}
-}  // namespace Impl
-
 template <class DataType, class... Properties>
 struct ViewTraits;
 
@@ -134,6 +48,278 @@ struct is_view<const View<D, P...> > : public std::true_type {};
 
 template <class T>
 inline constexpr bool is_view_v = is_view<T>::value;
+}  // namespace Kokkos
+
+// Class to provide a uniform type
+namespace Kokkos {
+namespace Impl {
+template <class ViewType, int Traits>
+struct ViewUniformType;
+
+template <class ParentView>
+struct ViewTracker;
+} /* namespace Impl */
+
+namespace Impl {
+
+template <class TDst, class TSrc, bool same_rank = TDst::rank() == TSrc::rank()>
+struct is_assignable_extents {
+  // is it always (statically known) assignable
+  constexpr static bool value = false;
+
+  // runtime check
+  KOKKOS_FUNCTION
+  static constexpr bool runtime_value(const TDst&, const TSrc&) {
+    return false;
+  }
+};
+
+template <class IdxDst, size_t... ExtsDst, class IdxSrc, size_t... ExtsSrc>
+struct is_assignable_extents<extents<IdxDst, ExtsDst...>,
+                             extents<IdxSrc, ExtsSrc...>, true> {
+ private:
+  using dst_t = extents<IdxDst, ExtsDst...>;
+  using src_t = extents<IdxSrc, ExtsSrc...>;
+
+ public:
+  // Example:
+  //   - extents<int, dynamic_extent> is always assignable to extents<int,
+  //     dynamic_extent> extents<int, dynamic_extent> may be assignable to
+  //   - extents<int, 2>, need runtime check
+
+  // is it always (statically known)  assignable
+  constexpr static bool value =
+      ((ExtsDst == dynamic_extent || ExtsDst == ExtsSrc) && ... && true);
+
+  // runtime check
+  KOKKOS_FUNCTION
+  static constexpr bool runtime_value(const dst_t&, const src_t& src) {
+    if constexpr ((dst_t::rank() == 0) || value) {
+      return true;
+    } else {
+      using rank_type = typename dst_t::rank_type;
+      for (rank_type r = 0; r < dst_t::rank(); r++)
+        if (!(dst_t::static_extent(r) == dynamic_extent ||
+              dst_t::static_extent(r) == src.extent(r)))
+          return false;
+      return true;
+    }
+  }
+};
+
+template <class TDst, class TSrc, bool same_rank = TDst::rank() == TSrc::rank()>
+struct is_assignable_view {
+  // is it always (statically known) assignable
+  constexpr static bool value = false;
+};
+
+template <class... ViewTDst, class... ViewTSrc>
+struct is_assignable_view<View<ViewTDst...>, View<ViewTSrc...>, true> {
+ private:
+  using dst_t      = View<ViewTDst...>;
+  using src_t      = View<ViewTSrc...>;
+  using dst_mdspan = typename View<ViewTDst...>::mdspan_type;
+  using src_mdspan = typename View<ViewTSrc...>::mdspan_type;
+  using is_assignable_exts_t =
+      is_assignable_extents<typename dst_t::extents_type,
+                            typename src_t::extents_type>;
+
+ public:
+  // is it always (statically known) assignable
+  constexpr static bool value =
+      std::is_constructible_v<dst_mdspan, src_mdspan> &&
+      is_assignable_exts_t::value;
+};
+}  // namespace Impl
+
+// Don't remove const from destination, since you can't assign
+// to a 'const View<...>'
+template <class DstView, class SrcView>
+using is_always_assignable = Impl::is_assignable_view<
+    std::remove_volatile_t<std::remove_reference_t<DstView> >,
+    std::remove_cvref_t<SrcView> >;
+
+template <class T1, class T2>
+inline constexpr bool is_always_assignable_v =
+    is_always_assignable<T1, T2>::value;
+
+// FIXME: this should be a device callable function
+template <class DstView, class SrcView>
+  requires(is_view_v<DstView> && is_view_v<SrcView> &&
+           !std::is_const_v<DstView>)
+constexpr bool is_assignable(DstView& dst, const SrcView& src) {
+  using is_assignable_exts_t =
+      Impl::is_assignable_extents<typename DstView::extents_type,
+                                  typename SrcView::extents_type>;
+  return std::is_constructible_v<typename DstView::mdspan_type,
+                                 typename SrcView::mdspan_type> &&
+         is_assignable_exts_t::runtime_value(dst.extents(), src.extents());
+}
+
+template <class DstView, class SrcView>
+  requires(is_view_v<DstView> && is_view_v<SrcView> && std::is_const_v<DstView>)
+constexpr bool is_assignable(DstView&, const SrcView&) {
+  return false;
+}
+
+namespace Impl {
+// primary template handles traditional View template arguments
+template <class DataType, class... Properties>
+struct BasicViewFromTraits {
+  using view_traits        = ViewTraits<DataType, Properties...>;
+  using mdspan_view_traits = MDSpanViewTraits<view_traits>;
+  using element_type       = typename view_traits::value_type;
+  using extents_type       = typename mdspan_view_traits::extents_type;
+  using layout_type        = typename mdspan_view_traits::mdspan_layout_type;
+  using accessor_type      = typename mdspan_view_traits::accessor_type;
+  using data_type          = DataType;
+  using type =
+      BV::BasicView<element_type, extents_type, layout_type, accessor_type>;
+  static constexpr bool mdspan_style_args = false;
+};
+
+// specialization handles mdspan style View template arguments
+template <class ElementType, class IndexType, size_t... Extents,
+          class LayoutType, class Accessor>
+struct BasicViewFromTraits<ElementType, extents<IndexType, Extents...>,
+                           LayoutType, Accessor> {
+  using type = BV::BasicView<ElementType, extents<IndexType, Extents...>,
+                             LayoutType, Accessor>;
+  using element_type  = typename type::element_type;
+  using extents_type  = typename type::extents_type;
+  using layout_type   = typename type::mdspan_type::layout_type;
+  using accessor_type = typename type::accessor_type;
+  using data_type =
+      typename DataTypeFromExtents<element_type, extents_type>::type;
+  using view_traits =
+      ViewTraits<data_type, typename ArrayLayoutFromLayout<layout_type>::type,
+                 typename accessor_type::memory_space,
+                 MemoryTraitsFromAccessor<accessor_type> >;
+  using mdspan_view_traits                = MDSpanViewTraits<view_traits>;
+  static constexpr bool mdspan_style_args = true;
+};
+
+// Helper function to deal with cases where the data handle is
+// not convertible to element_type* such as in Sacado.
+// An overload for our reference counted data handle is next to its
+// implementation. This one covers Unmanaged views with raw pointers.
+template <class HandleType>
+KOKKOS_INLINE_FUNCTION constexpr auto ptr_from_data_handle(
+    const HandleType& handle) {
+  // This should only be internally invoked in Kokkos with raw pointers.
+  static_assert(std::is_pointer_v<HandleType>);
+  return handle;
+}
+
+template <class LView, class RView, size_t... I>
+KOKKOS_INLINE_FUNCTION constexpr bool view_equal_extents_impl(
+    const LView& lhs, const RView& rhs, std::index_sequence<I...>) {
+  return ((lhs.extent(I) == rhs.extent(I)) && ...);
+}
+
+// Helper to define the nested View types inside the View class
+// These differ based on whether a hooks policy is used, and whether
+// legacy style template arguments or mdspan-style template arguments
+// are used.
+template <class ViewType, bool HasHooksPolicy, bool MDSpanStyleArgs>
+struct ViewTypeDefs;
+
+// Hooks Policy + Legacy Style Arguments
+template <class ViewType>
+struct ViewTypeDefs<ViewType, true, false> {
+  using traits        = typename ViewType::traits;
+  using array_layout  = typename traits::array_layout;
+  using device_type   = typename traits::device_type;
+  using hooks_policy  = typename traits::hooks_policy;
+  using memory_traits = typename traits::memory_traits;
+
+  //----------------------------------------
+  // Compatible view of a data type
+  using type = View<typename traits::data_type, array_layout, device_type,
+                    hooks_policy, memory_traits>;
+
+  // Compatible view of const data type
+  using const_type = View<typename traits::const_data_type, array_layout,
+                          device_type, hooks_policy, memory_traits>;
+
+  // Compatible view of non-const data type
+  using non_const_type =
+      View<typename traits::non_const_data_type, array_layout, device_type,
+           hooks_policy, memory_traits>;
+
+  // Compatible host mirror view
+  using host_mirror_type =
+      View<typename traits::non_const_data_type, array_layout,
+           Device<DefaultHostExecutionSpace,
+                  typename traits::host_mirror_space::memory_space>,
+           hooks_policy>;
+};
+
+// No Hooks Policy + Legacy Style Arguments
+template <class ViewType>
+struct ViewTypeDefs<ViewType, false, false> {
+  using traits        = typename ViewType::traits;
+  using array_layout  = typename traits::array_layout;
+  using device_type   = typename traits::device_type;
+  using memory_traits = typename traits::memory_traits;
+
+  //----------------------------------------
+  // Compatible view of a data type
+  using type = View<typename traits::data_type, array_layout, device_type,
+                    memory_traits>;
+
+  // Compatible view of const data type
+  using const_type = View<typename traits::const_data_type, array_layout,
+                          device_type, memory_traits>;
+
+  // Compatible view of non-const data type
+  using non_const_type = View<typename traits::non_const_data_type,
+                              array_layout, device_type, memory_traits>;
+
+  // Compatible host mirror view
+  using host_mirror_type =
+      View<typename traits::non_const_data_type, array_layout,
+           Device<DefaultHostExecutionSpace,
+                  typename traits::host_mirror_space::memory_space> >;
+};
+
+// MDspan Style Arguments - hooks policy would be encoded in accessor
+// so this is independent of that parameter value
+template <class ViewType, bool HasHooksPolicy>
+struct ViewTypeDefs<ViewType, HasHooksPolicy, true> {
+  using element_type           = typename ViewType::element_type;
+  using non_const_element_type = std::remove_const_t<element_type>;
+  using extents_type           = typename ViewType::extents_type;
+  using layout_type            = typename ViewType::layout_type;
+
+  //----------------------------------------
+  // Compatible view of a data type
+  using type = View<element_type, extents_type, layout_type,
+                    typename ViewType::accessor_type>;
+
+  // Compatible view of const data type
+  using const_type =
+      View<const element_type, extents_type, layout_type,
+           Kokkos::Experimental::Accessor<const element_type,
+                                          typename ViewType::memory_space,
+                                          typename ViewType::memory_traits> >;
+
+  // Compatible view of non-const data type
+  using non_const_type =
+      View<non_const_element_type, extents_type, layout_type,
+           Kokkos::Experimental::Accessor<non_const_element_type,
+                                          typename ViewType::memory_space,
+                                          typename ViewType::memory_traits> >;
+
+  // Compatible host mirror view
+  using host_mirror_type =
+      View<non_const_element_type, extents_type, layout_type,
+           Kokkos::Experimental::Accessor<
+               non_const_element_type,
+               typename ViewType::host_mirror_space::memory_space> >;
+};
+
+}  // namespace Impl
 
 // FIXME spurious warnings like
 // error: 'SR.14123' may be used uninitialized [-Werror=maybe-uninitialized]
@@ -143,8 +329,12 @@ inline constexpr bool is_view_v = is_view<T>::value;
 #pragma GCC diagnostic ignored "-Wuninitialized"
 #endif
 
-template <class DataType, class... Properties>
-class View : public Impl::BasicViewFromTraits<DataType, Properties...>::type {
+// DataOrElementType can be either the classic Kokkos DataType including the
+// rank information or the mdspan compatible element type if mdspan style
+// arguments are used.
+template <class DataOrElementType, class... Properties>
+class View
+    : public Impl::BasicViewFromTraits<DataOrElementType, Properties...>::type {
   // We are deriving from BasicView, but need a helper to translate
   // View template parameters to BasicView template parameters
  private:
@@ -153,8 +343,9 @@ class View : public Impl::BasicViewFromTraits<DataType, Properties...>::type {
   template <typename V>
   friend struct Kokkos::Impl::ViewTracker;
 
-  using base_t =
-      typename Impl::BasicViewFromTraits<DataType, Properties...>::type;
+  using basic_view_from_traits =
+      Impl::BasicViewFromTraits<DataOrElementType, Properties...>;
+  using base_t = typename basic_view_from_traits::type;
 
   using base_t::m_acc;
   using base_t::m_map;
@@ -164,10 +355,11 @@ class View : public Impl::BasicViewFromTraits<DataType, Properties...>::type {
   using base_t::base_t;
 
   // typedefs originally from ViewTraits
-  using traits               = ViewTraits<DataType, Properties...>;
+  using traits = typename basic_view_from_traits::view_traits;
+
   using const_value_type     = typename traits::const_value_type;
   using non_const_value_type = typename traits::non_const_value_type;
-  using data_type            = DataType;
+  using data_type            = typename basic_view_from_traits::data_type;
   using const_data_type      = typename traits::const_data_type;
   using non_const_data_type  = typename traits::non_const_data_type;
   using view_tracker_type    = Impl::ViewTracker<View>;
@@ -192,9 +384,8 @@ class View : public Impl::BasicViewFromTraits<DataType, Properties...>::type {
       std::declval<typename base_t::data_handle_type>()));
 
  private:
-  using raw_allocation_value_type = std::remove_pointer_t<pointer_type>;
-  using hooks_policy =
-      typename Impl::ViewHooksFromTraits<DataType, Properties...>::type;
+  using raw_allocation_value_type        = std::remove_pointer_t<pointer_type>;
+  using hooks_policy                     = typename traits::hooks_policy;
   static constexpr bool has_hooks_policy = !std::is_void_v<hooks_policy>;
 
  public:
@@ -212,50 +403,22 @@ class View : public Impl::BasicViewFromTraits<DataType, Properties...>::type {
   using reference_type = typename base_t::reference;
   using typename base_t::data_handle_type;
 
-  //----------------------------------------
-  // Compatible view of a data type
-  using type = std::conditional_t<
-      has_hooks_policy,
-      View<typename traits::data_type, typename traits::array_layout,
-           typename traits::device_type, typename traits::hooks_policy,
-           typename traits::memory_traits>,
-      View<typename traits::data_type, typename traits::array_layout,
-           typename traits::device_type, typename traits::memory_traits> >;
+ private:
+  using view_types =
+      Impl::ViewTypeDefs<View, has_hooks_policy,
+                         basic_view_from_traits::mdspan_style_args>;
+
+ public:
+  using type             = typename view_types::type;
+  using const_type       = typename view_types::const_type;
+  using non_const_type   = typename view_types::non_const_type;
+  using host_mirror_type = typename view_types::host_mirror_type;
 
 #ifdef KOKKOS_ENABLE_DEPRECATED_CODE_5
   //----------------------------------------
   // Compatible view of array of scalar types
   using array_type KOKKOS_DEPRECATED_WITH_COMMENT("Use type instead.") = type;
 #endif
-
-  // Compatible view of const data type
-  using const_type = std::conditional_t<
-      has_hooks_policy,
-      View<typename traits::const_data_type, typename traits::array_layout,
-           typename traits::device_type, typename traits::hooks_policy,
-           typename traits::memory_traits>,
-      View<typename traits::const_data_type, typename traits::array_layout,
-           typename traits::device_type, typename traits::memory_traits> >;
-
-  // Compatible view of non-const data type
-  using non_const_type = std::conditional_t<
-      has_hooks_policy,
-      View<typename traits::non_const_data_type, typename traits::array_layout,
-           typename traits::device_type, typename traits::hooks_policy,
-           typename traits::memory_traits>,
-      View<typename traits::non_const_data_type, typename traits::array_layout,
-           typename traits::device_type, typename traits::memory_traits> >;
-
-  // Compatible host mirror view
-  using host_mirror_type = std::conditional_t<
-      has_hooks_policy,
-      View<typename traits::non_const_data_type, typename traits::array_layout,
-           Device<DefaultHostExecutionSpace,
-                  typename traits::host_mirror_space::memory_space>,
-           typename traits::hooks_policy>,
-      View<typename traits::non_const_data_type, typename traits::array_layout,
-           Device<DefaultHostExecutionSpace,
-                  typename traits::host_mirror_space::memory_space> > >;
 
 #ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
   /** \brief  Compatible HostMirror view */
@@ -292,47 +455,7 @@ class View : public Impl::BasicViewFromTraits<DataType, Properties...>::type {
         base_t::mapping());
   }
 
-  // clang-format off
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
-  KOKKOS_DEPRECATED_WITH_COMMENT("Use stride(0) instead") KOKKOS_FUNCTION constexpr size_t stride_0() const { return stride(0); }
-  KOKKOS_DEPRECATED_WITH_COMMENT("Use stride(1) instead") KOKKOS_FUNCTION constexpr size_t stride_1() const { return stride(1); }
-  KOKKOS_DEPRECATED_WITH_COMMENT("Use stride(2) instead") KOKKOS_FUNCTION constexpr size_t stride_2() const { return stride(2); }
-  KOKKOS_DEPRECATED_WITH_COMMENT("Use stride(3) instead") KOKKOS_FUNCTION constexpr size_t stride_3() const { return stride(3); }
-  KOKKOS_DEPRECATED_WITH_COMMENT("Use stride(4) instead") KOKKOS_FUNCTION constexpr size_t stride_4() const { return stride(4); }
-  KOKKOS_DEPRECATED_WITH_COMMENT("Use stride(5) instead") KOKKOS_FUNCTION constexpr size_t stride_5() const { return stride(5); }
-  KOKKOS_DEPRECATED_WITH_COMMENT("Use stride(6) instead") KOKKOS_FUNCTION constexpr size_t stride_6() const { return stride(6); }
-  KOKKOS_DEPRECATED_WITH_COMMENT("Use stride(7) instead") KOKKOS_FUNCTION constexpr size_t stride_7() const { return stride(7); }
-#endif
-  // clang-format on
-
-  template <typename iType>
-  KOKKOS_INLINE_FUNCTION constexpr std::enable_if_t<std::is_integral_v<iType>,
-                                                    size_t>
-  stride(iType r) const {
-    // base class doesn't have constraint
-    // FIXME: Eventually we need to deprecate this behavior and just use
-    // BasicView implementation
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
-    using LayoutType = typename mdspan_type::layout_type;
-    if (r >= static_cast<iType>(rank())) {
-      if constexpr (rank() == 0) return 1;
-      if constexpr (std::is_same_v<LayoutType, layout_right> ||
-                    Impl::IsLayoutRightPadded<LayoutType>::value) {
-        return 1;
-      }
-      if constexpr (std::is_same_v<LayoutType, layout_left> ||
-                    Impl::IsLayoutLeftPadded<LayoutType>::value) {
-        return base_t::stride(rank() - 1) * extent(rank() - 1);
-      }
-      if constexpr (std::is_same_v<LayoutType, layout_stride>) {
-        return 0;
-      }
-    }
-#else
-    KOKKOS_ASSERT(r < static_cast<iType>(rank()));
-#endif
-    return base_t::stride(r);
-  }
+  using base_t::stride;
 
   template <typename iType>
   KOKKOS_INLINE_FUNCTION void stride([[maybe_unused]] iType* const s) const {
@@ -370,7 +493,7 @@ class View : public Impl::BasicViewFromTraits<DataType, Properties...>::type {
   }
 
   KOKKOS_INLINE_FUNCTION constexpr int extent_int(size_t r) const {
-    return static_cast<int>(base_t::extent(r));
+    return static_cast<int>(this->extent(r));
   }
   //----------------------------------------
   // Allow specializations to query their specialized map
@@ -525,7 +648,15 @@ class View : public Impl::BasicViewFromTraits<DataType, Properties...>::type {
 
  public:
   template <class... OtherIndexTypes>
+    requires(basic_view_from_traits::mdspan_style_args)
+  KOKKOS_FUNCTION constexpr reference_type operator()(
+      OtherIndexTypes... idx) const {
+    return base_t::operator()(idx...);
+  }
+
+  template <class... OtherIndexTypes>
     requires(
+        !basic_view_from_traits::mdspan_style_args &&
         (std::is_convertible_v<OtherIndexTypes, index_type> && ...) &&
         (std::is_nothrow_constructible_v<index_type, OtherIndexTypes> && ...) &&
         (sizeof...(OtherIndexTypes) == rank()) &&
@@ -544,6 +675,7 @@ class View : public Impl::BasicViewFromTraits<DataType, Properties...>::type {
 
   template <class... OtherIndexTypes>
     requires(
+        !basic_view_from_traits::mdspan_style_args &&
         (std::is_convertible_v<OtherIndexTypes, index_type> && ...) &&
         (std::is_nothrow_constructible_v<index_type, OtherIndexTypes> && ...) &&
         (sizeof...(OtherIndexTypes) == rank()) &&
@@ -694,7 +826,8 @@ class View : public Impl::BasicViewFromTraits<DataType, Properties...>::type {
 // Define the workaround here since this condition will be re-used.
 // We undef KOKKOS_IMPL_VIEW_HOOKS_NVCC_WORKAROUND later.
 #if defined(KOKKOS_COMPILER_NVCC) || defined(KOKKOS_COMPILER_NVHPC) || \
-    (defined(KOKKOS_COMPILER_CLANG) && defined(KOKKOS_ENABLE_CUDA))
+    (defined(KOKKOS_COMPILER_CLANG) && KOKKOS_COMPILER_CLANG < 1600 && \
+     defined(KOKKOS_ENABLE_CUDA))
 #define KOKKOS_IMPL_VIEW_HOOKS_NVCC_WORKAROUND 1
 #endif
 #ifdef KOKKOS_IMPL_VIEW_HOOKS_NVCC_WORKAROUND
@@ -838,6 +971,14 @@ class View : public Impl::BasicViewFromTraits<DataType, Properties...>::type {
   // may assign unmanaged from managed.
 
   template <class RT, class... RP, class Arg0, class... Args>
+  View(const View<RT, RP...>& src_view, const Arg0 arg0, Args... args)
+      : base_t(Impl::subview_ctor_tag, src_view,
+               Impl::convert_to_kokkos_pair_if_std_pair(arg0),
+               Impl::convert_to_kokkos_pair_if_std_pair(args)...) {}
+
+  // std::pair isn't device-compatible
+  template <class RT, class... RP, class Arg0, class... Args>
+    requires(!Impl::ContainsStdPair<Arg0, Args...>)
   KOKKOS_INLINE_FUNCTION View(const View<RT, RP...>& src_view, const Arg0 arg0,
                               Args... args)
       : base_t(Impl::subview_ctor_tag, src_view, arg0, args...) {}
@@ -920,12 +1061,17 @@ class View : public Impl::BasicViewFromTraits<DataType, Properties...>::type {
             Impl::mapping_from_array_layout<typename mdspan_type::mapping_type>(
                 arg_layout)) {}
 
+  // Need both rvalue and lvalue versions of ctors which take
+  // things that are convertible to pointer_type.
+  // Can't take P by value since that would prevent value semantic
+  // types that allow implicit extraction of their ptr.
   template <class P, class... Args>
     requires(!std::is_null_pointer_v<P> &&
              std::is_convertible_v<P, pointer_type> &&
-             std::is_constructible_v<typename base_t::data_handle_type, P> &&
-             sizeof...(Args) != rank() + 1)
-  KOKKOS_FUNCTION explicit View(P ptr_, Args... args)
+             std::is_constructible_v<typename base_t::data_handle_type,
+                                     pointer_type> &&
+             ((sizeof...(Args)) != rank() + 1))
+  KOKKOS_FUNCTION explicit View(P&& ptr_, Args... args)
       : View(Kokkos::view_wrap(static_cast<pointer_type>(ptr_)), args...) {}
 
   // Special function to be preferred over the above for string literals
@@ -1051,16 +1197,15 @@ class View : public Impl::BasicViewFromTraits<DataType, Properties...>::type {
 #endif
 
   template <class... Args>
-  View(std::enable_if_t<
+    requires(
 #ifndef KOKKOS_COMPILER_MSVC
-           ((sizeof...(Args)) != rank() + 1) &&
-               (std::is_constructible_v<size_t, Args> && ... && true),
+        ((sizeof...(Args)) != rank() + 1) &&
+        (std::is_constructible_v<size_t, Args> && ... && true)
 #else
-           msvc_workaround_ctor_condition_1<Args...>(),
+        msvc_workaround_ctor_condition_1<Args...>()
 #endif
-           const std::string&>
-           arg_label,
-       const Args... args)
+            )
+  View(const std::string& arg_label, const Args... args)
 #ifdef KOKKOS_COMPILER_INTEL_LLVM  // FIXME_INTEL
       // Eventually we want to get rid of the array_layout thing entirely.
       // For now this avoids a bug in the intel compiler 2024.2, and 2025 tested
@@ -1106,16 +1251,15 @@ class View : public Impl::BasicViewFromTraits<DataType, Properties...>::type {
 
  public:
   template <class... Args>
-  View(std::enable_if_t<
+    requires(
 #ifndef KOKKOS_COMPILER_MSVC
-           ((sizeof...(Args)) == rank() + 1) &&
-               (std::is_constructible_v<size_t, Args> && ... && true),
+        ((sizeof...(Args)) == rank() + 1) &&
+        (std::is_constructible_v<size_t, Args> && ... && true)
 #else
-           msvc_workaround_ctor_condition_2<Args...>(),
+        msvc_workaround_ctor_condition_2<Args...>()
 #endif
-           const std::string&>
-           arg_label,
-       const Args... args)
+            )
+  View(const std::string& arg_label, const Args... args)
       : View(
             view_alloc_from_label_and_integrals(
                 std::bool_constant<traits::impl_is_customized>(), arg_label,
@@ -1132,17 +1276,15 @@ class View : public Impl::BasicViewFromTraits<DataType, Properties...>::type {
   }
 
   template <class... Args>
-  KOKKOS_FUNCTION View(
-      std::enable_if_t<
+    requires(
 #ifndef KOKKOS_COMPILER_MSVC
-          ((sizeof...(Args)) == rank() + 1) &&
-              (std::is_constructible_v<size_t, Args> && ... && true),
+        ((sizeof...(Args)) == rank() + 1) &&
+        (std::is_constructible_v<size_t, Args> && ... && true)
 #else
-           msvc_workaround_ctor_condition_2<Args...>(),
+           msvc_workaround_ctor_condition_2<Args...>()
 #endif
-          const pointer_type&>
-          arg_ptr,
-      const Args... args)
+            )
+  KOKKOS_FUNCTION View(const pointer_type& arg_ptr, const Args... args)
       : View(
             Kokkos::view_wrap(arg_ptr,
                               Kokkos::Impl::AccessorArg_t{
@@ -1419,19 +1561,23 @@ class View : public Impl::BasicViewFromTraits<DataType, Properties...>::type {
 
   KOKKOS_FUNCTION
   constexpr typename base_t::index_type extent(size_t r) const noexcept {
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_5
     // casting to int to avoid warning for pointless comparison of unsigned
     // with 0
     if (static_cast<int>(r) >= static_cast<int>(base_t::extents_type::rank()))
       return 1;
+#endif
     return base_t::extent(r);
   }
 
   KOKKOS_FUNCTION
   static constexpr size_t static_extent(size_t r) noexcept {
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_5
     // casting to int to avoid warning for pointless comparison of unsigned
     // with 0
     if (static_cast<int>(r) >= static_cast<int>(base_t::extents_type::rank()))
       return 1;
+#endif
     size_t value = base_t::extents_type::static_extent(r);
     return value == Kokkos::dynamic_extent ? 0 : value;
   }
@@ -1493,6 +1639,13 @@ struct ApplyToViewOfStaticRank {
 //----------------------------------------------------------------------------
 
 template <class D, class... P, class... Args>
+auto subview(const View<D, P...>& src, Args... args) {
+  return subview(src, Impl::convert_to_kokkos_pair_if_std_pair(args)...);
+}
+
+// std::pair isn't device-compatible
+template <class D, class... P, class... Args>
+  requires(!Impl::ContainsStdPair<Args...>)
 KOKKOS_INLINE_FUNCTION auto subview(const View<D, P...>& src, Args... args) {
   static_assert(View<D, P...>::rank == sizeof...(Args),
                 "subview requires one argument for each source View rank");
@@ -1503,6 +1656,39 @@ KOKKOS_INLINE_FUNCTION auto subview(const View<D, P...>& src, Args... args) {
       typename Impl::RemoveAlignedMemoryTrait<D, P...>::type,
       Args...>::type(src, args...);
 }
+
+#ifdef KOKKOS_ENABLE_IMPL_MDSPAN
+// Constructing the return type inline in the subview function body
+// led to compiler errors with CUDA 12.2 - related to the weird issue
+// where it tries to inject C++ Ranges function somewhere
+// However, this does not make the code more complex so I use the extra
+// struct unconditionally.
+namespace Impl {
+template <class V, class... Slices>
+struct SubviewReturnType {
+  using sub_mapping_t =
+      decltype(submdspan_mapping(std::declval<typename V::mapping_type>(),
+                                 transform_kokkos_slice_to_mdspan_slice(
+                                     std::declval<Slices>())...)
+                   .mapping);
+  using sub_extents_t  = typename sub_mapping_t::extents_type;
+  using sub_layout_t   = typename sub_mapping_t::layout_type;
+  using sub_accessor_t = typename V::accessor_type::offset_policy;
+  using sub_view_t = View<typename V::element_type, sub_extents_t, sub_layout_t,
+                          sub_accessor_t>;
+};
+}  // namespace Impl
+
+// std::pair isn't device-compatible
+template <class E, class I, size_t... Exts, class L, class A, class... Slices>
+  requires(!Impl::ContainsStdPair<Slices...>)
+KOKKOS_INLINE_FUNCTION auto subview(
+    const View<E, Kokkos::extents<I, Exts...>, L, A>& src, Slices... slices) {
+  using sub_view_t = typename Impl::SubviewReturnType<
+      View<E, Kokkos::extents<I, Exts...>, L, A>, Slices...>::sub_view_t;
+  return sub_view_t(src, slices...);
+}
+#endif
 
 template <class V, class... Args>
 using Subview = decltype(subview(std::declval<V>(), std::declval<Args>()...));
@@ -1520,6 +1706,8 @@ KOKKOS_INLINE_FUNCTION bool operator==(const View<LT, LP...>& lhs,
   // Same data, layout, dimensions
   using lhs_traits = ViewTraits<LT, LP...>;
   using rhs_traits = ViewTraits<RT, RP...>;
+  using lhs_view   = View<LT, LP...>;
+  using rhs_view   = View<RT, RP...>;
 
   return std::is_same_v<typename lhs_traits::const_value_type,
                         typename rhs_traits::const_value_type> &&
@@ -1527,12 +1715,10 @@ KOKKOS_INLINE_FUNCTION bool operator==(const View<LT, LP...>& lhs,
                         typename rhs_traits::array_layout> &&
          std::is_same_v<typename lhs_traits::memory_space,
                         typename rhs_traits::memory_space> &&
-         View<LT, LP...>::rank() == View<RT, RP...>::rank() &&
-         lhs.data() == rhs.data() && lhs.span() == rhs.span() &&
-         lhs.extent(0) == rhs.extent(0) && lhs.extent(1) == rhs.extent(1) &&
-         lhs.extent(2) == rhs.extent(2) && lhs.extent(3) == rhs.extent(3) &&
-         lhs.extent(4) == rhs.extent(4) && lhs.extent(5) == rhs.extent(5) &&
-         lhs.extent(6) == rhs.extent(6) && lhs.extent(7) == rhs.extent(7);
+         lhs_view::rank() == rhs_view::rank() && lhs.data() == rhs.data() &&
+         lhs.span() == rhs.span() &&
+         Kokkos::Impl::view_equal_extents_impl(
+             lhs, rhs, std::make_index_sequence<lhs_view::rank()>{});
 }
 
 template <class LT, class... LP, class RT, class... RP>
@@ -1543,6 +1729,22 @@ KOKKOS_INLINE_FUNCTION bool operator!=(const View<LT, LP...>& lhs,
 
 } /* namespace Kokkos */
 
+// ViewTraits handling if the arguments are mdspan style args
+// This is not circular: View will translate mdspan style args to original style
+// before creating its internal ViewTraits typedef
+// The reason we need this is that in certain places we create ViewTraits from
+// the template arguments of passed in Views (like in deep_copy).
+namespace Kokkos {
+template <class ElementType, class IndexType, size_t... Extents, class... Prop>
+struct ViewTraits<ElementType, extents<IndexType, Extents...>, Prop...>
+    : public View<ElementType, extents<IndexType, Extents...>,
+                  Prop...>::traits {
+  static_assert(sizeof...(Prop) == 2,
+                "When using mdspan arguments in View, both Layout and Accessor "
+                "must be specified explicitly.");
+};
+}  // namespace Kokkos
+
 // FIXME: https://github.com/kokkos/kokkos/issues/7736 We may want to move these
 // out
 #include <View/Kokkos_ViewCommonType.hpp>
@@ -1552,5 +1754,5 @@ KOKKOS_INLINE_FUNCTION bool operator!=(const View<LT, LP...>& lhs,
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
 
-#endif /* KOKKOS_ENABLE_IMPL_VIEW_LEGACY */
+#endif /* !KOKKOS_ENABLE_IMPL_VIEW_LEGACY */
 #endif /* #ifndef KOKKOS_VIEW_HPP */

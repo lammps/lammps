@@ -43,7 +43,8 @@ using MathConst::THIRD;
 
 /* ---------------------------------------------------------------------- */
 
-ThrOMP::ThrOMP(LAMMPS *ptr, int style) : lmp(ptr), fix(nullptr), thr_style(style), thr_error(0)
+ThrOMP::ThrOMP(LAMMPS *ptr, int style) :
+    lmp(ptr), fix(nullptr), thr_style(style), thr_error(0), thr_errline(0), thr_errfile(nullptr)
 {
   // register fix omp with this class
   fix = static_cast<FixOMP *>(lmp->modify->get_fix_by_id("package_omp"));
@@ -63,7 +64,6 @@ void ThrOMP::ev_setup_thr(int eflag, int vflag, int nall, double *eatom,
                           double **vatom, double **cvatom, ThrData *thr)
 {
   const int tid = thr->get_tid();
-  if (tid == 0) thr_error = 0;
 
   if (thr_style & THR_PAIR) {
     if (eflag & ENERGY_ATOM) {
@@ -204,7 +204,7 @@ void ThrOMP::reduce_thr(void *style, const int eflag, const int vflag,
           // pair_style hybrid will compute fdotr for us
           // but we first need to reduce the forces
           data_reduce_thr(&(f[0][0]), nall, nthreads, 3, tid);
-          fix->did_reduce();
+          if (tid == 0) fix->did_reduce();
           need_force_reduce = 0;
         }
       }
@@ -249,7 +249,9 @@ void ThrOMP::reduce_thr(void *style, const int eflag, const int vflag,
   case THR_BOND:
 
     if (evflag) {
-      Bond * const bond = lmp->force->bond;
+      // reduce into the style that set up the per-thread arrays: for a hybrid
+      // style this is the sub-style, not lmp->force->bond
+      auto *const bond = (Bond *) style;
 #if defined(_OPENMP)
 #pragma omp critical
 #endif
@@ -281,7 +283,7 @@ void ThrOMP::reduce_thr(void *style, const int eflag, const int vflag,
   case THR_ANGLE:
 
     if (evflag) {
-      Angle * const angle = lmp->force->angle;
+      auto *const angle = (Angle *) style;
 #if defined(_OPENMP)
 #pragma omp critical
 #endif
@@ -312,10 +314,60 @@ void ThrOMP::reduce_thr(void *style, const int eflag, const int vflag,
     }
     break;
 
+  case THR_ANGLE|THR_CHARMM: // special case for angle styles with a 1-3 pairwise term
+
+    if (evflag) {
+      auto *const angle = (Angle *) style;
+      Pair * const pair = lmp->force->pair;
+#if defined(_OPENMP)
+#pragma omp critical
+#endif
+      {
+        if (eflag & ENERGY_GLOBAL) {
+          angle->energy += thr->eng_angle;
+          pair->eng_vdwl += thr->eng_vdwl;
+          pair->eng_coul += thr->eng_coul;
+          thr->eng_angle = 0.0;
+          thr->eng_vdwl = 0.0;
+          thr->eng_coul = 0.0;
+        }
+
+        if (vflag & (VIRIAL_PAIR | VIRIAL_FDOTR)) {
+          for (int i=0; i < 6; ++i) {
+            angle->virial[i] += thr->virial_angle[i];
+            pair->virial[i] += thr->virial_pair[i];
+            thr->virial_angle[i] = 0.0;
+            thr->virial_pair[i] = 0.0;
+          }
+        }
+      }
+
+      if (eflag & ENERGY_ATOM) {
+        data_reduce_thr(&(angle->eatom[0]), nall, nthreads, 1, tid);
+        data_reduce_thr(&(pair->eatom[0]), nall, nthreads, 1, tid);
+      }
+      if (vflag & VIRIAL_ATOM) {
+        data_reduce_thr(&(angle->vatom[0][0]), nall, nthreads, 6, tid);
+      }
+      if (vflag & VIRIAL_CENTROID) {
+        data_reduce_thr(&(angle->cvatom[0][0]), nall, nthreads, 9, tid);
+      }
+      // per-atom virial and per-atom centroid virial are the same for two-body
+      // many-body pair styles not yet implemented
+      if (vflag & (VIRIAL_ATOM | VIRIAL_CENTROID)) {
+        data_reduce_thr(&(pair->vatom[0][0]), nall, nthreads, 6, tid);
+      }
+      // check cvatom_pair, because can't access centroidstressflag
+      if ((vflag & VIRIAL_CENTROID) && thr->cvatom_pair) {
+        data_reduce_thr(&(pair->cvatom[0][0]), nall, nthreads, 9, tid);
+      }
+    }
+    break;
+
   case THR_DIHEDRAL:
 
     if (evflag) {
-      Dihedral * const dihedral = lmp->force->dihedral;
+      auto *const dihedral = (Dihedral *) style;
 #if defined(_OPENMP)
 #pragma omp critical
 #endif
@@ -349,7 +401,7 @@ void ThrOMP::reduce_thr(void *style, const int eflag, const int vflag,
   case THR_DIHEDRAL|THR_CHARMM: // special case for CHARMM dihedrals
 
     if (evflag) {
-      Dihedral * const dihedral = lmp->force->dihedral;
+      auto *const dihedral = (Dihedral *) style;
       Pair * const pair = lmp->force->pair;
 #if defined(_OPENMP)
 #pragma omp critical
@@ -399,7 +451,7 @@ void ThrOMP::reduce_thr(void *style, const int eflag, const int vflag,
   case THR_IMPROPER:
 
     if (evflag) {
-      Improper *improper = lmp->force->improper;
+      auto *const improper = (Improper *) style;
 #if defined(_OPENMP)
 #pragma omp critical
 #endif
@@ -446,11 +498,24 @@ void ThrOMP::reduce_thr(void *style, const int eflag, const int vflag,
   if (style == fix->last_omp_style) {
     if (need_force_reduce) {
       data_reduce_thr(&(f[0][0]), nall, nthreads, 3, tid);
-      fix->did_reduce();
+      if (tid == 0) fix->did_reduce();
     }
 
     if (lmp->atom->torque)
       data_reduce_thr(&(lmp->atom->torque[0][0]), nall, nthreads, 3, tid);
+
+    // fold back the per-thread copies of the other force-like per-atom
+    // properties that pair styles accumulate for some atom styles.
+    // the conditions depend only on the atom style, so all threads
+    // reach the barrier inside data_reduce_thr() the same number of times.
+
+    Atom *const atom = lmp->atom;
+    if (atom->erforce) data_reduce_thr(atom->erforce, nall, nthreads, 1, tid);
+    if (atom->desph) data_reduce_thr(atom->desph, nall, nthreads, 1, tid);
+    if (atom->drho) data_reduce_thr(atom->drho, nall, nthreads, 1, tid);
+    if (atom->edpd_flux) data_reduce_thr(atom->edpd_flux, nall, nthreads, 1, tid);
+    if (atom->cc_flux && (atom->cc_species > 0))
+      data_reduce_thr(&(atom->cc_flux[0][0]), nall, nthreads, atom->cc_species, tid);
   }
   thr->timer(Timer::COMM);
 }

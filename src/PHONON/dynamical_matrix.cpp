@@ -26,6 +26,7 @@
 #include "domain.h"
 #include "error.h"
 #include "finish.h"
+#include "fix.h"
 #include "force.h"
 #include "group.h"
 #include "improper.h"
@@ -46,7 +47,7 @@ enum{REGULAR,ESKM};
 
 /* ---------------------------------------------------------------------- */
 
-DynamicalMatrix::DynamicalMatrix(LAMMPS *lmp) : Command(lmp), fp(nullptr)
+DynamicalMatrix::DynamicalMatrix(LAMMPS *lmp) : Command(lmp), groupmap(nullptr), fp(nullptr)
 {
   external_force_clear = 0;
 }
@@ -93,7 +94,6 @@ void DynamicalMatrix::setup()
     force->kspace->setup();
   }
   update_force();
-
 
   update->setupflag = 0;
 
@@ -221,9 +221,10 @@ void DynamicalMatrix::options(int narg, char **arg)
       iarg += 2;
     } else error->all(FLERR,"Illegal dynamical_matrix command");
   }
-  if (file_flag == 1) {
-    openfile(filename);
-  }
+  // always open the output file (documented default name unless changed
+  // with the file keyword); without it the matrix was silently discarded
+
+  openfile(filename);
 }
 
 /* ----------------------------------------------------------------------
@@ -240,8 +241,11 @@ void DynamicalMatrix::openfile(const char *filename)
 
   if (me == 0) {
     if (compressed) {
-      fp = platform::compressed_write(std::string(filename)+".gz");
-      if (!fp) error->one(FLERR, Error::NOLASTLINE, "Cannot open gzip compressed file");
+      std::string gzfile = std::string(filename) + ".gz";
+      fp = platform::compressed_write(gzfile);
+      if (!fp)
+        error->one(FLERR, Error::NOLASTLINE, "Cannot open compressed file {}: {}", gzfile,
+                   platform::compressed_open_error(gzfile));
     } else if (binaryflag) {
       fp = fopen(filename,"wb");
     } else {
@@ -414,7 +418,6 @@ void DynamicalMatrix::displace_atom(int local_idx, int direction, int magnitude)
   }
 }
 
-
 /* ----------------------------------------------------------------------
    evaluate potential energy and forces
    may migrate atoms due to reneighboring
@@ -428,11 +431,8 @@ void DynamicalMatrix::update_force()
   neighbor->ago = 0;
   if (modify->get_fix_by_id("package_intel")) neighbor->decide();
   force_clear();
-  int n_pre_force = modify->n_pre_force;
-  int n_pre_reverse = modify->n_pre_reverse;
-  int n_post_force = modify->n_post_force_any;
 
-  if (n_pre_force) {
+  if (modify->has_fixes(FixConst::PRE_FORCE)) {
     modify->pre_force(vflag);
     timer->stamp(Timer::MODIFY);
   }
@@ -452,7 +452,7 @@ void DynamicalMatrix::update_force()
     force->kspace->compute(eflag,vflag);
     timer->stamp(Timer::KSPACE);
   }
-  if (n_pre_reverse) {
+  if (modify->has_fixes(FixConst::PRE_REVERSE)) {
     modify->pre_reverse(eflag,vflag);
     timer->stamp(Timer::MODIFY);
   }
@@ -462,7 +462,7 @@ void DynamicalMatrix::update_force()
   }
   // force modifications
 
-  if (n_post_force) {
+  if (modify->has_fixes(FixConst::POST_FORCE_ANY)) {
     modify->post_force(vflag);
     timer->stamp(Timer::MODIFY);
   }

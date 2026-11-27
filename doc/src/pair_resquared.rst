@@ -36,7 +36,7 @@ size :math:`\sigma`.  The distinction is made to allow the pair style to make
 efficient calculations of ellipsoid/solvent interactions.
 
 Details for the equations used are given in the references below and
-in `this supplementary document <PDF/pair_resquared_extra.pdf>`_.
+in the :ref:`Implementation details <resquared_details>` section below.
 
 Use of this pair style requires the NVE, NVT, or NPT fixes with the
 *asphere* extension (e.g. :doc:`fix nve/asphere <fix_nve_asphere>`) in
@@ -72,7 +72,8 @@ A12 specifies the energy prefactor which depends on the types of the
 two interacting particles.
 
 For ellipsoid/ellipsoid interactions, the interaction is computed by
-the formulas in the supplementary document referenced above.  A12 is
+the formulas in the :ref:`Implementation details <resquared_details>`
+section below.  A12 is
 the Hamaker constant as described in :ref:`(Everaers) <Everaers3>`. In LJ
 units:
 
@@ -85,9 +86,8 @@ composing the ellipsoids and :math:`\epsilon_{\mathrm{LJ}}` determines
 the interaction strength of the spherical particles.
 
 For ellipsoid/LJ sphere interactions, the interaction is also computed
-by the formulas in the supplementary document referenced above.  A12
-has a modified form (see `here <PDF/pair_resquared_extra.pdf>`_ for
-details):
+by the formulas in the :ref:`Implementation details <resquared_details>`
+section below.  A12 has a modified form:
 
 .. math::
 
@@ -95,7 +95,8 @@ details):
 
 For ellipsoid/LJ sphere interactions, a correction to the distance-
 of-closest approach equation has been implemented to reduce the error
-from two particles of disparate sizes; see `this supplementary document <PDF/pair_resquared_extra.pdf>`_.
+from two particles of disparate sizes; see the :ref:`Implementation
+details <resquared_details>` section below.
 
 For LJ sphere/LJ sphere interactions, the interaction is computed
 using the standard Lennard-Jones formula, which is much cheaper to
@@ -153,6 +154,112 @@ where a, b, and c give the particle diameters.
 
 The last coefficient is optional.  If not specified, the global cutoff
 specified in the pair_style command is used.
+
+----------
+
+.. _resquared_details:
+
+Implementation details
+""""""""""""""""""""""
+
+The following is a summary of the RE-squared formulas as implemented in
+LAMMPS by Mike Brown (Sandia National Labs) in 2007.  Let the shape
+matrices :math:`\mathbf{S}_i = \mathrm{diag}(a_i, b_i, c_i)` be given by
+the radii of ellipsoid *i*, i.e. half of the diameters set with the
+:doc:`set shape <set>` command or in the data file.  Let the relative
+energy matrices :math:`\mathbf{E}_i = \mathrm{diag}(\epsilon_{i,a},
+\epsilon_{i,b}, \epsilon_{i,c})` be given by the relative well depths of
+the :doc:`pair_coeff <pair_coeff>` command.  Let :math:`\mathbf{A}_i` be
+the rotation matrix from the simulation box frame to the body frame of
+ellipsoid *i*, :math:`\mathbf{r}` the vector between the centers of the
+two particles, :math:`r = |\mathbf{r}|`, and :math:`\hat{\mathbf{r}} =
+\mathbf{r}/r`.
+
+The RE-squared interaction between two ellipsoids is the sum of an
+attractive and a repulsive part:
+
+.. math::
+
+   U = & U_A + U_R, \\
+   U_\alpha = & \frac{A_{12}}{m_\alpha} \left( \frac{\sigma}{h}
+   \right)^{n_\alpha} \left( 1 + o_\alpha \eta \chi \frac{\sigma}{h}
+   \right) \prod_{i=1}^2 \frac{a_i b_i c_i}{(a_i + h/p_\alpha) (b_i +
+   h/p_\alpha) (c_i + h/p_\alpha)}, \qquad \alpha = A, R
+
+with the constants
+
+.. math::
+
+   m_A = -36, \quad n_A = 0, \quad o_A = 3, \quad p_A = 2, \qquad
+   m_R = 2025, \quad n_R = 6, \quad o_R = \frac{45}{56}, \quad p_R =
+   60^{1/3}.
+
+The orientation-dependent terms are
+
+.. math::
+
+   \chi = & 2 \hat{\mathbf{r}}^T \mathbf{B}^{-1} \hat{\mathbf{r}},
+   \qquad \mathbf{B} = \mathbf{A}_1^T \mathbf{E}_1 \mathbf{A}_1 +
+   \mathbf{A}_2^T \mathbf{E}_2 \mathbf{A}_2, \\
+   \eta = & \frac{\det(\mathbf{S}_1)/\sigma_1^2 +
+   \det(\mathbf{S}_2)/\sigma_2^2}{\left[ \det(\mathbf{H}) / (\sigma_1 +
+   \sigma_2) \right]^{1/2}}, \qquad \sigma_i = \left(
+   \hat{\mathbf{r}}^T \mathbf{A}_i^T \mathbf{S}_i^{-2} \mathbf{A}_i
+   \hat{\mathbf{r}} \right)^{-1/2}, \qquad \mathbf{H} =
+   \frac{1}{\sigma_1} \mathbf{A}_1^T \mathbf{S}_1^2 \mathbf{A}_1 +
+   \frac{1}{\sigma_2} \mathbf{A}_2^T \mathbf{S}_2^2 \mathbf{A}_2.
+
+The distance of closest approach *h* is computed with the approximation
+of :ref:`(Perram) <Perram2>`:
+
+.. math::
+
+   h = r - \sigma_{12}, \qquad \sigma_{12} = \left[ \frac{1}{2}
+   \hat{\mathbf{r}}^T \mathbf{G}^{-1} \hat{\mathbf{r}} \right]^{-1/2},
+   \qquad \mathbf{G} = \mathbf{A}_1^T \mathbf{S}_1^2 \mathbf{A}_1 +
+   \mathbf{A}_2^T \mathbf{S}_2^2 \mathbf{A}_2.
+
+The interaction between an ellipsoid and an LJ sphere is obtained from
+the limit :math:`a_2 \to 0` with :math:`a_2 = b_2 = c_2` and
+:math:`\frac{4}{3}\pi a_2^3 \rho = 1`:
+
+.. math::
+
+   U_\mathrm{elj} = & U_{A,\mathrm{elj}} + U_{R,\mathrm{elj}}, \\
+   U_{\alpha,\mathrm{elj}} = & \frac{3 \sigma^3 p_\alpha^3}{4 \pi h^3}
+   \frac{A_{12}}{m_\alpha} \left( \frac{\sigma}{h} \right)^{n_\alpha}
+   \left( 1 + o_\alpha \chi_\mathrm{elj} \frac{\sigma}{h} \right)
+   \frac{a_1 b_1 c_1}{(a_1 + h/p_\alpha) (b_1 + h/p_\alpha) (c_1 +
+   h/p_\alpha)},
+
+where :math:`A_{12}` has the modified form given above and
+:math:`\chi_\mathrm{elj}` is computed as above, but with
+:math:`\mathbf{B}_\mathrm{elj} = \mathbf{A}_1^T \mathbf{E}_1
+\mathbf{A}_1 + \mathbf{I}`.  To reduce the error of the distance of
+closest approach for two particles of very different size, the radii of
+the ellipsoid are enlarged by the radius :math:`\sigma/2` of the LJ
+sphere, :math:`\tilde{\mathbf{S}}_1 = \mathrm{diag}(a_1 + \sigma/2,
+b_1 + \sigma/2, c_1 + \sigma/2)`, and the sphere is treated as a point:
+
+.. math::
+
+   h = r - \sigma_{12}, \qquad \sigma_{12} = \left[ \hat{\mathbf{r}}^T
+   \left( \mathbf{A}_1^T \tilde{\mathbf{S}}_1^2 \mathbf{A}_1
+   \right)^{-1} \hat{\mathbf{r}} \right]^{-1/2}.
+
+Thus :math:`\sigma_{12}` is the distance from the center of the
+ellipsoid to the surface of the enlarged ellipsoid along
+:math:`\hat{\mathbf{r}}`.
+
+The interaction between two LJ spheres is computed as
+
+.. math::
+
+   U_\mathrm{lj} = 4 A_{12} \left[ \left( \frac{\sigma}{r} \right)^{12}
+   - \left( \frac{\sigma}{r} \right)^6 \right].
+
+The forces and torques are computed from the analytic derivatives of
+these expressions.
 
 ----------
 
@@ -232,3 +339,7 @@ none
 .. _Babadi:
 
 **(Babadi)** Babadi, Ejtehadi, Everaers, J Comp Phys, 219, 770-779 (2006).
+
+.. _Perram2:
+
+**(Perram)** Perram and Rasmussen, Phys Rev E, 54, 6565-6572 (1996).

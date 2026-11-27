@@ -1,10 +1,11 @@
 .. index:: pair_style lj/expand/sphere
+.. index:: pair_style lj/expand/sphere/kk
 .. index:: pair_style lj/expand/sphere/omp
 
 pair_style lj/expand/sphere command
 ===================================
 
-Accelerator Variants: *lj/expand/sphere/omp*
+Accelerator Variants: *lj/expand/sphere/kk*, *lj/expand/sphere/omp*
 
 Syntax
 """"""
@@ -122,10 +123,11 @@ is at :math:`2^{\frac{1}{6}} \sigma`.
 Coefficients
 """"""""""""
 
-The following coefficients must be defined for each pair of atoms types via the
-:doc:`pair_coeff <pair_coeff>` command as in the examples above, or in the data
-file or restart files read by the :doc:`read_data <read_data>` or
-:doc:`read_restart <read_restart>` commands, or by mixing as described below:
+The following coefficients must be defined for each pair of atom types
+via the :doc:`pair_coeff <pair_coeff>` command as in the examples above,
+or in the data file or restart files read by the :doc:`read_data
+<read_data>` or :doc:`read_restart <read_restart>` commands, or by
+mixing as described below:
 
 * :math:`\epsilon` (energy units)
 * :math:`\sigma` (distance units)

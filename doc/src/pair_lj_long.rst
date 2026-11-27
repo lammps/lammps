@@ -31,7 +31,7 @@ Syntax
        flag_lj = *long* or *cut* or *off*
          *long* = use Kspace long-range summation for dispersion 1/r\^6 term
          *cut* = use a cutoff on dispersion 1/r\^6 term
-         *off* = omit disperion 1/r\^6 term entirely
+         *off* = omit dispersion 1/r\^6 term entirely
        flag_coul = *long* or *off*
          *long* = use Kspace long-range summation for Coulombic 1/r term
          *off* = omit Coulombic term
@@ -215,7 +215,7 @@ These pair styles support the :doc:`pair_modify <pair_modify>` table and
 table/disp options since they can tabulate the short-range portion of
 the long-range Coulombic and dispersion interactions.
 
-Thes pair styles do not support the :doc:`pair_modify <pair_modify>`
+These pair styles do not support the :doc:`pair_modify <pair_modify>`
 tail option for adding a long-range tail correction to the
 Lennard-Jones portion of the energy and pressure.
 

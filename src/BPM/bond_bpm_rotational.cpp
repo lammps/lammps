@@ -1172,9 +1172,11 @@ double BondBPMRotational::single(int type, double rsq, int i, int j, double &ffo
   }
 
   double ri_norm = 0.0;
-  double ri[3], rf[3], bondstore[7];
+  double ri[3] = {0.0, 0.0, 0.0}, rf[3], bondstore[7];
+  int found = 0;
   for (int n = 0; n < atom->num_bond[i]; n++) {
     if (atom->bond_atom[i][n] == atom->tag[j]) {
+      found = 1;
       ri_norm = fix_bond_history->get_atom_value(i, n, 0);
       ri[0] = fix_bond_history->get_atom_value(i, n, 1) * ri_norm;
       ri[1] = fix_bond_history->get_atom_value(i, n, 2) * ri_norm;
@@ -1186,6 +1188,9 @@ double BondBPMRotational::single(int type, double rsq, int i, int j, double &ffo
       }
     }
   }
+  if (!found)
+    error->one(FLERR, "Bond between atoms {} and {} not found in bond history",
+               atom->tag[i], atom->tag[j]);
 
   double **x = atom->x;
   MathExtra::sub3(x[j], x[i], rf);

@@ -39,11 +39,6 @@ Examples
    pair_coeff 1 1 2.05 2.8
    pair_coeff * *
 
-   pair_style lubricate 1.5 1 1 2.01 2.5
-   pair_coeff * *
-   variable mu equal ramp(1,2)
-   fix 1 all adapt 1 pair lubricate mu * * v_mu
-
 Description
 """""""""""
 
@@ -112,12 +107,26 @@ as long as *flagVF* is set to 1 (default).
    <pair_lubricateU>` command.
 
 Style *lubricate* requires monodisperse spherical particles; style
-*lubricate/poly* allows for polydisperse spherical particles.
+*lubricate/poly* allows for polydisperse spherical particles.  For
+particles of different size, *lubricate/poly* uses the near-contact
+expansions of the two-sphere resistance functions of :ref:`(Jeffrey and
+Onishi) <Jeffrey1>`, see also :ref:`(Kim and Karrila) <KimKarrila1>`.
 
-The viscosity *mu* can be varied in a time-dependent manner over the
-course of a simulation, in which case in which case the pair_style
-setting for *mu* will be overridden.  See the :doc:`fix adapt <fix_adapt>`
-command for details.
+.. versionchanged:: 13Nov2026
+
+For *lubricate/poly* the logarithmic terms of the resistance functions
+use the gap between the particle surfaces divided by the mean radius of
+the two particles, so that the lubrication forces between particles of
+different size are equal and opposite.  Results for particles of equal
+size are unchanged.
+
+.. versionchanged:: 30Sep2026
+
+Style *lubricate* does not include the FLD drag force in the virial.
+The drag acts on each particle individually rather than between pairs,
+so it does not contribute to the pressure through the F dot r sum.
+Styles *lubricate/poly*, *lubricateU* and *lubricateU/poly* treat it the
+same way.
 
 If the suspension is sheared via the :doc:`fix deform <fix_deform>`
 command then the pair style uses the shear rate to adjust the
@@ -225,6 +234,15 @@ The default settings for the optional args are flagHI = 1 and flagVF =
 .. _Ball1:
 
 **(Ball)** Ball and Melrose, Physica A, 247, 444-472 (1997).
+
+.. _Jeffrey1:
+
+**(Jeffrey)** Jeffrey and Onishi, J Fluid Mech, 139, 261-290 (1984).
+
+.. _KimKarrila1:
+
+**(Kim and Karrila)** Kim and Karrila, Microhydrodynamics: Principles and
+Selected Applications, Butterworth-Heinemann, Boston (1991).
 
 .. _Kumar1:
 

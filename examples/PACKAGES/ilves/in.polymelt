@@ -1,0 +1,45 @@
+# Long-chain bead polymer melt with rigid bonds constrained by fix ilves.
+#
+# A few (5) very long linear chains (~10000 beads each, ~50000 beads total) form
+# a dense LJ melt; every backbone bond is held rigid by fix ilves.  Because the
+# chains are so long, each is a single large connected constraint cluster -- the
+# regime where a sparse coupled solver (ILVES) is needed and fix shake degrades.
+# Companion data file: data.polymelt.
+
+units           lj
+atom_style      bond
+boundary        p p p
+
+read_data       data.polymelt
+
+# bonded beads do not interact through the pair potential (the bond/constraint
+# sets their separation); all other pairs use a standard 12-6 LJ
+special_bonds   lj 0.0 1.0 1.0
+pair_style      lj/cut 2.5
+pair_coeff      1 1 1.0 1.0
+
+# harmonic bond definition supplies the equilibrium length used as the rigid
+# constraint length; its stiffness is irrelevant once fix ilves constrains it
+bond_style      harmonic
+bond_coeff      1 200.0 0.97
+
+neighbor        0.5 bin
+neigh_modify    delay 0 every 1 check yes
+
+# constrain every bond (type 1); print per-bond statistics every 1000 steps
+fix             cstr all ilves 1.0e-4 100 500 b 1
+fix             1 all nvt temp 1.0 1.0 0.5
+
+timestep        0.005
+thermo          100
+thermo_style    custom step temp epair etotal press density
+
+# dump           viz all image 100 myimage-*.png mol type bond atom type &
+#                                  size 800 800 view 80 10 zoom 1.4641 box yes 0.025 &
+#                                  shiny 0.2  fsaa yes ssao yes 453983 0.6
+# dump_modify    viz pad 6 boxcolor steelblue backcolor black backcolor2 white adiam 1 0.75 &
+#                color map1 0.243 0.298 0.078 color map2 0.780 0.867 0.529 color map3 0.729 0.525 0.361 &
+#                color map4 0.275 0.953 0.243 color map5 0.992 0.349 0.145 &
+#                amap 1 5 sa 1.0 5 map1 map2 map3 map4 map5
+
+run             500

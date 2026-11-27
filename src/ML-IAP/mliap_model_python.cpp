@@ -70,7 +70,7 @@ MLIAPModelPython::MLIAPModelPython(LAMMPS *lmp, char *coefffilename, bool is_chi
     PyList_Append(py_path, PyUnicode_FromString(potentials_path));
   }
   PyGILState_Release(gstate);
-  if (coefffilename) read_coeffs(coefffilename);
+  if (coefffilename) MLIAPModelPython::read_coeffs(coefffilename);
 
 
 }
@@ -107,7 +107,7 @@ void MLIAPModelPython::read_coeffs(char *fname)
   PyGILState_Release(gstate);
 
   if (model_loaded) {
-    this->connect_param_counts();
+    MLIAPModelPython::connect_param_counts();
   } else {
     if (comm->me == 0) utils::logmesg(lmp, "Loading python model deferred.\n");
   }

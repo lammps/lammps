@@ -231,13 +231,17 @@ namespace ReaxFF {
       } // for (j)
 
       // Wait for all threads to finish counting angles
-#if defined(_OPENMP) && !defined(__NVCC__)
+#if defined(_OPENMP)
 #pragma omp barrier
 #endif
       // Master thread uses angle counts to compute offsets
       // This can be threaded
-#if defined(_OPENMP) && !defined(__NVCC__)
+#if defined(_OPENMP)
+#if _OPENMP >= 202011
+#pragma omp masked
+#else
 #pragma omp master
+#endif
 #endif
       {
         int current_count = 0;
@@ -252,7 +256,7 @@ namespace ReaxFF {
       }
 
       // All threads wait till master thread finished computing offsets
-#if defined(_OPENMP) && !defined(__NVCC__)
+#if defined(_OPENMP)
 #pragma omp barrier
 #endif
       // Original loop, but now using precomputed offsets

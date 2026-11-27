@@ -1,5 +1,6 @@
 .. index:: pair_style tersoff/mod
 .. index:: pair_style tersoff/mod/c
+.. index:: pair_style tersoff/mod/c/kk
 .. index:: pair_style tersoff/mod/gpu
 .. index:: pair_style tersoff/mod/kk
 .. index:: pair_style tersoff/mod/omp
@@ -13,7 +14,7 @@ Accelerator Variants: *tersoff/mod/gpu*, *tersoff/mod/kk*, *tersoff/mod/omp*
 pair_style tersoff/mod/c command
 ================================
 
-Accelerator Variants: *tersoff/mod/c/omp*
+Accelerator Variants: *tersoff/mod/c/kk*, *tersoff/mod/c/omp*
 
 Syntax
 """"""
@@ -103,7 +104,7 @@ where N is the number of LAMMPS atom types:
 * N element names = mapping of Tersoff/MOD elements to atom types
 
 As an example, imagine the Si.tersoff_mod file has Tersoff values for Si.
-If your LAMMPS simulation has 3 Si atoms types, you would use the following
+If your LAMMPS simulation has 3 Si atom types, you would use the following
 pair_coeff command:
 
 .. code-block:: LAMMPS
@@ -203,8 +204,7 @@ This pair style requires the :doc:`newton <newton>` setting to be "on"
 for pair interactions.
 
 The *shift* keyword is not supported by the *tersoff/gpu*,
-*tersoff/intel*, *tersoff/kk*, *tersoff/table* or *tersoff/table/omp*
-variants.
+*tersoff/intel*, *tersoff/table* or *tersoff/table/omp* variants.
 
 The *tersoff/mod* potential files provided with LAMMPS (see the potentials
 directory) are parameterized for metal :doc:`units <units>`.  You can

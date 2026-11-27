@@ -17,7 +17,6 @@
 ------------------------------------------------------------------------- */
 
 #include "output.h"
-#include "style_dump.h"         // IWYU pragma: keep
 
 #include "atom.h"
 #include "comm.h"
@@ -55,12 +54,15 @@ struct Particle {
 }
 
 /* ----------------------------------------------------------------------
-   one instance per dump style in style_dump.h
+   process-global registry of dump style factory functions.  Shared by all
+   LAMMPS instances and persistent across the "clear" command.  Built-in styles
+   are registered once by the generated register_dump_styles().
 ------------------------------------------------------------------------- */
 
-template <typename T> static Dump *dump_creator(LAMMPS *lmp, int narg, char ** arg)
+CreatorRegistry<Output::DumpCreator> &Output::dump_styles()
 {
-  return new T(lmp, narg, arg);
+  static CreatorRegistry<Output::DumpCreator> registry;
+  return registry;
 }
 
 /* ----------------------------------------------------------------------
@@ -87,6 +89,7 @@ Output::Output(LAMMPS *lmp) : Pointers(lmp), thermo(nullptr)
 
   ndump = 0;
   max_dump = 0;
+  nchanges = nchanges_at_init = 0;
   any_time_dumps = 0;
   next_thermo = next_restart = next_dump_any = next_time_dump_any = MAXBIGINT;
   mode_dump = nullptr;
@@ -106,14 +109,6 @@ Output::Output(LAMMPS *lmp) : Pointers(lmp), thermo(nullptr)
   var_restart_single = var_restart_double = nullptr;
   restart = nullptr;
 
-  dump_map = new DumpCreatorMap();
-
-#define DUMP_CLASS
-#define DumpStyle(key,Class) \
-  (*dump_map)[#key] = &dump_creator<Class>;
-#include "style_dump.h"         // IWYU pragma: keep
-#undef DumpStyle
-#undef DUMP_CLASS
 }
 
 /* ----------------------------------------------------------------------
@@ -141,8 +136,6 @@ Output::~Output()
   delete[] var_restart_double;
   delete restart;
 
-  delete dump_map;
-
   delete thermo;
   delete[] var_thermo;
 
@@ -162,6 +155,7 @@ void Output::init()
   }
 
   for (int i = 0; i < ndump; i++) dump[i]->init();
+  nchanges_at_init = nchanges;
   any_time_dumps = 0;
   for (int i = 0; i < ndump; i++) {
     if (mode_dump[i]) any_time_dumps = 1;
@@ -385,7 +379,7 @@ void Output::write(bigint ntimestep)
   //   if wrap when timestep size varies frequently,
   //     then can do many unneeded addstep() --> inefficient
   //   hard to know if timestep varies, since run every could change it
-  //   can't remove an uneeded addstep from a compute, b/c don't know
+  //   can't remove an unneeded addstep from a compute, b/c don't know
   //     what other command may have added it
 
   int mode_dump_any = 0;  // any variable time or clearstep dump
@@ -678,7 +672,7 @@ void Output::write_molecule_json(FILE *fp, int json_level, int printflag, int *i
       std::string metadata_val;
 
       Particle myatom;
-      int n2send = 0, n2recv = 0;
+      int n2send = 0;
       for (int i = 0; i < atom->nlocal; i++) {
         if (ivec[i] == thisval) {
           myatom.type = atom->type[i];
@@ -692,6 +686,7 @@ void Output::write_molecule_json(FILE *fp, int json_level, int printflag, int *i
         }
       }
       #if !defined(MPI_STUBS)
+      int n2recv = 0;
       if (comm->me != 0) {
         if (metadata && comm->me == sendr) {
           int len = metadata_val.size();
@@ -966,8 +961,7 @@ Dump *Output::add_dump(int narg, char **arg)
   // create the Dump
   int idump = ndump;
 
-  if (dump_map->find(arg[2]) != dump_map->end()) {
-    DumpCreator &dump_creator = (*dump_map)[arg[2]];
+  if (DumpCreator dump_creator = dump_styles().find(arg[2])) {
     dump[idump] = dump_creator(lmp, narg, arg);
   } else error->all(FLERR,utils::check_packages_for_style("dump",arg[2],lmp));
 
@@ -983,6 +977,7 @@ Dump *Output::add_dump(int narg, char **arg)
   next_dump[idump] = 0;
 
   ndump++;
+  nchanges++;
   dump_list = std::vector<Dump *>(dump, dump + ndump);
   return dump[idump];
 }
@@ -1000,6 +995,7 @@ void Output::modify_dump(int narg, char **arg)
   auto *idump = get_dump_by_id(arg[0]);
   if (!idump) error->all(FLERR, Error::ARGZERO, "Could not find dump_modify ID: {}", arg[0]);
   idump->modify_params(narg-1,&arg[1]);
+  nchanges++;
 }
 
 /* ----------------------------------------------------------------------
@@ -1031,6 +1027,7 @@ void Output::delete_dump(const std::string &id)
     ivar_dump[i-1] = ivar_dump[i];
   }
   ndump--;
+  nchanges++;
   dump[ndump] = nullptr;
   var_dump[ndump] = nullptr;
   dump_list = std::vector<Dump *>(dump, dump + ndump);
@@ -1099,11 +1096,12 @@ void Output::create_thermo(int narg, char **arg)
   if (thermo->modified && comm->me == 0)
     error->warning(FLERR,"New thermo_style command, previous thermo_modify settings will be lost");
 
-  // set thermo = nullptr in case new Thermo throws an error
+  // create the new instance first, so that the previous one stays valid
+  // when the Thermo constructor throws an error (e.g. in library mode)
 
+  auto *newthermo = new Thermo(lmp,narg,arg);
   delete thermo;
-  thermo = nullptr;
-  thermo = new Thermo(lmp,narg,arg);
+  thermo = newthermo;
 }
 
 /* ----------------------------------------------------------------------

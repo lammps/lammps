@@ -33,7 +33,9 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairDSMC::PairDSMC(LAMMPS *lmp) : Pair(lmp)
+PairDSMC::PairDSMC(LAMMPS *lmp) :
+    Pair(lmp), cut(nullptr), sigma(nullptr), particle_list(nullptr), first(nullptr),
+    number(nullptr), V_sigma_max(nullptr)
 {
   single_enable = 0;
 
@@ -219,7 +221,7 @@ void PairDSMC::settings(int narg, char **arg)
 
   if (max_cell_size <= 0.0) error->all(FLERR,"Illegal pair_style command");
   if (seed <= 0) error->all(FLERR,"Illegal pair_style command");
-  if (random) delete random;
+  delete random;
   random = new RanMars(lmp,seed + comm->me);
 
   kT_ref = force->boltz*T_ref;
@@ -290,6 +292,12 @@ void PairDSMC::init_style()
 
   total_ncells = ncellsx*ncellsy*ncellsz;
   vol = cellx*celly*cellz;
+
+  // free storage from a previous init_style() call
+
+  memory->destroy(particle_list);
+  memory->destroy(first);
+  memory->destroy(number);
 
   memory->create(particle_list,atom->ntypes+1,0,"pair:particle_list");
   memory->create(first,atom->ntypes+1,total_ncells,"pair:first");
@@ -366,6 +374,10 @@ void PairDSMC::write_restart_settings(FILE *fp)
   fwrite(&cut_global,sizeof(double),1,fp);
   fwrite(&max_cell_size,sizeof(double),1,fp);
   fwrite(&seed,sizeof(int),1,fp);
+  fwrite(&weighting,sizeof(double),1,fp);
+  fwrite(&T_ref,sizeof(double),1,fp);
+  fwrite(&recompute_vsigmamax_stride,sizeof(int),1,fp);
+  fwrite(&vsigmamax_samples,sizeof(int),1,fp);
   fwrite(&offset_flag,sizeof(int),1,fp);
   fwrite(&mix_flag,sizeof(int),1,fp);
 }
@@ -380,6 +392,10 @@ void PairDSMC::read_restart_settings(FILE *fp)
     utils::sfread(FLERR,&cut_global,sizeof(double),1,fp,nullptr,error);
     utils::sfread(FLERR,&max_cell_size,sizeof(double),1,fp,nullptr,error);
     utils::sfread(FLERR,&seed,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&weighting,sizeof(double),1,fp,nullptr,error);
+    utils::sfread(FLERR,&T_ref,sizeof(double),1,fp,nullptr,error);
+    utils::sfread(FLERR,&recompute_vsigmamax_stride,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&vsigmamax_samples,sizeof(int),1,fp,nullptr,error);
     utils::sfread(FLERR,&offset_flag,sizeof(int),1,fp,nullptr,error);
     utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,nullptr,error);
   }
@@ -387,13 +403,19 @@ void PairDSMC::read_restart_settings(FILE *fp)
   MPI_Bcast(&cut_global,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&max_cell_size,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&seed,1,MPI_INT,0,world);
+  MPI_Bcast(&weighting,1,MPI_DOUBLE,0,world);
+  MPI_Bcast(&T_ref,1,MPI_DOUBLE,0,world);
+  MPI_Bcast(&recompute_vsigmamax_stride,1,MPI_INT,0,world);
+  MPI_Bcast(&vsigmamax_samples,1,MPI_INT,0,world);
   MPI_Bcast(&offset_flag,1,MPI_INT,0,world);
   MPI_Bcast(&mix_flag,1,MPI_INT,0,world);
+
+  kT_ref = force->boltz*T_ref;
 
   // initialize Marsaglia RNG with processor-unique seed
   // same seed that pair_style command initially specified
 
-  if (random) delete random;
+  delete random;
   random = new RanMars(lmp,seed + comm->me);
 }
 
@@ -517,4 +539,15 @@ int PairDSMC::convert_double_to_equivalent_int(double input_double)
 
   int output_int = static_cast<int>(input_double + random->uniform());
   return output_int;
+}
+
+/* ---------------------------------------------------------------------- */
+
+double PairDSMC::memory_usage()
+{
+  double bytes = Pair::memory_usage();
+  bytes += (double) max_particles * sizeof(int);                             // next_particle[max_particles]
+  bytes += (double) (atom->ntypes + 1) * max_particle_list * sizeof(int);   // particle_list[ntypes+1][max_particle_list]
+  bytes += (double) (atom->ntypes + 1) * total_ncells * 2 * sizeof(int);    // first + number [ntypes+1][total_ncells]
+  return bytes;
 }

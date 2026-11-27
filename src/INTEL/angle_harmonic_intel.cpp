@@ -51,12 +51,6 @@ AngleHarmonicIntel::AngleHarmonicIntel(LAMMPS *lmp) : AngleHarmonic(lmp)
 
 void AngleHarmonicIntel::compute(int eflag, int vflag)
 {
-  #ifdef _LMP_INTEL_OFFLOAD
-  if (_use_base) {
-    AngleHarmonic::compute(eflag, vflag);
-    return;
-  }
-  #endif
 
   if (fix->precision() == FixIntel::PREC_MODE_MIXED)
     compute<float,double>(eflag, vflag, fix->get_mixed_buffers(),
@@ -111,7 +105,7 @@ void AngleHarmonicIntel::eval(const int vflag,
   const int inum = neighbor->nanglelist;
   if (inum == 0) return;
 
-  ATOM_T * _noalias const x = buffers->get_x(0);
+  ATOM_T * _noalias const x = buffers->get_x();
   const int nlocal = atom->nlocal;
   const int nall = nlocal + atom->nghost;
 
@@ -122,7 +116,7 @@ void AngleHarmonicIntel::eval(const int vflag,
   int tc;
   FORCE_T * _noalias f_start;
   acc_t * _noalias ev_global;
-  IP_PRE_get_buffers(0, buffers, fix, tc, f_start, ev_global);
+  IP_PRE_get_buffers(buffers, fix, tc, f_start, ev_global);
   const int nthreads = tc;
 
   acc_t oeangle, ov0, ov1, ov2, ov3, ov4, ov5;
@@ -138,11 +132,7 @@ void AngleHarmonicIntel::eval(const int vflag,
   #endif
   {
     int nfrom, npl, nto, tid;
-    #ifdef LMP_INTEL_USE_SIMDOFF
-    IP_PRE_omp_range_id(nfrom, nto, tid, inum, nthreads);
-    #else
     IP_PRE_omp_stride_id(nfrom, npl, nto, tid, inum, nthreads);
-    #endif
 
     FORCE_T * _noalias const f = f_start + (tid * f_stride);
     if (fix->need_zero(tid))
@@ -151,21 +141,7 @@ void AngleHarmonicIntel::eval(const int vflag,
     const int4_t * _noalias const anglelist =
       (int4_t *) neighbor->anglelist[0];
 
-    #ifdef LMP_INTEL_USE_SIMDOFF
-    acc_t seangle, sv0, sv1, sv2, sv3, sv4, sv5;
-    if (EFLAG) seangle = (acc_t)0.0;
-    if (VFLAG && vflag) {
-      sv0 = sv1 = sv2 = sv3 = sv4 = sv5 = (acc_t)0.0;
-    }
-#if defined(USE_OMP_SIMD)
-    #pragma omp simd reduction(+:seangle, sv0, sv1, sv2, sv3, sv4, sv5)
-#else
-    #pragma simd reduction(+:seangle, sv0, sv1, sv2, sv3, sv4, sv5)
-#endif
-    for (int n = nfrom; n < nto; n ++) {
-    #else
     for (int n = nfrom; n < nto; n += npl) {
-    #endif
       const int i1 = IP_PRE_dword_index(anglelist[n].a);
       const int i2 = IP_PRE_dword_index(anglelist[n].b);
       const int i3 = IP_PRE_dword_index(anglelist[n].c);
@@ -226,13 +202,6 @@ void AngleHarmonicIntel::eval(const int vflag,
 
       // apply force to each of 3 atoms
 
-      #ifdef LMP_INTEL_USE_SIMDOFF
-#if defined(USE_OMP_SIMD)
-      #pragma omp ordered simd
-#else
-      #pragma simdoff
-#endif
-      #endif
       {
         if (NEWTON_BOND || i1 < nlocal) {
           f[i1].x += f1x;
@@ -254,28 +223,13 @@ void AngleHarmonicIntel::eval(const int vflag,
       }
 
       if (EFLAG || VFLAG) {
-        #ifdef LMP_INTEL_USE_SIMDOFF
-        IP_PRE_ev_tally_angle(EFLAG, VFLAG, eatom, vflag, eangle, i1, i2, i3,
-                              f1x, f1y, f1z, f3x, f3y, f3z, delx1, dely1,
-                              delz1, delx2, dely2, delz2, seangle, f,
-                              NEWTON_BOND, nlocal, sv0, sv1, sv2, sv3, sv4,
-                              sv5);
-        #else
         IP_PRE_ev_tally_angle(EFLAG, VFLAG, eatom, vflag, eangle, i1, i2, i3,
                               f1x, f1y, f1z, f3x, f3y, f3z, delx1, dely1,
                               delz1, delx2, dely2, delz2, oeangle, f,
                               NEWTON_BOND, nlocal, ov0, ov1, ov2, ov3, ov4,
                               ov5);
-        #endif
       }
     } // for n
-    #ifdef LMP_INTEL_USE_SIMDOFF
-    if (EFLAG) oeangle += seangle;
-    if (VFLAG && vflag) {
-        ov0 += sv0; ov1 += sv1; ov2 += sv2;
-        ov3 += sv3; ov4 += sv4; ov5 += sv5;
-    }
-    #endif
   } // omp parallel
 
   if (EFLAG) energy += oeangle;
@@ -296,13 +250,6 @@ void AngleHarmonicIntel::init_style()
   fix = static_cast<FixIntel *>(modify->get_fix_by_id("package_intel"));
   if (!fix) error->all(FLERR, "The 'package intel' command is required for /intel styles");
 
-  #ifdef _LMP_INTEL_OFFLOAD
-  _use_base = 0;
-  if (fix->offload_balance() != 0.0) {
-    _use_base = 1;
-    return;
-  }
-  #endif
 
   fix->bond_init_check();
 

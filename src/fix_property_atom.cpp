@@ -214,9 +214,9 @@ FixPropertyAtom::FixPropertyAtom(LAMMPS *lmp, int narg, char **arg) :
 
   // register with Atom class
 
-  atom->add_callback(Atom::GROW);
-  atom->add_callback(Atom::RESTART);
-  if (border) atom->add_callback(Atom::BORDER);
+  atom->add_callback(this, Atom::GROW);
+  atom->add_callback(this, Atom::RESTART);
+  if (border) atom->add_callback(this, Atom::BORDER);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -234,9 +234,9 @@ FixPropertyAtom::~FixPropertyAtom()
 {
   // unregister callbacks to this fix from Atom class
 
-  atom->delete_callback(id, Atom::GROW);
-  atom->delete_callback(id, Atom::RESTART);
-  if (border) atom->delete_callback(id, Atom::BORDER);
+  atom->delete_callback(this, Atom::GROW);
+  atom->delete_callback(this, Atom::RESTART);
+  if (border) atom->delete_callback(this, Atom::BORDER);
 
   // deallocate per-atom vectors in Atom class
   // set ptrs to a null pointer, so they no longer exist for Atom class
@@ -556,23 +556,23 @@ double FixPropertyAtom::memory_usage()
   double bytes = 0.0;
   for (int m = 0; m < nvalue; m++) {
     if (styles[m] == MOLECULE)
-      bytes = atom->nmax * sizeof(tagint);
+      bytes += atom->nmax * sizeof(tagint);
     else if (styles[m] == CHARGE)
-      bytes = atom->nmax * sizeof(double);
+      bytes += atom->nmax * sizeof(double);
     else if (styles[m] == RMASS)
-      bytes = atom->nmax * sizeof(double);
+      bytes += atom->nmax * sizeof(double);
     else if (styles[m] == TEMPERATURE)
-      bytes = atom->nmax * sizeof(double);
+      bytes += atom->nmax * sizeof(double);
     else if (styles[m] == HEATFLOW)
-      bytes = atom->nmax * sizeof(double);
+      bytes += atom->nmax * sizeof(double);
     else if (styles[m] == IVEC)
-      bytes = atom->nmax * sizeof(int);
+      bytes += atom->nmax * sizeof(int);
     else if (styles[m] == DVEC)
-      bytes = atom->nmax * sizeof(double);
+      bytes += atom->nmax * sizeof(double);
     else if (styles[m] == IARRAY)
-      bytes = (size_t) atom->nmax * cols[m] * sizeof(int);
+      bytes += (size_t) atom->nmax * cols[m] * sizeof(int);
     else if (styles[m] == DARRAY)
-      bytes = (size_t) atom->nmax * cols[m] * sizeof(double);
+      bytes += (size_t) atom->nmax * cols[m] * sizeof(double);
   }
   return bytes;
 }

@@ -52,7 +52,7 @@ class FixPressBerendsen : public Fix {
   int tflag, pflag;
 
   void couple();
-  void remap();
+  virtual void remap();
 };
 
 }    // namespace LAMMPS_NS

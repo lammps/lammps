@@ -49,7 +49,7 @@ static constexpr int MAXNEIGH = 24;
 
 /* ---------------------------------------------------------------------- */
 
-PairComb3::PairComb3(LAMMPS *lmp) : Pair(lmp)
+PairComb3::PairComb3(LAMMPS *lmp) : Pair(lmp), qf(nullptr), charge(nullptr)
 {
   single_enable = 0;
   restartinfo = 0;
@@ -609,6 +609,13 @@ void PairComb3::read_file(char *file)
           params[nparams].vsig < 0.0 || params[nparams].vdwflag < 0.0
           )
         error->one(FLERR,"Illegal COMB3 parameter");
+
+      // element group indices from the potential file must be 1, 2, or 3
+
+      if ((params[nparams].ielementgp < 1) || (params[nparams].ielementgp > 3) ||
+          (params[nparams].jelementgp < 1) || (params[nparams].jelementgp > 3) ||
+          (params[nparams].kelementgp < 1) || (params[nparams].kelementgp > 3))
+        error->one(FLERR,"Invalid element group index in COMB3 potential file");
 
       nparams++;
     }
@@ -1603,7 +1610,7 @@ void PairComb3::force_zeta(Param *parami, Param *paramj, double rsq,
   double r,att_eng,att_force,bij;  // att_eng is -cbj
   double boij, dbij1, dbij2, dbij3, dbij4, dbij5;
   double boji, dbji1, dbji2, dbji3, dbji4, dbji5;
-  double pradx, prady;
+  double pradx = 0.0, prady = 0.0;
   r = sqrt(rsq);
 
   if (r > parami->bigr + parami->bigd) return;
@@ -3475,7 +3482,7 @@ void PairComb3::qfo_short(Param *parami, Param *paramj, double rsq,
   } else {
     Di = parami->DU + pow(QUchi,parami->nD);                            // YYDin
     dDi = -parami->nD * parami->bD * pow(QUchi,(parami->nD-1.0));       // YYDiqp
-    Bsi = parami->aB - pow(QOchi,10);                                   // YYBsin
+    Bsi = parami->aB - powint(QOchi,10);                                   // YYBsin
     dBsi = -parami->bB * 10.0 * powint(QOchi,9);                        // YYBsiqp
   }
 
@@ -3490,7 +3497,7 @@ void PairComb3::qfo_short(Param *parami, Param *paramj, double rsq,
   } else {
     Dj = paramj->DU + pow(QUchj,paramj->nD);                            // YYDij
     dDj = -paramj->nD * paramj->bD * pow(QUchj,(paramj->nD-1.0));       // YYDiqpj
-    Bsj = paramj->aB - pow(QOchj,10);                                   // YYBsij
+    Bsj = paramj->aB - powint(QOchj,10);                                   // YYBsij
     dBsj = -paramj->bB * 10.0 * powint(QOchj,9);                        // YYBsiqpj
   }
 

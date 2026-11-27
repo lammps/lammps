@@ -27,9 +27,6 @@
 #include "intel_simd.h"
 #endif
 
-#ifdef _LMP_INTEL_OFFLOAD
-#pragma offload_attribute(push,target(mic))
-#endif
 
 #define ofind_special(which, special, nspecial, i, tag)               \
 {                                                                     \
@@ -67,23 +64,14 @@
   if (domain->zperiodic && fabs(dz) > domain->zprd_half) answer = 1;  \
 }
 
-#ifdef _LMP_INTEL_OFFLOAD
-#pragma offload_attribute(pop)
-#endif
 
 namespace LAMMPS_NS {
 
 class NPairIntel : public NPair {
  public:
   NPairIntel(class LAMMPS *);
-  #ifdef _LMP_INTEL_OFFLOAD
-  ~NPairIntel() override;
-  #endif
   void copy_neighbor_info() override;
 
-  #ifdef _LMP_INTEL_OFFLOAD
-  void grow_stencil();
-  #endif
 
  protected:
   FixIntel *_fix;
@@ -92,13 +80,9 @@ class NPairIntel : public NPair {
   void copy_cutsq_info(IntelBuffers<flt_t,acc_t> *);
 
   template <class flt_t, class acc_t, int, int, int, int, int>
-  void bin_newton(const int, NeighList *, IntelBuffers<flt_t,acc_t> *,
-                  const int, const int, const int offload_end = 0);
+  void bin_newton(NeighList *, IntelBuffers<flt_t,acc_t> *,
+                  const int, const int);
 
-  #ifdef _LMP_INTEL_OFFLOAD
-  int _cop;
-  int *_off_map_stencil;
-  #endif
 };
 
 }

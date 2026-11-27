@@ -4,11 +4,9 @@ Reporting bugs
 If you are confident that you have found a bug in LAMMPS, please follow
 the steps outlined below:
 
- * Check the `New features and bug fixes
-   <https://www.lammps.org/bug.html>`_ section of the `LAMMPS WWW site
-   <https://www.lammps.org>`_ or the
-   `GitHub Releases page <https://github.com/lammps/lammps/releases>`_ to
-   see if the bug has already been addressed in a patch release.
+ * Check the `GitHub Releases page
+   <https://github.com/lammps/lammps/releases>`_ to see if the bug has
+   already been addressed in a release.
  * Check that your issue can be reproduced with the latest development
    version of LAMMPS.
  * Check the manual carefully to verify that the unexpected behavior you

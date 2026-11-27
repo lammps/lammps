@@ -22,6 +22,8 @@
 #include "domain.h"
 #include "error.h"
 #include "math_extra.h"
+#include "respa.h"
+#include "update.h"
 
 #include <cmath>
 #include <cstring>
@@ -35,8 +37,10 @@ static constexpr double SMALL = 1.0e-14;
 
 /* ---------------------------------------------------------------------- */
 
-FixAlignSelf::FixAlignSelf(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg), avec(nullptr)
+FixAlignSelf::FixAlignSelf(LAMMPS *lmp, int narg, char **arg) :
+    Fix(lmp, narg, arg), ilevel_respa(0), avec(nullptr)
 {
+  respa_level_support = 1;
 
   if (narg != 5 && narg != 9) error->all(FLERR, "Incorrect number of fix align/self arguments");
 
@@ -81,6 +85,7 @@ int FixAlignSelf::setmask()
 {
   int mask = 0;
   mask |= POST_FORCE;
+  mask |= POST_FORCE_RESPA;
   return mask;
 }
 
@@ -88,6 +93,12 @@ int FixAlignSelf::setmask()
 
 void FixAlignSelf::init()
 {
+  if (utils::strmatch(update->integrate_style, "^respa")) {
+    int max_respa = (dynamic_cast<Respa *>(update->integrate))->nlevels - 1;
+    ilevel_respa = max_respa;
+    if (respa_level >= 0) ilevel_respa = MIN(respa_level, max_respa);
+  }
+
   if (mode == DIPOLE && (!atom->mu_flag || !atom->torque_flag))
     error->all(FLERR, Error::NOLASTLINE,
                "Fix align/self with option dipole requires atom attributes mu + torque");
@@ -111,6 +122,27 @@ void FixAlignSelf::init()
           error->one(FLERR, Error::NOLASTLINE,
                      "Fix align/self with option quat requires extended particles");
   }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixAlignSelf::setup(int vflag)
+{
+  if (utils::strmatch(update->integrate_style, "^verlet")) {
+    post_force(vflag);
+  } else {
+    auto *respa = dynamic_cast<Respa *>(update->integrate);
+    respa->copy_flevel_f(ilevel_respa);
+    post_force_respa(vflag, ilevel_respa, 0);
+    respa->copy_f_flevel(ilevel_respa);
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixAlignSelf::post_force_respa(int vflag, int ilevel, int /*iloop*/)
+{
+  if (ilevel == ilevel_respa) post_force(vflag);
 }
 
 /* ---------------------------------------------------------------------- */

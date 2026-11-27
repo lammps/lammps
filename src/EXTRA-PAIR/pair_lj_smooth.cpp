@@ -32,7 +32,10 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairLJSmooth::PairLJSmooth(LAMMPS *lmp) : Pair(lmp)
+PairLJSmooth::PairLJSmooth(LAMMPS *lmp) :
+    Pair(lmp), cut(nullptr), cut_inner(nullptr), cut_inner_sq(nullptr), epsilon(nullptr),
+    sigma(nullptr), lj1(nullptr), lj2(nullptr), lj3(nullptr), lj4(nullptr), ljsw0(nullptr),
+    ljsw1(nullptr), ljsw2(nullptr), ljsw3(nullptr), ljsw4(nullptr), offset(nullptr)
 {
   writedata = 1;
 }

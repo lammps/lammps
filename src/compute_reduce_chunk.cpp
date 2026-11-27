@@ -153,7 +153,7 @@ ComputeReduceChunk::ComputeReduceChunk(LAMMPS *lmp, int narg, char **arg) :
   } else {
     array_flag = 1;
     size_array_rows_variable = 1;
-    size_array_cols = values.size();
+    size_array_cols = (int)values.size();
     extarray = 0;
   }
 

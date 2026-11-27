@@ -19,6 +19,7 @@
 #include "error.h"
 #include "force.h"
 #include "graphics.h"
+#include "improper_hybrid.h"
 #include "memory.h"
 #include "modify.h"
 #include "neighbor.h"
@@ -42,13 +43,15 @@ FixBondBreak::FixBondBreak(LAMMPS *lmp, int narg, char **arg) :
   partner(nullptr), finalpartner(nullptr), distsq(nullptr), probability(nullptr),
   broken(nullptr), copy(nullptr), random(nullptr), imgobjs(nullptr), imgparms(nullptr)
 {
-  if (narg < 6) error->all(FLERR,"Illegal fix bond/break command");
+  if (narg < 6) utils::missing_cmd_args(FLERR, "fix bond/break", error);
+  if (atom->molecular != Atom::MOLECULAR)
+    error->all(FLERR, 2, "Cannot use fix bond/break with non-molecular systems");
 
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);
 
   nevery = utils::inumeric(FLERR, arg[3], false, lmp);
-  if (nevery <= 0) error->all(FLERR, "Illegal fix bond/break command");
+  if (nevery <= 0) error->all(FLERR, 3, "Invalid fix bond/break nevery value {}", nevery);
 
   force_reneighbor = 1;
   next_reneighbor = -1;
@@ -62,9 +65,9 @@ FixBondBreak::FixBondBreak(LAMMPS *lmp, int narg, char **arg) :
   btype = utils::expand_type_int(FLERR, arg[4], Atom::BOND, lmp);
   cutoff = utils::numeric(FLERR, arg[5], false, lmp);
 
-  if (btype < 1 || btype > atom->nbondtypes)
-    error->all(FLERR,"Invalid bond type in fix bond/break command");
-  if (cutoff < 0.0) error->all(FLERR,"Illegal fix bond/break command");
+  if ((btype < 1) || (btype > atom->nbondtypes))
+    error->all(FLERR, 4, "Invalid bond type {} in fix bond/break command", btype);
+  if (cutoff < 0.0) error->all(FLERR, 5, "Invalid fix bond/break cutoff value {}", cutoff);
 
   cutsq = cutoff*cutoff;
 
@@ -76,20 +79,15 @@ FixBondBreak::FixBondBreak(LAMMPS *lmp, int narg, char **arg) :
   int iarg = 6;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"prob") == 0) {
-      if (iarg+3 > narg) error->all(FLERR,"Illegal fix bond/break command");
+      if (iarg+3 > narg) utils::missing_cmd_args(FLERR, "fix bond/break prob", error);
       fraction = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       seed = utils::inumeric(FLERR,arg[iarg+2],false,lmp);
-      if (fraction < 0.0 || fraction > 1.0)
-        error->all(FLERR,"Illegal fix bond/break command");
-      if (seed <= 0) error->all(FLERR,"Illegal fix bond/break command");
+      if ((fraction < 0.0) || (fraction > 1.0))
+        error->all(FLERR, iarg + 1, "Invalid fix bond/break prob fraction value {}", fraction);
+      if (seed <= 0) error->all(FLERR, iarg + 2, "Invalid fix bond/break prob seed value {}", seed);
       iarg += 3;
-    } else error->all(FLERR,"Illegal fix bond/break command");
+    } else error->all(FLERR, iarg, "Unknown fix bond/break keyword {}", arg[iarg]);
   }
-
-  // error check
-
-  if (atom->molecular != Atom::MOLECULAR)
-    error->all(FLERR,"Cannot use fix bond/break with non-molecular systems");
 
   // initialize Marsaglia RNG with processor-unique seed
 
@@ -144,7 +142,7 @@ FixBondBreak::~FixBondBreak()
 int FixBondBreak::modify_param(int narg, char **arg)
 {
   if (strcmp(arg[0],"vizsteps") == 0) {
-    if (narg < 2) utils::missing_cmd_args(FLERR, "fix_modify bond/break", error);
+    if (narg < 2) utils::missing_cmd_args(FLERR, "fix_modify bond/break vizsteps", error);
     vizsteps = utils::inumeric(FLERR, arg[1], false, lmp);
     return 2;
   }
@@ -178,9 +176,21 @@ void FixBondBreak::init()
   if (atom->nimpropers) improperflag = 1;
   else improperflag = 0;
 
-  if (force->improper) {
-    if (force->improper_match("^class2") || force->improper_match("^ring"))
-      error->all(FLERR,"Cannot yet use fix bond/break with this improper style");
+  // removing impropers assumes that their first atom is the central atom
+
+  if (improperflag && force->improper) {
+    auto check = [&](Improper *improper, const char *name) {
+      if (improper && (improper->central_atom() > 0))
+        error->all(FLERR, Error::NOLASTLINE,
+                   "Fix {} does not support improper style {}, since its central atom is not "
+                   "the first atom of an improper", style, name);
+    };
+    auto *hybrid = dynamic_cast<ImproperHybrid *>(force->improper);
+    if (hybrid) {
+      for (int i = 0; i < hybrid->nstyles; ++i) check(hybrid->styles[i], hybrid->keywords[i]);
+    } else {
+      check(force->improper, force->improper_style);
+    }
   }
 
   lastcheck = -1;
@@ -447,7 +457,8 @@ void FixBondBreak::check_ghosts()
   int flagall;
   MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
   if (flagall)
-    error->all(FLERR,"Fix bond/break needs ghost atoms from further away");
+    error->all(FLERR, Error::NOLASTLINE, "Fix bond/break needs ghost atoms from further away; "
+               "use comm_modify cutoff to extend the communication range");
   lastcheck = update->ntimestep;
 }
 
@@ -583,7 +594,7 @@ void FixBondBreak::rebuild_special_one(int m)
   nspecial[m][0] = cn1;
   nspecial[m][1] = cn2;
   nspecial[m][2] = cn3;
-  memcpy(special[m],copy,cn3*sizeof(int));
+  memcpy(special[m],copy,cn3*sizeof(tagint));
 }
 
 /* ----------------------------------------------------------------------

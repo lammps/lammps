@@ -1,5 +1,6 @@
 ---
 lammps_version: 17 Feb 2022
+tags: kokkos
 date_generated: Fri Mar 18 22:17:59 2022
 epsilon: 5e-13
 skip_tests:
@@ -10,6 +11,7 @@ pre_commands: ! ""
 post_commands: ! |
   fix test solute nvt temp 50.0 ${t_target} 1.0 mtk no tchain 1
 input_file: in.fourmol
+input_coeffs: coeffs.fourmol
 natoms: 29
 global_scalar: 161.08219360641812
 global_vector: ! |-

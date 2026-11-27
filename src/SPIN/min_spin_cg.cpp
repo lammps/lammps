@@ -60,7 +60,8 @@ static constexpr int DELAYSTEP = 5;
 /* ---------------------------------------------------------------------- */
 
 MinSpinCG::MinSpinCG(LAMMPS *lmp) :
-  Min(lmp), g_old(nullptr), g_cur(nullptr), p_s(nullptr), sp_copy(nullptr)
+    Min(lmp), spvec(nullptr), fmvec(nullptr), g_old(nullptr), g_cur(nullptr), p_s(nullptr),
+    sp_copy(nullptr)
 {
   if (lmp->citeme) lmp->citeme->add(cite_minstyle_spin_cg);
   nlocal_max = 0;
@@ -598,6 +599,15 @@ int MinSpinCG::adescent(double phi_0, double phi_j) {
     return 1;
   else
     return 0;
+}
+
+/* ---------------------------------------------------------------------- */
+
+double MinSpinCG::memory_usage()
+{
+  double bytes = (double) 3 * nlocal_max * 3 * sizeof(double);     // g_old + g_cur + p_s [3*nlocal_max]
+  if (sp_copy) bytes += (double) nlocal_max * 3 * sizeof(double);  // sp_copy[nlocal_max][3]
+  return bytes;
 }
 
 /* ----------------------------------------------------------------------

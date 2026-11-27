@@ -225,8 +225,8 @@ FixMesoMove::FixMesoMove (LAMMPS *lmp, int narg, char **arg) :
   // register with Atom class
 
   FixMesoMove::grow_arrays(atom->nmax);
-  atom->add_callback(Atom::GROW);
-  atom->add_callback(Atom::RESTART);
+  atom->add_callback(this, Atom::GROW);
+  atom->add_callback(this, Atom::RESTART);
 
   displace = velocity = nullptr;
 
@@ -250,8 +250,8 @@ FixMesoMove::FixMesoMove (LAMMPS *lmp, int narg, char **arg) :
 FixMesoMove::~FixMesoMove () {
   // unregister callbacks to this fix from Atom class
 
-  atom->delete_callback(id,Atom::GROW);
-  atom->delete_callback(id,Atom::RESTART);
+  atom->delete_callback(this, Atom::GROW);
+  atom->delete_callback(this, Atom::RESTART);
 
   // delete locally stored arrays
 

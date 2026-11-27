@@ -1,0 +1,131 @@
+LAMMPS (30 Sep 2026 - Development - patch_30Sep2026-557-g6b420a463c-modified)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread.
+  using 1 OpenMP thread(s) per MPI task
+# fix symmetry example: LJ atoms on a diamond lattice with an inversion
+# center between atoms (space group P-1)
+#
+# The diamond structure has inversion centers half way between nearest
+# neighbors, e.g. at (1/8,1/8,1/8) of the cubic unit cell.  For a box of
+# 2 x 2 x 2 unit cells this is (1/16,1/16,1/16) in fractional coordinates
+# of the box, so the inversion maps s to 2*(1/16) - s = -s + 1/8.  No atom
+# is on the inversion center, so all 64 atoms form 32 pairs.
+#
+# The diamond structure is not stable for LJ atoms, which prefer a close
+# packed structure, so the atoms rearrange while keeping the symmetry.
+
+units           lj
+atom_style      atomic
+
+# nearest neighbor distance at the minimum of the LJ potential: 2^(1/6)
+lattice         diamond 0.4593
+Lattice spacing in x,y,z = 2.5921762 2.5921762 2.5921762
+region          box block 0 2 0 2 0 2
+create_box      1 box
+Created orthogonal box = (0 0 0) to (5.1843523 5.1843523 5.1843523)
+  1 by 2 by 2 MPI processor grid
+create_atoms    1 box
+Created 64 atoms
+  using lattice units in orthogonal box = (0 0 0) to (5.1843523 5.1843523 5.1843523)
+  create_atoms CPU = 0.001 seconds
+mass            1 1.0
+
+pair_style      lj/cut 2.5
+pair_coeff      * * 1.0 1.0
+pair_modify     shift yes
+
+fix             1 all nve
+fix             sym all symmetry p-1_shifted.json
+
+velocity        all create 1.2 87287 loop geom
+run             0 post no
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+
+- fix symmetry: https://doi.org/10.1021/acs.jctc.2c00401
+
+@Article{WhiteCoxSymmetricMD,
+author = {Cox, Sam and White, Andrew D.},
+title = {Symmetric Molecular Dynamics},
+journal = {Journal of Chemical Theory and Computation},
+volume = {18},
+number = {7},
+pages = {4077-4081},
+year = {2022},
+doi = {10.1021/acs.jctc.2c00401},
+note ={PMID: 35699649},
+url = {https://doi.org/10.1021/acs.jctc.2c00401},
+}
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+Fix symmetry sym: group P-1 (inversion center at 1/16,1/16,1/16) with 2 operators, 64 atoms in 32 orbits (0 on special positions) with 96 independent coordinates
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 2.8
+  ghost atom cutoff = 2.8
+  binsize = 1.4, bins = 4 4 4
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cut, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 3.077 | 3.077 | 3.077 Mbytes
+   Step          Temp          E_pair         E_mol          TotEng         Press     
+         0   1.1398834     -2.6287229      0             -1.7738104     -0.50768312   
+Loop time of 1.478e-06 on 4 procs for 0 steps with 64 atoms
+
+velocity        all scale 1.2
+
+# symmetry indicator for the shifted inversion center
+variable        odd atom sin(2*PI*((x-xlo)/lx-1/16))+sin(2*PI*((y-ylo)/ly-1/16))+sin(2*PI*((z-zlo)/lz-1/16))
+compute         odd all reduce sum v_odd
+
+thermo_style    custom step temp pe etotal press c_odd
+thermo          100
+run             1000
+Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+Per MPI rank memory allocation (min/avg/max) = 3.077 | 3.077 | 3.077 Mbytes
+   Step          Temp          PotEng         TotEng         Press          c_odd     
+         0   1.2           -2.6287229     -1.7287229     -0.49387735     2.220446e-16 
+       100   1.2700763     -2.6811618     -1.7286046     -0.56567525     5.5511151e-17
+       200   1.3515906     -2.7427303     -1.7290374     -0.024935927    0            
+       300   1.7026653     -3.0056489     -1.7286499      0.17860523     0            
+       400   1.550476      -2.8917386     -1.7288817      0.024422177    1.110223e-16 
+       500   1.6577809     -2.972042      -1.7287063     -0.17453505     5.5511151e-17
+       600   1.7526916     -3.0432936     -1.7287748     -0.2268485      1.110223e-16 
+       700   1.6783136     -2.9875355     -1.7288003      0.20230502     5.5511151e-17
+       800   1.6160124     -2.94081       -1.7288007     -0.12453789     1.110223e-16 
+       900   1.5319975     -2.8773815     -1.7283834      0.15009686     0            
+      1000   1.6304452     -2.9514334     -1.7285995     -0.11313405     0            
+Loop time of 0.0173 on 4 procs for 1000 steps with 64 atoms
+
+Performance: 24971096.101 tau/day, 57803.463 timesteps/s, 3.699 Matom-step/s
+96.1% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.0014085  | 0.0020754  | 0.0028267  |   1.3 | 12.00
+Neigh   | 0.0010139  | 0.0011719  | 0.001385   |   0.5 |  6.77
+Comm    | 0.009926   | 0.010632   | 0.011306   |   0.5 | 61.46
+Output  | 0.00025391 | 0.000256   | 0.00025717 |   0.0 |  1.48
+Modify  | 0.0020343  | 0.002138   | 0.0022494  |   0.2 | 12.36
+Other   |            | 0.001027   |            |       |  5.93
+
+Nlocal:             16 ave          20 max          13 min
+Histogram: 1 0 1 0 1 0 0 0 0 1
+Nghost:            322 ave         332 max         310 min
+Histogram: 1 0 1 0 0 0 0 0 0 2
+Neighs:         332.25 ave         414 max         286 min
+Histogram: 2 0 0 0 1 0 0 0 0 1
+
+Total # of neighbors = 1329
+Ave neighs/atom = 20.765625
+Neighbor list builds = 86
+Dangerous builds = 0
+Total wall time: 0:00:00

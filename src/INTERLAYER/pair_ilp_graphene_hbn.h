@@ -36,6 +36,7 @@ class PairILPGrapheneHBN : public Pair {
   void init_style() override;
   void calc_FvdW(int, int);
   double single(int, int, int, int, double, double, double, double &) override;
+  double memory_usage() override;
 
   static constexpr int NPARAMS_PER_LINE = 13;
 

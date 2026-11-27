@@ -3,7 +3,8 @@
 add_executable(test_library_open test_library_open.cpp test_main.cpp)
 target_link_libraries(test_library_open PRIVATE lammps GTest::GMock)
 add_test(NAME LibraryOpen COMMAND test_library_open)
-set_tests_properties(LibraryOpen PROPERTIES ENVIRONMENT "OMP_NUM_THREADS=4;OMP_PROC_BIND=false")
+# the labels gpu and kokkos mark tests that also exercise these packages (ctest -L gpu, ctest -L kokkos)
+set_tests_properties(LibraryOpen PROPERTIES ENVIRONMENT "OMP_NUM_THREADS=4;OMP_PROC_BIND=false" LABELS "kokkos")
 
 add_executable(test_library_commands test_library_commands.cpp test_main.cpp)
 target_link_libraries(test_library_commands PRIVATE lammps GTest::GMock)
@@ -12,7 +13,7 @@ add_test(NAME LibraryCommands COMMAND test_library_commands)
 add_executable(test_library_external test_library_external.cpp test_main.cpp)
 target_link_libraries(test_library_external PRIVATE lammps GTest::GMock)
 add_test(NAME LibraryExternal COMMAND test_library_external)
-set_tests_properties(LibraryExternal PROPERTIES ENVIRONMENT "OMP_NUM_THREADS=4;OMP_PROC_BIND=false")
+set_tests_properties(LibraryExternal PROPERTIES ENVIRONMENT "OMP_NUM_THREADS=4;OMP_PROC_BIND=false" LABELS "kokkos")
 
 add_executable(test_library_properties test_library_properties.cpp test_main.cpp)
 target_link_libraries(test_library_properties PRIVATE lammps GTest::GMock)
@@ -62,7 +63,7 @@ else()
 endif()
 list(APPEND TEST_CONFIG_DEFS LAMMPS_HAS_OMP=${HAS_OMP})
 
-foreach(WITH "JPEG" "PNG" "GZIP" "FFMPEG")
+foreach(WITH "JPEG" "PNG")
   if(WITH_${WITH})
     set(HAS_${WITH} 1)
   else()
@@ -86,20 +87,20 @@ if(BUILD_MPI)
   if(BUILD_SHARED_LIBS)
     add_subdirectory(${LAMMPS_DIR}/examples/COUPLE/plugin ${CMAKE_BINARY_DIR}/build-couple)
     add_test(NAME RunCoupleSimplePlugin
-      COMMAND $<TARGET_FILE:simple-plugin> 1 ${LAMMPS_DIR}/examples/COUPLE/plugin/in.lj $<TARGET_FILE:lammps>)
+      COMMAND ${LAMMPS_TEST_LAUNCHER} $<TARGET_FILE:simple-plugin> 1 ${LAMMPS_DIR}/examples/COUPLE/plugin/in.lj $<TARGET_FILE:lammps>)
     set_tests_properties(RunCoupleSimplePlugin PROPERTIES
       ENVIRONMENT "TSAN_OPTIONS=ignore_noninstrumented_modules=1;HWLOC_HIDE_ERRORS=2"
       PASS_REGULAR_EXPRESSION "LAMMPS \\([0-9]+ [A-Za-z]+ 2[0-9][0-9][0-9]( - Update [0-9]+)?( - Development.*)?( - Maintenance.*)?\\)")
   endif()
   add_subdirectory(${LAMMPS_DIR}/examples/COUPLE/simple ${CMAKE_BINARY_DIR}/build-simple)
   add_test(NAME RunCoupleSimpleC
-    COMMAND $<TARGET_FILE:simpleC> 1 ${LAMMPS_DIR}/examples/COUPLE/simple/in.lj)
+    COMMAND ${LAMMPS_TEST_LAUNCHER} $<TARGET_FILE:simpleC> 1 ${LAMMPS_DIR}/examples/COUPLE/simple/in.lj)
   add_test(NAME RunCoupleSimpleCC
-    COMMAND $<TARGET_FILE:simpleCC> 1 ${LAMMPS_DIR}/examples/COUPLE/simple/in.lj)
+    COMMAND ${LAMMPS_TEST_LAUNCHER} $<TARGET_FILE:simpleCC> 1 ${LAMMPS_DIR}/examples/COUPLE/simple/in.lj)
 
   if(TARGET simpleF90)
     add_test(NAME RunCoupleSimpleF90
-      COMMAND $<TARGET_FILE:simpleF90> 1 ${LAMMPS_DIR}/examples/COUPLE/simple/in.lj)
+      COMMAND ${LAMMPS_TEST_LAUNCHER} $<TARGET_FILE:simpleF90> 1 ${LAMMPS_DIR}/examples/COUPLE/simple/in.lj)
     set_tests_properties(RunCoupleSimpleF90 PROPERTIES
       ENVIRONMENT "TSAN_OPTIONS=ignore_noninstrumented_modules=1;HWLOC_HIDE_ERRORS=2"
       PASS_REGULAR_EXPRESSION "LAMMPS \\([0-9]+ [A-Za-z]+ 2[0-9][0-9][0-9]( - Update [0-9]+)?( - Development.*)?( - Maintenance.*)?\\)")

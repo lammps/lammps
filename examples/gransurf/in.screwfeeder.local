@@ -1,0 +1,46 @@
+units           lj
+atom_style      hybrid tri sphere 1
+atom_modify     map array
+boundary        f f f
+dimension       3
+comm_modify     vel yes cutoff 1.0
+
+region          box block -2 2 -2 16 -2 7 units box
+create_box      3 box
+
+pair_style      hybrid granular surf/granular
+pair_coeff      1 * surf/granular hertz 1.0 1.0 tangential linear_history 1.0 1.0 0.1
+pair_coeff      1 1 granular hertz 1.0 1.0 tangential linear_history 1.0 1.0 0.1
+pair_coeff      2*3 2*3 none
+
+region          insert_region cylinder z 0 12 1.6 3 5 side in units box
+
+group           sphere type 1
+
+fix             1 all surface/local input stl 2 1 surf.container.stl &
+                                    input stl 3 2 surf.helix.stl flat 10.0
+fix             2 sphere nve/sphere
+fix             3 sphere gravity 1e-5 vector 0 0 -1
+fix             4 sphere pour 400 1 7892374 region insert_region diam range 0.5 1.0
+
+group           case molecule 1
+group           corkscrew molecule 2
+
+compute         1 all ke
+
+timestep        0.05
+thermo          1000
+thermo_style    custom step ke atoms c_1
+thermo_modify   lost ignore
+
+#dump            1 all custom 1000 atomDump id type radius mol x y z
+
+#dump             viz all image 500 myimage-*.ppm diameter diameter tri type 1 0.1 &
+#                 size 800 600 zoom 2.5 shiny 0.3 fsaa yes view 80 220 box yes 0.025
+#dump_modify      viz pad 6 color screw 0.25 0.25 0.5 acolor 2 silver acolor 3 screw &
+#                    boxcolor forestgreen backcolor black backcolor2 white atrans 2 0.5 &
+#                 amap 0.5 1.0 cf 0.0 5 min white 0.25 yellow 0.5 orange 0.75 firebrick max purple
+
+fix             5 corkscrew move rotate 0 0 0 0 1 0 1000 units box
+
+run             80000

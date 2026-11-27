@@ -368,23 +368,22 @@ void FixSRD::init()
   // wallexist = 1 if SRD wall(s) are defined
 
   wallexist = 0;
-  for (int m = 0; m < modify->nfix; m++) {
-    if (strcmp(modify->fix[m]->style, "wall/srd") == 0) {
-      if (wallexist)
-        error->all(FLERR, Error::NOLASTLINE, "Cannot use fix wall/srd more than once");
-      wallexist = 1;
-      wallfix = dynamic_cast<FixWallSRD *>(modify->fix[m]);
-      nwall = wallfix->nwall;
-      wallvarflag = wallfix->varflag;
-      wallwhich = wallfix->wallwhich;
-      xwall = wallfix->xwall;
-      xwallhold = wallfix->xwallhold;
-      vwall = wallfix->vwall;
-      fwall = wallfix->fwall;
-      walltrigger = 0.5 * neighbor->skin;
-      if (wallfix->overlap && overlap == 0 && comm->me == 0)
-        error->warning(FLERR, "Fix SRD walls overlap but fix srd overlap not set");
-    }
+  auto wallfixes = modify->get_fix_by_style("^wall/srd");
+  if (wallfixes.size() > 1)
+    error->all(FLERR, Error::NOLASTLINE, "Cannot use fix wall/srd more than once");
+  if (wallfixes.size() == 1) {
+    wallexist = 1;
+    wallfix = dynamic_cast<FixWallSRD *>(wallfixes.front());
+    nwall = wallfix->nwall;
+    wallvarflag = wallfix->varflag;
+    wallwhich = wallfix->wallwhich;
+    xwall = wallfix->xwall;
+    xwallhold = wallfix->xwallhold;
+    vwall = wallfix->vwall;
+    fwall = wallfix->fwall;
+    walltrigger = 0.5 * neighbor->skin;
+    if (wallfix->overlap && (overlap == 0) && (comm->me == 0))
+      error->warning(FLERR, "Fix SRD walls overlap but fix srd overlap not set");
   }
 
   // set change_flags if box size or shape changes
@@ -392,14 +391,13 @@ void FixSRD::init()
   change_size = change_shape = deformflag = 0;
   if (domain->nonperiodic == 2) change_size = 1;
 
-  Fix **fixes = modify->fix;
-  for (int i = 0; i < modify->nfix; i++) {
-    if (fixes[i]->box_change & BOX_CHANGE_SIZE) change_size = 1;
-    if (fixes[i]->box_change & BOX_CHANGE_SHAPE) change_shape = 1;
-    if (strcmp(fixes[i]->style, "deform") == 0) {
+  for (const auto &ifix : modify->get_fix_list()) {
+    if (ifix->box_change & BOX_CHANGE_SIZE) change_size = 1;
+    if (ifix->box_change & BOX_CHANGE_SHAPE) change_shape = 1;
+    if (utils::strmatch(ifix->style, "^deform")) {
       deformflag = 1;
-      auto *deform = dynamic_cast<FixDeform *>(modify->fix[i]);
-      if ((deform->box_change & BOX_CHANGE_SHAPE) && deform->remapflag != Domain::V_REMAP)
+      auto *deform = dynamic_cast<FixDeform *>(ifix);
+      if (deform && (deform->box_change & BOX_CHANGE_SHAPE) && deform->remapflag != Domain::V_REMAP)
         error->all(FLERR, Error::NOLASTLINE,
                    "Using fix srd with inconsistent fix deform remap option");
     }
@@ -887,7 +885,7 @@ void FixSRD::reset_velocities()
       iz = MAX(iz, binlo[2]);
       iz = MIN(iz, binhi[2]);
 
-      if (deformflag) {
+      if (domain->deform_vremap && (mask[i] & domain->deform_groupbit)) {
         // shift velocities in last bins
         if (domain->xperiodic && ix == nbin1x) {
           v[i][0] -= h_rate[0];
@@ -1074,11 +1072,11 @@ void FixSRD::reset_velocities()
       }
   }
 
-  // undo velocity remap (only if using PUT or tstat no)
-  if (deformflag && (unbiasflag || !tstat)) {
-    domain->x2lamda(nlocal);
+  // undo velocity shift of particles in the last bins
+  if (domain->deform_vremap) {
+    if (triclinic) domain->x2lamda(nlocal);
     for (i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
+      if ((mask[i] & groupbit) && (mask[i] & domain->deform_groupbit)) {
         ix = static_cast<int>((x[i][0] - corner[0]) * bininv1x);
         ix = MAX(ix, binlo[0]);
         ix = MIN(ix, binhi[0]);
@@ -1088,6 +1086,9 @@ void FixSRD::reset_velocities()
         iz = static_cast<int>((x[i][2] - corner[2]) * bininv1z);
         iz = MAX(iz, binlo[2]);
         iz = MIN(iz, binhi[2]);
+
+        ibin = (iz - binlo[2]) * nbiny * nbinx + (iy - binlo[1]) * nbinx + (ix - binlo[0]);
+        if (tstat && deformflag && !unbiasflag && vbin[ibin].n > 1) continue;
 
         if (domain->xperiodic && ix == nbin1x) {
           v[i][0] += h_rate[0];
@@ -1103,7 +1104,7 @@ void FixSRD::reset_velocities()
         }
       }
     }
-    domain->lamda2x(nlocal);
+    if (triclinic) domain->lamda2x(nlocal);
   }
 }
 
@@ -2535,12 +2536,12 @@ void FixSRD::parameterize()
   maxbigdiam = 0.0;
   minbigdiam = BIG;
 
+  // check for bonus data before radius: line and tri particles
+  // also store a bounding-sphere radius for neighboring purposes
+
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & biggroupbit) {
-      if (radius && radius[i] > 0.0) {
-        maxbigdiam = MAX(maxbigdiam, 2.0 * radius[i]);
-        minbigdiam = MIN(minbigdiam, 2.0 * radius[i]);
-      } else if (ellipsoid && ellipsoid[i] >= 0) {
+      if (ellipsoid && ellipsoid[i] >= 0) {
         any_ellipsoids = 1;
         double *shape = ebonus[ellipsoid[i]].shape;
         maxbigdiam = MAX(maxbigdiam, 2.0 * shape[0]);
@@ -2563,6 +2564,9 @@ void FixSRD::parameterize()
         length = MAX(length, length3);
         maxbigdiam = MAX(maxbigdiam, length);
         minbigdiam = MIN(minbigdiam, length);
+      } else if (radius && radius[i] > 0.0) {
+        maxbigdiam = MAX(maxbigdiam, 2.0 * radius[i]);
+        minbigdiam = MIN(minbigdiam, 2.0 * radius[i]);
       } else
         error->one(FLERR, "Big particle in fix srd cannot be point particle");
     }
@@ -2649,10 +2653,7 @@ void FixSRD::parameterize()
   if (dimension == 3) {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & biggroupbit) {
-        if (radius && radius[i] > 0.0) {
-          double r = radfactor * radius[i];
-          volbig += 4.0 / 3.0 * MY_PI * r * r * r;
-        } else if (ellipsoid && ellipsoid[i] >= 0) {
+        if (ellipsoid && ellipsoid[i] >= 0) {
           double *shape = ebonus[ellipsoid[i]].shape;
           volbig += 4.0 / 3.0 * MY_PI * shape[0] * shape[1] * shape[2] * radfactor * radfactor *
               radfactor;
@@ -2665,20 +2666,23 @@ void FixSRD::parameterize()
           MathExtra::sub3(c3, c1, c3mc1);
           MathExtra::cross3(c2mc1, c3mc1, cross);
           volbig += 0.5 * MathExtra::len3(cross) * WIDTH;
+        } else if (radius && radius[i] > 0.0) {
+          double r = radfactor * radius[i];
+          volbig += 4.0 / 3.0 * MY_PI * r * r * r;
         }
       }
   } else {
     for (int i = 0; i < nlocal; i++)
       if (mask[i] & biggroupbit) {
-        if (radius && radius[i] > 0.0) {
-          double r = radfactor * radius[i];
-          volbig += MY_PI * r * r;
-        } else if (ellipsoid && ellipsoid[i] >= 0) {
+        if (ellipsoid && ellipsoid[i] >= 0) {
           double *shape = ebonus[ellipsoid[i]].shape;
           volbig += MY_PI * shape[0] * shape[1] * radfactor * radfactor;
         } else if (line && line[i] >= 0) {
           double length = lbonus[line[i]].length;
           volbig += length * WIDTH;
+        } else if (radius && radius[i] > 0.0) {
+          double r = radfactor * radius[i];
+          volbig += MY_PI * r * r;
         }
       }
   }
@@ -2864,23 +2868,16 @@ void FixSRD::big_static()
 
   double skinhalf = 0.5 * neighbor->skin;
 
+  // check for bonus data before radius: line and tri particles
+  // also store a bounding-sphere radius for neighboring purposes
+
   for (int k = 0; k < nbig; k++) {
     i = biglist[k].index;
 
-    // sphere
-    // set radius and radsq and cutoff based on radius
+    // ellipsoid
+    // set abc radsqinv and cutoff based on max radius
 
-    if (radius && radius[i] > 0.0) {
-      biglist[k].type = SPHERE;
-      rad = radfactor * radius[i];
-      biglist[k].radius = rad;
-      biglist[k].radsq = rad * rad;
-      biglist[k].cutbinsq = (rad + skinhalf) * (rad + skinhalf);
-
-      // ellipsoid
-      // set abc radsqinv and cutoff based on max radius
-
-    } else if (ellipsoid && ellipsoid[i] >= 0) {
+    if (ellipsoid && ellipsoid[i] >= 0) {
       shape = ebonus[ellipsoid[i]].shape;
       biglist[k].type = ELLIPSOID;
       arad = radfactor * shape[0];
@@ -2920,6 +2917,16 @@ void FixSRD::big_static()
       length3 = MathExtra::len3(c3);
       rad = MAX(length1, length2);
       rad = MAX(rad, length3);
+      biglist[k].cutbinsq = (rad + skinhalf) * (rad + skinhalf);
+
+      // sphere
+      // set radius and radsq and cutoff based on radius
+
+    } else if (radius && radius[i] > 0.0) {
+      biglist[k].type = SPHERE;
+      rad = radfactor * radius[i];
+      biglist[k].radius = rad;
+      biglist[k].radsq = rad * rad;
       biglist[k].cutbinsq = (rad + skinhalf) * (rad + skinhalf);
     }
   }
@@ -3480,13 +3487,19 @@ void FixSRD::setup_velocity_shift(int ishift, int dynamic)
   // set xctr for all nbins in lamda units so can later compute vstream of bin
 
   if (tstat && deformflag) {
+    double clamda[3] = {corner[0], corner[1], corner[2]};
+    if (triclinic == 0) {
+      clamda[0] = (corner[0] - domain->boxlo[0]) * domain->h_inv[0];
+      clamda[1] = (corner[1] - domain->boxlo[1]) * domain->h_inv[1];
+      clamda[2] = (corner[2] - domain->boxlo[2]) * domain->h_inv[2];
+    }
     m = 0;
     for (k = 0; k < nbinz; k++)
       for (j = 0; j < nbiny; j++)
         for (i = 0; i < nbinx; i++) {
-          vbin[m].xctr[0] = corner[0] + (i + binlo[0] + 0.5) / nbin1x;
-          vbin[m].xctr[1] = corner[1] + (j + binlo[1] + 0.5) / nbin1y;
-          vbin[m].xctr[2] = corner[2] + (k + binlo[2] + 0.5) / nbin1z;
+          vbin[m].xctr[0] = clamda[0] + (i + binlo[0] + 0.5) / nbin1x;
+          vbin[m].xctr[1] = clamda[1] + (j + binlo[1] + 0.5) / nbin1y;
+          vbin[m].xctr[2] = clamda[2] + (k + binlo[2] + 0.5) / nbin1z;
           m++;
         }
   }

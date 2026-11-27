@@ -34,7 +34,7 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 ComputeRHEORhoSum::ComputeRHEORhoSum(LAMMPS *lmp, int narg, char **arg) :
-    Compute(lmp, narg, arg), fix_rheo(nullptr), compute_kernel(nullptr)
+    Compute(lmp, narg, arg), fix_rheo(nullptr), list(nullptr), compute_kernel(nullptr)
 {
   if (narg != 4) error->all(FLERR, "Illegal compute RHEO/rho command");
 

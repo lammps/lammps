@@ -38,7 +38,8 @@ static constexpr double EPSILON = 1.0e-6;
 
 /* ---------------------------------------------------------------------- */
 
-PairLJCutCoulMSMDielectric::PairLJCutCoulMSMDielectric(LAMMPS *_lmp) : PairLJCutCoulLong(_lmp)
+PairLJCutCoulMSMDielectric::PairLJCutCoulMSMDielectric(LAMMPS *_lmp) :
+    PairLJCutCoulLong(_lmp), avec(nullptr)
 {
   ewaldflag = pppmflag = 0;
   msmflag = 1;
@@ -46,6 +47,7 @@ PairLJCutCoulMSMDielectric::PairLJCutCoulMSMDielectric(LAMMPS *_lmp) : PairLJCut
   cut_respa = nullptr;
 
   nmax = 0;
+  nmax_ftmp = 0;
   ftmp = nullptr;
   efield = nullptr;
   no_virial_fdotr_compute = 1;
@@ -79,12 +81,12 @@ void PairLJCutCoulMSMDielectric::compute(int eflag, int vflag)
                  "Must use 'kspace_modify pressure/scalar no' "
                  "to obtain per-atom virial with kspace_style MSM");
 
-    if (atom->nmax > nmax) {
+    if (atom->nmax > nmax_ftmp) {
       if (ftmp) memory->destroy(ftmp);
-      nmax = atom->nmax;
-      memory->create(ftmp, nmax, 3, "pair:ftmp");
+      nmax_ftmp = atom->nmax;
+      memory->create(ftmp, nmax_ftmp, 3, "pair:ftmp");
     }
-    memset(&ftmp[0][0], 0, nmax * 3 * sizeof(double));
+    memset(&ftmp[0][0], 0, nmax_ftmp * 3 * sizeof(double));
 
     // must switch on global energy computation if not already on
 
@@ -188,7 +190,7 @@ void PairLJCutCoulMSMDielectric::compute(int eflag, int vflag)
             }
           }
         } else
-          forcecoul = 0.0;
+          efield_i = forcecoul = 0.0;
 
         if (rsq < cut_ljsq[itype][jtype]) {
           r6inv = r2inv * r2inv * r2inv;
@@ -230,7 +232,7 @@ void PairLJCutCoulMSMDielectric::compute(int eflag, int vflag)
         }
 
         if (eflag) {
-          if (rsq < cut_coulsq) {
+          if (rsq < cut_coulsq && rsq > EPSILON) {
             if (!ncoultablebits || rsq <= tabinnersq)
               ecoul = prefactor * 0.5 * (etmp + eps[j]) * egamma;
             else {
@@ -257,7 +259,7 @@ void PairLJCutCoulMSMDielectric::compute(int eflag, int vflag)
 
   if (force->kspace->scalar_pressure_flag && vflag) {
     for (i = 0; i < 3; i++) virial[i] += force->pair->eng_coul / 3.0;
-    for (int i = 0; i < nmax; i++) {
+    for (int i = 0; i < nmax_ftmp; i++) {
       f[i][0] += ftmp[i][0];
       f[i][1] += ftmp[i][1];
       f[i][2] += ftmp[i][2];

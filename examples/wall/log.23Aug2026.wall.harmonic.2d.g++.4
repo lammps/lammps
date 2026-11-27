@@ -1,0 +1,170 @@
+LAMMPS (4 Jul 2026 - Development - patch_4Jul2026-848-gd03be1b44b)
+  using 1 OpenMP thread(s) per MPI task
+# 2D LJ mixture with a single hard wall at xhi; solute more strongly repelled
+units          lj
+dimension      2
+boundary       p p p           # fixed in x,y; periodic in z (ignored in 2D)
+atom_style     atomic
+neigh_modify   delay 0 every 1
+
+variable       x equal 40
+variable       y equal 10
+variable       rho equal 0.6
+variable       t equal 1.0
+variable       rc equal 2.5
+
+# Wall parameters
+variable       eps_hard equal 5.0    # solute-wall strength
+variable       sigw     equal 1.0
+variable       inLen   equal ${x}/2.0
+variable       inLen   equal 40/2.0
+variable       wall_x_lo   equal ${x}/2.0-${inLen}/2.0
+variable       wall_x_lo   equal 40/2.0-${inLen}/2.0
+variable       wall_x_lo   equal 40/2.0-20/2.0
+variable       wall_x_hi   equal ${x}/2.0+${inLen}/2.0
+variable       wall_x_hi   equal 40/2.0+${inLen}/2.0
+variable       wall_x_hi   equal 40/2.0+20/2.0
+variable       rcw      equal 2.0
+
+# Problem setup
+lattice        sq2 ${rho}
+lattice        sq2 0.6
+Lattice spacing in x,y,z = 1.8257419 1.8257419 1.8257419
+region         simbox block 0 $x 0 $y -0.1 0.1
+region         simbox block 0 40 0 $y -0.1 0.1
+region         simbox block 0 40 0 10 -0.1 0.1
+
+create_box     2 simbox
+Created orthogonal box = (0 0 -0.18257419) to (73.029674 18.257419 0.18257419)
+  4 by 1 by 1 MPI processor grid
+create_atoms   1 box
+Created 800 atoms
+  using lattice units in orthogonal box = (0 0 -0.18257419) to (73.029674 18.257419 0.18257419)
+  create_atoms CPU = 0.000 seconds
+
+group          solvent type 1
+800 atoms in group solvent
+region         inVol block  ${wall_x_lo} ${wall_x_hi} 0 $y -0.1 0.1
+region         inVol block  10 ${wall_x_hi} 0 $y -0.1 0.1
+region         inVol block  10 30 0 $y -0.1 0.1
+region         inVol block  10 30 0 10 -0.1 0.1
+
+variable       safe_x_lo   equal ${wall_x_lo}+1.0
+variable       safe_x_lo   equal 10+1.0
+variable       safe_x_hi   equal ${wall_x_hi}-1.0
+variable       safe_x_hi   equal 30-1.0
+region         inVolSafe block  ${safe_x_lo} ${safe_x_hi} 0 $y -0.1 0.1
+region         inVolSafe block  11 ${safe_x_hi} 0 $y -0.1 0.1
+region         inVolSafe block  11 29 0 $y -0.1 0.1
+region         inVolSafe block  11 29 0 10 -0.1 0.1
+set            region inVolSafe type/fraction 2 0.5 12393   # 50% solute
+Setting atom values ...
+  186 settings made for type/fraction
+group          solute  type 2
+186 atoms in group solute
+
+mass           1 1.0
+mass           2 1.0
+
+pair_style     lj/cut ${rc}
+pair_style     lj/cut 2.5
+pair_coeff     1 1 1.0 1.0 ${rc}
+pair_coeff     1 1 1.0 1.0 2.5
+pair_coeff     1 2 1.0 1.0 ${rc}
+pair_coeff     1 2 1.0 1.0 2.5
+pair_coeff     2 2 1.0 1.0 ${rc}
+pair_coeff     2 2 1.0 1.0 2.5
+
+
+# Only one hard wall at xhi; no walls on xlo/ylo/yhi
+print "Setting up walls at xhi=${wall_x_hi} ; xlo=${wall_x_lo} with eps=${eps_hard} and rc=${rcw}"
+Setting up walls at xhi=30 ; xlo=10 with eps=5 and rc=2
+fix            w2 solute  wall/harmonic xlo ${wall_x_lo} ${eps_hard} ${sigw} ${rcw} xhi ${wall_x_hi} ${eps_hard} ${sigw} ${rcw} pbc yes
+fix            w2 solute  wall/harmonic xlo 10 ${eps_hard} ${sigw} ${rcw} xhi ${wall_x_hi} ${eps_hard} ${sigw} ${rcw} pbc yes
+fix            w2 solute  wall/harmonic xlo 10 5 ${sigw} ${rcw} xhi ${wall_x_hi} ${eps_hard} ${sigw} ${rcw} pbc yes
+fix            w2 solute  wall/harmonic xlo 10 5 1 ${rcw} xhi ${wall_x_hi} ${eps_hard} ${sigw} ${rcw} pbc yes
+fix            w2 solute  wall/harmonic xlo 10 5 1 2 xhi ${wall_x_hi} ${eps_hard} ${sigw} ${rcw} pbc yes
+fix            w2 solute  wall/harmonic xlo 10 5 1 2 xhi 30 ${eps_hard} ${sigw} ${rcw} pbc yes
+fix            w2 solute  wall/harmonic xlo 10 5 1 2 xhi 30 5 ${sigw} ${rcw} pbc yes
+fix            w2 solute  wall/harmonic xlo 10 5 1 2 xhi 30 5 1 ${rcw} pbc yes
+fix            w2 solute  wall/harmonic xlo 10 5 1 2 xhi 30 5 1 2 pbc yes
+
+# Integration
+velocity       all create ${t} 97287
+velocity       all create 1 97287
+fix            1 all nvt temp ${t} ${t} 0.1
+fix            1 all nvt temp 1 ${t} 0.1
+fix            1 all nvt temp 1 1 0.1
+
+# Output
+thermo         1000
+thermo_style   custom step temp etotal press f_w2[1]
+#dump           dmp all custom 5000 dump.wall.harmonic.2d id type x y vx vy
+#dump_modify    dmp sort id
+#dump               2 all image 5000 image.wall.harmonic.2d.*.jpg type type zoom 1.6 region inVol red frame 0.5
+
+timestep       0.01
+run            20000
+Generated 0 of 1 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 2.8
+  ghost atom cutoff = 2.8
+  binsize = 1.4, bins = 53 14 1
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cut, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/2d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 3.05 | 3.05 | 3.05 Mbytes
+   Step          Temp          TotEng         Press         f_w2[1]    
+         0   1             -0.56617       -1.535262      -0.0065346803 
+      1000   0.95837356    -0.6615154      0.90774896    -0.0053278543 
+      2000   0.96357433    -0.64740438     0.93106666    -0.0046455022 
+      3000   0.96675541    -0.62258115     1.0615362      0            
+      4000   0.93933916    -0.63244369     1.0708547      0            
+      5000   1.057901      -0.55664879     0.86828258    -0.013479113  
+      6000   1.016157      -0.56871541     1.1066475     -0.010385169  
+      7000   0.93804886    -0.6611353      0.8918929     -0.0046068521 
+      8000   0.99923605    -0.59682382     1.0336382      0            
+      9000   0.9523929     -0.66409456     0.87444067    -0.0011752381 
+     10000   0.99017856    -0.62334631     0.9471994     -0.0027764429 
+     11000   0.99898603    -0.59956089     1.1603022     -0.0040943923 
+     12000   0.96707163    -0.6118667      1.1679462     -0.0066238709 
+     13000   0.97802738    -0.63271862     1.0529252     -0.0016506656 
+     14000   1.0509896     -0.56524681     0.92964492    -0.0091446664 
+     15000   0.99313558    -0.61897808     1.002966      -0.0063956739 
+     16000   0.98037619    -0.57276401     1.2577289      0            
+     17000   1.0282236     -0.55732472     1.0549147     -0.0060130714 
+     18000   1.0123489     -0.62444247     1.0521807     -0.024312791  
+     19000   0.9854356     -0.62580459     0.99123381    -0.0098354427 
+     20000   1.0047774     -0.59511801     1.1155238     -0.0037947727 
+Loop time of 0.380534 on 4 procs for 20000 steps with 800 atoms
+
+Performance: 45409815.305 tau/day, 52557.657 timesteps/s, 42.046 Matom-step/s
+98.7% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.11696    | 0.12802    | 0.13874    |   2.6 | 33.64
+Neigh   | 0.091057   | 0.097443   | 0.10458    |   2.0 | 25.61
+Comm    | 0.062402   | 0.076088   | 0.089898   |   4.2 | 19.99
+Output  | 0.00010831 | 0.00011501 | 0.00013297 |   0.0 |  0.03
+Modify  | 0.054211   | 0.057751   | 0.061839   |   1.4 | 15.18
+Other   |            | 0.02112    |            |       |  5.55
+
+Nlocal:            200 ave         220 max         174 min
+Histogram: 1 0 0 1 0 0 0 0 1 1
+Nghost:         138.25 ave         148 max         126 min
+Histogram: 1 0 1 0 0 0 0 0 0 2
+Neighs:        1412.25 ave        1664 max        1063 min
+Histogram: 1 0 0 1 0 0 0 0 0 2
+
+Total # of neighbors = 5649
+Ave neighs/atom = 7.06125
+Neighbor list builds = 4449
+Dangerous builds = 0
+Total wall time: 0:00:00

@@ -302,8 +302,8 @@ FixMove::FixMove(LAMMPS *lmp, int narg, char **arg) :
   // register with Atom class
 
   FixMove::grow_arrays(atom->nmax);
-  atom->add_callback(Atom::GROW);
-  atom->add_callback(Atom::RESTART);
+  atom->add_callback(this, Atom::GROW);
+  atom->add_callback(this, Atom::RESTART);
 
   displace = velocity = nullptr;
 
@@ -409,8 +409,8 @@ FixMove::~FixMove()
 {
   // unregister callbacks to this fix from Atom class
 
-  atom->delete_callback(id, Atom::GROW);
-  atom->delete_callback(id, Atom::RESTART);
+  atom->delete_callback(this, Atom::GROW);
+  atom->delete_callback(this, Atom::RESTART);
 
   // delete locally stored arrays
 
@@ -768,8 +768,8 @@ void FixMove::initial_integrate(int /*vflag*/)
           if (omega_flag) {
             flag = 0;
             if (radius_flag && radius[i] > 0.0) flag = 1;
-            if (line_flag && line[i] >= 0.0) flag = 1;
-            if (tri_flag && tri[i] >= 0.0) flag = 1;
+            if (line_flag && line[i] >= 0) flag = 1;
+            if (tri_flag && tri[i] >= 0) flag = 1;
             if (flag) {
               omega[i][0] = omega_rotate * runit[0];
               omega[i][1] = omega_rotate * runit[1];
@@ -814,7 +814,7 @@ void FixMove::initial_integrate(int /*vflag*/)
 
           // theta for lines
 
-          if (theta_flag && line[i] >= 0.0) {
+          if (theta_flag && line[i] >= 0) {
             theta_new = fmod(toriginal[i] + arg, MY_2PI);
             avec_line->bonus[atom->line[i]].theta = theta_new;
           }
@@ -920,8 +920,8 @@ void FixMove::initial_integrate(int /*vflag*/)
           if (omega_flag) {
             flag = 0;
             if (radius_flag && radius[i] > 0.0) flag = 1;
-            if (line_flag && line[i] >= 0.0) flag = 1;
-            if (tri_flag && tri[i] >= 0.0) flag = 1;
+            if (line_flag && line[i] >= 0) flag = 1;
+            if (tri_flag && tri[i] >= 0) flag = 1;
             if (flag) {
               omega[i][0] = omega_rotate * runit[0];
               omega[i][1] = omega_rotate * runit[1];
@@ -966,7 +966,7 @@ void FixMove::initial_integrate(int /*vflag*/)
 
           // theta for lines
 
-          if (theta_flag && line[i] >= 0.0) {
+          if (theta_flag && line[i] >= 0) {
             theta_new = fmod(toriginal[i] + arg, MY_2PI);
             avec_line->bonus[atom->line[i]].theta = theta_new;
           }
@@ -1449,7 +1449,7 @@ void FixMove::set_arrays(int i)
 
       // theta for lines
 
-      if (theta_flag && line[i] >= 0.0) {
+      if (theta_flag && line[i] >= 0) {
         theta = avec_line->bonus[atom->line[i]].theta;
         toriginal[i] = theta - 0.0;    // NOTE: edit this line
       }
@@ -1515,7 +1515,7 @@ void FixMove::set_arrays(int i)
 
       // theta for lines
 
-      if (theta_flag && line[i] >= 0.0) {
+      if (theta_flag && line[i] >= 0) {
         theta = avec_line->bonus[atom->line[i]].theta;
         toriginal[i] = theta - 0.0;    // NOTE: edit this line
       }

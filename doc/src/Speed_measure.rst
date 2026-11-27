@@ -24,7 +24,8 @@ Factors affecting serial performance (in no specific order):
 * Compiler optimization: most of LAMMPS is written to be easy to modify
   and thus compiler optimization can speed up calculations. However, too
   aggressive compiler optimization can produce incorrect results or
-  crashes (during compilation or at runtime).
+  crashes (during compilation or at runtime).  See :doc:`Compiler optimization
+  <Speed_compiler>` for measured gains.
 * Source code improvements: styles in the OPT, OPENMP, and INTEL package
   can be faster than their base implementation due to improved data
   access patterns, cache efficiency, or vectorization. Compiler optimization
@@ -116,6 +117,12 @@ larger through replication in the three dimensions by settings variables
 "x", "y", "z" to values other than 1 from the command line with the
 "-var" flag. Example:
 
+.. only:: html
+
+   .. image:: JPG/speed-vs-size.png
+      :width: 60%
+      :align: right
+
 - 32000 atoms: 228.8 katom-step/s
 - 64000 atoms: 231.6 katom-step/s
 - 128000 atoms: 231.1 katom-step/s
@@ -141,6 +148,14 @@ DDR4-2400 memory channels) leads to a lower performance of approximately
 cases, when looking at multiple runs, the katom-step/s property
 fluctuates by approximately 1% around the average.
 
+.. only:: latex
+
+   .. image:: JPG/speed-vs-size.png
+      :width: 75%
+      :align: center
+
+------
+
 From here on we are looking at the performance for the 256000 atom system only
 and change several settings incrementally:
 
@@ -161,6 +176,15 @@ accurate force field settings causes, not unexpectedly, a significant
 slowdown (to about half the speed).  Finally, using regular Ewald
 summation causes a massive slowdown due to the bad algorithmic scaling
 with system size.
+
+.. image:: JPG/speed-vs-settings.png
+   :width: 75%
+   :align: center
+
+.. trick to add a little space
+.. only:: html
+
+   .. image:: JPG/empty.png
 
 Examples comparing parallel performance
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -202,6 +226,18 @@ to the communication overhead:
 - 32 MPI tasks: 5.970 Matom-step/s, :math:`P_{eff} = 69\%`
 - 64 MPI tasks: 7.477 Matom-step/s, :math:`P_{eff} = 42\%`
 - 128 MPI tasks: 8.069 Matom-step/s, :math:`P_{eff} = 23\%`
+
+.. figure:: JPG/speed-parallel-scaling.png
+   :figwidth: 70%
+   :align: center
+
+   Parallel scaling of the two data sets above on the AMD Ryzen
+   Threadripper PRO 9985WX: absolute performance compared to ideal
+   linear scaling (top, double-logarithmic scale) and the corresponding
+   parallel efficiency (bottom).  The smaller system drops off earlier
+   because its number of work units per MPI task is smaller relative to
+   the communication overhead; the 128-task data points use
+   hyper-threading (the CPU has 64 physical cores).
 
 Measuring performance of your input deck
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

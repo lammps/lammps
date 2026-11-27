@@ -37,7 +37,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairEffCut::PairEffCut(LAMMPS *lmp) : Pair(lmp)
+PairEffCut::PairEffCut(LAMMPS *lmp) : Pair(lmp), cut(nullptr)
 {
   single_enable = 0;
 
@@ -815,7 +815,11 @@ void PairEffCut::settings(int narg, char **arg)
     else if (strcmp(arg[iarg],"ecp") == 0) {
       iarg += 1;
       while (iarg < narg) {
+        if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "pair_style eff/cut ecp", error);
         atype = utils::inumeric(FLERR,arg[iarg],false,lmp);
+        if ((atype < 1) || (atype >= 100))
+          error->all(FLERR,iarg+1,"Invalid atom type {} for ecp keyword of pair style eff/cut",
+                     atype);
         if (strcmp(arg[iarg+1],"C") == 0) ecp_type[atype] = 6;
         else if (strcmp(arg[iarg+1],"N") == 0) ecp_type[atype] = 7;
         else if (strcmp(arg[iarg+1],"O") == 0) ecp_type[atype] = 8;
@@ -887,6 +891,9 @@ void PairEffCut::init_style()
 
   if (flagall && !ecp_found)
     error->all(FLERR,"Need to specify ECP type on pair_style command");
+  if (ecp_found && (atom->ntypes >= 100))
+    error->all(FLERR,Error::NOLASTLINE,
+               "Pair style eff/cut with ECP types supports only up to 99 atom types");
 
   // need a half neigh list
 
@@ -921,13 +928,18 @@ void PairEffCut::coeff(int narg, char **arg)
   } else {
     int ecp;
     ecp = utils::inumeric(FLERR,arg[0],false,lmp);
+    if ((ecp < 1) || (ecp > atom->ntypes) || (ecp >= 100))
+      error->all(FLERR,Error::ARGZERO,
+                 "Invalid atom type {} in pair_coeff command for pair style eff/cut",ecp);
     if (strcmp(arg[1],"s") == 0) {
+      if (narg < 5) utils::missing_cmd_args(FLERR, "pair_coeff s", error);
       PAULI_CORE_A[ecp_type[ecp]] = utils::numeric(FLERR,arg[2],false,lmp);
       PAULI_CORE_B[ecp_type[ecp]] = utils::numeric(FLERR,arg[3],false,lmp);
       PAULI_CORE_C[ecp_type[ecp]] = utils::numeric(FLERR,arg[4],false,lmp);
       PAULI_CORE_D[ecp_type[ecp]] = 0.0;
       PAULI_CORE_E[ecp_type[ecp]] = 0.0;
     } else if (strcmp(arg[1],"p") == 0) {
+      if (narg < 7) utils::missing_cmd_args(FLERR, "pair_coeff p", error);
       PAULI_CORE_A[ecp_type[ecp]] = utils::numeric(FLERR,arg[2],false,lmp);
       PAULI_CORE_B[ecp_type[ecp]] = utils::numeric(FLERR,arg[3],false,lmp);
       PAULI_CORE_C[ecp_type[ecp]] = utils::numeric(FLERR,arg[4],false,lmp);
@@ -997,6 +1009,15 @@ void PairEffCut::write_restart_settings(FILE *fp)
   fwrite(&cut_global,sizeof(double),1,fp);
   fwrite(&offset_flag,sizeof(int),1,fp);
   fwrite(&mix_flag,sizeof(int),1,fp);
+  fwrite(&limit_eradius_flag,sizeof(int),1,fp);
+  fwrite(&pressure_with_evirials_flag,sizeof(int),1,fp);
+  fwrite(&ecp_found,sizeof(int),1,fp);
+  fwrite(ecp_type,sizeof(int),100,fp);
+  fwrite(PAULI_CORE_A,sizeof(double),100,fp);
+  fwrite(PAULI_CORE_B,sizeof(double),100,fp);
+  fwrite(PAULI_CORE_C,sizeof(double),100,fp);
+  fwrite(PAULI_CORE_D,sizeof(double),100,fp);
+  fwrite(PAULI_CORE_E,sizeof(double),100,fp);
 }
 
 /* ----------------------------------------------------------------------
@@ -1009,10 +1030,38 @@ void PairEffCut::read_restart_settings(FILE *fp)
     utils::sfread(FLERR,&cut_global,sizeof(double),1,fp,nullptr,error);
     utils::sfread(FLERR,&offset_flag,sizeof(int),1,fp,nullptr,error);
     utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&limit_eradius_flag,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&pressure_with_evirials_flag,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&ecp_found,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,ecp_type,sizeof(int),100,fp,nullptr,error);
+    utils::sfread(FLERR,PAULI_CORE_A,sizeof(double),100,fp,nullptr,error);
+    utils::sfread(FLERR,PAULI_CORE_B,sizeof(double),100,fp,nullptr,error);
+    utils::sfread(FLERR,PAULI_CORE_C,sizeof(double),100,fp,nullptr,error);
+    utils::sfread(FLERR,PAULI_CORE_D,sizeof(double),100,fp,nullptr,error);
+    utils::sfread(FLERR,PAULI_CORE_E,sizeof(double),100,fp,nullptr,error);
   }
   MPI_Bcast(&cut_global,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&offset_flag,1,MPI_INT,0,world);
   MPI_Bcast(&mix_flag,1,MPI_INT,0,world);
+  MPI_Bcast(&limit_eradius_flag,1,MPI_INT,0,world);
+  MPI_Bcast(&pressure_with_evirials_flag,1,MPI_INT,0,world);
+  MPI_Bcast(&ecp_found,1,MPI_INT,0,world);
+  MPI_Bcast(ecp_type,100,MPI_INT,0,world);
+  MPI_Bcast(PAULI_CORE_A,100,MPI_DOUBLE,0,world);
+  MPI_Bcast(PAULI_CORE_B,100,MPI_DOUBLE,0,world);
+  MPI_Bcast(PAULI_CORE_C,100,MPI_DOUBLE,0,world);
+  MPI_Bcast(PAULI_CORE_D,100,MPI_DOUBLE,0,world);
+  MPI_Bcast(PAULI_CORE_E,100,MPI_DOUBLE,0,world);
+
+  // h2e and hhmss2e are derived from the unit system, same as in settings()
+
+  if (force->qqr2e==332.06371) {        // i.e. Real units chosen
+    h2e = 627.509;                      // hartree->kcal/mol
+    hhmss2e = 175.72044219620075;       // hartree->kcal/mol * (Bohr->Angstrom)^2
+  } else if (force->qqr2e==1.0) {        // electron units
+    h2e = 1.0;
+    hhmss2e = 1.0;
+  } else error->all(FLERR,"Check your units");
 }
 
 /* ----------------------------------------------------------------------

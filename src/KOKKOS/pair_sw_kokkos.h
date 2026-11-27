@@ -48,6 +48,8 @@ class PairSWKokkos : public PairSW {
   void coeff(int, char **) override;
   void init_style() override;
 
+  class TuneKokkos* tuner;
+
   template<int NEIGHFLAG, int EVFLAG>
 // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
@@ -98,9 +100,17 @@ class PairSWKokkos : public PairSW {
   KOKKOS_INLINE_FUNCTION
   void twobody(const Param&, const KK_FLOAT&, KK_FLOAT&, const int&, KK_FLOAT&) const;
 
+  struct ThreeBodyLeg {
+    KK_FLOAT r, rinvsq, gsrainvsq, expgsrainv;
+  };
+
 // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
-  void threebody_kk(const Param&, const Param&, const Param&, const KK_FLOAT&, const KK_FLOAT&, KK_FLOAT *, KK_FLOAT *,
+  bool threebody_leg(const Param&, const KK_FLOAT&, ThreeBodyLeg&) const;
+
+// NOLINTNEXTLINE
+  KOKKOS_INLINE_FUNCTION
+  void threebody_kk(const Param&, const ThreeBodyLeg&, const ThreeBodyLeg&, KK_FLOAT *, KK_FLOAT *,
                     KK_ACC_FLOAT *, KK_ACC_FLOAT *, const int&, KK_FLOAT&) const;
 
   typename AT::t_kkfloat_1d_3_lr_randomread x;

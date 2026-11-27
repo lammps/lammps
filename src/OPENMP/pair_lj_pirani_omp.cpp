@@ -25,6 +25,7 @@
 
 #include "omp_compat.h"
 using namespace LAMMPS_NS;
+using MathSpecial::powauto;
 using MathSpecial::square;
 
 /* ---------------------------------------------------------------------- */
@@ -136,7 +137,7 @@ void PairLJPiraniOMP::eval(int iifrom, int iito, ThrData *const thr)
         const double rx = r / rmi[jtype];
         const double n_x = alphai[jtype] * rx * rx + betai[jtype];
         const double pow_rx_n_x = pow(1.0 / rx, n_x);
-        const double pow_rx_gamma = pow(1.0 / rx, gammai[jtype]);
+        const double pow_rx_gamma = powauto(1.0 / rx, gammai[jtype]);
 
         double filj1 = -2.0 * alphai[jtype] * gammai[jtype] * rx * pow_rx_n_x /
             (square(n_x - gammai[jtype]) * rmi[jtype]);
@@ -168,8 +169,8 @@ void PairLJPiraniOMP::eval(int iifrom, int iito, ThrData *const thr)
         }
 
         if (EFLAG) {
-          double ilj1 = epsiloni[jtype] * gammai[jtype] * pow(1 / rx, n_x) / (n_x - gammai[jtype]);
-          double ilj2 = -epsiloni[jtype] * n_x * pow(1 / rx, gammai[jtype]) / (n_x - gammai[jtype]);
+          double ilj1 = epsiloni[jtype] * gammai[jtype] * pow_rx_n_x / (n_x - gammai[jtype]);
+          double ilj2 = -epsiloni[jtype] * n_x * pow_rx_gamma / (n_x - gammai[jtype]);
 
           evdwl = ilj1 + ilj2 - offseti[jtype];
           evdwl *= factor_lj;

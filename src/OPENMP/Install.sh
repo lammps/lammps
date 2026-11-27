@@ -43,6 +43,7 @@ for file in *_omp.h; do
 done
 
 action reaxff_omp.h reaxff_api.h
+action pair_body_rounded_polyhedron_omp_impl.h pair_body_rounded_polyhedron.h
 action thr_omp.h
 action thr_omp.cpp
 action thr_data.h

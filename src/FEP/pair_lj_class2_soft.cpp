@@ -30,7 +30,9 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-PairLJClass2Soft::PairLJClass2Soft(LAMMPS *lmp) : Pair(lmp)
+PairLJClass2Soft::PairLJClass2Soft(LAMMPS *lmp) :
+    Pair(lmp), cut(nullptr), epsilon(nullptr), sigma(nullptr), lambda(nullptr), lj1(nullptr),
+    lj2(nullptr), lj3(nullptr), offset(nullptr)
 {
   writedata = 1;
   centroidstressflag = CENTROID_SAME;
@@ -105,10 +107,10 @@ void PairLJClass2Soft::compute(int eflag, int vflag)
       jtype = type[j];
 
       if (rsq < cutsq[itype][jtype]) {
-        denlj = lj3[itype][jtype] + pow(rsq, 3) * pow(sigma[itype][jtype], -6.0);
         r4sig6 = rsq*rsq / lj2[itype][jtype];
+        denlj = lj3[itype][jtype] + rsq*r4sig6;
         forcelj = lj1[itype][jtype] * epsilon[itype][jtype] *
-            (18.0*r4sig6*pow(denlj, -2.5) - 18.0*r4sig6*pow(denlj, -2));
+          18.0*r4sig6*(1.0/sqrt(denlj) - 1.0)/(denlj*denlj);
         fpair = factor_lj*forcelj;
 
         f[i][0] += delx*fpair;
@@ -121,8 +123,7 @@ void PairLJClass2Soft::compute(int eflag, int vflag)
         }
 
         if (eflag) {
-          denlj = lj3[itype][jtype] + pow(rsq, 3) * pow(sigma[itype][jtype], -6.0);
-          evdwl = lj1[itype][jtype] * epsilon[itype][jtype] * (2.0/(denlj*sqrt(denlj)) - 3.0/denlj) -
+          evdwl = lj1[itype][jtype] * epsilon[itype][jtype] * (2.0/sqrt(denlj) - 3.0)/denlj -
             offset[itype][jtype];
           evdwl *= factor_lj;
         }
@@ -168,10 +169,18 @@ void PairLJClass2Soft::allocate()
 
 void PairLJClass2Soft::settings(int narg, char **arg)
 {
-  if (narg != 3) error->all(FLERR,"Illegal pair_style command");
+  if (narg < 3)
+    utils::missing_cmd_args(FLERR, "pair_style lj/class2/soft", error);
+  if (narg > 3)
+    error->all(FLERR, 4, "Too many arguments in pair_style lj/class2/soft command");
 
   nlambda = utils::numeric(FLERR,arg[0],false,lmp);
+  if (nlambda <= 0.0)
+    error->all(FLERR, 1, "Pair style lj/class2/soft requires n > 0, but n = {}", nlambda);
   alphalj = utils::numeric(FLERR,arg[1],false,lmp);
+  if (alphalj < 0.0)
+    error->all(FLERR, 2, "Pair style lj/class2/soft requires alpha_LJ >= 0, but alpha_LJ = {}",
+               alphalj);
 
   cut_global = utils::numeric(FLERR,arg[2],false,lmp);
 
@@ -412,13 +421,12 @@ double PairLJClass2Soft::single(int /*i*/, int /*j*/, int itype, int jtype, doub
     r4sig6 = rsq*rsq / lj2[itype][jtype];
     denlj = lj3[itype][jtype] + rsq*r4sig6;
     forcelj = lj1[itype][jtype] * epsilon[itype][jtype] *
-      (18.0*r4sig6/(denlj*denlj*sqrt(denlj)) - 18.0*r4sig6/(denlj*denlj));
+      18.0*r4sig6*(1.0/sqrt(denlj) - 1.0)/(denlj*denlj);
   } else forcelj = 0.0;
   fforce = factor_lj*forcelj;
 
   if (rsq < cutsq[itype][jtype]) {
-    denlj = lj3[itype][jtype] + rsq*rsq*rsq / lj2[itype][jtype];
-    philj = lj1[itype][jtype] * epsilon[itype][jtype] * (2.0/(denlj*sqrt(denlj)) - 3.0/denlj) -
+    philj = lj1[itype][jtype] * epsilon[itype][jtype] * (2.0/sqrt(denlj) - 3.0)/denlj -
       offset[itype][jtype];
   } else philj = 0.0;
 

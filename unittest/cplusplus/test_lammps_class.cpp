@@ -2,6 +2,7 @@
 
 #include "comm.h"
 #include "info.h"
+#include "library.h"
 
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
@@ -374,3 +375,22 @@ TEST(LAMMPS_init, NoOpenMP)
 }
 
 } // namespace LAMMPS_NS
+
+int main(int argc, char **argv)
+{
+    int flag;
+    MPI_Initialized(&flag);
+    if (!flag) MPI_Init(&argc, &argv);
+    ::testing::InitGoogleMock(&argc, argv);
+
+    int rv = RUN_ALL_TESTS();
+
+    // finalize the KOKKOS package explicitly so Kokkos is torn down here while
+    // the GPU device is still valid.  Otherwise it is finalized by static
+    // destructors at program exit, which on a GPU build abort in a fence call
+    // (the OpenMP host space cleanup issues a HIP fence on an invalid device).
+    lammps_kokkos_finalize();
+
+    MPI_Finalize();
+    return rv;
+}

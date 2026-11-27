@@ -1,7 +1,10 @@
 .. index:: fix damping/cundall
+.. index:: fix damping/cundall/kk
 
 fix damping/cundall command
 ===========================
+
+Accelerator Variants: *damping/cundall/kk*
 
 Syntax
 """"""
@@ -92,6 +95,10 @@ This non-viscous damping presents the following advantages:
    of the particles,
 #. damping parameter :math:`\gamma` is dimensionless and does not
    require scaling.
+
+----------
+
+.. include:: accel_styles.rst
 
 ----------
 

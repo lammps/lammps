@@ -67,14 +67,14 @@ non-granular particles and simpler wall geometries, respectively.
 
 Here are snapshots of example models using this command.  Corresponding
 input scripts can be found in examples/granregion.  Movies of these
-simulations are `here on the Movies page <https://www.lammps.org/movies.html#granregion>`_
-of the LAMMPS website.
+simulations are `here on the Movies page
+<https://www.lammps.org/examples/granregion/>`_ of the LAMMPS website.
 
-.. |wallgran1| image:: img/gran_funnel.png
-   :width: 48%
+.. |wallgran1| image:: img/gran_funnel.jpg
+   :width: 33%
 
-.. |wallgran2| image:: img/gran_mixer.png
-   :width: 48%
+.. |wallgran2| image:: img/gran_mixer.jpg
+   :width: 33%
 
 |wallgran1|  |wallgran2|
 
@@ -144,7 +144,7 @@ corresponding manner.
    they now "see" the wall.  In a worst-case scenario, this can blow
    particles out of the simulation box.  Thus, as a general rule you
    should not use the fix wall/gran/region command with *union* or
-   *interesect* regions that have convex points or edges resulting from
+   *intersect* regions that have convex points or edges resulting from
    the union/intersection (convex points/edges in the union/intersection
    due to a single sub-region are still OK).
 

@@ -1,0 +1,160 @@
+LAMMPS (30 Mar 2026 - Development - patch_30Mar2026-1174-g1dc81994e0)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread.
+  using 1 OpenMP thread(s) per MPI task
+units           real
+dimension       3
+boundary        p p p
+atom_style      atomic
+newton          on
+timestep        1.0
+
+region my_box block  0.000000 53.2587274361 0.000000 53.2587274361 0.000000 480
+create_box 1 my_box
+Created orthogonal box = (0 0 0) to (53.258727 53.258727 480)
+  1 by 1 by 4 MPI processor grid
+
+create_atoms 1 random 968 13427890 my_box overlap 2
+Created 968 atoms
+  using lattice units in orthogonal box = (0 0 0) to (53.258727 53.258727 480)
+  create_atoms CPU = 0.004 seconds
+
+mass 1 32.042
+
+velocity        all create 270 22345 dist gaussian loop geom
+
+pair_style     hybrid/overlay ldd lj/cut 14.0
+#pair_style     hybrid/overlay ldd table spline N
+
+pair_coeff      1 1 lj/cut 1 1
+# map atom type 1 to local-density species A (defined in the potential file)
+pair_coeff      * * ldd basic.ldd A
+
+neigh_modify    delay 5 every 1 check yes
+neighbor        2.0 bin
+thermo          1000
+
+# The per-atom local-density data computed by pair style ldd is made available
+# to the rest of LAMMPS through "fix pair".  The fields are local_density,
+# grad_density, energy, grad_energy (one column per species), and total_energy.
+# Here we pull the density and total LD energy of species A into a per-atom array
+# f_lddout (column 1 = local_density of A, column 2 = total_energy).
+# fix lddout all pair 1 ldd local_density 0 total_energy 0
+
+
+# Converting lammps real units to gmx/bocs units
+# Uncomment if want to use the print statements below
+# variable STEP equal step
+# variable TEMP equal temp
+# variable VOL equal vol/1000.0
+# variable PRESS equal press*1.01325
+
+## Set various fixes
+fix             1  all      nvt        temp       270  270 100.0 #iso 0.986 0.986 1000.0
+
+run_style       verlet
+
+# Printing various stats in gmx/bocs units
+# fix             print_temp all print 500 "${STEP} ${TEMP}" file temp.dat screen no
+# fix             print_vol all print 500 "${STEP} ${VOL}" file vol.dat screen no
+# fix             print_press all print 500 "${STEP} ${PRESS}" file press.dat screen no
+# fix           print_pv  all print 500 "${VOL} ${PRESS}" file PV.dat screen no
+
+## Dump the per-atom local-density quantities (needs the "fix lddout" above).
+# dump           2 all custom 1000 bocs_traj.lmp id x y z vx vy vz fx fy fz f_lddout[1] f_lddout[2]
+# dump_modify   2 sort id
+# dump_modify   2 colname f_lddout[1] lddens1
+# dump_modify   2 colname f_lddout[2] lddttlnrg
+
+
+# Write restart files to continue simulations
+# restart 100000 state1.restart state2.restart
+
+## Run for this many steps
+run 10000
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+
+- pair ldd command: doi:10.1063/1.5128665
+
+@Article{DeLyser1,
+ author = {Michael R. DeLyser and W. G. Noid},
+ title = {Analysis of local density potentials},
+ journal = {The journal of chemical physics},
+ year =    2019,
+ volume =  151,
+ pages =   {22:224106}
+}
+
+- pair ldd command gradient keyword: doi:10.1063/5.0075291
+
+@Article{DeLyser2,
+ author = {Michael R. DeLyser and W. G. Noid},
+ title = {Coarse-grained models for local density gradients},
+ journal = {The Journal of Chemical Physics},
+ year =    2021,
+ volume =  156,
+ pages =   {034106}
+}
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 5 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 16
+  ghost atom cutoff = 16
+  binsize = 8, bins = 7 7 60
+  2 neighbor lists, perpetual/occasional/extra = 2 0 0
+  (1) pair ldd, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d
+      bin: standard
+  (2) pair lj/cut, perpetual
+      attributes: half, newton on, cut 16
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 3.727 | 3.728 | 3.728 Mbytes
+   Step          Temp          E_pair         E_mol          TotEng         Press     
+         0   270            981.80184      0              1760.0615      26.091041    
+      1000   274.93768      979.89996      0              1772.3922      26.627102    
+      2000   254.83378      979.99056      0              1714.5345      24.471243    
+      3000   265.47478      975.34642      0              1740.5624      25.439746    
+      4000   264.2683       978.66253      0              1740.4009      25.276001    
+      5000   288.42135      978.29452      0              1809.6527      27.858734    
+      6000   274.71799      978.03568      0              1769.8947      26.57378     
+      7000   258.86116      975.6735       0              1721.8261      24.75314     
+      8000   272.44784      978.2168       0              1763.5322      26.321989    
+      9000   271.21603      979.35492      0              1761.1198      25.971615    
+     10000   257.50148      975.57214      0              1717.8056      24.464086    
+Loop time of 0.31423 on 4 procs for 10000 steps with 968 atoms
+
+Performance: 2749.574 ns/day, 0.009 hours/ns, 31823.778 timesteps/s, 30.805 Matom-step/s
+99.0% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.21316    | 0.22046    | 0.22791    |   1.5 | 70.16
+Neigh   | 0.012075   | 0.012834   | 0.013712   |   0.6 |  4.08
+Comm    | 0.037095   | 0.042597   | 0.048294   |   2.5 | 13.56
+Output  | 7.8933e-05 | 8.6506e-05 | 0.00010627 |   0.0 |  0.03
+Modify  | 0.026515   | 0.029828   | 0.031989   |   1.3 |  9.49
+Other   |            | 0.008423   |            |       |  2.68
+
+Nlocal:            242 ave         257 max         231 min
+Histogram: 1 1 0 0 0 1 0 0 0 1
+Nghost:         550.25 ave         569 max         531 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Neighs:           1509 ave        1676 max        1361 min
+Histogram: 1 0 1 0 0 0 1 0 0 1
+
+Total # of neighbors = 6036
+Ave neighs/atom = 6.2355372
+Neighbor list builds = 109
+Dangerous builds = 0
+Total wall time: 0:00:00

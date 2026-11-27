@@ -184,7 +184,6 @@ KOKKOS_IMPL_ACC_PRAGMA(parallel loop gang num_gangs(n_chunks) num_workers(1) vec
       }
       KOKKOS_IMPL_OPENACC_VECTOR_RED_TEMP_ACCESS1(thread_id) = temp;
     }
-#pragma acc loop seq
     for (tStep = (chunk_size >> 1); tStep > 0; tStep >>= 1) {
 #pragma acc loop vector
       for (IndexType thread_id = 0; thread_id < chunk_size; ++thread_id) {
@@ -217,13 +216,11 @@ KOKKOS_IMPL_ACC_PRAGMA(parallel num_gangs(1) num_workers(1) vector_length(chunk_
       IndexType idx;
       ValueType temp;
       temp = initVal;
-#pragma acc loop seq
       for (idx = thread_id; idx < n_chunks; idx += chunk_size) {
         reducer.join(&temp, &gang_red_temp(idx));
       }
       KOKKOS_IMPL_OPENACC_VECTOR_RED_TEMP_ACCESS2(thread_id) = temp;
     }
-#pragma acc loop seq
     for (tStep = (chunk_size >> 1); tStep > 0; tStep >>= 1) {
 #pragma acc loop vector
       for (IndexType thread_id = 0; thread_id < chunk_size; ++thread_id) {

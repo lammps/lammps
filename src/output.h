@@ -16,6 +16,8 @@
 
 #include "pointers.h"
 
+#include "creator_registry.h"
+
 #include <map>
 
 namespace LAMMPS_NS {
@@ -48,6 +50,8 @@ class Output : protected Pointers {
   char **var_dump;              // variable name for next dump (steps or sim time)
   int *ivar_dump;               // variable index of var_dump name
   Dump **dump;                  // list of defined Dumps
+  int nchanges;                 // # of changes to dumps (add, delete, modify)
+  int nchanges_at_init;         // value of nchanges at the last init()
 
   int restart_flag;               // 1 if any restart files are written
   int restart_flag_single;        // 1 if single restart files are written
@@ -68,8 +72,9 @@ class Output : protected Pointers {
   class WriteRestart *restart;    // class for writing restart files
 
   using DumpCreator = Dump *(*) (LAMMPS *, int, char **);
-  using DumpCreatorMap = std::map<std::string, DumpCreator>;
-  DumpCreatorMap *dump_map;
+
+  // global registry of dump style factory functions
+  static CreatorRegistry<DumpCreator> &dump_styles();
 
   MPI_Datatype createParticleStructType();
 
@@ -94,9 +99,11 @@ class Output : protected Pointers {
   }
 
   const std::vector<Dump *> &get_dump_list();    // get vector with all dumps
+  // true if dumps were added, deleted, or modified since the last init()
+  [[nodiscard]] bool changed_since_init() const { return nchanges != nchanges_at_init; }
   int check_time_dumps(bigint);                  // check if any time dump is output now
 
-  void set_thermo(int, char **);        // set thermo output freqquency
+  void set_thermo(int, char **);        // set thermo output frequency
   void create_thermo(int, char **);     // create a thermo style
   void create_restart(int, char **);    // create Restart and restart files
 

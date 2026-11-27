@@ -73,9 +73,6 @@ inline void check_flag(int error_flag, Error *error, MPI_Comm &world)
     else if (all_success == -7)
       error->all(FLERR, Error::NOLASTLINE,
                  "Accelerator sharing is not currently supported on system");
-    else if (all_success == -8)
-      error->all(FLERR, Error::NOLASTLINE,
-                 "GPU particle split must be set to 1 for this pair style.");
     else if (all_success == -9)
       error->all(FLERR, Error::NOLASTLINE,
                  "CPU neighbor lists must be used for ellipsoid/sphere mix.");
@@ -106,8 +103,7 @@ inline void check_flag(int error_flag, Error *error, MPI_Comm &world)
 
 inline void gpu_ready(LAMMPS_NS::Modify *modify, LAMMPS_NS::Error *error)
 {
-  int ifix = modify->find_fix("package_gpu");
-  if (ifix < 0)
+  if (!modify->get_fix_by_id("package_gpu"))
     error->all(FLERR, Error::NOLASTLINE, "The package gpu command is required for gpu styles");
 }
 }    // namespace GPU_EXTRA

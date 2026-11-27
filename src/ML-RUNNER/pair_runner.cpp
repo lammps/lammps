@@ -127,9 +127,9 @@ enum {
 int PairRuNNer::instances = 0;
 
 PairRuNNer::PairRuNNer(LAMMPS *lmp) :
-    Pair(lmp), map(nullptr), atomic_charge(nullptr), hirshfeld_volume(nullptr),
-    electronegativity(nullptr), lagrange_charges(nullptr), de_dq(nullptr), screening_de_dq(nullptr),
-    committee_storage(nullptr)
+    Pair(lmp), directory(nullptr), map(nullptr), atomic_charge(nullptr),
+    hirshfeld_volume(nullptr), electronegativity(nullptr), lagrange_charges(nullptr),
+    de_dq(nullptr), screening_de_dq(nullptr), committee_storage(nullptr)
 {
   // Sanity check: Prevent multiple instances due to static Fortran interface
   if (instances > 0) { error->all(FLERR, "Only one pair runner instance can be active at a time"); }
@@ -167,6 +167,23 @@ PairRuNNer::PairRuNNer(LAMMPS *lmp) :
   // variable for output using pair compute
   nextra = 0;
   pvector = nullptr;
+  nnp_generation = 0;
+  num_committee_members = 0;
+
+  // settings() and the RuNNer potential files assign these before use;
+  // mirror the settings() defaults so they never carry indeterminate values
+
+  cflength = cfenergy = 1.0;
+  luse_prev_q = false;
+  lwrite_f_comm = lwrite_q_comm = false;
+  lcheck_extrap = false;
+  max_extrap = 0;
+  lshow_ew = false;
+  sum_ew_freq = reset_ew_freq = 0;
+  cutoff = 0.0;
+  total_charge = 0.0;
+  lhirshfeld_vdw = false;
+  ltwo_body = false;
 
   if (atom->natoms > MAXSMALLINT / 4) error->all(FLERR, "Too many total atoms");
 }
@@ -424,7 +441,7 @@ void PairRuNNer::compute(int eflag, int vflag)
       // It is completely reallocated if the global
       // number of atoms changed. Otherwise, only the ordering
       // of atoms is updated.
-      runner_interface_reinitialize_electrostatics(&natoms, &xyz_global[0], z_global.data());
+      runner_interface_reinitialize_electrostatics(&natoms, xyz_global.data(), z_global.data());
     }
 
     if (nnp_generation == 3) {
@@ -448,7 +465,7 @@ void PairRuNNer::compute(int eflag, int vflag)
         if (rank == 0) {
           // Calculate long-range electrostatics on root using the global structure.
           runner_interface_evaluate_electrostatics_3g_part_1(
-              &natoms, &xyz_global[0], &total_charge, lattice, &lperiodic, &q_global[0],
+              &natoms, xyz_global.data(), &total_charge, lattice, &lperiodic, q_global.data(),
               &runner_elec_energy, elec_force_global.data(), de_dq_global.data(),
               runner_elec_d_energy_d_strain);
         }
@@ -712,7 +729,7 @@ void PairRuNNer::compute(int eflag, int vflag)
   for (i = 0; i < num_committee_members; i++) pvector[i] = committee_energy[i] / cfenergy;
 
   // Charges if charge atom style is used
-  if (q != NULL) {
+  if (q != nullptr) {
     // The q array does not seem to get reset to zero every timestep by LAMMPS
     memset(q, 0, nmax * (sizeof *q));
     for (ii = 0; ii < nall; ii++) {
@@ -727,7 +744,7 @@ void PairRuNNer::compute(int eflag, int vflag)
 
   // Virial is -1.0 * d_energy_d_strain
   if (vflag_global) {
-    memset(virial, 0, 9 * (sizeof *virial));
+    memset(virial, 0, 6 * (sizeof *virial));
     for (i = 0; i < num_committee_members; i++) {
       virial[0] -= committee_d_energy_d_strain[0 + 9 * i] / cfenergy / num_committee_members;
       virial[1] -= committee_d_energy_d_strain[4 + 9 * i] / cfenergy / num_committee_members;
@@ -1010,7 +1027,7 @@ void PairRuNNer::init_style()
   // Error checking for output by compute pair command
   if (nextra == num_committee_members) {
     // array for storing committee energies for output by compute pair command
-    if (pvector) delete[] pvector;
+    delete[] pvector;
     pvector = new double[nextra];
   } else {
     error->all(FLERR,
@@ -1053,7 +1070,7 @@ double PairRuNNer::init_one(int /*i*/, int /*j*/)
 communication between local and ghost atoms
 ------------------------------------------------------------------------- */
 
-int PairRuNNer::pack_forward_comm(int n, int *list, double *buf, int pbc_flag, int *pbc)
+int PairRuNNer::pack_forward_comm(int n, int *list, double *buf, int /*pbc_flag*/, int * /*pbc*/)
 {
   int i, j, m = 0;
 
@@ -1213,8 +1230,9 @@ void PairRuNNer::unpack_reverse_comm(int n, int *list, double *buf)
   }
 }
 
-void PairRuNNer::pack_structure(int rank, int size, int natoms, int inum, int *ilist, tagint *tag,
-                                double **x, int *runner_types, double *xyz_global, int *z_global)
+void PairRuNNer::pack_structure(int /*rank*/, int /*size*/, int natoms, int inum, int *ilist,
+                                tagint *tag, double **x, int *runner_types, double *xyz_global,
+                                int *z_global)
 {
   int i, ii;
   int start;
@@ -1261,7 +1279,7 @@ void PairRuNNer::pack_structure(int rank, int size, int natoms, int inum, int *i
   MPI_Reduce(z_local.data(), z_global, natoms, MPI_INT, MPI_SUM, 0, world);
 }
 
-void PairRuNNer::pack_atomic_property(int rank, int size, int natoms, int inum, int *ilist,
+void PairRuNNer::pack_atomic_property(int /*rank*/, int /*size*/, int natoms, int inum, int *ilist,
                                       tagint *tag, double *local_property, double *global_property)
 {
   int i, ii;
@@ -1286,7 +1304,7 @@ void PairRuNNer::pack_atomic_property(int rank, int size, int natoms, int inum, 
   MPI_Reduce(local_property_sorted.data(), global_property, natoms, MPI_DOUBLE, MPI_SUM, 0, world);
 }
 
-void PairRuNNer::unpack_local_atomic_properties(int rank, int size, int natoms, int inum,
+void PairRuNNer::unpack_local_atomic_properties(int /*rank*/, int /*size*/, int natoms, int inum,
                                                 int *ilist, tagint *tag, int nprop,
                                                 double *global_properties, double *local_properties)
 {
@@ -1307,4 +1325,15 @@ void PairRuNNer::unpack_local_atomic_properties(int rank, int size, int natoms, 
       local_properties[i * nprop + iprop] = global_properties[start + iprop];
     }
   }
+}
+
+/* ---------------------------------------------------------------------- */
+
+double PairRuNNer::memory_usage()
+{
+  double bytes = Pair::memory_usage();
+  // 7 per-atom double arrays: atomic_charge, hirshfeld_volume, electronegativity,
+  // lagrange_charges, de_dq, screening_de_dq, committee_storage
+  bytes += (double) nmax * 7 * sizeof(double);
+  return bytes;
 }

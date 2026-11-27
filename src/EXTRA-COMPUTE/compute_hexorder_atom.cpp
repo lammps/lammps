@@ -47,8 +47,7 @@ using namespace MathConst;
 /* ---------------------------------------------------------------------- */
 
 ComputeHexOrderAtom::ComputeHexOrderAtom(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg),
-  distsq(nullptr), nearest(nullptr), qnarray(nullptr)
+    Compute(lmp, narg, arg), list(nullptr), distsq(nullptr), nearest(nullptr), qnarray(nullptr)
 {
   if (narg < 3 ) error->all(FLERR,"Illegal compute hexorder/atom command");
 
@@ -98,6 +97,8 @@ ComputeHexOrderAtom::ComputeHexOrderAtom(LAMMPS *lmp, int narg, char **arg) :
 
 ComputeHexOrderAtom::~ComputeHexOrderAtom()
 {
+  if (copymode) return;
+
   memory->destroy(qnarray);
   memory->destroy(distsq);
   memory->destroy(nearest);
@@ -201,9 +202,10 @@ void ComputeHexOrderAtom::compute_peratom()
         }
       }
 
-      // if not nnn neighbors, order parameter = 0;
+      // if not nnn neighbors (or no neighbor at all with nnn = NULL),
+      // order parameter = 0;
 
-      if (ncount < nnn) {
+      if ((ncount < nnn) || (ncount == 0)) {
         qn[0] = qn[1] = 0.0;
         continue;
       }
@@ -229,15 +231,15 @@ void ComputeHexOrderAtom::compute_peratom()
         usum += u;
         vsum += v;
       }
-      qn[0] = usum/nnn;
-      qn[1] = vsum/nnn;
+      qn[0] = usum/ncount;
+      qn[1] = vsum/ncount;
     } else qn[0] = qn[1] = 0.0;
   }
 }
 
 // calculate order parameter using std::complex::pow function
 
-inline void ComputeHexOrderAtom::calc_qn_complex(double delx, double dely, double &u, double &v) {
+void ComputeHexOrderAtom::calc_qn_complex(double delx, double dely, double &u, double &v) {
   double rinv = 1.0/sqrt(delx*delx+dely*dely);
   double x = delx*rinv;
   double y = dely*rinv;
@@ -250,7 +252,7 @@ inline void ComputeHexOrderAtom::calc_qn_complex(double delx, double dely, doubl
 // calculate order parameter using trig functions
 // this is usually slower, but can be used if <complex> not available
 
-inline void ComputeHexOrderAtom::calc_qn_trig(double delx, double dely, double &u, double &v) {
+void ComputeHexOrderAtom::calc_qn_trig(double delx, double dely, double &u, double &v) {
   double ntheta;
   if (fabs(delx) <= MY_EPSILON) {
     if (dely > 0.0) ntheta = ndegree * MY_PI / 2.0;

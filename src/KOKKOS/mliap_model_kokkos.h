@@ -27,7 +27,7 @@ namespace LAMMPS_NS {
 template <class DeviceType> class MLIAPModelKokkos : protected Pointers {
  public:
   MLIAPModelKokkos(LAMMPS *lmp, MLIAPModel *model_in) : Pointers(lmp), model(model_in) {}
-  virtual ~MLIAPModelKokkos()
+  ~MLIAPModelKokkos() override
   {
     memoryKK->destroy_kokkos(k_coeffelem,model->coeffelem);
     model->coeffelem = nullptr;

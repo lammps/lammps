@@ -143,7 +143,7 @@ void NPairRespaBin<NEWTON, TRI>::build(NeighList *list)
           // Half neighbor list, newton on, triclinic
           // for triclinic, bin stencil is full in all 3 dims
           // must use itag/jtag to eliminate half the I/J interactions
-          // cannot use I/J exact coord comparision
+          // cannot use I/J exact coord comparison
           //   b/c transforming orthog -> lambda -> orthog for ghost atoms
           //   with an added PBC offset can shift all 3 coords by epsilon
           if (j <= i) continue;

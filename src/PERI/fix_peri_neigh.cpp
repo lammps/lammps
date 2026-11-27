@@ -31,6 +31,7 @@
 #include "lattice.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 #include <cmath>
 #include <cstring>
@@ -44,10 +45,11 @@ FixPeriNeigh::FixPeriNeigh(LAMMPS *lmp,int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
   isPMB = isLPS = isVES = isEPS = 0;
-  if (force->pair_match("peri/pmb",1)) isPMB = 1;
-  if (force->pair_match("peri/lps",1)) isLPS = 1;
-  if (force->pair_match("peri/ves",1)) isVES = 1;
-  if (force->pair_match("peri/eps",1)) isEPS = 1;
+  // use regex matches, so that accelerated variants (e.g. peri/lps/omp) are recognized
+  if (force->pair_match("^peri/pmb",0)) isPMB = 1;
+  if (force->pair_match("^peri/lps",0)) isLPS = 1;
+  if (force->pair_match("^peri/ves",0)) isVES = 1;
+  if (force->pair_match("^peri/eps",0)) isEPS = 1;
 
   restart_global = 1;
   restart_peratom = 1;
@@ -71,8 +73,8 @@ FixPeriNeigh::FixPeriNeigh(LAMMPS *lmp,int narg, char **arg) :
 
   FixPeriNeigh::grow_arrays(atom->nmax);
   memset(wvolume,0,atom->nmax*sizeof(double));
-  atom->add_callback(Atom::GROW);
-  atom->add_callback(Atom::RESTART);
+  atom->add_callback(this, Atom::GROW);
+  atom->add_callback(this, Atom::RESTART);
 
   // initialize npartner to 0 so atom migration is OK the 1st time
 
@@ -90,8 +92,8 @@ FixPeriNeigh::~FixPeriNeigh()
 {
   // unregister this fix so atom class doesn't invoke it any more
 
-  atom->delete_callback(id,Atom::GROW);
-  atom->delete_callback(id,Atom::RESTART);
+  atom->delete_callback(this, Atom::GROW);
+  atom->delete_callback(this, Atom::RESTART);
 
   // delete locally stored arrays
 
@@ -371,23 +373,14 @@ void FixPeriNeigh::setup(int /*vflag*/)
 
   // bond statistics
 
-  int n = 0;
+  bigint n = 0;
   for (i = 0; i < nlocal; i++) n += npartner[i];
-  int nall;
-  MPI_Allreduce(&n,&nall,1,MPI_INT,MPI_SUM,world);
+  bigint nall;
+  MPI_Allreduce(&n,&nall,1,MPI_LMP_BIGINT,MPI_SUM,world);
 
-  if (comm->me == 0) {
-    if (screen) {
-      fprintf(screen,"Peridynamic bonds:\n");
-      fprintf(screen,"  total # of bonds = %d\n",nall);
-      fprintf(screen,"  bonds/atom = %g\n",(double)nall/atom->natoms);
-    }
-    if (logfile) {
-      fprintf(logfile,"Peridynamic bonds:\n");
-      fprintf(logfile,"  total # of bonds = %d\n",nall);
-      fprintf(logfile,"  bonds/atom = %g\n",(double)nall/atom->natoms);
-    }
-  }
+  if (comm->me == 0)
+    utils::logmesg(lmp, "Peridynamic bonds:\n  total # of bonds = {}\n"
+                        "  bonds/atom = {:.6g}\n", nall, (double)nall/atom->natoms);
 }
 
 /* ----------------------------------------------------------------------

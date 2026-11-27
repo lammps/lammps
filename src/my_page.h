@@ -27,7 +27,8 @@ struct HyperOneCoeff {
   tagint tag;
 };
 
-template <class T> class MyPage {
+// aligned to 64 bytes, so that the per-thread pages in an array do not share cache lines
+template <class T> class alignas(64) MyPage {
  public:
   bigint ndatum;    // total # of stored datums
   int nchunk;       // total # of stored chunks

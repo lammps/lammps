@@ -243,7 +243,7 @@ void MakeLists()
       }
     }
 
-    if ((forcefield & FF_TYPE_CLASS2) & (total_no_angle_angles > 0)) {
+    if ((forcefield & FF_TYPE_CLASS2) && (total_no_angle_angles > 0)) {
 
       fprintf(stderr,"Angleangle Types\n");
       for (i=0; i < no_angleangle_types; i++) {

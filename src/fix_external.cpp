@@ -28,7 +28,7 @@ using namespace FixConst;
 /* ---------------------------------------------------------------------- */
 
 FixExternal::FixExternal(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), fexternal(nullptr), caller_vector(nullptr)
+    Fix(lmp, narg, arg), fexternal(nullptr), ptr_caller(nullptr), caller_vector(nullptr)
 {
   if (narg < 4) utils::missing_cmd_args(FLERR,"fix external",error);
 
@@ -63,7 +63,7 @@ FixExternal::FixExternal(LAMMPS *lmp, int narg, char **arg) :
   // register with Atom class
 
   FixExternal::grow_arrays(atom->nmax);
-  atom->add_callback(Atom::GROW);
+  atom->add_callback(this, Atom::GROW);
 
   user_energy = 0.0;
   memset(user_virial, 0, sizeof(user_virial));
@@ -82,7 +82,7 @@ FixExternal::~FixExternal()
 
   // unregister callbacks to this fix from Atom class
 
-  atom->delete_callback(id,Atom::GROW);
+  atom->delete_callback(this, Atom::GROW);
 
   memory->destroy(fexternal);
   delete[] caller_vector;

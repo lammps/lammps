@@ -1,0 +1,65 @@
+# pouring spheres into box made of triangles
+
+units           lj
+atom_style      sphere
+boundary        f f f
+dimension       3
+comm_modify     vel yes
+
+region          box block -7 7 -7 7 0 9 units box
+create_box      2 box   # simply for dump_modify to color lines = green
+
+pair_style      granular
+pair_coeff      * * hooke 4000.0 100.0 &
+                    tangential linear_history 1000.0 1.0 0.5 &
+                    damping mass_velocity
+
+neighbor        0.3 bin
+neigh_modify    delay 0 every 1 check yes
+
+molecule        tris surf.tri
+
+fix             20 all surface/global input mol tris &
+                model * * granular hooke 4000.0 100.0 &
+                    tangential linear_history 1000.0 1.0 0.5 &
+                    damping mass_velocity
+
+fix             2 all nve/sphere
+fix             3 all gravity 1.0 vector 0 0 -1
+
+region          slab block -2 2 -2 2 7 9 units box
+fix             ins all pour 100 1 4767548 vol 0.4 10 &
+                diam one 1.0 region slab ignore
+
+region          zcylinder cylinder z 0 0 7.0 INF INF units box
+fix             wall all wall/gran/region granular hooke 4000.0 100.0 &
+                         tangential linear_history 1000.0 1.0 0.5 &
+                         damping mass_velocity &
+                         region zcylinder
+
+timestep        0.005
+
+compute         1 all temp
+compute_modify  1 dynamic/dof yes
+
+compute         2 all temp/sphere
+compute_modify  2 dynamic/dof yes
+
+thermo          100
+thermo_style    custom step atoms temp c_1 c_2 press
+thermo_modify   lost ignore
+compute_modify  thermo_temp dynamic/dof yes
+
+#dump           viz all image 100 tri.gran.global-*.ppm type diameter &
+#                   size 800 600 zoom 1.5 shiny 0.4 fsaa yes view 70 10 box yes 0.025 &
+#                   region zcylinder white transparent 0.5 fix 20 const 1 0 
+#dump_modify    viz pad 6 acolor 1 orange boxcolor midnightblue backcolor black &
+#                   backcolor2 white lights 0.2 0.9 0.45 0.9 fcolor 20 silver ftrans 20 1 
+
+run             5000
+
+fix_modify      20 move * rotate 0 0 0 0 0 1 25
+run             5000
+
+fix_modify      20 move * none
+run             5000

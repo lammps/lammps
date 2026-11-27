@@ -1,5 +1,6 @@
 ---
 lammps_version: 17 Feb 2022
+tags: kokkos
 date_generated: Fri Mar 18 22:17:59 2022
 epsilon: 5e-12
 skip_tests:
@@ -11,6 +12,7 @@ post_commands: ! |
   fix move all nve
   fix test solute planeforce 0.2 -0.2 0.0
 input_file: in.fourmol
+input_coeffs: coeffs.fourmol
 natoms: 29
 run_pos: ! |2
     1 -2.6559250608948198e-01  2.4866251880687686e+00 -1.6684907821259493e-01

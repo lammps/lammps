@@ -46,6 +46,7 @@ class FixLambdaAPIP : public Fix {
   void write_restart(FILE *) override;
   void restart(char *) override;
   void *extract(const char *, int &) override;
+  double memory_usage() override;
 
  private:
   enum { FORWARD_MAX, FORWARD_TA };

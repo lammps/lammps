@@ -221,6 +221,10 @@ ComputeSnap::ComputeSnap(LAMMPS *lmp, int narg, char **arg) :
 
 ComputeSnap::~ComputeSnap()
 {
+  // the compute for the reference virial tensor exists only after init()
+
+  if (modify->get_compute_by_id(id_virial)) modify->delete_compute(id_virial);
+
   memory->destroy(snap);
   memory->destroy(snapall);
   memory->destroy(snap_peratom);
@@ -258,6 +262,8 @@ void ComputeSnap::init()
 
   // allocate memory for global array
 
+  memory->destroy(snap);
+  memory->destroy(snapall);
   memory->create(snap,size_array_rows,size_array_cols, "snap:snap");
   memory->create(snapall,size_array_rows,size_array_cols, "snap:snapall");
   array = snapall;
@@ -267,10 +273,11 @@ void ComputeSnap::init()
   c_pe = modify->get_compute_by_id("thermo_pe");
   if (!c_pe) error->all(FLERR,"compute thermo_pe does not exist.");
 
-  // add compute for global reference virial tensor
+  // add compute for global reference virial tensor, unless it exists from a previous run
 
-  id_virial = id + std::string("_press");
-  c_virial = modify->add_compute(id_virial + " all pressure NULL virial");
+  id_virial = id + std::string("_press") + std::to_string(instance_me);
+  c_virial = modify->get_compute_by_id(id_virial);
+  if (!c_virial) c_virial = modify->add_compute(id_virial + " all pressure NULL virial");
 }
 
 

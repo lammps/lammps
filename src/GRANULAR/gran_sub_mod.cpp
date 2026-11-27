@@ -41,6 +41,7 @@ GranSubMod::GranSubMod(class GranularModel *gm, LAMMPS *lmp) : Pointers(lmp)
   size_history = 0;
   history_index = 0;
   allow_cohesion = 1;
+  static_friction = 0;
   beyond_contact = 0;
   num_coeffs = 0;
   contact_radius_flag = 0;

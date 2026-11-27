@@ -62,8 +62,8 @@ int dlasq1_(integer *n, doublereal *d__, doublereal *e, doublereal *work, intege
         d__1 = sigmx, d__2 = d__[i__];
         sigmx = max(d__1, d__2);
     }
-    eps = dlamch_((char *)"Precision", (ftnlen)9);
-    safmin = dlamch_((char *)"Safe minimum", (ftnlen)12);
+    eps = dlamch_((char *)"P", (ftnlen)1);
+    safmin = dlamch_((char *)"S", (ftnlen)1);
     scale = sqrt(eps / safmin);
     dcopy_(n, &d__[1], &c__1, &work[1], &c__2);
     i__1 = *n - 1;

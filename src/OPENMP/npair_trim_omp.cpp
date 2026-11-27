@@ -29,25 +29,29 @@ NPairTrimOmp::NPairTrimOmp(LAMMPS *lmp) : NPair(lmp) {}
 
 /* ----------------------------------------------------------------------
    trim from copy list to shorter cutoff
+   if ghost, also trim the neighbors of ghost atoms and set inum,gnum
 ------------------------------------------------------------------------- */
 
 void NPairTrimOmp::build(NeighList *list)
 {
   const int inum_copy = list->listcopy->inum;
+  const int gnum_copy = list->listcopy->gnum;
+  const int inum_trim = list->ghost ? inum_copy + gnum_copy : inum_copy;
   int overflow = 0;
 
   NPAIR_OMP_INIT;
 
 #if defined(_OPENMP)
-#pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(list) reduction(+:overflow)
+#pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(list,fix_package_omp) reduction(+:overflow)
 #endif
-  NPAIR_OMP_SETUP(inum_copy);
+  NPAIR_OMP_SETUP(inum_trim);
 
-  int i, j, ii, jj, n, jnum, joriginal;
+  int i, j, ii, jj, n, jnum, joriginal, itype, jtype;
   int *neighptr, *jlist;
   double xtmp, ytmp, ztmp, delx, dely, delz, rsq;
 
   double **x = atom->x;
+  int *type = atom->type;
 
   int *ilist = list->ilist;
   int *numneigh = list->numneigh;
@@ -72,6 +76,7 @@ void NPairTrimOmp::build(NeighList *list)
     // loop over parent copy list
 
     i = ilist_copy[ii];
+    itype = type[i];
     xtmp = x[i][0];
     ytmp = x[i][1];
     ztmp = x[i][2];
@@ -82,6 +87,7 @@ void NPairTrimOmp::build(NeighList *list)
     for (jj = 0; jj < jnum; jj++) {
       joriginal = jlist[jj];
       j = joriginal & NEIGHMASK;
+      jtype = type[j];
 
       // trim to shorter cutoff
 
@@ -90,7 +96,8 @@ void NPairTrimOmp::build(NeighList *list)
       delz = ztmp - x[j][2];
       rsq = delx * delx + dely * dely + delz * delz;
 
-      if (rsq > cutsq_custom) continue;
+      double cutsq_trim = (cutsq_custom > 0.0) ? cutsq_custom : cutneighsq[itype][jtype];
+      if (rsq > cutsq_trim) continue;
 
       neighptr[n++] = joriginal;
     }
@@ -111,4 +118,5 @@ void NPairTrimOmp::build(NeighList *list)
                "Neighbor list overflow, boost neigh_modify one" + utils::errorurl(36));
 
   list->inum = inum_copy;
+  list->gnum = gnum_copy;
 }

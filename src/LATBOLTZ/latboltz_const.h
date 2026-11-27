@@ -15,8 +15,11 @@
 #define LMP_LATBOLTZ_CONST_H
 
 #include "math_const.h"
+
+// NOLINTBEGIN
 using LAMMPS_NS::MathConst::MY_ISQRT2;
 using LAMMPS_NS::MathConst::MY_SQRT2;
+// NOLINTEND
 
 static constexpr double kappa_lb = 0.0;
 

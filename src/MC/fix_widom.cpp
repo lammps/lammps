@@ -406,6 +406,14 @@ void FixWidom::pre_exchange()
 
   ave_widom_chemical_potential = 0.0;
 
+  if (triclinic) domain->x2lamda(atom->nlocal);
+  domain->pbc();
+  if (domain->box_change) {
+    domain->reset_box();
+    comm->setup();
+    if (neighbor->style) neighbor->setup_bins();
+  }
+
   xlo = domain->boxlo[0];
   xhi = domain->boxhi[0];
   ylo = domain->boxlo[1];
@@ -423,8 +431,6 @@ void FixWidom::pre_exchange()
   if (region) volume = region_volume;
   else volume = domain->xprd * domain->yprd * domain->zprd;
 
-  if (triclinic) domain->x2lamda(atom->nlocal);
-  domain->pbc();
   comm->exchange();
   atom->nghost = 0;
   comm->borders();

@@ -407,23 +407,10 @@ void FixAtomSwap::pre_exchange()
   mc_active = 1;
 
   // ensure current system is ready to compute energy
-  // Refresh box-dependent communication and bins before exchanging atoms.
-  // For a triclinic shrink-wrapped box, save the bounds used as input to
-  // reset_box() so Verlet can recompute the bounds from the same geometry.
-
-  bool restore_shrink_box = false;
-  double saved_boxlo[3], saved_boxhi[3];
 
   if (domain->triclinic) domain->x2lamda(atom->nlocal);
   domain->pbc();
   if (domain->box_change) {
-    if (domain->nonperiodic == 2 && domain->triclinic) {
-      for (int d = 0; d < 3; d++) {
-        saved_boxlo[d] = domain->boxlo[d];
-        saved_boxhi[d] = domain->boxhi[d];
-      }
-      restore_shrink_box = true;
-    }
     domain->reset_box();
     comm->setup();
     if (neighbor->style) neighbor->setup_bins();
@@ -456,19 +443,6 @@ void FixAtomSwap::pre_exchange()
   nswap_successes += nsuccess;
 
   next_reneighbor = update->ntimestep + nevery;
-
-  // Owned and ghost atom coordinates are already Cartesian (lamda2x above).
-  // Restore the incoming shrink-wrap bounds so later PRE_EXCHANGE fixes and
-  // Verlet's subsequent reset_box() see the same box as without fix atom/swap.
-
-  if (restore_shrink_box) {
-    for (int d = 0; d < 3; d++) {
-      domain->boxlo[d] = saved_boxlo[d];
-      domain->boxhi[d] = saved_boxhi[d];
-    }
-    domain->set_global_box();
-    domain->set_local_box();
-  }
 
   mc_active = 0;
 

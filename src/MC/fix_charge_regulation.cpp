@@ -298,6 +298,15 @@ void FixChargeRegulation::init() {
 void FixChargeRegulation::pre_exchange() {
 
   if (next_reneighbor != update->ntimestep) return;
+
+  if (triclinic) domain->x2lamda(atom->nlocal);
+  domain->pbc();
+  if (domain->box_change) {
+    domain->reset_box();
+    comm->setup();
+    if (neighbor->style) neighbor->setup_bins();
+  }
+
   xlo = domain->boxlo[0];
   xhi = domain->boxhi[0];
   ylo = domain->boxlo[1];
@@ -313,8 +322,7 @@ void FixChargeRegulation::pre_exchange() {
     subhi = domain->subhi;
   }
   volume = domain->xprd * domain->yprd * domain->zprd;
-  if (triclinic) domain->x2lamda(atom->nlocal);
-  domain->pbc();
+
   comm->exchange();
   atom->nghost = 0;
   comm->borders();

@@ -303,10 +303,10 @@ target_link_libraries(test_input_validation PRIVATE lammps GTest::GMock)
 add_test(NAME InputValidation COMMAND test_input_validation)
 add_kokkos_test(NAME InputValidation COMMAND test_input_validation)
 
-# Regression tests for fix atom/swap with changing boxes.
+# Regression tests for MC pre_exchange fixes with changing boxes.
 if(PKG_MC)
-  add_executable(test_fix_atom_swap test_fix_atom_swap.cpp)
-  target_link_libraries(test_fix_atom_swap PRIVATE lammps GTest::GMock)
-  add_test(NAME FixAtomSwap COMMAND test_fix_atom_swap)
-  add_mpi_test(NAME FixAtomSwapMPI NUM_PROCS 4 COMMAND $<TARGET_FILE:test_fix_atom_swap>)
+  add_executable(test_mc_box_change test_mc_box_change.cpp)
+  target_link_libraries(test_mc_box_change PRIVATE lammps GTest::GMock)
+  add_test(NAME MCBoxChange COMMAND test_mc_box_change)
+  add_mpi_test(NAME MCBoxChangeMPI NUM_PROCS 4 COMMAND $<TARGET_FILE:test_mc_box_change>)
 endif()
